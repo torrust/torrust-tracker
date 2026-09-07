@@ -6,9 +6,9 @@ priority: p2
 epic: null
 github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
-branch: "2151-add-tracker-config-path-argument-spec"
-related-pr: null
-last-updated-utc: 2026-09-07 10:30
+branch: "2151-add-tracker-config-path-argument"
+related-pr: 2153
+last-updated-utc: 2026-09-07 11:45
 semantic-links:
   skill-links:
     - create-issue
@@ -302,7 +302,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                               | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                      |
 | --- | ------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Establish baseline source behavior | Add/refine configuration-package tests (using `figment::Jail`) that pin the existing complete-TOML, path-variable, override, mandatory-value, default, missing-file, and relative-path behavior before changing it. Follow the `write-unit-test` skill.                                                                                                                                                      |
+| T1  | DONE   | Establish baseline source behavior | Added `figment::Jail` tests for all four existing no-CLI base-source rows, a path-source override, missing-file mandatory-option result, and parent-directory search. `cargo test --package torrust-tracker-configuration` passed (118 tests).                                                                                                                                                               |
 | T2  | TODO   | Introduce typed source selection   | Refactor `Info` or an equivalent source type to accept an optional explicit file path (`PathBuf`/`Utf8PathBuf`) without reading CLI state in the configuration package. Validate the CLI path as an exact readable file before loading it, while preserving the existing environment-path semantics. Preserve existing callers.                                                                              |
 | T3  | TODO   | Define the CLI boundary            | Use the existing `clap` dependency to parse `-c` / `--config-toml-path` **without** the `env` attribute. Keep parsing separate from configuration loading. Test short and long forms, missing value, unknown argument, and help output; assert exit code `2` for usage errors per the CLI output contract.                                                                                                   |
 | T4  | TODO   | Wire startup and precedence        | Pass the parsed path through `app::start`, `bootstrap::app::setup`, and `initialize_configuration`. Implement CLI-path precedence without environment mutation. Add focused branch coverage.                                                                                                                                                                                                                 |
@@ -323,7 +323,7 @@ are the deployable feature; later tasks extend verification and documentation.
 - [x] Folder-style spec drafted and moved to `docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue [#2151](https://github.com/torrust/torrust-tracker/issues/2151) created and issue number added to this spec
-- [ ] (Optional, recommended for this cross-cutting issue) Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR [#2153](https://github.com/torrust/torrust-tracker/pull/2153) merged into `develop` before implementation
 - [ ] First passing CLI-only vertical slice reviewed for ownership, cleanup, deadline, and ADR decisions
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -343,6 +343,9 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-07 10:05 UTC - Maintainer / GitHub Copilot - Confirmed precedence: argument > `TORRUST_TRACKER_CONFIG_TOML` > `TORRUST_TRACKER_CONFIG_TOML_PATH` > default; overrides always merge on top. Added a dedicated "Proposed Source Precedence" section with the eight-row selection table and tied T1/T4/AC2/AC3 to it.
 - 2026-09-07 10:10 UTC - GitHub Copilot - Created GitHub issue [#2151](https://github.com/torrust/torrust-tracker/issues/2151) after maintainer approval. This spec will move to `docs/issues/open/2151-add-tracker-config-path-argument/`.
 - 2026-09-07 10:30 UTC - GitHub Copilot - Moved the approved specification to this open-issue folder and prepared the spec-only delivery branch. Source-level issue markers are deferred to the implementation branch so the specification PR changes only `docs/issues/`.
+- 2026-09-07 11:21 UTC - GitHub - Merged spec-only PR [#2153](https://github.com/torrust/torrust-tracker/pull/2153) into `develop` (merge commit `796c8157`).
+- 2026-09-07 11:25 UTC - GitHub Copilot - Created implementation branch `2151-add-tracker-config-path-argument` from the merged `torrust/develop` baseline. Started T1 baseline source-behavior analysis.
+- 2026-09-07 11:45 UTC - GitHub Copilot - Completed T1. Added deterministic `Info::new` to `Configuration::load` regression tests using `figment::Jail` with cleared environment state. Verified complete-TOML, path, and default base-source selection; path-source override precedence; the missing-file `MissingMandatoryOption` result; and relative environment-path parent search. `cargo test --package torrust-tracker-configuration` passed (118 tests); `cargo fmt --check` and `git diff --check` passed.
 
 ## Acceptance Criteria
 

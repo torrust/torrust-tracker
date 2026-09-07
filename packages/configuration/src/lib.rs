@@ -181,6 +181,196 @@ impl Info {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use std::net::SocketAddr;
+
+    use figment::Jail;
+
+    use super::{ENV_VAR_CONFIG_TOML, ENV_VAR_CONFIG_TOML_PATH, Error, Info};
+    use crate::v3_0_0::Configuration;
+
+    const MANDATORY_CONFIGURATION: &str = r#"
+        [metadata]
+        schema_version = "3.0.0"
+
+        [logging]
+        trace_filter = "info"
+
+        [core]
+        listed = false
+        private = false
+    "#;
+
+    fn configuration_with_health_check_port(port: u16) -> String {
+        format!(
+            r#"
+                {MANDATORY_CONFIGURATION}
+
+                [health_check_api]
+                bind_address = "127.0.0.1:{port}"
+            "#
+        )
+    }
+
+    fn load_configuration(default_path: &str) -> Result<Configuration, Error> {
+        let info = Info::new(default_path.to_owned())?;
+
+        Configuration::load(&info)
+    }
+
+    fn health_check_address(port: u16) -> SocketAddr {
+        format!("127.0.0.1:{port}")
+            .parse()
+            .expect("test health-check address should parse")
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_complete_toml_when_complete_toml_and_path_environment_sources_are_set() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path_configuration = configuration_with_health_check_port(41001);
+            jail.create_file("path.toml", &path_configuration)?;
+            jail.set_env(ENV_VAR_CONFIG_TOML, configuration_with_health_check_port(41002));
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "path.toml");
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("complete TOML source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41002));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_complete_toml_when_only_complete_toml_environment_source_is_set() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.set_env(ENV_VAR_CONFIG_TOML, configuration_with_health_check_port(41003));
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("complete TOML source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41003));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_the_path_file_when_only_path_environment_source_is_set() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path_configuration = configuration_with_health_check_port(41004);
+            jail.create_file("path.toml", &path_configuration)?;
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "path.toml");
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("path environment source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41004));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_the_given_default_file_when_no_environment_base_source_is_set() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let default_configuration = configuration_with_health_check_port(41005);
+            jail.create_file("default.toml", &default_configuration)?;
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("default source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41005));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_apply_an_environment_override_to_a_path_environment_source() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path_configuration = configuration_with_health_check_port(41006);
+            jail.create_file("path.toml", &path_configuration)?;
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "path.toml");
+            jail.set_env(
+                "TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS",
+                "127.0.0.1:41007",
+            );
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("path environment source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41007));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_report_the_first_mandatory_option_when_the_path_environment_file_is_missing() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "missing.toml");
+
+            // Act
+            let result = load_configuration("default.toml");
+
+            // Assert
+            assert!(matches!(
+                result,
+                Err(Error::MissingMandatoryOption { path }) if path == "metadata.schema_version"
+            ));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_search_parent_directories_for_a_relative_path_environment_source() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let parent_configuration = configuration_with_health_check_port(41008);
+            jail.create_file("tracker.toml", &parent_configuration)?;
+            jail.create_dir("child")?;
+            jail.change_dir("child")?;
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "tracker.toml");
+
+            // Act
+            let configuration = load_configuration("default.toml").expect("parent-directory source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41008));
+
+            Ok(())
+        });
+    }
+}
+
 /// Announce policy for the `BitTorrent` announce cycle.
 ///
 /// **Deprecated**: import from [`torrust_tracker_primitives::AnnouncePolicy`] instead.
