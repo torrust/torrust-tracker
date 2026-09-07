@@ -14,7 +14,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
-use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_http_server::Version;
@@ -23,6 +22,8 @@ use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
+
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, NestedServerTask};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -59,7 +60,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     version: Version,
     cancellation_token: CancellationToken,
-) -> Result<Option<JoinHandle<()>>, Error> {
+) -> Result<Option<impl Future<Output = ComponentResult> + Send + 'static>, Error> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
 
     tracing::info!(
@@ -96,7 +97,7 @@ async fn start_v1(
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     cancellation_token: CancellationToken,
-) -> Result<JoinHandle<()>, Error> {
+) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
@@ -106,29 +107,31 @@ async fn start_v1(
     .await
     .map_err(|source| Error::Listener { source })?;
 
-    Ok(tokio::spawn(async move {
+    Ok(async move {
         assert!(
             !server.state.halt_task.is_closed(),
             "Halt channel for HTTP tracker should be open"
         );
-        let torrust_tracker_axum_http_server::server::Running { halt_task, mut task, .. } = server.state;
+        let torrust_tracker_axum_http_server::server::Running { halt_task, task, .. } = server.state;
+        let mut server_task = NestedServerTask::new(halt_task, task);
 
         tokio::select! {
             () = cancellation_token.cancelled() => {
-                if halt_task.send(torrust_server_lib::signals::Halted::Normal).is_err() {
-                    tracing::warn!("Could not signal HTTP tracker to stop after cancellation");
+                if server_task.signal_shutdown().is_err() {
+                    return Err(ComponentError::new("could not signal HTTP tracker to stop after cancellation"));
                 }
-                if let Err(error) = (&mut task).await {
-                    tracing::warn!(%error, "Could not join HTTP tracker after cancellation");
-                }
+                server_task
+                    .join()
+                    .await
+                    .map_err(|error| ComponentError::new(format!("HTTP tracker failed while stopping: {error}")))?;
+                Ok(ComponentCompletion::Cancelled)
             }
-            result = &mut task => {
-                if let Err(error) = result {
-                    tracing::warn!(%error, "HTTP tracker task failed");
-                }
+            result = server_task.join() => {
+                result.map_err(|error| ComponentError::new(format!("HTTP tracker runtime task failed: {error}")))?;
+                Ok(ComponentCompletion::Completed)
             }
         }
-    }))
+    })
 }
 
 #[cfg(test)]
@@ -176,16 +179,26 @@ mod tests {
 
         let version = Version::V1;
 
-        // Act / Assert
-        start_job(
+        // Act
+        let cancellation_token = CancellationToken::new();
+        let job = start_job(
             http_tracker_container,
             Registar::default().give_form(),
             RuntimeServiceMetadata::new(configuration_instance_id),
             version,
-            CancellationToken::new(),
+            cancellation_token.clone(),
         )
         .await
-        .expect("it should be able to start the HTTP tracker");
+        .expect("it should be able to start the HTTP tracker")
+        .expect("V1 should return an HTTP tracker runner");
+
+        let job = tokio::spawn(job);
+        cancellation_token.cancel();
+
+        // Assert
+        job.await
+            .expect("HTTP tracker should stop without panicking")
+            .expect("HTTP tracker runner should report a successful cooperative cancellation");
     }
 
     #[tokio::test]

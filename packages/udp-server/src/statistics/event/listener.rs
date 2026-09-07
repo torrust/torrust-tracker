@@ -5,6 +5,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
+use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
@@ -21,14 +22,22 @@ pub fn run_event_listener(
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
 ) -> JoinHandle<()> {
     let repository_clone = repository.clone();
-
-    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener");
-
     tokio::spawn(async move {
-        dispatch_events(receiver, cancellation_token, repository_clone, metrics_policy).await;
+        let _ = run_event_listener_unspawned(receiver, cancellation_token, repository_clone, metrics_policy).await;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker server event listener finished");
     })
+}
+
+/// Runs the listener without spawning so a caller can retain task ownership.
+pub async fn run_event_listener_unspawned(
+    receiver: Receiver,
+    cancellation_token: CancellationToken,
+    stats_repository: Arc<Repository>,
+    metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
+) -> Completion {
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener");
+    dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy).await
 }
 
 async fn dispatch_events(
@@ -36,7 +45,7 @@ async fn dispatch_events(
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
-) {
+) -> Completion {
     // issue: #2039
     // Only this aggregate metrics consumer filters disabled listeners. The
     // banning listener receives the same unfiltered objective event stream.
@@ -46,12 +55,12 @@ async fn dispatch_events(
 
             () = cancellation_token.cancelled() => {
                 log_cancellation();
-                break;
+                return Completion::Cancelled;
             }
 
             result = receiver.recv() => {
                 if !handle_received_event(result, &stats_repository, &metrics_policy).await {
-                    break;
+                    return Completion::Completed;
                 }
             }
         }

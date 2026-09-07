@@ -89,6 +89,29 @@ to await the already-spawned task before it could enter `JoinSet`. Aborting
 that wrapper could detach the real component, violating the supervisor's
 ownership and escalation requirements.
 
+### Compatibility boundary: pre-spawned periodic jobs
+
+The periodic-job token migrations proposed by SI-4/SI-5 are explicitly out of
+scope for this issue. Their existing starter and Ctrl-C behavior remains
+unchanged. Their already-spawned handles remain registered, joined, and
+escalated by `JobManager` through a narrow compatibility registry, rather than
+through `JoinSet`. `JoinSet` cannot adopt a pre-spawned `JoinHandle` without
+the forbidden wrapper task. This exception is limited to torrent cleanup,
+activity metrics, and UDP ban cleanup; direct `JoinSet` ownership applies to
+component runners that can return the explicit result contract below. These
+transitional legacy jobs share the same process-wide deadline as direct
+components and are expected to leave the registry when SI-4/SI-5 migrate their
+periodic-job cancellation and startup APIs.
+
+### Explicit component result contract
+
+Every direct component runner registered by `src/app.rs` returns
+`ComponentResult`: `Completed`, `Cancelled`, or a `ComponentError` with failure
+context. `JobManager` maps those component-reported outcomes directly, while
+task panics and deadline-triggered aborts remain supervisor-owned outcomes.
+In particular, it must not derive `Cancelled` merely because the shared
+`CancellationToken` was cancelled.
+
 ### Deadline escalation outcome
 
 When the single process-wide deadline expires, `JobManager` must deliberately
@@ -105,22 +128,24 @@ own nested children before it completes.
 ## Acceptance Criteria
 
 - [x] Re-evaluate `JoinSet` against the selected cancellation-tree architecture
-  and record whether it is adopted or rejected with rationale.
-- [ ] Adopt a `spawn(name, future)` registration API and migrate all existing
-  `push` / `push_opt` callers so direct top-level component futures enter
-  `JoinSet` without wrapper tasks.
-- [ ] Job/component names remain available for completed, failed, panicked,
+      and record whether it is adopted or rejected with rationale.
+- [x] Adopt a `spawn(name, future)` registration API for direct component
+      runners so they enter `JoinSet` without wrapper tasks. Existing periodic
+      job starters remain outside this issue's scope.
+- [x] Job/component names remain available for completed, failed, panicked,
       timed-out, cancelled, and deliberately aborted outcomes.
-- [ ] Supervisor waiting observes components concurrently under the configured
+- [x] Supervisor waiting observes components concurrently under the configured
       process-wide deadline; it is not a sequential per-job timeout loop.
-- [ ] Components still own and join or deliberately abort their nested tasks;
-      `JobManager` does not collect those child handles.
-- [ ] Tasks remaining after cooperative shutdown are deliberately aborted,
-  joined, and reported as named `Aborted` outcomes; none are silently
-  detached.
-- [ ] Focused deterministic tests cover completion order, panic/failure,
+- [x] Direct components still own and join or deliberately abort their nested
+      tasks; `JobManager` does not collect those child handles.
+- [x] Tasks remaining after cooperative shutdown are deliberately aborted,
+      joined, and reported as named `Aborted` outcomes; none are silently
+      detached.
+- [x] Focused deterministic tests cover completion order, panic/failure,
       deadline expiry, cancellation, and escalation behavior.
-- [ ] `linter all` passes.
+- [x] Server component runners use drop-safe cleanup so deadline-aborting an
+      outer component cannot detach its nested server task or running future.
+- [x] `linter all` passes.
 
 ## Dependencies
 

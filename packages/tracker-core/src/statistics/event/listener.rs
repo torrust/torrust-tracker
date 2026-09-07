@@ -4,6 +4,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
+use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_swarm_coordination_registry::event::receiver::Receiver;
 
 use super::handler::{handle_in_memory_event, handle_persistent_completed_statistics_event};
@@ -18,10 +19,8 @@ pub fn run_in_memory_event_listener(
     repository: &Arc<Repository>,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
-    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core in-memory statistics event listener");
-
     tokio::spawn(async move {
-        dispatch_in_memory_events(receiver, cancellation_token, stats_repository).await;
+        let _ = run_in_memory_event_listener_unspawned(receiver, cancellation_token, stats_repository).await;
 
         tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Tracker core in-memory statistics event listener finished");
     })
@@ -36,10 +35,8 @@ pub fn run_persistent_completed_statistics_event_listener(
 ) -> JoinHandle<()> {
     let db_downloads_metric_repository = db_downloads_metric_repository.clone();
     let stats_repository = repository.clone();
-    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core persistent completed statistics event listener");
-
     tokio::spawn(async move {
-        dispatch_persistent_completed_statistics_events(
+        let _ = run_persistent_completed_statistics_event_listener_unspawned(
             receiver,
             cancellation_token,
             db_downloads_metric_repository,
@@ -51,23 +48,50 @@ pub fn run_persistent_completed_statistics_event_listener(
     })
 }
 
+/// Runs the in-memory listener without spawning so a caller can retain task ownership.
+pub async fn run_in_memory_event_listener_unspawned(
+    receiver: Receiver,
+    cancellation_token: CancellationToken,
+    stats_repository: Arc<Repository>,
+) -> Completion {
+    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core in-memory statistics event listener");
+    dispatch_in_memory_events(receiver, cancellation_token, stats_repository).await
+}
+
+/// Runs the persistent-statistics listener without spawning so a caller can retain task ownership.
+pub async fn run_persistent_completed_statistics_event_listener_unspawned(
+    receiver: Receiver,
+    cancellation_token: CancellationToken,
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
+    stats_repository: Arc<Repository>,
+) -> Completion {
+    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core persistent completed statistics event listener");
+    dispatch_persistent_completed_statistics_events(
+        receiver,
+        cancellation_token,
+        db_downloads_metric_repository,
+        stats_repository,
+    )
+    .await
+}
+
 async fn dispatch_in_memory_events(
     mut receiver: Receiver,
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
-) {
+) -> Completion {
     loop {
         tokio::select! {
             biased;
 
             () = cancellation_token.cancelled() => {
                 tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, shutting down tracker core event listener.");
-                break;
+                return Completion::Cancelled;
             }
 
             result = receiver.recv() => {
                 if !handle_in_memory_receive_result(result, &stats_repository).await {
-                    break;
+                    return Completion::Completed;
                 }
             }
         }
@@ -79,14 +103,14 @@ async fn dispatch_persistent_completed_statistics_events(
     cancellation_token: CancellationToken,
     db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     stats_repository: Arc<Repository>,
-) {
+) -> Completion {
     loop {
         tokio::select! {
             biased;
 
             () = cancellation_token.cancelled() => {
                 tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, shutting down tracker core persistent completed statistics event listener.");
-                break;
+                return Completion::Cancelled;
             }
 
             result = receiver.recv() => {
@@ -95,7 +119,7 @@ async fn dispatch_persistent_completed_statistics_events(
                     &db_downloads_metric_repository,
                     &stats_repository,
                 ).await {
-                    break;
+                    return Completion::Completed;
                 }
             }
         }

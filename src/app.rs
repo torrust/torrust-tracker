@@ -21,6 +21,7 @@
 //! - UDP trackers: the user can enable multiple UDP tracker on several ports.
 //! - HTTP trackers: the user can enable multiple HTTP tracker on several ports.
 //! - Tracker REST API: the tracker API can be enabled/disabled.
+use std::future::Future;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -33,7 +34,7 @@ use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use tracing::instrument;
 
 use crate::CurrentClock;
-use crate::bootstrap::jobs::manager::JobManager;
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager};
 use crate::bootstrap::jobs::{
     self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
@@ -227,10 +228,11 @@ fn start_swarm_coordination_registry_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    job_manager.push_opt(
-        "swarm_coordination_registry_event_listener",
-        jobs::torrent_repository::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
-    );
+    if let Some(runner) =
+        jobs::torrent_repository::run_event_listener(config, app_container, job_manager.new_cancellation_token())
+    {
+        job_manager.spawn("swarm_coordination_registry_event_listener", component_runner(runner));
+    }
 }
 
 fn start_tracker_core_in_memory_event_listener(
@@ -238,10 +240,11 @@ fn start_tracker_core_in_memory_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    job_manager.push_opt(
-        "tracker_core_in_memory_event_listener",
-        jobs::tracker_core::start_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token()),
-    );
+    if let Some(runner) =
+        jobs::tracker_core::run_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token())
+    {
+        job_manager.spawn("tracker_core_in_memory_event_listener", component_runner(runner));
+    }
 }
 
 fn start_tracker_core_persistent_completed_statistics_event_listener(
@@ -249,29 +252,41 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
-    let listener = jobs::tracker_core::start_persistent_completed_statistics_event_listener(
+    if let Some(runner) = jobs::tracker_core::run_persistent_completed_statistics_event_listener(
         config,
         app_container,
         job_manager.new_cancellation_token(),
     )
-    .map_err(|_| Error::PersistentStatisticsRequirePersistence)?;
-
-    job_manager.push_opt("tracker_core_persistent_completed_statistics_event_listener", listener);
+    .map_err(|_| Error::PersistentStatisticsRequirePersistence)?
+    {
+        job_manager.spawn(
+            "tracker_core_persistent_completed_statistics_event_listener",
+            component_runner(runner),
+        );
+    }
 
     Ok(())
 }
 
 fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.push_opt(
+    job_manager.spawn(
         "http_core_event_listener",
-        jobs::http_tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
+        component_runner(jobs::http_tracker_core::run_event_listener(
+            config,
+            app_container,
+            job_manager.new_cancellation_token(),
+        )),
     );
 }
 
 fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.push_opt(
+    job_manager.spawn(
         "udp_core_event_listener",
-        jobs::udp_tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
+        component_runner(jobs::udp_tracker_core::run_event_listener(
+            config,
+            app_container,
+            job_manager.new_cancellation_token(),
+        )),
     );
 }
 
@@ -318,21 +333,28 @@ fn start_udp_server_stats_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    job_manager.push_opt(
+    job_manager.spawn(
         "udp_server_stats_event_listener",
-        jobs::udp_tracker_server::start_stats_event_listener(config, app_container, job_manager.new_cancellation_token()),
+        component_runner(jobs::udp_tracker_server::run_stats_event_listener(
+            config,
+            app_container,
+            job_manager.new_cancellation_token(),
+        )),
     );
 }
 
 fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.push(
+    job_manager.spawn(
         "udp_server_banning_event_listener",
-        jobs::udp_tracker_server::start_banning_event_listener(app_container, job_manager.new_cancellation_token()),
+        component_runner(jobs::udp_tracker_server::run_banning_event_listener(
+            app_container,
+            job_manager.new_cancellation_token(),
+        )),
     );
 }
 
 fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.push(
+    job_manager.register_legacy(
         "udp_ban_cleanup",
         jobs::udp_tracker_server::start_ban_cleanup_job(
             config.udp_tracker_server.ip_bans_reset_interval_in_secs.get(),
@@ -340,6 +362,13 @@ fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppCont
             job_manager.new_cancellation_token(),
         ),
     );
+}
+
+async fn component_runner(runner: impl Future<Output = torrust_tracker_events::shutdown::Completion>) -> ComponentResult {
+    Ok(match runner.await {
+        torrust_tracker_events::shutdown::Completion::Completed => ComponentCompletion::Completed,
+        torrust_tracker_events::shutdown::Completion::Cancelled => ComponentCompletion::Cancelled,
+    })
 }
 
 async fn start_the_udp_instances(
@@ -377,7 +406,7 @@ async fn start_udp_instance(
             })?;
     let udp_tracker_server_container = app_container.udp_tracker_server_container();
 
-    let handle = udp_tracker::start_job(
+    let runner = udp_tracker::start_job(
         udp_tracker_container,
         udp_tracker_server_container,
         app_container.registar.give_form(),
@@ -392,7 +421,7 @@ async fn start_udp_instance(
         source: Box::new(source),
     })?;
 
-    job_manager.push(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), handle);
+    job_manager.spawn(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), runner);
     Ok(())
 }
 
@@ -436,7 +465,7 @@ async fn start_http_instance(
                 source,
             })?;
 
-    if let Some(handle) = http_tracker::start_job(
+    if let Some(runner) = http_tracker::start_job(
         http_tracker_container,
         app_container.registar.give_form(),
         RuntimeServiceMetadata::new(configuration_instance_id)
@@ -449,7 +478,7 @@ async fn start_http_instance(
         service: "HTTP tracker",
         source: Box::new(source),
     })? {
-        job_manager.push(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), handle);
+        job_manager.spawn(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), runner);
     }
     Ok(())
 }
@@ -463,7 +492,7 @@ async fn start_the_http_api(
         let http_api_config = Arc::new(http_api_config.clone());
         let http_api_container = app_container.tracker_http_api_container(&http_api_config);
 
-        if let Some(job) = tracker_apis::start_job(
+        if let Some(runner) = tracker_apis::start_job(
             http_api_container,
             app_container.registar.give_form(),
             RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0))
@@ -476,7 +505,7 @@ async fn start_the_http_api(
             service: "tracker API",
             source: Box::new(source),
         })? {
-            job_manager.push("http_api", job);
+            job_manager.spawn("http_api", runner);
         }
     } else {
         tracing::info!("No API block in configuration");
@@ -486,17 +515,19 @@ async fn start_the_http_api(
 
 fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.inactive_peer_cleanup_interval > 0 {
-        let handle = torrent_cleanup::start_job(&config.core, &app_container.tracker_core_container.torrents_manager);
-
-        job_manager.push("torrent_cleanup", handle);
+        job_manager.register_legacy(
+            "torrent_cleanup",
+            torrent_cleanup::start_job(&config.core, &app_container.tracker_core_container.torrents_manager),
+        );
     }
 }
 
 fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.tracker_usage_statistics {
-        let handle = activity_metrics_updater::start_job(config, app_container);
-
-        job_manager.push("peers_inactivity_update", handle);
+        job_manager.register_legacy(
+            "peers_inactivity_update",
+            activity_metrics_updater::start_job(config, app_container),
+        );
     } else {
         tracing::info!("Peers inactivity update job is disabled.");
     }
@@ -507,7 +538,7 @@ async fn start_health_check_api(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
-    let handle = health_check_api::start_job(
+    let runner = health_check_api::start_job(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
         job_manager.new_cancellation_token(),
@@ -518,7 +549,7 @@ async fn start_health_check_api(
         source: Box::new(source),
     })?;
 
-    job_manager.push("health_check_api", handle);
+    job_manager.spawn("health_check_api", runner);
     Ok(())
 }
 
@@ -534,7 +565,6 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
     use super::{Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services};
-    use crate::bootstrap::jobs::tracker_core;
     use crate::container::AppContainer;
 
     #[test]
@@ -588,14 +618,18 @@ mod tests {
         );
         let cancellation_token = CancellationToken::new();
 
-        let listener = tracker_core::start_in_memory_event_listener(&configuration, &app_container, cancellation_token.clone())
-            .expect("tracker usage statistics must start the in-memory listener");
+        let listener = torrust_tracker_core::statistics::event::listener::run_in_memory_event_listener_unspawned(
+            app_container.swarm_coordination_registry_container.event_bus.receiver(),
+            cancellation_token.clone(),
+            app_container.tracker_core_container.stats_repository.clone(),
+        );
 
         cancellation_token.cancel();
-        tokio::time::timeout(Duration::from_secs(1), listener)
+        let completion = tokio::time::timeout(Duration::from_secs(1), listener)
             .await
-            .expect("in-memory listener should stop after cancellation")
-            .expect("in-memory listener should not panic");
+            .expect("in-memory listener should stop after cancellation");
+
+        assert_eq!(completion, torrust_tracker_events::shutdown::Completion::Cancelled);
     }
 
     #[tokio::test]

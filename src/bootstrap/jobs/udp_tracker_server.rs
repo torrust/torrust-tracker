@@ -6,45 +6,48 @@ use tokio::task::JoinHandle;
 use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
 
 use crate::container::AppContainer;
 
-#[must_use]
+/// Returns an unspawned statistics listener for application-level supervision.
 // issue: #2039
 // The shared metrics listener filters aggregate updates by immutable listener
 // policy. It must not control event publication, because banning consumes the
 // same stream independently.
-pub fn start_stats_event_listener(
+pub fn run_stats_event_listener(
     _config: &Configuration,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
-) -> Option<JoinHandle<()>> {
+) -> impl Future<Output = Completion> + Send + 'static {
     let metrics_policy = app_container
         .udp_tracker_instance_containers
         .iter()
         .map(|(id, container)| (*id, container.udp_tracker_config.tracker_usage_statistics))
         .collect::<BTreeMap<_, _>>();
-    let job = torrust_tracker_udp_server::statistics::event::listener::run_event_listener(
+    torrust_tracker_udp_server::statistics::event::listener::run_event_listener_unspawned(
         app_container.udp_tracker_server_container.event_bus.receiver(),
         cancellation_token,
-        &app_container.udp_tracker_server_container.stats_repository,
+        app_container.udp_tracker_server_container.stats_repository.clone(),
         metrics_policy,
-    );
-    Some(job)
+    )
 }
 
-#[must_use]
+/// Returns an unspawned banning listener for application-level supervision.
 // issue: #2039
 // Banning intentionally receives every UDP-server fact; it never applies the
-// per-listener metrics policy used by `start_stats_event_listener`.
-pub fn start_banning_event_listener(app_container: &Arc<AppContainer>, cancellation_token: CancellationToken) -> JoinHandle<()> {
-    torrust_tracker_udp_server::banning::event::listener::run_event_listener(
+// per-listener metrics policy used by `run_stats_event_listener`.
+pub fn run_banning_event_listener(
+    app_container: &Arc<AppContainer>,
+    cancellation_token: CancellationToken,
+) -> impl Future<Output = Completion> + Send + 'static {
+    torrust_tracker_udp_server::banning::event::listener::run_event_listener_unspawned(
         app_container.udp_tracker_server_container.event_bus.receiver(),
         cancellation_token,
-        &app_container.udp_tracker_core_services.ban_service,
-        &app_container.udp_tracker_server_container.stats_repository,
+        app_container.udp_tracker_core_services.ban_service.clone(),
+        app_container.udp_tracker_server_container.stats_repository.clone(),
     )
 }
 
