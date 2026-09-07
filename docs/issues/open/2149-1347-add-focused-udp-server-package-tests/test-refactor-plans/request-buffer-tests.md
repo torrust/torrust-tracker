@@ -111,7 +111,7 @@ mapped commit point—before beginning the next item.
 
 ### R2 — Assess and document oldest-first bounded eviction
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / medium effort
 - **Addresses:** P2, P5
 - **Change:** Use the deterministic oldest-pending/later-completed scenario to assess the current
@@ -129,16 +129,21 @@ mapped commit point—before beginning the next item.
 
 ### R3 — Cover active-task eviction at capacity
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** High impact / medium effort
 - **Addresses:** P3, P5
 - **Change:** Add a deterministic full-buffer test in which every tracked task remains pending;
   insert one more pending task, assert `force_push` returns `true`, and observe cancellation of the
-  oldest selected task.
+  oldest selected task. Use a file-local `FullBufferWithPendingTasks` scenario fixture so the
+  Arrange section names the causal full-buffer state while the test retains the visible `force_push`
+  Act and eviction assertion.
 - **Guardrails:** Assert only the normal-operation eviction contract. Do not establish a task
-  drain, deadline, join, shutdown metric, or graceful-shutdown policy.
-- **Done when:** the test demonstrates exactly one required capacity eviction and keeps the new
-  task's lifecycle cleanup explicit.
+  drain, deadline, join, shutdown metric, or graceful-shutdown policy. The fixture may create and
+  clean up tasks, but it must not call `force_push`, decide the expected result, or hide the
+  eviction assertion. Keep it specialized to this full-pending-buffer scenario; do not generalize
+  it into a builder or shared test factory.
+- **Done when:** the test demonstrates exactly one required capacity eviction, names the full
+  pending-buffer state in Arrange, and keeps the Act and eviction assertion visible.
 
 ### R4 — Cover drop cleanup for active work
 
@@ -173,8 +178,8 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
-- [ ] R2 assessment, ADR, and source-comment clarification committed independently.
-- [ ] Maintainer approved implementation of R3.
+- [x] R2 assessment, ADR, and source-comment clarification committed independently.
+- [x] Maintainer approved implementation of R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R4.
 - [ ] R4 implemented, reviewed, validated, and committed.
@@ -209,6 +214,13 @@ mapped commit point—before beginning the next item.
   finished-handle-cleanup refactor due to a performance regression. A package-local ADR and source
   comment clarification record this decision. The unsupported bug handoff and failing test snapshot
   were removed.
+- 2026-09-07 15:32 UTC - User/maintainer - Approved a deterministic R3 test for the documented
+  oldest-first eviction policy. The test must fill the buffer with pending tasks, prove that one
+  oldest task is aborted to admit the new task, and clean up every retained task explicitly.
+- 2026-09-07 15:35 UTC - User/maintainer - Approved refactoring R3's complex Arrange section into
+  a file-local `FullBufferWithPendingTasks` scenario fixture before completing the test increment.
+  The fixture may own setup and cleanup mechanics only; the test retains the `force_push` Act and
+  observable eviction assertion.
 
 ### Validation Evidence
 
@@ -216,8 +228,8 @@ mapped commit point—before beginning the next item.
 | ------------------ | ------ | ----------------------------------------------------------- |
 | Plan documentation | TODO   | Run Markdown and spelling checks after plan review changes. |
 | R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
-| R2                 | IN_PROGRESS | History review, package ADR, and production comments record the intentional oldest-first bounded policy; the independent documentation commit is pending. |
-| R3                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
+| R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
+| R3                 | IN_PROGRESS | Focused request-buffer test, formatting, and diff checks.   |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 
