@@ -97,7 +97,7 @@ mapped commit point—before beginning the next item.
 
 ### R1 — Cover insertion while capacity is available
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one deterministic unit test that inserts a pending task handle into an empty
@@ -163,7 +163,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 1 findings reviewed against current code and issue coverage evidence.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R3.
@@ -186,13 +186,16 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 11:27 UTC - User/maintainer - Approved R1 as a test-only increment and required the
   accumulated issue planning, test-plan, and performance-evidence changes to be committed before
   test implementation begins.
+- 2026-09-07 11:43 UTC - User/maintainer - Reviewed and approved R1. The increment adds one
+  deterministic capacity-available contract without production changes, sleeps, polling, or a
+  performance-baseline requirement.
 
 ### Validation Evidence
 
 | Increment          | Status | Evidence                                                    |
 | ------------------ | ------ | ----------------------------------------------------------- |
 | Plan documentation | TODO   | Run Markdown and spelling checks after plan review changes. |
-| R1                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
+| R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
 | R2                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R3                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
