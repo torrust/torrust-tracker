@@ -65,8 +65,9 @@ names the earlier conclusion.
 
 If persistence applies, update verified issue checkboxes first, then record the acceptance-criteria
 matrix, repository-convention findings, completion-review finding, issue-spec updates, overall
-result, and remediation for every `FAIL` or `PENDING` item. Do not commit the report or ask
-Committer to proceed when the result is `REVIEW FAILED`.
+result, and remediation for every `FAIL` or `PENDING` item. Do not commit the report. Do not ask
+Committer to proceed with an implementation commit when the result is `REVIEW FAILED`; the caller
+may request a focused documentation commit to preserve the failed report as durable evidence.
 
 Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request
 worktree, the caller requests Committer to include it in the coherent reviewed change set or create
