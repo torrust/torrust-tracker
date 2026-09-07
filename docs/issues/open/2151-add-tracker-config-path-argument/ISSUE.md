@@ -31,7 +31,9 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
-# Issue [#2151](https://github.com/torrust/torrust-tracker/issues/2151) - Add a Configuration-File Path Argument to the Tracker Executable
+<!-- skill-link: create-issue -->
+
+# Issue #2151 - Add a Configuration-File Path Argument to the Tracker Executable
 
 ## Goal
 
@@ -300,7 +302,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                               | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                      |
 | --- | ------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Establish baseline source behavior | Add/refine configuration-package tests (using `figment::Jail`) that pin the existing complete-TOML, path-variable, override, mandatory-value, default, missing-file, and relative-path behaviour before changing it. Follow the `write-unit-test` skill.                                                                                                                                                     |
+| T1  | TODO   | Establish baseline source behavior | Add/refine configuration-package tests (using `figment::Jail`) that pin the existing complete-TOML, path-variable, override, mandatory-value, default, missing-file, and relative-path behavior before changing it. Follow the `write-unit-test` skill.                                                                                                                                                      |
 | T2  | TODO   | Introduce typed source selection   | Refactor `Info` or an equivalent source type to accept an optional explicit file path (`PathBuf`/`Utf8PathBuf`) without reading CLI state in the configuration package. Validate the CLI path as an exact readable file before loading it, while preserving the existing environment-path semantics. Preserve existing callers.                                                                              |
 | T3  | TODO   | Define the CLI boundary            | Use the existing `clap` dependency to parse `-c` / `--config-toml-path` **without** the `env` attribute. Keep parsing separate from configuration loading. Test short and long forms, missing value, unknown argument, and help output; assert exit code `2` for usage errors per the CLI output contract.                                                                                                   |
 | T4  | TODO   | Wire startup and precedence        | Pass the parsed path through `app::start`, `bootstrap::app::setup`, and `initialize_configuration`. Implement CLI-path precedence without environment mutation. Add focused branch coverage.                                                                                                                                                                                                                 |
