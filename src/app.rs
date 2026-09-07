@@ -22,6 +22,7 @@
 //! - HTTP trackers: the user can enable multiple HTTP tracker on several ports.
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::future::Future;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -80,7 +81,24 @@ pub enum Error {
 ///
 /// Returns setup, persistence-load, or initial-service startup errors.
 pub async fn start() -> Result<(Arc<AppContainer>, JobManager), Error> {
-    let (config, app_container) = bootstrap::app::setup().await.map_err(|source| Error::Setup { source })?;
+    start_with_explicit_config_toml_path(None).await
+}
+
+/// Starts the tracker application with an optional explicitly selected TOML configuration file.
+///
+/// An explicit path takes priority over environment-provided base sources. Per-value environment
+/// overrides continue to apply.
+///
+/// # Errors
+///
+/// Returns setup, persistence-load, or initial-service startup errors.
+// issue: #2151
+pub async fn start_with_explicit_config_toml_path(
+    explicit_config_toml_path: Option<PathBuf>,
+) -> Result<(Arc<AppContainer>, JobManager), Error> {
+    let (config, app_container) = bootstrap::app::setup(explicit_config_toml_path)
+        .await
+        .map_err(|source| Error::Setup { source })?;
 
     let app_container = Arc::new(app_container);
 
