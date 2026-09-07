@@ -13,7 +13,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2151-add-tracker-config-path-argument/manual-verification.py
+    - docs/issues/open/2151-add-tracker-config-path-argument/release-cli-verification.py
     - src/main.rs
     - src/app.rs
     - src/bootstrap/app.rs
@@ -355,7 +355,7 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-07 15:55 UTC - GitHub Copilot - Completed T8. Updated the README, container and benchmarking commands, profiling clarification, root/configuration API docs, source and test guidance, and `run-tracker-locally` skill. The CLI path is documented as the main-binary primary source; environment examples retain their compatible behavior. `validate-skill-links.sh`, `linter markdown`, `linter cspell`, and `git diff --check` passed.
 - 2026-09-07 16:30 UTC - GitHub Copilot - Completed T9 verification. The pre-commit gate passed; configuration tests passed (129), tracker tests passed, and lifecycle-signals passed (8). The release binary was built and manual scenarios M1-M5 passed with logs under `.tmp/issue-2151-manual/`. The first verifier run used a 10-second shutdown wait and force-killed an otherwise healthy M1 child; it was corrected to use the fixture-aligned 30-second deadline, then all scenarios passed. No implementation deviation or reusable design discovery warrants a separate retrospective.
 - 2026-09-07 16:50 UTC - Task Reviewer / GitHub Copilot - Independent acceptance review initially found M4 had no unreadable regular-file scenario, M1 incorrectly named a debug binary, T9 remained TODO, and CLI-source remediation text named only environment sources. Added a mode-`000` unreadable regular-file scenario and retained its command, file mode, exit status, and `Permission denied` result in `.tmp/issue-2151-manual/summary.txt`; added no-listener bind probes for malformed and parent-only relative sources; corrected M1 evidence; marked T9 done; and updated the guidance with a regression test. The release-binary manual suite and focused tracker tests passed after correction; all acceptance criteria now pass.
-- 2026-09-07 17:00 UTC - Maintainer / GitHub Copilot - Preserved the reusable release-binary manual verifier as `manual-verification.py` in this issue directory. It creates only ignored runtime configurations and logs beneath `.tmp/issue-2151-manual/`, keeping source and reproducible verification procedure together without tracking transient evidence.
+- 2026-09-07 17:00 UTC - Maintainer / GitHub Copilot - Preserved the reusable release-binary CLI verifier as `release-cli-verification.py` in this issue directory. It creates only ignored runtime configurations and logs beneath `.tmp/issue-2151-manual/`, keeping source and reproducible verification procedure together without tracking transient evidence.
 
 ## Acceptance Criteria
 
@@ -440,15 +440,15 @@ the progress log before proceeding.
 | A refactor exposes complete TOML content in diagnostics.                                                 | Preserve redaction behavior and add no secret-bearing logs without an explicit security decision.                            |
 | The issue grows into general configuration redesign.                                                     | Limit it to a file-path argument and source-selection plumbing.                                                              |
 
-## Reusable Manual Verifier
+## Reusable Release CLI Verifier
 
-[`manual-verification.py`](manual-verification.py) reproduces M1-M5 with the
-release `torrust-tracker` binary. Build the binary first, then run the script
-from the repository root:
+[`release-cli-verification.py`](release-cli-verification.py) automatically
+reproduces M1-M5 with the release `torrust-tracker` binary. Build the binary
+first, then run the script from the repository root:
 
 ```text
 cargo build --release --bin torrust-tracker
-python3 docs/issues/open/2151-add-tracker-config-path-argument/manual-verification.py
+python3 docs/issues/open/2151-add-tracker-config-path-argument/release-cli-verification.py
 ```
 
 The script creates configurations, SQLite storage, process logs, and its concise
