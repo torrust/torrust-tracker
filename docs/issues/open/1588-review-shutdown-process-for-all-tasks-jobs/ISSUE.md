@@ -154,8 +154,9 @@ Specifically, at minimum these gaps and boundaries must be identified:
 
 - [x] Torrent cleanup uses direct `ctrl_c` — does not respond to `jobs.cancel()`
 - [x] Activity metrics updater uses direct `ctrl_c` — does not respond to `jobs.cancel()`
-- [x] HTTP/REST server libraries retain `global_shutdown_signal()` behavior;
-      health check currently owns and joins its controller.
+- [x] HTTP/REST API/Health Check/UDP server libraries still reach
+      `global_shutdown_signal()` through the shared `Halted` helper; the health
+      check additionally owns and joins its drain controller.
 - [x] `main.rs` handles Unix `SIGTERM` at the executable boundary (SI-1 complete).
 - [x] The detached Axum drain controllers require component-owned join policies;
       the separate UDP IP-ban cleanup job remains manager-owned and
