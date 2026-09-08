@@ -139,7 +139,7 @@ it_should_explain_how_to_configure_an_unset_signing_key() {
     fi
 
     # Assert
-    grep -F -q "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." "${output_file}"
+    grep -F -q "ERROR: user.signingkey is not configured; run 'git config user.signingkey <gpg-key-id>' in this repository (signing configuration is repository-local; do not set it globally)." "${output_file}"
 }
 
 it_should_refuse_an_empty_signing_key() {
@@ -162,7 +162,7 @@ it_should_refuse_an_empty_signing_key() {
     fi
 
     # Assert
-    grep -F -q "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." "${output_file}"
+    grep -F -q "ERROR: user.signingkey is not configured; run 'git config user.signingkey <gpg-key-id>' in this repository (signing configuration is repository-local; do not set it globally)." "${output_file}"
 }
 
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight() {
