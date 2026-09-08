@@ -20,7 +20,7 @@ semantic-links:
 
 ```yaml
 ---
-finding-id: { CVE-YYYY-NNNN or other public identifier }
+cve-id: { CVE-YYYY-NNNN or other public identifier }
 date-analyzed: YYYY-MM-DD
 source: { scanner or public advisory }
 status: { non-affecting|affecting|needs-investigation }
@@ -32,8 +32,8 @@ semantic-links:
 ---
 ```
 
-For a CVE, use `cve-id` instead of `finding-id` to preserve the existing catalog convention. Add
-scanner-specific metadata, such as an image digest, only when it is material to reproducibility.
+Use `cve-id` for CVEs and other public identifiers to preserve the existing catalog convention.
+Add scanner-specific metadata, such as an image digest, only when it is material to reproducibility.
 
 ## Vulnerability or Finding
 
