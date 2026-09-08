@@ -81,4 +81,4 @@ that:
 ## Related Workflows
 
 - [Writing Markdown documentation](../write-markdown-docs/SKILL.md)
-- [Creating new agent skills](../../../../add-new-skill/SKILL.md)
+- [Creating new agent skills](../../../add-new-skill/SKILL.md)
