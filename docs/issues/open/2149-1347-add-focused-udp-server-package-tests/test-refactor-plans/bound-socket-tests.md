@@ -91,7 +91,7 @@ review and availability guard.
 
 ### R3 — Cover endpoint metadata consistency
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** High impact / low effort
 - **Change:** Add one direct test from a bound IPv4 loopback socket asserting its address,
   `ServiceBinding` UDP protocol/address, and URL are consistent.
@@ -127,7 +127,7 @@ review and availability guard.
 - [x] R1 no-change decision recorded and committed.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R3.
+- [x] Maintainer approved R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 design reviews completed and recorded.
 - [ ] R5 assessment completed and decision recorded.
@@ -147,6 +147,9 @@ review and availability guard.
 - 2026-09-08 11:55 UTC - User/maintainer - Reviewed and approved R2. The direct test uses a Tokio
   runtime only because `BoundSocket::bind` constructs a Tokio UDP socket; it retains the narrow
   IPv4 loopback port-zero contract without client traffic, retries, sleeps, or dual-stack behavior.
+- 2026-09-08 12:16 UTC - User/maintainer - Approved R3. Bind IPv4 loopback on port zero, retain the
+  bound address as the independently observed endpoint, and assert that public URL and service
+  binding representations use that same UDP endpoint. Commit the plan update before implementation.
 
 ### Validation Evidence
 
