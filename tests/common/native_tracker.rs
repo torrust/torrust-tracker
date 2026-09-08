@@ -6,6 +6,7 @@
 //! even when graceful shutdown exceeds the scenario deadline.
 
 use std::net::SocketAddr;
+use std::os::unix::fs::PermissionsExt as _;
 use std::os::unix::process::ExitStatusExt;
 use std::path::PathBuf;
 use std::process::Stdio;
@@ -86,14 +87,55 @@ pub enum NativeTrackerInvalidCliSource {
     ParentOnlyRelativeFile { candidate_health_port: u16 },
 }
 
+/// Result of preparing an unreadable regular-file CLI source.
+///
+/// Permission bits are not enforced for privileged users or processes with
+/// filesystem capabilities. The fixture probes that platform behavior before
+/// spawning so the executable contract is only asserted when meaningful.
+#[allow(dead_code)]
+pub enum NativeTrackerUnreadableCliSource {
+    /// The operating system denied a read and the child was spawned to prove its failure contract.
+    Enforced(Box<NativeTrackerFailedStart>),
+    /// The current process can read mode-`000` files, so no child was spawned.
+    NotEnforced { reason: String },
+}
+
 /// A tracker child process expected to fail before completing startup.
 #[allow(dead_code)]
 pub struct NativeTrackerFailedStart {
     child: Option<Child>,
     output: Option<TrackerOutputCapture>,
-    _workspace: tempfile::TempDir,
+    // This must be dropped before the fixture workspace, so its file remains
+    // present if explicit restoration was not possible.
+    permission_restore: Option<NativeTrackerPermissionRestore>,
+    workspace: Option<tempfile::TempDir>,
     source_path: Option<PathBuf>,
     candidate_port: Option<u16>,
+}
+
+/// Restores the original Unix mode of a fixture-owned configuration file.
+struct NativeTrackerPermissionRestore {
+    path: PathBuf,
+    mode: Option<u32>,
+}
+
+impl NativeTrackerPermissionRestore {
+    fn restore(&mut self) -> std::io::Result<()> {
+        let Some(mode) = self.mode else {
+            return Ok(());
+        };
+        std::fs::set_permissions(&self.path, std::fs::Permissions::from_mode(mode))?;
+        self.mode = None;
+        Ok(())
+    }
+}
+
+impl Drop for NativeTrackerPermissionRestore {
+    fn drop(&mut self) {
+        // Drop can run while another panic is unwinding and must never replace
+        // that panic. A normal wait reports this error with child diagnostics.
+        drop(self.restore());
+    }
 }
 
 /// Stable evidence retained after a failed-start child has been reaped.
@@ -102,6 +144,9 @@ pub struct NativeTrackerFailedStartResult {
     exit_code: i32,
     output: String,
     candidate_port: Option<u16>,
+    source_path: Option<PathBuf>,
+    source_mode: Option<u32>,
+    _workspace: Option<tempfile::TempDir>,
 }
 
 #[allow(dead_code)]
@@ -119,6 +164,16 @@ impl NativeTrackerFailedStartResult {
     /// Returns the configured port that was eligible for a post-reap bind probe.
     pub const fn candidate_port(&self) -> Option<u16> {
         self.candidate_port
+    }
+
+    /// Returns the fixture-owned source path while this result is retained.
+    pub fn source_path(&self) -> Option<&std::path::Path> {
+        self.source_path.as_deref()
+    }
+
+    /// Returns the original source permissions when the fixture changed them.
+    pub const fn source_mode(&self) -> Option<u32> {
+        self.source_mode
     }
 
     /// Proves a candidate health port is not left bound after child reaping.
@@ -578,9 +633,55 @@ impl NativeTrackerFailedStart {
         Self {
             child: Some(child),
             output: Some(TrackerOutputCapture::new(stdout, stderr)),
-            _workspace: workspace,
+            permission_restore: None,
+            workspace: Some(workspace),
             source_path,
             candidate_port,
+        }
+    }
+
+    /// Prepares a valid regular configuration file that is unreadable by normal Unix permission checks.
+    pub fn spawn_with_unreadable_regular_file(candidate_health_port: u16) -> NativeTrackerUnreadableCliSource {
+        let workspace = tempfile::tempdir().expect("create temporary unreadable-source workspace");
+        let (source_path, _) = write_configuration(&workspace, "unreadable", candidate_health_port);
+        let original_mode = std::fs::metadata(&source_path)
+            .expect("read fixture-owned configuration file metadata")
+            .permissions()
+            .mode();
+        std::fs::set_permissions(&source_path, std::fs::Permissions::from_mode(0o000))
+            .expect("make fixture-owned configuration file unreadable");
+        // Create the guard immediately after changing permissions. Every
+        // subsequent early return or panic, including command setup failure,
+        // restores the fixture-owned file synchronously.
+        let permission_restore = NativeTrackerPermissionRestore {
+            path: source_path.clone(),
+            mode: Some(original_mode),
+        };
+
+        match std::fs::read_to_string(&source_path) {
+            Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+                let mut command = tracker_command(&source_path, None, None, None);
+                let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
+                let stdout = child.stdout.take().expect("tracker child stdout is piped");
+                let stderr = child.stderr.take().expect("tracker child stderr is piped");
+
+                NativeTrackerUnreadableCliSource::Enforced(Box::new(Self {
+                    child: Some(child),
+                    output: Some(TrackerOutputCapture::new(stdout, stderr)),
+                    permission_restore: Some(permission_restore),
+                    workspace: Some(workspace),
+                    source_path: Some(source_path),
+                    candidate_port: Some(candidate_health_port),
+                }))
+            }
+            Ok(_) => {
+                NativeTrackerUnreadableCliSource::NotEnforced {
+                    reason: "the current process can read a mode-000 regular file (for example, it is privileged or has a filesystem capability)".to_owned(),
+                }
+            }
+            Err(error) => {
+                panic!("probe fixture-owned unreadable configuration file: {error}");
+            }
         }
     }
 
@@ -606,6 +707,13 @@ impl NativeTrackerFailedStart {
         };
         let reader_result = Self::wait_for_output_readers(&mut output_capture).await;
         let output = output_capture.contents().await;
+        let source_mode = self.permission_restore.as_ref().and_then(|restore| restore.mode);
+        let restore_result = self
+            .permission_restore
+            .as_mut()
+            .map_or(Ok(()), NativeTrackerPermissionRestore::restore)
+            .map_err(|error| format!("restore fixture-owned configuration file permissions: {error}"));
+        restore_result.map_err(|message| format!("{message}\ntracker output:\n{output}"))?;
         let status = status.map_err(|message| format!("{message}\ntracker output:\n{output}"))?;
         reader_result.map_err(|message| format!("{message}\ntracker output:\n{output}"))?;
         let exit_code = status
@@ -616,6 +724,9 @@ impl NativeTrackerFailedStart {
             exit_code,
             output,
             candidate_port: self.candidate_port,
+            source_path: self.source_path.take(),
+            source_mode,
+            _workspace: self.workspace.take(),
         })
     }
 
@@ -657,18 +768,25 @@ impl Drop for NativeTrackerFailedStart {
             return;
         };
         let output = self.output.take();
+        // Restore synchronously before a runtime cleanup task can release the
+        // workspace. Drop must not panic while unwinding, so this is best effort.
+        if let Some(mut permission_restore) = self.permission_restore.take() {
+            drop(permission_restore.restore());
+        }
 
-        // Drop cannot await cleanup. Do not panic while unwinding or outside a
-        // Tokio runtime; `kill_on_drop(true)` remains the fallback termination policy.
+        // `kill_on_drop(true)` remains the no-runtime fallback. With a runtime,
+        // retain the workspace until child and output cleanup finishes.
         let Ok(runtime) = tokio::runtime::Handle::try_current() else {
             return;
         };
+        let workspace = self.workspace.take();
         drop(runtime.spawn(async move {
             drop(child.start_kill());
-            drop(child.wait().await);
+            drop(tokio::time::timeout(FAILURE_DEADLINE, child.wait()).await);
             if let Some(mut output) = output {
-                output.wait_for_readers().await;
+                drop(Self::wait_for_output_readers(&mut output).await);
             }
+            drop(workspace);
         }));
     }
 }
@@ -854,11 +972,47 @@ fn tracker_binary() -> PathBuf {
 mod tests {
     use std::ffi::{OsStr, OsString};
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::os::unix::fs::PermissionsExt as _;
     use std::path::Path;
 
     use super::{
-        NativeTrackerInvalidCliSource, invalid_source_command, parse_health_check_address, tracker_command, write_configuration,
+        NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, invalid_source_command, parse_health_check_address,
+        tracker_command, write_configuration,
     };
+
+    #[test]
+    fn it_should_restore_permissions_when_the_restore_guard_is_dropped_without_a_tokio_runtime() {
+        // Arrange
+        let workspace = tempfile::tempdir().expect("create temporary permission-restore workspace");
+        let path = workspace.path().join("configuration.toml");
+        std::fs::write(&path, "configuration").expect("write fixture-owned configuration file");
+        let original_mode = std::fs::metadata(&path)
+            .expect("read fixture-owned configuration file metadata")
+            .permissions()
+            .mode();
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o000))
+            .expect("make fixture-owned configuration file unreadable");
+        let restore = NativeTrackerPermissionRestore {
+            path: path.clone(),
+            mode: Some(original_mode),
+        };
+
+        // Act
+        let thread_result = std::thread::spawn(move || drop(restore)).join();
+
+        // Assert
+        assert!(
+            thread_result.is_ok(),
+            "dropping the restoration guard outside Tokio must not panic"
+        );
+        assert_eq!(
+            std::fs::metadata(path)
+                .expect("read restored fixture-owned configuration file metadata")
+                .permissions()
+                .mode(),
+            original_mode
+        );
+    }
 
     #[test]
     fn it_should_select_its_configuration_with_the_cli_and_remove_legacy_base_source_variables() {

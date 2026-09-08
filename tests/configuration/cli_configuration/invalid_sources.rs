@@ -1,6 +1,9 @@
 //! Executable-boundary invalid CLI configuration-source contracts.
 
-use crate::native_tracker::{NativeTrackerFailedStart, NativeTrackerInvalidCliSource};
+use std::io::Write as _;
+use std::os::unix::fs::PermissionsExt as _;
+
+use crate::native_tracker::{NativeTrackerFailedStart, NativeTrackerInvalidCliSource, NativeTrackerUnreadableCliSource};
 
 #[tokio::test]
 async fn it_should_exit_with_a_usage_error_when_the_config_toml_path_value_is_missing() {
@@ -126,6 +129,61 @@ async fn it_should_not_search_parent_directories_for_a_relative_cli_configuratio
     failure
         .assert_candidate_port_is_bindable()
         .expect("parent-only configuration must not leave its candidate health port bound");
+}
+
+#[tokio::test]
+async fn it_should_exit_without_starting_when_the_cli_configuration_file_is_an_unreadable_regular_file() {
+    // Arrange
+    let candidate_health_port = 43159;
+
+    // Act
+    let source = NativeTrackerFailedStart::spawn_with_unreadable_regular_file(candidate_health_port);
+
+    // Assert
+    match source {
+        NativeTrackerUnreadableCliSource::Enforced(failed_start) => {
+            let expected_path = failed_start
+                .source_path()
+                .expect("unreadable-file fixture should expose its source path")
+                .to_string_lossy()
+                .into_owned();
+            let failure = failed_start
+                .wait_for_exit()
+                .await
+                .expect("tracker should exit for an unreadable regular file");
+
+            assert_eq!(failure.exit_code(), 1);
+            assert!(failure.output().contains("Unable to load explicit configuration file"));
+            assert!(failure.output().contains(&expected_path));
+            assert!(failure.output().contains("Permission denied"));
+            assert_eq!(failure.candidate_port(), Some(candidate_health_port));
+            assert_eq!(
+                std::fs::metadata(
+                    failure
+                        .source_path()
+                        .expect("unreadable-file result should retain its source path"),
+                )
+                .expect("read restored unreadable-file metadata")
+                .permissions()
+                .mode()
+                    & 0o777,
+                failure
+                    .source_mode()
+                    .expect("unreadable-file result should retain the original source mode")
+                    & 0o777,
+                "wait_for_exit must restore the unreadable file permissions"
+            );
+            failure
+                .assert_candidate_port_is_bindable()
+                .expect("unreadable configuration must not leave its candidate health port bound");
+        }
+        NativeTrackerUnreadableCliSource::NotEnforced { reason } => {
+            drop(writeln!(
+                std::io::stderr(),
+                "skipping unreadable regular-file assertion: {reason}"
+            ));
+        }
+    }
 }
 
 #[tokio::test]

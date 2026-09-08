@@ -8,7 +8,7 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-08 11:00
+last-updated-utc: 2026-09-08 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -369,6 +369,7 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-08 10:15 UTC - Maintainer / GitHub Copilot - Refined the R3 test bodies so Arrange defines source state, Act starts the child and waits for readiness, Teardown reaps it before assertions, and Assert compares a named observed endpoint with a named expected endpoint. Added R3a to prove at configuration-package level that ignored base sources are exclusive, not merely overridden on a conflicting key.
 - 2026-09-08 10:30 UTC - Maintainer / GitHub Copilot - Grouped executable configuration scenarios by their contracts: `base_source_precedence` and `per_value_overrides`. The Cargo test entry point retains only target-level configuration and the shared-fixture import; `invalid_sources` remains the planned next module.
 - 2026-09-08 11:00 UTC - GitHub Copilot - Completed R3a and R4. R3a proves ignored base sources are not merged at the configuration-package layer. R4 adds compiled-child invalid-source contracts for parser errors and explicit-source failures, with fixture-owned workspaces, child-only environment isolation, deadline-bounded wait/reap/output handling, and post-reap candidate-port probes. Independent review initially found expected-failure drop and timeout cleanup gaps; they were corrected and the re-review approved the lifecycle. Focused configuration (129), CLI configuration (15), and lifecycle (10) tests passed.
+- 2026-09-08 12:00 UTC - GitHub Copilot - Completed R5. Added the Unix unreadable regular-file executable contract. The fixture creates a valid mode-`000` source and probes effective permission enforcement before spawning: normal users exercise a path-bearing `Permission denied` exit, while privileged runners explicitly skip without starting a child. Independent review found restoration could panic or be lost before workspace cleanup; restoration is now fallible in normal cleanup, non-panicking and synchronous in drop cleanup, and covered by regressions. CLI configuration (17) and lifecycle (11) tests passed; re-review approved the cleanup design.
 
 ## Acceptance Criteria
 
