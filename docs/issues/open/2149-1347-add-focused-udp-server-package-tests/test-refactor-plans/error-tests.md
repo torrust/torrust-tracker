@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/error.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/error.rs
@@ -107,13 +107,20 @@ mapped commit point—before beginning the next item.
 
 ### R3 — Assess residual adapter coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Addresses:** P3
 - **Change:** Review remaining coverage after R1/R2. Record a no-change decision for wrapper
   conversions already exercised by handlers, `ConnectionCookie` display, or display formatting
   already protected at a distinct consumer boundary.
 - **Guardrails:** Do not add percentage-only tests or reproduce `udp-protocol` parser matrices.
+- **Decision:** No test added. Current `error.rs` coverage is 57/62 lines (91.94%), 79/82 regions
+  (96.34%), and 7/8 functions (87.50%) at commit `441a7512`. The direct parse-error conversion
+  boundary is now covered by R1 and R2. `handlers/announce.rs` and `handlers/scrape.rs` cover
+  wrapping UDP-core service errors at their handler boundary; `handlers/mod.rs` owns protocol parse
+  failure routing; `handlers/error.rs` owns wire-response and emitted-event behavior; and `event.rs`
+  owns stable event classification. `ConnectionCookie` display and residual wrapper conversions do
+  not expose a distinct UDP-server behavior beyond those boundaries.
 - **Done when:** each residual direct gap has a documented ownership/boundary decision.
 
 ## Progress Tracking
@@ -126,9 +133,9 @@ mapped commit point—before beginning the next item.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] R3 assessment completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R3 assessment completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -147,6 +154,14 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 11:20 UTC - User/maintainer - Reviewed and approved R2. The direct typed conversion
   test retains the source error, conversion Act, and `Error::InvalidRequest` message/identifier
   assertions without crossing into response serialization or event classification.
+- 2026-09-08 11:30 UTC - GitHub Copilot - Completed R3 assessment. The refreshed package-source
+  report gives `error.rs` 91.94% lines, 96.34% regions, and 87.50% function coverage. The remaining
+  direct paths are `ConnectionCookie` display or wrapper conversions already protected by their
+  handler, error-response, or event-classification boundaries; no additional adapter test is
+  justified.
+- 2026-09-08 11:34 UTC - User/maintainer - Reviewed and approved the completed parse-error adapter
+  plan. R1/R2 cover the server-owned response-routing conversion and typed wrapper, while R3 records
+  the justified no-change decision for residual display and downstream-boundary paths.
 
 ### Validation Evidence
 
@@ -155,7 +170,8 @@ mapped commit point—before beginning the next item.
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server error::tests`, and `git diff --check` passed. Two direct adapter tests cover sendable and unsendable parse-error conversion. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server error::tests`, and `git diff --check` passed. One typed conversion test covers `Error::InvalidRequest` wrapping. |
-| R3 | TODO | Test or documented no-change decision. |
+| R3 | DONE | No change: 91.94% lines, 96.34% regions, and 87.50% functions. Residual display/wrapper paths are covered at handler, response, or event boundaries. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and decisions before the next file plan begins. |
 
 ## Non-Goals
 
