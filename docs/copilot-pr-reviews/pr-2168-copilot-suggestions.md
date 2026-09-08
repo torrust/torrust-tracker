@@ -23,12 +23,13 @@ Status legend:
 ## Processing Log
 
 - 2026-09-08: Started processing suggestions.
+- 2026-09-08: Replaced movable issue-spec paths with stable issue-number references, replied to, and resolved the Copilot thread.
 
 ## Suggestions
 
 | #   | Thread ID               | Path                                               | URL                                                                           | Suggestion Summary                                             | Decision | Reply URL | Status | Thread State |
 | --- | ----------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6gLJ4M` | `docs/features/shutdown-process/task-inventory.md` | <https://github.com/torrust/torrust-tracker/pull/2168#discussion_r3956325563> | Replace movable issue-spec paths with stable issue references. | action   | Pending   | OPEN   | OPEN         |
+| 1   | `PRRT_kwDOGp2yqc6gLJ4M` | `docs/features/shutdown-process/task-inventory.md` | <https://github.com/torrust/torrust-tracker/pull/2168#discussion_r3956325563> | Replace movable issue-spec paths with stable issue references. | action   | <https://github.com/torrust/torrust-tracker/pull/2168#discussion_r3956569009> | DONE | RESOLVED |
 
 ## Notes
 
