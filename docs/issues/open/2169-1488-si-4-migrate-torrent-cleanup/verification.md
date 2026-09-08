@@ -1,7 +1,7 @@
 # Verification Evidence — Torrent Cleanup Token Migration
 
-> **Status**: Complete for T1-T5 and T7. T6 is recorded in a separate skill
-> commit after this evidence.
+> **Status**: Complete. The reusable manual procedure is in
+> `.github/skills/dev/testing/manual-torrent-cleanup-e2e/SKILL.md`.
 
 ## Environment
 

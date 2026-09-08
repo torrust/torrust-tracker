@@ -138,15 +138,15 @@ commit is deliberately separate from the migration implementation.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                              | Notes / Expected Output                                                                                          |
-| --- | ------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Replace pre-spawned API           | Added unspawned `run_job` accepting `CancellationToken` and returning `Completion`.                              |
-| T2  | DONE   | Migrate loop cancellation         | Replaced `ctrl_c()` with `cancellation_token.cancelled()` and preserved interval and weak-manager behavior.      |
-| T3  | DONE   | Migrate application registration  | Registered `torrent_cleanup` directly with `JobManager::spawn` through `component_runner`.                       |
-| T4  | DONE   | Add deterministic lifecycle tests | Added injected-token, weak-manager expiry, and named manager-outcome coverage.                                   |
-| T5  | DONE   | Manually verify cleanup behavior  | Verified the announced peer is removed while the configured peerless torrent remains.                            |
-| T6  | TODO   | Add manual-cleanup test skill     | After M4, add a reusable manual verification procedure under `.github/skills/dev/testing/` in a separate commit. |
-| T7  | DONE   | Validate and record evidence      | Passed root-library tests and `linter all`; recorded direct-binary SIGTERM and cleanup evidence.                 |
+| ID  | Status | Task                              | Notes / Expected Output                                                                                     |
+| --- | ------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Replace pre-spawned API           | Added unspawned `run_job` accepting `CancellationToken` and returning `Completion`.                         |
+| T2  | DONE   | Migrate loop cancellation         | Replaced `ctrl_c()` with `cancellation_token.cancelled()` and preserved interval and weak-manager behavior. |
+| T3  | DONE   | Migrate application registration  | Registered `torrent_cleanup` directly with `JobManager::spawn` through `component_runner`.                  |
+| T4  | DONE   | Add deterministic lifecycle tests | Added injected-token, weak-manager expiry, and named manager-outcome coverage.                              |
+| T5  | DONE   | Manually verify cleanup behavior  | Verified the announced peer is removed while the configured peerless torrent remains.                       |
+| T6  | DONE   | Add manual-cleanup test skill     | Added a reusable manual verification procedure under `.github/skills/dev/testing/` in a separate commit.    |
+| T7  | DONE   | Validate and record evidence      | Passed root-library tests and `linter all`; recorded direct-binary SIGTERM and cleanup evidence.            |
 
 ## Commit Points
 
@@ -196,7 +196,7 @@ All commits use a narrow Conventional Commit scope and GPG signing.
       remain deadline-aborted in the same scenario.
 - [x] AC8: A local tracker run proves torrent cleanup removes an inactive peer;
       REST API observations and cleanup log evidence are recorded.
-- [ ] AC9: A reusable manual torrent-cleanup verification skill is added under
+- [x] AC9: A reusable manual torrent-cleanup verification skill is added under
       `.github/skills/dev/testing/` in a commit separate from the migration.
 - [x] `linter all` exits with code `0`.
 - [x] Relevant tests pass.
