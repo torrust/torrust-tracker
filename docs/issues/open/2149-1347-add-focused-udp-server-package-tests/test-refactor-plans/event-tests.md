@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/event.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/event.rs
@@ -112,7 +112,7 @@ mapped commit point—before beginning the next item.
 
 ### R3 — Assess residual event-schema coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Addresses:** P1–P3
 - **Change:** Review uncovered lines/functions after R1 and R2 against existing handler and consumer
@@ -120,6 +120,15 @@ mapped commit point—before beginning the next item.
   aliases, or paths already covered at the event-emission/consumption boundary.
 - **Guardrails:** Do not add tests solely to increase a percentage and do not modify the event schema
   or ADR-defined objective-fact policy.
+- **Decision:** No test added. Current `event.rs` coverage is 125/131 lines (95.42%), 139/151
+  regions (92.05%), and 11/11 functions (100.00%) at commit `c8e20c19`. The remaining uncovered
+  regions are type/alias and enum-construction paths with no independent observable contract.
+  `handlers/announce.rs`, `handlers/connect.rs`, `handlers/scrape.rs`, `handlers/error.rs`,
+  `server/launcher.rs`, and `server/processor.rs` construct the event facts; their focused tests
+  cover the relevant emitted-event behavior. `statistics/event/handler/mod.rs`,
+  `statistics/event/handler/error.rs`, and `banning/event/handler.rs` cover consumer routing and
+  effects. Duplicating those boundaries in `event.rs` would test derives, aliases, or construction
+  mechanics rather than a distinct event-schema behavior.
 - **Done when:** remaining direct coverage gaps have a documented ownership/boundary decision.
 
 ## Progress Tracking
@@ -132,9 +141,9 @@ mapped commit point—before beginning the next item.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] R3 assessment completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R3 assessment completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -157,6 +166,13 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 09:25 UTC - User/maintainer - Reviewed and approved R2. The one table-driven test
   directly verifies all three request-kind label/display representations using a minimal local
   announce fixture, without protocol parsing, event emission, or metric-repository setup.
+- 2026-09-08 10:52 UTC - GitHub Copilot - Completed R3 assessment. The refreshed package-source
+  report gives `event.rs` 95.42% lines, 92.05% regions, and 100% function coverage. Residual
+  regions are aliases, derives, or event-construction paths already covered at the emitter or
+  consumer boundary; no additional event-module test is justified.
+- 2026-09-08 10:56 UTC - User/maintainer - Reviewed and approved the completed event plan. R1
+  covers every distinct stable error classification, R2 covers request-kind metric representations,
+  and R3 records the justified no-change decision for residual event-schema coverage.
 
 ### Validation Evidence
 
@@ -165,7 +181,8 @@ mapped commit point—before beginning the next item.
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server event::tests`, and `git diff --check` passed. Six classification tests are deterministic and test-only; the public test info hash has a narrow DevSkim suppression. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server event::tests`, and `git diff --check` passed. One table-driven mapping test covers all request-kind label/display representations. |
-| R3 | TODO | Test or documented no-change decision. |
+| R3 | DONE | No change: 95.42% lines, 92.05% regions, and 100% functions. Remaining aliases, derives, and emitter/consumer construction paths have no distinct event-module contract. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and decisions before the next file plan begins. |
 
 ## Non-Goals
 
