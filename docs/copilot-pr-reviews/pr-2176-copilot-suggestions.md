@@ -28,7 +28,7 @@ Status legend:
 - 2026-09-08: Copilot re-reviewed the pull request after the push and opened four further threads.
 - 2026-09-08: Dismissed threads 3 and 4, duplicate doubled-pipe reports against this tracker, on byte-level evidence; replies posted and threads resolved.
 - 2026-09-08: Dismissed thread 5, the same report against the specification, on the same evidence; reply posted and thread resolved.
-- 2026-09-08: Accepted thread 6 and parameterized the manifest path across the specification in commit `d3769ecb`; reply and resolution pending the push.
+- 2026-09-08: Accepted thread 6 and parameterized the manifest path across the specification in commit `d3769ecb`; reply posted and thread resolved after the push.
 
 ## Suggestions
 
@@ -39,7 +39,7 @@ Status legend:
 | 3   | `PRRT_kwDOGp2yqc6gYMxO` | `docs/copilot-pr-reviews/pr-2176-copilot-suggestions.md`       | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961420756> | The tracker reportedly contradicts itself by using doubled leading pipes in its own table. | no-action — verified at byte level: grepping row starts for a doubled pipe returns zero matches, and a raw-byte listing shows one pipe followed by a space on every row. The tracker's own tables are well formed. | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961438542> | DONE    | RESOLVED     |
 | 4   | `PRRT_kwDOGp2yqc6gYMx1` | `docs/copilot-pr-reviews/pr-2176-copilot-suggestions.md`       | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961420820> | Duplicate of thread 3: the same doubled leading pipe claim against the tracker.            | no-action — duplicate of row 3 and dismissed on the same byte-level evidence. | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961439089> | DONE    | RESOLVED     |
 | 5   | `PRRT_kwDOGp2yqc6gYMyX` | `docs/issues/open/2175-merge-tool-symlink-exceptions/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961420875> | The specification's tables reportedly begin with doubled pipes.                            | no-action — same byte-level verification as row 3 against the specification, and markdownlint passes on the file. | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961439649> | DONE    | RESOLVED     |
-| 6   | `PRRT_kwDOGp2yqc6gYMyx` | `docs/issues/open/2175-merge-tool-symlink-exceptions/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961420915> | The rules hard-code the manifest path while `--symlinks <path>` makes it overridable.      | action — parameterized in commit `d3769ecb`: the rules, background, ownership review, and AC2 now read the declaration from the path the argument names, defaulting to the documented file name. | Pending | Pending | OPEN |
+| 6 | `PRRT_kwDOGp2yqc6gYMyx` | `docs/issues/open/2175-merge-tool-symlink-exceptions/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961420915> | The rules hard-code the manifest path while `--symlinks <path>` makes it overridable. | action — parameterized in commit `d3769ecb`: the rules, background, ownership review, and AC2 now read the declaration from the path the argument names, defaulting to the documented file name. | https://github.com/torrust/torrust-tracker/pull/2176#discussion_r3961485061 | DONE | RESOLVED |
 
 ## Notes
 
