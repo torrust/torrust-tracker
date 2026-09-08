@@ -99,8 +99,8 @@ touch docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
 
 Select the template by issue type:
 
-- Task/Bug/Feature: [docs/templates/ISSUE.md](../../../../docs/templates/ISSUE.md)
-- Epic: [docs/templates/EPIC.md](../../../../docs/templates/EPIC.md)
+- Task/Bug/Feature: [docs/templates/ISSUE.md](../../../../../docs/templates/ISSUE.md)
+- Epic: [docs/templates/EPIC.md](../../../../../docs/templates/EPIC.md)
 
 Before presenting the draft for review, initialize these sections so progress can be tracked
 explicitly during implementation:

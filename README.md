@@ -253,24 +253,24 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
  </picture>
 </a>
 
-[container_wf]: ../../actions/workflows/container.yaml
-[container_wf_b]: ../../actions/workflows/container.yaml/badge.svg
-[coverage_wf]: ../../actions/workflows/coverage.yaml
-[coverage_wf_b]: ../../actions/workflows/coverage.yaml/badge.svg
-[deployment_wf]: ../../actions/workflows/deployment.yaml
-[deployment_wf_b]: ../../actions/workflows/deployment.yaml/badge.svg
-[testing_wf]: ../../actions/workflows/testing.yaml
-[testing_wf_b]: ../../actions/workflows/testing.yaml/badge.svg
-[os_compat_wf]: ../../actions/workflows/os-compatibility.yaml
-[os_compat_wf_b]: ../../actions/workflows/os-compatibility.yaml/badge.svg
-[db_compat_wf]: ../../actions/workflows/db-compatibility.yaml
-[db_compat_wf_b]: ../../actions/workflows/db-compatibility.yaml/badge.svg
-[db_bench_wf]: ../../actions/workflows/db-benchmarking.yaml
-[db_bench_wf_b]: ../../actions/workflows/db-benchmarking.yaml/badge.svg
-[docs_lint_wf]: ../../actions/workflows/docs-lint.yaml
-[docs_lint_wf_b]: ../../actions/workflows/docs-lint.yaml/badge.svg
-[security_scan_wf]: ../../actions/workflows/security-scan.yaml
-[security_scan_wf_b]: ../../actions/workflows/security-scan.yaml/badge.svg
+[container_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/container.yaml
+[container_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/container.yaml/badge.svg
+[coverage_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/coverage.yaml
+[coverage_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/coverage.yaml/badge.svg
+[deployment_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/deployment.yaml
+[deployment_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/deployment.yaml/badge.svg
+[testing_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/testing.yaml
+[testing_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/testing.yaml/badge.svg
+[os_compat_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/os-compatibility.yaml
+[os_compat_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/os-compatibility.yaml/badge.svg
+[db_compat_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/db-compatibility.yaml
+[db_compat_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/db-compatibility.yaml/badge.svg
+[db_bench_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/db-benchmarking.yaml
+[db_bench_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/db-benchmarking.yaml/badge.svg
+[docs_lint_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml
+[docs_lint_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml/badge.svg
+[security_scan_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/security-scan.yaml
+[security_scan_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/security-scan.yaml/badge.svg
 [bittorrent]: http://bittorrent.org/
 [rust]: https://www.rust-lang.org/
 [axum]: https://github.com/tokio-rs/axum

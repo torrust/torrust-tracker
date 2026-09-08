@@ -6,9 +6,9 @@ priority: p3
 epic: null
 github-issue: 2150
 spec-path: docs/issues/open/2150-add-lychee-link-checker/ISSUE.md
-branch: "2150-add-lychee-link-checker-spec"
-related-pr: null
-last-updated-utc: 2026-09-07 10:33
+branch: "2150-add-lychee-link-checker"
+related-pr: "https://github.com/torrust/torrust-tracker/pull/2154"
+last-updated-utc: 2026-09-07 15:03
 semantic-links:
   skill-links:
     - create-issue
@@ -152,17 +152,17 @@ reusable test fixtures are introduced beyond invoking an existing CLI tool.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                              |
-| --- | ------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Record lychee version and install command                                | First section of `link-check-report.md`                                                                                              |
-| T2  | TODO   | Draft initial `lychee.toml`                                              | Root config: offline mode, full fragment checks, and `exclude_path` for `docs/issues/closed/`; `.gitignore` is respected by default  |
-| T3  | TODO   | Offline baseline pass                                                    | Run lychee over the checked Markdown set; exact command and summary line recorded in the report                                      |
-| T4  | TODO   | Classify every finding                                                   | Report table: link, source file, classification (fix / exclude / historical), rationale for non-fix rows                             |
-| T5  | TODO   | Fix genuinely broken links                                               | Markdown files updated; each fix listed in the report                                                                                |
-| T6  | TODO   | Finalize `lychee.toml` exclusions                                        | Every exclusion has an inline rationale comment                                                                                      |
-| T7  | TODO   | Re-run offline check to confirm a clean result                           | Summary line recorded in the report showing 0 errors                                                                                 |
-| T8  | TODO   | Open GitHub issue in `torrust/torrust-linting` requesting lychee support | Issue references this issue and the offline local-link/local-fragment convention; URL recorded in `References`                       |
-| T9  | TODO   | Open tracker follow-up issue for lychee enforcement and weekly checks    | Blocked on T8; describes normal offline enforcement plus advisory weekly online external-link workflow; URL recorded in `References` |
+| ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                                                              |
+| --- | ------ | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Record lychee version and install command                                | Recorded in `link-check-report.md`                                                                                                                                   |
+| T2  | DONE   | Draft initial `lychee.toml`                                              | Enables offline mode and full fragment checks; excludes only `docs/issues/closed/`                                                                                   |
+| T3  | DONE   | Offline baseline pass                                                    | 123 errors across 37 sources; command, unmatched `share/**/*.md` warning, summary, and source-level classifications recorded in `link-check-report.md`               |
+| T4  | DONE   | Classify every finding                                                   | All findings classified and summarized in `link-check-report.md`                                                                                                     |
+| T5  | DONE   | Fix genuinely broken links                                               | Repaired paths and fragments in maintained Markdown; no broad exclusions added                                                                                       |
+| T6  | DONE   | Finalize `lychee.toml` exclusions                                        | All configuration entries include rationale comments                                                                                                                 |
+| T7  | DONE   | Re-run offline check to confirm a clean result                           | 0 errors; result recorded in `link-check-report.md`                                                                                                                  |
+| T8  | DONE   | Open GitHub issue in `torrust/torrust-linting` requesting lychee support | Created [torrust/torrust-linting#3](https://github.com/torrust/torrust-linting/issues/3)                                                                             |
+| T9  | DONE   | Open tracker follow-up issue for lychee enforcement and weekly checks    | Created [#2162](https://github.com/torrust/torrust-tracker/issues/2162), blocked on [torrust/torrust-linting#3](https://github.com/torrust/torrust-linting/issues/3) |
 
 ## Progress Tracking
 
@@ -171,14 +171,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/add-lychee-link-checker/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: no separate retrospective needed; see progress log
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -191,28 +191,36 @@ Append one line per meaningful update.
 - 2026-09-07 10:03 UTC - Copilot - Added a final follow-up task: open a tracker issue after the torrust-linting request to enable deterministic offline enforcement and an advisory weekly external-link workflow
 - 2026-09-07 10:07 UTC - Copilot - User approved the specification; created GitHub issue #2150 - https://github.com/torrust/torrust-tracker/issues/2150
 - 2026-09-07 10:33 UTC - Copilot - Created the spec-only branch `2150-add-lychee-link-checker-spec` from `torrust/develop`; spec-only PR pending
+- 2026-09-07 11:39 UTC - Copilot - Spec-only PR #2154 merged into `develop`; created implementation branch `2150-add-lychee-link-checker` from merge commit `0e7fa6d2`
+- 2026-09-07 12:00 UTC - Copilot - Created [torrust/torrust-linting#3](https://github.com/torrust/torrust-linting/issues/3) for lychee local Markdown link checker integration; T9 is blocked pending its own approved tracker issue specification
+- 2026-09-07 14:47 UTC - Copilot - User approved the T9 specification; created [#2162](https://github.com/torrust/torrust-tracker/issues/2162) for offline enforcement and advisory scheduled external link checks
+- 2026-09-07 14:59 UTC - Copilot - Validated documentation with markdownlint and cspell; an initial final lychee run omitted the required unmatched `share/**/*.md` input and is superseded by the corrected result below
+- 2026-09-07 15:00 UTC - Copilot - Completed the issue implementation; no separate retrospective is needed because all findings were routine stale-link/path corrections captured in `link-check-report.md`
+- 2026-09-07 15:00 UTC - Copilot - Corrected Task Reviewer findings: restored the required `share/**/*.md` input and its non-fatal warning, made all baseline errors source-auditable, and corrected the DEC-08 decision anchor; acceptance-criteria review remains pending independent verification.
+- 2026-09-07 15:03 UTC - Task Reviewer - Independent completion review passed: all acceptance criteria verified, exact lychee run returned 0 errors, and the repository pre-commit quality gate passed
+- 2026-09-07 15:04 UTC - Committer - Verified the issue specification progress is current before commit; skill link repairs will be committed separately from the lychee baseline
 
 ## Acceptance Criteria
 
-- [ ] AC1: `link-check-report.md` records the lychee version, install command, and the exact
+- [x] AC1: `link-check-report.md` records the lychee version, install command, and the exact
       reproducible offline local-link/local-fragment command.
-- [ ] AC2: A `lychee.toml` config file exists at the repository root; every exclusion has an
+- [x] AC2: A `lychee.toml` config file exists at the repository root; every exclusion has an
       inline rationale comment and it enables `offline = true` and `include_fragments = "full"`.
-- [ ] AC3: Every finding from the offline baseline pass is classified (fix / exclude / historical) in
+- [x] AC3: Every finding from the offline baseline pass is classified (fix / exclude / historical) in
       `link-check-report.md`, with rationale for each non-fix row.
-- [ ] AC4: All genuinely broken links identified are fixed in the affected Markdown files.
-- [ ] AC5: Re-running the offline check after fixes reports zero errors (excluding documented
+- [x] AC4: All genuinely broken links identified are fixed in the affected Markdown files.
+- [x] AC5: Re-running the offline check after fixes reports zero errors (excluding documented
       exclusions), with the summary line recorded in the report.
-- [ ] AC6: A GitHub issue is opened in `torrust/torrust-linting` requesting lychee support,
+- [x] AC6: A GitHub issue is opened in `torrust/torrust-linting` requesting lychee support,
       referencing this issue and the `lychee.toml` convention; the URL is recorded in `References`.
-- [ ] AC7: A tracker follow-up issue is opened after AC6. It describes offline pre-commit/normal
+- [x] AC7: A tracker follow-up issue is opened after AC6. It describes offline pre-commit/normal
       CI enforcement and a weekly, advisory, manually re-runnable online external-link workflow;
       its URL is recorded in `References`.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass (no code changes expected; N/A unless links are found in test fixtures).
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests are not applicable: this issue changes documentation and lychee configuration only.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] Documentation is updated for the new lychee configuration and repaired links.
 
 ## Verification Plan
 
@@ -227,14 +235,14 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-The checked Markdown set (`INPUTS`) is: `README.md SECURITY.md 'docs/**/*.md' '**/AGENTS.md' 'packages/*/README.md' 'console/**/*.md' 'contrib/**/*.md' 'share/**/*.md' '.github/**/*.md'`. `lychee.toml` supplies `offline = true` and `include_fragments = "full"`.
+The checked Markdown set (`INPUTS`) is: `README.md SECURITY.md 'docs/**/*.md' '**/AGENTS.md' 'packages/*/README.md' 'console/**/*.md' 'contrib/**/*.md' 'share/**/*.md' '.github/**/*.md'`. `share/**/*.md` currently matches no tracked Markdown files, so lychee emits a non-fatal unmatched-input warning. `lychee.toml` supplies `offline = true` and `include_fragments = "full"`.
 
-| ID  | Scenario                               | Command/Steps                                                    | Expected Result                                            | Status | Evidence                  |
-| --- | -------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------- | ------ | ------------------------- |
-| M1  | Offline baseline pass                  | `lychee --no-progress INPUTS`                                    | Command completes; findings captured for triage            | TODO   | `link-check-report.md`    |
-| M2  | Post-fix offline pass                  | Same as M1 after fixes and `lychee.toml` finalization            | `0 Errors` in summary line                                 | TODO   | `link-check-report.md`    |
-| M3  | `torrust-linting` request issue opened | `gh issue create --repo torrust/torrust-linting --body-file ...` | Issue created; URL recorded and cross-linked to this issue | TODO   | issue URL in `References` |
-| M4  | Tracker follow-up issue opened         | `gh issue create --repo torrust/torrust-tracker --body-file ...` | Issue created after M3; URL recorded and cross-linked      | TODO   | issue URL in `References` |
+| ID  | Scenario                               | Command/Steps                                                    | Expected Result                                            | Status | Evidence                                               |
+| --- | -------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------- | ------ | ------------------------------------------------------ |
+| M1  | Offline baseline pass                  | `lychee --no-progress INPUTS`                                    | Command completes; findings captured for triage            | DONE   | `link-check-report.md`                                 |
+| M2  | Post-fix offline pass                  | Same as M1 after fixes and `lychee.toml` finalization            | `0 Errors` in summary line                                 | DONE   | `link-check-report.md`                                 |
+| M3  | `torrust-linting` request issue opened | `gh issue create --repo torrust/torrust-linting --body-file ...` | Issue created; URL recorded and cross-linked to this issue | DONE   | https://github.com/torrust/torrust-linting/issues/3    |
+| M4  | Tracker follow-up issue opened         | `gh issue create --repo torrust/torrust-tracker --body-file ...` | Issue created after M3; URL recorded and cross-linked      | DONE   | https://github.com/torrust/torrust-tracker/issues/2162 |
 
 Notes:
 
@@ -243,15 +251,15 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                    |
-| ----- | ---------------------- | --------------------------- |
-| AC1   | TODO                   | `link-check-report.md`      |
-| AC2   | TODO                   | `lychee.toml`               |
-| AC3   | TODO                   | `link-check-report.md`      |
-| AC4   | TODO                   | {PR link}                   |
-| AC5   | TODO                   | `link-check-report.md` (M2) |
-| AC6   | TODO                   | {torrust-linting issue URL} |
-| AC7   | TODO                   | {torrust-tracker issue URL} |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                               |
+| ----- | ---------------------- | ------------------------------------------------------ |
+| AC1   | DONE                   | `link-check-report.md`                                 |
+| AC2   | DONE                   | `lychee.toml`                                          |
+| AC3   | DONE                   | `link-check-report.md`                                 |
+| AC4   | DONE                   | Working-tree diff; implementation PR pending           |
+| AC5   | DONE                   | `link-check-report.md` (M2)                            |
+| AC6   | DONE                   | https://github.com/torrust/torrust-linting/issues/3    |
+| AC7   | DONE                   | https://github.com/torrust/torrust-tracker/issues/2162 |
 
 ## Risks and Trade-offs
 
@@ -278,7 +286,8 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` — the independent completion review found no material design
+  change or reusable discovery beyond the routine path/anchor corrections recorded above.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
@@ -288,9 +297,9 @@ findings, and reusable lessons.
 ## References
 
 - Related issues:
-  - `torrust/torrust-linting` request issue: `To be created` (T8)
-  - `torrust/torrust-tracker` enforcement and scheduled-check follow-up: `To be created` (T9)
-- Related PRs: `None yet`
+  - `torrust/torrust-linting` request issue: [#3](https://github.com/torrust/torrust-linting/issues/3) (T8)
+  - `torrust/torrust-tracker` enforcement and scheduled-check follow-up: [#2162](https://github.com/torrust/torrust-tracker/issues/2162) (T9)
+- Related PRs: #2154 (spec-only)
 - Related ADRs: `None`
 - lychee: <https://lychee.cli.rs/> — configuration reference:
   <https://lychee.cli.rs/guides/config/>

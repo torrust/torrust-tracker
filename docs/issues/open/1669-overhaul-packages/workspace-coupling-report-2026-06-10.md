@@ -890,7 +890,7 @@ reference to the subissue opened for each.
 1. **`axum-http-server` → `udp-tracker-protocol`** (1 import: `PeerId`)
    The HTTP server depends on the UDP protocol crate solely for `PeerId`.
    Should use `torrust-peer-id` directly (already an external dep).
-   Draft spec: [docs/issues/drafts/1669-remove-udp-protocol-peer-id-re-export.md](../../drafts/1669-remove-udp-protocol-peer-id-re-export.md)
+   Draft spec: [issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 
 #### Domain concept misplacement
 
@@ -901,12 +901,12 @@ reference to the subissue opened for each.
    copy of the enum with a pointless mapping in `setup.rs`) is a symptom of
    misplaced ownership. `Driver` should live in `primitives` — a shared home
    for stable, cross-cutting domain types.
-   Draft spec: [docs/issues/drafts/1669-move-driver-enum-to-primitives.md](../../drafts/1669-move-driver-enum-to-primitives.md)
+   Draft spec: [issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 
 #### Acceptable thin dependencies (not worth addressing)
 
 - **`axum-server` → `configuration`** (1 import: `TslConfig`)
-  Deliberately kept per [DEC-08](../DECISIONS.md#dec-08--keep-tslconfig-in-tracker-configuration-and-keep-torrust-tracker-axum-server-tracker-scoped):
+  Deliberately kept per [DEC-08](DECISIONS.md#dec-08--keep-tslconfig-in-tracker-configuration-and-keep-torrust-tracker-axum-server-tracker-scoped):
   `TslConfig` is the public DTO in the tracker configuration contract
   (see [issue #1860](../../closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)).
   Moving it would invert the dependency direction or require a separate
@@ -927,7 +927,7 @@ reference to the subissue opened for each.
   — the old crate name before `torrust-tracker-client-lib`)
   The UDP server imports a `check` function from the client library for its
   own health check. This is a standard pattern: the server uses its client
-  to self-test its availability. Acceptable per [DEC-11](../DECISIONS.md#dec-11--accept-server--client-library-dependency-for-health-checks).
+  to self-test its availability. Acceptable per [DEC-11](DECISIONS.md#dec-11--accept-server--client-library-dependency-for-health-checks).
 
 - **`e2e-tools` → `tracker` (root)** (uses `torrust_tracker_lib::`)
   The scan looks for `torrust_tracker::` (the crate module name), but the
@@ -940,12 +940,12 @@ reference to the subissue opened for each.
 1. **`axum-rest-api-server` -> `udp-server` + `udp-core`**
    The REST server container depends on concrete UDP containers for wiring and
    initialization. See draft:
-   [1669-decouple-axum-rest-api-server-from-udp-containers.md](../../drafts/1669-decouple-axum-rest-api-server-from-udp-containers.md)
+   [issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 
 2. **`rest-api-core` -> `udp-server` + `udp-core`**
    The REST core depends on concrete UDP types for statistics and banning.
    See draft:
-   [1669-decouple-rest-api-core-from-udp-internals.md](../../drafts/1669-decouple-rest-api-core-from-udp-internals.md)
+   [issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 
 3. **`http-core` -> `tracker-core`** (16 import paths)
    This is an **architecturally expected** coupling, not a problem to fix.
@@ -958,7 +958,7 @@ reference to the subissue opened for each.
    - **Test-only** (4 paths): `initialize_database`, `InMemoryKeyRepository`,
      `InMemoryTorrentRepository`, `InMemoryWhitelist`. Used only in `#[cfg(test)]`.
      Moving test helpers to `test-helpers` is possible but minor.
-     Per [DEC-12](../DECISIONS.md#dec-12--accept-http-core-to-tracker-core-coupling-as-by-design).
+     Per [DEC-12](DECISIONS.md).
 
 #### Recommended prioritization
 

@@ -18,13 +18,13 @@ Closed issue specs follow this lifecycle:
 2. **Permanent deletion** (user-driven): If the user wants specs permanently deleted, they
    will explicitly ask for it. This skill does not automate deletion.
 
-See [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md) for the purpose
+See [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md) for the purpose
 of the closed buffer folder.
 
 Related lifecycle docs:
 
-- Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
-- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
+- Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
 
 ## When to Archive
 

@@ -14,7 +14,7 @@ semantic-links:
 **if** the following two changes were applied to the workspace. It does **not** represent
 an agreed decision.
 
-**Source report**: [workspace-coupling-report.md](workspace-coupling-report.md)
+**Source report**: [workspace-coupling-report-2026-06-10.md](workspace-coupling-report-2026-06-10.md)
 (generated 2026-05-19 20:46 UTC; 29 packages)
 
 ---
@@ -41,14 +41,14 @@ Merge the two protocol-specific core packages into the existing common core
 (`packages/tracker-core` / `bittorrent-tracker-core`) with two features
 (`udp` and `http`, both disabled by default):
 
-| Before                         | After                                                               |
-| ------------------------------ | ------------------------------------------------------------------- |
-| `packages/udp-core`    | _(removed)_                                                         |
-| `packages/http-core`   | _(removed)_                                                         |
-| `packages/tracker-core`        | `packages/tracker-core` (expanded)                                  |
-| `bittorrent-udp-core`  | _(crate deleted)_                                                   |
-| `bittorrent-http-core` | _(crate deleted)_                                                   |
-| `bittorrent-tracker-core`      | `bittorrent-tracker-core` (expanded with `udp` and `http` features) |
+| Before                    | After                                                               |
+| ------------------------- | ------------------------------------------------------------------- |
+| `packages/udp-core`       | _(removed)_                                                         |
+| `packages/http-core`      | _(removed)_                                                         |
+| `packages/tracker-core`   | `packages/tracker-core` (expanded)                                  |
+| `bittorrent-udp-core`     | _(crate deleted)_                                                   |
+| `bittorrent-http-core`    | _(crate deleted)_                                                   |
+| `bittorrent-tracker-core` | `bittorrent-tracker-core` (expanded with `udp` and `http` features) |
 
 **Net effect**: workspace shrinks from **29** to **25** packages.
 

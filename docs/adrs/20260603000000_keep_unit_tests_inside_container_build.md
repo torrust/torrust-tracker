@@ -112,7 +112,7 @@ The CI workflow is structured to avoid running the same work twice where possibl
 
 ## References
 
-- Issue #1854: [docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md](../issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md)
+- Issue #1854: [docs/issues/closed/1854-1840-workflow-performance-container-test-gating/ISSUE.md](../issues/closed/1854-1840-workflow-performance-container-test-gating/ISSUE.md)
 - Epic #1840: [docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md](../issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md)
 - [Containerfile](../../Containerfile)
 - [.github/workflows/container.yaml](../../.github/workflows/container.yaml)

@@ -88,5 +88,5 @@ Rejected because:
 ## References
 
 - EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../issues/open/1669-overhaul-packages/EPIC.md)
-- Subissue SI-14: [docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md](../issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md)
+- Subissue SI-14: [docs/issues/closed/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md](../issues/closed/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md)
 - GitHub issue #1835: <https://github.com/torrust/torrust-tracker/issues/1835>

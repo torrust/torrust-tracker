@@ -131,10 +131,10 @@ trackers run concurrently.
 The current test uses `unsafe { env::set_var(...) }` with a safety comment acknowledging this
 limitation.
 
-**Note**: The E2E runner ([`src/console/ci/e2e/runner.rs`](../../../src/console/ci/e2e/runner.rs))
+**Note**: The E2E runner ([`src/console/ci/e2e/runner.rs`](../../../../src/console/ci/e2e/runner.rs))
 demonstrates a pattern where CLI arguments (`--config-toml-path`, `--config-toml`) map to these
 same environment variables (`TORRUST_TRACKER_CONFIG_TOML_PATH`, `TORRUST_TRACKER_CONFIG_TOML`).
-However, the main tracker binary ([`src/main.rs`](../../../src/main.rs)) does not currently
+However, the main tracker binary ([`src/main.rs`](../../../../src/main.rs)) does not currently
 accept CLI arguments - it only reads configuration from environment variables. Adding CLI argument
 support to the main binary would be a future improvement, but is out of scope for this issue.
 
@@ -150,15 +150,15 @@ support to the main binary would be a future improvement, but is out of scope fo
    handle is dropped
 
 This pattern matches the approach used in qBittorrent E2E tests
-([`src/console/ci/qbittorrent_e2e/filesystem_setup.rs`](../../../src/console/ci/qbittorrent_e2e/filesystem_setup.rs)),
+([`src/console/ci/qbittorrent_e2e/filesystem_setup.rs`](../../../../src/console/ci/qbittorrent_e2e/filesystem_setup.rs)),
 which creates isolated workspaces with separate config and storage directories for each test run.
 
 ### Related work
 
-- E2E tests ([`src/console/ci/e2e/runner.rs`](../../../src/console/ci/e2e/runner.rs)) parse tracker
+- E2E tests ([`src/console/ci/e2e/runner.rs`](../../../../src/console/ci/e2e/runner.rs)) parse tracker
   output to extract bound ports, but they run the tracker as an external process
 - qBittorrent E2E tests
-  ([`src/console/ci/qbittorrent_e2e/filesystem_setup.rs`](../../../src/console/ci/qbittorrent_e2e/filesystem_setup.rs))
+  ([`src/console/ci/qbittorrent_e2e/filesystem_setup.rs`](../../../../src/console/ci/qbittorrent_e2e/filesystem_setup.rs))
   create isolated temporary workspaces with subdirectories for config, storage, and shared fixtures
   using `tempfile::TempDir`
 - Package-level tests already use similar patterns (port 0, temp files) in various
@@ -505,7 +505,7 @@ During implementation, two prerequisite defects were discovered. Both prerequisi
 implemented, so this issue resumes with deterministic teardown, documentation cleanup, and
 verification.
 
-1. Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md)
+1. Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md)
    — `AppContainer` now retains HTTP and UDP per-instance containers with their
    `ConfigurationInstanceId`, preventing repeated `0.0.0.0:0` configuration blocks from
    overwriting each other before startup.

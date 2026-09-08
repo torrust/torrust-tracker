@@ -19,4 +19,4 @@ This repo is a core component for managing the state and lifecycle of torrents a
 
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](../../LICENSE).

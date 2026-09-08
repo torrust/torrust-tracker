@@ -16,7 +16,6 @@ semantic-links:
     - .github/skills/dev/maintenance/add-rust-dependency/SKILL.md
 ---
 
-
 # Issue #1768 - Refactor update-dependencies skill automation
 
 ## Goal
@@ -34,7 +33,7 @@ Current pain points:
 - Update logs and commit body generation are manual.
 - Repeated command runs can drift from the prescribed sequence.
 
-This issue focuses only on dependency-skill automation. Pre-commit performance/verbosity is tracked separately in [docs/issues/open/1769-refactor-pre-commit-checks-performance-and-verbosity.md](1769-refactor-pre-commit-checks-performance-and-verbosity.md).
+This issue focuses only on dependency-skill automation. Pre-commit performance/verbosity is tracked separately in [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md).
 
 Automation policy constraint:
 
@@ -181,4 +180,4 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - Dependency update skill: [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md)
 - Related dependency skill: [.github/skills/dev/maintenance/add-rust-dependency/SKILL.md](../../../.github/skills/dev/maintenance/add-rust-dependency/SKILL.md)
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1768
-- Related split issue spec: [docs/issues/open/1769-refactor-pre-commit-checks-performance-and-verbosity.md](1769-refactor-pre-commit-checks-performance-and-verbosity.md)
+- Related split issue spec: [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md)

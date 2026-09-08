@@ -192,7 +192,7 @@ tests/
 
 ## References
 
-- [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
+- [Issue #1419](../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
 - [Integration test scaffolding](metrics/port_zero.rs)
 - [Shared test utilities](common/mod.rs)
 - [Scaffolding demo](scaffold.rs)

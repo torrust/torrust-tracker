@@ -86,7 +86,7 @@ between two trait objects would be a different story, but is not needed here.
   about — but it is a mechanical change across test files.
 - `Database` will persist as long as `Arc<Box<dyn Database>>` wiring exists.
   That wiring will be replaced in subissue #1525-04b
-  ([docs/issues/1715-1525-04b-migrate-consumers-to-narrow-traits.md](../issues/1715-1525-04b-migrate-consumers-to-narrow-traits.md))
+  ([docs/issues/closed/1715-1525-04b-migrate-consumers-to-narrow-traits.md](../issues/closed/1715-1525-04b-migrate-consumers-to-narrow-traits.md))
   by a plain `DatabaseStores` struct (one `Arc<dyn XxxStore>` field per
   context). `TrackerCoreContainer` will hold `DatabaseStores` instead of
   `Arc<Box<dyn Database>>`; each service is wired at construction time by
@@ -117,6 +117,6 @@ method count/responsibility in `TorrentMetricsStore` increases materially.
 
 ## References
 
-- Issue spec: [docs/issues/1713-1525-04-split-persistence-traits.md](../issues/1713-1525-04-split-persistence-traits.md)
+- Issue spec: [docs/issues/closed/1713-1525-04-split-persistence-traits.md](../issues/closed/1713-1525-04-split-persistence-traits.md)
 - GitHub issue: <https://github.com/torrust/torrust-tracker/issues/1713>
-- EPIC: [docs/issues/1525-overhaul-persistence.md](../issues/1525-overhaul-persistence.md)
+- EPIC: [docs/issues/closed/1525-overhaul-persistence.md](../issues/closed/1525-overhaul-persistence.md)

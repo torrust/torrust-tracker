@@ -9,7 +9,7 @@ semantic-links:
 
 # Handled Coordinated-Disclosure Reports
 
-One file per finding received through the channel in [`SECURITY.md`](../../../SECURITY.md)
+One file per finding received through the channel in [`SECURITY.md`](../../../../SECURITY.md)
 and handled under the [confidential vulnerability-remediation process](../../vulnerability-remediation.md).
 
 ## Purpose

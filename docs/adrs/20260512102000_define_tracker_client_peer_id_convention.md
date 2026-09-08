@@ -54,4 +54,4 @@ Package coupling policy:
 - <https://github.com/torrust/torrust-tracker/issues/1564>
 - <https://www.bittorrent.org/beps/bep_0020.html>
 - <https://wiki.theory.org/BitTorrentSpecification#peer_id>
-- [Issue Spec](../issues/open/1564-tracker-client-change-default-peer-id.md)
+- [Issue Spec](../issues/closed/1564-tracker-client-change-default-peer-id.md)
