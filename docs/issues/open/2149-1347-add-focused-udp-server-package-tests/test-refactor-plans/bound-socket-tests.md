@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/bound_socket.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/bound_socket.rs
@@ -101,20 +101,31 @@ review and availability guard.
 
 ### R4 — Review Phase 2 test design
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Change:** After each added test, review Arrange–Act–Assert structure, fixture choice, and
   portability. Record no-change or an approved focused cleanup before beginning the next test.
+- **Decision:** No change. Each test has one visible causal state: a requested IPv4 loopback
+  port-zero bind. The bind/metadata Act and independently constructed assertions remain visible.
+  Repeating the single requested-address expression and bind call is clearer than a helper; a
+  scenario fixture or builder would hide ordinary valid input without expressing a new state.
 - **Done when:** the final added test remains direct, deterministic, and free of unnecessary helper
   abstractions.
 
 ### R5 — Assess residual coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure residual coverage and document why debug formatting, `Deref`, impossible
   OS-port-zero failure injection, or platform-specific dual-stack branches are covered elsewhere or
   intentionally deferred.
+- **Decision:** No test added. Current `bound_socket.rs` coverage is 56/65 lines (86.15%), 113/135
+  regions (83.70%), and 10/11 functions (90.91%) at commit `a561e7b0`. The remaining
+  `create_socket` IPv6 option branch has OS-dependent dual-stack behavior and is covered at the
+  guarded real-listener integration boundary. `Deref` is a thin standard trait implementation;
+  debug output has no stable operator contract; and the post-bind port-zero error requires an
+  impossible OS behavior or production-only injection seam. No direct portable wrapper test would
+  add unique regression value.
 - **Done when:** remaining gaps have an ownership/portability rationale.
 
 ## Progress Tracking
@@ -129,10 +140,10 @@ review and availability guard.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3.
 - [x] R3 implemented, reviewed, validated, and committed.
-- [ ] R4 design reviews completed and recorded.
-- [ ] R5 assessment completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R4 design reviews completed and recorded.
+- [x] R5 assessment completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -153,6 +164,16 @@ review and availability guard.
 - 2026-09-08 12:22 UTC - User/maintainer - Reviewed and approved R3. The direct test observes one
   bound IPv4 endpoint and independently verifies its URL and UDP service-binding representations,
   without client traffic, dual-stack assumptions, or production changes.
+- 2026-09-08 12:31 UTC - GitHub Copilot - Completed R4 design review. Retained direct inline
+  requested-address and bind setup because it exposes the sole causal state more clearly than a
+  helper, builder, or scenario fixture. Both Phase 2 tests remain deterministic and portable.
+- 2026-09-08 12:35 UTC - GitHub Copilot - Completed R5 assessment. The refreshed package-source
+  report gives `bound_socket.rs` 86.15% lines, 83.70% regions, and 90.91% function coverage.
+  Remaining IPv6 option, `Deref`, debug, and impossible OS-port-zero paths have no additional
+  stable portable wrapper contract; no test is added.
+- 2026-09-08 12:39 UTC - User/maintainer - Reviewed and approved the completed bound-socket plan.
+  Phase 1 records the no-test cleanup decision; Phase 2 adds direct port-zero and endpoint-metadata
+  contracts; R4/R5 document their design and portability decisions.
 
 ### Validation Evidence
 
@@ -162,8 +183,9 @@ review and availability guard.
 | R1 | DONE | Maintainer approved the explicit no-change decision: there is no target-file test code to clean before Phase 2. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server bound_socket::tests`, and `git diff --check` passed. One Tokio-bound direct test covers the non-zero port invariant. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server bound_socket::tests`, and `git diff --check` passed. One direct test covers URL and UDP service-binding endpoint consistency. |
-| R4 | TODO | Documented review after each Phase 2 test increment. |
-| R5 | TODO | Coverage measurement or documented no-change decision. |
+| R4 | DONE | No change: direct inline setup keeps the port-zero IPv4 causal state, production Act, and independently specified endpoint assertions visible. |
+| R5 | DONE | No change: 86.15% lines, 83.70% regions, and 90.91% functions. Remaining platform-dependent or trait/debug/impossible-injection paths lack a unique portable wrapper contract. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and decisions before the next file plan begins. |
 
 ## Non-Goals
 
