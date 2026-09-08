@@ -56,7 +56,7 @@ mkdir -p ./storage/tracker/etc
 ## Step 5: Install the Linter Binary
 
 ```bash
-cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+cargo install --locked torrust-linting@0.2.0 --bin linter
 ```
 
 See the `install-linter` skill for external tool dependencies (markdownlint, yamllint, etc.).

@@ -1,0 +1,15 @@
+# Check external URLs without the offline policy required for local pre-commit validation.
+offline = false
+
+# Preserve maintained-document local-anchor validation during the online check.
+include_fragments = "full"
+
+# Avoid immutable historical issue records with known stale relative links.
+exclude_path = [ "(^|/)docs/issues/closed/" ]
+
+# Bound requests to respect external services while retaining actionable failures.
+timeout = 20
+max_retries = 2
+retry_wait_time = 2
+max_concurrency = 4
+host_request_interval = "1s"

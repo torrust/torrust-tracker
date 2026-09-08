@@ -129,7 +129,7 @@ TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 The script runs:
 
 1. `cargo machete` — unused dependency check
-2. `linter all` — all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+2. `linter all` — all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
 3. `cargo test --doc --workspace` — documentation tests
 
 For AI execution, prefer structured output first:

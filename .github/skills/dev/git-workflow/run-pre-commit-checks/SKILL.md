@@ -65,7 +65,7 @@ The script runs these steps in order:
    `LC_ALL=C sort -u`
 2. `cargo machete --with-metadata` - unused dependency check
 3. `cargo deny check bans` - workspace layer-boundary dependency check
-4. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+4. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
 5. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
@@ -173,6 +173,7 @@ Run individual linters to isolate a failure:
 
 ```bash
 linter markdown    # Markdown
+linter lychee      # Local Markdown file and fragment links
 linter yaml        # YAML
 linter toml        # TOML
 linter clippy      # Rust code analysis

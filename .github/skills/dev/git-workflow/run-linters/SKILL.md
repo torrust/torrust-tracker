@@ -1,6 +1,6 @@
 ---
 name: run-linters
-description: Run code quality checks and linters for the torrust-tracker project. Includes Rust clippy, rustfmt, markdown, YAML, TOML, spell checking, and shellcheck. Use when asked to lint code, check formatting, fix code quality issues, or prepare for commit. Triggers on "lint", "run linters", "check code quality", "fix formatting", "run clippy", "run rustfmt", or "pre-commit checks".
+description: Run code quality checks and linters for the torrust-tracker project. Includes Rust clippy, rustfmt, Markdown, local link checking, YAML, TOML, spell checking, and shellcheck. Use when asked to lint code, check formatting, fix code quality issues, or prepare for commit. Triggers on "lint", "run linters", "check code quality", "fix formatting", "run clippy", "run rustfmt", or "pre-commit checks".
 metadata:
   author: torrust
   version: "1.0"
@@ -22,6 +22,7 @@ linter all
 
 ```bash
 linter markdown     # Markdown (markdownlint)
+linter lychee       # Local Markdown file and fragment links
 linter yaml         # YAML (yamllint)
 linter toml         # TOML (taplo)
 linter cspell       # Spell checker (cspell)
@@ -43,6 +44,7 @@ linter all          # Must pass with exit code 0
 ```bash
 # Identify which linter is failing
 linter markdown
+linter lychee
 linter yaml
 linter toml
 linter cspell
@@ -149,6 +151,7 @@ delegates to each tool, which reads its own config file from the project root:
 | `.yamllint-ci.yml`   | yamllint     |
 | `.taplo.toml`        | taplo        |
 | `cspell.json`        | cspell       |
+| `lychee.toml`        | lychee       |
 | `rustfmt.toml`       | rustfmt      |
 
 > **Note**: Files listed in `.gitignore` are **not** automatically excluded from linting.

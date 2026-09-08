@@ -1,0 +1,54 @@
+name: External Link Check
+
+# skill-link: update-github-workflow-actions
+# issue: #2162
+# Advisory online link monitoring: this workflow has no push or pull-request trigger.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly on Monday at 06:00 UTC.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-links:
+    name: Check External Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - id: setup-toolchain
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: install-lychee
+        name: Install Lychee
+        run: cargo install --locked lychee@0.24.2
+
+      - id: check-links
+        name: Check External Links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          lychee --config .github/lychee-online.toml --no-progress --format markdown \
+            README.md SECURITY.md 'docs/**/*.md' '**/AGENTS.md' 'packages/*/README.md' \
+            'console/**/*.md' 'contrib/**/*.md' 'share/**/*.md' '.github/**/*.md' \
+            > lychee-report.md
+
+      - id: upload-report
+        name: Upload Lychee Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lychee-external-link-report
+          path: lychee-report.md
+          if-no-files-found: warn
+          retention-days: 14

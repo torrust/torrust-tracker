@@ -14,7 +14,7 @@ The project uses a unified `linter` binary from
 ## Install the `linter` Binary
 
 ```bash
-cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+cargo install --locked torrust-linting@0.2.0 --bin linter
 ```
 
 Verify the installation:
@@ -33,6 +33,7 @@ The `linter` binary delegates to external tools. Install them if they are not al
 | YAML        | yamllint         | `pip3 install yamllint`               |
 | TOML        | taplo            | `cargo install taplo-cli --locked`    |
 | Spell check | cspell           | `npm install -g cspell`               |
+| Local links | lychee           | `cargo install lychee --locked`       |
 | Shell       | shellcheck       | `apt install shellcheck`              |
 | Rust        | clippy / rustfmt | bundled with `rustup` (no extra step) |
 
@@ -51,6 +52,7 @@ already present in the repository — no manual setup is needed:
 | `.yamllint-ci.yml`   | yamllint     |
 | `.taplo.toml`        | taplo        |
 | `cspell.json`        | cspell       |
+| `lychee.toml`        | lychee       |
 | `rustfmt.toml`       | rustfmt      |
 
 > **Note**: Files listed in `.gitignore` are **not** automatically excluded from linting.

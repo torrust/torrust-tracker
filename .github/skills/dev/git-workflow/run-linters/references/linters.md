@@ -8,7 +8,7 @@ The project uses the `linter` binary from
 [torrust/torrust-linting](https://github.com/torrust/torrust-linting) as a unified wrapper around
 all linters.
 
-Install: `cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter`
+Install: `cargo install --locked torrust-linting@0.2.0 --bin linter`
 
 ## Rust Linters
 
@@ -59,6 +59,15 @@ Key formatting settings:
 Add technical terms to `project-words.txt` (one per line), then run
 `./contrib/dev-tools/git/format-project-words.sh`. The formatter uses `LC_ALL=C sort -u`;
 the pre-commit hook runs it automatically and requests restaging if it changes the dictionary.
+
+### lychee (Local Link Checker)
+
+**Tool**: lychee
+**Config**: `lychee.toml`
+**Run**: `linter lychee`
+
+`linter all` runs lychee in offline mode, validating maintained local Markdown file links and
+fragments without making external network requests.
 
 ## Configuration Linters
 
