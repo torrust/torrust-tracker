@@ -96,7 +96,7 @@ mapped commit point—before beginning the next item.
 
 ### R2 — Cover outer invalid-request wrapping
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Convert one sendable `RequestParseError` directly into `Error` and assert the
@@ -125,7 +125,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -144,6 +144,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 11:13 UTC - User/maintainer - Approved R2. Convert one fixed sendable protocol error
   through `Error` and assert its typed `InvalidRequest` payload retains the message and both
   response-routing identifiers. Commit the plan update before test implementation.
+- 2026-09-08 11:20 UTC - User/maintainer - Reviewed and approved R2. The direct typed conversion
+  test retains the source error, conversion Act, and `Error::InvalidRequest` message/identifier
+  assertions without crossing into response serialization or event classification.
 
 ### Validation Evidence
 
@@ -151,7 +154,7 @@ mapped commit point—before beginning the next item.
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server error::tests`, and `git diff --check` passed. Two direct adapter tests cover sendable and unsendable parse-error conversion. |
-| R2 | TODO | Focused error-adapter unit tests, formatting, and diff checks. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server error::tests`, and `git diff --check` passed. One typed conversion test covers `Error::InvalidRequest` wrapping. |
 | R3 | TODO | Test or documented no-change decision. |
 
 ## Non-Goals

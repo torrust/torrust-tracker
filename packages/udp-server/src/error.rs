@@ -108,7 +108,7 @@ mod tests {
     use torrust_tracker_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
     use zerocopy::byteorder::network_endian::{I32, I64};
 
-    use super::SendableRequestParseError;
+    use super::{Error, SendableRequestParseError};
 
     #[test]
     fn it_should_preserve_response_routing_identifiers_for_a_sendable_parse_error() {
@@ -138,5 +138,30 @@ mod tests {
         assert_eq!(actual.message, "invalid request action");
         assert_eq!(actual.opt_connection_id, None);
         assert_eq!(actual.opt_transaction_id, None);
+    }
+
+    #[test]
+    fn it_should_wrap_a_sendable_parse_error_as_an_invalid_request() {
+        // Arrange
+        let connection_id = ConnectionId(I64::new(12));
+        let transaction_id = TransactionId(I32::new(34));
+        let parse_error = RequestParseError::sendable_text("invalid scrape request", connection_id, transaction_id);
+
+        // Act
+        let actual = Error::from(parse_error);
+
+        // Assert
+        assert!(matches!(
+            actual,
+            Error::InvalidRequest {
+                request_parse_error: SendableRequestParseError {
+                    message,
+                    opt_connection_id: Some(actual_connection_id),
+                    opt_transaction_id: Some(actual_transaction_id),
+                },
+            } if message == "invalid scrape request"
+                && actual_connection_id == connection_id
+                && actual_transaction_id == transaction_id
+        ));
     }
 }
