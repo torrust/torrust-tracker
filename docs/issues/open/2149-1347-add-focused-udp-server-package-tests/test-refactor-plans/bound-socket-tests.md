@@ -91,7 +91,7 @@ review and availability guard.
 
 ### R3 — Cover endpoint metadata consistency
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Add one direct test from a bound IPv4 loopback socket asserting its address,
   `ServiceBinding` UDP protocol/address, and URL are consistent.
@@ -128,7 +128,7 @@ review and availability guard.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3.
-- [ ] R3 implemented, reviewed, validated, and committed.
+- [x] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 design reviews completed and recorded.
 - [ ] R5 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -150,6 +150,9 @@ review and availability guard.
 - 2026-09-08 12:16 UTC - User/maintainer - Approved R3. Bind IPv4 loopback on port zero, retain the
   bound address as the independently observed endpoint, and assert that public URL and service
   binding representations use that same UDP endpoint. Commit the plan update before implementation.
+- 2026-09-08 12:22 UTC - User/maintainer - Reviewed and approved R3. The direct test observes one
+  bound IPv4 endpoint and independently verifies its URL and UDP service-binding representations,
+  without client traffic, dual-stack assumptions, or production changes.
 
 ### Validation Evidence
 
@@ -158,7 +161,7 @@ review and availability guard.
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | Maintainer approved the explicit no-change decision: there is no target-file test code to clean before Phase 2. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server bound_socket::tests`, and `git diff --check` passed. One Tokio-bound direct test covers the non-zero port invariant. |
-| R3 | TODO | Focused bound-socket test, formatting, and diff checks. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server bound_socket::tests`, and `git diff --check` passed. One direct test covers URL and UDP service-binding endpoint consistency. |
 | R4 | TODO | Documented review after each Phase 2 test increment. |
 | R5 | TODO | Coverage measurement or documented no-change decision. |
 
