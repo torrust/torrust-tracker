@@ -70,11 +70,13 @@ git push {your-fork-remote} "$UPDATE_BRANCH"
    - Add an allowlist pattern that permits the versioned reference, such as `owner/action@v2.*`.
    - Prefer a scoped, stable pattern over a moving `owner/action@v2` tag when Dependabot updates exact versions.
    - Confirm that the configured pattern matches the full `uses:` reference, including its version.
-  - Compare the lists with a set-based comparison. Verification must prove that `"$ALLOWLIST_CURRENT"` is a subset of `"$ALLOWLIST_NEW"` for an additive change and that every third-party `uses:` reference is matched by the new list.
-  - Have an organization administrator apply the revised list at [Organization Actions settings](https://github.com/organizations/torrust/settings/actions), then confirm the update. Do not remove old entries merely because this repository no longer uses them; other Torrust repositories may still rely on them.
+
+- Compare the lists with a set-based comparison. Verification must prove that `"$ALLOWLIST_CURRENT"` is a subset of `"$ALLOWLIST_NEW"` for an additive change and that every third-party `uses:` reference is matched by the new list.
+- Have an organization administrator apply the revised list at [Organization Actions settings](https://github.com/organizations/torrust/settings/actions), then confirm the update. Do not remove old entries merely because this repository no longer uses them; other Torrust repositories may still rely on them.
+
 6. Add one semantic `skill-link: update-github-workflow-actions` comment near the workflow's top-level metadata and review the related skills when updating the workflow policy.
 7. When a workflow command compares Git revisions, configure `actions/checkout` with
-  `fetch-depth: 0` so its merge base is available in CI.
+   `fetch-depth: 0` so its merge base is available in CI.
 8. Run `linter yaml`, `git diff --check`, and the mandatory pre-commit checks before committing.
 9. Commit with a signed Conventional Commit and push the branch to the fork remote. When step 5 required an organization policy update, include the complete contents of both `"$ALLOWLIST_CURRENT"` and `"$ALLOWLIST_NEW"` verbatim in the commit body. Use headings that identify the lists as before and after the update; do not summarize or omit unchanged entries.
 10. Open a PR targeting `develop` with [the GitHub workflow-actions update PR template](../../../../../docs/templates/GITHUB-WORKFLOW-ACTIONS-UPDATE-PR.md). Replace both allowlist placeholders with the complete captured contents verbatim. State the administrator's confirmation only when it was received.
