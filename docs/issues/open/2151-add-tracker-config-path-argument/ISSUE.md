@@ -13,7 +13,6 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2151-add-tracker-config-path-argument/release-cli-verification.py
     - docs/issues/open/2151-add-tracker-config-path-argument/rust-executable-test-plan.md
     - src/main.rs
     - src/app.rs
@@ -316,7 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE        | Add executable-boundary coverage                          | Native fixtures now pass `--config-toml-path`, remove both inherited base-source variables, and retain per-child CLI-path/storage identities. The lifecycle target starts two children concurrently, verifies distinct PIDs, health addresses, CLI paths, and storage paths, then sends SIGTERM and reaps both. `cargo test --test lifecycle-signals` passed (8 tests); tracker tests, Rust formatting, and Clippy passed.                                    |
 | T8  | DONE        | Update documentation                                      | Updated the README, configuration crate/root API docs, container, benchmarking, profiling, source/test guidance, and local-run skill. CLI selection is primary for the main binary; environment examples remain valid. Documentation states final precedence, strict CLI-path behavior, profiling's environment-only boundary, and native fixture isolation. Skill-link validation, Markdown lint, spell checking, and diff checks passed.                    |
 | T9  | DONE        | Validate and record evidence                              | The mandatory pre-commit gate, configuration (129), tracker, and lifecycle-signals (8) tests passed. Scripted M1-M5 release-binary scenarios (disposable Python verifier) passed with `.tmp/issue-2151-manual/` evidence, including unreadable-file and no-listener checks; this is not human-oriented manual verification (see T10). Acceptance criteria were independently reviewed and all passed. No separate retrospective was warranted.                |
-| T10 | IN_PROGRESS | Complete Rust executable coverage and manual verification | Implement the approved `rust-executable-test-plan.md`: preserve the relevant release CLI harness behavior in Rust executable-boundary tests, document the Rust-only tracked test-code policy, remove the Python harness, then repeat final validation and acceptance review. Perform a real release-style manual verification after automatic coverage is complete; record actual commands, output, and tracker logs in `manual-verification-evidence.md`.    |
+| T10 | IN_PROGRESS | Complete Rust executable coverage and manual verification | The approved `rust-executable-test-plan.md` preserved the release-verifier behavior in Rust executable-boundary tests, documented the Rust-only tracked test-code policy, and removed the Python harness. Perform a real release-style manual verification; record actual commands, output, and tracker logs in `manual-verification-evidence.md`, then repeat final validation and acceptance review.                                                        |
 
 Each task must be independently buildable and tested. T1 is a
 behavior-preserving safety-net change; T2 is a configuration refactor; T3-T4
@@ -371,6 +370,7 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-08 11:00 UTC - GitHub Copilot - Completed R3a and R4. R3a proves ignored base sources are not merged at the configuration-package layer. R4 adds compiled-child invalid-source contracts for parser errors and explicit-source failures, with fixture-owned workspaces, child-only environment isolation, deadline-bounded wait/reap/output handling, and post-reap candidate-port probes. Independent review initially found expected-failure drop and timeout cleanup gaps; they were corrected and the re-review approved the lifecycle. Focused configuration (129), CLI configuration (15), and lifecycle (10) tests passed.
 - 2026-09-08 12:00 UTC - GitHub Copilot - Completed R5. Added the Unix unreadable regular-file executable contract. The fixture creates a valid mode-`000` source and probes effective permission enforcement before spawning: normal users exercise a path-bearing `Permission denied` exit, while privileged runners explicitly skip without starting a child. Independent review found restoration could panic or be lost before workspace cleanup; restoration is now fallible in normal cleanup, non-panicking and synchronous in drop cleanup, and covered by regressions. CLI configuration (17) and lifecycle (11) tests passed; re-review approved the cleanup design.
 - 2026-09-08 17:00 UTC - Maintainer / GitHub Copilot - Approved and implemented repository guidance distinguishing Rust automatic tests, real human-oriented manual verification, and disposable issue-local verification scripts. Added the manual-evidence template and reset M1-M5: prior Python-script output is historical disposable-script evidence, not manual verification. T10 now requires real release-binary runs with actual commands, output, and tracker logs recorded in `manual-verification-evidence.md`.
+- 2026-09-08 17:10 UTC - GitHub Copilot - Completed R7: removed the disposable Python verifier after its durable behavior checks were preserved in Rust executable-boundary tests. Real release-binary manual verification for M1-M5 remains pending in `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
@@ -395,7 +395,7 @@ are the deployable feature; later tasks extend verification and documentation.
       paths, isolated storage, and port-zero bindings without configuration-source
       environment variables.
 - [x] `linter all` exits with code `0` and relevant tests pass.
-- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [ ] Manual verification scenarios are executed and documented (status + evidence).
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [x] Documentation states final interfaces and precedence without contradicting implementation.
 
@@ -441,7 +441,7 @@ the progress log before proceeding.
 | AC4                       | DONE                   | T6 table-driven mandatory/default tests (129 configuration tests passed).                                                                        |
 | AC5                       | DONE                   | Parser/configuration tests; M4 release-binary command, mode, exit, diagnostic, and no-listener evidence in `.tmp/issue-2151-manual/summary.txt`. |
 | AC6                       | DONE                   | `cargo test --test lifecycle-signals` (8 passed); M5.                                                                                            |
-| Quality and documentation | DONE                   | Pre-commit gate, test runs, T8 review, and manual evidence.                                                                                      |
+| Quality and documentation | TODO                   | Pre-commit gate, test runs, and T8 review passed; real manual evidence remains pending.                                                          |
 
 ## Risks and Trade-offs
 
@@ -457,32 +457,6 @@ the progress log before proceeding.
 | CLI behavior differs across direct binary, `cargo run`, containers, and service managers.                | Test the built executable; retain and document environment interfaces.                                                       |
 | A refactor exposes complete TOML content in diagnostics.                                                 | Preserve redaction behavior and add no secret-bearing logs without an explicit security decision.                            |
 | The issue grows into general configuration redesign.                                                     | Limit it to a file-path argument and source-selection plumbing.                                                              |
-
-## Temporary Release CLI Evidence
-
-[`release-cli-verification.py`](release-cli-verification.py) recorded the initial
-release-binary evidence for M1-M5. It is not a durable repository test or
-manual-verification evidence. It is a disposable verification script kept in
-this issue folder so its historical verification can be audited.
-
-Temporary automation was useful while the manual matrix was being explored,
-because it consistently created isolated configurations and captured multiple
-child-process outputs. Its durable product-behavior claims are now covered by
-Rust executable-boundary tests, so T10 removes it. Python was selected before
-the Rust-only test policy existed; no current justification supports retaining
-Python for this verification.
-
-Until T10 is complete, build the binary first, then run the temporary evidence
-procedure from the repository root:
-
-```text
-cargo build --release --bin torrust-tracker
-python3 docs/issues/open/2151-add-tracker-config-path-argument/release-cli-verification.py
-```
-
-The script creates configurations, SQLite storage, process logs, and its concise
-summary only under `.tmp/issue-2151-manual/`. Those runtime artifacts are
-deliberately git-ignored; the script is the durable, reviewed evidence procedure.
 
 ## Implementation Completion Review
 
