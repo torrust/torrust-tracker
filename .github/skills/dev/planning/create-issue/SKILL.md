@@ -9,6 +9,7 @@ metadata:
       - docs/templates/ISSUE.md
       - docs/templates/EPIC.md
       - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
+      - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 ---
 
 # Creating Issues
@@ -122,7 +123,8 @@ explicitly during implementation:
 The draft must also include a verification policy that is explicit and enforceable:
 
 - Automatic checks to run after implementation (`linter all`, relevant tests, pre-push checks when applicable)
-- Manual verification scenarios with status + evidence tracking (mandatory)
+- Mandatory manual verification scenarios that describe real human-oriented feature use or bug reproduction, with status tracked in the spec and actual commands, output, and relevant logs recorded in issue-local `manual-verification-evidence.md`
+- When a disposable verification script is proposed, its issue-local path, concrete automatic-test rationale, removal/retention owner, and, for Python, why Rust is unsuitable for that script
 - A post-implementation acceptance criteria review step
 - An evidence-based implementation completion review that records reusable
   lessons, material design changes, or deviations from the plan. Use

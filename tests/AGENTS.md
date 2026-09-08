@@ -136,6 +136,10 @@ All tracked repository test code must be Rust. Python is permitted only for
 non-test external tooling when separately justified. Do not add Python scripts
 as test automation, test fixtures, or test assertions.
 
+Manual verification and disposable verification scripts are not tracked test
+code. Follow [the testing strategy](../docs/testing.md#verification-types) and
+the issue template for their separate evidence and rationale requirements.
+
 All integration tests at this level must:
 
 1. **Use port `0` for bind addresses by default**: The OS assigns free ephemeral ports,

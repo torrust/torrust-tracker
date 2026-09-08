@@ -74,6 +74,42 @@ respective responsibilities:
 | CI                       | Is the merge authority. It runs workflow-selected validation, including container and qBittorrent E2E coverage where applicable. | [Testing workflow](../.github/workflows/testing.yaml); [container workflow](../.github/workflows/container.yaml) |
 | Manual verification      | Complements automated evidence with scenario status and recorded evidence in the relevant issue specification.                   | [Issue-specification workflow](issues/README.md)                                                                 |
 
+## Verification Types
+
+Use three distinct verification activities; they produce different evidence and
+must not substitute for one another.
+
+| Activity                       | Purpose                                                                                                                            | Required evidence                                                                                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Automatic tests                | Maintained, repeatable claims about product behavior at the lowest suitable test layer.                                            | Rust test code executed through the repository test toolchain.                                                                                                           |
+| Manual verification            | Real human-oriented use of a finished feature or reproduction of a fixed bug, especially to reveal integration and usability gaps. | Actual steps, commands, program output, relevant tracker logs, and conclusions in the issue-local `manual-verification-evidence.md`.                                     |
+| Disposable verification script | Temporary issue-local automation that efficiently drives or captures a concrete verification scenario.                             | The script, its automatic-test rationale, and its removal/retention owner in the issue specification. Python additionally requires a recorded reason Rust is unsuitable. |
+
+Automatic tests should absorb durable product-behavior checks from disposable
+scripts when practical. Manual verification remains necessary after automated
+tests pass because it verifies how a person actually uses the finished artifact.
+It routinely exposes integration and usability gaps that tests written by the
+implementer do not, such as "how am I supposed to use this?" moments, unclear
+error messages, or missing documentation.
+
+Examples of human-oriented manual verification:
+
+- **Bug fix:** reproduce the original bug on the fixed build using the same
+  steps the reporter would follow, and confirm it no longer happens.
+- **New CLI option:** build the release binary, read only the `--help` output
+  and the documentation, start the tracker the way an operator would, and check
+  the logs show the expected effect.
+- **New configuration behavior:** write a real configuration file, start the
+  tracker, and exercise the affected service with a real client (for example
+  `tracker_client` or `curl`) instead of asserting on internal state.
+- **Error path:** trigger the failure as a user would (wrong path, bad file,
+  missing permission) and judge whether the message tells the user what to fix.
+
+Each example produces evidence that is a recording of what really happened:
+the exact commands, their output, and the relevant tracker log lines.
+
+For the operational requirements, see [root integration-test guidance](../tests/AGENTS.md#test-implementation-language) and the issue template's [manual verification and disposable script sections](templates/ISSUE.md#manual-verification-scenarios).
+
 ## Advisory External Link Monitoring
 
 The [External Link Check workflow](../.github/workflows/external-link-check.yaml) runs Lychee

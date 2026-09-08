@@ -44,6 +44,14 @@ Reference: <https://testdesiderata.com/> and Kent Beck's original papers on
 
 The repository prefers high maintainable automated coverage.
 
+Tracked test code is Rust. A temporary issue-local verification script is not a
+test: it requires an issue-specification rationale explaining why it is better
+than a maintained Rust automatic test and, when written in Python, why Rust is
+unsuitable. Promote durable behavioral checks into Rust tests when practical.
+Manual verification is separate real use of the finished artifact; record its
+actual evidence in `manual-verification-evidence.md` as defined by
+[`docs/testing.md`](../../../../../docs/testing.md#verification-types).
+
 Practical priority order:
 
 1. Unit tests first (fast, deterministic, low maintenance)
