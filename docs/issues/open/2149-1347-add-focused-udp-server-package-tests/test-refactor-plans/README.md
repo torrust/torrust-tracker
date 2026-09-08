@@ -13,11 +13,30 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Request-buffer tests](request-buffer-tests.md) — complete.
 - [Event tests](event-tests.md) — complete.
 - [Parse-error adapter tests](error-tests.md) — proposed; awaiting maintainer approval.
+- [Bound-socket tests](bound-socket-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
 Each plan improves test code without changing production behavior. It applies only to its target
 file and must be reviewed and approved before any proposed item is implemented.
+
+## Required Two-Phase Sequence
+
+Every file-local plan follows these phases in order:
+
+1. **Clean current tests first.** Review existing test code for readability, expressiveness,
+  sustainability, duplication, deterministic execution, causal initial state, and visible
+  Arrange–Act–Assert structure. Implement and review approved cleanup increments before adding a
+  behavior test. Record a no-change decision when the file has no current tests or no concrete
+  cleanup opportunity.
+2. **Add missing behavior tests second.** Add one approved behavior-focused test increment at a
+  time. After each added test, stop to review its design: remove accidental duplication, select an
+  inline value, builder, or scenario fixture that best exposes causal state, and keep the
+  production Act and independently specified assertion visible before starting the next test.
+
+Follow `.github/skills/dev/testing/write-unit-test/SKILL.md` and the test refactoring-pattern
+catalog for both phases. Do not use the second phase as a reason to postpone obvious cleanup in the
+first phase or to create speculative shared test infrastructure.
 
 ## Shared Quality Goals
 
