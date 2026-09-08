@@ -12,6 +12,8 @@ use std::process::Stdio;
 use std::sync::Arc;
 use std::time::Duration;
 
+use nix::sys::signal::{Signal, kill};
+use nix::unistd::Pid;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
 use tokio::sync::{Mutex, oneshot};
@@ -47,7 +49,7 @@ bind_address = "127.0.0.1:0"
 tracker_usage_statistics = false
 
 [health_check_api]
-bind_address = "127.0.0.1:0"
+bind_address = "127.0.0.1:{HEALTH_CHECK_PORT}"
 "#;
 
 /// A running tracker executable isolated in a temporary workspace.
@@ -60,22 +62,79 @@ pub struct NativeTracker {
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
 }
 
+/// Base configuration sources supplied to one tracker child.
+///
+/// The fixture writes all corresponding files into its temporary workspace.
+/// Ports are the only configurable values because executable configuration
+/// tests need no other child-process configuration surface.
+#[derive(Clone, Copy)]
+// This shared module is compiled by signal-only and configuration test binaries;
+// the former does not use configuration-specific source builders.
+#[allow(dead_code)]
+pub struct NativeTrackerConfigurationSources {
+    cli: u16,
+    environment_path: Option<u16>,
+    environment_toml: Option<u16>,
+}
+
+impl NativeTrackerConfigurationSources {
+    /// Creates sources whose CLI-selected configuration listens on `port`.
+    pub const fn with_cli_health_check_port(port: u16) -> Self {
+        Self {
+            cli: port,
+            environment_path: None,
+            environment_toml: None,
+        }
+    }
+
+    /// Adds a child-only environment path source with its own health-check port.
+    // See the type-level allowance: signal-only test binaries do not use it.
+    #[allow(dead_code)]
+    pub const fn with_environment_path_health_check_port(mut self, port: u16) -> Self {
+        self.environment_path = Some(port);
+        self
+    }
+
+    /// Adds a child-only complete-TOML environment source with its own health-check port.
+    // See the type-level allowance: signal-only test binaries do not use it.
+    #[allow(dead_code)]
+    pub const fn with_environment_toml_health_check_port(mut self, port: u16) -> Self {
+        self.environment_toml = Some(port);
+        self
+    }
+}
+
 /// An isolated workspace and configuration for one tracker child process.
 struct NativeTrackerWorkspace {
     _workspace: tempfile::TempDir,
     configuration_path: PathBuf,
     storage_path: PathBuf,
+    environment_configuration_path: Option<PathBuf>,
+    environment_configuration_toml: Option<String>,
 }
 
 impl NativeTrackerWorkspace {
     fn new() -> Self {
+        Self::with_configuration_sources(NativeTrackerConfigurationSources::with_cli_health_check_port(0))
+    }
+
+    fn with_configuration_sources(sources: NativeTrackerConfigurationSources) -> Self {
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
-        let (configuration_path, storage_path) = write_configuration(&workspace);
+        let (configuration_path, storage_path) = write_configuration(&workspace, "cli", sources.cli);
+        let environment_configuration_path = sources
+            .environment_path
+            .map(|port| write_configuration(&workspace, "environment-path", port).0);
+        let environment_configuration_toml = sources.environment_toml.map(|port| {
+            let (configuration_path, _) = write_configuration(&workspace, "environment-toml", port);
+            std::fs::read_to_string(configuration_path).expect("read environment TOML configuration")
+        });
 
         Self {
             _workspace: workspace,
             configuration_path,
             storage_path,
+            environment_configuration_path,
+            environment_configuration_toml,
         }
     }
 
@@ -85,6 +144,14 @@ impl NativeTrackerWorkspace {
 
     fn storage_path(&self) -> &std::path::Path {
         &self.storage_path
+    }
+
+    fn environment_configuration_path(&self) -> Option<&std::path::Path> {
+        self.environment_configuration_path.as_deref()
+    }
+
+    fn environment_configuration_toml(&self) -> Option<&str> {
+        self.environment_configuration_toml.as_deref()
     }
 }
 
@@ -173,7 +240,23 @@ impl NativeTracker {
     /// Spawns the Cargo-built tracker binary with an isolated CLI configuration and port-zero bindings.
     pub fn start() -> Self {
         let workspace = NativeTrackerWorkspace::new();
-        let mut command = tracker_command(workspace.configuration_path());
+        Self::start_in_workspace(workspace)
+    }
+
+    /// Spawns a tracker child with fixture-owned CLI and optional environment base sources.
+    // This shared module is also compiled by signal-only test binaries.
+    #[allow(dead_code)]
+    pub fn start_with_configuration_sources(sources: NativeTrackerConfigurationSources) -> Self {
+        let workspace = NativeTrackerWorkspace::with_configuration_sources(sources);
+        Self::start_in_workspace(workspace)
+    }
+
+    fn start_in_workspace(workspace: NativeTrackerWorkspace) -> Self {
+        let mut command = tracker_command(
+            workspace.configuration_path(),
+            workspace.environment_configuration_path(),
+            workspace.environment_configuration_toml(),
+        );
 
         let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
         let stdout = child.stdout.take().expect("tracker child stdout is piped");
@@ -267,6 +350,21 @@ impl NativeTracker {
         exit_result
             .map(|_| output.clone())
             .map_err(|message| format!("{message}\ntracker output:\n{output}"))
+    }
+
+    /// Delivers SIGTERM to the child and waits for its graceful shutdown.
+    // Configuration tests use this convenience; signal tests verify delivery directly.
+    #[allow(dead_code)]
+    pub async fn gracefully_shutdown(self) -> Result<String, String> {
+        let pid = self.pid()?;
+        kill(
+            Pid::from_raw(
+                i32::try_from(pid).map_err(|error| Self::failure_message_sync(&format!("convert tracker PID: {error}")))?,
+            ),
+            Signal::SIGTERM,
+        )
+        .map_err(|error| Self::failure_message_sync(&format!("deliver SIGTERM to tracker child: {error}")))?;
+        self.shutdown().await
     }
 
     /// Returns an observer for the signal that terminated the reaped drop-path child.
@@ -434,11 +532,13 @@ fn parse_health_check_address(line: &str) -> Option<SocketAddr> {
     address.parse().ok()
 }
 
-fn write_configuration(workspace: &tempfile::TempDir) -> (PathBuf, PathBuf) {
-    let storage_path = workspace.path().join("storage");
+fn write_configuration(workspace: &tempfile::TempDir, name: &str, health_check_port: u16) -> (PathBuf, PathBuf) {
+    let storage_path = workspace.path().join(format!("{name}-storage"));
     std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
-    let config_path = workspace.path().join("tracker.toml");
-    let config = CONFIGURATION.replace("{STORAGE_PATH}", &storage_path.to_string_lossy());
+    let config_path = workspace.path().join(format!("{name}-tracker.toml"));
+    let config = CONFIGURATION
+        .replace("{STORAGE_PATH}", &storage_path.to_string_lossy())
+        .replace("{HEALTH_CHECK_PORT}", &health_check_port.to_string());
     std::fs::write(&config_path, config).expect("write tracker configuration");
     (config_path, storage_path)
 }
@@ -447,7 +547,11 @@ fn write_configuration(workspace: &tempfile::TempDir) -> (PathBuf, PathBuf) {
 ///
 /// The two legacy base-source variables are explicitly removed so inherited
 /// environment state cannot override or obscure a fixture's CLI-selected file.
-fn tracker_command(configuration_path: &std::path::Path) -> Command {
+fn tracker_command(
+    configuration_path: &std::path::Path,
+    environment_configuration_path: Option<&std::path::Path>,
+    environment_configuration_toml: Option<&str>,
+) -> Command {
     let mut command = Command::new(tracker_binary());
     command
         .arg("--config-toml-path")
@@ -459,6 +563,12 @@ fn tracker_command(configuration_path: &std::path::Path) -> Command {
         .kill_on_drop(true)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    if let Some(path) = environment_configuration_path {
+        command.env("TORRUST_TRACKER_CONFIG_TOML_PATH", path);
+    }
+    if let Some(toml) = environment_configuration_toml {
+        command.env("TORRUST_TRACKER_CONFIG_TOML", toml);
+    }
     command
 }
 
@@ -481,7 +591,7 @@ mod tests {
         let configuration_path = Path::new("/workspace/tracker.toml");
 
         // Act
-        let command = tracker_command(configuration_path);
+        let command = tracker_command(configuration_path, None, None);
         let arguments = command.as_std().get_args().collect::<Vec<_>>();
         let environment = command.as_std().get_envs().collect::<Vec<_>>();
 
@@ -506,7 +616,7 @@ mod tests {
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
 
         // Act
-        let (config_path, storage_path) = write_configuration(&workspace);
+        let (config_path, storage_path) = write_configuration(&workspace, "test", 0);
         let configuration = std::fs::read_to_string(&config_path).expect("read tracker configuration");
 
         // Assert
