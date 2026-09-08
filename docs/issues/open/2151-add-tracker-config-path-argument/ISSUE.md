@@ -8,12 +8,13 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-07 17:00
+last-updated-utc: 2026-09-08 09:00
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/2151-add-tracker-config-path-argument/release-cli-verification.py
+    - docs/issues/open/2151-add-tracker-config-path-argument/rust-executable-test-plan.md
     - src/main.rs
     - src/app.rs
     - src/bootstrap/app.rs
@@ -206,6 +207,9 @@ TORRUST_TRACKER_CONFIG_TOML_PATH=b.toml \
   do not mutate process environment variables to emulate the option.
 - Add unit, executable-level integration, and manual coverage for precedence,
   default behavior, and diagnostics.
+- Keep all tracked repository test code in Rust. The release CLI Python harness
+  is temporary evidence only and must be removed after the approved
+  `rust-executable-test-plan.md` preserves its behavior in Rust tests.
 - Review the affected operational and native-test documentation.
 
 ### Out of Scope
@@ -312,6 +316,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Add executable-boundary coverage   | Native fixtures now pass `--config-toml-path`, remove both inherited base-source variables, and retain per-child CLI-path/storage identities. The lifecycle target starts two children concurrently, verifies distinct PIDs, health addresses, CLI paths, and storage paths, then sends SIGTERM and reaps both. `cargo test --test lifecycle-signals` passed (8 tests); tracker tests, Rust formatting, and Clippy passed.                                    |
 | T8  | DONE   | Update documentation               | Updated the README, configuration crate/root API docs, container, benchmarking, profiling, source/test guidance, and local-run skill. CLI selection is primary for the main binary; environment examples remain valid. Documentation states final precedence, strict CLI-path behavior, profiling's environment-only boundary, and native fixture isolation. Skill-link validation, Markdown lint, spell checking, and diff checks passed.                    |
 | T9  | DONE   | Validate and record evidence       | The mandatory pre-commit gate, configuration (129), tracker, and lifecycle-signals (8) tests passed. Manual M1-M5 release-binary scenarios passed with `.tmp/issue-2151-manual/` evidence, including unreadable-file and no-listener checks. Acceptance criteria were independently reviewed and all passed. No separate retrospective was warranted.                                                                                                         |
+| T10 | TODO   | Complete Rust executable coverage  | Implement the approved `rust-executable-test-plan.md`: preserve the relevant release CLI harness behavior in Rust executable-boundary tests, document the Rust-only tracked test-code policy, remove the Python harness, then repeat final validation and acceptance review.                                                                                                                                                                                  |
 
 Each task must be independently buildable and tested. T1 is a
 behavior-preserving safety-net change; T2 is a configuration refactor; T3-T4
@@ -356,6 +361,8 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-07 16:30 UTC - GitHub Copilot - Completed T9 verification. The pre-commit gate passed; configuration tests passed (129), tracker tests passed, and lifecycle-signals passed (8). The release binary was built and manual scenarios M1-M5 passed with logs under `.tmp/issue-2151-manual/`. The first verifier run used a 10-second shutdown wait and force-killed an otherwise healthy M1 child; it was corrected to use the fixture-aligned 30-second deadline, then all scenarios passed. No implementation deviation or reusable design discovery warrants a separate retrospective.
 - 2026-09-07 16:50 UTC - Task Reviewer / GitHub Copilot - Independent acceptance review initially found M4 had no unreadable regular-file scenario, M1 incorrectly named a debug binary, T9 remained TODO, and CLI-source remediation text named only environment sources. Added a mode-`000` unreadable regular-file scenario and retained its command, file mode, exit status, and `Permission denied` result in `.tmp/issue-2151-manual/summary.txt`; added no-listener bind probes for malformed and parent-only relative sources; corrected M1 evidence; marked T9 done; and updated the guidance with a regression test. The release-binary manual suite and focused tracker tests passed after correction; all acceptance criteria now pass.
 - 2026-09-07 17:00 UTC - Maintainer / GitHub Copilot - Preserved the reusable release-binary CLI verifier as `release-cli-verification.py` in this issue directory. It creates only ignored runtime configurations and logs beneath `.tmp/issue-2151-manual/`, keeping source and reproducible verification procedure together without tracking transient evidence.
+- 2026-09-07 17:25 UTC - Maintainer / GitHub Copilot - Reclassified the tracked Python verifier as temporary evidence: repository test code must be Rust. Added `rust-executable-test-plan.md` for maintainer review before implementation. T10 will preserve appropriate executable behavior in Rust tests, document the policy, remove the Python harness, and repeat completion validation.
+- 2026-09-08 09:00 UTC - Maintainer / GitHub Copilot - Refined the pending Rust test plan: move the reusable native child-process fixture from `tests/lifecycle/` to `tests/common/`; create `tests/configuration/cli_configuration.rs` for executable configuration contracts; retain `tests/lifecycle/signals.rs` for OS-signal contracts only. The shared fixture must offer narrowly configured child commands without duplicating process lifecycle ownership.
 
 ## Acceptance Criteria
 
@@ -440,11 +447,16 @@ the progress log before proceeding.
 | A refactor exposes complete TOML content in diagnostics.                                                 | Preserve redaction behavior and add no secret-bearing logs without an explicit security decision.                            |
 | The issue grows into general configuration redesign.                                                     | Limit it to a file-path argument and source-selection plumbing.                                                              |
 
-## Reusable Release CLI Verifier
+## Temporary Release CLI Evidence
 
-[`release-cli-verification.py`](release-cli-verification.py) automatically
-reproduces M1-M5 with the release `torrust-tracker` binary. Build the binary
-first, then run the script from the repository root:
+[`release-cli-verification.py`](release-cli-verification.py) recorded the initial
+release-binary evidence for M1-M5. It is not a durable repository test because
+tracked test code must be Rust. The approved replacement plan is
+[`rust-executable-test-plan.md`](rust-executable-test-plan.md); T10 removes this
+Python artifact only after its relevant behavior is covered by Rust tests.
+
+Until T10 is complete, build the binary first, then run the temporary evidence
+procedure from the repository root:
 
 ```text
 cargo build --release --bin torrust-tracker
