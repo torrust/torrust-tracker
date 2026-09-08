@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/verification.md
     - docs/analysis/20260716-shutdown-process/README.md
-    - .github/skills/dev/testing/manual-torrent-cleanup-e2e/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -97,8 +96,8 @@ and supervisor outcome reporting.
 
 ```rust
 pub fn run_job(
-    config: &Core,
-    torrents_manager: &Arc<TorrentsManager>,
+  config: Core,
+  torrents_manager: Arc<TorrentsManager>,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static
 ```
@@ -216,6 +215,12 @@ issue. Record results in `verification.md` in this folder.
 - `linter all`
 - `git diff --check`
 - Pre-push checks before publication
+- `cargo test -p torrust-tracker --lib bootstrap::jobs::torrent_cleanup::tests::it_should_return_cancelled_when_the_token_is_cancelled`
+- `cargo test -p torrust-tracker --lib app::tests::it_should_register_torrent_cleanup_as_a_direct_cancelled_component`
+
+The T4 tests introduce the named tests above. The first uses a long cleanup
+interval and injected token; the second cancels `JobManager`, awaits its
+outcomes, and asserts `torrent_cleanup: JobStatus::Cancelled`.
 
 ### Manual Verification Scenarios
 
