@@ -25,6 +25,29 @@ Your job is to review an already-open pull request and provide merge-focused fee
 4. Verify tests and docs expectations from the checklist.
 5. Return a clear merge-readiness verdict.
 
+### Persisting Independent Review Reports
+
+When the caller supplies an existing folder-style issue specification path whose primary file is
+`ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
+verdict. In that specification directory, create `agent-review-reports.md` from
+`docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
+the final existing report entry. Read the entire existing report before editing. Preserve all
+earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
+names the earlier conclusion.
+
+If persistence applies, record the PR number, base branch, reviewed files, CI/check context,
+severity-classified findings, checklist gaps, merge-readiness verdict, and follow-up owner/action.
+This record is independent of Copilot review-thread handling and must not replace the Copilot
+Suggestions Handler tracker.
+
+Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request
+worktree, the caller requests Committer to include it in the coherent reviewed change set or create
+a focused documentation commit.
+
+When no folder-style issue specification is supplied, including direct diff/package reviews and
+legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
+the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`
+
 ## Output Format
 
 1. Scope reviewed (PR number and key files)

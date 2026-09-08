@@ -53,6 +53,31 @@ pull request is opened.
    - `REVIEW PASSED` when all required criteria pass and no blocking issues remain.
    - `REVIEW FAILED` when any required criterion fails or blocking issues remain.
 
+### Persisting Independent Review Reports
+
+When the caller supplies an existing folder-style issue specification path whose primary file is
+`ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
+verdict. In that specification directory, create `agent-review-reports.md` from
+`docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
+the final existing report entry. Read the entire existing report before editing. Preserve all
+earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
+names the earlier conclusion.
+
+If persistence applies, update verified issue checkboxes first, then record the acceptance-criteria
+matrix, repository-convention findings, completion-review finding, issue-spec updates, overall
+result, and remediation for every `FAIL` or `PENDING` item. Do not commit the report. Do not ask
+Committer to proceed with an implementation commit when the result is `REVIEW FAILED`; the caller
+may request a focused documentation commit to preserve the failed report as durable evidence.
+
+Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request
+worktree, the caller requests Committer to include it in the coherent reviewed change set or create
+a focused documentation commit. A persisted failed review may be committed as durable evidence;
+that commit does not authorize feature-code work before remediation.
+
+When no folder-style issue specification is supplied, including direct diff/package reviews and
+legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
+the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`
+
 ## Output Format
 
 Respond in this order:

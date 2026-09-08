@@ -108,6 +108,7 @@ commit with GPG.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -175,6 +176,11 @@ findings, and reusable lessons.
   specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining
   why the work had no material discovery.
+- When an independent reviewer receives this folder-style specification, it
+  records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`. Do not create that artifact for a
+  legacy standalone specification or when no folder-style specification was
+  supplied.
 
 ## References
 
