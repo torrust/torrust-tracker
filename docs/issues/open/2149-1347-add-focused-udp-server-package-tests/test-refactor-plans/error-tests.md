@@ -96,7 +96,7 @@ mapped commit point—before beginning the next item.
 
 ### R2 — Cover outer invalid-request wrapping
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Convert one sendable `RequestParseError` directly into `Error` and assert the
@@ -124,7 +124,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved implementation of R2.
+- [x] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -141,6 +141,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 10:45 UTC - User/maintainer - Reviewed and approved R1. The two direct adapter tests
   preserve the protocol/server boundary and explicitly assert response-routing identifier retention
   or absence without parsing packets or constructing handlers.
+- 2026-09-08 11:13 UTC - User/maintainer - Approved R2. Convert one fixed sendable protocol error
+  through `Error` and assert its typed `InvalidRequest` payload retains the message and both
+  response-routing identifiers. Commit the plan update before test implementation.
 
 ### Validation Evidence
 
