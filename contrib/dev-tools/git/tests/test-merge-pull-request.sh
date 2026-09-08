@@ -7,6 +7,19 @@ PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
 TEST_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/test-merge-pull-request.XXXXXX")
 trap 'rm -rf "${TEST_DIRECTORY}"' EXIT
 
+require_pseudo_terminal_support() {
+    if ! command -v script >/dev/null 2>&1; then
+        printf 'ERROR: script(1) from util-linux is required to exercise the interactive-stdin guard.\n' >&2
+        exit 1
+    fi
+}
+
+run_in_pseudo_terminal() {
+    # The wrapper refuses to start the interactive vendored tool unless stdin is a terminal.
+    # script(1) supplies one, so the delegation contract stays testable from a non-interactive runner.
+    script --quiet --return --command "$1" /dev/null
+}
+
 create_fixture() {
     local fixture_name=$1
     local fixture_root="${TEST_DIRECTORY}/${fixture_name}"
@@ -178,15 +191,55 @@ EOF
     chmod +x "${stub_directory}/python3"
 
     # Act
-    (
-        cd "${fixture_root}"
-        PATH="${stub_directory}:${PATH}" \
-            TEST_PYTHON_ARGUMENTS="${fixture_root}/python-arguments.txt" \
-            ./contrib/dev-tools/git/merge-pull-request.sh 2022
-    )
+    run_in_pseudo_terminal "cd '${fixture_root}' && PATH='${stub_directory}:${PATH}' TEST_PYTHON_ARGUMENTS='${fixture_root}/python-arguments.txt' ./contrib/dev-tools/git/merge-pull-request.sh 2022"
 
     # Assert
     grep -F -q 'contrib/dev-tools/git/github-merge.py 2022 develop' "${fixture_root}/python-arguments.txt"
+}
+
+it_should_refuse_to_start_the_interactive_tool_without_a_terminal_on_stdin() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "non-interactive-stdin")
+    local stub_directory="${TEST_DIRECTORY}/non-interactive-stdin-bin"
+    mkdir -p "${stub_directory}"
+    cat >"${stub_directory}/python3" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >"${TEST_PYTHON_ARGUMENTS}"
+EOF
+    chmod +x "${stub_directory}/python3"
+    local output_file="${TEST_DIRECTORY}/non-interactive-stdin-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        PATH="${stub_directory}:${PATH}" \
+            TEST_PYTHON_ARGUMENTS="${fixture_root}/python-arguments.txt" \
+            ./contrib/dev-tools/git/merge-pull-request.sh 2022 >"${output_file}" 2>&1 </dev/null
+    ); then
+        printf 'Expected the interactive-stdin guard to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q 'ERROR: The vendored merge tool is interactive and loops forever at end of input; run it from a terminal, or use --dry-run for a non-interactive check.' "${output_file}"
+    [[ ! -e "${fixture_root}/python-arguments.txt" ]]
+}
+
+it_should_pass_the_dry_run_preflight_without_a_terminal_on_stdin() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "non-interactive-dry-run")
+    local output_file="${TEST_DIRECTORY}/non-interactive-dry-run-output.txt"
+
+    # Act
+    (
+        cd "${fixture_root}"
+        ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" </dev/null
+    )
+
+    # Assert
+    grep -F -q 'Dry-run preflight passed for torrust/torrust-tracker PR 2022 targeting develop.' "${output_file}"
 }
 
 it_should_refuse_to_invoke_a_missing_vendored_tool() {
@@ -259,6 +312,8 @@ it_should_reject_a_non_positive_pull_request_number_before_performing_work() {
     grep -F -q 'ERROR: PULL_REQUEST must be a positive integer.' "${output_file}"
 }
 
+require_pseudo_terminal_support
+
 it_should_pass_deterministic_preflight_when_repository_state_is_supported
 it_should_refuse_a_dirty_working_tree_without_invoking_the_vendored_tool
 it_should_refuse_a_repository_configuration_that_is_not_the_upstream_tracker
@@ -266,6 +321,8 @@ it_should_explain_how_to_configure_an_unset_repository
 it_should_explain_how_to_configure_an_unset_signing_key
 it_should_refuse_an_empty_signing_key
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight
+it_should_refuse_to_start_the_interactive_tool_without_a_terminal_on_stdin
+it_should_pass_the_dry_run_preflight_without_a_terminal_on_stdin
 it_should_refuse_to_invoke_a_missing_vendored_tool
 it_should_refuse_to_invoke_the_vendored_tool_without_python
 it_should_reject_a_non_positive_pull_request_number_before_performing_work

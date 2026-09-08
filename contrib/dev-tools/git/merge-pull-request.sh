@@ -81,6 +81,17 @@ require_python() {
     fi
 }
 
+require_interactive_stdin() {
+    # The vendored tool reads every prompt with a plain line read and its sign and push loops only
+    # accept 's', 'x', or 'push'. At end of input those loops never terminate, so a run without a
+    # terminal on stdin spins forever instead of failing. Refuse to start it instead; --dry-run and
+    # the environment preconditions above stay usable without a terminal.
+    if [[ ! -t 0 ]]; then
+        echo "ERROR: The vendored merge tool is interactive and loops forever at end of input; run it from a terminal, or use --dry-run for a non-interactive check." >&2
+        exit 1
+    fi
+}
+
 main() {
     local dry_run=false
 
@@ -120,6 +131,7 @@ main() {
 
     require_vendored_tool
     require_python
+    require_interactive_stdin
 
     exec python3 "${VENDORED_TOOL}" "${pull_request}" "${TARGET_BRANCH}"
 }
