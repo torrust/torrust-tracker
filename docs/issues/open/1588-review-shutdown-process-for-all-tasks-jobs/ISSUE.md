@@ -7,7 +7,7 @@ github-issue: 1588
 spec-path: docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
 branch: "1588-review-shutdown-process"
 related-pr: null
-last-updated-utc: 2026-09-02 07:44
+last-updated-utc: 2026-09-08 08:27
 semantic-links:
   skill-links:
     - create-issue
@@ -54,7 +54,10 @@ tasks rather than only direct Ctrl+C listeners.
 - **Activity metrics updater**: Uses `tokio::signal::ctrl_c()` directly in its loop.
 - **Torrent cleanup job**: Uses `tokio::signal::ctrl_c()` directly in its loop.
 
-Additionally, the `main.rs` entry point only handles `SIGINT` (Ctrl+C), not `SIGTERM`.
+The revalidation records the current implementation-time evidence in
+[`verification.md`](verification.md). In particular, `main.rs` now handles
+Unix `SIGTERM` at the executable boundary and #1586 has established the direct
+`JoinSet` supervisor boundary; both replace planning-time assertions here.
 
 ## Tasks
 
@@ -94,13 +97,13 @@ its stated boundary is incomplete.
 
 ## Acceptance Criteria
 
-- [ ] Complete revalidated inventory documents ownership, token propagation,
+- [x] Complete revalidated inventory documents ownership, token propagation,
       completion policy, and configuration-dependent task cardinality.
-- [ ] Gaps are identified and mapped to active #1586, SI-1, SI-2, SI-4–SI-5,
+- [x] Gaps are identified and mapped to active #1586, SI-1, SI-2, SI-4–SI-5,
       and SI-10–SI-21 work items.
-- [ ] The final inventory confirms the #1586 supervisor boundary: direct
+- [x] The final inventory confirms the #1586 supervisor boundary: direct
       top-level components only, not component-owned child handles.
-- [ ] The EPIC roadmap is updated only if implementation evidence exposes a
+- [x] The EPIC roadmap is updated only if implementation evidence exposes a
       missing independently releasable migration slice.
 
 ## References
@@ -119,18 +122,18 @@ before the issue can be closed.
 After completing Task 1, confirm the inventory table in this issue (or the
 linked feature inventory) covers all of the following top-level components:
 
-- [ ] swarm coordination registry event listener
-- [ ] tracker core event listener
-- [ ] HTTP core event listener
-- [ ] UDP core event listener
-- [ ] UDP server stats event listener
-- [ ] UDP server banning event listener
-- [ ] UDP tracker instances (one per configured port)
-- [ ] HTTP tracker instances (one per configured port)
-- [ ] REST API server
-- [ ] Health Check API server
-- [ ] Torrent cleanup
-- [ ] Activity metrics updater (peers inactivity update)
+- [x] swarm coordination registry event listener
+- [x] tracker core event listener, including persistent completed statistics
+- [x] HTTP core event listener
+- [x] UDP core event listener
+- [x] UDP server stats event listener
+- [x] UDP server banning event listener
+- [x] UDP tracker instances (one per configured port)
+- [x] HTTP tracker instances (one per configured port)
+- [x] REST API server
+- [x] Health Check API server
+- [x] Torrent cleanup
+- [x] Activity metrics updater (peers inactivity update)
 
 For each component, the inventory must document:
 
@@ -149,11 +152,13 @@ Confirm the gaps identified in Task 2 are consistent with the findings in the
 
 Specifically, at minimum these gaps and boundaries must be identified:
 
-- [ ] Torrent cleanup uses direct `ctrl_c` — does not respond to `jobs.cancel()`
-- [ ] Activity metrics updater uses direct `ctrl_c` — does not respond to `jobs.cancel()`
-- [ ] HTTP/REST API/Health Check servers use `global_shutdown_signal()` independently
-- [ ] `main.rs` does not handle `SIGTERM`
-- [ ] The detached Axum drain controllers require component-owned join policies;
+- [x] Torrent cleanup uses direct `ctrl_c` — does not respond to `jobs.cancel()`
+- [x] Activity metrics updater uses direct `ctrl_c` — does not respond to `jobs.cancel()`
+- [x] HTTP/REST API/Health Check/UDP server libraries still reach
+      `global_shutdown_signal()` through the shared `Halted` helper; the health
+      check additionally owns and joins its drain controller.
+- [x] `main.rs` handles Unix `SIGTERM` at the executable boundary (SI-1 complete).
+- [x] The detached Axum drain controllers require component-owned join policies;
       the separate UDP IP-ban cleanup job remains manager-owned and
       token-cancellable.
 
