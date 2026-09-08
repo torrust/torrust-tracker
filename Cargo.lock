@@ -4786,6 +4786,7 @@ dependencies = [
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
+ "torrust-tracker-events",
  "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",

@@ -487,6 +487,7 @@ unpushed
 unrecognised
 unrepresentable
 unreviewed
+unspawned
 unstarted
 unsync
 untuple

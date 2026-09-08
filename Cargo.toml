@@ -72,6 +72,7 @@ axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 base64 = "0.22.1"
 torrust-tracker-http-core = { version = "0.1.0", path = "packages/http-core" }
 torrust-tracker-core = { version = "0.1.0", path = "packages/tracker-core" }
+torrust-tracker-events = { version = "0.1.0", path = "packages/events" }
 torrust-tracker-udp-core = { version = "0.1.0", path = "packages/udp-core" }
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 clap = { version = "4", features = [ "derive", "env" ] }
@@ -105,6 +106,7 @@ tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }
 
 [dev-dependencies]
+tokio = { version = "1", features = [ "test-util" ] }
 torrust-net-primitives = "0.1.0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 url = { version = "2", features = [ "serde" ] }

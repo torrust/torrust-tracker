@@ -5,6 +5,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
+use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
 
@@ -22,14 +23,22 @@ pub fn run_event_listener(
 ) -> JoinHandle<()> {
     let ban_service_clone = ban_service.clone();
     let repository_clone = repository.clone();
-
-    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener (banning)");
-
     tokio::spawn(async move {
-        dispatch_events(receiver, cancellation_token, ban_service_clone, repository_clone).await;
+        let _ = run_event_listener_unspawned(receiver, cancellation_token, ban_service_clone, repository_clone).await;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker server event listener (banning) finished");
     })
+}
+
+/// Runs the listener without spawning so a caller can retain task ownership.
+pub async fn run_event_listener_unspawned(
+    receiver: Receiver,
+    cancellation_token: CancellationToken,
+    ban_service: Arc<RwLock<BanService>>,
+    repository: Arc<Repository>,
+) -> Completion {
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener (banning)");
+    dispatch_events(receiver, cancellation_token, ban_service, repository).await
 }
 
 async fn dispatch_events(
@@ -37,19 +46,19 @@ async fn dispatch_events(
     cancellation_token: CancellationToken,
     ban_service: Arc<RwLock<BanService>>,
     repository: Arc<Repository>,
-) {
+) -> Completion {
     loop {
         tokio::select! {
             biased;
 
             () = cancellation_token.cancelled() => {
                 log_cancellation();
-                break;
+                return Completion::Cancelled;
             }
 
             result = receiver.recv() => {
                 if !handle_received_event(result, &ban_service, &repository).await {
-                    break;
+                    return Completion::Completed;
                 }
             }
         }

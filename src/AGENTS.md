@@ -6,20 +6,20 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 ## File Map
 
-| Path                        | Purpose                                                                                                                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Binary entry point. Calls `app::start()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.            |
-| `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries. |
-| `app.rs`                    | `start()` and `complete_startup()` — orchestrate the full startup sequence (setup → load data from DB → start jobs).      |
-| `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.             |
-| `bootstrap/app.rs`          | `setup()` — loads config, validates it, initializes logging and global services, builds `AppContainer`.                   |
-| `bootstrap/config.rs`       | `initialize_configuration()` — reads config from the environment / file.                                                  |
-| `bootstrap/jobs/`           | One module per service: each module exposes a starter function called from `app::start_jobs`.                             |
-| `bootstrap/jobs/manager.rs` | `JobManager` — collects `JoinHandle`s, owns the `CancellationToken`, and drives graceful shutdown.                        |
-| `bin/e2e_tests_runner.rs`   | Binary that runs E2E tests by delegating to `src/console/ci/`.                                                            |
-| `bin/http_health_check.rs`  | Minimal HTTP health-check binary used inside containers (avoids curl/wget dependency).                                    |
-| `bin/profiling.rs`          | Binary for Valgrind / kcachegrind profiling sessions.                                                                     |
-| `console/`                  | Internal console apps (`ci/e2e`, `profiling`) used by the extra binaries above.                                           |
+| Path                        | Purpose                                                                                                                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.rs`                   | Binary entry point. Calls `app::start()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.                                                                                     |
+| `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries.                                                                          |
+| `app.rs`                    | `start()` and `complete_startup()` — orchestrate the full startup sequence (setup → load data from DB → start jobs).                                                                               |
+| `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.                                                                                      |
+| `bootstrap/app.rs`          | `setup()` — loads config, validates it, initializes logging and global services, builds `AppContainer`.                                                                                            |
+| `bootstrap/config.rs`       | `initialize_configuration()` — reads config from the environment / file.                                                                                                                           |
+| `bootstrap/jobs/`           | One module per service: each module exposes a starter function called from `app::start_jobs`.                                                                                                      |
+| `bootstrap/jobs/manager.rs` | `JobManager` — directly owns named component futures in a `JoinSet`, retains legacy periodic handles through a compatibility registry, owns the `CancellationToken`, and drives graceful shutdown. |
+| `bin/e2e_tests_runner.rs`   | Binary that runs E2E tests by delegating to `src/console/ci/`.                                                                                                                                     |
+| `bin/http_health_check.rs`  | Minimal HTTP health-check binary used inside containers (avoids curl/wget dependency).                                                                                                             |
+| `bin/profiling.rs`          | Binary for Valgrind / kcachegrind profiling sessions.                                                                                                                                              |
+| `console/`                  | Internal console apps (`ci/e2e`, `profiling`) used by the extra binaries above.                                                                                                                    |
 
 ## Bootstrap Flow
 
@@ -50,7 +50,7 @@ main()
 ```
 
 Shutdown (`main`): receives `Ctrl-C` → calls `jobs.cancel()` (fires the `CancellationToken`) →
-waits up to 10 seconds for all `JoinHandle`s to complete.
+waits up to 10 seconds for all direct component tasks to complete.
 
 ## `AppContainer`
 
@@ -71,14 +71,27 @@ needs — no globals, no lazy statics for domain objects.
 
 ## `JobManager`
 
-`JobManager` (`bootstrap/jobs/manager.rs`) is a thin wrapper around a `Vec<Job>` (each `Job`
-holds a name + `JoinHandle<()>`) and a shared `CancellationToken`:
+`JobManager` (`bootstrap/jobs/manager.rs`) directly owns named `ComponentResult` futures in a
+`JoinSet` and shares a `CancellationToken` with them:
 
-- `push(name, handle)` — registers a job.
-- `push_opt(name, handle)` — convenience for jobs that may be disabled.
+- `spawn(name, future)` — directly registers a component runner; do not pass an already-spawned
+  `JoinHandle` through a wrapper.
 - `cancel()` — fires the token; all jobs that own a clone of it will observe cancellation.
-- `wait_for_all(timeout)` — gives every handle a graceful timeout; a job that exceeds it is
-  aborted and joined before the method returns, preventing detached startup jobs.
+- `wait_for_all(timeout)` — applies one concurrent deadline. It aborts and joins every remaining
+  direct component, preventing detached startup jobs.
+
+The torrent-cleanup, activity-metrics, and UDP ban-cleanup jobs retain their pre-existing
+starter and cancellation semantics: the first two listen for Ctrl-C and the latter keeps its
+existing manager token. Because `JoinSet` cannot adopt a pre-spawned `JoinHandle` without a
+forbidden wrapper task, `register_legacy(name, handle)` retains their handles in a narrow
+compatibility registry. They share the same process-wide deadline as direct components and are
+then aborted and joined; they do not claim `JoinSet` ownership. This transitional exception is
+expected to be removed by the SI-4/SI-5 periodic-job migrations. New components must use `spawn`.
+
+Direct components own nested server handles. If the manager aborts an outer component at the
+shared deadline, its drop-safe server-task owner signals normal halt, aborts the nested task, and
+prevents it from detaching. This is distinct from retained legacy handles: those are manager-owned
+but intentionally remain outside the `JoinSet` until their starter APIs are migrated.
 
 ## Adding a New Service
 
@@ -89,12 +102,12 @@ When wiring a new server or background task, follow this checklist in order:
    initialize it inside `AppContainer::initialize`.
 3. **Job launcher** — create `src/bootstrap/jobs/new_service.rs` and register it in
    `src/bootstrap/jobs/mod.rs`.
-4. **Wire into `app::start_jobs`** — call the new starter function and push its handle to
-   `job_manager`.
+4. **Wire into `app::start_jobs`** — pass the new component runner directly to
+   `job_manager.spawn`.
 5. **Graceful shutdown** — ensure the new service listens for the `CancellationToken` passed
    from `JobManager`.
-6. **Config guard** — if the service is optional, gate the starter behind the appropriate
-   config field and use `push_opt`.
+6. **Config guard** — if the service is optional, gate direct registration behind the
+   appropriate config field.
 
 ## Key Rules for This Directory
 

@@ -5,6 +5,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
+use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_primitives::ConfigurationInstanceId;
 
 use super::handler::handle_event;
@@ -20,14 +21,22 @@ pub fn run_event_listener(
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
-
-    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker core event listener");
-
     tokio::spawn(async move {
-        dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy).await;
+        let _ = run_event_listener_unspawned(receiver, cancellation_token, stats_repository, metrics_policy).await;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker core event listener finished");
     })
+}
+
+/// Runs the listener without spawning so a caller can retain task ownership.
+pub async fn run_event_listener_unspawned(
+    receiver: Receiver,
+    cancellation_token: CancellationToken,
+    stats_repository: Arc<Repository>,
+    metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
+) -> Completion {
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker core event listener");
+    dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy).await
 }
 
 async fn dispatch_events(
@@ -35,7 +44,7 @@ async fn dispatch_events(
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
-) {
+) -> Completion {
     // issue: #2039
     // Metrics policy is enforced here, at the aggregate-repository consumer,
     // rather than when the objective fact is produced.
@@ -45,12 +54,12 @@ async fn dispatch_events(
 
             () = cancellation_token.cancelled() => {
                 tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Received cancellation request, shutting down UDP tracker core event listener.");
-                break;
+                return Completion::Cancelled;
             }
 
             result = receiver.recv() => {
                 if should_stop_after_receiving_event(result, &stats_repository, &metrics_policy).await {
-                    break;
+                    return Completion::Completed;
                 }
             }
         }

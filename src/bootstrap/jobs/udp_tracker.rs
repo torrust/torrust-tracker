@@ -8,10 +8,8 @@
 //! > for the configuration options.
 use std::sync::Arc;
 
-use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
-use torrust_server_lib::signals::Halted;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -19,6 +17,8 @@ use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use torrust_tracker_udp_server::server::Server;
 use torrust_tracker_udp_server::server::spawner::Spawner;
 use tracing::instrument;
+
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, NestedServerTask};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -56,7 +56,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     connection_id_validation: ConnectionIdValidationPolicy,
     cancellation_token: CancellationToken,
-) -> Result<JoinHandle<()>, Error> {
+) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
@@ -78,7 +78,7 @@ pub async fn start_job(
         .await
         .map_err(|source| Error::Listener { source })?;
 
-    Ok(tokio::spawn(async move {
+    Ok(async move {
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for launcher (UDP service) to finish ...");
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
 
@@ -87,21 +87,24 @@ pub async fn start_job(
             "Halt channel for UDP tracker should be open"
         );
 
-        let torrust_tracker_udp_server::server::states::Running { halt_task, mut task, .. } = server.state;
+        let torrust_tracker_udp_server::server::states::Running { halt_task, task, .. } = server.state;
+        let mut server_task = NestedServerTask::new(halt_task, task);
         tokio::select! {
             () = cancellation_token.cancelled() => {
-                if halt_task.send(Halted::Normal).is_err() {
-                    tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Could not signal UDP tracker to stop after cancellation");
-                }
-                if let Err(error) = (&mut task).await {
-                    tracing::warn!(target: UDP_TRACKER_LOG_TARGET, %error, "Could not join UDP tracker after cancellation");
-                }
+                let _ = server_task.signal_shutdown();
+                let result = server_task
+                    .join()
+                    .await
+                    .map_err(|error| ComponentError::new(format!("UDP tracker failed while stopping: {error}")))?;
+                result.map_err(|error| ComponentError::new(format!("UDP tracker failed while stopping: {error}")))?;
+                Ok(ComponentCompletion::Cancelled)
             }
-            result = &mut task => {
-                if let Err(error) = result {
-                    tracing::warn!(target: UDP_TRACKER_LOG_TARGET, %error, "UDP tracker task failed");
-                }
+            result = server_task.join() => {
+                let result = result
+                    .map_err(|error| ComponentError::new(format!("UDP tracker runtime task failed: {error}")))?;
+                result.map_err(|error| ComponentError::new(format!("UDP tracker runtime task failed: {error}")))?;
+                Ok(ComponentCompletion::Completed)
             }
         }
-    }))
+    })
 }

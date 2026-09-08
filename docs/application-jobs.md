@@ -26,10 +26,12 @@ and its [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
 
 ## Terms
 
-- **Job**: a named asynchronous task spawned with `tokio::spawn` and registered
-  with `JobManager`.
-- **Owner**: the component that spawns a job, retains its `JoinHandle` through
-  `JobManager`, and provides its cancellation capability.
+- **Direct component**: a named component future spawned directly by
+  `JobManager` into its `JoinSet`.
+- **Legacy job**: one of the three pre-spawned periodic-job handles retained by
+  `JobManager` outside the `JoinSet` until SI-4/SI-5 migrate their APIs.
+- **Owner**: `JobManager` owns direct component tasks and the retained legacy
+  handles; a direct component owns any nested server task it starts.
 - **Service**: a runtime capability stored in an application or instance
   container. Services may be shared between instances or owned by one instance.
 - **Instance**: a configured UDP or HTTP listener, such as one element of
@@ -48,8 +50,8 @@ shutdown unreliable. This document calls such a task **unmanaged** or
 3. `app::start` loads required persisted data, then `start_jobs` creates a
    `JobManager` and starts application jobs and service instances.
 4. On `Ctrl+C`, `main` calls `JobManager::cancel`, then waits for registered
-   jobs through `JobManager::wait_for_all` with a ten-second grace period per
-   job.
+   direct components and transitional legacy jobs through
+   `JobManager::wait_for_all` under one ten-second process-wide grace period.
 
 ```mermaid
 flowchart TD
@@ -67,19 +69,24 @@ flowchart TD
     Main -->|Ctrl+C| Cancel[JobManager::cancel]
     Cancel --> Manager
     Manager -->|shared CancellationToken| BanCleanup
-    Main -->|wait up to 10 seconds per job| Wait[JobManager::wait_for_all]
+    Main -->|wait up to 10 seconds total| Wait[JobManager::wait_for_all]
     Wait --> Manager
 ```
 
 ## Current Ownership Rule
 
-The desired current rule is that every spawned job has an explicit owner. At a
-minimum, that owner must:
+Every spawned task has an explicit owner. `JobManager::spawn` directly creates
+and owns direct component tasks in its `JoinSet`; it does not receive their
+`JoinHandle`s. Components retain ownership of their nested server handles and
+must signal, join, or deliberately abort them before completion. The narrow
+legacy registry retains only the pre-spawned periodic handles that cannot be
+adopted by a `JoinSet` without a wrapper task.
 
-1. Spawn the job.
-2. Register and retain its `JoinHandle` in `JobManager`.
-3. Give the job a cancellation token when the job supports cooperative shutdown.
-4. Wait for the registered job during application shutdown.
+`JobManager::cancel` supplies one shared `CancellationToken` for cooperative
+shutdown. `wait_for_all` applies one common deadline concurrently to direct
+components and retained legacy handles. On expiry it aborts and joins all
+remaining work; direct components use drop-safe cleanup to prevent a nested
+server from becoming detached when the outer component is aborted.
 
 The job's ownership follows the lifetime of the **service or data it operates
 on**, not merely the listener that happened to start it. A shared service has
@@ -112,9 +119,13 @@ all jobs already follow the desired ownership model.
 
 ## Current Limitations and Future Work
 
-The current `JobManager` is an application-level registry with one shared
-cancellation token. It records registered `JoinHandle`s and waits for them, but
-it is not yet a complete task-supervision system.
+The current `JobManager` directly owns named component futures in a `JoinSet`
+and keeps a narrow compatibility registry for the pre-spawned torrent-cleanup,
+activity-metrics, and UDP ban-cleanup periodic jobs. All of those tasks share
+one shutdown deadline, but the legacy jobs are not direct `JoinSet` components.
+They are transitional until SI-4/SI-5 migrate their periodic-job APIs.
+
+It is not yet a complete task-supervision system.
 
 In particular, the current architecture does not yet define a complete hierarchy
 of parent and child jobs, uniform cancellation support for every job, state

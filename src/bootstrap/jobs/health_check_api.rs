@@ -15,7 +15,6 @@
 //! for the API configuration options.
 
 use tokio::sync::oneshot;
-use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{Registar, ServiceRegistration};
@@ -24,6 +23,8 @@ use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, 
 use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
+
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, NestedServerTask};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -60,7 +61,7 @@ pub async fn start_job(
     config: &HealthCheckApi,
     registar: Registar<RuntimeServiceMetadata>,
     cancellation_token: CancellationToken,
-) -> Result<JoinHandle<()>, Error> {
+) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let bind_addr = config.bind_address;
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
@@ -69,7 +70,7 @@ pub async fn start_job(
     let protocol = "http";
 
     tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
-    let running = server::start(bind_addr, tx_start, rx_halt, registar.clone()).map_err(|source| Error::Listener { source })?;
+    let server = server::start(bind_addr, tx_start, rx_halt, registar.clone()).map_err(|source| Error::Listener { source })?;
 
     // Wait until the server sends the started message
     match rx_start.await {
@@ -92,7 +93,11 @@ pub async fn start_job(
                 .await
             {
                 let _ = tx_halt.send(Halted::Normal);
-                drop(running.await);
+                drop(server.running.await);
+                server
+                    .shutdown_controller
+                    .await
+                    .expect("health check API shutdown controller should not panic");
                 return Err(Error::Registration { source });
             }
 
@@ -101,20 +106,32 @@ pub async fn start_job(
         Err(source) => return Err(Error::StartupNotification { source }),
     }
 
-    Ok(tokio::spawn(async move {
+    Ok(async move {
         assert!(!tx_halt.is_closed(), "Halt channel for Health Check API should be open");
-        tokio::pin!(running);
-        tokio::select! {
+        let running = tokio::spawn(server.running);
+        let mut server_task = NestedServerTask::with_shutdown_controller(tx_halt, running, server.shutdown_controller);
+        let completion: ComponentResult = tokio::select! {
             () = cancellation_token.cancelled() => {
-                let _ = tx_halt.send(Halted::Normal);
-                if let Err(error) = (&mut running).await {
-                    tracing::warn!(%error, "Health check API stopped with an error after cancellation");
-                }
+                let _ = server_task.signal_shutdown();
+                let result = server_task
+                    .join()
+                    .await
+                    .map_err(|error| ComponentError::new(format!("health check API failed while stopping: {error}")))?;
+                result.map_err(|error| ComponentError::new(format!("health check API failed while stopping: {error}")))?;
+                server_task
+                    .join_shutdown_controller()
+                    .await
+                    .map_err(|error| ComponentError::new(format!("health check API shutdown controller failed: {error}")))?;
+                Ok(ComponentCompletion::Cancelled)
             }
-            result = &mut running => if let Err(error) = result {
-                tracing::warn!(%error, "Health check API runtime task failed");
+            result = server_task.join() => {
+                let result = result
+                    .map_err(|error| ComponentError::new(format!("health check API runtime task failed: {error}")))?;
+                result.map_err(|error| ComponentError::new(format!("health check API runtime task failed: {error}")))?;
+                Ok(ComponentCompletion::Completed)
             },
-        }
+        };
         tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
-    }))
+        completion
+    })
 }

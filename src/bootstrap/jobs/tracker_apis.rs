@@ -24,7 +24,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
-use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_rest_api_server::Version;
@@ -34,6 +33,8 @@ use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;
+
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, NestedServerTask};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -80,7 +81,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     version: Version,
     cancellation_token: CancellationToken,
-) -> Result<Option<JoinHandle<()>>, Error> {
+) -> Result<Option<impl Future<Output = ComponentResult> + Send + 'static>, Error> {
     let bind_to = http_api_container.http_api_config.bind_address;
 
     let tls = if let Some(tls_config) = &http_api_container.http_api_config.tls_config {
@@ -123,29 +124,31 @@ async fn start_v1(
     metadata: RuntimeServiceMetadata,
     access_tokens: Arc<AccessTokens>,
     cancellation_token: CancellationToken,
-) -> Result<JoinHandle<()>, Error> {
+) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let server = ApiServer::new(Launcher::new(socket, tls))
         .start(http_api_container, form, metadata, access_tokens)
         .await
         .map_err(|source| Error::Listener { source })?;
 
-    Ok(tokio::spawn(async move {
+    Ok(async move {
         assert!(!server.state.halt_task.is_closed(), "Halt channel should be open");
-        let torrust_tracker_axum_rest_api_server::server::Running { halt_task, mut task, .. } = server.state;
+        let torrust_tracker_axum_rest_api_server::server::Running { halt_task, task, .. } = server.state;
+        let mut server_task = NestedServerTask::new(halt_task, task);
         tokio::select! {
             () = cancellation_token.cancelled() => {
-                if halt_task.send(torrust_server_lib::signals::Halted::Normal).is_err() {
-                    tracing::warn!("Could not signal tracker API to stop after cancellation");
-                }
-                if let Err(error) = (&mut task).await {
-                    tracing::warn!(%error, "Could not join tracker API after cancellation");
-                }
+                let _ = server_task.signal_shutdown();
+                server_task
+                    .join()
+                    .await
+                    .map_err(|error| ComponentError::new(format!("tracker API failed while stopping: {error}")))?;
+                Ok(ComponentCompletion::Cancelled)
             }
-            result = &mut task => if let Err(error) = result {
-                tracing::warn!(%error, "Tracker API task failed");
+            result = server_task.join() => {
+                result.map_err(|error| ComponentError::new(format!("tracker API runtime task failed: {error}")))?;
+                Ok(ComponentCompletion::Completed)
             },
         }
-    }))
+    })
 }
 
 #[cfg(test)]

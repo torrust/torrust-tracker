@@ -14,6 +14,7 @@ use futures::Future;
 use hyper::Request;
 use serde_json::json;
 use tokio::sync::oneshot::{Receiver, Sender};
+use tokio::task::JoinHandle;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::Latency;
 use torrust_server_lib::registar::Registar;
@@ -31,6 +32,15 @@ use tracing::{Level, Span, instrument};
 use crate::HEALTH_CHECK_API_LOG_TARGET;
 use crate::handlers::health_check_handler;
 
+/// A health-check server's runtime future and its graceful-shutdown controller.
+///
+/// The caller owns both tasks. It must join them during normal shutdown or
+/// abort them when its enclosing component is aborted.
+pub struct RunningServer<F> {
+    pub running: F,
+    pub shutdown_controller: JoinHandle<()>,
+}
+
 /// Starts Health Check API server.
 ///
 /// # Errors
@@ -43,7 +53,7 @@ pub fn start(
     tx: Sender<Started>,
     rx_halt: Receiver<Halted>,
     registar: Registar<RuntimeServiceMetadata>,
-) -> Result<impl Future<Output = Result<(), std::io::Error>>, std::io::Error> {
+) -> Result<RunningServer<impl Future<Output = Result<(), std::io::Error>> + Send>, std::io::Error> {
     let router = Router::new()
         .route("/", get(|| async { Json(json!({})) }))
         .route("/health_check", get(health_check_handler))
@@ -112,7 +122,7 @@ pub fn start(
 
     tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting service with graceful shutdown in a spawned task ...");
 
-    tokio::task::spawn(graceful_shutdown(
+    let shutdown_controller = tokio::task::spawn(graceful_shutdown(
         handle.clone(),
         rx_halt,
         format!("Shutting down http server on socket address: {address}"),
@@ -123,11 +133,22 @@ pub fn start(
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 
-    tx.send(Started {
-        service_binding,
-        address,
-    })
-    .map_err(|_| std::io::Error::new(std::io::ErrorKind::BrokenPipe, "health check startup receiver was dropped"))?;
+    if tx
+        .send(Started {
+            service_binding,
+            address,
+        })
+        .is_err()
+    {
+        shutdown_controller.abort();
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::BrokenPipe,
+            "health check startup receiver was dropped",
+        ));
+    }
 
-    Ok(running)
+    Ok(RunningServer {
+        running,
+        shutdown_controller,
+    })
 }
