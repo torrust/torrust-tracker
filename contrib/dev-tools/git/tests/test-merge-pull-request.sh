@@ -8,8 +8,12 @@ TEST_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/test-merge-pull-request.XXXXXX")
 trap 'rm -rf "${TEST_DIRECTORY}"' EXIT
 
 require_pseudo_terminal_support() {
-    if ! command -v script >/dev/null 2>&1; then
-        printf 'ERROR: script(1) from util-linux is required to exercise the interactive-stdin guard.\n' >&2
+    # The suite drives the wrapper through util-linux script(1) with these exact flags. Other
+    # implementations share the command name but reject them, so probe the flags rather than the
+    # command: an absent or incompatible script(1) then fails here by name, not mid-suite with a
+    # usage error from the first test that needs a terminal.
+    if ! script --quiet --return --command true /dev/null >/dev/null 2>&1; then
+        printf 'ERROR: script(1) from util-linux, supporting --command and --return, is required to exercise the interactive-stdin guard.\n' >&2
         exit 1
     fi
 }
