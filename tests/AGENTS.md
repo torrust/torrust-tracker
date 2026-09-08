@@ -130,6 +130,12 @@ configuration. Scenario functions run sequentially against that shared instance.
 
 ## Test Infrastructure Requirements
 
+## Test Implementation Language
+
+All tracked repository test code must be Rust. Python is permitted only for
+non-test external tooling when separately justified. Do not add Python scripts
+as test automation, test fixtures, or test assertions.
+
 All integration tests at this level must:
 
 1. **Use port `0` for bind addresses by default**: The OS assigns free ephemeral ports,
