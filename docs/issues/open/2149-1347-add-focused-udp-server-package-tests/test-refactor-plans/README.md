@@ -10,7 +10,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 
 ## Plans
 
-- [Request-buffer tests](request-buffer-tests.md) — proposed; awaiting maintainer approval.
+- [Request-buffer tests](request-buffer-tests.md) — complete.
+- [Event tests](event-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
