@@ -89,26 +89,86 @@ flowchart TD
 
 ## Current Inventory
 
-| Task / cardinality                                                                                                                                  | Immediate owner and retained work                                                     | Cancellation and completion policy                                                                                              | Current state / roadmap owner                                                                                                                      |
-| --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Swarm-registry statistics listener, 0–1 when `tracker_usage_statistics`                                                                             | Direct `JoinSet` component                                                            | Root token; runner reports cooperative cancellation or completion.                                                              | Current token-native path.                                                                                                                         |
-| Tracker-core in-memory listener, 0–1 when `tracker_usage_statistics`                                                                                | Direct `JoinSet` component                                                            | Root token; runner reports cooperative cancellation or completion.                                                              | Current token-native path.                                                                                                                         |
-| Tracker-core persistent completed-statistics listener, 0–1 when persistent completed statistics are enabled; startup fails if persistence is absent | Direct `JoinSet` component                                                            | Root token; runner reports cooperative cancellation or completion.                                                              | Current token-native path; this listener was absent from the preliminary inventory.                                                                |
-| HTTP-core listener, exactly 1                                                                                                                       | Direct `JoinSet` component                                                            | Root token; runner reports cooperative cancellation or completion.                                                              | Current token-native path, including without HTTP bindings.                                                                                        |
-| UDP-core listener, exactly 1                                                                                                                        | Direct `JoinSet` component                                                            | Root token; runner reports cooperative cancellation or completion.                                                              | Current token-native path, including without UDP services.                                                                                         |
-| UDP-server statistics and banning listeners, each 0–1 when UDP services are enabled (public tracker and non-empty UDP configuration)                | Direct `JoinSet` components                                                           | Root token; runners report cooperative cancellation or completion.                                                              | Current token-native path.                                                                                                                         |
-| UDP instance, N per configured UDP binding when UDP services are enabled                                                                            | Direct `JoinSet` component owns launcher in `NestedServerTask`                        | Token cancellation sends private `Halted::Normal`, then joins launcher. Drop sends halt, aborts, and prevents child detachment. | Legacy `Halted` bridge and server-library signal fallback: SI-2, then SI-14/SI-15 and SI-18/SI-19.                                                 |
-| UDP receive loop, 1 per UDP instance                                                                                                                | Launcher owns its `JoinHandle`                                                        | Launcher awaits it normally; on halt it aborts and awaits it.                                                                   | Receive cancellation is not token-native: SI-14.                                                                                                   |
-| UDP request processor, N per received datagram                                                                                                      | Receive loop retains a bounded buffer of `AbortHandle`s, not joins                    | Eviction and buffer drop abort unfinished processors; no terminal result is collected.                                          | Active-request deadline, abort, and outcome policy: SI-15.                                                                                         |
-| HTTP instance, N per configured HTTP binding                                                                                                        | Direct `JoinSet` component owns server task in `NestedServerTask`                     | Token cancellation sends private `Halted::Normal`, then joins server.                                                           | Token-native server lifecycle and joined drain controller: SI-2, SI-10, SI-11.                                                                     |
-| HTTP drain controller, 1 per HTTP instance                                                                                                          | Spawned by server library; handle is discarded                                        | Waits for private halt or legacy global signal; performs 90-second Axum drain with 95-second maximum wait.                      | Detached lifecycle and deadline mismatch: SI-10/SI-11.                                                                                             |
-| REST API, 0–1 when `http_api` is configured                                                                                                         | Direct `JoinSet` component owns server task in `NestedServerTask`                     | Token cancellation sends private `Halted::Normal`, then joins server.                                                           | Token-native server lifecycle and joined drain controller: SI-2, SI-10, SI-12.                                                                     |
-| REST API drain controller, 0–1                                                                                                                      | Spawned by server library; handle is discarded                                        | Same private-halt/global-signal and 90/95-second drain behavior as HTTP.                                                        | Detached lifecycle and deadline mismatch: SI-10/SI-12.                                                                                             |
-| Health-check API, exactly 1                                                                                                                         | Direct `JoinSet` component owns both server and controller through `NestedServerTask` | Token cancellation sends private `Halted::Normal`; component joins both handles, while drop aborts remaining children.          | Owned controller still waits on the legacy `Halted`/global-signal helper; token-native lifecycle and readiness-first shutdown remain: SI-13/SI-21. |
-| Health-check probes and aggregation, N per request and registered service                                                                           | Request handler / protocol client; request-scoped                                     | Aggregation is awaited with `join_all`; protocol probes are spawned inside service checks.                                      | Framework/request-scoped work, not manager-owned.                                                                                                  |
-| Torrent cleanup, 0–1 when `inactive_peer_cleanup_interval > 0`                                                                                      | Pre-spawned `JoinHandle` in `legacy_jobs`, not `JoinSet`                              | Direct `ctrl_c` or weak-manager expiry. It ignores `jobs.cancel()` and is aborted then joined at deadline.                      | Migrate to token-aware starter: SI-4.                                                                                                              |
-| Peers inactivity update, 0–1 when `tracker_usage_statistics`                                                                                        | Pre-spawned `JoinHandle` in `legacy_jobs`, not `JoinSet`                              | Direct `ctrl_c` or weak-dependency expiry. It ignores `jobs.cancel()` and is aborted then joined at deadline.                   | Migrate to token-aware starter: SI-5.                                                                                                              |
-| UDP IP-ban cleanup, 0–1 when UDP services are enabled                                                                                               | Pre-spawned `JoinHandle` in `legacy_jobs`, not `JoinSet`                              | Root token; manager waits or aborts and joins it at deadline.                                                                   | Token-cancellable, but its pre-spawned lifecycle remains a periodic-job migration concern.                                                         |
+The table is a compact overview. The [detailed inventory](#detailed-inventory)
+below records the exact ownership, cancellation, and completion evidence for
+each row.
+
+| Work                          | Cardinality | Ownership        | Current shutdown         | Roadmap                |
+| ----------------------------- | ----------- | ---------------- | ------------------------ | ---------------------- |
+| Swarm-registry listener       | 0–1         | Direct `JoinSet` | Root token               | —                      |
+| Tracker-core listeners        | 0–2         | Direct `JoinSet` | Root token               | —                      |
+| HTTP-core listener            | 1           | Direct `JoinSet` | Root token               | —                      |
+| UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
+| UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
+| UDP instances                 | N bindings  | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-14, SI-15     |
+| UDP request processors        | N datagrams | Component-owned  | Abort handles            | SI-15                  |
+| HTTP instances                | N bindings  | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-11     |
+| REST API                      | 0–1         | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-12     |
+| Health-check API              | 1           | Direct `JoinSet` | Token → `Halted`         | SI-13, SI-21           |
+| HTTP/REST drain controllers   | Per server  | Detached         | `Halted` / global signal | SI-10–SI-12            |
+| Health-check drain controller | 1           | Component-owned  | `Halted` / global signal | SI-13                  |
+| Health-check request work     | Per request | Framework-owned  | Request lifetime         | —                      |
+| Torrent cleanup               | 0–1         | Legacy registry  | Direct Ctrl-C            | SI-4                   |
+| Peers inactivity update       | 0–1         | Legacy registry  | Direct Ctrl-C            | SI-5                   |
+| UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token               | Periodic-job migration |
+
+## Detailed Inventory
+
+### Direct `JoinSet` Components
+
+- **Swarm-registry statistics listener** — starts only when
+  `tracker_usage_statistics` is enabled. Its unspawned runner receives the
+  root token and reports either cooperative cancellation or completion.
+- **Tracker-core listeners** — the in-memory listener starts with
+  `tracker_usage_statistics`; the persistent completed-statistics listener
+  starts when persistent completed statistics are enabled and fails startup if
+  persistence is absent. Both are token-aware direct components.
+- **HTTP-core and UDP-core listeners** — each starts exactly once, even when
+  the corresponding server bindings are absent. Both are token-aware direct
+  components.
+- **UDP-server statistics and banning listeners** — each starts when UDP
+  services are enabled: the tracker is public and the UDP configuration is
+  non-empty. Both are token-aware direct components.
+- **UDP instances** — one direct component per enabled UDP binding. The
+  component owns its launcher in `NestedServerTask`; cancellation sends
+  private `Halted::Normal` and joins it. On drop, the owner sends halt and
+  aborts the child to prevent detachment. The launcher owns its receive-loop
+  `JoinHandle`, which it awaits normally or aborts and awaits on halt.
+- **HTTP instances and REST API** — direct components own their server task in
+  `NestedServerTask` and forward token cancellation to private
+  `Halted::Normal`, then join the server. There is one HTTP component per
+  configured binding and zero or one REST component when `http_api` is
+  configured.
+- **Health-check API** — an always-present direct component. It owns both the
+  server and its drain controller through `NestedServerTask`; it joins both
+  after cancellation and aborts remaining children if dropped.
+
+### Component-Owned, Detached, and Framework-Owned Work
+
+- **UDP request processors** — the receive loop spawns one per datagram and
+  retains only a bounded `AbortHandle` buffer. Eviction and buffer drop abort
+  unfinished processors, but no processor terminal result is collected.
+- **HTTP and REST drain controllers** — each server library spawns a
+  controller and discards its handle. The controller waits for private halt or
+  the legacy global signal, then applies a 90-second drain and 95-second
+  maximum wait. These detached controllers conflict with the manager's shared
+  ten-second deadline.
+- **Health-check request work** — request-scoped aggregation awaits with
+  `join_all`; protocol probes are spawned inside service checks. Axum/Hyper
+  own connection and request topology, so none of this work is manager-owned.
+
+### Legacy Registry
+
+- **Torrent cleanup** — starts when `inactive_peer_cleanup_interval > 0`. Its
+  pre-spawned handle is in `legacy_jobs`, not `JoinSet`; it observes direct
+  Ctrl-C or weak-manager expiry, ignores `jobs.cancel()`, and is aborted then
+  joined at the deadline.
+- **Peers inactivity update** — starts with `tracker_usage_statistics`. Its
+  pre-spawned legacy handle similarly observes direct Ctrl-C or weak-dependency
+  expiry, ignores `jobs.cancel()`, and is aborted then joined at the deadline.
+- **UDP IP-ban cleanup** — starts with UDP services. Its pre-spawned legacy
+  handle observes the root token; the manager waits for it or aborts and joins
+  it at the deadline.
 
 The direct-component count is configuration dependent:
 
