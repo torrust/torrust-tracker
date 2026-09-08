@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md
-branch: "merge-tool-symlink-exceptions-spec"
+github-issue: 2175
+spec-path: docs/issues/open/2175-merge-tool-symlink-exceptions/ISSUE.md
+branch: "2175-merge-tool-symlink-exceptions"
 related-pr: null
-last-updated-utc: 2026-09-08 17:08
+last-updated-utc: 2026-09-08 17:49
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Explicit Symlink Exceptions for the Vendored Maintainer Merge Tool
+# Issue #2175 - Explicit Symlink Exceptions for the Vendored Maintainer Merge Tool
 
 ## Goal
 
@@ -163,10 +163,10 @@ Record a justified no-change decision in the task's evidence without creating an
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Folder-style spec drafted in `docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
 - [x] AD1 resolved and recorded in this specification
-- [ ] GitHub issue created and issue number added to this spec
+- [x] GitHub issue #2175 created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, wrapper test suite, and any pre-push checks)
@@ -184,6 +184,7 @@ Record a justified no-change decision in the task's evidence without creating an
 - 2026-09-08 16:20 UTC - Spec author - Amended the design to read the declaration from the merged tree rather than the filesystem, after verifying that the local merge commit already exists at the check site (lines 366-397), and propagated the consequence through scope, ownership, plan, rules, criteria, scenarios, and risks - This spec
 - 2026-09-08 16:54 UTC - Spec author - Shared one declaration namespace across Torrust repositories, since tree sourcing already binds a declaration to its repository, and resolved AD1 toward maintaining the tool here under a single fixed provenance statement, after confirming that the file introduced in `833a4160e` still hashes to the recorded SHA-256 and has not been modified since - This spec
 - 2026-09-08 17:08 UTC - Spec author - Widened the check from the final tree to every commit the merge introduces, judged against the final manifest alone, after verifying that the tool already fetches both range endpoints (lines 349-357) and already enumerates `pull/<n>/base..pull/<n>/head` for the merge message (line 380); recorded the two-step link-removal consequence in the rules, criteria, scenarios, and risks - This spec
+- 2026-09-08 17:49 UTC - Spec author - Specification approved and opened as GitHub issue #2175; moved the folder from `docs/issues/drafts/` to `docs/issues/open/2175-merge-tool-symlink-exceptions/`, updated the frontmatter, title, and checkpoints, and re-verified that every relative link still resolves from the new location - https://github.com/torrust/torrust-tracker/issues/2175
 
 ## Acceptance Criteria
 
@@ -266,10 +267,11 @@ After implementation, compare the result with this specification. Record invalid
 
 ## References
 
+- GitHub issue: #2175
 - Related issues: #2022 vendored and documented the maintainer merge workflow that this issue extends; #2003 is the automation umbrella EPIC that the workflow reports to. Neither is a parent of this issue.
 - Related PRs: none yet.
 - Related ADRs: `docs/adrs/` holds none for this area. The sibling repository's container-infrastructure decision, ADR-T-009 (`adr/009-container-infrastructure-refactor.md` in `torrust/torrust-index`), is the reason its tree carries the first link this issue has to admit.
-- Vendoring policy and provenance: [`contrib/dev-tools/git/README-github-merge.md`](../../../../contrib/dev-tools/git/README-github-merge.md)
+- Provenance record: [`contrib/dev-tools/git/README-github-merge.md`](../../../../contrib/dev-tools/git/README-github-merge.md)
 - Merge workflow: [`merge-pull-request` skill](../../../../.github/skills/dev/git-workflow/merge-pull-request/SKILL.md)
 - Vendoring specification: [issue #2022 specification](../../closed/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md)
 - Automation umbrella: [EPIC #2003](../../open/2003-overhaul-guardrails-and-automation/EPIC.md)
