@@ -13,6 +13,7 @@ Bitflu
 Bleichenbacher
 Bragilevsky
 BuildKit
+Buildah
 Buildx
 CALLSITE
 Celano
@@ -182,6 +183,7 @@ commiter
 completei
 composecheck
 connectionless
+containerignore
 conv
 creds
 curr
