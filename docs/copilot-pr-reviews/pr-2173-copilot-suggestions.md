@@ -23,17 +23,16 @@ Status legend:
 ## Processing Log
 
 - 2026-09-08: Started processing suggestions.
-- 2026-09-08: Replaced the `script(1)` existence check with a functional probe of the `--command` and `--return` flags the suite uses, so an incompatible implementation fails by name before the tests run; reply and thread resolution still pending.
+- 2026-09-08: Replaced the `script(1)` existence check with a functional probe of the `--command` and `--return` flags the suite uses, so an incompatible implementation fails by name before the tests run; reply posted and thread resolved.
 
 ## Suggestions
 
 | #   | Thread ID | Path                                                       | URL     | Suggestion Summary                                                                                                                          | Decision | Reply URL | Status | Thread State |
 | --- | --------- | ---------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | Pending   | `contrib/dev-tools/git/tests/test-merge-pull-request.sh`   | Pending | `require_pseudo_terminal_support` checked only that `script` exists; implementations that reject `--command`/`--return` failed later with a confusing usage error. | action   | Pending   | OPEN   | OPEN         |
+| 1 | `PRRT_kwDOGp2yqc6gSaK1` | `contrib/dev-tools/git/tests/test-merge-pull-request.sh` | https://github.com/torrust/torrust-tracker/pull/2173#discussion_r3959144960 | `require_pseudo_terminal_support` checked only that `script` exists; implementations that reject `--command`/`--return` failed later with a confusing usage error. | action | https://github.com/torrust/torrust-tracker/pull/2173#discussion_r3959348891 | DONE | RESOLVED |
 
 ## Notes
 
 - Keep this file as an audit log of review handling for the PR.
 - Reply on every PR suggestion thread before resolving it so the decision is visible to reviewers.
 - Fix commit: `dfbc9f48` — probes `script --quiet --return --command true /dev/null`, the exact flags `run_in_pseudo_terminal` uses, and fails fast with a named reason. Verified by running the suite (passes) and by re-running it with a stub `script` that rejects `--command` (fails immediately with the named error).
-- Thread ID and comment URL are pending the review-thread fetch; fill them in with the reply URL when the thread is answered and resolved.
