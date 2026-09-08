@@ -34,6 +34,10 @@ The full provenance, license, deterministic test boundary, and EPIC #2003 relati
 - Verify the target is `develop` and the Git working tree is clean before starting. Preserve
   unrelated work with a commit or a named stash; never use `git reset --hard` to discard it.
 - Run the repository-local wrapper, not a personal path outside this repository.
+- Never start the merge tool without an interactive terminal: its prompts are read from standard
+  input, which must be a terminal. The vendored tool never ends at end of input, so a run with
+  redirected, closed, or piped input loops forever reprinting its prompt; the wrapper refuses to
+  start in that case. Use `--dry-run` for non-interactive validation.
 - Inspect the temporary merge and run the required validation before considering a signature.
 - Never type `s` to sign or `push` to push unless an authorized maintainer has explicitly
   confirmed that action in the current request.
@@ -64,9 +68,13 @@ Replace `<upstream-remote>` with the contributor-local remote name that points t
 
    ```sh
    git config githubmerge.repository torrust/torrust-tracker
-   git config --global user.signingkey <gpg-key-id>
+   git config user.signingkey <gpg-key-id>
    git config user.ghtoken <github-token>
    ```
+
+   Signing configuration is repository-local: set `user.signingkey` in this repository and leave the
+   global scope unset, which is also what the wrapper's preflight message tells you to do. The
+   vendored tool's own missing-key message suggests the global scope; disregard it.
 
    `user.ghtoken` is optional. `githubmerge.host` defaults to `git@github.com`; SSH credentials
    must permit fetching the upstream repository and pushing only after authorization. The wrapper
