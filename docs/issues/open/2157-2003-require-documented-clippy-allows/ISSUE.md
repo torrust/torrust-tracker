@@ -111,14 +111,14 @@ this policy needs a prospective baseline rather than silently expanding into a b
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                        |
-| ----- | ---------------------- | ------------------------------------------------------------------------------- |
-| AC1   | DONE                   | `fix-clippy-warnings` defines adjacent rationale syntax.                        |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                   |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `fix-clippy-warnings` defines adjacent rationale syntax.                                                   |
 | AC2   | DONE                   | Validator rejects incomplete removal phrases and accepts issue references or non-empty removal conditions. |
-| AC3   | DONE                   | Merge-base diff detects only introduced or modified attributes.                 |
-| AC4   | DONE                   | Git-fixture validator tests cover documented and undocumented item/crate forms. |
-| AC5   | DONE                   | Pre-commit and CI run the validator with actionable file-and-line diagnostics.  |
-| AC6   | DONE                   | `linter all`, focused validator tests, ShellCheck, and `cargo test --doc --workspace` passed. |
+| AC3   | DONE                   | Merge-base diff detects only introduced or modified attributes.                                            |
+| AC4   | DONE                   | Git-fixture validator tests cover documented and undocumented item/crate forms.                            |
+| AC5   | DONE                   | Pre-commit and CI run the validator with actionable file-and-line diagnostics.                             |
+| AC6   | DONE                   | `linter all`, focused validator tests, ShellCheck, and `cargo test --doc --workspace` passed.              |
 
 ## Risks and Trade-offs
 
