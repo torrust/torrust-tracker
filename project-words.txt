@@ -302,6 +302,7 @@ libz
 llist
 lscr
 lycheeignore
+lycheeverse
 matchmakes
 memcmp
 metainfo

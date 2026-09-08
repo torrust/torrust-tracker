@@ -1,5 +1,7 @@
 name: "Copilot Setup Steps"
 
+# skill-link: update-github-workflow-actions
+
 # Automatically run the setup steps when they are changed to allow for easy
 # validation, and allow manual testing through the repository's "Actions" tab.
 on:
@@ -41,7 +43,7 @@ jobs:
         run: cargo build --workspace
 
       - name: Install linter
-        run: cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+        run: cargo install --locked torrust-linting@0.2.0 --bin linter
 
       - name: Install cargo-machete
         run: cargo install cargo-machete

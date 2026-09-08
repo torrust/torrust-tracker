@@ -74,6 +74,18 @@ respective responsibilities:
 | CI                       | Is the merge authority. It runs workflow-selected validation, including container and qBittorrent E2E coverage where applicable. | [Testing workflow](../.github/workflows/testing.yaml); [container workflow](../.github/workflows/container.yaml) |
 | Manual verification      | Complements automated evidence with scenario status and recorded evidence in the relevant issue specification.                   | [Issue-specification workflow](issues/README.md)                                                                 |
 
+## Advisory External Link Monitoring
+
+The [External Link Check workflow](../.github/workflows/external-link-check.yaml) runs Lychee
+online every Monday at 06:00 UTC and can be started manually from GitHub Actions. It is advisory:
+it never runs on pushes or pull requests and is not a merge requirement, but Lychee failures fail
+the workflow and retain a Markdown report for 14 days.
+
+When it fails, download the report and rerun the workflow once to distinguish a transient network
+or rate-limit failure from a persistent broken link. Fix persistent URLs. An intentional exception
+must be a narrowly scoped, documented exclusion in `.github/lychee-online.toml`; do not weaken
+the offline local-link policy in `lychee.toml`.
+
 ## Writing Maintainable Tests
 
 The [unit-test skill](../.github/skills/dev/testing/write-unit-test/SKILL.md)

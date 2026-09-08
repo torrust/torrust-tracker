@@ -30,7 +30,7 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 - **Databases**: SQLite3, MySQL, PostgreSQL
 - **Containerization**: Docker / Podman (`Containerfile`)
 - **CI**: GitHub Actions
-- **Linting tools**: markdownlint, yamllint, taplo, cspell, shellcheck, clippy, rustfmt (unified
+- **Linting tools**: markdownlint, lychee, yamllint, taplo, cspell, shellcheck, clippy, rustfmt (unified
   under the `linter` binary from [torrust/torrust-linting](https://github.com/torrust/torrust-linting))
 
 ## 📁 Key Directories
@@ -132,6 +132,7 @@ linter to the appropriate ignore file.
 | `.yamllint-ci.yml`                        | yamllint                                                                                                                            |
 | `.taplo.toml`                             | taplo (TOML formatting)                                                                                                             |
 | `cspell.json`                             | cspell (spell checker) configuration                                                                                                |
+| `lychee.toml`                             | lychee (offline local Markdown file and fragment checking)                                                                          |
 | `project-words.txt`                       | cspell project-specific dictionary                                                                                                  |
 | `rustfmt.toml`                            | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
 | `.cargo/config.toml`                      | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
@@ -217,7 +218,7 @@ Supporting docs:
   (e.g., `Arc<MyType>` not `std::sync::Arc<crate::my::MyType>`). Use full paths only to
   disambiguate naming conflicts.
 - **TOML**: Must pass `taplo fmt --check **/*.toml`. Auto-fix with `taplo fmt **/*.toml`.
-- **Markdown**: Must pass markdownlint.
+- **Markdown**: Must pass markdownlint and deterministic local file/fragment checks via lychee.
 - **YAML**: Must pass `yamllint -c .yamllint-ci.yml`.
 - **Spell checking**: Add new technical terms to `project-words.txt` (one word per line,
   alphabetical order).

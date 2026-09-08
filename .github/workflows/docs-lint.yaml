@@ -18,6 +18,8 @@
 
 name: Docs Lint
 
+# skill-link: update-github-workflow-actions
+
 on:
   push:
   pull_request:
@@ -51,7 +53,11 @@ jobs:
 
       - id: linter
         name: Install Internal Linter
-        run: cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+        run: cargo install --locked torrust-linting@0.2.0 --bin linter
+
+      - id: lint-links
+        name: Check Local Documentation Links
+        run: linter lychee
 
       - id: lint-markdown
         name: Lint Markdown

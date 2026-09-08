@@ -1,6 +1,6 @@
 # Torrust Tracker
 
-[![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf] [![os_compat_wf_b]][os_compat_wf] [![db_compat_wf_b]][db_compat_wf] [![db_bench_wf_b]][db_bench_wf] [![docs_lint_wf_b]][docs_lint_wf] [![security_scan_wf_b]][security_scan_wf]
+[![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf] [![os_compat_wf_b]][os_compat_wf] [![db_compat_wf_b]][db_compat_wf] [![db_bench_wf_b]][db_bench_wf] [![docs_lint_wf_b]][docs_lint_wf] [![external_link_check_wf_b]][external_link_check_wf] [![security_scan_wf_b]][security_scan_wf]
 
 **Torrust Tracker** is a [BitTorrent][bittorrent] Tracker that matchmakes peers and collects statistics. Written in [Rust Language][rust] with the [Axum] web framework. **This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).**
 
@@ -269,6 +269,8 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [db_bench_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/db-benchmarking.yaml/badge.svg
 [docs_lint_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml
 [docs_lint_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml/badge.svg
+[external_link_check_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/external-link-check.yaml
+[external_link_check_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/external-link-check.yaml/badge.svg
 [security_scan_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/security-scan.yaml
 [security_scan_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/security-scan.yaml/badge.svg
 [bittorrent]: http://bittorrent.org/
