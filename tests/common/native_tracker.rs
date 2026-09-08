@@ -65,8 +65,9 @@ pub struct NativeTracker {
 /// Base configuration sources supplied to one tracker child.
 ///
 /// The fixture writes all corresponding files into its temporary workspace.
-/// Ports are the only configurable values because executable configuration
-/// tests need no other child-process configuration surface.
+/// Health-check ports and a child-only bind-address override are configurable
+/// because executable configuration tests need no other child-process
+/// configuration surface.
 #[derive(Clone, Copy)]
 // This shared module is compiled by signal-only and configuration test binaries;
 // the former does not use configuration-specific source builders.
@@ -75,6 +76,7 @@ pub struct NativeTrackerConfigurationSources {
     cli: u16,
     environment_path: Option<u16>,
     environment_toml: Option<u16>,
+    health_check_api_bind_address_override: Option<SocketAddr>,
 }
 
 impl NativeTrackerConfigurationSources {
@@ -84,6 +86,7 @@ impl NativeTrackerConfigurationSources {
             cli: port,
             environment_path: None,
             environment_toml: None,
+            health_check_api_bind_address_override: None,
         }
     }
 
@@ -102,6 +105,14 @@ impl NativeTrackerConfigurationSources {
         self.environment_toml = Some(port);
         self
     }
+
+    /// Adds a child-only health-check API bind-address override.
+    // See the type-level allowance: signal-only test binaries do not use it.
+    #[allow(dead_code)]
+    pub const fn with_health_check_api_bind_address_override(mut self, address: SocketAddr) -> Self {
+        self.health_check_api_bind_address_override = Some(address);
+        self
+    }
 }
 
 /// An isolated workspace and configuration for one tracker child process.
@@ -111,6 +122,7 @@ struct NativeTrackerWorkspace {
     storage_path: PathBuf,
     environment_configuration_path: Option<PathBuf>,
     environment_configuration_toml: Option<String>,
+    health_check_api_bind_address_override: Option<SocketAddr>,
 }
 
 impl NativeTrackerWorkspace {
@@ -135,6 +147,7 @@ impl NativeTrackerWorkspace {
             storage_path,
             environment_configuration_path,
             environment_configuration_toml,
+            health_check_api_bind_address_override: sources.health_check_api_bind_address_override,
         }
     }
 
@@ -152,6 +165,10 @@ impl NativeTrackerWorkspace {
 
     fn environment_configuration_toml(&self) -> Option<&str> {
         self.environment_configuration_toml.as_deref()
+    }
+
+    const fn health_check_api_bind_address_override(&self) -> Option<SocketAddr> {
+        self.health_check_api_bind_address_override
     }
 }
 
@@ -256,6 +273,7 @@ impl NativeTracker {
             workspace.configuration_path(),
             workspace.environment_configuration_path(),
             workspace.environment_configuration_toml(),
+            workspace.health_check_api_bind_address_override(),
         );
 
         let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
@@ -551,6 +569,7 @@ fn tracker_command(
     configuration_path: &std::path::Path,
     environment_configuration_path: Option<&std::path::Path>,
     environment_configuration_toml: Option<&str>,
+    health_check_api_bind_address_override: Option<SocketAddr>,
 ) -> Command {
     let mut command = Command::new(tracker_binary());
     command
@@ -558,6 +577,7 @@ fn tracker_command(
         .arg(configuration_path)
         .env_remove("TORRUST_TRACKER_CONFIG_TOML")
         .env_remove("TORRUST_TRACKER_CONFIG_TOML_PATH")
+        .env_remove("TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS")
         // `shutdown` reaps normal and expected-error paths. This kills a
         // panicking test's child so it cannot outlive its temporary workspace.
         .kill_on_drop(true)
@@ -568,6 +588,12 @@ fn tracker_command(
     }
     if let Some(toml) = environment_configuration_toml {
         command.env("TORRUST_TRACKER_CONFIG_TOML", toml);
+    }
+    if let Some(address) = health_check_api_bind_address_override {
+        command.env(
+            "TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS",
+            address.to_string(),
+        );
     }
     command
 }
@@ -580,7 +606,8 @@ fn tracker_binary() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use std::ffi::OsStr;
+    use std::ffi::{OsStr, OsString};
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::path::Path;
 
     use super::{parse_health_check_address, tracker_command, write_configuration};
@@ -591,7 +618,7 @@ mod tests {
         let configuration_path = Path::new("/workspace/tracker.toml");
 
         // Act
-        let command = tracker_command(configuration_path, None, None);
+        let command = tracker_command(configuration_path, None, None, None);
         let arguments = command.as_std().get_args().collect::<Vec<_>>();
         let environment = command.as_std().get_envs().collect::<Vec<_>>();
 
@@ -600,7 +627,11 @@ mod tests {
             arguments,
             vec![OsStr::new("--config-toml-path"), configuration_path.as_os_str()]
         );
-        for variable in ["TORRUST_TRACKER_CONFIG_TOML", "TORRUST_TRACKER_CONFIG_TOML_PATH"] {
+        for variable in [
+            "TORRUST_TRACKER_CONFIG_TOML",
+            "TORRUST_TRACKER_CONFIG_TOML_PATH",
+            "TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS",
+        ] {
             assert!(
                 environment
                     .iter()
@@ -608,6 +639,24 @@ mod tests {
                 "command should remove inherited {variable}"
             );
         }
+    }
+
+    #[test]
+    fn it_should_set_the_child_only_health_check_bind_address_override_after_removing_the_inherited_value() {
+        // Arrange
+        let configuration_path = Path::new("/workspace/tracker.toml");
+        let override_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 43156);
+        let override_value = OsString::from(override_address.to_string());
+
+        // Act
+        let command = tracker_command(configuration_path, None, None, Some(override_address));
+        let environment = command.as_std().get_envs().collect::<Vec<_>>();
+
+        // Assert
+        assert!(environment.iter().any(|(name, value)| {
+            *name == OsStr::new("TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS")
+                && *value == Some(override_value.as_os_str())
+        }));
     }
 
     #[test]

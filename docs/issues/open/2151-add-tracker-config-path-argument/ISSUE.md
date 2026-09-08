@@ -8,7 +8,7 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-08 09:35
+last-updated-utc: 2026-09-08 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -365,6 +365,7 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-08 09:00 UTC - Maintainer / GitHub Copilot - Refined the pending Rust test plan: move the reusable native child-process fixture from `tests/lifecycle/` to `tests/common/`; create `tests/configuration/cli_configuration.rs` for executable configuration contracts; retain `tests/lifecycle/signals.rs` for OS-signal contracts only. The shared fixture must offer narrowly configured child commands without duplicating process lifecycle ownership.
 - 2026-09-08 09:15 UTC - GitHub Copilot - Completed R1. Moved the native child-process fixture to `tests/common/native_tracker.rs` and updated `tests/lifecycle/signals.rs` to import it through an explicit path module declaration. The signal suite passed unchanged (8 tests).
 - 2026-09-08 09:35 UTC - GitHub Copilot - Created a provisional `cli-configuration` target and validated its shared-fixture import. Review found its sole scenario duplicated SIGTERM lifecycle coverage without asserting a configuration contract, so the uncommitted target was removed. R2 remains pending and must begin with a configuration-specific executable-boundary scenario.
+- 2026-09-08 10:00 UTC - GitHub Copilot - Completed R2 and R3. Added the `cli-configuration` target with executable assertions that a CLI file wins over both child-only environment base sources and that a child-only per-value health-check override wins over the CLI file. The shared fixture owns the narrow child-only override configuration and continues to remove inherited source values by default. `cargo test --test cli-configuration` passed (7 tests); `cargo test --test lifecycle-signals` passed (9 tests); Rust formatting, Clippy, and diff checks passed.
 
 ## Acceptance Criteria
 
