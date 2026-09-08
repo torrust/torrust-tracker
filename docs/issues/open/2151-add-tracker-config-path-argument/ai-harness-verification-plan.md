@@ -91,31 +91,31 @@ owns its removal.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                         | Expected result                                                                                                                                                                                                                                                                                                     |
-| --- | ----------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| H1  | DONE        | Add manual-evidence template | Added `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` with purpose, environment, multiple scenario records, actual steps, observed output/logs, conclusions, and follow-up. It forbids invented evidence.                                                                                                          |
-| H2  | DONE        | Update issue template        | `docs/templates/ISSUE.md` now requires issue-local manual evidence, defines real human-oriented manual verification, and records the rationale, location, and ownership rules for disposable scripts.                                                                                                               |
-| H3  | DONE        | Update testing guidance      | `docs/testing.md` distinguishes all three verification types; `tests/AGENTS.md` retains the authoritative Rust-only test-code policy and links to that guidance.                                                                                                                                                    |
-| H4  | DONE        | Update repository skills     | Updated `create-issue` and `write-unit-test` with manual-evidence, disposable-script-rationale, Rust preference, and durable-test-promotion requirements.                                                                                                                                                           |
-| H5  | DONE        | Update custom agents         | Updated Planner, Implementer, Task Reviewer, and Committer: the roles that plan, perform, validate, and finalize issue work. They link to or enforce the canonical verification guidance.                                                                                                                           |
-| H6  | IN_PROGRESS | Apply the policy to #2151    | The issue records the removed Python verifier as historical disposable automation, and M1-M5 are reset for real release-style manual runs. Create `manual-verification-evidence.md` and record actual results.                                                                                                      |
-| H7  | DONE        | Validate documentation       | `validate-skill-links.sh`, `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` passed. Reviewed the resulting guidance: `tests/AGENTS.md` remains the authoritative Rust-only test-code rule; other artifacts link to it or to `docs/testing.md` rather than defining competing exceptions. |
+| ID  | Status | Task                         | Expected result                                                                                                                                                                                                                                                                                                     |
+| --- | ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1  | DONE   | Add manual-evidence template | Added `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` with purpose, environment, multiple scenario records, actual steps, observed output/logs, conclusions, and follow-up. It forbids invented evidence.                                                                                                          |
+| H2  | DONE   | Update issue template        | `docs/templates/ISSUE.md` now requires issue-local manual evidence, defines real human-oriented manual verification, and records the rationale, location, and ownership rules for disposable scripts.                                                                                                               |
+| H3  | DONE   | Update testing guidance      | `docs/testing.md` distinguishes all three verification types; `tests/AGENTS.md` retains the authoritative Rust-only test-code policy and links to that guidance.                                                                                                                                                    |
+| H4  | DONE   | Update repository skills     | Updated `create-issue` and `write-unit-test` with manual-evidence, disposable-script-rationale, Rust preference, and durable-test-promotion requirements.                                                                                                                                                           |
+| H5  | DONE   | Update custom agents         | Updated Planner, Implementer, Task Reviewer, and Committer: the roles that plan, perform, validate, and finalize issue work. They link to or enforce the canonical verification guidance.                                                                                                                           |
+| H6  | DONE   | Apply the policy to #2151    | The issue records the removed Python verifier as historical disposable automation. M1-M5 were executed against the release artifact and recorded, with actual commands, output, logs, and conclusions, in `manual-verification-evidence.md`.                                                                        |
+| H7  | DONE   | Validate documentation       | `validate-skill-links.sh`, `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` passed. Reviewed the resulting guidance: `tests/AGENTS.md` remains the authoritative Rust-only test-code rule; other artifacts link to it or to `docs/testing.md` rather than defining competing exceptions. |
 
 ## Acceptance Criteria
 
-- [ ] The repository documents automatic tests, manual verification, and
+- [x] The repository documents automatic tests, manual verification, and
       disposable verification scripts as distinct activities with clear purposes.
-- [ ] New issue specs require actual, issue-local manual-verification evidence
+- [x] New issue specs require actual, issue-local manual-verification evidence
       at `manual-verification-evidence.md` when scenarios are executed.
-- [ ] A disposable verification script must be issue-local and accompanied by a
+- [x] A disposable verification script must be issue-local and accompanied by a
       concrete rationale for using temporary automation instead of a maintained
       automatic test.
-- [ ] Python use in disposable scripts requires a recorded case-specific reason
+- [x] Python use in disposable scripts requires a recorded case-specific reason
       for not using Rust.
-- [ ] Maintained, tracked test code remains Rust-only.
-- [ ] Relevant templates, repository skills, and custom-agent instructions link
+- [x] Maintained, tracked test code remains Rust-only.
+- [x] Relevant templates, repository skills, and custom-agent instructions link
       to consistent, repository-owned guidance.
-- [ ] Documentation linters and local link checks pass.
+- [x] Documentation linters and local link checks pass.
 
 ## Risks and Trade-offs
 

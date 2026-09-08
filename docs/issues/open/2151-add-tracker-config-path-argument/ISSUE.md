@@ -315,7 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE        | Add executable-boundary coverage                          | Native fixtures now pass `--config-toml-path`, remove both inherited base-source variables, and retain per-child CLI-path/storage identities. The lifecycle target starts two children concurrently, verifies distinct PIDs, health addresses, CLI paths, and storage paths, then sends SIGTERM and reaps both. `cargo test --test lifecycle-signals` passed (8 tests); tracker tests, Rust formatting, and Clippy passed.                                    |
 | T8  | DONE        | Update documentation                                      | Updated the README, configuration crate/root API docs, container, benchmarking, profiling, source/test guidance, and local-run skill. CLI selection is primary for the main binary; environment examples remain valid. Documentation states final precedence, strict CLI-path behavior, profiling's environment-only boundary, and native fixture isolation. Skill-link validation, Markdown lint, spell checking, and diff checks passed.                    |
 | T9  | DONE        | Validate and record evidence                              | The mandatory pre-commit gate, configuration (129), tracker, and lifecycle-signals (8) tests passed. Scripted M1-M5 release-binary scenarios (disposable Python verifier) passed with `.tmp/issue-2151-manual/` evidence, including unreadable-file and no-listener checks; this is not human-oriented manual verification (see T10). Acceptance criteria were independently reviewed and all passed. No separate retrospective was warranted.                |
-| T10 | IN_PROGRESS | Complete Rust executable coverage and manual verification | The approved `rust-executable-test-plan.md` preserved the release-verifier behavior in Rust executable-boundary tests, documented the Rust-only tracked test-code policy, and removed the Python harness. Perform a real release-style manual verification; record actual commands, output, and tracker logs in `manual-verification-evidence.md`, then repeat final validation and acceptance review.                                                        |
+| T10 | DONE        | Complete Rust executable coverage and manual verification | The approved `rust-executable-test-plan.md` preserved the release-verifier behavior in Rust executable-boundary tests, documented the Rust-only tracked test-code policy, and removed the Python harness. Real release-style M1-M5 verification is recorded in `manual-verification-evidence.md`; final focused tests, Clippy, `linter all`, and the pre-commit gate passed.                                                        |
 
 Each task must be independently buildable and tested. T1 is a
 behavior-preserving safety-net change; T2 is a configuration refactor; T3-T4
@@ -332,14 +332,30 @@ are the deployable feature; later tasks extend verification and documentation.
 - [x] First passing CLI-only vertical slice reviewed for ownership, cleanup, deadline, and ADR decisions
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: progress log states why no retrospective was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-09-08 17:34 UTC - GitHub Copilot - Completed real release-artifact
+  manual verification. V1-V4 recorded direct CLI-only, precedence, override,
+  and invalid-source runs; V5 recorded two concurrently running isolated
+  trackers, distinct health bindings, successful health responses, and clean
+  SIGTERM shutdown. Evidence is retained in
+  `manual-verification-evidence.md`; final automated validation and acceptance
+  review remain pending under T10/R9.
+
+- 2026-09-08 17:39 UTC - GitHub Copilot - Final validation passed: 129
+  configuration-package tests, 18 `cli-configuration` executable tests, and
+  13 `lifecycle-signals` tests; focused Clippy, `linter all`, and the required
+  pre-commit gate also passed. Re-reviewed M1-M5 evidence and all acceptance
+  criteria. No retrospective is warranted because the implementation and
+  verification-policy discoveries are recorded in the issue plans and
+  repository guidance.
 
 - 2026-09-02 16:40 UTC - GitHub Copilot - Drafted the source-selection analysis locally; no tracked file, GitHub issue, or branch was created.
 - 2026-09-07 08:55 UTC - GitHub Copilot - Reviewed the local draft against the issue-spec workflow and copied it to this folder-style draft; corrected metadata and added ownership, deadline, vertical-slice, and completion-review requirements.
@@ -395,7 +411,7 @@ are the deployable feature; later tasks extend verification and documentation.
       paths, isolated storage, and port-zero bindings without configuration-source
       environment variables.
 - [x] `linter all` exits with code `0` and relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Manual verification scenarios are executed and documented (status + evidence).
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [x] Documentation states final interfaces and precedence without contradicting implementation.
 
@@ -419,11 +435,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                        | Command/Steps                                                                                                                                                                                                                                                       | Expected Result                                                                                                                                                                        | Status | Evidence                                |
 | --- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------- |
-| M1  | CLI path only                   | Start the release binary with `--config-toml-path` pointing to an isolated valid file and no configuration-source variables.                                                                                                                                        | The tracker reads that file, starts configured services, and exits cleanly on SIGTERM.                                                                                                 | TODO   | `manual-verification-evidence.md` (V1). |
-| M2  | CLI source precedence           | Prepare three valid configurations that differ only in `health_check_api.bind_address` (three distinct fixed loopback ports). Supply one via `TORRUST_TRACKER_CONFIG_TOML`, one via `TORRUST_TRACKER_CONFIG_TOML_PATH`, and the third via `--config-toml-path`.     | The `HEALTH CHECK API: Started on:` log line reports the port from the CLI-selected file.                                                                                              | TODO   | `manual-verification-evidence.md` (V2). |
-| M3  | Per-value override              | Start with `--config-toml-path` and a distinguishable `TORRUST_TRACKER_CONFIG_OVERRIDE_*` value.                                                                                                                                                                    | The override wins for its path while other values come from the file.                                                                                                                  | TODO   | `manual-verification-evidence.md` (V3). |
-| M4  | Invalid CLI source              | Start with (a) `--config-toml-path` with no value, (b) an empty supplied path, (c) a nonexistent absolute file, (d) a directory, (e) an unreadable regular file, (f) malformed TOML, and (g) a relative filename that exists only in a parent directory of the CWD. | Cases (a-b) exit `2` with a descriptive usage error. Cases (c-g) exit `1` with an error naming the path; case (g) must not load the parent-directory file. No case creates a listener. | TODO   | `manual-verification-evidence.md` (V4). |
-| M5  | Parallel child isolation (Unix) | Launch two binaries concurrently with different CLI paths, isolated storage, and port-zero configuration.                                                                                                                                                           | Both start with their own configuration; neither reads or overwrites the other's source.                                                                                               | TODO   | `manual-verification-evidence.md` (V5). |
+| M1  | CLI path only                   | Start the release binary with `--config-toml-path` pointing to an isolated valid file and no configuration-source variables.                                                                                                                                        | The tracker reads that file, starts configured services, and exits cleanly on SIGTERM.                                                                                                 | DONE   | `manual-verification-evidence.md` (V1). |
+| M2  | CLI source precedence           | Prepare three valid configurations that differ only in `health_check_api.bind_address` (three distinct fixed loopback ports). Supply one via `TORRUST_TRACKER_CONFIG_TOML`, one via `TORRUST_TRACKER_CONFIG_TOML_PATH`, and the third via `--config-toml-path`.     | The `HEALTH CHECK API: Started on:` log line reports the port from the CLI-selected file.                                                                                              | DONE   | `manual-verification-evidence.md` (V2). |
+| M3  | Per-value override              | Start with `--config-toml-path` and a distinguishable `TORRUST_TRACKER_CONFIG_OVERRIDE_*` value.                                                                                                                                                                    | The override wins for its path while other values come from the file.                                                                                                                  | DONE   | `manual-verification-evidence.md` (V3). |
+| M4  | Invalid CLI source              | Start with (a) `--config-toml-path` with no value, (b) an empty supplied path, (c) a nonexistent absolute file, (d) a directory, (e) an unreadable regular file, (f) malformed TOML, and (g) a relative filename that exists only in a parent directory of the CWD. | Cases (a-b) exit `2` with a descriptive usage error. Cases (c-g) exit `1` with an error naming the path; case (g) must not load the parent-directory file. No case creates a listener. | DONE   | `manual-verification-evidence.md` (V4). |
+| M5  | Parallel child isolation (Unix) | Launch two binaries concurrently with different CLI paths, isolated storage, and port-zero configuration.                                                                                                                                                           | Both start with their own configuration; neither reads or overwrites the other's source.                                                                                               | DONE   | `manual-verification-evidence.md` (V5). |
 
 Manual verification is mandatory. Execute these release-style scenarios against
 the built artifact and record actual setup, commands, output, and tracker logs
@@ -441,7 +457,7 @@ the progress log before proceeding.
 | AC4                       | DONE                   | T6 table-driven mandatory/default tests (129 configuration tests passed).                                                                        |
 | AC5                       | DONE                   | Parser/configuration tests; M4 release-binary command, mode, exit, diagnostic, and no-listener evidence in `.tmp/issue-2151-manual/summary.txt`. |
 | AC6                       | DONE                   | `cargo test --test lifecycle-signals` (8 passed); M5.                                                                                            |
-| Quality and documentation | TODO                   | Pre-commit gate, test runs, and T8 review passed; real manual evidence remains pending.                                                          |
+| Quality and documentation | DONE                   | M1-M5 are recorded in `manual-verification-evidence.md`; 129 configuration tests, 18 CLI executable tests, 13 lifecycle tests, focused Clippy, `linter all`, and pre-commit passed.                                                          |
 
 ## Risks and Trade-offs
 
