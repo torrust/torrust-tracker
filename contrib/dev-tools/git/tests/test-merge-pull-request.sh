@@ -193,7 +193,14 @@ it_should_refuse_to_invoke_a_missing_vendored_tool() {
     # Arrange
     local fixture_root
     fixture_root=$(create_fixture "missing-vendored-tool")
-    rm "${fixture_root}/contrib/dev-tools/git/github-merge.py"
+    # Commit the removal: an uncommitted deletion would trip the clean-tree check first and hide
+    # the vendored-tool assertion this fixture exists to make.
+    (
+        cd "${fixture_root}"
+        rm contrib/dev-tools/git/github-merge.py
+        git add --all
+        git -c commit.gpgsign=false -c core.hooksPath=/dev/null commit --quiet -m 'Remove the vendored tool'
+    )
     local output_file="${TEST_DIRECTORY}/missing-vendored-tool-output.txt"
 
     # Act
