@@ -22,7 +22,7 @@ use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
 
 const STARTUP_DEADLINE: Duration = Duration::from_secs(10);
 const SHUTDOWN_DEADLINE: Duration = Duration::from_secs(30);
-// The signal-only test binary imports this shared fixture but has no expected-failure scenarios.
+// The signal-only test binary imports this shared fixture but has no failed-start scenarios.
 #[allow(dead_code)]
 const FAILURE_DEADLINE: Duration = Duration::from_secs(10);
 const RETRY_INTERVAL: Duration = Duration::from_millis(50);
@@ -65,7 +65,7 @@ pub struct NativeTracker {
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
 }
 
-/// Invalid CLI configuration sources supported by the expected-failure fixture.
+/// Invalid CLI configuration sources supported by the failed-start fixture.
 ///
 /// This deliberately exposes configuration cases rather than raw commands so
 /// executable tests cannot bypass the fixture's environment and cleanup rules.
@@ -86,9 +86,9 @@ pub enum NativeTrackerInvalidCliSource {
     ParentOnlyRelativeFile { candidate_health_port: u16 },
 }
 
-/// A fixture that owns a tracker process expected to fail before startup.
+/// A tracker child process expected to fail before completing startup.
 #[allow(dead_code)]
-pub struct NativeTrackerExpectedFailure {
+pub struct NativeTrackerFailedStart {
     child: Option<Child>,
     output: Option<TrackerOutputCapture>,
     _workspace: tempfile::TempDir,
@@ -96,16 +96,16 @@ pub struct NativeTrackerExpectedFailure {
     candidate_port: Option<u16>,
 }
 
-/// Stable evidence retained after an expected-failure child has been reaped.
+/// Stable evidence retained after a failed-start child has been reaped.
 #[allow(dead_code)]
-pub struct NativeTrackerFailure {
+pub struct NativeTrackerFailedStartResult {
     exit_code: i32,
     output: String,
     candidate_port: Option<u16>,
 }
 
 #[allow(dead_code)]
-impl NativeTrackerFailure {
+impl NativeTrackerFailedStartResult {
     /// Returns the process exit code captured after the child was reaped.
     pub const fn exit_code(&self) -> i32 {
         self.exit_code
@@ -566,9 +566,9 @@ impl NativeTracker {
 }
 
 #[allow(dead_code)]
-impl NativeTrackerExpectedFailure {
+impl NativeTrackerFailedStart {
     /// Spawns a child with a deliberately invalid CLI configuration source.
-    pub fn start(source: NativeTrackerInvalidCliSource) -> Self {
+    pub fn spawn(source: NativeTrackerInvalidCliSource) -> Self {
         let workspace = tempfile::tempdir().expect("create temporary invalid-source workspace");
         let (mut command, source_path, candidate_port) = invalid_source_command(&workspace, source);
         let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
@@ -589,14 +589,14 @@ impl NativeTrackerExpectedFailure {
         self.source_path.clone()
     }
 
-    /// Waits for the expected startup failure and reaps the child in the normal path.
+    /// Waits for the child process to exit and reaps it in the normal path.
     ///
     /// The initial wait, forced reaping, and output-reader completion are all
     /// deadline-bounded. On a timeout, this method force-kills and attempts to
     /// reap the child before returning diagnostics. `Drop` is only a best-effort
     /// fallback when an active Tokio runtime exists; it cannot guarantee async
     /// reaping.
-    pub async fn wait(mut self) -> Result<NativeTrackerFailure, String> {
+    pub async fn wait_for_exit(mut self) -> Result<NativeTrackerFailedStartResult, String> {
         let mut child = self.child.take().expect("invalid-source tracker child must be available");
         let mut output_capture = self.output.take().expect("invalid-source output capture must be available");
         let status = match tokio::time::timeout(FAILURE_DEADLINE, child.wait()).await {
@@ -612,7 +612,7 @@ impl NativeTrackerExpectedFailure {
             .code()
             .ok_or_else(|| format!("invalid-source tracker child exited without a code: {status}\ntracker output:\n{output}"))?;
 
-        Ok(NativeTrackerFailure {
+        Ok(NativeTrackerFailedStartResult {
             exit_code,
             output,
             candidate_port: self.candidate_port,
@@ -651,7 +651,7 @@ impl NativeTrackerExpectedFailure {
 }
 
 #[allow(dead_code)]
-impl Drop for NativeTrackerExpectedFailure {
+impl Drop for NativeTrackerFailedStart {
     fn drop(&mut self) {
         let Some(mut child) = self.child.take() else {
             return;
