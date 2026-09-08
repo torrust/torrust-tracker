@@ -99,11 +99,12 @@ mapped commit point—before beginning the next item.
 
 ### R2 — Cover request-kind label and display mappings
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Add table-driven test cases for `Connect`, `Announce`, and `Scrape` label/display
-  values.
+  values. Use a local minimal `AnnounceRequest` fixture only for the `Announce` variant; an
+  inline case table must retain each concrete request-kind input and exact string value visibly.
 - **Guardrails:** The announce fixture must be minimal and local. Do not derive expected labels by
   calling production conversion code or make metric-repository assertions.
 - **Done when:** all three request kinds have exact independently specified `LabelValue` and display
@@ -129,7 +130,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved implementation of R2.
+- [x] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -150,6 +151,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 09:01 UTC - User/maintainer - Reviewed and approved R1. The six direct classification
   tests retain concrete source errors in Arrange, exact expected values beside assertions, and a
   stable-fragment whitelist assertion because its message includes source-location information.
+- 2026-09-08 09:13 UTC - User/maintainer - Approved R2. Use a small local announce fixture and
+  table cases that retain the request kind and independent expected `connect`, `announce`, or
+  `scrape` representation visibly. Commit the plan update before test implementation.
 
 ### Validation Evidence
 
