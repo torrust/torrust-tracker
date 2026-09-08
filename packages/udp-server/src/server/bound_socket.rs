@@ -138,3 +138,22 @@ impl Debug for BoundSocket {
         f.debug_struct("UdpSocket").field("addr", &local_addr).finish_non_exhaustive()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use super::BoundSocket;
+
+    #[tokio::test]
+    async fn it_should_bind_to_a_non_zero_port_when_port_zero_is_requested() {
+        // Arrange
+        let requested_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
+
+        // Act
+        let bound_socket = BoundSocket::bind(requested_address, false).expect("IPv4 loopback socket should bind");
+
+        // Assert
+        assert_ne!(bound_socket.address().port(), 0);
+    }
+}

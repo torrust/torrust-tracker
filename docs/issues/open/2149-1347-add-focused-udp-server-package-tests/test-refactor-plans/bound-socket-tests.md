@@ -81,7 +81,7 @@ review and availability guard.
 
 ### R2 — Cover port-zero binding
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Add one direct test that binds IPv4 loopback port zero and asserts the resulting port
   is non-zero.
@@ -126,7 +126,7 @@ review and availability guard.
 - [x] Maintainer approved R1.
 - [x] R1 no-change decision recorded and committed.
 - [x] Maintainer approved R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 design reviews completed and recorded.
@@ -144,6 +144,9 @@ review and availability guard.
   the separately approved Phase 2 port-zero behavior test.
 - 2026-09-08 11:49 UTC - User/maintainer - Approved R2. Bind IPv4 loopback on port zero and assert
   only the non-zero returned port invariant; commit this plan update before test implementation.
+- 2026-09-08 11:55 UTC - User/maintainer - Reviewed and approved R2. The direct test uses a Tokio
+  runtime only because `BoundSocket::bind` constructs a Tokio UDP socket; it retains the narrow
+  IPv4 loopback port-zero contract without client traffic, retries, sleeps, or dual-stack behavior.
 
 ### Validation Evidence
 
@@ -151,7 +154,7 @@ review and availability guard.
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | Maintainer approved the explicit no-change decision: there is no target-file test code to clean before Phase 2. |
-| R2 | TODO | Focused bound-socket test, formatting, and diff checks. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server bound_socket::tests`, and `git diff --check` passed. One Tokio-bound direct test covers the non-zero port invariant. |
 | R3 | TODO | Focused bound-socket test, formatting, and diff checks. |
 | R4 | TODO | Documented review after each Phase 2 test increment. |
 | R5 | TODO | Coverage measurement or documented no-change decision. |
