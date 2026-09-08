@@ -166,3 +166,137 @@ pub mod bus {
 
     pub type EventBus = torrust_tracker_events::bus::EventBus<Event>;
 }
+
+#[cfg(test)]
+mod tests {
+    use std::panic::Location;
+    use std::str::FromStr;
+
+    use torrust_info_hash::InfoHash;
+    use torrust_tracker_core::databases::error::Error as DatabaseError;
+    use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+    use torrust_tracker_primitives::Driver;
+    use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
+    use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+
+    use super::ErrorKind;
+    use crate::error::{Error, SendableRequestParseError};
+
+    #[test]
+    fn it_should_classify_an_invalid_request_as_a_request_parse_error() {
+        // Arrange
+        let error = Error::InvalidRequest {
+            request_parse_error: SendableRequestParseError {
+                message: "invalid request".to_string(),
+                opt_connection_id: None,
+                opt_transaction_id: None,
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::RequestParse(
+                "SendableRequestParseError: message: invalid request, connection_id: None, transaction_id: None".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_connection_cookie_error() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::ConnectionCookieError {
+                source: ConnectionCookieError::ValueExpired {
+                    expired_value: 1.0,
+                    min_value: 2.0,
+                },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::ConnectionCookie("cookie value is expired: 1, expected > 2".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_whitelist_error() {
+        // Arrange
+        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0") // DevSkim: ignore DS173237
+            .expect("test info hash should be valid");
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::TrackerCoreWhitelistError {
+                source: WhitelistError::TorrentNotWhitelisted {
+                    info_hash,
+                    location: Location::caller(),
+                },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert!(
+            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_database_error() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::TrackerCoreAnnounceError {
+                source: AnnounceError::Database(DatabaseError::MalformedDatabaseRecord {
+                    message: "corrupt record".to_string(),
+                    driver: Driver::Sqlite3,
+                }),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::Database("Malformed Sqlite3 database record: corrupt record".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_an_internal_error() {
+        // Arrange
+        let error = Error::Internal {
+            location: Location::caller(),
+            message: "internal failure".to_string(),
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(actual, ErrorKind::InternalServer("internal failure".to_string()));
+    }
+
+    #[test]
+    fn it_should_classify_an_authentication_error() {
+        // Arrange
+        let location = Location::caller();
+        let error = Error::AuthRequired { location };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(actual, ErrorKind::TrackerAuthentication(location.to_string()));
+    }
+}

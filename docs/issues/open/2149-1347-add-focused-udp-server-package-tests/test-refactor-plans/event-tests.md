@@ -83,7 +83,7 @@ mapped commit point—before beginning the next item.
 
 ### R1 — Cover distinct `ErrorKind` classifications
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1, P3
 - **Change:** Add direct, deterministic unit tests for one representative of each distinct output:
@@ -92,7 +92,8 @@ mapped commit point—before beginning the next item.
   classification is visible.
 - **Guardrails:** Use concrete error values and independently specified expected `ErrorKind` values.
   Do not assert log text, create event-bus fixtures, invoke handlers, or re-test UDP-core/tracker-core
-  behavior. Do not add a generic error factory with optional unrelated error families.
+  behavior. Keep exact expected values adjacent to their assertions, rather than placing them in
+  Arrange. Do not add a generic error factory with optional unrelated error families.
 - **Done when:** each stable event error category has one readable adapter contract, and equivalent
   announce/scrape wrapper paths are covered only where they produce a distinct classification.
 
@@ -127,7 +128,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 1 findings reviewed against current source, event ADR, handlers, and consumers.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
@@ -143,13 +144,19 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 08:19 UTC - User/maintainer - Approved R1 and requested repository-relative paths
   whenever an ADR is mentioned in this plan. Commit the approved plan update before implementing
   event-classification tests.
+- 2026-09-08 08:53 UTC - User/maintainer - Approved a readability refinement for R1: keep source
+  error construction in Arrange and place exact expected `ErrorKind` values directly beside their
+  assertions. Commit the plan update before applying the test-only refactor.
+- 2026-09-08 09:01 UTC - User/maintainer - Reviewed and approved R1. The six direct classification
+  tests retain concrete source errors in Arrange, exact expected values beside assertions, and a
+  stable-fragment whitelist assertion because its message includes source-location information.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
-| R1 | TODO | Focused event unit tests, formatting, and diff checks. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server event::tests`, and `git diff --check` passed. Six classification tests are deterministic and test-only; the public test info hash has a narrow DevSkim suppression. |
 | R2 | TODO | Focused event unit tests, formatting, and diff checks. |
 | R3 | TODO | Test or documented no-change decision. |
 
