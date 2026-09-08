@@ -75,7 +75,7 @@ PR title: use Conventional Commit style, include issue reference.
 Examples:
 
 - `feat(tracker-core): [#42] add peer expiry grace period`
-- `docs(agents): set up basic AI agent configuration (#1697)`
+- `docs(agents): [#1697] set up basic AI agent configuration`
 
 PR body must include:
 

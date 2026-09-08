@@ -62,7 +62,7 @@ require_signing_key() {
     signing_key=$(git config --get user.signingkey || true)
 
     if [[ -z "${signing_key}" ]]; then
-        echo "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." >&2
+        echo "ERROR: user.signingkey is not configured; run 'git config user.signingkey <gpg-key-id>' in this repository (signing configuration is repository-local; do not set it globally)." >&2
         exit 1
     fi
 }
@@ -77,6 +77,17 @@ require_vendored_tool() {
 require_python() {
     if ! command -v python3 >/dev/null 2>&1; then
         echo "ERROR: python3 is required to run the vendored merge tool; install Python 3 and retry." >&2
+        exit 1
+    fi
+}
+
+require_interactive_stdin() {
+    # The vendored tool reads every prompt with a plain line read and its sign and push loops only
+    # accept 's', 'x', or 'push'. At end of input those loops never terminate, so a run without a
+    # terminal on stdin spins forever instead of failing. Refuse to start it instead; --dry-run and
+    # the environment preconditions above stay usable without a terminal.
+    if [[ ! -t 0 ]]; then
+        echo "ERROR: The vendored merge tool is interactive and loops forever at end of input; run it from a terminal, or use --dry-run for a non-interactive check." >&2
         exit 1
     fi
 }
@@ -120,6 +131,7 @@ main() {
 
     require_vendored_tool
     require_python
+    require_interactive_stdin
 
     exec python3 "${VENDORED_TOOL}" "${pull_request}" "${TARGET_BRANCH}"
 }
