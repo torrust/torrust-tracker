@@ -7,9 +7,9 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/analysis/20260716-shutdown-process/README.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
-    - docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
+    - issue #1488
+    - issue #1586
+    - issue #1588
     - src/app.rs
     - src/bootstrap/jobs/manager.rs
     - src/main.rs
