@@ -81,7 +81,7 @@ review and availability guard.
 
 ### R2 — Cover port-zero binding
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** High impact / low effort
 - **Change:** Add one direct test that binds IPv4 loopback port zero and asserts the resulting port
   is non-zero.
@@ -125,7 +125,7 @@ review and availability guard.
 - [x] Two-phase sequence applied; Phase 1 has no test code to refactor.
 - [x] Maintainer approved R1.
 - [x] R1 no-change decision recorded and committed.
-- [ ] Maintainer approved R2.
+- [x] Maintainer approved R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
@@ -142,6 +142,8 @@ review and availability guard.
 - 2026-09-08 11:42 UTC - User/maintainer - Reviewed and approved the Phase 1 no-change decision.
   `bound_socket.rs` has no existing colocated tests to refactor, so the next work may proceed to
   the separately approved Phase 2 port-zero behavior test.
+- 2026-09-08 11:49 UTC - User/maintainer - Approved R2. Bind IPv4 loopback on port zero and assert
+  only the non-zero returned port invariant; commit this plan update before test implementation.
 
 ### Validation Evidence
 
