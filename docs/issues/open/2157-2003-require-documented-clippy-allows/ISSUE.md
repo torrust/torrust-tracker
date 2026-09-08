@@ -60,12 +60,12 @@ this policy needs a prospective baseline rather than silently expanding into a b
 
 ## Implementation Plan
 
-| ID  | Status | Task                                  | Notes / Expected Output                                                          |
-| --- | ------ | ------------------------------------- | -------------------------------------------------------------------------------- |
-| T1  | TODO   | Define rationale policy               | Cover intentional, false-positive, and temporary cases.                          |
-| T2  | TODO   | Select prospective baseline strategy  | Record how existing allows are excluded without admitting new undocumented ones. |
-| T3  | TODO   | Implement and test focused validation | Support item and crate attributes with actionable diagnostics.                   |
-| T4  | TODO   | Integrate and document                | Select a current validation tier without redesigning the runner.                 |
+| ID  | Status | Task                                  | Notes / Expected Output                                                                               |
+| --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Define rationale policy               | Covers intentional, false-positive, and temporary cases.                                              |
+| T2  | DONE   | Select prospective baseline strategy  | Diff against the merge base prevents new undocumented attributes from inheriting the legacy baseline. |
+| T3  | DONE   | Implement and test focused validation | Supports item and crate attributes with actionable diagnostics.                                       |
+| T4  | DONE   | Integrate and document                | Runs in pre-commit and CI without redesigning the linter runner.                                      |
 
 ## Progress Tracking
 
@@ -74,23 +74,25 @@ this policy needs a prospective baseline rather than silently expanding into a b
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-require-documented-clippy-allows/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2157 created and issue number added to this spec
-- [ ] Implementation completed and verified
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed and verified
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 
 ### Progress Log
 
 - 2026-09-07 10:45 UTC - GitHub Copilot - Created as an immediately implementable EPIC #2003 child; existing-allow remediation is explicitly separate - This spec
 - 2026-09-07 11:05 UTC - josecelano - Approved this subissue specification - Chat approval
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2157, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2157
+- 2026-09-08 17:00 UTC - GitHub Copilot - Implemented the prospective merge-base validator, rationale policy, focused Git-fixture tests, pre-commit and CI integration - Pending final verification
+- 2026-09-08 17:25 UTC - GitHub Copilot - Independent complexity and task reviews passed; `linter all`, focused tests, documentation tests, and all pre-commit steps passed - Ready to commit
 
 ## Acceptance Criteria
 
-- [ ] Guidance defines nearby rationale requirements for all supported Clippy allow attribute forms.
-- [ ] Temporary allows identify a removal condition or stable follow-up issue.
-- [ ] A committed prospective baseline or reviewed equivalent excludes existing attributes without accepting new undocumented attributes.
-- [ ] Focused tests prove undocumented new attributes fail and documented ones pass for item and crate forms.
-- [ ] The enforcement runs in a documented existing validation tier and produces actionable diagnostics.
-- [ ] `linter all` exits with code `0` and relevant tests pass.
+- [x] Guidance defines nearby rationale requirements for all supported Clippy allow attribute forms.
+- [x] Temporary allows identify a removal condition or stable follow-up issue.
+- [x] A committed prospective baseline or reviewed equivalent excludes existing attributes without accepting new undocumented attributes.
+- [x] Focused tests prove undocumented new attributes fail and documented ones pass for item and crate forms.
+- [x] The enforcement runs in a documented existing validation tier and produces actionable diagnostics.
+- [x] `linter all` exits with code `0` and relevant tests pass.
 
 ## Verification Plan
 
@@ -102,21 +104,21 @@ this policy needs a prospective baseline rather than silently expanding into a b
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario              | Command/Steps                                                                | Expected Result                                                          | Status | Evidence               |
-| --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ | ---------------------- |
-| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the attribute and required rationale. | TODO   | Pending implementation |
-| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required information.                     | TODO   | Pending implementation |
+| ID  | Scenario              | Command/Steps                                                                | Expected Result                                                          | Status | Evidence             |
+| --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ | -------------------- |
+| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the attribute and required rationale. | DONE   | Focused fixture test |
+| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required information.                     | DONE   | Focused fixture test |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence               |
-| ----- | ---------------------- | ---------------------- |
-| AC1   | TODO                   | Pending implementation |
-| AC2   | TODO                   | Pending implementation |
-| AC3   | TODO                   | Pending implementation |
-| AC4   | TODO                   | Pending implementation |
-| AC5   | TODO                   | Pending implementation |
-| AC6   | TODO                   | Pending implementation |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                        |
+| ----- | ---------------------- | ------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `fix-clippy-warnings` defines adjacent rationale syntax.                        |
+| AC2   | DONE                   | Validator rejects incomplete removal phrases and accepts issue references or non-empty removal conditions. |
+| AC3   | DONE                   | Merge-base diff detects only introduced or modified attributes.                 |
+| AC4   | DONE                   | Git-fixture validator tests cover documented and undocumented item/crate forms. |
+| AC5   | DONE                   | Pre-commit and CI run the validator with actionable file-and-line diagnostics.  |
+| AC6   | DONE                   | `linter all`, focused validator tests, ShellCheck, and `cargo test --doc --workspace` passed. |
 
 ## Risks and Trade-offs
 
