@@ -11,11 +11,9 @@ pub mod v3_0_0;
 pub mod validator;
 
 use std::collections::HashMap;
-use std::env;
-use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::{env, fs, io};
 
 use camino::Utf8PathBuf;
 use derive_more::Display;
