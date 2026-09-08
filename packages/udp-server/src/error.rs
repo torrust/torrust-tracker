@@ -102,3 +102,41 @@ impl From<RequestParseError> for SendableRequestParseError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use torrust_tracker_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
+    use zerocopy::byteorder::network_endian::{I32, I64};
+
+    use super::SendableRequestParseError;
+
+    #[test]
+    fn it_should_preserve_response_routing_identifiers_for_a_sendable_parse_error() {
+        // Arrange
+        let connection_id = ConnectionId(I64::new(12));
+        let transaction_id = TransactionId(I32::new(34));
+        let parse_error = RequestParseError::sendable_text("invalid announce request", connection_id, transaction_id);
+
+        // Act
+        let actual = SendableRequestParseError::from(parse_error);
+
+        // Assert
+        assert_eq!(actual.message, "invalid announce request");
+        assert_eq!(actual.opt_connection_id, Some(connection_id));
+        assert_eq!(actual.opt_transaction_id, Some(transaction_id));
+    }
+
+    #[test]
+    fn it_should_clear_response_routing_identifiers_for_an_unsendable_parse_error() {
+        // Arrange
+        let parse_error = RequestParseError::unsendable_text("invalid request action");
+
+        // Act
+        let actual = SendableRequestParseError::from(parse_error);
+
+        // Assert
+        assert_eq!(actual.message, "invalid request action");
+        assert_eq!(actual.opt_connection_id, None);
+        assert_eq!(actual.opt_transaction_id, None);
+    }
+}

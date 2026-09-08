@@ -84,7 +84,7 @@ mapped commit point—before beginning the next item.
 
 ### R1 — Cover sendable and unsendable parse-error conversion
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1, P4
 - **Change:** Add one test for `RequestParseError::sendable_text` and one test for
@@ -123,7 +123,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 1 findings reviewed against the adapter, protocol source error, and downstream consumers.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
@@ -138,13 +138,16 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 10:35 UTC - User/maintainer - Approved R1. Construct sendable and unsendable protocol
   errors directly, then assert the message and response-routing identifier presence or absence.
   Commit the plan update before test implementation.
+- 2026-09-08 10:45 UTC - User/maintainer - Reviewed and approved R1. The two direct adapter tests
+  preserve the protocol/server boundary and explicitly assert response-routing identifier retention
+  or absence without parsing packets or constructing handlers.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
-| R1 | TODO | Focused error-adapter unit tests, formatting, and diff checks. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server error::tests`, and `git diff --check` passed. Two direct adapter tests cover sendable and unsendable parse-error conversion. |
 | R2 | TODO | Focused error-adapter unit tests, formatting, and diff checks. |
 | R3 | TODO | Test or documented no-change decision. |
 
