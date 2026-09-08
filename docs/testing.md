@@ -79,7 +79,7 @@ respective responsibilities:
 The [External Link Check workflow](../.github/workflows/external-link-check.yaml) runs Lychee
 online every Monday at 06:00 UTC and can be started manually from GitHub Actions. It is advisory:
 it never runs on pushes or pull requests and is not a merge requirement, but Lychee failures fail
-the workflow and retain a Markdown report for 14 days.
+the workflow. It retains a Markdown report for 14 days regardless of the workflow outcome.
 
 When it fails, download the report and rerun the workflow once to distinguish a transient network
 or rate-limit failure from a persistent broken link. Fix persistent URLs. An intentional exception

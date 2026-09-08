@@ -33,7 +33,7 @@ The `linter` binary delegates to external tools. Install them if they are not al
 | YAML        | yamllint         | `pip3 install yamllint`               |
 | TOML        | taplo            | `cargo install taplo-cli --locked`    |
 | Spell check | cspell           | `npm install -g cspell`               |
-| Local links | lychee           | `cargo install lychee`                |
+| Local links | lychee           | `cargo install lychee --locked`       |
 | Shell       | shellcheck       | `apt install shellcheck`              |
 | Rust        | clippy / rustfmt | bundled with `rustup` (no extra step) |
 
