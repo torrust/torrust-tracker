@@ -15,6 +15,10 @@ mod base_source_precedence;
 #[path = "cli_configuration/per_value_overrides.rs"]
 mod per_value_overrides;
 
+#[cfg(unix)]
+#[path = "cli_configuration/invalid_sources.rs"]
+mod invalid_sources;
+
 #[cfg(not(unix))]
 #[test]
 fn it_should_skip_native_cli_configuration_scenarios_on_non_unix_platforms() {

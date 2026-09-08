@@ -22,6 +22,9 @@ use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
 
 const STARTUP_DEADLINE: Duration = Duration::from_secs(10);
 const SHUTDOWN_DEADLINE: Duration = Duration::from_secs(30);
+// The signal-only test binary imports this shared fixture but has no expected-failure scenarios.
+#[allow(dead_code)]
+const FAILURE_DEADLINE: Duration = Duration::from_secs(10);
 const RETRY_INTERVAL: Duration = Duration::from_millis(50);
 const HEALTH_CHECK_STARTUP_PREFIX: &str = "Started on: http://";
 const HEALTH_CHECK_LOG_TARGET: &str = "HEALTH CHECK API";
@@ -60,6 +63,73 @@ pub struct NativeTracker {
     health_check_client: Option<HealthCheckClient>,
     drop_cleanup_complete: Option<oneshot::Sender<Result<i32, String>>>,
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
+}
+
+/// Invalid CLI configuration sources supported by the expected-failure fixture.
+///
+/// This deliberately exposes configuration cases rather than raw commands so
+/// executable tests cannot bypass the fixture's environment and cleanup rules.
+#[allow(dead_code)]
+#[derive(Clone, Copy)]
+pub enum NativeTrackerInvalidCliSource {
+    /// Omits the value following `--config-toml-path`.
+    MissingOptionValue,
+    /// Supplies an empty value for `--config-toml-path`.
+    EmptyOptionValue,
+    /// Supplies an absolute path that does not exist.
+    MissingFile,
+    /// Supplies a directory where a configuration file is required.
+    Directory,
+    /// Supplies malformed TOML which would otherwise configure this health port.
+    MalformedToml { candidate_health_port: u16 },
+    /// Supplies `tracker.toml` from a child directory while it exists only in its parent.
+    ParentOnlyRelativeFile { candidate_health_port: u16 },
+}
+
+/// A fixture that owns a tracker process expected to fail before startup.
+#[allow(dead_code)]
+pub struct NativeTrackerExpectedFailure {
+    child: Option<Child>,
+    output: Option<TrackerOutputCapture>,
+    _workspace: tempfile::TempDir,
+    source_path: Option<PathBuf>,
+    candidate_port: Option<u16>,
+}
+
+/// Stable evidence retained after an expected-failure child has been reaped.
+#[allow(dead_code)]
+pub struct NativeTrackerFailure {
+    exit_code: i32,
+    output: String,
+    candidate_port: Option<u16>,
+}
+
+#[allow(dead_code)]
+impl NativeTrackerFailure {
+    /// Returns the process exit code captured after the child was reaped.
+    pub const fn exit_code(&self) -> i32 {
+        self.exit_code
+    }
+
+    /// Returns the combined stdout and stderr captured while the child ran.
+    pub fn output(&self) -> &str {
+        &self.output
+    }
+
+    /// Returns the configured port that was eligible for a post-reap bind probe.
+    pub const fn candidate_port(&self) -> Option<u16> {
+        self.candidate_port
+    }
+
+    /// Proves a candidate health port is not left bound after child reaping.
+    pub fn assert_candidate_port_is_bindable(&self) -> Result<(), String> {
+        let port = self
+            .candidate_port
+            .ok_or_else(|| "this failure source has no candidate health port".to_owned())?;
+        std::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))
+            .map(drop)
+            .map_err(|error| format!("bind candidate health port {port} after child reaping: {error}"))
+    }
 }
 
 /// Base configuration sources supplied to one tracker child.
@@ -495,6 +565,114 @@ impl NativeTracker {
     }
 }
 
+#[allow(dead_code)]
+impl NativeTrackerExpectedFailure {
+    /// Spawns a child with a deliberately invalid CLI configuration source.
+    pub fn start(source: NativeTrackerInvalidCliSource) -> Self {
+        let workspace = tempfile::tempdir().expect("create temporary invalid-source workspace");
+        let (mut command, source_path, candidate_port) = invalid_source_command(&workspace, source);
+        let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
+        let stdout = child.stdout.take().expect("tracker child stdout is piped");
+        let stderr = child.stderr.take().expect("tracker child stderr is piped");
+
+        Self {
+            child: Some(child),
+            output: Some(TrackerOutputCapture::new(stdout, stderr)),
+            _workspace: workspace,
+            source_path,
+            candidate_port,
+        }
+    }
+
+    /// Returns the fixture-owned source path when the case has one.
+    pub fn source_path(&self) -> Option<PathBuf> {
+        self.source_path.clone()
+    }
+
+    /// Waits for the expected startup failure and reaps the child in the normal path.
+    ///
+    /// The initial wait, forced reaping, and output-reader completion are all
+    /// deadline-bounded. On a timeout, this method force-kills and attempts to
+    /// reap the child before returning diagnostics. `Drop` is only a best-effort
+    /// fallback when an active Tokio runtime exists; it cannot guarantee async
+    /// reaping.
+    pub async fn wait(mut self) -> Result<NativeTrackerFailure, String> {
+        let mut child = self.child.take().expect("invalid-source tracker child must be available");
+        let mut output_capture = self.output.take().expect("invalid-source output capture must be available");
+        let status = match tokio::time::timeout(FAILURE_DEADLINE, child.wait()).await {
+            Ok(Ok(status)) => Ok(status),
+            Ok(Err(error)) => Err(format!("wait for invalid-source tracker child: {error}")),
+            Err(_) => Self::kill_and_reap_after_timeout(&mut child).await,
+        };
+        let reader_result = Self::wait_for_output_readers(&mut output_capture).await;
+        let output = output_capture.contents().await;
+        let status = status.map_err(|message| format!("{message}\ntracker output:\n{output}"))?;
+        reader_result.map_err(|message| format!("{message}\ntracker output:\n{output}"))?;
+        let exit_code = status
+            .code()
+            .ok_or_else(|| format!("invalid-source tracker child exited without a code: {status}\ntracker output:\n{output}"))?;
+
+        Ok(NativeTrackerFailure {
+            exit_code,
+            output,
+            candidate_port: self.candidate_port,
+        })
+    }
+
+    async fn kill_and_reap_after_timeout(child: &mut Child) -> Result<std::process::ExitStatus, String> {
+        let kill_result = child.start_kill();
+
+        match tokio::time::timeout(FAILURE_DEADLINE, child.wait()).await {
+            Ok(Ok(status)) => match kill_result {
+                Ok(()) => Err(format!(
+                    "invalid-source tracker child did not exit within {FAILURE_DEADLINE:?}; force-killed and reaped with {status}"
+                )),
+                Err(error) => Err(format!(
+                    "invalid-source tracker child did not exit within {FAILURE_DEADLINE:?}; force-kill failed: {error}; reaped with {status}"
+                )),
+            },
+            Ok(Err(error)) => Err(format!("reap force-killed invalid-source tracker child: {error}")),
+            Err(_) => match kill_result {
+                Ok(()) => Err(format!(
+                    "invalid-source tracker child did not exit within {FAILURE_DEADLINE:?}, and did not reap within an additional {FAILURE_DEADLINE:?} after force-kill"
+                )),
+                Err(error) => Err(format!(
+                    "invalid-source tracker child did not exit within {FAILURE_DEADLINE:?}; force-kill failed: {error}; and it did not reap within an additional {FAILURE_DEADLINE:?}"
+                )),
+            },
+        }
+    }
+
+    async fn wait_for_output_readers(output_capture: &mut TrackerOutputCapture) -> Result<(), String> {
+        tokio::time::timeout(FAILURE_DEADLINE, output_capture.wait_for_readers())
+            .await
+            .map_err(|_| format!("timed out waiting {FAILURE_DEADLINE:?} for invalid-source tracker output readers"))
+    }
+}
+
+#[allow(dead_code)]
+impl Drop for NativeTrackerExpectedFailure {
+    fn drop(&mut self) {
+        let Some(mut child) = self.child.take() else {
+            return;
+        };
+        let output = self.output.take();
+
+        // Drop cannot await cleanup. Do not panic while unwinding or outside a
+        // Tokio runtime; `kill_on_drop(true)` remains the fallback termination policy.
+        let Ok(runtime) = tokio::runtime::Handle::try_current() else {
+            return;
+        };
+        drop(runtime.spawn(async move {
+            drop(child.start_kill());
+            drop(child.wait().await);
+            if let Some(mut output) = output {
+                output.wait_for_readers().await;
+            }
+        }));
+    }
+}
+
 impl Drop for NativeTracker {
     fn drop(&mut self) {
         let Some(mut child) = self.child.take() else {
@@ -572,17 +750,8 @@ fn tracker_command(
     health_check_api_bind_address_override: Option<SocketAddr>,
 ) -> Command {
     let mut command = Command::new(tracker_binary());
-    command
-        .arg("--config-toml-path")
-        .arg(configuration_path)
-        .env_remove("TORRUST_TRACKER_CONFIG_TOML")
-        .env_remove("TORRUST_TRACKER_CONFIG_TOML_PATH")
-        .env_remove("TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS")
-        // `shutdown` reaps normal and expected-error paths. This kills a
-        // panicking test's child so it cannot outlive its temporary workspace.
-        .kill_on_drop(true)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    configure_tracker_command(&mut command);
+    command.arg("--config-toml-path").arg(configuration_path);
     if let Some(path) = environment_configuration_path {
         command.env("TORRUST_TRACKER_CONFIG_TOML_PATH", path);
     }
@@ -598,6 +767,83 @@ fn tracker_command(
     command
 }
 
+/// Applies the mandatory child isolation and output capture policy.
+fn configure_tracker_command(command: &mut Command) {
+    command
+        .env_remove("TORRUST_TRACKER_CONFIG_TOML")
+        .env_remove("TORRUST_TRACKER_CONFIG_TOML_PATH")
+        .env_remove("TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS")
+        // Normal fixture waits reap children. In a no-runtime drop path this
+        // remains best-effort termination, not guaranteed asynchronous reaping.
+        .kill_on_drop(true)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+}
+
+#[allow(dead_code)]
+fn invalid_source_command(
+    workspace: &tempfile::TempDir,
+    source: NativeTrackerInvalidCliSource,
+) -> (Command, Option<PathBuf>, Option<u16>) {
+    let mut command = Command::new(tracker_binary());
+    configure_tracker_command(&mut command);
+
+    match source {
+        NativeTrackerInvalidCliSource::MissingOptionValue => {
+            command.arg("--config-toml-path");
+            (command, None, None)
+        }
+        NativeTrackerInvalidCliSource::EmptyOptionValue => {
+            command.arg("--config-toml-path").arg("");
+            (command, None, None)
+        }
+        NativeTrackerInvalidCliSource::MissingFile => {
+            let path = workspace.path().join("does-not-exist.toml");
+            command.arg("--config-toml-path").arg(&path);
+            (command, Some(path), None)
+        }
+        NativeTrackerInvalidCliSource::Directory => {
+            let path = workspace.path().to_path_buf();
+            command.arg("--config-toml-path").arg(&path);
+            (command, Some(path), None)
+        }
+        NativeTrackerInvalidCliSource::MalformedToml { candidate_health_port } => {
+            let (path, _) = write_configuration(workspace, "malformed", candidate_health_port);
+            std::fs::write(
+                &path,
+                format!(
+                    "{}\nmalformed_key = [",
+                    std::fs::read_to_string(&path).expect("read configuration")
+                ),
+            )
+            .expect("write malformed tracker configuration");
+            command.arg("--config-toml-path").arg(&path);
+            (command, Some(path), Some(candidate_health_port))
+        }
+        NativeTrackerInvalidCliSource::ParentOnlyRelativeFile { candidate_health_port } => {
+            let parent = workspace.path().join("parent");
+            let child = parent.join("child");
+            std::fs::create_dir_all(&child).expect("create child working directory");
+            let (parent_configuration, _) = write_configuration_in_directory(&parent, candidate_health_port);
+            assert_eq!(parent_configuration.file_name(), Some(std::ffi::OsStr::new("tracker.toml")));
+            command.current_dir(child).arg("--config-toml-path").arg("tracker.toml");
+            (command, Some(parent_configuration), Some(candidate_health_port))
+        }
+    }
+}
+
+#[allow(dead_code)]
+fn write_configuration_in_directory(directory: &std::path::Path, health_check_port: u16) -> (PathBuf, PathBuf) {
+    let storage_path = directory.join("storage");
+    std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
+    let config_path = directory.join("tracker.toml");
+    let config = CONFIGURATION
+        .replace("{STORAGE_PATH}", &storage_path.to_string_lossy())
+        .replace("{HEALTH_CHECK_PORT}", &health_check_port.to_string());
+    std::fs::write(&config_path, config).expect("write tracker configuration");
+    (config_path, storage_path)
+}
+
 fn tracker_binary() -> PathBuf {
     std::env::var_os("NEXTEST_BIN_EXE_torrust-tracker")
         .or_else(|| std::env::var_os("CARGO_BIN_EXE_torrust-tracker"))
@@ -610,7 +856,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::path::Path;
 
-    use super::{parse_health_check_address, tracker_command, write_configuration};
+    use super::{
+        NativeTrackerInvalidCliSource, invalid_source_command, parse_health_check_address, tracker_command, write_configuration,
+    };
 
     #[test]
     fn it_should_select_its_configuration_with_the_cli_and_remove_legacy_base_source_variables() {
@@ -702,6 +950,31 @@ mod tests {
             address.expect("health-check address should parse").to_string(),
             "127.0.0.1:43210"
         );
+    }
+
+    #[test]
+    fn it_should_construct_a_parent_only_relative_source_from_the_child_working_directory() {
+        // Arrange
+        let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
+        let candidate_port = 43157;
+
+        // Act
+        let (command, source_path, observed_port) = invalid_source_command(
+            &workspace,
+            NativeTrackerInvalidCliSource::ParentOnlyRelativeFile {
+                candidate_health_port: candidate_port,
+            },
+        );
+
+        // Assert
+        let source_path = source_path.expect("parent-only source should retain its parent file path");
+        assert_eq!(source_path.file_name(), Some(OsStr::new("tracker.toml")));
+        assert_eq!(
+            source_path.parent().map(|parent| parent.join("child")).as_deref(),
+            command.as_std().get_current_dir()
+        );
+        assert_eq!(command.as_std().get_args().last(), Some(OsStr::new("tracker.toml")));
+        assert_eq!(observed_port, Some(candidate_port));
     }
 
     #[test]
