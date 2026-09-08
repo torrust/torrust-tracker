@@ -169,18 +169,45 @@ pub mod bus {
 
 #[cfg(test)]
 mod tests {
+    use std::net::Ipv4Addr;
+    use std::num::NonZeroU16;
     use std::panic::Location;
     use std::str::FromStr;
 
     use torrust_info_hash::InfoHash;
+    use torrust_metrics::label::LabelValue;
+    use torrust_peer_id::PeerId;
     use torrust_tracker_core::databases::error::Error as DatabaseError;
     use torrust_tracker_core::error::{AnnounceError, WhitelistError};
     use torrust_tracker_primitives::Driver;
     use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
     use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+    use torrust_tracker_udp_protocol::{
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash as UdpInfoHash, NumberOfBytes,
+        NumberOfPeers, PeerKey, Port, TransactionId,
+    };
+    use zerocopy::byteorder::network_endian::I32;
 
-    use super::ErrorKind;
+    use super::{ErrorKind, UdpRequestKind};
     use crate::error::{Error, SendableRequestParseError};
+
+    fn announce_request() -> AnnounceRequest {
+        AnnounceRequest {
+            connection_id: ConnectionId(I32::new(0).into()),
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId(I32::new(0)),
+            info_hash: UdpInfoHash([0; 20]),
+            peer_id: PeerId([0; 20]),
+            bytes_downloaded: NumberOfBytes(I32::new(0).into()),
+            bytes_left: NumberOfBytes(I32::new(0).into()),
+            bytes_uploaded: NumberOfBytes(I32::new(0).into()),
+            event: AnnounceEvent::None.into(),
+            ip_address: Ipv4Addr::UNSPECIFIED.into(),
+            key: PeerKey::new(0),
+            peers_wanted: NumberOfPeers::new(0),
+            port: Port::new(NonZeroU16::MIN),
+        }
+    }
 
     #[test]
     fn it_should_classify_an_invalid_request_as_a_request_parse_error() {
@@ -298,5 +325,26 @@ mod tests {
 
         // Assert
         assert_eq!(actual, ErrorKind::TrackerAuthentication(location.to_string()));
+    }
+
+    #[test]
+    fn it_should_convert_request_kinds_to_metric_labels_and_display_values() {
+        // Arrange
+        let cases = [
+            (UdpRequestKind::Connect, "connect"),
+            (
+                UdpRequestKind::Announce {
+                    announce_request: announce_request(),
+                },
+                "announce",
+            ),
+            (UdpRequestKind::Scrape, "scrape"),
+        ];
+
+        // Act and Assert
+        for (request_kind, expected) in cases {
+            assert_eq!(request_kind.to_string(), expected);
+            assert_eq!(LabelValue::from(request_kind), LabelValue::new(expected));
+        }
     }
 }

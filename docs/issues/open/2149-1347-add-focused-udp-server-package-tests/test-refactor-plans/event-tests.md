@@ -99,7 +99,7 @@ mapped commit point—before beginning the next item.
 
 ### R2 — Cover request-kind label and display mappings
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Add table-driven test cases for `Connect`, `Announce`, and `Scrape` label/display
@@ -131,7 +131,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -154,6 +154,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-08 09:13 UTC - User/maintainer - Approved R2. Use a small local announce fixture and
   table cases that retain the request kind and independent expected `connect`, `announce`, or
   `scrape` representation visibly. Commit the plan update before test implementation.
+- 2026-09-08 09:25 UTC - User/maintainer - Reviewed and approved R2. The one table-driven test
+  directly verifies all three request-kind label/display representations using a minimal local
+  announce fixture, without protocol parsing, event emission, or metric-repository setup.
 
 ### Validation Evidence
 
@@ -161,7 +164,7 @@ mapped commit point—before beginning the next item.
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server event::tests`, and `git diff --check` passed. Six classification tests are deterministic and test-only; the public test info hash has a narrow DevSkim suppression. |
-| R2 | TODO | Focused event unit tests, formatting, and diff checks. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server event::tests`, and `git diff --check` passed. One table-driven mapping test covers all request-kind label/display representations. |
 | R3 | TODO | Test or documented no-change decision. |
 
 ## Non-Goals
