@@ -11,7 +11,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 ## Plans
 
 - [Request-buffer tests](request-buffer-tests.md) — complete.
-- [Event tests](event-tests.md) — proposed; awaiting maintainer approval.
+- [Event tests](event-tests.md) — complete.
+- [Parse-error adapter tests](error-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
