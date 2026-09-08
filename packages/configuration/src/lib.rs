@@ -476,13 +476,25 @@ mod tests {
 
     #[test]
     #[allow(clippy::result_large_err)]
-    fn it_should_select_an_explicit_file_over_complete_toml_and_path_environment_sources() {
+    fn it_should_select_an_explicit_file_without_merging_complete_toml_or_path_environment_sources() {
         Jail::expect_with(|jail| {
             // Arrange
             jail.clear_env();
             jail.create_file("explicit.toml", &configuration_with_health_check_port(41009))?;
-            jail.create_file("path.toml", &configuration_with_health_check_port(41010))?;
-            jail.set_env(ENV_VAR_CONFIG_TOML, configuration_with_health_check_port(41011));
+            jail.create_file(
+                "path.toml",
+                &format!(
+                    "{}\n[[udp_trackers]]\nbind_address = \"127.0.0.1:41010\"",
+                    configuration_with_health_check_port(41010)
+                ),
+            )?;
+            jail.set_env(
+                ENV_VAR_CONFIG_TOML,
+                format!(
+                    "{}\n[http_api]\nbind_address = \"127.0.0.1:41011\"",
+                    configuration_with_health_check_port(41011)
+                ),
+            );
             jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "path.toml");
 
             // Act
@@ -491,6 +503,14 @@ mod tests {
 
             // Assert
             assert_eq!(configuration.health_check_api.bind_address, health_check_address(41009));
+            assert!(
+                configuration.udp_trackers.is_none(),
+                "ignored environment path source must not be merged"
+            );
+            assert!(
+                configuration.http_api.is_none(),
+                "ignored complete TOML environment source must not be merged"
+            );
 
             Ok(())
         });

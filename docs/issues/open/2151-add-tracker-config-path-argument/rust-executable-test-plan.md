@@ -39,14 +39,20 @@ tests/
 ├── common/
 │   └── native_tracker.rs       # Child process, workspace, output, readiness, cleanup
 ├── configuration/
-│   └── cli_configuration.rs    # Tracker CLI source-selection process contracts
+│   ├── cli_configuration.rs    # Cargo test entry point and shared fixture import
+│   └── cli_configuration/
+│       ├── base_source_precedence.rs # CLI versus environment base sources
+│       ├── per_value_overrides.rs    # Override versus CLI file
+│       └── invalid_sources.rs        # Planned CLI source failure contracts
 └── lifecycle/
-  └── signals.rs              # SIGINT, SIGTERM, and drop-path contracts
+    └── signals.rs              # SIGINT, SIGTERM, and drop-path contracts
 ```
 
 Each top-level test source remains a separate Cargo integration-test executable.
 Both `configuration/cli_configuration.rs` and `lifecycle/signals.rs` include the
 shared fixture through `#[path = "../common/native_tracker.rs"] mod native_tracker;`.
+Within the configuration target, modules group scenarios by the configuration
+contract they prove; the Cargo entry point owns the shared fixture import.
 
 | Behavior                                                                | Test layer                               | Location                                   | Reason                                                                                                                                                                                    |
 | ----------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -72,6 +78,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | R1  | DONE   | Extract common native fixture         | Moved `tests/lifecycle/native_tracker.rs` to `tests/common/native_tracker.rs` and updated signal tests to import it explicitly. Child-process, workspace, output-draining, absolute-deadline, normal-shutdown, and drop-path cleanup behavior is unchanged. `cargo test --test lifecycle-signals` passed (8 tests).               |
 | R2  | DONE   | Add configuration CLI test target     | Added and registered `tests/configuration/cli_configuration.rs` with an executable CLI-precedence scenario. It imports the common fixture through an explicit path module declaration and asserts a live configuration contract rather than duplicating signal behavior. `cargo test --test cli-configuration` passed.            |
 | R3  | DONE   | Add CLI precedence process tests      | Added independent executable-boundary tests for CLI precedence over both child-only base environment sources and for a child-only health-check override over the CLI file. Each waits for the selected endpoint and uses fixture-owned graceful cleanup. `cargo test --test cli-configuration` passed (7 tests).                  |
+| R3a | TODO   | Prove base-source exclusivity         | Add a configuration-package unit test where the ignored complete-TOML and environment-path sources each provide a distinct optional section absent from the explicit file. Assert neither section appears in the loaded configuration, proving base sources are exclusive rather than merely resolved by conflicting values.      |
 | R4  | TODO   | Add invalid-source process matrix     | Add executable tests to `cli_configuration.rs` for absent option value, empty value, missing file, directory, malformed TOML, and parent-only relative file. Assert exit `2` for parser usage errors and exit `1` for source failures, path-bearing diagnostics where applicable, and no listener at a configured candidate port. |
 | R5  | TODO   | Add Unix unreadable-file process test | Create a regular `mode 000` file, attempt a child start as the current user, and assert the permission error only when the platform enforces it. If a privileged runner can read it, explicitly skip with documented rationale rather than asserting a false failure. Restore file permissions during cleanup.                    |
 | R6  | TODO   | Review test design increment          | After each behavior-focused increment, run the relevant target (`cli-configuration` or `lifecycle-signals`) and review responsibility, ownership, absolute readiness deadlines, output retention, and panic/drop cleanup before adding the next scenario. Stop for maintainer review after R5.                                    |
@@ -89,6 +96,10 @@ prove no listener, and the fixture's existing absolute deadlines.
   `TORRUST_TRACKER_CONFIG_TOML_PATH` only in the child `Command`; the health
   endpoint from the CLI file must become ready. Do not mutate test-process
   environment variables.
+- **Base-source exclusivity:** test this separately at the configuration-package
+  layer, where loaded optional sections are directly observable. An
+  executable-boundary port assertion proves which selected source is live but
+  cannot alone distinguish exclusive source selection from a coincidental merge.
 - **Override:** child command sets a distinguishable
   `TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS`; the override
   endpoint becomes ready, not the CLI file endpoint.

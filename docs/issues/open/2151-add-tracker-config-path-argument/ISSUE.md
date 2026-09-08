@@ -8,7 +8,7 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-08 10:00
+last-updated-utc: 2026-09-08 10:30
 semantic-links:
   skill-links:
     - create-issue
@@ -366,6 +366,8 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-08 09:15 UTC - GitHub Copilot - Completed R1. Moved the native child-process fixture to `tests/common/native_tracker.rs` and updated `tests/lifecycle/signals.rs` to import it through an explicit path module declaration. The signal suite passed unchanged (8 tests).
 - 2026-09-08 09:35 UTC - GitHub Copilot - Created a provisional `cli-configuration` target and validated its shared-fixture import. Review found its sole scenario duplicated SIGTERM lifecycle coverage without asserting a configuration contract, so the uncommitted target was removed. R2 remains pending and must begin with a configuration-specific executable-boundary scenario.
 - 2026-09-08 10:00 UTC - GitHub Copilot - Completed R2 and R3. Added the `cli-configuration` target with executable assertions that a CLI file wins over both child-only environment base sources and that a child-only per-value health-check override wins over the CLI file. The shared fixture owns the narrow child-only override configuration and continues to remove inherited source values by default. `cargo test --test cli-configuration` passed (7 tests); `cargo test --test lifecycle-signals` passed (9 tests); Rust formatting, Clippy, and diff checks passed.
+- 2026-09-08 10:15 UTC - Maintainer / GitHub Copilot - Refined the R3 test bodies so Arrange defines source state, Act starts the child and waits for readiness, Teardown reaps it before assertions, and Assert compares a named observed endpoint with a named expected endpoint. Added R3a to prove at configuration-package level that ignored base sources are exclusive, not merely overridden on a conflicting key.
+- 2026-09-08 10:30 UTC - Maintainer / GitHub Copilot - Grouped executable configuration scenarios by their contracts: `base_source_precedence` and `per_value_overrides`. The Cargo test entry point retains only target-level configuration and the shared-fixture import; `invalid_sources` remains the planned next module.
 
 ## Acceptance Criteria
 
