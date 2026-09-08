@@ -12,6 +12,7 @@ metadata:
       - docs/security/docker/scans/README.md
       - docs/security/docker/scans/torrust-tracker.md
       - docs/security/analysis/README.md
+      - docs/templates/SECURITY-ANALYSIS.md
       - docs/security/analysis/production/
       - docs/security/analysis/build/
 ---
@@ -72,17 +73,10 @@ Update:
 ### Step 4: Document New Non-Affecting CVEs
 
 For any new non-affecting CVE, create `docs/security/analysis/production/CVE-<id>.md` or
-`docs/security/analysis/build/CVE-<id>.md` with:
-
-- frontmatter fields:
-  - `cve-id`
-  - `date-analyzed`
-  - `source`
-  - `status: non-affecting`
-  - `review-cadence`
-  - `requires-recheck-when`
-- evidence-based explanation tied to tracker architecture
-- conditions that would invalidate the current verdict
+`docs/security/analysis/build/CVE-<id>.md` using
+[docs/templates/SECURITY-ANALYSIS.md](../../../../../docs/templates/SECURITY-ANALYSIS.md).
+The template defines the reusable frontmatter, evidence-based rationale, and recheck-condition
+structure; retain this skill's scan-specific process steps.
 
 ### Step 5: Escalate Affecting CVEs
 

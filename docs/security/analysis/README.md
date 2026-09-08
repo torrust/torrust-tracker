@@ -1,13 +1,15 @@
 ---
 semantic-links:
-  skill-links:
-    - catalog-security-vulnerabilities
+  skill-links: [catalog-security-vulnerabilities, create-markdown-template]
   related-artifacts:
-    - Containerfile
-    - docs/security/analysis/production/
-    - docs/security/analysis/build/
-    - docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md
-    - docs/security/docker/scans/torrust-tracker.md
+    [
+      Containerfile,
+      docs/templates/SECURITY-ANALYSIS.md,
+      docs/security/analysis/production/,
+      docs/security/analysis/build/,
+      docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md,
+      docs/security/docker/scans/torrust-tracker.md,
+    ]
 ---
 
 # Security Analysis
@@ -104,8 +106,10 @@ build/
    affected path or weakness class (e.g. `CWE-208`, `auth.rs`) across
    `docs/security/analysis/reports/` as well.
 
-2. **If not yet cataloged**: create a new per-CVE analysis document in the appropriate
-   subdirectory (`production/` or `build/`) following the template below.
+2. **If not yet cataloged**: create a new analysis document in the appropriate subdirectory
+   (`production/`, `build/`, or `affecting/`) using the
+   [security-analysis template](../../templates/SECURITY-ANALYSIS.md). The template defines the
+   reusable authoring structure; this README defines catalog placement and process.
 
 3. **If it DOES affect us**: confirm that the finding is already public or approved for
    disclosure, then escalate immediately with an issue and fix. The analysis document should

@@ -7,6 +7,7 @@ metadata:
   semantic-links:
     related-artifacts:
       - docs/security/analysis/README.md
+      - docs/templates/SECURITY-ANALYSIS.md
 ---
 
 # Catalog Security Vulnerabilities
@@ -26,7 +27,7 @@ catalog record or issue; follow `docs/security/vulnerability-remediation.md`.
 
 ```text
 docs/security/analysis/
-  README.md              ← Process + template
+  README.md              ← Process and catalog placement
   production/            ← CVEs in the production runtime image (catalog)
   build/                 ← CVEs in build-stage images (catalog)
   reports/               ← Handled coordinated-disclosure reports (created at disclosure)
@@ -53,8 +54,9 @@ If the vulnerability is **not yet cataloged**:
 1. Determine whether it affects us (see criteria examples in the README).
 2. Determine the impact context: production runtime (`production/`) or build stage
    (`build/`).
-3. If **non-affecting**: create a dated file in the appropriate subdirectory following the
-   template in the README. Include rationale, future actions, and review cadence.
+3. If **non-affecting**: create a dated file in the appropriate subdirectory using
+   [docs/templates/SECURITY-ANALYSIS.md](../../../../../docs/templates/SECURITY-ANALYSIS.md).
+   Include rationale, future actions, and review cadence.
 4. If **affecting**: escalate immediately (see Step 3).
 
 ### Step 3: Escalate if Affecting
@@ -63,7 +65,8 @@ If a vulnerability **does** affect us (rare — the runtime is distroless):
 
 1. Confirm it is already public or approved for disclosure. Otherwise stop this workflow and
    use `docs/security/vulnerability-remediation.md`.
-2. Create the `docs/security/analysis/affecting/` directory if it does not exist, then create a file there with the same template.
+2. Create the `docs/security/analysis/affecting/` directory if it does not exist, then create a
+   file there using [docs/templates/SECURITY-ANALYSIS.md](../../../../../docs/templates/SECURITY-ANALYSIS.md).
 3. Open a GitHub issue with the `security` and `bug` labels.
 4. Notify maintainers — these are high priority.
 
