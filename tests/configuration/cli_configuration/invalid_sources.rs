@@ -1,199 +1,128 @@
 //! Executable-boundary invalid CLI configuration-source contracts.
+//!
+//! Every scenario spawns the compiled tracker with one deliberately invalid
+//! `--config-toml-path` source and asserts the exit code and diagnostic. A
+//! tracker that wrongly started would never exit, so the bounded wait in
+//! `wait_for_exit` is itself the proof that no service was started.
 
-use std::io::Write as _;
-use std::os::unix::fs::PermissionsExt as _;
+use crate::native_tracker::{NativeTrackerInvalidCliSource, NativeTrackerStartAttempt};
 
-use crate::native_tracker::{NativeTrackerFailedStart, NativeTrackerInvalidCliSource, NativeTrackerUnreadableCliSource};
+const USAGE_ERROR_MISSING_VALUE: &str = "a value is required";
+const USAGE_ERROR_EMPTY_VALUE: &str = "must not be empty";
+const UNABLE_TO_LOAD_EXPLICIT_FILE: &str = "Unable to load explicit configuration file";
+const UNABLE_TO_PROCESS_EXPLICIT_FILE: &str = "Unable to process explicit configuration file";
 
 #[tokio::test]
 async fn it_should_exit_with_a_usage_error_when_the_config_toml_path_value_is_missing() {
     // Arrange
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::MissingOptionValue);
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::MissingOptionValue);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit for a missing option value");
 
     // Assert
-    assert_eq!(failure.exit_code(), 2);
-    assert!(failure.output().contains("a value is required"));
+    failure.assert_usage_error(USAGE_ERROR_MISSING_VALUE);
 }
 
 #[tokio::test]
 async fn it_should_exit_with_a_usage_error_when_the_config_toml_path_value_is_empty() {
     // Arrange
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::EmptyOptionValue);
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::EmptyOptionValue);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit for an empty option value");
 
     // Assert
-    assert_eq!(failure.exit_code(), 2);
-    assert!(failure.output().contains("must not be empty"));
+    failure.assert_usage_error(USAGE_ERROR_EMPTY_VALUE);
 }
 
 #[tokio::test]
-async fn it_should_exit_without_starting_when_the_cli_configuration_file_is_missing() {
+async fn it_should_fail_startup_naming_the_path_when_the_cli_configuration_file_is_missing() {
     // Arrange
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::MissingFile);
-    let expected_path = failed_start
-        .source_path()
-        .expect("missing-file fixture should expose its source path")
-        .to_string_lossy()
-        .into_owned();
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::MissingFile);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit for a missing file");
 
     // Assert
-    assert_eq!(failure.exit_code(), 1);
-    assert!(failure.output().contains("Unable to load explicit configuration file"));
-    assert!(failure.output().contains(&expected_path));
+    failure.assert_explicit_configuration_file_load_failure();
 }
 
 #[tokio::test]
-async fn it_should_exit_without_starting_when_the_cli_configuration_source_is_a_directory() {
+async fn it_should_fail_startup_naming_the_path_when_the_cli_configuration_source_is_a_directory() {
     // Arrange
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::Directory);
-    let expected_path = failed_start
-        .source_path()
-        .expect("directory fixture should expose its source path")
-        .to_string_lossy()
-        .into_owned();
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::Directory);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit for a directory source");
 
     // Assert
-    assert_eq!(failure.exit_code(), 1);
-    assert!(failure.output().contains("Unable to load explicit configuration file"));
-    assert!(failure.output().contains(&expected_path));
+    failure.assert_explicit_configuration_file_load_failure();
 }
 
 #[tokio::test]
-async fn it_should_exit_without_starting_when_the_cli_configuration_toml_is_malformed() {
+async fn it_should_fail_startup_naming_the_path_when_the_cli_configuration_toml_is_malformed() {
     // Arrange
-    let candidate_health_port = 43158;
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::MalformedToml { candidate_health_port });
-    let expected_path = failed_start
-        .source_path()
-        .expect("malformed-TOML fixture should expose its source path")
-        .to_string_lossy()
-        .into_owned();
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::MalformedToml);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit for malformed TOML");
 
     // Assert
-    assert_eq!(failure.exit_code(), 1);
-    assert!(failure.output().contains("Unable to process explicit configuration file"));
-    assert!(failure.output().contains(&expected_path));
-    assert_eq!(failure.candidate_port(), Some(candidate_health_port));
-    failure
-        .assert_candidate_port_is_bindable()
-        .expect("malformed configuration must not leave its candidate health port bound");
+    failure.assert_startup_failure(UNABLE_TO_PROCESS_EXPLICIT_FILE);
+    failure.assert_diagnostic_names_source_path();
 }
 
 #[tokio::test]
 async fn it_should_not_search_parent_directories_for_a_relative_cli_configuration_file() {
     // Arrange
-    let candidate_health_port = 43157;
-    let failed_start =
-        NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::ParentOnlyRelativeFile { candidate_health_port });
+    let start_attempt = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::ParentOnlyRelativeFile);
 
     // Act
-    let failure = failed_start
+    let failure = start_attempt
+        .start()
         .wait_for_exit()
         .await
         .expect("tracker should exit rather than load the parent configuration file");
 
     // Assert
-    assert_eq!(failure.exit_code(), 1);
-    assert!(failure.output().contains("Unable to load explicit configuration file"));
-    assert!(failure.output().contains("tracker.toml"));
-    assert_eq!(failure.candidate_port(), Some(candidate_health_port));
-    failure
-        .assert_candidate_port_is_bindable()
-        .expect("parent-only configuration must not leave its candidate health port bound");
+    failure.assert_startup_failure(UNABLE_TO_LOAD_EXPLICIT_FILE);
 }
 
 #[tokio::test]
-async fn it_should_exit_without_starting_when_the_cli_configuration_file_is_an_unreadable_regular_file() {
+async fn it_should_fail_startup_naming_the_path_when_the_cli_configuration_file_is_unreadable() {
     // Arrange
-    let candidate_health_port = 43159;
+    let Some(start_attempt) = NativeTrackerStartAttempt::with_unreadable_regular_file().enforced_or_report_skip() else {
+        return;
+    };
 
     // Act
-    let source = NativeTrackerFailedStart::spawn_with_unreadable_regular_file(candidate_health_port);
+    let failure = start_attempt
+        .start()
+        .wait_for_exit()
+        .await
+        .expect("tracker should exit for an unreadable regular file");
 
     // Assert
-    match source {
-        NativeTrackerUnreadableCliSource::Enforced(failed_start) => {
-            let expected_path = failed_start
-                .source_path()
-                .expect("unreadable-file fixture should expose its source path")
-                .to_string_lossy()
-                .into_owned();
-            let failure = failed_start
-                .wait_for_exit()
-                .await
-                .expect("tracker should exit for an unreadable regular file");
-
-            assert_eq!(failure.exit_code(), 1);
-            assert!(failure.output().contains("Unable to load explicit configuration file"));
-            assert!(failure.output().contains(&expected_path));
-            assert!(failure.output().contains("Permission denied"));
-            assert_eq!(failure.candidate_port(), Some(candidate_health_port));
-            assert_eq!(
-                std::fs::metadata(
-                    failure
-                        .source_path()
-                        .expect("unreadable-file result should retain its source path"),
-                )
-                .expect("read restored unreadable-file metadata")
-                .permissions()
-                .mode()
-                    & 0o777,
-                failure
-                    .source_mode()
-                    .expect("unreadable-file result should retain the original source mode")
-                    & 0o777,
-                "wait_for_exit must restore the unreadable file permissions"
-            );
-            failure
-                .assert_candidate_port_is_bindable()
-                .expect("unreadable configuration must not leave its candidate health port bound");
-        }
-        NativeTrackerUnreadableCliSource::NotEnforced { reason } => {
-            drop(writeln!(
-                std::io::stderr(),
-                "skipping unreadable regular-file assertion: {reason}"
-            ));
-        }
-    }
-}
-
-#[tokio::test]
-async fn it_should_not_panic_when_a_failed_start_is_dropped_without_a_tokio_runtime() {
-    // Arrange
-    let failed_start = NativeTrackerFailedStart::spawn(NativeTrackerInvalidCliSource::MissingFile);
-
-    // Act
-    let result = std::thread::spawn(move || drop(failed_start)).join();
-
-    // Assert
-    assert!(result.is_ok(), "dropping a failed start outside Tokio must not panic");
+    failure.assert_explicit_configuration_file_load_failure();
 }

@@ -81,7 +81,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | R3a | DONE   | Prove base-source exclusivity         | Added a configuration-package unit test where the ignored complete-TOML and environment-path sources each provide a distinct optional section absent from the explicit file. It asserts neither section appears in the loaded configuration, proving base sources are exclusive rather than merely resolved by conflicting values. `cargo test --package torrust-tracker-configuration --lib` passed (129 tests).                                                                |
 | R4  | DONE   | Add invalid-source process matrix     | Added `invalid_sources.rs` with compiled-child contracts for missing/empty option values, missing file, directory, malformed TOML, and parent-only relative path. They assert real exit codes and stable diagnostic fragments; malformed and parent-only sources prove their candidate ports are bindable after child reaping. The expected-failure fixture bounds waiting, forced reaping, and output draining. `cargo test --test cli-configuration` passed (15 tests).        |
 | R5  | DONE   | Add Unix unreadable-file process test | Added a fixture-owned valid mode-`000` regular file scenario. When permissions are enforced, the compiled child exits `1` with a path-bearing permission diagnostic and leaves its candidate port bindable after reaping; privileged runners report an explicit skip without spawning a child. Permission restoration is fallible in normal cleanup, non-panicking in drop cleanup, and verified after `wait_for_exit`. `cargo test --test cli-configuration` passed (17 tests). |
-| R6  | TODO   | Review test design increment          | After each behavior-focused increment, run the relevant target (`cli-configuration` or `lifecycle-signals`) and review responsibility, ownership, absolute readiness deadlines, output retention, and panic/drop cleanup before adding the next scenario. Stop for maintainer review after R5.                                                                                                                                                                                   |
+| R6  | DONE   | Review test design increment          | Maintainer review of `invalid_sources.rs` found multi-contract asserts, an unreadable-file test that mixed fixture checks into the Assert step, and the suite's only fixed loopback ports (43157-43159). Resolved by: fixture assertion helpers (`assert_usage_error`, `assert_startup_failure`, `assert_diagnostic_names_source_path`) that print child output on failure; one contract per test; `enforced_or_report_skip()` so the unreadable-file test reads as plain AAA; moving permission-restoration and drop-without-runtime checks into the fixture's unit tests; dropping the candidate-port probe (the bounded exit wait already proves no start) so every configuration uses port zero. `cargo test --test cli-configuration` passed (18 tests, 3 consecutive runs). |
 | R7  | TODO   | Remove Python test code               | After R1-R5 pass and reviewer approval, remove `release-cli-verification.py` and its artifact references. Replace the current scripted verifier section with concise manual release commands only if final manual validation remains useful.                                                                                                                                                                                                                                     |
 | R8  | TODO   | Document Rust-only test policy        | Update `docs/testing.md` and `tests/AGENTS.md` to state that tracked repository test code is Rust; use Python only for non-test external tooling when separately justified. Link this decision to the test-layer guidance without duplicating it.                                                                                                                                                                                                                                |
 | R9  | TODO   | Final validation and evidence         | Run the required focused tests, `linter all`, pre-commit, and manual release scenarios. Re-review acceptance criteria and record whether a retrospective is needed.                                                                                                                                                                                                                                                                                                              |
@@ -89,8 +89,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## Scenario Contracts
 
 Each executable-boundary scenario uses an isolated `TempDir`, child-specific
-configuration, port-zero bindings unless a fixed candidate port is necessary to
-prove no listener, and the fixture's existing absolute deadlines.
+configuration, port-zero bindings, and the fixture's existing absolute deadlines.
 
 - **Precedence:** set conflicting valid `TORRUST_TRACKER_CONFIG_TOML` and
   `TORRUST_TRACKER_CONFIG_TOML_PATH` only in the child `Command`; the health
@@ -103,13 +102,17 @@ prove no listener, and the fixture's existing absolute deadlines.
 - **Override:** child command sets a distinguishable
   `TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS`; the override
   endpoint becomes ready, not the CLI file endpoint.
-- **Failure:** each child is reaped before assertions complete. A fixed
-  loopback candidate port is bound/probed after failure only when the invalid
-  source was otherwise capable of providing that port (malformed and
-  parent-only-relative cases).
+- **Failure:** each child is reaped before assertions complete. Each test
+  asserts one contract: the exit code plus the tracker-owned diagnostic (and
+  the source path when the source has one) through fixture assertion helpers
+  that print the captured child output on failure. A tracker that wrongly
+  started would never exit, so the bounded `wait_for_exit` deadline is the
+  proof of no partial startup; no fixed candidate ports are used.
 - **Unreadable file:** Unix-specific test setup and cleanup own the file mode.
   The assertion must account for a privileged runner that bypasses permission
   bits and report an explicit skip rather than masking a platform constraint.
+  Fixture behaviour (permission restoration, drop without a runtime) is tested
+  in the fixture's own unit tests, not in the executable contract tests.
 
 ## Validation
 

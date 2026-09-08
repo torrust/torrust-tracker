@@ -5,6 +5,7 @@
 //! discovers the health endpoint from its startup log, and reaps the child
 //! even when graceful shutdown exceeds the scenario deadline.
 
+use std::io::Write as _;
 use std::net::SocketAddr;
 use std::os::unix::fs::PermissionsExt as _;
 use std::os::unix::process::ExitStatusExt;
@@ -81,10 +82,10 @@ pub enum NativeTrackerInvalidCliSource {
     MissingFile,
     /// Supplies a directory where a configuration file is required.
     Directory,
-    /// Supplies malformed TOML which would otherwise configure this health port.
-    MalformedToml { candidate_health_port: u16 },
+    /// Supplies an otherwise valid configuration file with malformed TOML appended.
+    MalformedToml,
     /// Supplies `tracker.toml` from a child directory while it exists only in its parent.
-    ParentOnlyRelativeFile { candidate_health_port: u16 },
+    ParentOnlyRelativeFile,
 }
 
 /// Result of preparing an unreadable regular-file CLI source.
@@ -94,10 +95,102 @@ pub enum NativeTrackerInvalidCliSource {
 /// spawning so the executable contract is only asserted when meaningful.
 #[allow(dead_code)]
 pub enum NativeTrackerUnreadableCliSource {
-    /// The operating system denied a read and the child was spawned to prove its failure contract.
-    Enforced(Box<NativeTrackerFailedStart>),
-    /// The current process can read mode-`000` files, so no child was spawned.
+    /// The operating system denied a read, making the prepared startup attempt meaningful.
+    Enforced(Box<NativeTrackerStartAttempt>),
+    /// The current process can read mode-`000` files, so no startup attempt was prepared.
     NotEnforced { reason: String },
+}
+
+#[allow(dead_code)]
+impl NativeTrackerUnreadableCliSource {
+    /// Returns the prepared startup attempt when the platform enforces the unreadable mode.
+    ///
+    /// When it does not, the skip reason is reported on stderr and `None` is
+    /// returned so the caller can end the test as an explicit skip.
+    pub fn enforced_or_report_skip(self) -> Option<NativeTrackerStartAttempt> {
+        match self {
+            Self::Enforced(failed_start) => Some(*failed_start),
+            Self::NotEnforced { reason } => {
+                drop(writeln!(
+                    std::io::stderr(),
+                    "skipping unreadable regular-file assertion: {reason}"
+                ));
+                None
+            }
+        }
+    }
+}
+
+/// A prepared tracker process startup that has not yet launched the executable.
+#[allow(dead_code)]
+pub struct NativeTrackerStartAttempt {
+    command: Command,
+    permission_restore: Option<NativeTrackerPermissionRestore>,
+    workspace: Option<tempfile::TempDir>,
+    source_path: Option<PathBuf>,
+}
+
+#[allow(dead_code)]
+impl NativeTrackerStartAttempt {
+    /// Prepares a tracker startup with a deliberately invalid CLI configuration source.
+    pub fn with_invalid_cli_source(source: NativeTrackerInvalidCliSource) -> Self {
+        let workspace = tempfile::tempdir().expect("create temporary invalid-source workspace");
+        let (command, source_path) = invalid_source_command(&workspace, source);
+
+        Self {
+            command,
+            permission_restore: None,
+            workspace: Some(workspace),
+            source_path,
+        }
+    }
+
+    /// Prepares a valid regular configuration file that is unreadable by normal Unix permission checks.
+    pub fn with_unreadable_regular_file() -> NativeTrackerUnreadableCliSource {
+        let workspace = tempfile::tempdir().expect("create temporary unreadable-source workspace");
+        let (source_path, _) = write_configuration(&workspace, "unreadable", 0);
+        let original_mode = std::fs::metadata(&source_path)
+            .expect("read fixture-owned configuration file metadata")
+            .permissions()
+            .mode();
+        std::fs::set_permissions(&source_path, std::fs::Permissions::from_mode(0o000))
+            .expect("make fixture-owned configuration file unreadable");
+        let permission_restore = NativeTrackerPermissionRestore {
+            path: source_path.clone(),
+            mode: Some(original_mode),
+        };
+
+        match std::fs::read_to_string(&source_path) {
+            Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+                NativeTrackerUnreadableCliSource::Enforced(Box::new(Self {
+                    command: tracker_command(&source_path, None, None, None),
+                    permission_restore: Some(permission_restore),
+                    workspace: Some(workspace),
+                    source_path: Some(source_path),
+                }))
+            }
+            Ok(_) => NativeTrackerUnreadableCliSource::NotEnforced {
+                reason: "the current process can read a mode-000 regular file (for example, it is privileged or has a filesystem capability)"
+                    .to_owned(),
+            },
+            Err(error) => panic!("probe fixture-owned unreadable configuration file: {error}"),
+        }
+    }
+
+    /// Launches the prepared tracker executable.
+    pub fn start(mut self) -> NativeTrackerFailedStart {
+        let mut child = self.command.spawn().expect("spawn Cargo-built tracker executable");
+        let stdout = child.stdout.take().expect("tracker child stdout is piped");
+        let stderr = child.stderr.take().expect("tracker child stderr is piped");
+
+        NativeTrackerFailedStart {
+            child: Some(child),
+            output: Some(TrackerOutputCapture::new(stdout, stderr)),
+            permission_restore: self.permission_restore.take(),
+            workspace: self.workspace.take(),
+            source_path: self.source_path.take(),
+        }
+    }
 }
 
 /// A tracker child process expected to fail before completing startup.
@@ -110,7 +203,6 @@ pub struct NativeTrackerFailedStart {
     permission_restore: Option<NativeTrackerPermissionRestore>,
     workspace: Option<tempfile::TempDir>,
     source_path: Option<PathBuf>,
-    candidate_port: Option<u16>,
 }
 
 /// Restores the original Unix mode of a fixture-owned configuration file.
@@ -143,11 +235,17 @@ impl Drop for NativeTrackerPermissionRestore {
 pub struct NativeTrackerFailedStartResult {
     exit_code: i32,
     output: String,
-    candidate_port: Option<u16>,
     source_path: Option<PathBuf>,
     source_mode: Option<u32>,
     _workspace: Option<tempfile::TempDir>,
 }
+
+/// Exit code `clap` uses when the command line itself is invalid.
+#[allow(dead_code)]
+const USAGE_ERROR_EXIT_CODE: i32 = 2;
+/// Exit code the tracker uses when startup fails after argument parsing.
+#[allow(dead_code)]
+const STARTUP_FAILURE_EXIT_CODE: i32 = 1;
 
 #[allow(dead_code)]
 impl NativeTrackerFailedStartResult {
@@ -161,11 +259,6 @@ impl NativeTrackerFailedStartResult {
         &self.output
     }
 
-    /// Returns the configured port that was eligible for a post-reap bind probe.
-    pub const fn candidate_port(&self) -> Option<u16> {
-        self.candidate_port
-    }
-
     /// Returns the fixture-owned source path while this result is retained.
     pub fn source_path(&self) -> Option<&std::path::Path> {
         self.source_path.as_deref()
@@ -176,14 +269,48 @@ impl NativeTrackerFailedStartResult {
         self.source_mode
     }
 
-    /// Proves a candidate health port is not left bound after child reaping.
-    pub fn assert_candidate_port_is_bindable(&self) -> Result<(), String> {
-        let port = self
-            .candidate_port
-            .ok_or_else(|| "this failure source has no candidate health port".to_owned())?;
-        std::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))
-            .map(drop)
-            .map_err(|error| format!("bind candidate health port {port} after child reaping: {error}"))
+    /// Asserts the child was rejected by argument parsing with the given usage diagnostic.
+    pub fn assert_usage_error(&self, expected_diagnostic: &str) {
+        self.assert_exit_code(USAGE_ERROR_EXIT_CODE);
+        self.assert_output_contains(expected_diagnostic);
+    }
+
+    /// Asserts the child failed startup with the given diagnostic.
+    pub fn assert_startup_failure(&self, expected_diagnostic: &str) {
+        self.assert_exit_code(STARTUP_FAILURE_EXIT_CODE);
+        self.assert_output_contains(expected_diagnostic);
+    }
+
+    /// Asserts the diagnostic names the fixture-owned source path.
+    pub fn assert_diagnostic_names_source_path(&self) {
+        let path = self
+            .source_path()
+            .expect("this failure source has no fixture-owned source path")
+            .to_string_lossy()
+            .into_owned();
+        self.assert_output_contains(&path);
+    }
+
+    /// Asserts explicit configuration loading failed and identifies the supplied file.
+    pub fn assert_explicit_configuration_file_load_failure(&self) {
+        self.assert_startup_failure("Unable to load explicit configuration file");
+        self.assert_diagnostic_names_source_path();
+    }
+
+    fn assert_exit_code(&self, expected: i32) {
+        assert_eq!(
+            self.exit_code, expected,
+            "unexpected exit code\ntracker output:\n{}",
+            self.output
+        );
+    }
+
+    fn assert_output_contains(&self, expected_fragment: &str) {
+        assert!(
+            self.output.contains(expected_fragment),
+            "tracker output does not contain {expected_fragment:?}\ntracker output:\n{}",
+            self.output
+        );
     }
 }
 
@@ -622,69 +749,6 @@ impl NativeTracker {
 
 #[allow(dead_code)]
 impl NativeTrackerFailedStart {
-    /// Spawns a child with a deliberately invalid CLI configuration source.
-    pub fn spawn(source: NativeTrackerInvalidCliSource) -> Self {
-        let workspace = tempfile::tempdir().expect("create temporary invalid-source workspace");
-        let (mut command, source_path, candidate_port) = invalid_source_command(&workspace, source);
-        let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
-        let stdout = child.stdout.take().expect("tracker child stdout is piped");
-        let stderr = child.stderr.take().expect("tracker child stderr is piped");
-
-        Self {
-            child: Some(child),
-            output: Some(TrackerOutputCapture::new(stdout, stderr)),
-            permission_restore: None,
-            workspace: Some(workspace),
-            source_path,
-            candidate_port,
-        }
-    }
-
-    /// Prepares a valid regular configuration file that is unreadable by normal Unix permission checks.
-    pub fn spawn_with_unreadable_regular_file(candidate_health_port: u16) -> NativeTrackerUnreadableCliSource {
-        let workspace = tempfile::tempdir().expect("create temporary unreadable-source workspace");
-        let (source_path, _) = write_configuration(&workspace, "unreadable", candidate_health_port);
-        let original_mode = std::fs::metadata(&source_path)
-            .expect("read fixture-owned configuration file metadata")
-            .permissions()
-            .mode();
-        std::fs::set_permissions(&source_path, std::fs::Permissions::from_mode(0o000))
-            .expect("make fixture-owned configuration file unreadable");
-        // Create the guard immediately after changing permissions. Every
-        // subsequent early return or panic, including command setup failure,
-        // restores the fixture-owned file synchronously.
-        let permission_restore = NativeTrackerPermissionRestore {
-            path: source_path.clone(),
-            mode: Some(original_mode),
-        };
-
-        match std::fs::read_to_string(&source_path) {
-            Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
-                let mut command = tracker_command(&source_path, None, None, None);
-                let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
-                let stdout = child.stdout.take().expect("tracker child stdout is piped");
-                let stderr = child.stderr.take().expect("tracker child stderr is piped");
-
-                NativeTrackerUnreadableCliSource::Enforced(Box::new(Self {
-                    child: Some(child),
-                    output: Some(TrackerOutputCapture::new(stdout, stderr)),
-                    permission_restore: Some(permission_restore),
-                    workspace: Some(workspace),
-                    source_path: Some(source_path),
-                    candidate_port: Some(candidate_health_port),
-                }))
-            }
-            Ok(_) => {
-                NativeTrackerUnreadableCliSource::NotEnforced {
-                    reason: "the current process can read a mode-000 regular file (for example, it is privileged or has a filesystem capability)".to_owned(),
-                }
-            }
-            Err(error) => {
-                panic!("probe fixture-owned unreadable configuration file: {error}");
-            }
-        }
-    }
-
     /// Returns the fixture-owned source path when the case has one.
     pub fn source_path(&self) -> Option<PathBuf> {
         self.source_path.clone()
@@ -723,7 +787,6 @@ impl NativeTrackerFailedStart {
         Ok(NativeTrackerFailedStartResult {
             exit_code,
             output,
-            candidate_port: self.candidate_port,
             source_path: self.source_path.take(),
             source_mode,
             _workspace: self.workspace.take(),
@@ -899,34 +962,31 @@ fn configure_tracker_command(command: &mut Command) {
 }
 
 #[allow(dead_code)]
-fn invalid_source_command(
-    workspace: &tempfile::TempDir,
-    source: NativeTrackerInvalidCliSource,
-) -> (Command, Option<PathBuf>, Option<u16>) {
+fn invalid_source_command(workspace: &tempfile::TempDir, source: NativeTrackerInvalidCliSource) -> (Command, Option<PathBuf>) {
     let mut command = Command::new(tracker_binary());
     configure_tracker_command(&mut command);
 
     match source {
         NativeTrackerInvalidCliSource::MissingOptionValue => {
             command.arg("--config-toml-path");
-            (command, None, None)
+            (command, None)
         }
         NativeTrackerInvalidCliSource::EmptyOptionValue => {
             command.arg("--config-toml-path").arg("");
-            (command, None, None)
+            (command, None)
         }
         NativeTrackerInvalidCliSource::MissingFile => {
             let path = workspace.path().join("does-not-exist.toml");
             command.arg("--config-toml-path").arg(&path);
-            (command, Some(path), None)
+            (command, Some(path))
         }
         NativeTrackerInvalidCliSource::Directory => {
             let path = workspace.path().to_path_buf();
             command.arg("--config-toml-path").arg(&path);
-            (command, Some(path), None)
+            (command, Some(path))
         }
-        NativeTrackerInvalidCliSource::MalformedToml { candidate_health_port } => {
-            let (path, _) = write_configuration(workspace, "malformed", candidate_health_port);
+        NativeTrackerInvalidCliSource::MalformedToml => {
+            let (path, _) = write_configuration(workspace, "malformed", 0);
             std::fs::write(
                 &path,
                 format!(
@@ -936,16 +996,16 @@ fn invalid_source_command(
             )
             .expect("write malformed tracker configuration");
             command.arg("--config-toml-path").arg(&path);
-            (command, Some(path), Some(candidate_health_port))
+            (command, Some(path))
         }
-        NativeTrackerInvalidCliSource::ParentOnlyRelativeFile { candidate_health_port } => {
+        NativeTrackerInvalidCliSource::ParentOnlyRelativeFile => {
             let parent = workspace.path().join("parent");
             let child = parent.join("child");
             std::fs::create_dir_all(&child).expect("create child working directory");
-            let (parent_configuration, _) = write_configuration_in_directory(&parent, candidate_health_port);
+            let (parent_configuration, _) = write_configuration_in_directory(&parent, 0);
             assert_eq!(parent_configuration.file_name(), Some(std::ffi::OsStr::new("tracker.toml")));
             command.current_dir(child).arg("--config-toml-path").arg("tracker.toml");
-            (command, Some(parent_configuration), Some(candidate_health_port))
+            (command, Some(parent_configuration))
         }
     }
 }
@@ -976,8 +1036,8 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, invalid_source_command, parse_health_check_address,
-        tracker_command, write_configuration,
+        NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, NativeTrackerStartAttempt, invalid_source_command,
+        parse_health_check_address, tracker_command, write_configuration,
     };
 
     #[test]
@@ -1110,15 +1170,9 @@ mod tests {
     fn it_should_construct_a_parent_only_relative_source_from_the_child_working_directory() {
         // Arrange
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
-        let candidate_port = 43157;
 
         // Act
-        let (command, source_path, observed_port) = invalid_source_command(
-            &workspace,
-            NativeTrackerInvalidCliSource::ParentOnlyRelativeFile {
-                candidate_health_port: candidate_port,
-            },
-        );
+        let (command, source_path) = invalid_source_command(&workspace, NativeTrackerInvalidCliSource::ParentOnlyRelativeFile);
 
         // Assert
         let source_path = source_path.expect("parent-only source should retain its parent file path");
@@ -1128,7 +1182,43 @@ mod tests {
             command.as_std().get_current_dir()
         );
         assert_eq!(command.as_std().get_args().last(), Some(OsStr::new("tracker.toml")));
-        assert_eq!(observed_port, Some(candidate_port));
+    }
+
+    #[tokio::test]
+    async fn it_should_not_panic_when_a_failed_start_is_dropped_without_a_tokio_runtime() {
+        // Arrange: spawning needs a runtime; the drop below happens outside one.
+        let failed_start = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::MissingFile).start();
+
+        // Act
+        let result = std::thread::spawn(move || drop(failed_start)).join();
+
+        // Assert
+        assert!(result.is_ok(), "dropping a failed start outside Tokio must not panic");
+    }
+
+    #[tokio::test]
+    async fn it_should_restore_the_unreadable_source_permissions_after_waiting_for_exit() {
+        // Arrange
+        let Some(start_attempt) = NativeTrackerStartAttempt::with_unreadable_regular_file().enforced_or_report_skip() else {
+            return;
+        };
+
+        // Act
+        let failure = start_attempt
+            .start()
+            .wait_for_exit()
+            .await
+            .expect("tracker should exit for an unreadable regular file");
+
+        // Assert
+        let restored_mode = std::fs::metadata(failure.source_path().expect("unreadable-file result should retain its path"))
+            .expect("read restored unreadable-file metadata")
+            .permissions()
+            .mode();
+        let original_mode = failure
+            .source_mode()
+            .expect("unreadable-file result should retain the original source mode");
+        assert_eq!(restored_mode & 0o777, original_mode & 0o777);
     }
 
     #[test]
