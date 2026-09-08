@@ -339,6 +339,19 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 - `develop` → `staging/main` → `main` (release pipeline)
 - PRs must pass all CI status checks before merge
 
+**Pull request titles**: the maintainer merge tool (`contrib/dev-tools/git/merge-pull-request.sh`, which runs the vendored `contrib/dev-tools/git/github-merge.py`) copies the PR title verbatim into the merge commit subject, so the title becomes permanent `develop` history:
+
+```text
+PR title:      feat(tracker-core): [#42] add peer expiry grace period
+Merge subject: Merge torrust/torrust-tracker#123: feat(tracker-core): [#42] add peer expiry grace period
+```
+
+- Write the title as a single Conventional Commits line (`type(scope): summary`, same forms as above) that reads well as that subject
+- Do not put the PR number in the title; the merge tool prepends it
+- Include an issue reference `[#<issue>]` only for the issue the PR implements or closes, so the merge commit links that issue; a merely related or already-closed issue belongs in the PR body (`Related to #N`)
+
+Full title and body conventions: `.github/skills/dev/git-workflow/open-pull-request/SKILL.md`.
+
 See [docs/release_process.md](docs/release_process.md) for the full release workflow.
 
 ## 🧭 Development Principles
