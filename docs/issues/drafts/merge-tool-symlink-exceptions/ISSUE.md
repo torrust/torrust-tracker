@@ -8,7 +8,7 @@ github-issue: null
 spec-path: docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md
 branch: "merge-tool-symlink-exceptions-spec"
 related-pr: null
-last-updated-utc: 2026-09-08 16:20
+last-updated-utc: 2026-09-08 16:54
 semantic-links:
   skill-links:
     - create-issue
@@ -42,7 +42,7 @@ Where the exception is read from is part of the design rather than a detail of i
 
 Reading the declaration from anywhere else would move the decision out of the merge result. A file taken from the maintainer's working directory would let the maintainer's environment, rather than the reviewed merge outcome, decide what is admitted, and two maintainers merging the same pull request could reach different verdicts. Reading it from the merged tree instead makes the exception a reviewed, versioned part of the history the merge produces: whoever later inspects the merge commit sees both the link and the declaration that admitted it. It also closes the case where a pull request introduces a symbolic link that a stale declaration, or one present only on the base branch, would silently admit; a link added by the pull request is only ever exempt if the merged result also carries a declaration covering it, which means the declaration went through review too.
 
-The tracker's own tree contains no symbolic links today: `git ls-files -s | awk '$1=="120000"'` returns nothing. This change therefore alters no tracker merge until the tracker itself declares a link, and it stays a no-op for any repository that ships no declaration file. The tracker is where the vendored copy, the `merge-pull-request.sh` wrapper, the wrapper test suite, and the vendoring policy live, so the tool-side fix belongs here and is mirrored into other repositories that adopt the same workflow.
+The tracker's own tree contains no symbolic links today: `git ls-files -s | awk '$1=="120000"'` returns nothing. This change therefore alters no tracker merge until the tracker itself declares a link, and it stays a no-op for any repository that ships no declaration file. The tracker is where the tool, the `merge-pull-request.sh` wrapper, the wrapper test suite, and the provenance record live, so the tool-side fix belongs here and is mirrored into other repositories that adopt the same workflow.
 
 ## Scope
 
@@ -55,7 +55,7 @@ The tracker's own tree contains no symbolic links today: `git ls-files -s | awk 
 - Print every accepted link, with its path, target, and reason, into the merge output so the maintainer sees what was admitted before signing.
 - Teach `contrib/dev-tools/git/merge-pull-request.sh` to pass `--symlinks .symlinks.json` unconditionally, so maintainers never type the argument and the wrapper makes no decision of its own.
 - Extend `contrib/dev-tools/git/tests/test-merge-pull-request.sh` to cover the wrapper's delegation of the tree path.
-- Record the vendor divergence, or the upstream contribution, in `contrib/dev-tools/git/README-github-merge.md` and update its provenance hash if the vendored copy changes.
+- Rewrite the provenance section of `contrib/dev-tools/git/README-github-merge.md` to the single provenance statement described in AD1, dropping the local-change policy, the new-hash requirement, and the byte-identity wording.
 - Note the new behavior in the `merge-pull-request` skill.
 
 ### Out of Scope
@@ -64,23 +64,23 @@ The tracker's own tree contains no symbolic links today: `git ls-files -s | awk 
 - Reading the declaration from any source other than the merged tree. The working directory, the base branch, the pull-request branch, an environment variable, and a path outside the repository are all excluded by design, not left open for a later option.
 - Changing the check's semantics for links that are not declared. An undeclared link, a declared link whose target does not match, and a target of a form the rules reject all keep failing with the current message and exit code.
 - Any symbolic-link policy for the tracker's own tree. This issue does not add a link to this repository or decide whether one should ever be added.
-- Changing any other vendored behavior, including the known upstream issues already recorded in the README.
+- Fixing the known upstream issues the README records. AD1 makes them ordinarily fixable in the tool rather than only recordable, but they are separate defects with their own review; this issue only re-checks how the README describes them.
 - Mirroring the change into `torrust/torrust-index` or any other repository. That is separate work in those repositories.
 
 ## Architectural Decisions
 
 - Related ADRs: None known in `docs/adrs/`.
-- ADRs to create: a vendored-tool divergence record, if and only if decision AD1 is resolved toward a local modification.
+- ADRs to create: None. AD1 is resolved below, and it settles how one repository file is maintained rather than a project architecture or design pattern.
 
-### AD1 - How the change reaches the vendored copy (OPEN)
+### AD1 - The merge tool is maintained here, not tracked against upstream (RESOLVED)
 
-`github-merge.py` is currently a byte-identical vendor copy of the reviewed snapshot from issue #2022, recorded in `README-github-merge.md` with SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2`. That README states that local changes to the vendored algorithm require a documented security, portability, or correctness reason and a new provenance hash, and that repository-specific behavior is deliberately confined to `merge-pull-request.sh` so the vendor copy stays auditable. This feature cannot be confined to the wrapper: the refusal lives inside the tool, before the tree hash is taken, and no wrapper argument or environment setting reaches it. So the change has to enter the vendored copy one of two ways, and this specification does not choose between them.
+The refusal lives inside `github-merge.py`, before the tree hash is taken, and no wrapper argument or environment setting reaches it, so this feature cannot be confined to `merge-pull-request.sh` the way the current README asks repository-specific behavior to be. The decision is therefore about what the vendored file is: a mirror that must stay byte-identical to Bitcoin Core, or an ordinary repository file that happens to have come from there. It is the latter, and this issue implements it that way.
 
-**Option (a) - documented local modification.** Patch the vendored copy, record the divergence in the README's provenance section, and publish a new provenance hash under the existing local-change policy. A correctness and portability reason exists: the tool cannot merge a repository whose tree legitimately contains a link that both container toolchains need, and the alternative is deleting a file the repository requires. The cost is that the vendored copy stops being byte-identical to upstream, every future re-vendor has to re-apply the patch or consciously drop it, and the README has to carry the divergence for as long as it lasts.
+The vendored copy becomes a normal tool in this repository, modified under ordinary review like any other file. `README-github-merge.md` keeps exactly one provenance statement: the file arrived from the Bitcoin Core developers' `github-merge.py` (MIT, retained in `github-merge-COPYING`), with SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2`, in commit `833a4160e5753d54cde47bcc4bed25df7a04c0f6`, "feat(git): vendor maintainer merge workflow" (2026-07-23). That statement is fixed and does not change again. What goes away is the machinery around it: no re-hashing after each change, no divergence log, no byte-identity requirement, no re-vendoring plan.
 
-**Option (b) - offer it upstream first.** Propose the argument and the declaration format to Bitcoin Core, and vendor the result back once it is merged there. The benefit is that byte-identity is preserved and there is nothing to re-apply at the next re-vendor. The cost is that the outcome is not ours to schedule: Bitcoin Core may decline a feature its own repository does not need, review may take arbitrarily long, and `torrust/torrust-index` stays blocked in the meantime.
+The reason is what a provenance record is for. A reader of a vendored file has one question, where this came from and what it looked like when it arrived, and a single dated statement naming the origin, the license, the original hash, and the introducing commit answers it completely and permanently. Byte-identity plus per-change re-hashing answers a different question, whether the copy still matches upstream, and that is only worth its cost if the copy is meant to track upstream. This one is not. Its consumers are Torrust repositories, whose needs Bitcoin Core does not share, and this issue is the first of those needs. Keeping a tracking discipline for a file nobody intends to re-sync would tax every future change while guaranteeing nothing a reader benefits from; git history already records what changed after arrival, more precisely than a hash in a README.
 
-The two options are not exclusive. Option (a) can ship now to unblock the sibling repository, and option (b) can be attempted afterwards; if upstream accepts an equivalent feature, the local patch is dropped at the next re-vendor and the README returns to recording a byte-identical copy. Resolve AD1 before starting T2; T1 does not depend on it.
+Offering the feature to Bitcoin Core first was considered and declined. It would preserve a byte-identity that nothing depends on once the copy is no longer tracked, and its schedule is not ours: upstream may reasonably decline a feature its own repository does not need, review may take arbitrarily long, and `torrust/torrust-index` stays blocked throughout. Nothing prevents contributing the idea upstream later on its own merits; it is simply not a precondition for fixing a tool this project maintains.
 
 ## Design and Ownership Review
 
@@ -98,18 +98,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                          | Notes / Expected Output                                                                                                                                                                                                                                       |
 | --- | ------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Define the declaration format and its rules   | The `.symlinks.json` shape, field meanings, and the accept/reject rules below are written into `README-github-merge.md`. Independent of AD1.                                                                                                                   |
-| T2  | TODO   | Add `--symlinks` to the vendored tool         | Optional argument next to `--repo-from` in `parse_arguments()` (lines 260-280), taking a repository-relative tree path that defaults to `.symlinks.json`; the caller (lines 393-397) reads it from the merge commit with `git show HEAD:<path>`, exempts matching links, and prints each accepted path, target, and reason. Blocked until AD1 is resolved. |
+| T1  | TODO   | Define the declaration format and its rules   | The `.symlinks.json` shape, field meanings, shared namespace, and the accept/reject rules below are written into `README-github-merge.md`.                                                                                                                     |
+| T2  | TODO   | Add `--symlinks` to the vendored tool         | Optional argument next to `--repo-from` in `parse_arguments()` (lines 260-280), taking a repository-relative tree path that defaults to `.symlinks.json`; the caller (lines 393-397) reads it from the merge commit with `git show HEAD:<path>`, exempts matching links, and prints each accepted path, target, and reason. The tool is edited directly under AD1.                                                        |
 | T3  | TODO   | Pass the tree path from the wrapper           | `merge-pull-request.sh` inserts `--symlinks .symlinks.json` before the positional arguments of its final `exec python3` call (line 136), unconditionally and without a filesystem check, because the path names a location in the merged tree.                    |
 | T4  | TODO   | Cover the behavior with tests                 | Wrapper delegation of the tree path; a declared link merges past the check; an undeclared link, a declared link with a different target, a target containing `..`, and an absolute target each keep the existing message and exit code `4`; a declaration present only in the working directory, or only on the base branch and not in the merged result, exempts nothing; a declaration in the merged tree whose values disagree with that tree's links refuses. |
-| T5  | TODO   | Update the vendoring record                   | `README-github-merge.md` provenance section records the outcome of AD1, with a new SHA-256 if the vendored copy changed; the known-issues section is reviewed so it still describes the copy as shipped.                                                        |
+| T5  | TODO   | Rewrite the provenance record                 | `README-github-merge.md` carries the single provenance statement from AD1; the local-change policy, the new-hash requirement, and the byte-identical wording are removed; the known-upstream-issues section is re-checked, since those items can now be fixed in the tool directly in a follow-up rather than only recorded. |
 | T6  | TODO   | Note the behavior in the merge skill          | `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md` explains that the declaration is read from the merged result rather than the working copy, what the accepted-link output looks like, and that an undeclared link is still a hard stop.             |
 
 ### Declaration format
 
 ```json
 {
-  "namespace": "com.torrust.tracker.symlinks",
+  "namespace": "com.torrust.repository.symlinks",
   "version": [1, 0, 0],
   "symlinks": [
     {
@@ -121,7 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 }
 ```
 
-The `namespace` is per repository, so a declaration file cannot be moved between repositories unnoticed; the tracker uses `com.torrust.tracker.symlinks`. The `version` is the declaration-format version, not the repository version.
+The `namespace` identifies the declaration format, not the repository that carries it, so every Torrust repository uses the same value, `com.torrust.repository.symlinks`. Binding a declaration to its repository is already done by tree sourcing: the file is read out of that repository's own merged tree, so it cannot be borrowed from elsewhere no matter what string it contains. A per-repository namespace would add no guarantee on top of that and would oblige every consumer to teach the tool a string of its own. The `version` is the declaration-format version, not the repository version.
 
 ### Rules
 
@@ -141,10 +141,10 @@ The `namespace` is per repository, so a declaration file cannot be moved between
 | Task | Coherent change set                                                                         | Commit policy                                                                                        |
 | ---- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | T1   | Declaration format and rules documented in the vendoring README.                            | Commit after review of the format and rules, before any tool change.                                 |
-| T2   | The `--symlinks` argument, tree-sourced reading, the exemption logic, and the accepted-link output. | Commit after focused validation and after AD1 is resolved and recorded.                       |
+| T2   | The `--symlinks` argument, tree-sourced reading, the exemption logic, and the accepted-link output. | Commit after focused validation.                                                              |
 | T3   | Wrapper delegation of the declaration tree path.                                            | Commit separately from the tool change; it is independently reviewable and independently revertible. |
 | T4   | Test increments for delegation, acceptance, and each rejection case.                        | Commit each reviewed test increment before starting the next behavior area.                          |
-| T5   | Provenance and known-issues update, including any new SHA-256.                              | Commit with, or immediately after, the change whose provenance it records.                           |
+| T5   | Provenance rewrite and known-issues re-check in the vendoring README.                       | Commit with, or immediately after, the tool change whose maintenance model it states.                |
 | T6   | Skill note describing the workflow-visible behavior.                                        | Commit after the behavior it documents is merged or staged in the same branch.                       |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
@@ -155,7 +155,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - [ ] Folder-style spec drafted in `docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] AD1 resolved and recorded in this specification
+- [x] AD1 resolved and recorded in this specification
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
@@ -172,6 +172,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - 2026-09-08 16:08 UTC - Spec author - Drafted this unnumbered specification after verifying the refusal path in the vendored tool, the vendoring policy in the README, the wrapper's invocation, and the absence of symbolic links in the tracker tree - This spec
 - 2026-09-08 16:20 UTC - Spec author - Amended the design to read the declaration from the merged tree rather than the filesystem, after verifying that the local merge commit already exists at the check site (lines 366-397), and propagated the consequence through scope, ownership, plan, rules, criteria, scenarios, and risks - This spec
+- 2026-09-08 16:54 UTC - Spec author - Shared one declaration namespace across Torrust repositories, since tree sourcing already binds a declaration to its repository, and resolved AD1 toward maintaining the tool here under a single fixed provenance statement, after confirming that the file introduced in `833a4160e` still hashes to the recorded SHA-256 and has not been modified since - This spec
 
 ## Acceptance Criteria
 
@@ -182,7 +183,7 @@ Record a justified no-change decision in the task's evidence without creating an
 - [ ] AC5: An undeclared link, a link declared with a different target, a declared absolute target, and a declared target containing a `..` segment each keep the message `ERROR: File '<path>' was a symlink` and exit code `4`.
 - [ ] AC6: With no declaration file in the merged tree, and with no `--symlinks` argument, the tool behaves exactly as it does today.
 - [ ] AC7: `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally and performs no filesystem check for that file.
-- [ ] AC8: `README-github-merge.md` records the outcome of AD1: either a documented local modification with a new provenance hash, or an upstream contribution that preserved byte-identity.
+- [ ] AC8: `README-github-merge.md` carries the single provenance statement, naming the origin, the license, the original SHA-256, and the introducing commit, and no longer requires re-hashing or byte-identity.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
@@ -232,7 +233,7 @@ Notes:
 ## Risks and Trade-offs
 
 - **The exception could weaken a security check.** Mitigation is in the rule set rather than in review discipline: an exception is explicit, so nothing is admitted that the repository has not written down; it is tree-sourced, so the exception is part of the reviewed merge result and no state in the maintainer's environment can change the verdict; it is byte-exact, so a link that changes where it points stops matching and is refused again; it is path-restricted, because absolute targets and targets containing `..` are refused whatever the file says, which keeps the exception inside the repository; and it is printed, so the maintainer sees every admitted link before signing rather than after. The residual risk is a repository declaring a link it should not have; that risk already exists for every other file the repository commits, and the declaration makes it visible in review instead of invisible.
-- **A local modification has to be carried.** If AD1 resolves to option (a), the vendored copy is no longer byte-identical, every future re-vendor has to re-apply or consciously drop the patch, and the README has to keep the divergence current. Mitigation is to keep the patch as small and as separable as the feature allows, to record it in the provenance section rather than only in commit history, and to reconsider option (b) at each re-vendor.
+- **The tool is now this project's to maintain.** Under AD1 the file is modified here under ordinary review, so the effort of understanding and fixing it falls to this project rather than to upstream. That is the deliberate result, not a side effect: the alternative was leaving a needed fix to a schedule nobody here controls. The residual risk is narrower, that a later reader loses sight of where the file came from and mistakes it for original work; mitigation is the permanent provenance statement naming the origin, the license, the original hash, and the introducing commit, kept next to the retained upstream source header and `github-merge-COPYING`.
 - **The tracker and the sibling copies can drift.** Once other repositories adopt the tool, each holds its own copy of the argument and its own declaration file, and a fix applied in one is easy to forget in the others. Mitigation is to keep the tracker's copy the reference, state that in the vendoring README, and mirror deliberately rather than by editing each copy independently.
 - **A declaration file can go stale.** A link can be removed while its entry remains. Reading from the merged tree shrinks this risk rather than only mitigating it: the declaration cannot lag the tree it is compared against, because both come from the same commit, so the only staleness left is an entry that the merge result itself still carries after its link is gone. Mitigation for that remainder is the stale-entry report in the merge output; enforcing the file against the tree in the linter is deliberately left out of this issue and can follow once the format has settled.
 
