@@ -8,7 +8,7 @@ github-issue: null
 spec-path: docs/issues/drafts/merge-tool-symlink-exceptions/ISSUE.md
 branch: "merge-tool-symlink-exceptions-spec"
 related-pr: null
-last-updated-utc: 2026-09-08 16:08
+last-updated-utc: 2026-09-08 16:20
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,7 @@ semantic-links:
 
 ## Goal
 
-Allow the vendored maintainer merge tool to accept symbolic links that a repository has declared explicitly, in an auditable root file that names each accepted link, its exact target, and the reason it exists, while every undeclared or mismatched link keeps failing exactly as it does today.
+Allow the vendored maintainer merge tool to accept symbolic links that a repository has declared explicitly, in an auditable root file that names each accepted link, its exact target, and the reason it exists, read from the merged tree the tool has just produced rather than from the maintainer's working directory, while every undeclared or mismatched link keeps failing exactly as it does today.
 
 ## Background
 
@@ -38,6 +38,10 @@ The check itself is sound. A symbolic link in a merged tree is a way to make a r
 
 The first repository this blocks is the sibling `torrust/torrust-index`. Its tree carries exactly one symbolic link, `.dockerignore`, whose literal content is `.containerignore`. The link was introduced deliberately in commit `01e7c701c9d8cb60` (2026-04-24) as part of its ADR-T-009 container-infrastructure work, because Docker reads only `.dockerignore` while Podman and Buildah prefer `.containerignore`; one link lets both toolchains share a single ignore list instead of two files that drift apart. That repository sets `githubmerge.repository` to `torrust/torrust-index` and runs the same tool; a merge run against its pull request 884 created the local merge commit and then stopped with `ERROR: File '.dockerignore' was a symlink`, leaving the tool's temporary `pull/884/local-merge` branch behind.
 
+Where the exception is read from is part of the design rather than a detail of it. The tool has already created the local merge commit by the time the check runs: it checks out `pull/<n>/local-merge` (lines 366-368), changes into the repository root (lines 372-373), creates the unsigned merge commit with `git merge --commit --no-ff` (line 383), and confirms that `HEAD`'s subject is that merge (lines 388-391) before reaching `get_symlink_files()` at line 393, which lists the links with `git ls-tree --full-tree -r HEAD`. The merged tree is therefore available as a commit at exactly the point the decision is made, so the declaration can be read out of it with `git show HEAD:.symlinks.json`, or the equivalent `git cat-file` against the merge commit, and the links and the declaration that admits them come from one and the same tree.
+
+Reading the declaration from anywhere else would move the decision out of the merge result. A file taken from the maintainer's working directory would let the maintainer's environment, rather than the reviewed merge outcome, decide what is admitted, and two maintainers merging the same pull request could reach different verdicts. Reading it from the merged tree instead makes the exception a reviewed, versioned part of the history the merge produces: whoever later inspects the merge commit sees both the link and the declaration that admitted it. It also closes the case where a pull request introduces a symbolic link that a stale declaration, or one present only on the base branch, would silently admit; a link added by the pull request is only ever exempt if the merged result also carries a declaration covering it, which means the declaration went through review too.
+
 The tracker's own tree contains no symbolic links today: `git ls-files -s | awk '$1=="120000"'` returns nothing. This change therefore alters no tracker merge until the tracker itself declares a link, and it stays a no-op for any repository that ships no declaration file. The tracker is where the vendored copy, the `merge-pull-request.sh` wrapper, the wrapper test suite, and the vendoring policy live, so the tool-side fix belongs here and is mirrored into other repositories that adopt the same workflow.
 
 ## Scope
@@ -45,17 +49,19 @@ The tracker's own tree contains no symbolic links today: `git ls-files -s | awk 
 ### In Scope
 
 - Define a repository-level declaration file, `.symlinks.json` at the repository root, that lists each accepted symbolic link with its exact target and the reason it exists.
+- Read that declaration out of the merged tree, from the local merge commit the tool has just created, so the links and the file that admits them come from the same tree.
 - Define the matching and rejection rules the merge tool applies to that file, including the target forms that are never accepted.
-- Add an optional `--symlinks <json-file>` argument to the vendored merge tool that loads a declaration file and exempts exactly the matching links from the refusal.
+- Add an optional `--symlinks <path>` argument to the vendored merge tool that names a repository-relative path inside the merged tree, defaulting to `.symlinks.json`, and exempts exactly the matching links from the refusal.
 - Print every accepted link, with its path, target, and reason, into the merge output so the maintainer sees what was admitted before signing.
-- Teach `contrib/dev-tools/git/merge-pull-request.sh` to pass `--symlinks .symlinks.json` automatically when that file exists, so maintainers never type the argument.
-- Extend `contrib/dev-tools/git/tests/test-merge-pull-request.sh` to cover the wrapper's delegation with and without the declaration file present.
+- Teach `contrib/dev-tools/git/merge-pull-request.sh` to pass `--symlinks .symlinks.json` unconditionally, so maintainers never type the argument and the wrapper makes no decision of its own.
+- Extend `contrib/dev-tools/git/tests/test-merge-pull-request.sh` to cover the wrapper's delegation of the tree path.
 - Record the vendor divergence, or the upstream contribution, in `contrib/dev-tools/git/README-github-merge.md` and update its provenance hash if the vendored copy changes.
 - Note the new behavior in the `merge-pull-request` skill.
 
 ### Out of Scope
 
 - Linter enforcement of `.symlinks.json`: no schema check, no drift check between the file and the tree, and no `linter all` step that reads it. The merge tool is the only consumer in this issue.
+- Reading the declaration from any source other than the merged tree. The working directory, the base branch, the pull-request branch, an environment variable, and a path outside the repository are all excluded by design, not left open for a later option.
 - Changing the check's semantics for links that are not declared. An undeclared link, a declared link whose target does not match, and a target of a form the rules reject all keep failing with the current message and exit code.
 - Any symbolic-link policy for the tracker's own tree. This issue does not add a link to this repository or decide whether one should ever be added.
 - Changing any other vendored behavior, including the known upstream issues already recorded in the README.
@@ -81,9 +87,10 @@ The two options are not exclusive. Option (a) can ship now to unblock the siblin
 This work adds no child process, no asynchronous I/O, no network readiness step, no new resource with a drop path, and no reusable test fixture beyond the temporary repositories the existing wrapper test suite already builds, so the deadline and lifetime concerns this section normally covers do not arise. The responsibility split is the part worth fixing before implementation:
 
 - `.symlinks.json` carries repository policy only. It states which links a repository accepts and why; it grants no capability by itself and is inert in a repository whose tooling does not read it.
-- `github-merge.py` owns enforcement. It reads the merged tree, decides which links are exempt, prints what it admitted, and keeps its current refusal and exit code for everything else. It never writes the declaration file and never infers an exemption that the file does not state.
-- `merge-pull-request.sh` owns the repository-specific wiring: it decides whether a declaration file exists and passes its path. It performs no parsing and applies no policy of its own.
+- `github-merge.py` owns enforcement, and it owns reading. It reads both the links and the declaration out of the merged tree at `HEAD`, decides which links are exempt, prints what it admitted, and keeps its current refusal and exit code for everything else. It never reads the declaration from the filesystem, never writes it, and never infers an exemption that the file does not state.
+- `merge-pull-request.sh` owns the repository-specific wiring only: it passes the repository-relative tree path the tracker uses. It does not check whether that file exists, because existence is a property of the merged tree that the wrapper cannot observe before the merge commit is created; it performs no parsing and applies no policy of its own.
 - The direction of matching is from the tree to the declaration, never the reverse. The tool walks the links actually present in the merged tree and asks whether each one is declared; a declaration entry can only ever remove a refusal for a link that exists, and can never introduce one.
+- Both inputs come from one commit. Because the links and the declaration are read from the same `HEAD`, there is no window in which they can disagree, and no state outside the merge result can change the verdict.
 
 ## Implementation Plan
 
@@ -92,11 +99,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                          | Notes / Expected Output                                                                                                                                                                                                                                       |
 | --- | ------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Define the declaration format and its rules   | The `.symlinks.json` shape, field meanings, and the accept/reject rules below are written into `README-github-merge.md`. Independent of AD1.                                                                                                                   |
-| T2  | TODO   | Add `--symlinks` to the vendored tool         | Optional argument next to `--repo-from` in `parse_arguments()` (lines 260-280); `get_symlink_files()` and its caller (lines 393-397) exempt matching links and print each accepted path, target, and reason. Blocked until AD1 is resolved.                     |
-| T3  | TODO   | Pass the file automatically from the wrapper  | `merge-pull-request.sh` inserts `--symlinks .symlinks.json` before the positional arguments of its final `exec python3` call (line 136) when the file exists at the repository top level, and passes nothing otherwise.                                          |
-| T4  | TODO   | Cover the behavior with tests                 | Wrapper delegation with and without the file; a declared link merges past the check; an undeclared link, a declared link with a different target, a target containing `..`, and an absolute target each keep the existing message and exit code `4`.            |
+| T2  | TODO   | Add `--symlinks` to the vendored tool         | Optional argument next to `--repo-from` in `parse_arguments()` (lines 260-280), taking a repository-relative tree path that defaults to `.symlinks.json`; the caller (lines 393-397) reads it from the merge commit with `git show HEAD:<path>`, exempts matching links, and prints each accepted path, target, and reason. Blocked until AD1 is resolved. |
+| T3  | TODO   | Pass the tree path from the wrapper           | `merge-pull-request.sh` inserts `--symlinks .symlinks.json` before the positional arguments of its final `exec python3` call (line 136), unconditionally and without a filesystem check, because the path names a location in the merged tree.                    |
+| T4  | TODO   | Cover the behavior with tests                 | Wrapper delegation of the tree path; a declared link merges past the check; an undeclared link, a declared link with a different target, a target containing `..`, and an absolute target each keep the existing message and exit code `4`; a declaration present only in the working directory, or only on the base branch and not in the merged result, exempts nothing; a declaration in the merged tree whose values disagree with that tree's links refuses. |
 | T5  | TODO   | Update the vendoring record                   | `README-github-merge.md` provenance section records the outcome of AD1, with a new SHA-256 if the vendored copy changed; the known-issues section is reviewed so it still describes the copy as shipped.                                                        |
-| T6  | TODO   | Note the behavior in the merge skill          | `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md` explains when the wrapper passes the declaration file, what the accepted-link output looks like, and that an undeclared link is still a hard stop.                                                 |
+| T6  | TODO   | Note the behavior in the merge skill          | `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md` explains that the declaration is read from the merged result rather than the working copy, what the accepted-link output looks like, and that an undeclared link is still a hard stop.             |
 
 ### Declaration format
 
@@ -118,21 +125,24 @@ The `namespace` is per repository, so a declaration file cannot be moved between
 
 ### Rules
 
+- The declaration is read from the merged tree, out of the local merge commit the tool has just created, with `git show HEAD:.symlinks.json` or the equivalent `git cat-file` against that commit. It is never read from the working directory, the index, the base branch, or any path outside the repository.
+- `--symlinks <path>` names a repository-relative path inside that tree, defaulting to `.symlinks.json`. It is a tree path, not a filesystem path, so an absolute path or a path escaping the repository is not a usable argument.
+- A declaration that exists only in the maintainer's working tree, only on the base branch, or only on the pull-request branch without reaching the merged result exempts nothing. Only what the merge produced counts.
 - `path` is repository-relative and must name a symbolic link in the merged tree.
-- `target` must equal the link's literal content byte for byte. A target that resolves to the same file by another spelling does not match.
+- `target` must equal the link's literal content in the merged tree byte for byte. A target that resolves to the same file by another spelling does not match.
 - A target that is absolute, or that contains a `..` segment, is never accepted, whatever the declaration file says. This is a property of the target itself, not of the declaration, so no file can grant it.
 - A symbolic link present in the merged tree but absent from the declaration file still produces `ERROR: File '<path>' was a symlink` and exit code `4`.
-- A symbolic link present in the merged tree and declared with a different target is treated as undeclared and produces the same message and exit code.
+- A symbolic link present in the merged tree and declared with a different target is treated as undeclared and produces the same message and exit code. Any divergence between the declaration in the merged tree and the links in the merged tree refuses exactly as today.
 - A declaration entry whose path is not a symbolic link in the merged tree exempts nothing, because matching runs from the tree to the file. Such a stale entry is reported in the merge output so it can be removed.
-- A missing declaration file means no exceptions: the tool behaves exactly as it does today. So does running the tool without `--symlinks`.
+- A declaration file absent from the merged tree means no exceptions: the tool behaves exactly as it does today. So does running the tool without `--symlinks`.
 
 ## Commit Points
 
 | Task | Coherent change set                                                                         | Commit policy                                                                                        |
 | ---- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | T1   | Declaration format and rules documented in the vendoring README.                            | Commit after review of the format and rules, before any tool change.                                 |
-| T2   | The `--symlinks` argument, the exemption logic, and the accepted-link output.                | Commit after focused validation and after AD1 is resolved and recorded.                              |
-| T3   | Wrapper delegation of the declaration file.                                                 | Commit separately from the tool change; it is independently reviewable and independently revertible. |
+| T2   | The `--symlinks` argument, tree-sourced reading, the exemption logic, and the accepted-link output. | Commit after focused validation and after AD1 is resolved and recorded.                       |
+| T3   | Wrapper delegation of the declaration tree path.                                            | Commit separately from the tool change; it is independently reviewable and independently revertible. |
 | T4   | Test increments for delegation, acceptance, and each rejection case.                        | Commit each reviewed test increment before starting the next behavior area.                          |
 | T5   | Provenance and known-issues update, including any new SHA-256.                              | Commit with, or immediately after, the change whose provenance it records.                           |
 | T6   | Skill note describing the workflow-visible behavior.                                        | Commit after the behavior it documents is merged or staged in the same branch.                       |
@@ -161,16 +171,18 @@ Record a justified no-change decision in the task's evidence without creating an
 ### Progress Log
 
 - 2026-09-08 16:08 UTC - Spec author - Drafted this unnumbered specification after verifying the refusal path in the vendored tool, the vendoring policy in the README, the wrapper's invocation, and the absence of symbolic links in the tracker tree - This spec
+- 2026-09-08 16:20 UTC - Spec author - Amended the design to read the declaration from the merged tree rather than the filesystem, after verifying that the local merge commit already exists at the check site (lines 366-397), and propagated the consequence through scope, ownership, plan, rules, criteria, scenarios, and risks - This spec
 
 ## Acceptance Criteria
 
 - [ ] AC1: `.symlinks.json` has a documented shape and a documented rule set, including the target forms that are never accepted.
-- [ ] AC2: `github-merge.py` accepts `--symlinks <json-file>` and exempts exactly the declared links whose target matches the link content byte for byte.
-- [ ] AC3: Every accepted link is printed with its path, target, and reason before the maintainer is asked to sign.
-- [ ] AC4: An undeclared link, a link declared with a different target, a declared absolute target, and a declared target containing a `..` segment each keep the message `ERROR: File '<path>' was a symlink` and exit code `4`.
-- [ ] AC5: With no declaration file, and with no `--symlinks` argument, the tool behaves exactly as it does today.
-- [ ] AC6: `merge-pull-request.sh` passes `--symlinks .symlinks.json` when that file exists and passes nothing when it does not.
-- [ ] AC7: `README-github-merge.md` records the outcome of AD1: either a documented local modification with a new provenance hash, or an upstream contribution that preserved byte-identity.
+- [ ] AC2: The tool reads the declaration from the merged tree, out of the local merge commit it has just created, and from no other source. A declaration present only in the working directory, only on the base branch, or only on the pull-request branch without reaching the merged result exempts nothing.
+- [ ] AC3: `github-merge.py` accepts `--symlinks <path>` as a repository-relative path inside the merged tree, defaulting to `.symlinks.json`, and exempts exactly the declared links whose target matches that tree's link content byte for byte.
+- [ ] AC4: Every accepted link is printed with its path, target, and reason before the maintainer is asked to sign.
+- [ ] AC5: An undeclared link, a link declared with a different target, a declared absolute target, and a declared target containing a `..` segment each keep the message `ERROR: File '<path>' was a symlink` and exit code `4`.
+- [ ] AC6: With no declaration file in the merged tree, and with no `--symlinks` argument, the tool behaves exactly as it does today.
+- [ ] AC7: `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally and performs no filesystem check for that file.
+- [ ] AC8: `README-github-merge.md` records the outcome of AD1: either a documented local modification with a new provenance hash, or an upstream contribution that preserved byte-identity.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
@@ -193,10 +205,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                | Command/Steps                                                                                                                                                        | Expected Result                                                                                                            | Status | Evidence                              |
 | --- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------- |
-| M1  | Declared link is accepted               | Build a fixture repository containing a symbolic link and a `.symlinks.json` declaring it with the matching target; run the merge tool with `--symlinks .symlinks.json`. | The tool prints the accepted path, target, and reason, and continues past the check to compute the tree hash.               | TODO   | {captured merge output}               |
-| M2  | Undeclared link is refused              | Remove the entry from the fixture's `.symlinks.json` and repeat the run.                                                                                              | `ERROR: File '<path>' was a symlink` and exit code `4`.                                                                     | TODO   | {captured output and `echo $?`}       |
-| M3  | Escaping targets are refused when declared | In the fixture, point the link at an absolute path, then at a path containing a `..` segment, declaring each in `.symlinks.json` with the exact matching target.       | Both runs refuse with the same message and exit code `4`, showing that the declaration cannot grant an escaping target.     | TODO   | {captured output for both variants}   |
-| M4  | Missing declaration file changes nothing   | Delete `.symlinks.json` from the fixture and run through `merge-pull-request.sh`, and separately run the tool with no `--symlinks` argument.                           | The wrapper passes no argument, and both runs reproduce today's refusal for the link that is present.                       | TODO   | {captured output for both runs}       |
+| M1  | Declared link is accepted               | Build a fixture repository whose merged result commits both a symbolic link and a `.symlinks.json` declaring it with the matching target; run the merge tool with `--symlinks .symlinks.json`. | The tool prints the accepted path, target, and reason, and continues past the check to compute the tree hash.               | TODO   | {captured merge output}               |
+| M2  | Undeclared link is refused              | Remove the entry from the fixture's committed `.symlinks.json`, commit that change into the merged result, and repeat the run.                                        | `ERROR: File '<path>' was a symlink` and exit code `4`.                                                                     | TODO   | {captured output and `echo $?`}       |
+| M3  | Escaping targets are refused when declared | In the fixture, point the link at an absolute path, then at a path containing a `..` segment, committing a matching declaration alongside the link in each case.       | Both runs refuse with the same message and exit code `4`, showing that the declaration cannot grant an escaping target.     | TODO   | {captured output for both variants}   |
+| M4  | Missing declaration file changes nothing   | Commit the fixture without `.symlinks.json` in the merged result and run through `merge-pull-request.sh`, then separately run the tool with no `--symlinks` argument.  | Both runs reproduce today's refusal for the link that is present.                                                          | TODO   | {captured output for both runs}       |
+| M5  | Out-of-tree declaration exempts nothing | Write a valid `.symlinks.json` into the fixture's working directory without committing it, and separately commit one on the base branch only so the merged result does not carry it; run the merge in both cases. | Both runs refuse with `ERROR: File '<path>' was a symlink` and exit code `4`, showing that only the merged tree is consulted. | TODO   | {captured output for both variants}   |
 
 Notes:
 
@@ -214,13 +227,14 @@ Notes:
 | AC5   | TODO                   | {test/log/PR link} |
 | AC6   | TODO                   | {test/log/PR link} |
 | AC7   | TODO                   | {test/log/PR link} |
+| AC8   | TODO                   | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
-- **The exception could weaken a security check.** Mitigation is in the rule set rather than in review discipline: an exception is explicit, so nothing is admitted that the repository has not written down; it is byte-exact, so a link that changes where it points stops matching and is refused again; it is path-restricted, because absolute targets and targets containing `..` are refused whatever the file says, which keeps the exception inside the repository; and it is printed, so the maintainer sees every admitted link before signing rather than after. The residual risk is a repository declaring a link it should not have; that risk already exists for every other file the repository commits, and the declaration makes it visible in review instead of invisible.
+- **The exception could weaken a security check.** Mitigation is in the rule set rather than in review discipline: an exception is explicit, so nothing is admitted that the repository has not written down; it is tree-sourced, so the exception is part of the reviewed merge result and no state in the maintainer's environment can change the verdict; it is byte-exact, so a link that changes where it points stops matching and is refused again; it is path-restricted, because absolute targets and targets containing `..` are refused whatever the file says, which keeps the exception inside the repository; and it is printed, so the maintainer sees every admitted link before signing rather than after. The residual risk is a repository declaring a link it should not have; that risk already exists for every other file the repository commits, and the declaration makes it visible in review instead of invisible.
 - **A local modification has to be carried.** If AD1 resolves to option (a), the vendored copy is no longer byte-identical, every future re-vendor has to re-apply or consciously drop the patch, and the README has to keep the divergence current. Mitigation is to keep the patch as small and as separable as the feature allows, to record it in the provenance section rather than only in commit history, and to reconsider option (b) at each re-vendor.
 - **The tracker and the sibling copies can drift.** Once other repositories adopt the tool, each holds its own copy of the argument and its own declaration file, and a fix applied in one is easy to forget in the others. Mitigation is to keep the tracker's copy the reference, state that in the vendoring README, and mirror deliberately rather than by editing each copy independently.
-- **A declaration file can go stale.** A link can be removed while its entry remains. Mitigation is the stale-entry report in the merge output; enforcing the file against the tree in the linter is deliberately left out of this issue and can follow once the format has settled.
+- **A declaration file can go stale.** A link can be removed while its entry remains. Reading from the merged tree shrinks this risk rather than only mitigating it: the declaration cannot lag the tree it is compared against, because both come from the same commit, so the only staleness left is an entry that the merge result itself still carries after its link is gone. Mitigation for that remainder is the stale-entry report in the merge output; enforcing the file against the tree in the linter is deliberately left out of this issue and can follow once the format has settled.
 
 ## Implementation Completion Review
 
