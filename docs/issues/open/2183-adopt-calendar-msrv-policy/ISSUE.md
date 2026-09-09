@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/adopt-calendar-msrv-policy/ISSUE.md
-branch: "{issue-number}-adopt-calendar-msrv-policy"
+github-issue: 2183
+spec-path: docs/issues/open/2183-adopt-calendar-msrv-policy/ISSUE.md
+branch: "2183-adopt-calendar-msrv-policy-spec"
 related-pr: null
-last-updated-utc: 2026-09-09 09:08
+last-updated-utc: 2026-09-09 09:30
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Adopt a calendar-based MSRV policy
+# Issue #2183 - Adopt a calendar-based MSRV policy
 
 ## Goal
 
@@ -99,7 +99,7 @@ Applied on the drafting date, 2026-09-09:
 | 1.89.0  | 2025-08-07 | Yes, and the newest such release    |
 | 1.90.0  | 2025-09-18 | No                                  |
 
-The pin the rule yields today is therefore **1.89**. The publication dates above are taken from the sibling repository's ADR-T-011 and must be re-verified against the Rust release history when the change is implemented.
+The pin the rule yields today is therefore **1.89**. The publication dates above were verified on 2026-09-09 against the GitHub releases API for `rust-lang/rust`, which reports 1.89.0 published at 2025-08-07T10:55:11Z and 1.90.0 at 2025-09-18T20:02:56Z. The implementer still recomputes against the Rust release history on the day the change is implemented, because the rule's result is a function of that day.
 
 The value is a function of the implementation date, not of this specification. From 2026-09-18, one year after the publication of 1.90.0, the same rule yields **1.90**. The implementer recomputes on the day the change lands and uses that result; a value copied from this table without recomputation is a defect, not a shortcut.
 
@@ -165,9 +165,9 @@ Record a justified no-change decision in the task's evidence without creating an
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/adopt-calendar-msrv-policy/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted and moved to `docs/issues/open/2183-adopt-calendar-msrv-policy/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue [#2183](https://github.com/torrust/torrust-tracker/issues/2183) created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -182,6 +182,7 @@ Record a justified no-change decision in the task's evidence without creating an
 ### Progress Log
 
 - 2026-09-09 09:08 UTC - Spec author - Draft created after verifying the manifest pin `1.88` at `Cargo.toml` line 67 and its inheritance by all 25 members, the absence of any MSRV job or floor-toolchain reference across `.github/workflows/`, the three live prose statements of the floor, the recorded raises `1.72` to `1.85` and `1.85` to `1.88` with their dependency-driven rationale, the absence of a `CHANGELOG.md`, and the sccache and ADR-placement decisions that constrain the new job and the ADR's collection - This spec
+- 2026-09-09 09:30 UTC - Spec author - GitHub issue #2183 created from the reviewed draft; specification moved to docs/issues/open/2183-adopt-calendar-msrv-policy/ISSUE.md - https://github.com/torrust/torrust-tracker/issues/2183
 
 ## Acceptance Criteria
 
