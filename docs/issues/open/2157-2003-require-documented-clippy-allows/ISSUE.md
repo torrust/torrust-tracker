@@ -72,12 +72,12 @@ expanding into a bulk remediation.
 
 ## Implementation Plan
 
-| ID  | Status | Task                                  | Notes / Expected Output                                                                               |
-| --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Define native rationale policy        | Use `reason = "..."`; cover intentional, false-positive, and temporary cases.                       |
-| T2  | TODO   | Select prospective baseline strategy  | Exclude legacy allows without accepting a changed attribute with no native reason.                    |
-| T3  | TODO   | Implement and test Rust validation    | Keep modules independently testable and suitable for later harness extraction.                        |
-| T4  | TODO   | Integrate and document                | Use current validation tiers without choosing the final EPIC harness architecture.                    |
+| ID  | Status | Task                                 | Notes / Expected Output                                                            |
+| --- | ------ | ------------------------------------ | ---------------------------------------------------------------------------------- |
+| T1  | TODO   | Define native rationale policy       | Use `reason = "..."`; cover intentional, false-positive, and temporary cases.      |
+| T2  | TODO   | Select prospective baseline strategy | Exclude legacy allows without accepting a changed attribute with no native reason. |
+| T3  | TODO   | Implement and test Rust validation   | Keep modules independently testable and suitable for later harness extraction.     |
+| T4  | TODO   | Integrate and document               | Use current validation tiers without choosing the final EPIC harness architecture. |
 
 ## Progress Tracking
 
@@ -119,15 +119,15 @@ expanding into a bulk remediation.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario              | Command/Steps                                                                | Expected Result                                                          | Status | Evidence             |
-| --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ | -------------------- |
-| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the missing native reason.            | TODO   | Pending replacement |
-| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required native information.               | TODO   | Pending replacement |
+| ID  | Scenario              | Command/Steps                                                                | Expected Result                                               | Status | Evidence            |
+| --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | ------------------- |
+| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the missing native reason. | TODO   | Pending replacement |
+| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required native information.   | TODO   | Pending replacement |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                   |
-| ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                            |
+| ----- | ---------------------- | ----------------------------------- |
 | AC1   | TODO                   | Pending replacement implementation. |
 | AC2   | TODO                   | Pending replacement implementation. |
 | AC3   | TODO                   | Pending replacement implementation. |
