@@ -125,6 +125,25 @@ again and confirm `git diff --exit-code` succeeds before signing. Review any war
 local merge differs from GitHub's merge; continue only with explicit maintainer judgment. The
 vendor tool then adds review ACKs and the `Tree-SHA512` value to the merge message.
 
+## Symbolic Links in the Merge
+
+The tool refuses a merge that carries a symbolic link, unless the link is declared. The wrapper passes `--symlinks .symlinks.json`, and that argument is what enables the mechanism at all: run the tool without it and every symbolic link refuses, whatever the tree contains.
+
+Where the declaration comes from decides what you will see. It is read from the merged result the tool has just built, not from your working copy, so a `.symlinks.json` you hold locally but have not merged grants nothing, and two maintainers merging the same pull request reach the same verdict. Every commit the merge introduces is checked against that one declaration rather than only the merged tip, because a link that appears in one commit and disappears in a later one still resolves on every checkout of the commit that carries it.
+
+Each admitted link is printed before you are asked to sign, so read them as part of the inspection:
+
+```text
+Accepted symlink: '.dockerignore' -> '.containerignore': Docker reads only .dockerignore, while Podman and Buildah prefer .containerignore.
+```
+
+An undeclared link is a hard stop rather than a warning. The tool prints `ERROR: File '<path>' was a symlink in commit <hash>` and exits with code `4` before the tree hash is computed, so there is nothing left to inspect or sign. The named commit is the one that carries the link, which may be an intermediate commit of the pull request rather than its tip. The same stop applies to a link declared with a different target, and to a declared target that is absolute or contains a `..` segment, which no declaration can admit.
+
+Removing a declared link takes two changes. The pull request that deletes the link keeps its entry in `.symlinks.json`, because its own pre-deletion commits are judged against the final declaration; the tool reports the retained entry as stale rather than refusing it. A later change drops the entry once no commit a merge introduces still carries the link. A stale-entry report on a removal pull request is the expected outcome, not a defect.
+
+This repository declares no symbolic link today, so the check currently admits nothing and refuses anything that appears. The declaration format and the full rule set are in
+[`contrib/dev-tools/git/README-github-merge.md`](../../../../../contrib/dev-tools/git/README-github-merge.md).
+
 ## Hook Side Effects and Recovery
 
 The temporary `git merge --commit` runs installed `pre-commit` hooks. The current hook invokes
@@ -168,6 +187,7 @@ Run the deterministic wrapper coverage before changing repository-specific behav
 
 ```sh
 bash contrib/dev-tools/git/tests/test-merge-pull-request.sh
+python3 contrib/dev-tools/git/tests/test-github-merge-symlinks.py
 ```
 
 Manual verification remains required for an authorized disposable pull request: prerequisite
