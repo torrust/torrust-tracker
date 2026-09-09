@@ -151,7 +151,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3a - Split admission decision and event contracts
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** R2/R3 assertion specificity
 - **Change:** Refactor each admission condition into two tests with one observable reason to fail:
@@ -162,6 +162,12 @@ validation, review, and its mapped commit point—before beginning the next item
   not subscribe to or assert events. Event tests do not assert the Boolean decision. Preserve direct
   event-bus observation and its absolute deadline in event tests. Do not change production behavior,
   start a receive loop, or duplicate processor/statistics behavior.
+- **Prose-first review:** The source-port-zero and banned-IP tests initially combined their decision
+  and event assertions, giving each two unrelated failure causes. The final four test names state
+  either `require_discarding` or `publish` and retain one assertion accordingly. Each Arrange keeps
+  its causal source-port-zero or `with_banned_client_ip` state visible; each Act is the direct
+  `should_discard_request` call. Event tests retain only the bounded direct event receive, while
+  decision tests do not subscribe. The temporary prose is redundant and removed.
 - **Done when:** a failing decision assertion identifies admission-policy behavior, and a failing
   event assertion identifies immediate observability behavior without conflating the two.
 
@@ -191,7 +197,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3a source-port-zero split.
 - [x] R3a source-port-zero split implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3a banned-IP split.
-- [ ] R3a banned-IP split implemented, reviewed, validated, and committed.
+- [x] R3a banned-IP split implemented, reviewed, validated, and committed.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -225,6 +231,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Reviewed and approved the source-port-zero split: one test asserts
   only the discard decision and the other only the immediate discard event. Also approved applying
   the same single-fact split to the banned-IP admission test.
+- 2026-09-09 - User/maintainer - Reviewed and approved R3a. Both admission conditions now have a
+  decision-only contract and an event-only contract, preserving one behavioral reason to fail per
+  test without receive-loop, processor, or metrics-listener setup.
 - 2026-09-09 - User/maintainer - Approved the final naming refinement. The test context is named
   `UdpLauncherTestContext`, its variable is `launcher`, and
   `with_banned_client_ip(client_socket_addr.ip())` states the causal already-banned-client state
@@ -238,7 +247,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request`, and `git diff --check` passed. The prose-first review uses `UdpLauncherTestContext::with_banned_client_ip` to keep the causal state, strict Act, and independent discard/event assertions visible. |
-| R3a | IN_PROGRESS | Source-port-zero decision/event split reviewed and approved. Banned-IP split approved; implementation awaits its separate review. |
+| R3a | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests`, and `git diff --check` passed. Source-port-zero and banned-IP behavior are each split into one decision-only and one event-only test after prose-first review. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals

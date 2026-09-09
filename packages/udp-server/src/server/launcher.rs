@@ -431,7 +431,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_discard_a_request_when_its_source_port_is_zero() {
+    async fn it_should_require_discarding_a_request_when_its_source_port_is_zero() {
         // Arrange
         let launcher = UdpLauncherTestContext::new().await;
         let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
@@ -440,7 +440,6 @@ mod tests {
             from: client_socket_addr,
         };
         let server_service_binding = sample_udp_service_binding(launcher.bind_address);
-        let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
 
         // Act
         let should_discard = Launcher::should_discard_request(
@@ -455,24 +454,36 @@ mod tests {
 
         // Assert
         assert!(should_discard);
-        // Bound the event await so a publication regression fails diagnostically instead of hanging.
-        assert_eq!(
-            tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, event_receiver.recv())
-                .await
-                .expect("request-discarded event should be published before the test deadline")
-                .expect("request-discarded event receiver should remain connected"),
-            Event::UdpRequestDiscarded {
-                context: ConnectionContext::new(
-                    launcher.udp_tracker_core_container.configuration_instance_id,
-                    client_socket_addr,
-                    server_service_binding,
-                ),
-            }
-        );
     }
 
     #[tokio::test]
-    async fn it_should_discard_a_request_when_its_client_ip_is_banned_in_strict_mode() {
+    async fn it_should_require_discarding_a_request_when_its_client_ip_is_banned_in_strict_mode() {
+        // Arrange
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);
+        let launcher = UdpLauncherTestContext::with_banned_client_ip(client_socket_addr.ip()).await;
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(should_discard);
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_request_banned_event_when_its_client_ip_is_banned_in_strict_mode() {
         // Arrange
         let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);
         let launcher = UdpLauncherTestContext::with_banned_client_ip(client_socket_addr.ip()).await;
@@ -484,7 +495,7 @@ mod tests {
         let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
 
         // Act
-        let should_discard = Launcher::should_discard_request(
+        let _ = Launcher::should_discard_request(
             &request,
             &launcher.udp_tracker_core_container,
             &launcher.udp_tracker_server_container,
@@ -495,13 +506,51 @@ mod tests {
         .await;
 
         // Assert
-        assert!(should_discard);
         assert_eq!(
             tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, event_receiver.recv())
                 .await
                 .expect("request-banned event should be published before the test deadline")
                 .expect("request-banned event receiver should remain connected"),
             Event::UdpRequestBanned {
+                context: ConnectionContext::new(
+                    launcher.udp_tracker_core_container.configuration_instance_id,
+                    client_socket_addr,
+                    server_service_binding,
+                ),
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_request_discarded_event_when_its_source_port_is_zero() {
+        // Arrange
+        let launcher = UdpLauncherTestContext::new().await;
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
+
+        // Act
+        let _ = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(
+            tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, event_receiver.recv())
+                .await
+                .expect("request-discarded event should be published before the test deadline")
+                .expect("request-discarded event receiver should remain connected"),
+            Event::UdpRequestDiscarded {
                 context: ConnectionContext::new(
                     launcher.udp_tracker_core_container.configuration_instance_id,
                     client_socket_addr,
