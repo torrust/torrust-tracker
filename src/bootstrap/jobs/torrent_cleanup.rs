@@ -25,7 +25,7 @@ use tracing::instrument;
 ///
 /// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
 #[must_use]
-#[instrument(skip(config, torrents_manager))]
+#[instrument(skip_all)]
 pub fn run_job(
     config: Core,
     torrents_manager: Arc<TorrentsManager>,
@@ -106,7 +106,8 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn it_should_return_completed_when_the_torrents_manager_is_dropped() {
-        // Arrange
+        // Arrange: the only strong `TorrentsManager` reference is dropped with
+        // the block below, before the runner's first cleanup tick.
         let runner = {
             let configuration = Configuration::default();
             let app_container = Arc::new(
