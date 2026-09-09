@@ -74,10 +74,10 @@ expanding into a bulk remediation.
 
 | ID  | Status | Task                                 | Notes / Expected Output                                                            |
 | --- | ------ | ------------------------------------ | ---------------------------------------------------------------------------------- |
-| T1  | TODO   | Define native rationale policy       | Use `reason = "..."`; cover intentional, false-positive, and temporary cases.      |
-| T2  | TODO   | Select prospective baseline strategy | Exclude legacy allows without accepting a changed attribute with no native reason. |
-| T3  | TODO   | Implement and test Rust validation   | Keep modules independently testable and suitable for later harness extraction.     |
-| T4  | TODO   | Integrate and document               | Use current validation tiers without choosing the final EPIC harness architecture. |
+| T1  | DONE   | Define native rationale policy       | Uses `reason = "..."`; covers intentional, false-positive, and temporary cases.  |
+| T2  | DONE   | Select prospective baseline strategy | Merge-base diff excludes legacy allows without accepting changed attributes lacking native reasons. |
+| T3  | DONE   | Implement and test Rust validation   | Pure `syn` module and narrow Git adapter remain independently testable and extractable. |
+| T4  | DONE   | Integrate and document               | Uses current validation tiers without choosing the final EPIC harness architecture. |
 
 ## Progress Tracking
 
@@ -88,8 +88,8 @@ expanding into a bulk remediation.
 - [x] GitHub issue #2157 created and issue number added to this spec
 - [x] Revised specification approved and committed
 - [x] Bash implementation removed in a separate commit
-- [ ] Replacement implementation completed and verified
-- [ ] Acceptance criteria reviewed after replacement implementation and updated with evidence
+- [x] Replacement implementation completed and verified
+- [x] Acceptance criteria reviewed after replacement implementation and updated with evidence
 
 ### Progress Log
 
@@ -99,16 +99,18 @@ expanding into a bulk remediation.
 - 2026-09-08 17:00 UTC - GitHub Copilot - Implemented the prospective merge-base validator, rationale policy, focused Git-fixture tests, pre-commit and CI integration - Pending final verification
 - 2026-09-08 17:25 UTC - GitHub Copilot - Independent complexity and task reviews passed; `linter all`, focused tests, documentation tests, and all pre-commit steps passed - Ready to commit
 - 2026-09-09 12:00 UTC - josecelano - Replaced the Bash approach with Rust and native lint reasons as the approved direction; the Bash implementation is superseded and will be deleted before replacement work begins - Chat decision
-- 2026-09-09 12:20 UTC - GitHub Copilot - Removed the superseded Bash validator, tests, integrations, guidance, and obsolete evidence in a dedicated reset commit before starting the Rust replacement - Pending commit
+- 2026-09-09 12:20 UTC - GitHub Copilot - Removed the superseded Bash validator, tests, integrations, guidance, and obsolete evidence in dedicated reset commit `d1900cde` before starting the Rust replacement - Committed as `refactor(quality): remove superseded Bash Clippy guard`
+- 2026-09-09 13:10 UTC - GitHub Copilot - Implemented native-reason prospective validation as a small Rust crate with a pure `syn` module, Git-diff adapter, unit tests, and end-to-end Git fixture - Pending full validation
+- 2026-09-09 13:40 UTC - GitHub Copilot - Full lint and documentation tests plus independent complexity and acceptance reviews passed; restored prior append-only review evidence after the reset - Ready to commit
 
 ## Acceptance Criteria
 
-- [ ] Guidance requires native `reason = "..."` for all supported Clippy allow attribute forms.
-- [ ] Temporary native reasons identify a removal condition or stable follow-up issue.
-- [ ] A reviewed prospective baseline excludes existing attributes without accepting changed attributes that lack native reasons.
-- [ ] Focused Rust tests prove undocumented new attributes fail and documented item and crate forms pass.
-- [ ] Enforcement runs in a documented existing validation tier and produces actionable diagnostics.
-- [ ] `linter all` exits with code `0` and relevant tests pass.
+- [x] Guidance requires native `reason = "..."` for all supported Clippy allow attribute forms.
+- [x] Temporary native reasons identify a removal condition or stable follow-up issue.
+- [x] A reviewed prospective baseline excludes existing attributes without accepting changed attributes that lack native reasons.
+- [x] Focused Rust tests prove undocumented new attributes fail and documented item and crate forms pass.
+- [x] Enforcement runs in a documented existing validation tier and produces actionable diagnostics.
+- [x] `linter all` exits with code `0` and relevant tests pass.
 
 ## Verification Plan
 
@@ -122,19 +124,19 @@ expanding into a bulk remediation.
 
 | ID  | Scenario              | Command/Steps                                                                | Expected Result                                               | Status | Evidence            |
 | --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | ------------------- |
-| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the missing native reason. | TODO   | Pending replacement |
-| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required native information.   | TODO   | Pending replacement |
+| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the missing native reason. | DONE   | End-to-end Git fixture |
+| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required native information.   | DONE   | Focused Rust unit tests |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                            |
 | ----- | ---------------------- | ----------------------------------- |
-| AC1   | TODO                   | Pending replacement implementation. |
-| AC2   | TODO                   | Pending replacement implementation. |
-| AC3   | TODO                   | Pending replacement implementation. |
-| AC4   | TODO                   | Pending replacement implementation. |
-| AC5   | TODO                   | Pending replacement implementation. |
-| AC6   | TODO                   | Pending replacement implementation. |
+| AC1   | DONE                   | Rust code-quality guidance requires native reasons for changed Clippy allows. |
+| AC2   | DONE                   | Unit tests cover native reasons with issue references and non-empty removal conditions. |
+| AC3   | DONE                   | The Rust command validates only changed attribute spans from the Git merge-base diff. |
+| AC4   | DONE                   | Unit and end-to-end Git-fixture tests cover missing, empty, item, crate, and temporary native reasons. |
+| AC5   | DONE                   | Pre-commit and CI run the Rust command; CI fetches history for merge-base computation. |
+| AC6   | DONE                   | `linter all`, focused Rust tests, strict Clippy, and `cargo test --doc --workspace` passed. |
 
 ## Risks and Trade-offs
 

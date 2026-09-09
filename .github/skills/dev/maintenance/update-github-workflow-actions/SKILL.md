@@ -38,9 +38,11 @@ For Cargo dependency updates, use
    - Prefer a scoped, stable pattern over a moving `owner/action@v2` tag when Dependabot updates exact versions.
    - Confirm that the configured pattern matches the full `uses:` reference, including its version.
 5. Add one semantic `skill-link: update-github-workflow-actions` comment near the workflow's top-level metadata and review the related skills when updating the workflow policy.
-6. Run `linter yaml`, `git diff --check`, and the relevant repository checks before committing.
-7. Commit with a signed Conventional Commit, push the branch to the fork remote, and open a PR targeting `develop`.
-8. Confirm affected workflow runs are queued and pass. If a run is blocked by the allowlist, correct the organization policy and rerun the failed jobs; do not weaken the workflow pin.
+6. When a workflow command compares Git revisions, configure `actions/checkout` with
+  `fetch-depth: 0` so its merge base is available in CI.
+7. Run `linter yaml`, `git diff --check`, and the relevant repository checks before committing.
+8. Commit with a signed Conventional Commit, push the branch to the fork remote, and open a PR targeting `develop`.
+9. Confirm affected workflow runs are queued and pass. If a run is blocked by the allowlist, correct the organization policy and rerun the failed jobs; do not weaken the workflow pin.
 
 ## Allowlist Failure Diagnosis
 
