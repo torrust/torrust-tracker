@@ -8,7 +8,7 @@ github-issue: 2185
 spec-path: docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: null
-last-updated-utc: 2026-09-09 12:10
+last-updated-utc: 2026-09-09 15:15
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
+    - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - .github/workflows/external-link-check.yaml
     - .github/lychee-online.toml
 ---
@@ -84,7 +85,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                      | Notes / Expected Output                                                                                                    |
 | --- | ------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Preserve and classify the baseline        | Issue-local Markdown evidence maps each distinct URL or recurring pattern to a category and disposition.                   |
+| T1  | DONE   | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to ten recurring categories and dispositions.                       |
 | T2  | TODO   | Repair clearly stale references           | Small, reviewable repairs replace or remove only references confirmed stale, with replacement-target evidence.             |
 | T3  | TODO   | Add justified narrow exclusions           | Online-only exclusions cover only confirmed, durable non-actionable categories and state their rationale.                  |
 | T4  | TODO   | Revalidate hosted signal                  | A manually dispatched run after each remediation slice demonstrates the expected change without hiding remaining failures. |
@@ -109,7 +110,7 @@ A category that needs no repository change is recorded in issue-local evidence w
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Baseline classification reviewed
+- [ ] Baseline classification independently reviewed
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
@@ -124,10 +125,11 @@ A category that needs no repository change is recorded in issue-local evidence w
 
 - 2026-09-09 12:00 UTC - Copilot - Drafted a proposed EPIC #2003 subissue from External Link Check [run 34347690674](https://github.com/torrust/torrust-tracker/actions/runs/34347690674), which scanned merged `develop` revision `7abc30b2` and retained a report with 461 errors for classification before any remediation.
 - 2026-09-09 12:10 UTC - GitHub Operator - Created [issue #2185](https://github.com/torrust/torrust-tracker/issues/2185) with the `task` label and linked it as a subissue of [EPIC #2003](https://github.com/torrust/torrust-tracker/issues/2003) after maintainer approval.
+- 2026-09-09 15:15 UTC - Copilot - Downloaded the retained report from [run 34347690674](https://github.com/torrust/torrust-tracker/actions/runs/34347690674), classified all 461 errors in `external-link-baseline.md`, and selected only GitHub pull-request review-comment anchors as the first proposed remediation slice. No production configuration or link was changed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
+- [x] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
 - [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct.
 - [ ] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
 - [ ] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
@@ -164,7 +166,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                          |
 | ----- | ---------------------- | ----------------------------------------------------------------- |
-| AC1   | TODO                   | Issue-local baseline and classification table.                    |
+| AC1   | DONE                   | `external-link-baseline.md` from run 34347690674.                 |
 | AC2   | TODO                   | Reviewed reference-repair commits and target evidence.            |
 | AC3   | TODO                   | Configuration diff and hosted rerun showing exclusion boundaries. |
 | AC4   | TODO                   | Workflow source and hosted failure/report artifact.               |
