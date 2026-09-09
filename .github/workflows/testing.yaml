@@ -41,7 +41,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-  uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain
@@ -89,6 +89,10 @@ jobs:
       - id: lint
         name: Run All Linters
         run: linter all
+
+      - id: documented-clippy-allows
+        name: Check Documented Clippy Allows
+        run: cargo run --quiet --package clippy-allow-reasons -- --base-ref "origin/${{ github.base_ref || 'develop' }}"
 
       - id: test-docs
         name: Run Documentation Tests

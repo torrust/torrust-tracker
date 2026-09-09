@@ -1,0 +1,16 @@
+[package]
+description = "Prospective validation for documented Clippy allow attributes."
+name = "clippy-allow-reasons"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[dependencies]
+proc-macro2 = { version = "1", features = [ "span-locations" ] }
+syn = { version = "2", features = [ "full", "visit" ] }
