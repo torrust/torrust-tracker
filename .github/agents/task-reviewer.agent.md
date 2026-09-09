@@ -42,7 +42,10 @@ pull request is opened.
    `.github/skills/dev/task-reviews/review-task/SKILL.md` to every changed test. Report each
    violated item as a repository-convention finding with concrete remediation; do not pass the
    review while a test fixture is a parameter bag or hides the causal state, production Act, or
-   independently specified expected result.
+   independently specified expected result. Require recorded evidence of the mandatory prose-first
+   Arrange-Act-Assert comparison; do not pass a review when a changed test's code has not been
+   compared against its temporary prose specification, or when redundant prose remains without an
+   irreducible-context rationale.
 4. Validate each acceptance criterion explicitly as one of:
    - `PASS` - implemented and verified
    - `FAIL` - not implemented or incorrect

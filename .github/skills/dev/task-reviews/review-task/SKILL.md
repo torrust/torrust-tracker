@@ -67,6 +67,9 @@ item below:
       contract.
 - [ ] Execution is deterministic: no uncontrolled I/O, wall-clock dependency, sleep, polling, or
       shared mutable state is introduced.
+- [ ] The test evidence records a prose-first Arrange-Act-Assert comparison, or the reviewer
+      records why it was not applicable. The final code expresses the temporary prose; redundant
+      comments were removed and retained comments provide irreducible context.
 
 ### Spec Hygiene
 
