@@ -234,6 +234,67 @@ def symlink_target_is_confined(target):
         return False
     return b'..' not in target.split(b'/')
 
+# The declaration format this tool reads, as the format's own documentation states it. The
+# namespace names the format rather than the repository, so every repository adopting the
+# workflow carries the same value, and the version is the version of the format.
+SYMLINK_DECLARATION_NAMESPACE = 'com.torrust.repository.symlinks'
+SYMLINK_DECLARATION_VERSION = [1, 0, 0]
+
+def quote_declaration_value(value):
+    '''
+    Render a value read out of a declaration, for a message that reports it.
+
+    A declaration is tree content, chosen by whoever wrote the commit, so a value this report
+    names could otherwise carry a newline or a terminal escape and forge a line of the report.
+    The value is rendered as the JSON it came from, which escapes every control character and
+    everything outside ASCII, so the rendering is printable text that cannot forge a line, and
+    a reader sees the value with its type: a string keeps its quotes, and a number does not.
+    '''
+    return json.dumps(value)
+
+def is_declared_literal(found, expected):
+    '''
+    Report whether a value read from a declaration is exactly a literal this tool expects.
+
+    Equality alone would not answer this. Python compares True to 1 and 1 to 1.0 as equal,
+    while JSON's true, 1 and 1.0 are three different documents, so a plain comparison would
+    admit a header that does not carry the value the report says was checked. The type is
+    required alongside the value, and a list matches element by element under the same rule.
+    Python's bool is a subclass of int, which is why an integer literal excludes it explicitly.
+    '''
+    if isinstance(expected, str):
+        return isinstance(found, str) and found == expected
+    if isinstance(expected, int):
+        return isinstance(found, int) and not isinstance(found, bool) and found == expected
+    if isinstance(expected, list):
+        return (isinstance(found, list) and len(found) == len(expected)
+                and all(is_declared_literal(f, e) for f, e in zip(found, expected)))
+    return False
+
+def symlink_declaration_header_error(document):
+    '''
+    Explain why a document does not declare the format this tool reads, or return None when it does.
+
+    A declaration is only read once it says what it is. The header states the format in
+    'namespace' and the revision of that format in 'version', and both are checked before any
+    entry is read, so a document belonging to another format, or to a revision whose rules this
+    tool has not been taught, exempts nothing rather than being read under rules it was not
+    written to. The check is exact in both directions: an absent field is not a supported value,
+    and a value that merely resembles the supported one is not it either. A later revision of the
+    format therefore has to teach this tool its version rather than pass unread, which is the
+    direction a check that decides what a merge admits has to fail in.
+    '''
+    for field, expected in (('namespace', SYMLINK_DECLARATION_NAMESPACE),
+                            ('version', SYMLINK_DECLARATION_VERSION)):
+        if field not in document:
+            return (f"it carries no '{field}'; this tool reads a declaration whose "
+                    f"'{field}' is {quote_declaration_value(expected)}")
+        found = document[field]
+        if not is_declared_literal(found, expected):
+            return (f"its '{field}' is {quote_declaration_value(found)} rather than "
+                    f"{quote_declaration_value(expected)}")
+    return None
+
 def read_symlink_declaration(commit, path):
     '''
     Read the symbolic-link declaration at a tree path of a commit.
@@ -242,6 +303,10 @@ def read_symlink_declaration(commit, path):
     message explaining why nothing could be declared. An absent file declares nothing and
     is not a problem; a file that cannot be read as a declaration declares nothing either,
     and its message is reported so a broken file is visible instead of silently permissive.
+
+    A document whose header does not declare this format and a supported version of it is a
+    file that cannot be read as a declaration, whatever else it contains, so it takes that
+    same path: nothing is declared, and the report names the field that disagreed.
     '''
     try:
         raw = subprocess.check_output([GIT, 'show', commit+':'+path], stderr=subprocess.DEVNULL)
@@ -253,6 +318,9 @@ def read_symlink_declaration(commit, path):
         return ({}, f'it is not valid JSON ({exc})')
     if not isinstance(document, dict):
         return ({}, 'its top level is not a JSON object')
+    header_problem = symlink_declaration_header_error(document)
+    if header_problem is not None:
+        return ({}, header_problem)
     listed = document.get('symlinks')
     if not isinstance(listed, list):
         return ({}, "it carries no 'symlinks' array")
