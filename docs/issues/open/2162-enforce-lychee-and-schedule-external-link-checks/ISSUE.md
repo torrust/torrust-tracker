@@ -8,7 +8,7 @@ github-issue: 2162
 spec-path: docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
 branch: "2162-enforce-lychee-and-schedule-external-link-checks"
 related-pr: null
-last-updated-utc: 2026-09-08 00:00
+last-updated-utc: 2026-09-08 17:12
 semantic-links:
   skill-links:
     - create-issue
@@ -83,15 +83,15 @@ introduce child-process lifecycle, network-readiness, or reusable-fixture abstra
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                                       | Notes / Expected Output                                                                                   |
-| --- | ----------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Confirm `torrust/torrust-linting#3` is merged/released     | `torrust-linting` 0.2.0 provides `linter lychee` and offline Lychee in `linter all`                       |
-| T2  | DONE        | Wire offline lychee linting into local and normal CI paths | Pinned 0.2.0 install; `testing.yaml` runs `linter all`, and `docs-lint.yaml` runs `linter lychee`         |
-| T3  | DONE        | Add advisory external-link workflow                        | Weekly schedule plus `workflow_dispatch`; no push/pull-request triggers; Lychee failures remain red       |
-| T4  | DONE        | Bound and secure online requests                           | `GITHUB_TOKEN` environment, 30-minute job timeout, and config bounds for request timeout, retry, and rate |
-| T5  | DONE        | Upload readable failure report                             | Markdown artifact uploads with `if: always()` and 14-day retention                                        |
-| T6  | DONE        | Document triage procedure                                  | `docs/testing.md` requires one rerun, then a URL fix or narrow documented exclusion                       |
-| T7  | IN_PROGRESS | Verify normal and advisory workflows                       | Focused local checks in progress; a remote `workflow_dispatch` run still requires GitHub Actions          |
+| ID  | Status | Task                                                       | Notes / Expected Output                                                                                   |
+| --- | ------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Confirm `torrust/torrust-linting#3` is merged/released     | `torrust-linting` 0.2.0 provides `linter lychee` and offline Lychee in `linter all`                       |
+| T2  | DONE   | Wire offline lychee linting into local and normal CI paths | Pinned 0.2.0 install; `testing.yaml` runs `linter all`, and `docs-lint.yaml` runs `linter lychee`         |
+| T3  | DONE   | Add advisory external-link workflow                        | Weekly schedule plus `workflow_dispatch`; no push/pull-request triggers; Lychee failures remain red       |
+| T4  | DONE   | Bound and secure online requests                           | `GITHUB_TOKEN` environment, 30-minute job timeout, and config bounds for request timeout, retry, and rate |
+| T5  | DONE   | Upload readable failure report                             | Markdown artifact uploads with `if: always()` and 14-day retention                                        |
+| T6  | DONE   | Document triage procedure                                  | `docs/testing.md` requires one rerun, then a URL fix or narrow documented exclusion                       |
+| T7  | DONE   | Verify normal and advisory workflows                       | Local checks passed; two hosted dispatches visibly failed and each uploaded the retained Markdown report  |
 
 ## Progress Tracking
 
@@ -102,10 +102,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed after `torrust/torrust-linting#3` is available
 - [x] Automatic verification completed (`linter all`, relevant workflow checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -115,23 +115,26 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-08 UTC - Copilot - Confirmed `torrust-linting` 0.2.0 release from the #3 completion handoff. Pinned tracker CI/setup linter installs, added offline local-link CI coverage, and added the separate weekly/manual online workflow with a dedicated configuration and retained report.
 - 2026-09-08 UTC - Copilot - Installed `torrust-linting` 0.2.0 from crates.io and ran `linter lychee` successfully. The direct online Lychee preflight produced `lychee-report.md` and exited 2 for 428 visible existing external-link failures; this expected advisory result confirms failures remain actionable. It does not substitute for a GitHub Actions `workflow_dispatch` run.
 - 2026-09-08 UTC - Copilot - `linter all`, including offline Lychee, and focused YAML, TOML, Markdown, spelling, and diff-whitespace checks passed. No implementation retrospective is needed: the work used the existing workflow and configuration patterns without a material design change or reusable new lesson. Independent acceptance review and GitHub Actions manual-dispatch evidence remain pending.
+- 2026-09-08 16:26 UTC - Copilot - Manual dispatch [34250154466](https://github.com/torrust/torrust-tracker/actions/runs/34250154466) on `develop` completed with a visible failure at `Check External Links`; `Upload Lychee Report` succeeded. It scanned revision `e4db63d5`; the merged workflow definition subsequently confirmed the same hosted command and configuration. The retained `lychee-external-link-report` artifact was available (5,692 bytes, 442 errors), proving a failure does not hide the report.
+- 2026-09-08 16:34 UTC - Copilot - Re-ran the observed failure using manual dispatch [34251836337](https://github.com/torrust/torrust-tracker/actions/runs/34251836337) on the same revision. It again visibly failed while successfully uploading its 5,818-byte report artifact, now showing 445 errors and two timeouts. The persistent, broadly distributed existing external-link failures are actionable under the documented triage policy; they do not change the deterministic offline policy. `develop` has effective GitHub ruleset requirements for creation, pull requests, deletion, and signatures, but no required-status-check rule; the only ruleset containing required status checks is disabled and does not name `External Link Check`, confirming this workflow is not a merge requirement.
+- 2026-09-08 17:12 UTC - Task Reviewer - Independent completion review passed after the ruleset correction. All acceptance criteria and M1-M3 scenarios are supported by local and hosted evidence. The workflow remains advisory, although its external-link report is intentionally noisy until persistent failures are triaged. No separate implementation retrospective is needed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust/torrust-linting#3` is complete and the selected shared-linter version supports
+- [x] AC1: `torrust/torrust-linting#3` is complete and the selected shared-linter version supports
       lychee with the repository `lychee.toml` convention.
-- [ ] AC2: `linter all` includes deterministic offline local Markdown file and fragment validation
+- [x] AC2: `linter all` includes deterministic offline local Markdown file and fragment validation
       in pre-commit and normal CI.
-- [ ] AC3: A scheduled workflow runs the online external-link check weekly and via
+- [x] AC3: A scheduled workflow runs the online external-link check weekly and via
       `workflow_dispatch`.
-- [ ] AC4: The scheduled workflow is not required to merge pull requests; lychee failures remain
+- [x] AC4: The scheduled workflow is not required to merge pull requests; lychee failures remain
       visible as workflow failures rather than being hidden by `continue-on-error`.
-- [ ] AC5: The scheduled workflow uses `GITHUB_TOKEN` securely and has bounded timeout, retries,
+- [x] AC5: The scheduled workflow uses `GITHUB_TOKEN` securely and has bounded timeout, retries,
       concurrency, request interval, and report-artifact retention.
-- [ ] AC6: Documentation defines the external-link failure triage procedure.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
+- [x] AC6: Documentation defines the external-link failure triage procedure.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant workflow lint and validation checks passed.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
 
 ## Verification Plan
 
@@ -142,11 +145,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                              | Status | Evidence                                                                      |
-| --- | ------------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------- |
-| M1  | Offline enforcement      | Run `linter lychee` locally and inspect normal CI            | Local Markdown file and fragment checks run and pass                                         | DONE   | 2026-09-08: `linter lychee` exited 0 after installing `torrust-linting` 0.2.0 |
-| M2  | Scheduled external check | Run the new workflow with `workflow_dispatch`                | Online check runs; report is available; outcome does not affect PR merge requirements        | TODO   | Workflow URL                                                                  |
-| M3  | Failure triage           | Re-run a deliberately observed or simulated external failure | Procedure distinguishes transient from persistent failure without hiding the initial failure | TODO   | Workflow URLs/report                                                          |
+| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                              | Status | Evidence                                                                                                                                                                                                                                                                                              |
+| --- | ------------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Offline enforcement      | Run `linter lychee` locally and inspect normal CI            | Local Markdown file and fragment checks run and pass                                         | DONE   | 2026-09-08: `linter lychee` exited 0 after installing `torrust-linting` 0.2.0                                                                                                                                                                                                                         |
+| M2  | Scheduled external check | Run the new workflow with `workflow_dispatch`                | Online check runs; report is available; outcome does not affect PR merge requirements        | DONE   | [Run 34250154466](https://github.com/torrust/torrust-tracker/actions/runs/34250154466) on revision `e4db63d5` failed visibly; its 5,692-byte report artifact uploaded successfully; the merged workflow retains the same command and configuration                                                    |
+| M3  | Failure triage           | Re-run a deliberately observed or simulated external failure | Procedure distinguishes transient from persistent failure without hiding the initial failure | DONE   | [Run 34250154466](https://github.com/torrust/torrust-tracker/actions/runs/34250154466) reported 442 errors; [rerun 34251836337](https://github.com/torrust/torrust-tracker/actions/runs/34251836337) reported 445 errors and two timeouts; both ran revision `e4db63d5` and retained report artifacts |
 
 ## Risks and Trade-offs
 
@@ -159,7 +162,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. The completed implementation followed existing repository workflow and configuration patterns, introduced no material design change, and produced no reusable lesson beyond the already documented online/offline Lychee policy.
 - Create an issue-local `implementation-retrospective.md` if implementation reveals reusable
   workflow or lychee integration lessons; otherwise record why none was needed in the progress log.
 
