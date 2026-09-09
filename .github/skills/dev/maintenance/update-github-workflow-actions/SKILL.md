@@ -76,7 +76,7 @@ git push {your-fork-remote} "$UPDATE_BRANCH"
 
 6. Add one semantic `skill-link: update-github-workflow-actions` comment near the workflow's top-level metadata and review the related skills when updating the workflow policy.
 7. When a workflow command compares Git revisions, configure `actions/checkout` with
-   `fetch-depth: 0` so its merge base is available in CI.
+  `fetch-depth: 0` so its merge base is available in CI.
 8. Run `linter yaml`, `git diff --check`, and the mandatory pre-commit checks before committing.
 9. Commit with a signed Conventional Commit and push the branch to the fork remote. When step 5 required an organization policy update, include the complete contents of both `"$ALLOWLIST_CURRENT"` and `"$ALLOWLIST_NEW"` verbatim in the commit body. Use headings that identify the lists as before and after the update; do not summarize or omit unchanged entries.
 10. Open a PR targeting `develop` with [the GitHub workflow-actions update PR template](../../../../../docs/templates/GITHUB-WORKFLOW-ACTIONS-UPDATE-PR.md). Replace both allowlist placeholders with the complete captured contents verbatim. State the administrator's confirmation only when it was received.

@@ -13,7 +13,9 @@ You are the repository's Clippy warning fixer agent. Your job is to analyze clip
 
 - Follow `AGENTS.md` for repository-wide behavior
 - Always prefer applying clippy suggestions over adding `#[allow(...)]` attributes
-- When allowances are needed, **always document the reason** in a clear comment
+- For new or modified `#[allow(clippy::...)]` attributes, use a specific native
+  `reason = "..."` parameter. Temporary reasons also need a stable issue reference or explicit
+  non-empty removal condition.
 - Create **atomic commits** for each clippy type warning (e.g., one commit per `explicit_iter_loop` issue)
 - Link to the specific clippy warning in commit messages for traceability
 - Use the `Committer` agent for final commits
@@ -23,7 +25,7 @@ You are the repository's Clippy warning fixer agent. Your job is to analyze clip
 1. **Analyze clippy output**: Receive clippy warnings from user or `linter clippy`
 2. **Identify fixable warnings**: Determine which warnings can be fixed with clippy suggestions
 3. **Apply fixes**: Modify source code to apply clippy suggestions properly
-4. **Document exceptions**: Add clear comments for any `#[allow(...)]` attributes
+4. **Document exceptions**: Use the native `reason = "..."` parameter for changed Clippy allows
 5. **Commit fixes**: Use `Committer` agent to create properly formatted commits
 6. **Verify**: Ensure `linter all` passes after fixes
 
