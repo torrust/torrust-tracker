@@ -28,7 +28,7 @@ fn it_should_report_a_changed_allow_without_a_native_reason() {
 
     assert!(!output.status.success());
     assert_eq!(output.status.code(), Some(1));
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
     let diagnostic = parse_single_diagnostic(&output.stderr);
     assert_eq!(diagnostic["kind"], "validation_error");
     assert_eq!(diagnostic["file"], "src/lib.rs");
@@ -55,19 +55,22 @@ fn it_should_not_write_output_when_validation_succeeds() {
         .expect("failed to run clippy-allow-reasons");
 
     assert!(output.status.success());
-    assert!(output.stdout.is_empty());
-    assert!(output.stderr.is_empty());
+    assert_eq!(output.stdout, b"");
+    assert_eq!(output.stderr, b"");
 }
 
 #[test]
 fn it_should_report_usage_errors_as_ndjson() {
+    let directory = FixtureDirectory::new();
+
     let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
         .arg("--unexpected")
+        .current_dir(directory.path())
         .output()
         .expect("failed to run clippy-allow-reasons");
 
     assert_eq!(output.status.code(), Some(2));
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
     let diagnostic = parse_single_diagnostic(&output.stderr);
     assert_eq!(diagnostic["kind"], "usage_error");
     assert_eq!(diagnostic["exit_code"], 2);
@@ -84,7 +87,7 @@ fn it_should_report_runtime_errors_as_ndjson() {
         .expect("failed to run clippy-allow-reasons");
 
     assert_eq!(output.status.code(), Some(1));
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
     let diagnostic = parse_single_diagnostic(&output.stderr);
     assert_eq!(diagnostic["kind"], "runtime_error");
     assert_eq!(diagnostic["exit_code"], 1);
@@ -99,6 +102,34 @@ fn parse_single_diagnostic(stderr: &[u8]) -> Value {
 
 struct FixtureRepository {
     root: std::path::PathBuf,
+}
+
+struct FixtureDirectory {
+    path: std::path::PathBuf,
+}
+
+impl FixtureDirectory {
+    fn new() -> Self {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock is before the Unix epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("clippy-allow-reasons-no-git-{}-{timestamp}", std::process::id()));
+
+        fs::create_dir_all(&path).expect("failed to create fixture directory");
+
+        Self { path }
+    }
+
+    fn path(&self) -> &Path {
+        &self.path
+    }
+}
+
+impl Drop for FixtureDirectory {
+    fn drop(&mut self) {
+        drop(fs::remove_dir_all(&self.path));
+    }
 }
 
 impl FixtureRepository {
