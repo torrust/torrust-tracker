@@ -29,3 +29,17 @@ semantic-links:
   - Confirm branch-protection does not require this scheduled workflow, and record the evidence.
   - Before opening a PR, have an organization administrator confirm the configured allowed-actions policy permits the exact action references.
   - Update the Implementation Completion Review section and acceptance/progress checkboxes only after the required evidence is verified.
+
+### 2026-09-08 16:35 UTC - Follow-up to Task Reviewer report
+
+- Correction: The pending branch-protection finding is resolved. The legacy GitHub REST branch-protection endpoint returned `404` because `develop` protection is implemented through repository rulesets, not because it is unprotected. Effective rules for `develop` require creation, pull requests, deletion, and signatures but contain no required-status-check rule; the only ruleset with required status checks is disabled and does not name `External Link Check`. This workflow is therefore not a merge requirement.
+- Hosted evidence: [run 34250154466](https://github.com/torrust/torrust-tracker/actions/runs/34250154466) failed at the online Lychee step and uploaded its report artifact; [rerun 34251836337](https://github.com/torrust/torrust-tracker/actions/runs/34251836337) did the same. The reports contain 442 and 445 errors, respectively, so the observed condition persisted across the required single rerun.
+- Tracking correction: `ISSUE.md` now records M2/M3 evidence, marks the supported acceptance criteria complete, and documents why no separate implementation retrospective is needed. Both hosted runs scanned pre-merge revision `e4db63d5`; they validate the deployed workflow behavior, while the merged workflow has the same command and configuration.
+
+### 2026-09-08 17:12 UTC - Task Reviewer completion review
+
+- Scope: Independent read-only review of merged commit `8dba10b4` and the updated hosted-validation evidence for issue #2162.
+- Evidence: `torrust-linting` 0.2.0 supplies local offline checking through `linter all`; the hosted workflow has the Monday schedule and manual dispatch trigger, no pull-request or push trigger, secure bounded online requests, and `if: always()` Markdown report upload. [Run 34250154466](https://github.com/torrust/torrust-tracker/actions/runs/34250154466) and [rerun 34251836337](https://github.com/torrust/torrust-tracker/actions/runs/34251836337) visibly failed at online Lychee and each uploaded an unexpired readable report. Effective `develop` rules contain no required-status-check rule.
+- Conclusion: All acceptance criteria and M1-M3 scenarios pass. The records correctly identify that the hosted runs scanned pre-merge revision `e4db63d5`, while the merged workflow preserves the same command and configuration. The no-retrospective rationale is adequate.
+- Residual risk: The advisory report contains hundreds of existing external-link failures and will remain noisy until individually triaged under the documented rerun-and-repair-or-narrow-exclusion policy.
+- Verdict: REVIEW PASSED. The reviewer-validation checkpoint may be marked complete; retain the issue in its current open location until its separate closure workflow is intentionally performed.
