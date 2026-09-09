@@ -8,7 +8,7 @@ github-issue: 2162
 spec-path: docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
 branch: "2162-enforce-lychee-and-schedule-external-link-checks"
 related-pr: null
-last-updated-utc: 2026-09-08 16:35
+last-updated-utc: 2026-09-08 17:12
 semantic-links:
   skill-links:
     - create-issue
