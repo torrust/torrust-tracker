@@ -109,7 +109,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Assess source-port-zero admission at the launcher boundary
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Determine whether a direct test can call `should_discard_request` with a source-port-
@@ -119,6 +119,13 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Do not start `run_udp_server_main`, receive real UDP traffic, spawn tasks, use a
   listener, sleep, poll, or assert later counter consumption. Do not test source-port-zero wire
   transport, which standard sockets cannot produce.
+- **Prose-first review:** The temporary Arrange prose was “a valid launcher evaluates a request
+  whose source port is zero.” The final code makes the port-zero client address and raw request
+  visible, while `UdpLauncherDependencies`, `sample_udp_service_binding`, and `TEST_LOG_TARGET`
+  own ordinary setup. The direct `should_discard_request` Act and strict-policy input remain
+  visible. The Assert independently specifies both discard decision and exact immediate event;
+  only the event-await comment remains because its deadline failure-bound rationale is not evident
+  from syntax alone. The temporary prose is redundant and removed.
 - **Done when:** the admission seam has either one unique direct contract or a documented
   no-change decision assigning it to processor/statistics boundaries.
 
@@ -156,7 +163,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R2.
-- [ ] R2 assessment completed and decision recorded.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -174,6 +181,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Approved R2. Add one direct unit test proving the launcher
   rejects a source-port-zero raw request and immediately emits `UdpRequestDiscarded`, without
   starting the receive loop, spawning a processor, or asserting later metrics consumption.
+- 2026-09-09 - User/maintainer - Reviewed and approved R2. The unit-first direct admission test
+  makes the source-port-zero causal state, strict policy, dispatcher-independent Act, and exact
+  immediate event visible; helpers hide only tracing/server metadata and ordinary dependencies.
 
 ### Validation Evidence
 
@@ -181,7 +191,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
-| R2 | IN_PROGRESS | Maintainer approved one unit-first source-port-zero admission contract. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
 
