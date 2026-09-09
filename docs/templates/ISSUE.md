@@ -104,7 +104,7 @@ commit with GPG.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -124,7 +124,7 @@ Append one line per meaningful update.
 - [ ] AC2: {Behavior/outcome that must be true}
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented (status + evidence)
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -142,15 +142,38 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario          | Command/Steps                        | Expected Result     | Status | Evidence                     |
-| --- | ----------------- | ------------------------------------ | ------------------- | ------ | ---------------------------- |
-| M1  | {Manual scenario} | {Exact command or interaction steps} | {Expected behavior} | TODO   | {log/output/screenshot/path} |
-| M2  | {Manual scenario} | {Exact command or interaction steps} | {Expected behavior} | TODO   | {log/output/screenshot/path} |
+| ID  | Scenario          | Human-oriented command/steps                      | Expected Result     | Status | Evidence                                     |
+| --- | ----------------- | ------------------------------------------------- | ------------------- | ------ | -------------------------------------------- |
+| M1  | {Manual scenario} | {Exact command or interaction actually performed} | {Expected behavior} | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | {Manual scenario} | {Exact command or interaction actually performed} | {Expected behavior} | TODO   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
-- Manual verification is mandatory even when automated tests pass.
+- Manual verification is mandatory even when automated tests pass. It is a
+  real human-oriented use of the feature or reproduction of the bug fix, not a
+  simulated result and not merely running automated tests.
+- Create `manual-verification-evidence.md` from
+  `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these
+  scenarios. Record actual prerequisites, actions, commands, program output,
+  relevant tracker logs, and outcomes there.
 - If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
+
+### Disposable Verification Scripts
+
+Temporary scripts may automate an issue-local verification scenario, but they
+are neither maintained automatic tests nor manual-verification evidence. Before
+creating one, record in the issue specification:
+
+- why temporary automation is better for this concrete scenario than a
+  maintained Rust automatic test;
+- the script's issue-local path, what it verifies, and its intended removal or
+  retention owner; and
+- when using Python instead of Rust, why Rust is not suitable for that specific
+  script.
+
+Keep the script in the issue-specification folder so later reviewers can inspect
+the verification performed. Promote durable product-behavior checks into Rust
+automatic tests when practical, then remove the disposable script.
 
 ### Acceptance Verification
 

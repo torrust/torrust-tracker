@@ -37,6 +37,9 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
    - Verify that the spec's progress notes or task list reflect the current state.
    - If the spec is out of date, stop and ask the caller to update it before proceeding.
      Do not commit with a stale spec.
+   - For a completion commit, verify that required manual verification is backed
+     by issue-local `manual-verification-evidence.md`, not only test output or a
+     disposable verification script. See [verification types](../../docs/testing.md#verification-types).
 2. **Validate the branch name.** If the current branch name starts with an issue number prefix
    (e.g., `42-some-description`), verify that `docs/issues/open/` contains a matching spec
    (file or directory starting with that number). If no match is found:

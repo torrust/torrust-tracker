@@ -44,6 +44,9 @@ To generate the graph you will need to:
 2. Run the aquatic UDP load test.
 3. Run the tracker with flamegraph and profiling configuration.
 
+The `profiling` binary does not parse the main `torrust-tracker` command-line
+options; configure it with the existing environment variables.
+
 ```console
 cargo build --profile=release-debug --bin=profiling
 ./target/release/aquatic_udp_load_test -c "load-test-config.toml"

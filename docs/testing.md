@@ -55,7 +55,7 @@ package-level tests, as supported by [EPIC #1347](https://github.com/torrust/tor
 | Unit and documentation tests                  | A package type, function, or module has behavior that can run without I/O or a deployed service.                 | The focused behavior is correct in isolation.                                                          | Cross-package wiring, process behavior, or a packaged runtime.                              | [`Driver` tests](../packages/primitives/src/driver.rs)                                                             | [Unit-test skill](../.github/skills/dev/testing/write-unit-test/SKILL.md); [package testing guidance](../packages/AGENTS.md#testing-packages)     |
 | Package-level in-process integration          | A package boundary needs real collaborators, such as a server and its handler, without the complete application. | The package's components work together through its public boundary.                                    | Application-wide service coordination or the compiled tracker executable.                   | [HTTP server contract tests](../packages/axum-http-server/tests/server/v1/contract/)                               | [Package testing guidance](../packages/AGENTS.md#testing-packages); [test refactoring patterns](testing/refactoring-patterns/README.md)           |
 | Root application-level in-process integration | An observable behavior needs the complete application container and multiple coordinated services.               | Application startup, cross-service coordination, aggregate metrics, and job or shutdown orchestration. | OS process boundaries, signals sent to the tracker executable, or container-image behavior. | [Port-zero metrics suite](../tests/metrics/port_zero.rs)                                                           | [Root integration-test guidance](../tests/AGENTS.md)                                                                                              |
-| Executable-boundary integration               | The behavior requires starting the compiled tracker as a child process, such as OS-signal handling.              | The native executable starts and reacts correctly at its process boundary.                             | Container-image behavior or interoperability with an external BitTorrent client.            | [Native tracker fixture](../tests/lifecycle/native_tracker.rs)                                                     | [Child-process configuration isolation](../tests/AGENTS.md#child-process-configuration-isolation)                                                 |
+| Executable-boundary integration               | The behavior requires starting the compiled tracker as a child process, such as OS-signal handling.              | The native executable starts and reacts correctly at its process boundary.                             | Container-image behavior or interoperability with an external BitTorrent client.            | [Native tracker fixture](../tests/common/native_tracker.rs)                                                        | [Child-process configuration isolation](../tests/AGENTS.md#child-process-configuration-isolation)                                                 |
 | Container E2E                                 | The tracker must be exercised as the built container artifact with project-controlled clients.                   | The image builds and tracker behavior works through its network boundary.                              | Interoperability with a production BitTorrent client or every database backend.             | [`e2e_tests_runner`](../packages/e2e-tools/README.md#binaries)                                                     | [E2E tools usage](../packages/e2e-tools/README.md); [container workflow](../.github/workflows/container.yaml)                                     |
 | Container plus qBittorrent E2E                | Compatibility must be demonstrated against a real BitTorrent client and configured database backend.             | The containerized tracker interoperates with qBittorrent for the selected backend.                     | Isolated package behavior or exhaustive coverage of all failure paths.                      | [`qbittorrent_e2e_runner`](../packages/e2e-tools/README.md#binaries)                                               | [E2E tools usage](../packages/e2e-tools/README.md); [container workflow](../.github/workflows/container.yaml)                                     |
 | Database compatibility                        | A persistence change affects MySQL or PostgreSQL driver behavior or supported-version compatibility.             | The selected tracker-core database-driver scenarios work against the workflow's version matrix.        | Complete tracker container behavior or SQLite behavior not covered by the scenario.         | [Database compatibility workflow](../.github/workflows/db-compatibility.yaml)                                      | [Database compatibility workflow](../.github/workflows/db-compatibility.yaml); [package testing guidance](../packages/AGENTS.md#testing-packages) |
@@ -74,6 +74,42 @@ respective responsibilities:
 | CI                       | Is the merge authority. It runs workflow-selected validation, including container and qBittorrent E2E coverage where applicable. | [Testing workflow](../.github/workflows/testing.yaml); [container workflow](../.github/workflows/container.yaml) |
 | Manual verification      | Complements automated evidence with scenario status and recorded evidence in the relevant issue specification.                   | [Issue-specification workflow](issues/README.md)                                                                 |
 
+## Verification Types
+
+Use three distinct verification activities; they produce different evidence and
+must not substitute for one another.
+
+| Activity                       | Purpose                                                                                                                            | Required evidence                                                                                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Automatic tests                | Maintained, repeatable claims about product behavior at the lowest suitable test layer.                                            | Rust test code executed through the repository test toolchain.                                                                                                           |
+| Manual verification            | Real human-oriented use of a finished feature or reproduction of a fixed bug, especially to reveal integration and usability gaps. | Actual steps, commands, program output, relevant tracker logs, and conclusions in the issue-local `manual-verification-evidence.md`.                                     |
+| Disposable verification script | Temporary issue-local automation that efficiently drives or captures a concrete verification scenario.                             | The script, its automatic-test rationale, and its removal/retention owner in the issue specification. Python additionally requires a recorded reason Rust is unsuitable. |
+
+Automatic tests should absorb durable product-behavior checks from disposable
+scripts when practical. Manual verification remains necessary after automated
+tests pass because it verifies how a person actually uses the finished artifact.
+It routinely exposes integration and usability gaps that tests written by the
+implementer do not, such as "how am I supposed to use this?" moments, unclear
+error messages, or missing documentation.
+
+Examples of human-oriented manual verification:
+
+- **Bug fix:** reproduce the original bug on the fixed build using the same
+  steps the reporter would follow, and confirm it no longer happens.
+- **New CLI option:** build the release binary, read only the `--help` output
+  and the documentation, start the tracker the way an operator would, and check
+  the logs show the expected effect.
+- **New configuration behavior:** write a real configuration file, start the
+  tracker, and exercise the affected service with a real client (for example
+  `tracker_client` or `curl`) instead of asserting on internal state.
+- **Error path:** trigger the failure as a user would (wrong path, bad file,
+  missing permission) and judge whether the message tells the user what to fix.
+
+Each example produces evidence that is a recording of what really happened:
+the exact commands, their output, and the relevant tracker log lines.
+
+For the operational requirements, see [root integration-test guidance](../tests/AGENTS.md#test-implementation-language) and the issue template's [manual verification and disposable script sections](templates/ISSUE.md#manual-verification-scenarios).
+
 ## Advisory External Link Monitoring
 
 The [External Link Check workflow](../.github/workflows/external-link-check.yaml) runs Lychee
@@ -87,6 +123,9 @@ must be a narrowly scoped, documented exclusion in `.github/lychee-online.toml`;
 the offline local-link policy in `lychee.toml`.
 
 ## Writing Maintainable Tests
+
+Tracked repository test code is Rust. The operational policy and its narrowly
+defined Python exception are in the [root integration-test guidance](../tests/AGENTS.md#test-implementation-language).
 
 The [unit-test skill](../.github/skills/dev/testing/write-unit-test/SKILL.md)
 is the source of truth for Test Desiderata, behavior-focused naming, visible

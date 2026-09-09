@@ -36,6 +36,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                                                   |
 | `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                                          |
 | `copilot-pr-reviews/`                                                                     | Copilot PR review records and suggestion threads                                                        |
+| `pr-review-feedback/`                                                                     | PR review feedback audit records                                                                        |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                                       |
 | `testing/`                                                                                | Durable testing guidance and test-design refactoring pattern catalog                                    |
 | `templates/`                                                                              | Canonical document templates (ADR, agent review reports, EPIC, issue, refactor plan, security analysis) |

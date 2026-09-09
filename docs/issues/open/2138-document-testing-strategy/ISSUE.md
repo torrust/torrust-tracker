@@ -389,7 +389,7 @@ findings, and reusable lessons.
 - [Root repository instructions](../../../../AGENTS.md)
 - [Package instructions](../../../../packages/AGENTS.md)
 - [Root integration-test instructions](../../../../tests/AGENTS.md)
-- [Executable-boundary lifecycle test](../../../../tests/lifecycle/native_tracker.rs)
+- [Executable-boundary lifecycle test](../../../../tests/common/native_tracker.rs)
 - [E2E tools package](../../../../packages/e2e-tools/README.md)
 - [Test-writing skill](../../../../.github/skills/dev/testing/write-unit-test/SKILL.md)
 - [Pre-commit validation skill](../../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md)

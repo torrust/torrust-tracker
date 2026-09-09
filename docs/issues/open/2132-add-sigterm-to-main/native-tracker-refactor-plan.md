@@ -466,6 +466,6 @@ split the streams, or add stream-order assertions.
 - [Issue specification](ISSUE.md)
 - [Manual verification evidence](verification.md)
 - [Integration-test guidelines](../../../../tests/AGENTS.md)
-- [Native tracker fixture](../../../../tests/lifecycle/native_tracker.rs)
+- [Native tracker fixture](../../../../tests/common/native_tracker.rs) (moved to `tests/common/` by #2151)
 - [Lifecycle signal scenarios](../../../../tests/lifecycle/signals.rs)
 - [Shutdown EPIC](../1488-overhaul-tracker-shutdown/ISSUE.md)

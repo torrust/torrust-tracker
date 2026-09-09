@@ -139,7 +139,7 @@ outcome classification.
 - [Issue specification](ISSUE.md)
 - [Native executable shutdown test plan](native-shutdown-test-plan.md)
 - [Native tracker fixture incremental refactor plan](native-tracker-refactor-plan.md)
-- [`tests/lifecycle/native_tracker.rs`](../../../../tests/lifecycle/native_tracker.rs)
+- [`tests/lifecycle/native_tracker.rs`](../../../../tests/common/native_tracker.rs) (moved to `tests/common/` by #2151)
 - [`tests/lifecycle/signals.rs`](../../../../tests/lifecycle/signals.rs)
 
 The original native fixture entered history in `92fc32ac`. The completed

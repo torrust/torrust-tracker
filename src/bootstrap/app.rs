@@ -11,6 +11,8 @@
 //! 2. Initialize static variables.
 //! 3. Initialize logging.
 //! 4. Initialize the domain tracker.
+use std::path::PathBuf;
+
 use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
 use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_udp_core::crypto::keys::{self, Keeper as _};
@@ -42,18 +44,19 @@ pub enum Error {
     Composition { source: crate::container::Error },
 }
 
-/// It loads the configuration from the environment and builds app container.
+/// Loads the configuration and builds the application container.
 ///
 /// # Errors
 ///
 /// Returns a typed error when configuration, validation, or dependency composition fails.
 ///
 #[instrument(skip())]
-pub async fn setup() -> Result<(Configuration, AppContainer), Error> {
+// issue: #2151
+pub async fn setup(explicit_config_toml_path: Option<PathBuf>) -> Result<(Configuration, AppContainer), Error> {
     #[cfg(not(test))]
     check_seed();
 
-    let configuration = initialize_configuration().map_err(|source| Error::Configuration { source })?;
+    let configuration = initialize_configuration(explicit_config_toml_path).map_err(|source| Error::Configuration { source })?;
 
     configuration
         .validate()

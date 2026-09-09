@@ -50,6 +50,10 @@ path = "tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs"
 name = "lifecycle-signals"
 path = "tests/lifecycle/signals.rs"
 
+[[test]]
+name = "cli-configuration"
+path = "tests/configuration/cli_configuration.rs"
+
 [lints]
 workspace = true
 

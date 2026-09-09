@@ -45,6 +45,11 @@ You plan the work. You do not perform implementation changes yourself.
      fixtures
    - A post-vertical-slice design review when those concerns make the initial
      implementation likely to reveal material design constraints
+   - Human-oriented manual verification scenarios whose actual evidence will be
+     recorded in issue-local `manual-verification-evidence.md`
+   - A rationale, issue-local path, and removal/retention owner for any proposed
+     disposable verification script; Python also needs a case-specific reason
+     Rust is unsuitable
 4. Classify the issue as `task`, `bug`, or `feature`, with one-sentence justification.
 5. Select an implementation strategy and explain why it fits.
 6. Decompose into minimal, independently verifiable tasks.
@@ -66,6 +71,8 @@ For complex implementation work, ensure the specification requires an
 evidence-based completion review. It must either create an issue-local
 `implementation-retrospective.md` for reusable lessons or record why no
 retrospective was needed in the issue progress log.
+
+Follow the canonical [verification types](../../docs/testing.md#verification-types).
 
 ## Output Format
 

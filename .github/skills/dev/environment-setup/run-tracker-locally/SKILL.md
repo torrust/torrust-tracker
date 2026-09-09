@@ -51,6 +51,21 @@ Loading extra configuration from default configuration file: `./share/default/co
 **Default database**: SQLite3  
 **Default configuration file**: `./share/default/config/tracker.development.sqlite3.toml`
 
+## Selecting a Configuration Source
+
+The main `torrust-tracker` binary accepts an explicit file path:
+
+```bash
+cargo run --bin torrust-tracker -- --config-toml-path ./storage/tracker/etc/tracker.toml
+```
+
+Base-source precedence is `--config-toml-path` >
+`TORRUST_TRACKER_CONFIG_TOML` > `TORRUST_TRACKER_CONFIG_TOML_PATH` > the default
+development file. `TORRUST_TRACKER_CONFIG_OVERRIDE_*` values are merged over the
+selected base source. A CLI path is resolved exactly from the current working
+directory; it must name a readable TOML file. Environment sources remain
+supported for compatibility and deployment use.
+
 ## Default Services
 
 By default, the development configuration starts:
@@ -146,7 +161,7 @@ openssl req -x509 -out .tmp/localhost.crt -keyout .tmp/localhost.key \
 1. Start the tracker with the temporary configuration:
 
 ```bash
-TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/.tmp/local-tls.toml" cargo run --bin torrust-tracker
+cargo run --bin torrust-tracker -- --config-toml-path "$PWD/.tmp/local-tls.toml"
 ```
 
 Read the startup log to obtain the final port assigned to a `:0` binding.

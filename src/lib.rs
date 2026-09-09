@@ -207,8 +207,21 @@
 //! For more information about each service and options you can visit the
 //! documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
-//! Alternatively to the `tracker.toml` file you can use one environment
-//! variable `TORRUST_TRACKER_CONFIG_TOML` to pass the configuration to the tracker:
+//! The main `torrust-tracker` binary can select a configuration file explicitly:
+//!
+//! ```text
+//! ./target/release/torrust-tracker --config-toml-path ./storage/tracker/etc/tracker.toml
+//! ```
+//!
+//! Base-source precedence is the explicit path,
+//! `TORRUST_TRACKER_CONFIG_TOML`, `TORRUST_TRACKER_CONFIG_TOML_PATH`, then the
+//! default development file. Per-value `TORRUST_TRACKER_CONFIG_OVERRIDE_*`
+//! variables override matching values in the selected base source. The CLI path
+//! is resolved exactly from the current working directory and must name a
+//! readable TOML file. Environment sources remain supported for compatibility.
+//!
+//! Alternatively, use `TORRUST_TRACKER_CONFIG_TOML` to pass complete
+//! configuration content to the tracker:
 //!
 //! ```text
 //! TORRUST_TRACKER_CONFIG_TOML=$(cat ./share/default/config/tracker.development.sqlite3.toml) ./target/release/torrust-tracker
@@ -220,7 +233,8 @@
 //! The env var contains the same data as the `tracker.toml`. It's particularly
 //! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/blob/develop/docs/containers.md).
 //!
-//! > NOTICE: The `TORRUST_TRACKER_CONFIG_TOML` env var has priority over the `tracker.toml` file.
+//! > NOTICE: Without `--config-toml-path`, `TORRUST_TRACKER_CONFIG_TOML` has
+//! > priority over `TORRUST_TRACKER_CONFIG_TOML_PATH`.
 //!
 //! skill-link: run-tracker-locally
 //! By default, if you don’t specify any `tracker.toml` file, the application

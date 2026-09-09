@@ -36,6 +36,10 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
   - `.github/skills/dev/testing/write-unit-test/SKILL.md` — test naming and Arrange/Act/Assert pattern.
   - `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` — error handling.
   - `.github/skills/dev/git-workflow/commit-changes/SKILL.md` — commit conventions.
+- Follow the [verification types](../../docs/testing.md#verification-types): keep
+  durable automatic behavior checks in Rust, execute manual verification against
+  the finished artifact, and retain a disposable verification script only with
+  the issue-specification rationale required by the issue template.
 
 ### ADR Discoverability Convention
 
@@ -135,6 +139,11 @@ For test fixtures with child processes, asynchronous I/O, network readiness, or
 panic-safe cleanup, explicitly review collaborator responsibilities, resource
 ownership across normal and drop-path cleanup, deadline coverage, and separation
 between passive infrastructure and domain interpretation.
+
+Before independent verification, perform the issue's manual scenarios against
+the finished artifact and record actual commands, output, relevant logs, and
+conclusions in issue-local `manual-verification-evidence.md`. Automated test
+output is not a substitute for this evidence.
 
 ### Step 6 — Request Independent Verification
 
