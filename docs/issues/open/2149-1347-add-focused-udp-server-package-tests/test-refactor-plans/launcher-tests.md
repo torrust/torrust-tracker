@@ -91,7 +91,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Express startup-receiver failure causally
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Write temporary prose for the existing test's Arrange, Act, and Assert sections. Then
@@ -99,6 +99,11 @@ validation, review, and its mapped commit point—before beginning the next item
   the `run_with_graceful_shutdown` Act, and the independent `BrokenPipe`/rebind assertions.
 - **Guardrails:** Keep the launcher call and both observable assertions in the test body. Do not
   generalize a fixture for future shutdown cases or change production lifecycle behavior.
+- **Prose-first review:** The temporary Arrange prose was “a valid UDP launcher has a dropped
+  startup-notification receiver.” `UdpLauncherDependencies::new()` now names ordinary valid
+  construction, while the test visibly creates and drops only the startup receiver. The Act remains
+  the direct `run_with_graceful_shutdown` call with strict validation, and the Assert retains
+  independent `BrokenPipe` and rebind results. The temporary prose is redundant and removed.
 - **Done when:** redundant prose can be removed because names and structure express the causal
   state and contract.
 
@@ -148,8 +153,8 @@ validation, review, and its mapped commit point—before beginning the next item
 ### Plan Checklist
 
 - [x] Existing launcher test, admission branches, separate coverage, and #1488 ownership reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] R2 assessment completed and decision recorded.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
@@ -162,13 +167,16 @@ validation, review, and its mapped commit point—before beginning the next item
   launcher test, `should_discard_request`, processor and request-buffer boundaries, separate
   unit-only/integration-only coverage, and #1488 shutdown ownership. No test or production change
   has been made.
+- 2026-09-09 - User/maintainer - Reviewed and approved R1. The final test retains the direct
+  launcher Act and observable failure/rebind assertions, while `UdpLauncherDependencies` owns only
+  ordinary construction and the visible dropped startup receiver identifies the causal state.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
 | R2 | TODO | Awaiting R1 review. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
