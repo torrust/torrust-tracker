@@ -144,9 +144,9 @@ before beginning the next item.
 
 - [x] Phase 1 and Phase 2 boundaries reviewed against current handler, error, parser, and processor tests.
 - [x] Maintainer approved R1.
-- [ ] R1 no-change decision recorded and committed.
+- [x] R1 no-change decision recorded and committed.
 - [x] Maintainer approved R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -161,14 +161,18 @@ before beginning the next item.
 - 2026-09-09 - User/maintainer - Approved R1's Phase 1 no-change decision and R2's focused
   sendable parse-failure routing test. Commit this approval record and the proposed plan before
   implementing the test.
+- 2026-09-09 - User/maintainer - Reviewed and approved R2 after its Arrange section was reduced
+  to `SendableParseErrorPacketScenario`. The scenario names the causal sendable-parse-error state
+  and owns only incidental container, packet, binding, and deterministic time setup; the test keeps
+  `handle_packet` and its independently specified transaction-ID/request-kind contract visible.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
-| R2 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | No change: `handlers/mod.rs` has no direct test cases to clean. Its existing local support remains focused on individual handler modules, so a cross-module fixture refactor is not justified. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. The named scenario fixture retains the direct dispatcher Act and independent assertions. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting Phase 2 completion. |
 
