@@ -244,6 +244,7 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
@@ -264,8 +265,15 @@ pub(crate) mod tests {
     use torrust_tracker_udp_core::services::announce::AnnounceService;
     use torrust_tracker_udp_core::services::scrape::ScrapeService;
     use torrust_tracker_udp_core::{self, event as core_event};
+    use torrust_tracker_udp_protocol::{ConnectionId, ErrorResponse, Request, Response, ScrapeRequest, TransactionId};
+    use zerocopy::byteorder::network_endian::{I32, I64};
 
     use crate::event as server_event;
+    use crate::testing::environment::EnvContainer;
+    use crate::{
+        RawRequest,
+        handlers::{CookieTimeValues, handle_packet},
+    };
 
     pub struct CoreTrackerServices {
         pub core_config: Arc<Core>,
@@ -461,5 +469,79 @@ pub(crate) mod tests {
 
             fn send(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
         }
+    }
+
+    struct SendableParseErrorPacketScenario {
+        raw_request: RawRequest,
+        udp_tracker_core_container: Arc<torrust_tracker_udp_core::container::UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<crate::container::UdpTrackerServerContainer>,
+        server_service_binding: ServiceBinding,
+        cookie_time_values: CookieTimeValues,
+        transaction_id: TransactionId,
+    }
+
+    impl SendableParseErrorPacketScenario {
+        async fn new() -> Self {
+            let configuration = configuration::ephemeral();
+            let core_config = Arc::new(configuration.core.clone());
+            let udp_tracker_config = Arc::new(configuration.udp_trackers.as_ref().expect("UDP tracker configuration")[0].clone());
+            let environment = EnvContainer::initialize(
+                &core_config,
+                &udp_tracker_config,
+                configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+            )
+            .await;
+            let transaction_id = TransactionId(I32::new(42));
+            let request = Request::Scrape(ScrapeRequest {
+                connection_id: ConnectionId(I64::new(7)),
+                transaction_id,
+                info_hashes: Vec::new(),
+            });
+            let mut payload = Vec::new();
+            request.write_bytes(&mut payload).expect("scrape request should serialize");
+
+            Self {
+                raw_request: RawRequest {
+                    payload,
+                    from: sample_ipv4_remote_addr(),
+                },
+                udp_tracker_core_container: environment.udp_tracker_core_container,
+                udp_tracker_server_container: environment.udp_tracker_server_container,
+                server_service_binding: ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address())
+                    .expect("UDP service binding should be valid"),
+                cookie_time_values: CookieTimeValues {
+                    issue_time: sample_issue_time(),
+                    valid_range: sample_cookie_valid_range(),
+                },
+                transaction_id,
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind() {
+        // Arrange
+        let scenario = SendableParseErrorPacketScenario::new().await;
+
+        // Act
+        let (response, request_kind) = handle_packet(
+            scenario.raw_request,
+            scenario.udp_tracker_core_container,
+            scenario.udp_tracker_server_container,
+            scenario.server_service_binding,
+            scenario.cookie_time_values,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(matches!(
+            response,
+            Response::Error(ErrorResponse {
+                transaction_id: actual_transaction_id,
+                ..
+            }) if actual_transaction_id == scenario.transaction_id
+        ));
+        assert_eq!(request_kind, None);
     }
 }
