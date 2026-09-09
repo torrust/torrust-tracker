@@ -159,7 +159,7 @@ Formatting and lint checks are likewise not run on the floor. The repository's f
 | T4   | The prose alignment in `AGENTS.md`, the dev-environment skill, and the PGO draft.       | Commit after the manifest raise it must agree with. `docs: ...`                                                             |
 | T5   | The recomputation step in the dependency-update skill and the release process.          | Commit separately from the prose alignment; it changes procedure rather than a stated value. `docs: ...`                    |
 
-Record a justified no-change decision in the task's evidence without creating an empty commit. Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
+Record a justified no-change decision in the task's evidence without creating an empty commit. Use a Conventional Commit message with the narrow affected scope.
 
 ## Progress Tracking
 
