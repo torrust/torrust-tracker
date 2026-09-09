@@ -3,12 +3,14 @@
 #
 # The wrapped tool intentionally remains interactive for merge inspection, signing, and pushing.
 # This wrapper only validates Torrust Tracker's non-destructive preconditions and fixes the
-# upstream repository and target branch. See .github/skills/dev/git-workflow/merge-pull-request/SKILL.md.
+# upstream repository, the target branch, and the tree path of this repository's symbolic-link
+# declaration. See .github/skills/dev/git-workflow/merge-pull-request/SKILL.md.
 
 set -euo pipefail
 
 readonly EXPECTED_REPOSITORY="torrust/torrust-tracker"
 readonly TARGET_BRANCH="develop"
+readonly SYMLINK_DECLARATION=".symlinks.json"
 SCRIPT_DIRECTORY="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIRECTORY
 readonly VENDORED_TOOL="${SCRIPT_DIRECTORY}/github-merge.py"
@@ -133,7 +135,11 @@ main() {
     require_python
     require_interactive_stdin
 
-    exec python3 "${VENDORED_TOOL}" "${pull_request}" "${TARGET_BRANCH}"
+    # SYMLINK_DECLARATION names a path inside the merged tree the tool is about to create, not a
+    # path in this working tree, so there is nothing here to check for existence. The tool holds no
+    # default, so this line is the only statement of where this repository declares the symbolic
+    # links it accepts; without it every symbolic link the merge introduces is refused.
+    exec python3 "${VENDORED_TOOL}" --symlinks "${SYMLINK_DECLARATION}" "${pull_request}" "${TARGET_BRANCH}"
 }
 
 main "$@"
