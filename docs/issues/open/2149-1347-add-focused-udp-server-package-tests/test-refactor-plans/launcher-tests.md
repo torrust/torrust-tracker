@@ -1,0 +1,203 @@
+---
+doc-type: test-refactor-plan
+issue: 2149
+package: torrust-tracker-udp-server
+target-file: packages/udp-server/src/server/launcher.rs
+status: proposed
+semantic-links:
+  related-artifacts:
+    - packages/udp-server/src/server/launcher.rs
+    - packages/udp-server/src/server/processor.rs
+    - packages/udp-server/src/server/request_buffer.rs
+    - packages/udp-server/tests/server/contract.rs
+    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
+    - docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+---
+
+# UDP Launcher Test Refactor Plan
+
+Follow the shared [purpose, quality goals, plan structure, and required two-phase
+sequence](README.md). This plan applies only to `packages/udp-server/src/server/launcher.rs`.
+
+## Phase 1 - Clean Current Tests
+
+### Current state
+
+`launcher.rs` has one direct test: the startup-notification receiver is dropped, so
+`run_with_graceful_shutdown` must return `BrokenPipe` and release its socket. The test protects a
+valuable failure cleanup contract, but its Arrange block manually composes configuration, clocks,
+logging, UDP-core services, server services, a bound socket, and two oneshot channels. The causal
+state—the startup receiver is absent—is difficult to see among ordinary infrastructure.
+
+The separate coverage reports at commit `81f5edbc` show 72/135 lines (53.33%), 83/144 regions
+(57.64%), and 7/13 functions (53.85%) for unit-only `--lib`; integration-only execution gives
+68/91 lines (74.73%), 46/75 regions (61.33%), and 9/11 functions (81.82%) for its smaller
+production-only slice. Neither report identifies an uncovered source line through the generic
+line-entry data, so the measurements are navigation evidence, not a reason to force tests into
+lifecycle-owned branches.
+
+### Decision
+
+Start with a mandatory prose-first Arrange-Act-Assert comparison of the existing test. Its temporary
+prose must distinguish ordinary valid launcher dependencies from the causal dropped startup receiver
+and the independently observed socket address. Refactor only to make those concepts visible. A
+focused scenario fixture may own ordinary launcher construction and the dropped receiver condition,
+but it must not run the launcher, receive its outcome, or assert socket release.
+
+## Phase 2 - Add Missing Behavior Tests
+
+### Strengths to preserve
+
+1. `run_with_graceful_shutdown` owns startup notification and releases the listener when startup
+   reporting fails.
+2. `should_discard_request` owns deterministic pre-processing admission decisions for source port
+   zero and currently banned source IPs.
+3. `server/processor.rs` already protects source-port-zero defense in depth, while
+   `statistics/event/handler` modules own the corresponding counter effects.
+4. The #1488 shutdown EPIC and SI-14/SI-15 own receive-loop cancellation, child-task joining,
+   request-abort behavior, and active-request shutdown policy.
+
+### Problems and opportunities
+
+#### P1 - Startup-receiver failure setup is harder to read than the contract
+
+**Problem.** The one existing test makes readers reconstruct the causal dropped-receiver state from
+the last lines of a long setup sequence.
+
+**Opportunity.** Apply the Phase 1 prose-first refactor before considering any behavior additions.
+
+#### P2 - Admission decisions may have direct deterministic unit seams
+
+**Problem.** The source-port-zero and banned-IP paths are package-owned decisions before processing,
+but direct evidence at this boundary is limited.
+
+**Opportunity.** After Phase 1, assess one direct `should_discard_request` contract at a time only
+if it can observe the Boolean admission decision and its immediate event without starting a receive
+loop, spawning request tasks, using sleeps/polling, or duplicating processor/statistics tests.
+
+#### P3 - Lifecycle and active-request behavior is not owned by this issue
+
+**Decision.** Do not add tests for receive-loop completion, `None`/I/O receiver outcomes, spawned
+request-task lifecycle, shutdown aborts, task joining, or active-request eviction. These are owned
+by #1488 SI-14 and SI-15 and require their approved cancellation and deadline policy.
+
+## Proposed Refactorings
+
+Apply items in order. Complete one approved increment—including prose-first comparison, focused
+validation, review, and its mapped commit point—before beginning the next item.
+
+### R1 - Express startup-receiver failure causally
+
+- **Status:** TODO
+- **Priority:** High impact / low effort
+- **Addresses:** P1
+- **Change:** Write temporary prose for the existing test's Arrange, Act, and Assert sections. Then
+  refactor its setup until the code visibly states a valid launcher with a dropped startup receiver,
+  the `run_with_graceful_shutdown` Act, and the independent `BrokenPipe`/rebind assertions.
+- **Guardrails:** Keep the launcher call and both observable assertions in the test body. Do not
+  generalize a fixture for future shutdown cases or change production lifecycle behavior.
+- **Done when:** redundant prose can be removed because names and structure express the causal
+  state and contract.
+
+### R2 - Assess source-port-zero admission at the launcher boundary
+
+- **Status:** TODO
+- **Priority:** Medium impact / low effort
+- **Addresses:** P2
+- **Change:** Determine whether a direct test can call `should_discard_request` with a source-port-
+  zero raw request and observe only its Boolean decision plus immediate `UdpRequestDiscarded` fact.
+  Add one unit test only if it adds a clearer contract than `Processor::process_request` and the
+  existing statistics handler tests.
+- **Guardrails:** Do not start `run_udp_server_main`, receive real UDP traffic, spawn tasks, use a
+  listener, sleep, poll, or assert later counter consumption. Do not test source-port-zero wire
+  transport, which standard sockets cannot produce.
+- **Done when:** the admission seam has either one unique direct contract or a documented
+  no-change decision assigning it to processor/statistics boundaries.
+
+### R3 - Assess banned-IP admission at the launcher boundary
+
+- **Status:** TODO
+- **Priority:** Medium impact / low effort
+- **Addresses:** P2, P3
+- **Change:** Determine whether one deterministic unit test can seed a banned IP, call
+  `should_discard_request`, and assert only the Boolean decision plus immediate `UdpRequestBanned`
+  fact. Add it only if it does not duplicate ban-service policy or listener counter behavior.
+- **Guardrails:** Keep validation-policy choice visible. Do not cover ban threshold accumulation,
+  receive-loop lifecycle, or disabled-mode tracker behavior unless the direct admission choice is
+  uniquely obscured elsewhere.
+- **Done when:** the strict-mode admission choice has a unique direct contract or a documented
+  no-change ownership decision.
+
+### R4 - Review design and residual test-level coverage
+
+- **Status:** TODO
+- **Priority:** Low impact / low effort
+- **Change:** After each approved test, apply and record prose-first AAA verification. Measure
+  unit-only and integration-only coverage separately; assign every remaining relevant branch to the
+  launcher, processor, request buffer, integration contract, or #1488 shutdown work.
+- **Guardrails:** Do not use combined coverage to claim either boundary, and do not add
+  percentage-only tests.
+- **Done when:** remaining lifecycle-sensitive gaps have explicit ownership and all approved tests
+  are readable, deterministic, and unit-first where appropriate.
+
+## Progress Tracking
+
+### Plan Checklist
+
+- [x] Existing launcher test, admission branches, separate coverage, and #1488 ownership reviewed.
+- [ ] Maintainer approved R1.
+- [ ] R1 implemented, reviewed, validated, and committed.
+- [ ] R2 assessment completed and decision recorded.
+- [ ] R3 assessment completed and decision recorded.
+- [ ] R4 design/coverage review completed and decision recorded.
+- [ ] Maintainer reviewed all approved changes.
+- [ ] Plan completed and ready for final verification.
+
+### Progress Log
+
+- 2026-09-09 - GitHub Copilot - Created this proposed two-phase plan after reviewing the existing
+  launcher test, `should_discard_request`, processor and request-buffer boundaries, separate
+  unit-only/integration-only coverage, and #1488 shutdown ownership. No test or production change
+  has been made.
+
+### Validation Evidence
+
+| Increment | Status | Evidence |
+| --- | --- | --- |
+| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| R1 | TODO | Awaiting maintainer approval. |
+| R2 | TODO | Awaiting R1 review. |
+| R3 | TODO | Awaiting R2 review. |
+| R4 | TODO | Awaiting approved increments. |
+
+## Non-Goals
+
+- Do not change UDP launcher, admission, request-buffer, processor, or shutdown production behavior.
+- Do not test receive-loop termination, task lifecycle, cancellation, joining, request draining, or
+  active-request shutdown policy owned by #1488 SI-14/SI-15.
+- Do not add a real-loopback integration test when a deterministic unit contract can express the
+  selected behavior more directly.
+- Do not duplicate ban-service policy, processor source-port-zero defense, event-listener counter
+  consumption, or protocol transport constraints.
+
+## Validation Per Approved Increment
+
+- Apply the mandatory prose-first Arrange-Act-Assert comparison before maintainer review.
+- Run focused launcher tests.
+- Run `cargo fmt --all -- --check` and `git diff --check`.
+- Run `linter markdown` and `linter cspell` when this plan changes.
+- Record unit-only and integration-only coverage separately when coverage informs a decision.
+
+## Completion Criteria
+
+- The existing startup-receiver failure test expresses its causal state without obscuring the Act or
+  independent assertions.
+- Any new admission test is deterministic, unit-first, and protects a unique immediate launcher
+  decision.
+- Lifecycle-sensitive gaps remain assigned to #1488 until its cancellation and active-request
+  policies are implemented.
+- The maintainer reviews every approved increment before the next increment and before final
+  verification.
