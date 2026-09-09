@@ -3,6 +3,8 @@ use std::path::Path;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use serde_json::Value;
+
 #[test]
 fn it_should_report_a_changed_allow_without_a_native_reason() {
     let workspace = FixtureRepository::new();
@@ -26,7 +28,73 @@ fn it_should_report_a_changed_allow_without_a_native_reason() {
 
     assert!(!output.status.success());
     assert_eq!(output.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&output.stderr).contains("src/lib.rs:3: Clippy allow attributes require"));
+    assert!(output.stdout.is_empty());
+    let diagnostic = parse_single_diagnostic(&output.stderr);
+    assert_eq!(diagnostic["kind"], "validation_error");
+    assert_eq!(diagnostic["file"], "src/lib.rs");
+    assert_eq!(diagnostic["line"], 3);
+    assert!(diagnostic["message"].as_str().unwrap().contains("require `reason"));
+    assert_eq!(diagnostic["exit_code"], 1);
+}
+
+#[test]
+fn it_should_not_write_output_when_validation_succeeds() {
+    let workspace = FixtureRepository::new();
+    write_file(
+        workspace.path().join("src/lib.rs").as_path(),
+        "#[allow(clippy::legacy, reason = \"Legacy baseline.\")]\nfn legacy() {}\n",
+    );
+    git(workspace.path(), ["add", "src/lib.rs"]);
+    git(workspace.path(), ["commit", "--quiet", "-m", "test: establish baseline"]);
+    git(workspace.path(), ["switch", "--quiet", "-c", "feature"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+        .args(["--base-ref", "develop"])
+        .current_dir(workspace.path())
+        .output()
+        .expect("failed to run clippy-allow-reasons");
+
+    assert!(output.status.success());
+    assert!(output.stdout.is_empty());
+    assert!(output.stderr.is_empty());
+}
+
+#[test]
+fn it_should_report_usage_errors_as_ndjson() {
+    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+        .arg("--unexpected")
+        .output()
+        .expect("failed to run clippy-allow-reasons");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    let diagnostic = parse_single_diagnostic(&output.stderr);
+    assert_eq!(diagnostic["kind"], "usage_error");
+    assert_eq!(diagnostic["exit_code"], 2);
+}
+
+#[test]
+fn it_should_report_runtime_errors_as_ndjson() {
+    let workspace = FixtureRepository::new();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+        .args(["--base-ref", "missing-base-reference"])
+        .current_dir(workspace.path())
+        .output()
+        .expect("failed to run clippy-allow-reasons");
+
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+    let diagnostic = parse_single_diagnostic(&output.stderr);
+    assert_eq!(diagnostic["kind"], "runtime_error");
+    assert_eq!(diagnostic["exit_code"], 1);
+}
+
+fn parse_single_diagnostic(stderr: &[u8]) -> Value {
+    let lines = std::str::from_utf8(stderr).unwrap().lines().collect::<Vec<_>>();
+
+    assert_eq!(lines.len(), 1);
+    serde_json::from_str(lines[0]).unwrap()
 }
 
 struct FixtureRepository {
