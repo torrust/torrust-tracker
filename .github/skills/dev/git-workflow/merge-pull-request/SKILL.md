@@ -127,7 +127,7 @@ vendor tool then adds review ACKs and the `Tree-SHA512` value to the merge messa
 
 ## Symbolic Links in the Merge
 
-The tool refuses a merge that carries a symbolic link, unless the link is declared. The wrapper passes `--symlinks .symlinks.json`, and that argument is what enables the mechanism at all: run the tool without it and every symbolic link refuses, whatever the tree contains.
+The tool refuses a merge that carries a symbolic link, unless the link is declared. The wrapper passes `--symlinks .symlinks.json`, and that argument is what enables the mechanism at all: run the tool without it and every symbolic link refuses, whatever the tree contains. The path is this repository's convention, stated in that one wrapper line; the tool holds no default and attaches no meaning to the name.
 
 Where the declaration comes from decides what you will see. It is read from the merged result the tool has just built, not from your working copy, so a `.symlinks.json` you hold locally but have not merged grants nothing, and two maintainers merging the same pull request reach the same verdict. Every commit the merge introduces is checked against that one declaration rather than only the merged tip, because a link that appears in one commit and disappears in a later one still resolves on every checkout of the commit that carries it.
 

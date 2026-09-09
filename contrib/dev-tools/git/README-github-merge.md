@@ -19,13 +19,13 @@ and push.
 
 ## Declared Symbolic Links
 
-The merge tool refuses a merge that introduces a symbolic link, because a link is a way to make a reviewed path resolve somewhere else. A repository that carries a link on purpose declares it in a root JSON file, and the tool exempts exactly the declared links. The mechanism is opt-in per invocation: the tool holds no declaration path of its own, so a run that passes no `--symlinks` argument reads no declaration and refuses every link it finds, whatever the merged tree contains. `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally, and that line is the only place this repository's declaration path is stated.
+The merge tool refuses a merge that introduces a symbolic link, because a link is a way to make a reviewed path resolve somewhere else. A repository that carries a link on purpose declares it in a JSON file it commits, and the tool exempts exactly the declared links. The tool has no notion of that file's name or location: it reads whatever tree path the `--symlinks` argument names, and no name is special to it. The mechanism is opt-in per invocation: the tool holds no declaration path of its own, so a run that passes no `--symlinks` argument reads no declaration and refuses every link it finds, whatever the merged tree contains. `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally, and that line is the only place this repository's declaration path is stated.
 
 This repository's tree carries no symbolic link and therefore ships no declaration file. The mechanism stays inert here until a link is declared, and the missing file is not an error.
 
 ### Declaration format
 
-The declaration is a JSON object at `.symlinks.json` in the repository root:
+The declaration is a JSON object. This repository keeps it at `.symlinks.json` in the repository root, which is a convention of this repository stated once in `merge-pull-request.sh`, not a path the tool knows; a repository adopting the workflow may keep it anywhere in its tree and name it in its own wrapper. The shape below is what the tool reads at whatever path it is given:
 
 ```json
 {
