@@ -90,10 +90,6 @@ jobs:
         name: Run All Linters
         run: linter all
 
-      - id: documented-clippy-allows
-        name: Check Documented Clippy Allows
-        run: CLIPPY_ALLOW_BASE_REF="origin/${{ github.base_ref || 'develop' }}" ./contrib/dev-tools/checks/require-documented-clippy-allows.sh
-
       - id: test-docs
         name: Run Documentation Tests
         run: cargo test --doc --workspace

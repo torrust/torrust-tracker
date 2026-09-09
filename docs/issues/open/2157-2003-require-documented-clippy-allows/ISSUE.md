@@ -86,8 +86,8 @@ expanding into a bulk remediation.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-require-documented-clippy-allows/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2157 created and issue number added to this spec
-- [ ] Revised specification approved and committed
-- [ ] Bash implementation removed in a separate commit
+- [x] Revised specification approved and committed
+- [x] Bash implementation removed in a separate commit
 - [ ] Replacement implementation completed and verified
 - [ ] Acceptance criteria reviewed after replacement implementation and updated with evidence
 
@@ -99,6 +99,7 @@ expanding into a bulk remediation.
 - 2026-09-08 17:00 UTC - GitHub Copilot - Implemented the prospective merge-base validator, rationale policy, focused Git-fixture tests, pre-commit and CI integration - Pending final verification
 - 2026-09-08 17:25 UTC - GitHub Copilot - Independent complexity and task reviews passed; `linter all`, focused tests, documentation tests, and all pre-commit steps passed - Ready to commit
 - 2026-09-09 12:00 UTC - josecelano - Replaced the Bash approach with Rust and native lint reasons as the approved direction; the Bash implementation is superseded and will be deleted before replacement work begins - Chat decision
+- 2026-09-09 12:20 UTC - GitHub Copilot - Removed the superseded Bash validator, tests, integrations, guidance, and obsolete evidence in a dedicated reset commit before starting the Rust replacement - Pending commit
 
 ## Acceptance Criteria
 

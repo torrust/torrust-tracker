@@ -35,24 +35,11 @@ Only add `#[allow(...)]` when:
 
 ## How to Document Exceptions
 
-When adding or modifying `#[allow(clippy::...)]` attributes, put a rationale comment immediately
-above the attribute. The prospective validator checks changes against the branch base, so it does
-not require unrelated historical allows to be remediated.
-
-Use one of these supported forms:
+When adding `#[allow(...)]` attributes, always include a clear comment explaining why:
 
 ```rust
-// clippy-allow: intentional: <specific design rationale>
-// clippy-allow: false-positive: <why the lint does not apply>
-// clippy-allow: temporary: <rationale>; remove when <condition>
-// clippy-allow: temporary: <rationale>; #<issue>
-```
-
-Temporary suppressions require either a stable issue reference or an explicit removal condition.
-For example:
-
-```rust
-// clippy-allow: temporary: The parser refactor is incomplete; remove when #2158 is complete.
+// This is a temporary workaround during refactoring of the announce response parser
+// TODO: Remove this allowance when the parser is fully refactored
 #[allow(clippy::unnecessary_wraps)]
 fn parse_announce_response(data: &[u8]) -> Result<Response, ParseError> {
     // implementation
@@ -106,7 +93,7 @@ for item in &items {
 1. **Identify the warning**: Run `linter clippy` to see specific clippy errors
 2. **Apply suggestion**: Try the suggested fix first
 3. **Verify functionality**: Ensure the change doesn't break existing behavior
-4. **Document exceptions**: Add the required adjacent rationale for changed Clippy allowances
+4. **Document exceptions**: Add clear comments for any allowances
 5. **Run full linters**: Confirm `linter all` passes
 
 ## Related Skills
