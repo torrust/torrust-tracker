@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: planned
+status: in-progress
 priority: p2
 epic: 2003
 github-issue: 2157
 spec-path: docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
 branch: "2157-2003-require-documented-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-07 11:20
+last-updated-utc: 2026-09-09 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -26,32 +26,44 @@ semantic-links:
 
 ## Goal
 
-Require every newly introduced or modified Clippy `allow` attribute to have a nearby, specific
-rationale, and add focused enforcement that does not block on pre-existing undocumented allows.
+Require every newly introduced or modified Clippy `allow` attribute to use Rust's native, specific
+`reason = "..."` parameter, with prospective enforcement that does not block on pre-existing
+undocumented allows.
 
 ## Background
 
 A Clippy suppression may reflect an intentional design choice, a false positive, or a temporary
-deferral. Without a nearby explanation, future maintainers cannot determine why it exists or
-whether it should be removed. The repository already contains approximately 215 Clippy allows, so
-this policy needs a prospective baseline rather than silently expanding into a bulk remediation.
+deferral. Without a rationale, future maintainers cannot determine why it exists or whether it
+should be removed. Rust supports a native `reason = "..."` parameter on lint-level attributes,
+and Clippy's `allow_attributes_without_reason` lint detects absent reasons. The workspace MSRV is
+1.88, so the native form is available for all maintained code. The repository already contains
+approximately 215 Clippy allows, so this policy needs a prospective baseline rather than silently
+expanding into a bulk remediation.
 
 ## Scope
 
 ### In Scope
 
-- Define the accepted rationale format for item- and crate-level `allow(clippy::...)` attributes.
-- Require temporary suppressions to include a stable issue reference or explicit removal condition.
-- Add a focused, testable validator that detects undocumented additions or modifications.
-- Establish and commit a baseline representing pre-existing attributes, or use another reviewed
-  change-detection mechanism that cannot silently grandfather new undocumented attributes.
+- Define the native rationale form for item- and crate-level `allow(clippy::...)` attributes:
+  `reason = "<specific rationale>"`.
+- Enable `clippy::allow_attributes_without_reason` to make absent native reasons visible.
+- Require temporary suppressions to include a stable issue reference or explicit removal condition
+  inside their native reason string.
+- Add a focused Rust validator that detects newly added or modified attributes lacking native
+  reasons or the repository-specific temporary-removal information.
+- Use a reviewed change-detection mechanism that cannot silently grandfather a newly added or
+  modified undocumented attribute while #2158 remediates the historical inventory.
+- Keep the validator's Rust module and command narrowly scoped, independently testable, and
+  suitable for extraction into the later approved harness; do not define the EPIC's final harness
+  architecture in this issue.
 - Update relevant Rust code-quality guidance and agent instructions.
 
 ### Out of Scope
 
 - Documenting or removing existing Clippy allows; that is the separate existing-allow inventory issue.
-- Changing Clippy lint levels or remediating the underlying lint findings.
+- Remediating historical allows or their underlying lint findings; that belongs to #2158.
 - Replacing the repository's existing linter runner or CI architecture.
+- Selecting the unified guardrail/sensor harness architecture planned by EPIC #2003.
 
 ## Architectural Decisions
 
@@ -62,10 +74,10 @@ this policy needs a prospective baseline rather than silently expanding into a b
 
 | ID  | Status | Task                                  | Notes / Expected Output                                                                               |
 | --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Define rationale policy               | Covers intentional, false-positive, and temporary cases.                                              |
-| T2  | DONE   | Select prospective baseline strategy  | Diff against the merge base prevents new undocumented attributes from inheriting the legacy baseline. |
-| T3  | DONE   | Implement and test focused validation | Supports item and crate attributes with actionable diagnostics.                                       |
-| T4  | DONE   | Integrate and document                | Runs in pre-commit and CI without redesigning the linter runner.                                      |
+| T1  | TODO   | Define native rationale policy        | Use `reason = "..."`; cover intentional, false-positive, and temporary cases.                       |
+| T2  | TODO   | Select prospective baseline strategy  | Exclude legacy allows without accepting a changed attribute with no native reason.                    |
+| T3  | TODO   | Implement and test Rust validation    | Keep modules independently testable and suitable for later harness extraction.                        |
+| T4  | TODO   | Integrate and document                | Use current validation tiers without choosing the final EPIC harness architecture.                    |
 
 ## Progress Tracking
 
@@ -74,8 +86,10 @@ this policy needs a prospective baseline rather than silently expanding into a b
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-require-documented-clippy-allows/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2157 created and issue number added to this spec
-- [x] Implementation completed and verified
-- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Revised specification approved and committed
+- [ ] Bash implementation removed in a separate commit
+- [ ] Replacement implementation completed and verified
+- [ ] Acceptance criteria reviewed after replacement implementation and updated with evidence
 
 ### Progress Log
 
@@ -84,50 +98,54 @@ this policy needs a prospective baseline rather than silently expanding into a b
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2157, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2157
 - 2026-09-08 17:00 UTC - GitHub Copilot - Implemented the prospective merge-base validator, rationale policy, focused Git-fixture tests, pre-commit and CI integration - Pending final verification
 - 2026-09-08 17:25 UTC - GitHub Copilot - Independent complexity and task reviews passed; `linter all`, focused tests, documentation tests, and all pre-commit steps passed - Ready to commit
+- 2026-09-09 12:00 UTC - josecelano - Replaced the Bash approach with Rust and native lint reasons as the approved direction; the Bash implementation is superseded and will be deleted before replacement work begins - Chat decision
 
 ## Acceptance Criteria
 
-- [x] Guidance defines nearby rationale requirements for all supported Clippy allow attribute forms.
-- [x] Temporary allows identify a removal condition or stable follow-up issue.
-- [x] A committed prospective baseline or reviewed equivalent excludes existing attributes without accepting new undocumented attributes.
-- [x] Focused tests prove undocumented new attributes fail and documented ones pass for item and crate forms.
-- [x] The enforcement runs in a documented existing validation tier and produces actionable diagnostics.
-- [x] `linter all` exits with code `0` and relevant tests pass.
+- [ ] Guidance requires native `reason = "..."` for all supported Clippy allow attribute forms.
+- [ ] Temporary native reasons identify a removal condition or stable follow-up issue.
+- [ ] A reviewed prospective baseline excludes existing attributes without accepting changed attributes that lack native reasons.
+- [ ] Focused Rust tests prove undocumented new attributes fail and documented item and crate forms pass.
+- [ ] Enforcement runs in a documented existing validation tier and produces actionable diagnostics.
+- [ ] `linter all` exits with code `0` and relevant tests pass.
 
 ## Verification Plan
 
 ### Automatic Checks
 
 - `linter all`
-- Focused validator tests
+- Focused Rust validator tests
 - `cargo test --doc --workspace`
 
 ### Manual Verification Scenarios
 
 | ID  | Scenario              | Command/Steps                                                                | Expected Result                                                          | Status | Evidence             |
 | --- | --------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ | -------------------- |
-| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the attribute and required rationale. | DONE   | Focused fixture test |
-| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required information.                     | DONE   | Focused fixture test |
+| M1  | Undocumented addition | Add an isolated undocumented fixture allow and run the validator.            | The validator fails and identifies the missing native reason.            | TODO   | Pending replacement |
+| M2  | Documented exceptions | Run fixtures for intentional, false-positive, and temporary rationale types. | Each passes only with complete required native information.               | TODO   | Pending replacement |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                   |
 | ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | `fix-clippy-warnings` defines adjacent rationale syntax.                                                   |
-| AC2   | DONE                   | Validator rejects incomplete removal phrases and accepts issue references or non-empty removal conditions. |
-| AC3   | DONE                   | Merge-base diff detects only introduced or modified attributes.                                            |
-| AC4   | DONE                   | Git-fixture validator tests cover documented and undocumented item/crate forms.                            |
-| AC5   | DONE                   | Pre-commit and CI run the validator with actionable file-and-line diagnostics.                             |
-| AC6   | DONE                   | `linter all`, focused validator tests, ShellCheck, and `cargo test --doc --workspace` passed.              |
+| AC1   | TODO                   | Pending replacement implementation. |
+| AC2   | TODO                   | Pending replacement implementation. |
+| AC3   | TODO                   | Pending replacement implementation. |
+| AC4   | TODO                   | Pending replacement implementation. |
+| AC5   | TODO                   | Pending replacement implementation. |
+| AC6   | TODO                   | Pending replacement implementation. |
 
 ## Risks and Trade-offs
 
-- Text parsing can be brittle. Support a small explicit syntax and reject unrecognized forms visibly.
+- Native lint reasons prevent custom syntax for the rationale itself. Any temporary-policy check
+  must inspect only the native reason string and reject unrecognized forms visibly.
 - A stale baseline can become a loophole. Version it, test it, and make its update reviewable.
+- A standalone Rust validator could prematurely become a harness. Keep its module and command
+  boundary narrow, and defer its final location and interface to the EPIC decision.
 
 ## Implementation Completion Review
 
-After implementation, record material findings about the baseline or validator in an issue-local
+After replacement implementation, record material findings about the baseline or validator in an issue-local
 `implementation-retrospective.md`. If none occurred, add a concise progress-log entry explaining
 why no retrospective is needed.
 
