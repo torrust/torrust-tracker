@@ -17,6 +17,56 @@ and recovery steps, follow the canonical
 The tool is intentionally not a replacement for maintainer review or explicit approval to sign
 and push.
 
+## Declared Symbolic Links
+
+The merge tool refuses a merge that introduces a symbolic link, because a link is a way to make a reviewed path resolve somewhere else. A repository that carries a link on purpose declares it in a root JSON file, and the tool exempts exactly the declared links. The mechanism is opt-in per invocation: the tool holds no declaration path of its own, so a run that passes no `--symlinks` argument reads no declaration and refuses every link it finds, whatever the merged tree contains. `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally, and that line is the only place this repository's declaration path is stated.
+
+This repository's tree carries no symbolic link and therefore ships no declaration file. The mechanism stays inert here until a link is declared, and the missing file is not an error.
+
+### Declaration format
+
+The declaration is a JSON object at `.symlinks.json` in the repository root:
+
+```json
+{
+  "namespace": "com.torrust.repository.symlinks",
+  "version": [1, 0, 0],
+  "symlinks": [
+    {
+      "path": ".dockerignore",
+      "target": ".containerignore",
+      "reason": "Docker reads only .dockerignore, while Podman and Buildah prefer .containerignore. One link keeps a single ignore list for both toolchains."
+    }
+  ]
+}
+```
+
+`namespace` identifies the declaration format rather than the repository that carries it, so every Torrust repository uses the same value, `com.torrust.repository.symlinks`. A declaration is bound to its repository by where it is read from, that repository's own merged tree, so no string inside the file adds a guarantee on top of that. `version` is the version of the declaration format, not of the repository.
+
+Each entry in `symlinks` describes one accepted link: `path` is repository-relative, `target` is the link's literal content, and `reason` records why the link exists so a maintainer reading the merge output can judge it. All three fields are required strings, and no two entries may name the same path.
+
+### Rules
+
+- The checked commits are every commit the merge introduces: the pull request's own commits in `pull/<n>/base..pull/<n>/head`, plus the local merge commit the tool has just created. Each is listed with `git ls-tree --full-tree -r <commit>`, using the same mode mask the tip-only check used.
+- Commits already reachable from the base branch are not part of what the merge introduces and are not walked. Existing history is never re-checked.
+- The declaration is read from the final merged tree alone, out of the local merge commit, at the tree path `--symlinks` names. It is never read from the working directory, the index, the base branch, or an intermediate commit in the range, so no state outside the merge result can change the verdict. A declaration that reaches only one of those places exempts nothing.
+- No intermediate commit's own copy of the declaration is ever consulted. One reviewed statement answers for the whole range.
+- `--symlinks <path>` names a repository-relative path inside the final merged tree. It is a tree path rather than a filesystem path, so an absolute value, or one containing a `..` segment, is rejected as a usage error before any merge work starts. The argument has no default value.
+- Matching runs from the trees to the declaration, never the reverse: the tool walks the links actually present in the checked commits and asks whether each one is declared. An entry can only ever remove a refusal for a link that exists, and can never introduce one.
+- `target` must equal the link's literal content byte for byte in every checked commit that carries that link. A target that resolves to the same file by another spelling does not match.
+- A target that is absolute, or that contains a `..` segment, is never accepted, whatever the declaration says. This is a property of the target itself, so no file can grant it.
+- A symbolic link found in a checked commit and not covered by the final declaration, including one declared with a different target, produces `ERROR: File '<path>' was a symlink in commit <hash>` and exit code `4`. The message names the carrying commit in every case, the local merge commit included.
+- A declaration entry whose path is not a symbolic link in the merged result is reported as a stale entry in the merge output. It does not refuse, and it may still be the entry that admits the same link in an earlier commit of the range, which is why the report says the entry can be dropped later rather than that it is unused.
+- A declaration file absent from the final merged tree at that path is not an error and grants no exception: every symbolic link in every checked commit refuses exactly as it did before this mechanism existed.
+- A declaration file that cannot be read as a valid declaration exempts nothing either. The tool reports why and then refuses links as if no declaration were present, so a broken file can never widen what is accepted, and a tree without links still passes.
+- A run that passes no `--symlinks` argument performs no declaration processing at all: no file is read, nothing is exempted, and neither accepted-link nor stale-entry output is printed.
+
+Every accepted link is printed with its path, target, and reason before the maintainer is asked to sign, so what the merge admitted is visible at the moment the decision is made rather than afterwards.
+
+### Removing a declared link takes two changes
+
+Because the final declaration judges every commit the merge introduces, a pull request that deletes a declared link must keep the entry in the final merged tree whenever any of its own commits still carries the link, which is the ordinary case. Those pre-deletion commits are judged against the final declaration, so dropping the entry in the same pull request refuses the merge. The retained entry is then stale, which the merge output reports rather than refuses, and a later change removes it once no checked commit carries the link. This is what one reviewed declaration answering for a whole range costs.
+
 ## Provenance and License
 
 `github-merge.py` is a byte-identical vendor copy of the reviewed planning snapshot from issue
