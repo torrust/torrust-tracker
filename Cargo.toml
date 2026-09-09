@@ -120,10 +120,13 @@ url = { version = "2", features = [ "serde" ] }
 nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 
 [workspace]
+# skill-link: add-workspace-member
+# related-artifact: Containerfile — when adding or removing an explicit member,
+# review its cargo-chef manifest/stub lists and nextest archive exclusions.
 members = [
   "console/tracker-client",
-  "contrib/dev-tools/checks/clippy-allow-reasons",
   "contrib/dev-tools/analysis/workspace-coupling",
+  "contrib/dev-tools/checks/clippy-allow-reasons",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
   "packages/rest-api-application",

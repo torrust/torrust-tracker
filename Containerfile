@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:latest
 #
 # semantic-links:
+#   skill-links:
+#     - add-workspace-member
 #   related-artifacts:
+#     - Cargo.toml  # explicit workspace members; review this recipe when they change
 #     - .hadolint.yaml  # hadolint global linting rules and ignore policies with rationale
 
 # Torrust Tracker
