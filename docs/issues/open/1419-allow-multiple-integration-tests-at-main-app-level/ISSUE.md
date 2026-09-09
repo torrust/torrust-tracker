@@ -145,7 +145,7 @@ a separate container-runner concern.
    - Storage directory (e.g., `tracker-storage/` for database and runtime data)
 3. Configure the tracker to use these isolated paths
 4. Pass the temp config-file path directly to
-  `app::start_with_explicit_config_toml_path`
+   `app::start_with_explicit_config_toml_path`
 5. The entire temp directory and its contents are automatically cleaned up when the `TempDir`
    handle is dropped
 
@@ -254,8 +254,8 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [x] AC2: Independent main-level integration-test executables are registered and can run
       concurrently as separate Cargo processes without shared environment state.
 - [x] AC3: Current port-zero suites use an isolated temporary workspace with separate config and storage
-  directories. The shared fixture selects its workspace file through the explicit-path startup
-  API, with no base-source environment-variable mutation or shared storage paths.
+      directories. The shared fixture selects its workspace file through the explicit-path startup
+      API, with no base-source environment-variable mutation or shared storage paths.
 - [x] AC4: Tests using port 0 can extract the actual bound ports from `AppContainer` to construct
       request URLs.
 - [x] AC5: Port-zero suites use an isolated temp workspace and port 0 where the scenario does not
@@ -429,7 +429,7 @@ be reviewed before implementation begins.
 | R4  | DONE   | Align test documentation                      | Update `tests/scaffold.rs` references to the removed `stats` target and revise `tests/AGENTS.md` to document the fixture and process-global lifecycle constraints.                                                        |
 | R5  | DONE   | Run mandatory manual integration verification | On 2026-08-24, exit 0: all six targets passed together; `metrics-port-zero` passed with `--nocapture` and in serial mode. Each suite took 60–81 seconds because server jobs can consume the current per-job wait timeout. |
 | R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
-| R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation. |
+| R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
 | R7  | TODO   | Open partial-improvement PR                   | Submit the fixture, suite migration, focused ordering coverage, and documentation. State that cooperative server shutdown remains owned by #1488.                                                                         |
 | R8  | TODO   | Revisit after shutdown overhaul #1488         | After #1488's production shutdown work merges, review this fixture against its finalized API, update it if needed, and complete AC8a. Keep #1419 open until that review is recorded.                                      |
 | R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
