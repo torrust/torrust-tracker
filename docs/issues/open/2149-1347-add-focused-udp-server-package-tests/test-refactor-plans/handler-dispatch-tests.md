@@ -115,7 +115,7 @@ before beginning the next item.
 
 ### R3 - Assess failed-handler routing without duplicate business behavior
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2, P3
 - **Change:** Review the parsed-request error branch after R2. Record a no-change decision unless
@@ -124,6 +124,14 @@ before beginning the next item.
 - **Guardrails:** Do not introduce mocks or production dependency injection solely for this test.
   Do not use clocks, retries, sockets, databases, or lifecycle fixtures beyond existing minimal
   test support.
+- **Decision:** No test added. `handle_announce` and `handle_scrape` construct the
+  `(Error, TransactionId, UdpRequestKind)` tuple from their parsed request at the handler boundary.
+  `handle_error` directly verifies that a supplied transaction ID and request kind become the error
+  response/event routing result. The real-loopback contract suite exercises invalid-cookie request
+  behavior at the outer boundary. A direct `handle_packet` failure case would need to configure an
+  invalid cookie, whitelist, or other tracker policy merely to reproduce that tuple and call
+  `handle_error`; its assertions would duplicate the handler cause or the direct error-routing
+  contract rather than reveal a distinct dispatcher behavior.
 - **Done when:** the branch either has one distinct dispatcher contract or a documented reason it
   remains protected at the handler/error boundaries.
 
@@ -147,7 +155,7 @@ before beginning the next item.
 - [x] R1 no-change decision recorded and committed.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] R3 assessment completed and decision recorded.
+- [x] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -172,6 +180,10 @@ before beginning the next item.
   `initialize_udp_handler_environment` mechanics from the causal
   `scrape_request_without_info_hashes(transaction_id)` input; its transaction ID, dispatcher Act,
   and expected outputs remain directly visible.
+- 2026-09-09 - GitHub Copilot - Completed R3 assessment. No failed-handler routing test is added:
+  handler tests own construction of error/request-kind metadata, `handlers/error.rs` owns its
+  routing to a response/event, and real-loopback contracts own invalid-cookie behavior. A direct
+  dispatcher case would duplicate one of those boundaries to reach the same call.
 
 ### Validation Evidence
 
@@ -180,7 +192,7 @@ before beginning the next item.
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | No change: `handlers/mod.rs` has no direct test cases to clean. Its existing local support remains focused on individual handler modules, so a cross-module fixture refactor is not justified. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. A prose-first Arrange-Act-Assert comparison replaced the scenario with named ordinary-environment and causal-empty-scrape helpers; the transaction ID, dispatcher Act, and expected outputs remain visible. |
-| R3 | TODO | Awaiting R2 review. |
+| R3 | DONE | No change: handler-error metadata is created and covered at the announce/scrape boundary, `handlers/error.rs` directly covers supplied error routing, and real-loopback contracts cover invalid-cookie behavior. A `handle_packet` failure test would duplicate one of those boundaries. |
 | R4 | TODO | Awaiting Phase 2 completion. |
 
 ## Non-Goals
