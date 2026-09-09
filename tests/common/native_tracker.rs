@@ -837,9 +837,14 @@ impl Drop for NativeTrackerFailedStart {
             drop(permission_restore.restore());
         }
 
-        // `kill_on_drop(true)` remains the no-runtime fallback. With a runtime,
-        // retain the workspace until child and output cleanup finishes.
+        // Without a runtime, synchronously kill and reap before field drop can
+        // release the fixture workspace.
         let Ok(runtime) = tokio::runtime::Handle::try_current() else {
+            drop(child.start_kill());
+            while child.try_wait().ok().flatten().is_none() {
+                std::thread::yield_now();
+            }
+            drop(output);
             return;
         };
         let workspace = self.workspace.take();
@@ -1034,10 +1039,15 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::os::unix::fs::PermissionsExt as _;
     use std::path::Path;
+    use std::process::Stdio;
+
+    use nix::sys::signal::kill;
+    use nix::unistd::Pid;
+    use tokio::process::Command;
 
     use super::{
-        NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, NativeTrackerStartAttempt, invalid_source_command,
-        parse_health_check_address, tracker_command, write_configuration,
+        NativeTrackerFailedStart, NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, NativeTrackerStartAttempt,
+        TrackerOutputCapture, invalid_source_command, parse_health_check_address, tracker_command, write_configuration,
     };
 
     #[test]
@@ -1187,13 +1197,29 @@ mod tests {
     #[tokio::test]
     async fn it_should_not_panic_when_a_failed_start_is_dropped_without_a_tokio_runtime() {
         // Arrange: spawning needs a runtime; the drop below happens outside one.
-        let failed_start = NativeTrackerStartAttempt::with_invalid_cli_source(NativeTrackerInvalidCliSource::MissingFile).start();
+        let mut child = Command::new("sleep")
+            .arg("60")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("spawn long-running tracker substitute");
+        let pid = Pid::from_raw(child.id().expect("child should have a PID").cast_signed());
+        let stdout = child.stdout.take().expect("child stdout is piped");
+        let stderr = child.stderr.take().expect("child stderr is piped");
+        let failed_start = NativeTrackerFailedStart {
+            child: Some(child),
+            output: Some(TrackerOutputCapture::new(stdout, stderr)),
+            permission_restore: None,
+            workspace: Some(tempfile::tempdir().expect("create fixture workspace")),
+            source_path: None,
+        };
 
         // Act
         let result = std::thread::spawn(move || drop(failed_start)).join();
 
         // Assert
         assert!(result.is_ok(), "dropping a failed start outside Tokio must not panic");
+        assert_eq!(kill(pid, None), Err(nix::errno::Errno::ESRCH));
     }
 
     #[tokio::test]
