@@ -189,7 +189,7 @@ impl Info {
 
     fn from_explicit_file(default_config_toml_path: String, path: PathBuf) -> Result<Self, Error> {
         let config_toml = Self::read_explicit_config_toml_file(&path)?;
-        info!(path = ?path, "Loading extra configuration from explicit configuration file");
+        info!(path = ?path, "Loading base configuration from explicit configuration file");
 
         Ok(Self {
             config_toml: Some(config_toml),
@@ -255,21 +255,21 @@ impl Info {
         }
     }
 
-    fn read_explicit_config_toml_file(path: &PathBuf) -> Result<String, Error> {
+    fn read_explicit_config_toml_file(path: &Path) -> Result<String, Error> {
         let metadata = fs::metadata(path).map_err(|source| Error::UnableToLoadExplicitConfigFile {
-            path: path.clone(),
+            path: path.to_path_buf(),
             source,
         })?;
 
         if !metadata.is_file() {
             return Err(Error::UnableToLoadExplicitConfigFile {
-                path: path.clone(),
+                path: path.to_path_buf(),
                 source: io::Error::new(io::ErrorKind::InvalidInput, "path is not a regular file"),
             });
         }
 
         fs::read_to_string(path).map_err(|source| Error::UnableToLoadExplicitConfigFile {
-            path: path.clone(),
+            path: path.to_path_buf(),
             source,
         })
     }
