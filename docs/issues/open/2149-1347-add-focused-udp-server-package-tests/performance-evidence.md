@@ -9,7 +9,8 @@ status: planned
 
 This document defines the reproducible performance baseline required before changing a UDP server
 hot-path production file for Issue #2149. It contains no benchmark result yet: no production code
-has changed, and R1 of the request-buffer plan has not been approved.
+has changed. The completed request-buffer plan added tests only, so its performance baseline remains
+deferred until an approved non-test change affects the hot path.
 
 ## Policy
 
@@ -72,7 +73,7 @@ were an A/B result.
 
 | Measurement                             | Baseline                                                  | Latest       | Status   | Evidence                                                                      |
 | --------------------------------------- | --------------------------------------------------------- | ------------ | -------- | ----------------------------------------------------------------------------- |
-| Aquatic UDP load test, release tracker  | Not required until an approved hot-path production change | Not measured | DEFERRED | Test-only R1 has not been approved or implemented.                            |
+| Aquatic UDP load test, release tracker  | Not required until an approved hot-path production change | Not measured | DEFERRED | Completed request-buffer work is test-only; no hot-path production change was approved or implemented. |
 | `ActiveRequests` focused microbenchmark | Not applicable; no algorithm change proposed              | Not measured | DEFERRED | Add only after approval of a production algorithm/allocation/capacity change. |
 
 ## References
