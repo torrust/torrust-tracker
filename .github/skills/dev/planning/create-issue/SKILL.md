@@ -149,11 +149,15 @@ For testing or coverage-focused issue specs, also require:
 - a policy to retain concise Markdown evidence rather than raw generated JSON, LCOV, or HTML
   artifacts unless the artifact itself has a documented human-review purpose.
 
-When the plan adds or changes tests, include a progressive test-development loop: make the smallest
-behavior-focused increment, review its design and focused validation before the next test-producing
-task, and stop for maintainer review after the final increment before final verification, commit, or
-pull request. Direct test authors to the `write-unit-test` skill and the test refactoring-pattern
-catalog when applicable.
+When the plan adds or changes tests, include a progressive test-development loop: use the
+`write-unit-test` skill; make the smallest behavior-focused increment; and, after it passes focused
+validation, perform and record an explicit design review before maintainer review and commit. The
+review must confirm the test exposes the one causal initial-state difference, its fixture owns only
+incidental mechanics, and the production Act plus independently specified expected result remain
+visible. Complete this review for every test-producing subtask before starting the next one. Stop for
+maintainer review after the final increment before final verification, commit, or pull request. Direct
+test authors to the test refactoring-pattern catalog when applicable. Use the independent Task Reviewer
+for the final pre-PR review of the completed issue, not as a mandatory reviewer for every subtask.
 
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
