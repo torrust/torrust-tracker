@@ -64,7 +64,7 @@ The script runs these steps in order:
 1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
    `LC_ALL=C sort -u`
 2. `cargo run --quiet --package clippy-allow-reasons -- --base-ref torrust/develop` - prospective
-  native-reason check for changed Clippy allow attributes
+   native-reason check for changed Clippy allow attributes
 3. `cargo machete --with-metadata` - unused dependency check
 4. `cargo deny check bans` - workspace layer-boundary dependency check
 5. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)

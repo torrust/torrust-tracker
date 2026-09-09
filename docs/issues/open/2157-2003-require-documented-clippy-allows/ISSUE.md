@@ -107,6 +107,8 @@ expanding into a bulk remediation.
 - 2026-09-09 13:40 UTC - GitHub Copilot - Full lint and documentation tests plus independent complexity and acceptance reviews passed; restored prior append-only review evidence after the reset - Ready to commit
 - 2026-09-09 14:05 UTC - GitHub Copilot - Corrected `clippy-allow-reasons` to the global CLI output contract: `no-stdout-result`, silent success, and NDJSON stderr failure diagnostics; added CLI contract tests - `linter all`, focused tests, strict Clippy, and documentation tests passed
 - 2026-09-09 14:15 UTC - GitHub Copilot - Repaired PR #2177 container recipe context for the new workspace crate after `cargo chef prepare` failed in CI; focused uncached recipe build and `linter all` passed - Pending focused commit
+- 2026-09-09 15:10 UTC - GitHub Copilot - Correcting Cameron's PR #2177 review findings: exclude the dev-only checker from nextest archives, parse CLI arguments before Git access, and append validation-evidence corrections - Pending validation
+- 2026-09-09 15:20 UTC - GitHub Copilot - Completed Cameron's requested corrections: all four nextest archive commands exclude `clippy-allow-reasons`; invalid CLI arguments are parsed before Git access; corrected earlier lint-evidence claims - Focused tests, `linter all`, and `docker build --no-cache --target test_debug --file Containerfile .` passed
 
 ## Acceptance Criteria
 
@@ -156,6 +158,14 @@ expanding into a bulk remediation.
 After replacement implementation, record material findings about the baseline or validator in an issue-local
 `implementation-retrospective.md`. If none occurred, add a concise progress-log entry explaining
 why no retrospective is needed.
+
+## Validation Evidence Corrections
+
+- 2026-09-09 - The 13:40 and 14:05 entries predate the current branch's final lint state and
+  incorrectly state that `linter all` passed. The current failure is
+  `clippy::assert_is_empty` in the new CLI tests. The assertion style was corrected in response
+  to PR #2177 review; `linter all` now passes. Do not treat those earlier entries as final
+  acceptance evidence.
 
 ## References
 
