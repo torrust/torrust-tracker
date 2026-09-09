@@ -139,12 +139,18 @@ impl ActiveRequests {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use tokio::sync::oneshot;
     use tokio::task::JoinHandle;
 
-    use ringbuf::traits::Producer;
+    use ringbuf::traits::{Observer, Producer};
 
     use super::ActiveRequests;
+
+    // This is an absolute failure bound, not a scheduling delay. A cleanup regression must fail
+    // the test with a useful message rather than leave the test process waiting forever.
+    const TASK_COMPLETION_TIMEOUT: Duration = Duration::from_secs(1);
 
     struct PendingTask {
         completion_sender: oneshot::Sender<()>,
@@ -169,6 +175,9 @@ mod tests {
         }
 
         fn insert_into(self, active_requests: &mut ActiveRequests) -> Self {
+            // `force_push` is the Act being tested. Direct insertion here establishes the full
+            // pending-buffer state without executing that behavior during Arrange, keeping the
+            // oldest task and capacity-exhausted condition independently controlled.
             active_requests
                 .rb
                 .try_push(self.abort_handle())
@@ -177,7 +186,21 @@ mod tests {
         }
 
         async fn assert_was_aborted(self, message: &str) {
-            self.join_handle.await.expect_err(message);
+            let join_result = tokio::time::timeout(TASK_COMPLETION_TIMEOUT, self.join_handle)
+                .await
+                .expect("pending task should complete or abort before the cleanup deadline");
+
+            join_result.expect_err(message);
+        }
+
+        async fn assert_completed_after_cleanup(self) {
+            drop(self.completion_sender);
+
+            let join_result = tokio::time::timeout(TASK_COMPLETION_TIMEOUT, self.join_handle)
+                .await
+                .expect("pending task should complete before the cleanup deadline");
+
+            join_result.expect("pending task should complete after test cleanup");
         }
     }
 
@@ -193,8 +216,14 @@ mod tests {
             let mut active_requests = ActiveRequests::default();
             let oldest_task = PendingTask::new().insert_into(&mut active_requests);
 
-            let mut retained_tasks = Vec::with_capacity(49);
-            for _ in 0..49 {
+            let retained_task_count = active_requests
+                .rb
+                .capacity()
+                .get()
+                .checked_sub(1)
+                .expect("the active request buffer should have capacity for an oldest task");
+            let mut retained_tasks = Vec::with_capacity(retained_task_count);
+            for _ in 0..retained_task_count {
                 retained_tasks.push(PendingTask::new().insert_into(&mut active_requests));
             }
 
@@ -246,10 +275,7 @@ mod tests {
         assert!(!task_was_evicted);
         assert!(!task.join_handle.is_finished());
 
-        drop(task.completion_sender);
-        task.join_handle
-            .await
-            .expect("pending task should complete after test cleanup");
+        task.assert_completed_after_cleanup().await;
     }
 
     #[tokio::test]
@@ -280,6 +306,8 @@ mod tests {
 
         let pending_task = PendingTask::new();
         let mut active_requests = ActiveRequests::default();
+        // The completed handle establishes mixed buffer state. `force_push` is not used here
+        // because this test's Act is dropping the buffer, not admitting a request.
         active_requests
             .rb
             .try_push(completed_task_abort_handle)
