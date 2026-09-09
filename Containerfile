@@ -227,7 +227,7 @@ COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
 # exposes `--workspace` and `--package`, not `--exclude`). The excluded workspace
 # members (workspace-coupling, torrust-tracker-torrent-repository-benchmarking,
-# torrust-tracker-client, torrust-tracker-contrib-bencode,
+# clippy-allow-reasons, torrust-tracker-client, torrust-tracker-contrib-bencode,
 # torrust-tracker-e2e-tools, torrust-tracker-persistence-benchmark) are therefore
 # still compiled as part of the cook skeleton (their Cargo.toml manifests are in
 # the recipe, so cargo-chef cooks them). The build-time savings come from the
@@ -240,6 +240,7 @@ RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/reci
 # by pre-faulting the linker phases, avoiding redundant linking work in later stages.
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
+    --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -266,6 +267,7 @@ RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/reci
 # by pre-faulting the linker phases, avoiding redundant linking work in later stages.
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
+  --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -280,6 +282,7 @@ WORKDIR /build/src
 COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
+  --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -293,6 +296,7 @@ WORKDIR /build/src
 COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
+  --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
