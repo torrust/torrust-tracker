@@ -14,6 +14,7 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Event tests](event-tests.md) — complete.
 - [Parse-error adapter tests](error-tests.md) — complete.
 - [Bound-socket tests](bound-socket-tests.md) — complete.
+- [Handler-dispatch tests](handler-dispatch-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
