@@ -164,7 +164,7 @@ def ask_prompt(text):
     print("",file=stderr)
     return reply
 
-def get_symlink_entries(commit):
+def get_symlink_entries(commit, target_by_blob=None):
     '''
     List the symbolic links in a commit's tree as sorted (path, target) pairs of raw bytes.
 
@@ -179,7 +179,16 @@ def get_symlink_entries(commit):
     '-z' asks for the paths themselves. Without it the listing is the path as git renders it,
     which quotes control characters always and non-ASCII bytes under the default
     'core.quotePath', so a declaration would have to name git's rendering rather than the path.
+
+    'target_by_blob' carries link contents already read, so a caller walking a range reads each
+    distinct content once instead of once per commit that carries it. A link usually keeps the
+    same content across a whole pull request, and identical content is one blob whatever the
+    path, so this turns a cost that grows with commits times links into one that grows with the
+    distinct contents the range actually holds. Keyed by object id, it cannot answer for a link
+    whose content changed: a changed target is a different blob and is read.
     '''
+    if target_by_blob is None:
+        target_by_blob = {}
     entries = []
     listing = subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', '-z', commit])
     for record in listing.split(b'\0'):
@@ -190,8 +199,10 @@ def get_symlink_entries(commit):
         if (int(metadata[0].decode('utf-8'), 8) & 0o170000) != 0o120000:
             continue
         path = record[name_sep+1:]
-        target = subprocess.check_output([GIT, 'cat-file', 'blob', metadata[2].decode('utf-8')])
-        entries.append((path, target))
+        blob = metadata[2]
+        if blob not in target_by_blob:
+            target_by_blob[blob] = subprocess.check_output([GIT, 'cat-file', 'blob', blob.decode('utf-8')])
+        entries.append((path, target_by_blob[blob]))
     return sorted(entries)
 
 def symlink_declaration_path_error(path):
@@ -283,8 +294,11 @@ def check_symlinks(introduced_commits, merge_commit, declaration_path):
     accepted = {}
     merged_paths = set()
     refusals = []
+    # Shared across the walk so each distinct link content is read from the object store once
+    # rather than once per commit that carries it.
+    target_by_blob = {}
     for commit in list(introduced_commits) + [merge_commit]:
-        entries = get_symlink_entries(commit)
+        entries = get_symlink_entries(commit, target_by_blob)
         if commit == merge_commit:
             merged_paths = {path for path, _ in entries}
         for path, target in entries:
