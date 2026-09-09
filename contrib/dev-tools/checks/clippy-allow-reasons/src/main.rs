@@ -64,8 +64,8 @@ impl CliError {
 }
 
 fn run() -> Result<(), CliError> {
-    let workspace_root = workspace_root().map_err(CliError::Runtime)?;
     let base_ref = base_ref().map_err(CliError::Usage)?;
+    let workspace_root = workspace_root().map_err(CliError::Runtime)?;
     let base_commit = git_output(&workspace_root, ["merge-base", "HEAD", &base_ref]).map_err(CliError::Runtime)?;
     let changed_lines = changed_rust_lines(&workspace_root, &base_commit).map_err(CliError::Runtime)?;
     let mut violations = Vec::new();
