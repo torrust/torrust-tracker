@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/handlers/mod.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/handlers/mod.rs
@@ -167,8 +167,8 @@ before beginning the next item.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] R3 assessment completed and decision recorded.
 - [x] R4 design/coverage review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -201,6 +201,9 @@ before beginning the next item.
   comparison confirms code now expresses the causal input, ordinary environment, dispatcher Act,
   and independent assertions; R3 owns the only remaining routing assessment. No further direct
   dispatcher test is justified.
+- 2026-09-09 - User/maintainer - Reviewed and approved the completed handler-dispatch plan. R1
+  records the no-cleanup decision; R2 adds the unit-first sendable parse-error routing contract;
+  R3/R4 record the no-duplication and separate test-level coverage decisions.
 
 ### Validation Evidence
 
@@ -211,6 +214,7 @@ before beginning the next item.
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. A prose-first Arrange-Act-Assert comparison replaced the scenario with named ordinary-environment and causal-empty-scrape helpers; the transaction ID, dispatcher Act, and expected outputs remain visible. |
 | R3 | DONE | No change: handler-error metadata is created and covered at the announce/scrape boundary, `handlers/error.rs` directly covers supplied error routing, and real-loopback contracts cover invalid-cookie behavior. A `handle_packet` failure test would duplicate one of those boundaries. |
 | R4 | DONE | No change: unit-only coverage is 85.98% lines, 89.96% regions, and 86.49% functions, with no uncovered executable source-line entries. The separate integration-only report is not used to claim unit coverage. The prose-first review confirms R2 expresses its intent; R3 assigns failed-handler routing to its established boundaries. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
