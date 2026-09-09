@@ -36,8 +36,9 @@ state as the durable completion status for a review-level summary.
 
 1. **Fetch reviews and threads.** Query submitted reviews and inline comments
    by review ID. Fetch all review threads separately, including their IDs,
-   author, paths, bodies, and resolved state. Do not assume review-comment IDs
-   are thread IDs.
+   author, paths, bodies, and resolved state. The GraphQL thread query is the
+   authority: the REST per-review `comments` endpoint can under-report inline
+   comments. Do not assume review-comment IDs are thread IDs.
 2. **Create the audit record.** Add one row per review. Decompose each review
    body and inline comment into one row per independent finding, with a decision
    of `ACTION`, `NO_ACTION`, or `FOLLOW_UP`.
