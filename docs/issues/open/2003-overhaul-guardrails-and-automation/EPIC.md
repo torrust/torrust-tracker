@@ -244,7 +244,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 4     | #2158 - Inventory existing Clippy allows         | `docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md`             | Evidence and incremental remediation; does not redesign the linter runner.                                    | #2157 policy conventions, if merged first        |
 | 5     | #2159 - Adopt folder-style issue specifications  | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md`               | Documentation, templates, and root ADR only; prospective and reversible for new work.                         | None                                             |
 | 6     | #2160 - Persist independent agent review reports | `docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md`     | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
-| 7     | #2185 - Triage advisory external-link findings   | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
+| 7     | #2185 - Triage advisory external-link check findings | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
 
 ## Delivery Strategy
 
