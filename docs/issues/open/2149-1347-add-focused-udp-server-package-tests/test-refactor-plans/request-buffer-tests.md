@@ -191,6 +191,41 @@ mapped commit point—before beginning the next item.
   timing rather than prove an observable UDP-server contract.
 - **Done when:** the plan records a justified no-change decision.
 
+### R6 — Address Copilot review feedback on test mechanics
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Addresses:** bounded cleanup waits, public-behavior setup, and capacity-independent full-buffer
+  setup.
+- **Change:** Assess the three Copilot review suggestions from draft PR #2174 before changing the
+  completed test suite: (1) bound task joins so a cleanup regression fails rather than hangs;
+  (2) use `force_push` where it can establish setup without obscuring the intended full-buffer
+  state; and (3) derive the full-buffer fill count from the buffer capacity rather than hard-coding
+  49 retained tasks. Apply the mandatory prose-first Arrange-Act-Assert comparison before any
+  approved refactor.
+- **Guardrails:** Preserve deterministic synchronization and the oldest-first eviction contract.
+  Do not use polling or arbitrary sleeps as a timeout substitute. Keep the `force_push` Act and
+  eviction assertion visible in the behavior test. Do not change hot-path production code, capacity,
+  eviction policy, or shutdown semantics.
+- **Decision:** Accept bounded task joins and capacity-derived setup. A timeout is an absolute
+  failure bound for an awaited cleanup outcome, not a delay or polling mechanism. Derive the count
+  of retained pending tasks from the buffer's actual capacity so the full-buffer scenario remains
+  correct if that policy changes. Decline public-API-only setup: `force_push` is the behavior under
+  test, so repeatedly calling it during Arrange would make the initial full-buffer state depend on
+  the Act and obscure which task is oldest. Keep the private `rb.try_push` operation only inside the
+  narrowly named setup helper, with a comment recording this reason.
+- **Prose-first review:** The temporary Arrange prose was “a request buffer is full of controlled
+  pending tasks, with a separately retained oldest task”; the final
+  `FullBufferWithPendingTasks` constructor expresses this with an oldest task, a count derived from
+  `rb.capacity()`, and retained pending tasks. The Act remains one visible `force_push` call. The
+  temporary Assert prose was “the oldest task is aborted and all retained work is cleaned up”; the
+  named assertions express it, while `TASK_COMPLETION_TIMEOUT` documents the irreducible
+  test-process failure bound. The direct-insertion comment remains because it records why a
+  superficially attractive public-API setup would incorrectly execute the Act during Arrange.
+- **Done when:** each suggestion has either a reviewed test-only change or a documented no-action
+  rationale, the affected tests remain readable/deterministic, and the PR threads have replies
+  before resolution.
+
 ## Progress Tracking
 
 ### Plan Checklist
@@ -208,6 +243,8 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R4.
 - [x] R4 implemented, reviewed, validated, and committed.
 - [x] R5 assessment completed and decision recorded.
+- [x] Maintainer approved R6.
+- [x] R6 assessment and approved test refactor completed.
 - [x] Maintainer reviewed all approved changes.
 - [x] Plan completed and ready for final verification.
 
@@ -268,6 +305,18 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 17:03 UTC - User/maintainer - Reviewed and approved the completed request-buffer
   plan. R1–R4 add deterministic coverage, R2 documents the intentional performance trade-off, and
   R5 is a justified no-change decision. The next test plan may begin.
+- 2026-09-09 - GitHub Copilot - Draft PR #2174 received three Copilot suggestions on the completed
+  request-buffer tests: bound task-completion waits, avoid direct ring-buffer insertion where
+  public behavior can express setup, and avoid hard-coded capacity assumptions. R6 records them as
+  a new approval-gated test-maintainability assessment; no test change has been made.
+- 2026-09-09 - User/maintainer - Approved R6 decisions: use bounded task joins and derive
+  full-buffer setup from capacity; retain private direct insertion only as controlled Arrange
+  mechanics because calling `force_push` during Arrange would test the Act before the test Act.
+  Make this rationale discoverable in the test code for future reviewers.
+- 2026-09-09 - GitHub Copilot - Completed R6. All task joins now have the one-second absolute
+  cleanup bound; full-buffer construction derives retained-task count from `rb.capacity()`; and
+  comments document why direct insertion is controlled Arrange mechanics rather than a call to the
+  `force_push` Act. Focused request-buffer tests pass.
 
 ### Validation Evidence
 
@@ -280,6 +329,7 @@ mapped commit point—before beginning the next item.
 | R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R4                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R5                 | DONE   | No change: the launcher filters already finished handles; the remaining defensive race guard has no stable observable contract. |
+| R6                 | DONE   | Bounded cleanup waits and capacity-derived setup implemented. Public-API-only setup declined because `force_push` is the visible Act; the controlled direct-insertion rationale is documented in code. |
 | Plan completion    | DONE   | Maintainer reviewed all approved increments and decisions before the next file plan begins. |
 
 ## Non-Goals
