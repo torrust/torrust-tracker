@@ -314,27 +314,32 @@ async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
 
 #[cfg(test)]
 mod tests {
-    use std::net::SocketAddr;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
     use std::time::Duration;
 
     use tokio::sync::oneshot;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::signals::{Halted, Started};
     use torrust_tracker_configuration::v3_0_0::logging;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+    use torrust_tracker_udp_core::event::ConnectionContext;
 
     use super::Launcher;
+    use crate::RawRequest;
     use crate::container::UdpTrackerServerContainer;
+    use crate::event::Event;
     use crate::server::bound_socket::BoundSocket;
+
+    const TEST_LOG_TARGET: &str = "udp://test";
 
     struct UdpLauncherDependencies {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        bound_socket: BoundSocket,
         cookie_lifetime: Duration,
-        bound_address: SocketAddr,
+        bind_address: SocketAddr,
     }
 
     impl UdpLauncherDependencies {
@@ -363,23 +368,27 @@ mod tests {
             )
             .await;
             let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
-            let bound_socket = BoundSocket::bind(udp_tracker_config.bind_address, false).expect("UDP socket should bind");
-            let bound_address = bound_socket.address();
 
             Self {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
-                bound_socket,
                 cookie_lifetime: udp_tracker_config.cookie_lifetime,
-                bound_address,
+                bind_address: udp_tracker_config.bind_address,
             }
         }
+    }
+
+    fn sample_udp_service_binding(bind_address: SocketAddr) -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, SocketAddr::new(bind_address.ip(), 6969))
+            .expect("sample UDP service binding should be valid")
     }
 
     #[tokio::test]
     async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
         // Arrange
         let dependencies = UdpLauncherDependencies::new().await;
+        let bound_socket = BoundSocket::bind(dependencies.bind_address, false).expect("UDP socket should bind");
+        let bound_address = bound_socket.address();
         let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
         let (_halt_sender, halt_receiver) = oneshot::channel::<Halted>();
         drop(startup_notification_receiver);
@@ -388,7 +397,7 @@ mod tests {
         let result = Launcher::run_with_graceful_shutdown(
             dependencies.udp_tracker_core_container,
             dependencies.udp_tracker_server_container,
-            dependencies.bound_socket,
+            bound_socket,
             dependencies.cookie_lifetime,
             torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             startup_notification_sender,
@@ -401,7 +410,47 @@ mod tests {
             result.expect_err("startup notification should fail").kind(),
             std::io::ErrorKind::BrokenPipe
         );
-        BoundSocket::bind(dependencies.bound_address, false)
-            .expect("UDP socket should be released after startup notification failure");
+        BoundSocket::bind(bound_address, false).expect("UDP socket should be released after startup notification failure");
+    }
+
+    #[tokio::test]
+    async fn it_should_discard_a_request_when_its_source_port_is_zero() {
+        // Arrange
+        let dependencies = UdpLauncherDependencies::new().await;
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(dependencies.bind_address);
+        let mut event_receiver = dependencies.udp_tracker_server_container.event_bus.receiver();
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &dependencies.udp_tracker_core_container,
+            &dependencies.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(should_discard);
+        // Bound the event await so a publication regression fails diagnostically instead of hanging.
+        assert_eq!(
+            tokio::time::timeout(Duration::from_secs(1), event_receiver.recv())
+                .await
+                .expect("request-discarded event should be published before the test deadline")
+                .expect("request-discarded event receiver should remain connected"),
+            Event::UdpRequestDiscarded {
+                context: ConnectionContext::new(
+                    dependencies.udp_tracker_core_container.configuration_instance_id,
+                    client_socket_addr,
+                    server_service_binding,
+                ),
+            }
+        );
     }
 }
