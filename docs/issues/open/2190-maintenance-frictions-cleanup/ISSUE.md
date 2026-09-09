@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/maintenance-frictions-cleanup/ISSUE.md
-branch: "{issue-number}-maintenance-frictions-cleanup-spec"
+github-issue: 2190
+spec-path: docs/issues/open/2190-maintenance-frictions-cleanup/ISSUE.md
+branch: "2190-maintenance-frictions-cleanup-spec"
 related-pr: null
-last-updated-utc: 2026-09-09 14:11
+last-updated-utc: 2026-09-09 15:39
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Repository maintenance frictions clean-up
+# Issue #2190 - Repository maintenance frictions clean-up
 
 ## Goal
 
@@ -142,9 +142,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/maintenance-frictions-cleanup/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted and moved to `docs/issues/open/2190-maintenance-frictions-cleanup/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue [#2190](https://github.com/torrust/torrust-tracker/issues/2190) created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -159,6 +159,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 ### Progress Log
 
 - 2026-09-09 14:11 UTC - Specification author - Drafted from a re-verification of every candidate friction against `develop` at `f6b73e29`; eight in-scope items, two maintainer actions, one related-but-separate behavioural defect, two dropped candidates - evidence recorded inline in the Friction Inventory, Maintainer Actions, and Dropped Candidates tables
+- 2026-09-09 15:39 UTC - Specification author - GitHub issue #2190 created from the reviewed draft; specification moved to `docs/issues/open/2190-maintenance-frictions-cleanup/ISSUE.md` - https://github.com/torrust/torrust-tracker/issues/2190
 
 ## Acceptance Criteria
 
