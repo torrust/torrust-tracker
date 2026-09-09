@@ -7,8 +7,8 @@ epic: 1488
 github-issue: 2169
 spec-path: docs/issues/open/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md
 branch: 2169-migrate-torrent-cleanup
-related-pr: null
-last-updated-utc: 2026-09-09 08:22
+related-pr: 2181
+last-updated-utc: 2026-09-09 08:35
 semantic-links:
   skill-links:
     - create-issue
