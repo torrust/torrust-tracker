@@ -38,12 +38,17 @@ pull request is opened.
    - Acceptance criteria list
    - Claimed implementation scope
 2. Inspect relevant diffs/files and run focused checks as needed.
-3. Validate each acceptance criterion explicitly as one of:
+3. When changed tests are in scope, apply the `Test Design` checklist from
+   `.github/skills/dev/task-reviews/review-task/SKILL.md` to every changed test. Report each
+   violated item as a repository-convention finding with concrete remediation; do not pass the
+   review while a test fixture is a parameter bag or hides the causal state, production Act, or
+   independently specified expected result.
+4. Validate each acceptance criterion explicitly as one of:
    - `PASS` - implemented and verified
    - `FAIL` - not implemented or incorrect
    - `PENDING` - partial/unclear or missing evidence
-4. If the issue spec contains checklist items, mark only verified `PASS` items as done.
-5. Review the completion-review evidence. Require an issue-local
+5. If the issue spec contains checklist items, mark only verified `PASS` items as done.
+6. Review the completion-review evidence. Require an issue-local
    `implementation-retrospective.md` when implementation revealed reusable
    lessons, material design changes, or meaningful deviations from the original
    plan. Otherwise require a concise issue progress-log entry explaining why no

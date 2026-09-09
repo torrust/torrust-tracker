@@ -51,6 +51,23 @@ an issue/task is complete and ready to be pushed.
 - [ ] Docs updates are present when behavior changed.
 - [ ] New terms are added to `project-words.txt` when needed.
 
+### Test Design
+
+When the reviewed changes add or modify tests, inspect each changed test against
+`.github/skills/dev/testing/write-unit-test/SKILL.md` and report a finding for every unchecked
+item below:
+
+- [ ] The test's name states one observable behavior and relevant condition.
+- [ ] Arrange makes the causal initial-state difference visible.
+- [ ] Any builder or scenario fixture is named for that state and owns only incidental mechanics;
+      it is not a parameter bag mirroring the production call.
+- [ ] The production Act remains visible in the test body.
+- [ ] Expected results are independently specified and assertions remain visible.
+- [ ] The test does not duplicate a better-owned protocol, domain, integration, or end-to-end
+      contract.
+- [ ] Execution is deterministic: no uncontrolled I/O, wall-clock dependency, sleep, polling, or
+      shared mutable state is introduced.
+
 ### Spec Hygiene
 
 - [ ] Only verified checklist items are marked done.
