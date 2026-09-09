@@ -8,7 +8,7 @@
 - Date: 2026-09-08
 - OS: Linux
 - Rust version (`rustc --version`): `rustc 1.100.0-nightly (f248f4038 2026-09-05)`
-- Tracker base commit/branch: `e4db63d5`, `2169-migrate-torrent-cleanup`
+- Tracker implementation/evidence commits: `9fac6e3d`, `7fd68615` on `2169-migrate-torrent-cleanup`
 - Isolated runtime configuration: `.tmp/2169-torrent-cleanup.toml`, UDP `127.0.0.1:16969`, REST API `127.0.0.1:11212`, health API `127.0.0.1:11313`
 - Cleanup policy: interval `1`, peer timeout `1`, `remove_peerless_torrents = false`
 

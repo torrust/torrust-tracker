@@ -1,6 +1,6 @@
 ---
 name: manual-torrent-cleanup-e2e
-description: Manually verify that the tracker removes inactive peers while retaining a peerless torrent when configured to do so. Use when testing torrent cleanup, inactive peer expiration, or shutdown behavior of the cleanup runner.
+description: Manually verify that the tracker removes inactive peers while retaining a peerless torrent when configured to do so. Use when testing torrent cleanup, inactive peer expiration, or shutdown behavior of the cleanup runner. Triggers on "torrent cleanup test", "inactive peer expiration", or "manual cleanup e2e".
 compatibility: Requires cargo, curl, jq, rg, and ss on Linux.
 metadata:
   author: torrust
@@ -166,3 +166,8 @@ outcome. No isolated listener or direct tracker process remains.
 - Cleanup runner: `src/bootstrap/jobs/torrent_cleanup.rs`
 - Local runtime workflow: `.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`
 - REST API workflow: `.github/skills/usage/use-rest-api/SKILL.md`
+
+## Skill Links
+
+- `src/bootstrap/jobs/torrent_cleanup.rs` — `skill-link: manual-torrent-cleanup-e2e`
+  marks the runner whose behavior and logs this procedure verifies.

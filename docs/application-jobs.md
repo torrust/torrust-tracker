@@ -28,8 +28,9 @@ and its [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
 
 - **Direct component**: a named component future spawned directly by
   `JobManager` into its `JoinSet`.
-- **Legacy job**: one of the three pre-spawned periodic-job handles retained by
-  `JobManager` outside the `JoinSet` until SI-4/SI-5 migrate their APIs.
+- **Legacy job**: one of the two pre-spawned periodic-job handles retained by
+  `JobManager` outside the `JoinSet` until SI-5 migrates its API and the
+  UDP IP-ban cleanup receives its own periodic-job migration.
 - **Owner**: `JobManager` owns direct component tasks and the retained legacy
   handles; a direct component owns any nested server task it starts.
 - **Service**: a runtime capability stored in an application or instance

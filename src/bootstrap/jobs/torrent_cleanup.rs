@@ -17,31 +17,38 @@ use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::torrent::manager::TorrentsManager;
 use torrust_tracker_events::shutdown::Completion;
-use tracing::instrument;
 
 /// Returns an unspawned runner for cleaning up torrent data in the tracker.
 ///
 /// The cleaning task is executed on an `inactive_peer_cleanup_interval`.
 ///
 /// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
-#[must_use]
-#[instrument(skip_all)]
+#[allow(
+    clippy::manual_async_fn,
+    clippy::needless_pass_by_value,
+    reason = "the public constructor must return an unspawned `impl Future` for direct JobManager supervision"
+)]
+// skill-link: manual-torrent-cleanup-e2e
 pub fn run_job(
     config: Core,
     torrents_manager: Arc<TorrentsManager>,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static {
-    let weak_torrents_manager = Arc::downgrade(&torrents_manager);
-    let interval = config.inactive_peer_cleanup_interval;
-    let interval_in_secs = interval;
-
     async move {
-        let interval = std::time::Duration::from_secs(interval);
+        let weak_torrents_manager = Arc::downgrade(&torrents_manager);
+        drop(torrents_manager);
+
+        let Core {
+            inactive_peer_cleanup_interval: interval_in_secs,
+            ..
+        } = config;
+        let interval = std::time::Duration::from_secs(interval_in_secs);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await;
 
         loop {
             tokio::select! {
+                biased;
                 () = cancellation_token.cancelled() => {
                     tracing::info!("Stopping torrent cleanup job ...");
                     return Completion::Cancelled;
