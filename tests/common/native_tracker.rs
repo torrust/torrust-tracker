@@ -841,8 +841,12 @@ impl Drop for NativeTrackerFailedStart {
         // release the fixture workspace.
         let Ok(runtime) = tokio::runtime::Handle::try_current() else {
             drop(child.start_kill());
-            while child.try_wait().ok().flatten().is_none() {
-                std::thread::yield_now();
+            let deadline = std::time::Instant::now() + FAILURE_DEADLINE;
+            while std::time::Instant::now() < deadline {
+                match child.try_wait() {
+                    Ok(Some(_)) | Err(_) => break,
+                    Ok(None) => std::thread::sleep(RETRY_INTERVAL),
+                }
             }
             drop(output);
             return;
@@ -1195,7 +1199,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_not_panic_when_a_failed_start_is_dropped_without_a_tokio_runtime() {
+    async fn it_should_reap_a_failed_start_dropped_without_a_tokio_runtime() {
         // Arrange: spawning needs a runtime; the drop below happens outside one.
         let mut child = Command::new("sleep")
             .arg("60")
