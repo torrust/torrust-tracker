@@ -131,7 +131,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Assess banned-IP admission at the launcher boundary
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2, P3
 - **Change:** Determine whether one deterministic unit test can seed a banned IP, call
@@ -140,6 +140,12 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Keep validation-policy choice visible. Do not cover ban threshold accumulation,
   receive-loop lifecycle, or disabled-mode tracker behavior unless the direct admission choice is
   uniquely obscured elsewhere.
+- **Prose-first review:** The temporary Arrange prose was “a strict launcher receives a nonzero-
+  port request from an already-banned IP.” The final `ban_client_ip` setup operation expresses the
+  causal state while deriving its counter increments from the configured threshold; it does not
+  assert or test the UDP-core ban algorithm. The direct strict-policy admission Act and the
+  independent discard/exact-event assertions remain visible. The shared event-publication deadline
+  retains its concise failure-bound rationale; the temporary prose is redundant and removed.
 - **Done when:** the strict-mode admission choice has a unique direct contract or a documented
   no-change ownership decision.
 
@@ -165,7 +171,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3.
-- [ ] R3 assessment completed and decision recorded.
+- [x] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -188,6 +194,13 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Approved R3. Add one direct strict-mode unit test for an
   already-banned nonzero-port client IP. Seed the existing ban service past its configured limit,
   then assert only the launcher discard decision and exact immediate `UdpRequestBanned` event.
+- 2026-09-09 - User/maintainer - Reviewed and approved R3. The named banned-client setup, visible
+  strict-policy admission Act, and exact immediate event retain the launcher boundary without
+  duplicating UDP-core threshold behavior or integration-level network handling.
+- 2026-09-09 - User/maintainer - Approved the final naming refinement. The test context is named
+  `UdpLauncherTestContext`, its variable is `launcher`, and
+  `with_banned_client_ip(client_socket_addr.ip())` states the causal already-banned-client state
+  directly in Arrange. The shared event-publication deadline records its failure-bound rationale.
 
 ### Validation Evidence
 
@@ -196,7 +209,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
-| R3 | IN_PROGRESS | Maintainer approved one unit-first strict-mode banned-IP admission contract. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request`, and `git diff --check` passed. The prose-first review uses `UdpLauncherTestContext::with_banned_client_ip` to keep the causal state, strict Act, and independent discard/event assertions visible. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
