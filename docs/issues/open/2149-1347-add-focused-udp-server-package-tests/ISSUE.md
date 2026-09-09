@@ -66,9 +66,10 @@ must protect current normal-operation behavior without preempting that design.
 
 ### In Scope
 
-- Establish package-source coverage baseline and final evidence using a reproducible
-  `cargo llvm-cov` command, aggregate comparison, per-file results, and prioritized uncovered
-  behavior.
+- Establish package-source coverage baseline and final evidence using reproducible aggregate,
+  unit-only, and integration-only `cargo llvm-cov` commands where a combined report could hide the
+  selected boundary. Record per-file results, each test level's contribution, and prioritized
+  uncovered behavior; do not infer unit coverage from aggregate execution.
 - Inventory current unit, real-loopback package integration, example, root integration, and
   relevant historical coverage before selecting new tests.
 - Add focused, deterministic tests for package-owned transport and dispatch seams where they
@@ -82,8 +83,9 @@ must protect current normal-operation behavior without preempting that design.
 - Review every test-bearing file selected by the evidence inventory. Create one file-local
   refactor plan for each concrete opportunity, then improve test readability, maintainability,
   expressiveness, or behavior coverage without reducing valuable existing protection.
-- Review `tests/server/contract.rs` and add only approved real-socket contracts that cover a
-  stable package transport behavior not already protected at a better boundary.
+- Review `tests/server/contract.rs` and add an approved real-socket contract only when a unit test
+  cannot protect the behavior at an appropriate boundary or the real-loopback contract is clearer
+  and more maintainable. Record why the integration boundary is preferred.
 - Perform a bounded mutation-testing assessment after the evidence and incremental test plan are
   approved; retain only behavior-relevant survivors as a follow-up queue.
 
@@ -283,6 +285,8 @@ responsibility.
       aggregate comparison, per-file detail, and prioritized gaps.
 - [ ] The current unit, package integration, example, root/E2E, mutation, property, and fuzz
       evidence is assessed, with selected, deferred, and inapplicable levels justified.
+- [ ] Coverage evidence distinguishes unit-only and integration-only contributions for every
+  selected seam where aggregate package coverage could conceal the responsible test boundary.
 - [ ] Every selected test-bearing file has a reviewed file-local refactor plan that records
       strengths, concrete problems, ordered improvements, guardrails, validation, and justified
       no-change decisions where applicable.
@@ -310,6 +314,8 @@ responsibility.
 ### Automatic Checks
 
 - `cargo llvm-cov -p torrust-tracker-udp-server --all-features --json`
+- `cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json`
+- `cargo llvm-cov -p torrust-tracker-udp-server --all-features --test integration --json`
 - `cargo test -p torrust-tracker-udp-server`
 - `cargo test -p torrust-tracker-udp-server --test integration`
 - `linter all`
@@ -351,6 +357,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
   subissues rather than encoding accidental behavior in a test.
 - Package coverage includes test code and can hide low-value framework or fixture coverage. Use it
   to navigate per-file gaps, while selecting tests by observable risk and ownership.
+- Aggregate package coverage can also hide whether a unit-test or integration-test binary executes
+  a seam. Treat unit tests as the default; add an integration test only when the unit boundary is
+  unsuitable or the real-loopback contract is clearer and more maintainable. Record separate
+  unit-only and integration-only evidence when aggregate coverage informs a decision.
 - Socket behavior varies by host IPv6 and dual-stack support. Test port-zero and endpoint metadata
   invariants, and retain existing availability guards rather than asserting a universal dual-stack
   default.

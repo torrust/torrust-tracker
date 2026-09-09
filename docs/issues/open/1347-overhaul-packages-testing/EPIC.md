@@ -33,9 +33,9 @@ The repository was reorganized through package refactoring and extraction work. 
 
 ### In Scope
 
-- Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior. Record an issue-local, human-readable coverage-evidence document with the command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered areas.
+- Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior. Record an issue-local, human-readable coverage-evidence document with the command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered areas. When aggregate coverage includes multiple test binaries, measure and record the unit-test and integration-test contributions separately; do not infer unit coverage from a combined report.
 - Add maintainable, fast, responsibility-oriented unit tests close to the code they protect, using Arrange, Act, Assert (AAA) structure where appropriate.
-- Add integration tests, runnable examples, or end-to-end tests when they provide valuable package-level regression protection.
+- Add integration tests, runnable examples, or end-to-end tests only when a unit test cannot protect the behavior at an appropriate boundary or the higher-level test gives a clearer, more maintainable behavioral contract.
 - When a package behavior is impractical to cover with a unit test, select the narrowest stable test boundary that can cover it: package-local integration or end-to-end tests first, then root `tests/` integration tests or `packages/e2e-tools/` only when the behavior is necessarily composed at that level. Record the chosen boundary and its rationale in the subissue evidence.
 - For every package subissue, assess the applicability and current evidence for unit tests,
   package-local integration tests, runnable examples, package/root/end-to-end tests, mutation
@@ -87,7 +87,9 @@ whether a subissue has adequately covered critical behavior.
 
 Implement independently reviewable, package-scoped subissues. When work begins on a package, add it to the Package Coverage Tracking table and record its starting coverage before adding tests. After implementation, update the row with the latest measurement and percentage-point change. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
 
-Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
+Prioritize fast unit tests close to the code being changed. Use package integration tests only when a unit test cannot protect the behavior at an appropriate boundary or the real package boundary produces a clearer, more maintainable contract; retain runnable-example and end-to-end coverage where they add distinct regression value. Coverage percentage informs the work but does not replace testing critical behavior.
+
+When an aggregate coverage command runs unit and integration binaries together, it must not be used as proof that either boundary is adequately covered. For each selected source seam, issue-local evidence must state which test level protects it and, when the aggregate report could conceal that distinction, record separate unit-only and integration-only measurements using the relevant Cargo target selection. Compare results only within the same measurement scope because test-support code may produce different denominators. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
 
 When a package behavior is covered outside its package, add a high-signal semantic link from the
 subissue specification to the external test artifact using the
@@ -154,6 +156,10 @@ For each subissue implementation, the completion policy is:
   testing. Its spec-only PR records the 96.96% line, 95.79% region, and 97.19% function baseline,
   then requires per-file test-refactor plans and small, reviewed commit points before implementation.
   - https://github.com/torrust/torrust-tracker/issues/2149
+- 2026-09-09 - User/maintainer - Clarified that package-testing subissues must assess both
+  unit-test and integration-test coverage separately. Unit tests are the default priority; an
+  integration test requires evidence that a unit test is unsuitable or less readable at the chosen
+  package boundary. Combined coverage reports must not be treated as proof of unit coverage.
 
 ## Acceptance Criteria
 
@@ -184,6 +190,7 @@ For each subissue implementation, the completion policy is:
 ## Risks and Trade-offs
 
 - Coverage percentage can conceal critical low-coverage files behind strong aggregate results; mitigate it by maintaining per-file and uncovered-area evidence, then selecting behavior by risk rather than pursuing a percentage target.
+- Combined coverage can conceal whether a unit or integration binary executed a source seam; mitigate it by recording separate test-level measurements whenever aggregate coverage is used for a coverage decision.
 - Raw coverage formats can be too large or tool-oriented for code review; mitigate this by committing a concise, human-readable issue-local evidence document and retaining the reproducible command instead.
 - Testing may expose design seams that are difficult to isolate; make small testability refactorings only when justified and keep unrelated refactoring out of scope.
 - New packages or package extractions can change the inventory during the EPIC; add concrete subissues as needs are identified and record deferrals explicitly before closing the EPIC.

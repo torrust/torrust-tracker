@@ -137,12 +137,22 @@ before beginning the next item.
 
 ### R4 - Review Phase 2 test design and residual coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** After each added test, review Arrange-Act-Assert visibility, fixture scope, and
   ownership. Measure residual coverage only to decide whether another distinct orchestration
   behavior exists.
 - **Guardrails:** Do not add percentage-only tests or change production dispatch behavior.
+- **Decision:** No test added. At commit `9eb74c23`, the unit-only report gives `handlers/mod.rs`
+  184/214 lines (85.98%), 224/249 regions (89.96%), and 32/37 functions (86.49%), with no
+  uncovered executable source-line entries. The integration-only report gives 31/31 lines (100%),
+  18/18 regions (100%), and 5/5 functions (100%) for its smaller compiled production slice; the
+  combined report is navigation-only and cannot attribute coverage to either test level. R2 is the
+  appropriate primary unit boundary because its prose-first Arrange-Act-Assert comparison makes the
+  causal raw packet, dispatcher Act, returned request kind, and response transaction ID readable
+  without transport lifecycle mechanics. R3 assigns failed-handler routing to its handler,
+  error-routing, and loopback boundaries. No residual direct dispatcher contract justifies another
+  test.
 - **Done when:** every remaining gap is assigned to the dispatcher, a concrete handler, the
   protocol parser, error serializer, or processor boundary.
 
@@ -156,7 +166,7 @@ before beginning the next item.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] R3 assessment completed and decision recorded.
-- [ ] R4 design/coverage review completed and decision recorded.
+- [x] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -184,6 +194,13 @@ before beginning the next item.
   handler tests own construction of error/request-kind metadata, `handlers/error.rs` owns its
   routing to a response/event, and real-loopback contracts own invalid-cookie behavior. A direct
   dispatcher case would duplicate one of those boundaries to reach the same call.
+- 2026-09-09 - GitHub Copilot - Completed R4. The package-source measurement gives
+  `handlers/mod.rs` 85.98% unit-only lines, 89.96% unit-only regions, and 86.49% unit-only
+  functions, with no uncovered executable source-line entries. The separate integration-only report
+  covers a smaller production slice and is not used to claim unit coverage. The R2 prose-first
+  comparison confirms code now expresses the causal input, ordinary environment, dispatcher Act,
+  and independent assertions; R3 owns the only remaining routing assessment. No further direct
+  dispatcher test is justified.
 
 ### Validation Evidence
 
@@ -193,7 +210,7 @@ before beginning the next item.
 | R1 | DONE | No change: `handlers/mod.rs` has no direct test cases to clean. Its existing local support remains focused on individual handler modules, so a cross-module fixture refactor is not justified. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. A prose-first Arrange-Act-Assert comparison replaced the scenario with named ordinary-environment and causal-empty-scrape helpers; the transaction ID, dispatcher Act, and expected outputs remain visible. |
 | R3 | DONE | No change: handler-error metadata is created and covered at the announce/scrape boundary, `handlers/error.rs` directly covers supplied error routing, and real-loopback contracts cover invalid-cookie behavior. A `handle_packet` failure test would duplicate one of those boundaries. |
-| R4 | TODO | Awaiting Phase 2 completion. |
+| R4 | DONE | No change: unit-only coverage is 85.98% lines, 89.96% regions, and 86.49% functions, with no uncovered executable source-line entries. The separate integration-only report is not used to claim unit coverage. The prose-first review confirms R2 expresses its intent; R3 assigns failed-handler routing to its established boundaries. |
 
 ## Non-Goals
 

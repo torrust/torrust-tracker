@@ -24,6 +24,44 @@ local temporary storage, not committed. The table below sums its file `summary` 
 includes package test and test-support code, so it is navigation evidence rather than a
 production-only coverage measure or proof of behavioral completeness.
 
+## Test-Level Coverage Policy
+
+Aggregate package reports can combine unit and integration test binaries, hiding which boundary
+executed a source seam. Unit tests are the default for package-owned behavior because they are fast,
+deterministic, and close to the responsibility under test. Add or retain a package integration test
+only when a unit test cannot protect the behavior at an appropriate boundary or the real-loopback
+contract is clearer and more maintainable.
+
+When aggregate coverage informs a selected-seam decision, record separate reports before claiming
+coverage ownership:
+
+```text
+cargo llvm-cov clean --workspace
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json
+cargo llvm-cov clean --workspace
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --test integration --json
+```
+
+Do not compare percentages across those reports as a single total: unit reports include unit test
+and test-support code while integration reports compile only the exercised package production slice.
+Use them to identify the test level that protects each selected behavior.
+
+### Handler-Dispatch Test-Level Evidence
+
+At commit `9eb74c23`, the separate reports for `packages/udp-server/src/handlers/mod.rs` show:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Unit-only (`--lib`) | 184 / 214 (85.98%) | 224 / 249 (89.96%) | 32 / 37 (86.49%) | The direct `handle_packet` test executes the selected sendable parse-error routing seam. No executable source-line entries are uncovered in this report. |
+| Integration-only (`--test integration`) | 31 / 31 (100.00%) | 18 / 18 (100.00%) | 5 / 5 (100.00%) | The real-loopback suite executes a separate compiled production slice; its smaller denominator excludes unit-test and test-support code. |
+| Combined package report | 205 / 214 (95.79%) | 239 / 249 (95.98%) | 35 / 37 (94.59%) | Navigation-only aggregate; it must not be used to attribute the selected dispatcher coverage to unit or integration tests. |
+
+The unit test is the appropriate primary boundary for sendable parse-error routing: it makes the
+raw packet, dispatcher Act, returned request kind, and response transaction ID directly readable
+without socket lifecycle or client/server mechanics. Integration tests remain valuable for actual
+loopback transport behavior, but are neither needed nor used as evidence for this internal dispatch
+contract.
+
 ## Baseline Package Coverage
 
 | Measurement                   |                  Lines |                Regions |          Functions |
