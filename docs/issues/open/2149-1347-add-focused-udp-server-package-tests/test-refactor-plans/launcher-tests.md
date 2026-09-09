@@ -131,7 +131,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Assess banned-IP admission at the launcher boundary
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2, P3
 - **Change:** Determine whether one deterministic unit test can seed a banned IP, call
@@ -164,6 +164,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R3.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -184,6 +185,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Reviewed and approved R2. The unit-first direct admission test
   makes the source-port-zero causal state, strict policy, dispatcher-independent Act, and exact
   immediate event visible; helpers hide only tracing/server metadata and ordinary dependencies.
+- 2026-09-09 - User/maintainer - Approved R3. Add one direct strict-mode unit test for an
+  already-banned nonzero-port client IP. Seed the existing ban service past its configured limit,
+  then assert only the launcher discard decision and exact immediate `UdpRequestBanned` event.
 
 ### Validation Evidence
 
@@ -192,7 +196,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
-| R3 | TODO | Awaiting R2 review. |
+| R3 | IN_PROGRESS | Maintainer approved one unit-first strict-mode banned-IP admission contract. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
