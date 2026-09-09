@@ -189,8 +189,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3.
 - [x] R3 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3a source-port-zero split.
-- [ ] R3a source-port-zero split implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R3a banned-IP split.
+- [x] R3a source-port-zero split implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R3a banned-IP split.
 - [ ] R3a banned-IP split implemented, reviewed, validated, and committed.
 - [ ] R4 design/coverage review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -222,6 +222,9 @@ validation, review, and its mapped commit point—before beginning the next item
   into a decision contract and an immediate-event contract, starting with the source-port-zero pair.
 - 2026-09-09 - User/maintainer - Approved the R3a source-port-zero split. Commit this plan update
   before replacing the combined test with separate decision and event contracts.
+- 2026-09-09 - User/maintainer - Reviewed and approved the source-port-zero split: one test asserts
+  only the discard decision and the other only the immediate discard event. Also approved applying
+  the same single-fact split to the banned-IP admission test.
 - 2026-09-09 - User/maintainer - Approved the final naming refinement. The test context is named
   `UdpLauncherTestContext`, its variable is `launcher`, and
   `with_banned_client_ip(client_socket_addr.ip())` states the causal already-banned-client state
@@ -235,7 +238,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request`, and `git diff --check` passed. The prose-first review uses `UdpLauncherTestContext::with_banned_client_ip` to keep the causal state, strict Act, and independent discard/event assertions visible. |
-| R3a | IN_PROGRESS | Source-port-zero split approved; banned-IP split remains separately approval-gated. |
+| R3a | IN_PROGRESS | Source-port-zero decision/event split reviewed and approved. Banned-IP split approved; implementation awaits its separate review. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
