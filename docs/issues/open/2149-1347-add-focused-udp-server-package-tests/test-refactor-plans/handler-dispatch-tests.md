@@ -163,12 +163,15 @@ before beginning the next item.
   implementing the test.
 - 2026-09-09 - User/maintainer - Reviewed and approved R2 after its Arrange section was reduced
   to `SendableParseErrorPacketScenario`. The scenario names the causal sendable-parse-error state
-  and owns only incidental container, packet, binding, and deterministic time setup; the test keeps
-  `handle_packet` and its independently specified transaction-ID/request-kind contract visible.
-- 2026-09-09 - User/maintainer - Requested a further simplification because the initial scenario
-  duplicated too much of `handle_packet`'s parameter list. The scenario now owns only the causal
-  raw packet, the expected transaction ID, and the coherent test environment; ordinary binding,
-  cookie-time, and policy values remain visible at the dispatcher Act.
+  and the test keeps `handle_packet` plus its independently specified transaction-ID/request-kind
+  contract visible.
+- 2026-09-09 - User/maintainer - Requested a further simplification because the scenario still
+  moved complexity rather than making the initial state directly readable. Applied a prose-first
+  Arrange-Act-Assert loop: temporarily state each section in normal prose, then refactor until the
+  code expresses that prose and remove redundant comments. The final test separates ordinary
+  `initialize_udp_handler_environment` mechanics from the causal
+  `scrape_request_without_info_hashes(transaction_id)` input; its transaction ID, dispatcher Act,
+  and expected outputs remain directly visible.
 
 ### Validation Evidence
 
@@ -176,7 +179,7 @@ before beginning the next item.
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | No change: `handlers/mod.rs` has no direct test cases to clean. Its existing local support remains focused on individual handler modules, so a cross-module fixture refactor is not justified. |
-| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. The scenario owns only causal packet/environment state, while the direct dispatcher Act retains normal binding, cookie-time, and policy inputs. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind`, and `git diff --check` passed. A prose-first Arrange-Act-Assert comparison replaced the scenario with named ordinary-environment and causal-empty-scrape helpers; the transaction ID, dispatcher Act, and expected outputs remain visible. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting Phase 2 completion. |
 

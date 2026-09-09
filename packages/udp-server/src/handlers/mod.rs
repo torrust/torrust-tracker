@@ -468,53 +468,45 @@ pub(crate) mod tests {
         }
     }
 
-    struct SendableParseErrorPacketScenario {
-        raw_request: RawRequest,
-        environment: EnvContainer,
-        transaction_id: TransactionId,
+    async fn initialize_udp_handler_environment() -> EnvContainer {
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_config = Arc::new(configuration.udp_trackers.as_ref().expect("UDP tracker configuration")[0].clone());
+        EnvContainer::initialize(
+            &core_config,
+            &udp_tracker_config,
+            configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+        )
+        .await
     }
 
-    impl SendableParseErrorPacketScenario {
-        async fn new() -> Self {
-            let configuration = configuration::ephemeral();
-            let core_config = Arc::new(configuration.core.clone());
-            let udp_tracker_config = Arc::new(configuration.udp_trackers.as_ref().expect("UDP tracker configuration")[0].clone());
-            let environment = EnvContainer::initialize(
-                &core_config,
-                &udp_tracker_config,
-                configuration.udp_tracker_server.max_connection_id_errors_per_ip,
-            )
-            .await;
-            let transaction_id = TransactionId(I32::new(42));
-            let request = Request::Scrape(ScrapeRequest {
-                connection_id: ConnectionId(I64::new(7)),
-                transaction_id,
-                info_hashes: Vec::new(),
-            });
-            let mut payload = Vec::new();
-            request.write_bytes(&mut payload).expect("scrape request should serialize");
+    fn scrape_request_without_info_hashes(transaction_id: TransactionId) -> RawRequest {
+        let request = Request::Scrape(ScrapeRequest {
+            connection_id: ConnectionId(I64::new(7)),
+            transaction_id,
+            info_hashes: Vec::new(),
+        });
+        let mut payload = Vec::new();
+        request.write_bytes(&mut payload).expect("scrape request should serialize");
 
-            Self {
-                raw_request: RawRequest {
-                    payload,
-                    from: sample_ipv4_remote_addr(),
-                },
-                environment,
-                transaction_id,
-            }
+        RawRequest {
+            payload,
+            from: sample_ipv4_remote_addr(),
         }
     }
 
     #[tokio::test]
     async fn it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind() {
         // Arrange
-        let scenario = SendableParseErrorPacketScenario::new().await;
+        let environment = initialize_udp_handler_environment().await;
+        let transaction_id = TransactionId(I32::new(42));
+        let raw_request = scrape_request_without_info_hashes(transaction_id);
 
         // Act
         let (response, request_kind) = handle_packet(
-            scenario.raw_request,
-            scenario.environment.udp_tracker_core_container,
-            scenario.environment.udp_tracker_server_container,
+            raw_request,
+            environment.udp_tracker_core_container,
+            environment.udp_tracker_server_container,
             ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address()).expect("UDP service binding should be valid"),
             super::CookieTimeValues {
                 issue_time: sample_issue_time(),
@@ -530,7 +522,7 @@ pub(crate) mod tests {
             Response::Error(ErrorResponse {
                 transaction_id: actual_transaction_id,
                 ..
-            }) if actual_transaction_id == scenario.transaction_id
+            }) if actual_transaction_id == transaction_id
         ));
         assert_eq!(request_kind, None);
     }
