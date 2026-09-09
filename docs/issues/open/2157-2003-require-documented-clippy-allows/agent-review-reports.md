@@ -121,3 +121,54 @@ semantic-links:
 - Verdict: REVIEW FAILED
 - Follow-up actions:
   - Restore and preserve the complete earlier issue-local report history, append rather than replace entries, correct the future progress-log timestamp if applicable, then request a new independent review. Do not open a pull request or proceed with an implementation commit from this failed review.
+
+### 2026-09-09 12:44 UTC - Task Reviewer (Output-Contract Correction)
+
+- Invocation scope: Independent review of the current #2157 output-contract correction for `contrib/dev-tools/checks/clippy-allow-reasons`, including the global CLI ADR, command implementation, serializable diagnostic schema, CLI tests, issue-spec alignment, and the deferred workspace-wide `clippy::allow_attributes_without_reason` decision.
+- Inputs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`; folder-style `ISSUE.md`; `implementation-retrospective.md`; complete existing report history; working-tree diff; `contrib/dev-tools/checks/clippy-allow-reasons/{Cargo.toml,src/main.rs,src/lib.rs,tests/cli.rs}`; relevant pre-commit, CI, and Rust code-quality guidance.
+- Evidence: `cargo test --package clippy-allow-reasons --all-targets` passed (12 tests); `cargo clippy --package clippy-allow-reasons --all-targets -- -D warnings` passed; `git diff --check` passed; editor diagnostics for the changed command and CLI test files are clean. An independent execution with a nonexistent Git base ref exited 1, wrote zero stdout bytes, and emitted exactly one parseable NDJSON stderr record with `kind = "runtime_error"` and `exit_code = 1`. CLI integration tests independently prove silent successful execution, a validation failure on stderr as a JSON record with `kind`, `message`, `file`, `line`, and `exit_code`, and a JSON usage diagnostic with exit 2. The preceding `linter all && cargo test --doc --workspace && git diff --check` terminal run exited 0.
+- Findings:
+  - BLOCKER: The normative ADR says every binary is assigned an output class, but its `Binary classification` table does not include `clippy-allow-reasons`. The command's implementation behaves as `no-stdout-result`, and `ISSUE.md` says so, but the ADR is the repository-wide source of truth and has not been corrected to classify this new command. Add a `clippy-allow-reasons | no-stdout-result` table row with its validation/exit-code purpose, then keep the issue evidence aligned.
+  - BLOCKER: The new CLI tests do not cover a runtime failure. The manual nonexistent-base-ref execution verified the required exit-1/empty-stdout/NDJSON behavior, but a focused automated test is required to prevent a regression in one of the three explicitly required failure classes. Add a CLI integration fixture that induces a deterministic runtime failure and asserts exit 1, empty stdout, one parseable `runtime_error` NDJSON record, and the applicable serializable fields.
+  - INFO: `CliDiagnostic` has the required serializable fields: stable `kind`, human-readable `message`, optional `file` and `line` omitted when inapplicable, and `exit_code`. Validation diagnostics populate location information; usage and runtime diagnostics omit it. This is compatible with the ADR's NDJSON record and equivalent-kind requirements.
+  - INFO: The prospective validator remains deliberately separate from workspace-wide `clippy::allow_attributes_without_reason`. `ISSUE.md`, the Rust code-quality guidance, and `implementation-retrospective.md` consistently defer that compiler lint until #2158 remediates historical allows. No workspace activation was found.
+  - INFO: The issue progress log contains entries timestamped 13:10, 13:40, and 14:05 UTC, later than this review timestamp, while this report must be appended after them to preserve the existing append-only file. Correct the future-dated log/report ordering when the actual completion times are known.
+- Acceptance criteria:
+  - AC1 PASS - Native `reason = "..."` policy and changed-attribute coverage remain implemented and unit-tested.
+  - AC2 PASS - Temporary-reason issue-reference/removal-condition validation remains unit-tested.
+  - AC3 PASS - Merge-base span-aware prospective detection remains implemented and covered by the existing Git fixture.
+  - AC4 PASS - Unit and end-to-end coverage continues to cover missing, empty, item, crate, and temporary native reasons.
+  - AC5 PENDING - Existing validation-tier integration is present, but the claimed `no-stdout-result` contract is not yet recorded in the ADR's mandatory binary classification and the runtime failure contract lacks automated CLI coverage.
+  - AC6 PENDING - Current focused tests, strict focused Clippy, `linter all`, and documentation tests pass, but the missing runtime-error CLI regression test prevents complete verification of the corrected command contract.
+- Repository-convention findings:
+  - The global ADR/issue-spec source-of-truth relationship is incomplete: issue-local evidence cannot substitute for the ADR's required binary classification.
+  - `git diff --check` and focused diagnostics passed. No dependency, formatting, or compiler-lint failure was found in the reviewed correction.
+- Completion-review finding:
+  - PASS - The folder-style `implementation-retrospective.md` exists and explicitly assesses the #2158 deferral as a deliberate, material boundary. Its conclusion is consistent with the implementation and guidance.
+- Issue-spec updates:
+  - None. All checkboxes were already marked complete; AC5 and AC6 are not independently verified as complete for the output-contract correction, so no additional item was checked off.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - Implementer: Add the missing `clippy-allow-reasons` `no-stdout-result` classification to the global ADR and add a deterministic runtime-failure CLI test covering the required stderr NDJSON and exit-1 behavior. Correct the future-dated issue evidence if applicable, rerun the focused tests and quality checks, then request a fresh independent review. Do not commit or open a pull request from this failed review.
+
+### 2026-09-09 12:56 UTC - Task Reviewer (Output-Contract Correction Follow-up)
+
+- Invocation scope: Independent re-review of the #2157 `clippy-allow-reasons` CLI-output-contract correction after the prior ADR-classification and runtime-failure-test blockers.
+- Inputs: Folder-style `docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`; the preceding 2026-09-09 Task Reviewer output-contract report; `docs/adrs/20260519000000_define_global_cli_output_contract.md`; `contrib/dev-tools/checks/clippy-allow-reasons/{src/main.rs,src/lib.rs,tests/cli.rs}`; `implementation-retrospective.md`; #2158 `ISSUE.md`; current working-tree diff and diagnostics.
+- Evidence: `cargo test --package clippy-allow-reasons --all-targets` passed (13 tests): the CLI integration suite covers success, validation, usage, and deterministic runtime-error paths. `cargo clippy --package clippy-allow-reasons --all-targets -- -D warnings` and `git diff --check` passed. Editor diagnostics for the command, CLI tests, ADR, and issue spec are clean. The prior repository run, `linter all && cargo test --doc --workspace && git diff --check`, exited 0.
+- Acceptance criteria:
+  - AC1 PASS - Native `reason = "..."` policy remains documented and covered by focused validation tests.
+  - AC2 PASS - Temporary reasons without a stable issue reference or non-empty removal condition are rejected; both accepted alternatives are tested.
+  - AC3 PASS - Span-aware merge-base diff validation remains prospective and does not grandfather changed legacy attributes.
+  - AC4 PASS - Unit and Git-fixture coverage verifies missing and empty reasons plus documented item, crate, and temporary forms.
+  - AC5 PASS - Pre-commit and CI retain the validator integration, and the global CLI ADR now explicitly classifies `clippy-allow-reasons` as `no-stdout-result`. Its CLI tests verify silent success, validation error exit 1 with empty stdout and one NDJSON stderr record, usage error exit 2 with empty stdout and one `usage_error` NDJSON record, and a deterministic nonexistent-base-ref runtime error with exit 1, empty stdout, and exactly one `runtime_error` NDJSON stderr record.
+  - AC6 PASS - Focused tests and strict focused Clippy pass; the completed repository `linter all`, workspace documentation tests, and whitespace check provide the required broader validation evidence.
+- Repository-convention findings:
+  - None. The correction is narrowly limited to contract documentation, CLI regression coverage, and aligned issue evidence; it adds no production behavior beyond the already reviewed output implementation. The current diff has no whitespace errors.
+- Completion-review finding:
+  - PASS. The folder-style `implementation-retrospective.md` records the material prospective-baseline, pure-validator/CLI-adapter, and #2158 deferral decisions. #2158 remains planned for historical inventory and remediation; neither the validator nor workspace configuration prematurely enables `clippy::allow_attributes_without_reason`.
+- Issue-spec updates:
+  - None. All #2157 acceptance criteria were already checked off and are independently verified as PASS; no checkbox state changed.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - The reviewed change set is ready for the normal signed implementation commit and pre-PR workflow. This appended report is review evidence only; no production code was modified during review.
