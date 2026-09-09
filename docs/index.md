@@ -19,6 +19,7 @@ semantic-links:
     - docs/adrs/index.md
     - docs/issues/README.md
     - docs/copilot-pr-reviews/README.md
+    - docs/pr-review-feedback/README.md
     - docs/refactor-plans/closed/README.md
     - docs/refactor-plans/drafts/README.md
     - docs/refactor-plans/open/README.md
@@ -127,6 +128,14 @@ Records of Copilot pull request suggestion reviews.
 | ------------------------------------------------------------ | ----------------------------------------- |
 | [copilot-pr-reviews/README.md](copilot-pr-reviews/README.md) | Overview of the Copilot PR review archive |
 
+## Pull Request Review Feedback
+
+Records of review summaries, their independently tracked findings, and consolidated responses.
+
+| Document                                               | Description                                  |
+| ------------------------------------------------------ | -------------------------------------------- |
+| [pr-review-feedback/README.md](pr-review-feedback/README.md) | Overview of the PR review feedback archive |
+
 ## Skills and Conventions
 
 Internal documentation on project-specific conventions used by both humans and AI agents.
@@ -151,6 +160,7 @@ that type.
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
 | [templates/COPILOT-SUGGESTIONS-TEMPLATE.md](templates/COPILOT-SUGGESTIONS-TEMPLATE.md) | Template for recording Copilot PR review suggestions              |
+| [templates/PR-REVIEW-FEEDBACK-TEMPLATE.md](templates/PR-REVIEW-FEEDBACK-TEMPLATE.md)   | Template for tracking PR review findings and responses            |
 
 ## Media
 
