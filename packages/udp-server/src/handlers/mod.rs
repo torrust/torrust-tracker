@@ -270,10 +270,7 @@ pub(crate) mod tests {
 
     use crate::event as server_event;
     use crate::testing::environment::EnvContainer;
-    use crate::{
-        RawRequest,
-        handlers::{CookieTimeValues, handle_packet},
-    };
+    use crate::{RawRequest, handlers::handle_packet};
 
     pub struct CoreTrackerServices {
         pub core_config: Arc<Core>,
@@ -473,10 +470,7 @@ pub(crate) mod tests {
 
     struct SendableParseErrorPacketScenario {
         raw_request: RawRequest,
-        udp_tracker_core_container: Arc<torrust_tracker_udp_core::container::UdpTrackerCoreContainer>,
-        udp_tracker_server_container: Arc<crate::container::UdpTrackerServerContainer>,
-        server_service_binding: ServiceBinding,
-        cookie_time_values: CookieTimeValues,
+        environment: EnvContainer,
         transaction_id: TransactionId,
     }
 
@@ -505,14 +499,7 @@ pub(crate) mod tests {
                     payload,
                     from: sample_ipv4_remote_addr(),
                 },
-                udp_tracker_core_container: environment.udp_tracker_core_container,
-                udp_tracker_server_container: environment.udp_tracker_server_container,
-                server_service_binding: ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address())
-                    .expect("UDP service binding should be valid"),
-                cookie_time_values: CookieTimeValues {
-                    issue_time: sample_issue_time(),
-                    valid_range: sample_cookie_valid_range(),
-                },
+                environment,
                 transaction_id,
             }
         }
@@ -526,10 +513,13 @@ pub(crate) mod tests {
         // Act
         let (response, request_kind) = handle_packet(
             scenario.raw_request,
-            scenario.udp_tracker_core_container,
-            scenario.udp_tracker_server_container,
-            scenario.server_service_binding,
-            scenario.cookie_time_values,
+            scenario.environment.udp_tracker_core_container,
+            scenario.environment.udp_tracker_server_container,
+            ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address()).expect("UDP service binding should be valid"),
+            super::CookieTimeValues {
+                issue_time: sample_issue_time(),
+                valid_range: sample_cookie_valid_range(),
+            },
             torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
         )
         .await;
