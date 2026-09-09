@@ -8,7 +8,7 @@ github-issue: 2157
 spec-path: docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
 branch: "2157-2003-require-documented-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-09 12:00
+last-updated-utc: 2026-09-09 14:15
 semantic-links:
   skill-links:
     - create-issue
@@ -106,6 +106,7 @@ expanding into a bulk remediation.
 - 2026-09-09 13:10 UTC - GitHub Copilot - Implemented native-reason prospective validation as a small Rust crate with a pure `syn` module, Git-diff adapter, unit tests, and end-to-end Git fixture - Pending full validation
 - 2026-09-09 13:40 UTC - GitHub Copilot - Full lint and documentation tests plus independent complexity and acceptance reviews passed; restored prior append-only review evidence after the reset - Ready to commit
 - 2026-09-09 14:05 UTC - GitHub Copilot - Corrected `clippy-allow-reasons` to the global CLI output contract: `no-stdout-result`, silent success, and NDJSON stderr failure diagnostics; added CLI contract tests - `linter all`, focused tests, strict Clippy, and documentation tests passed
+- 2026-09-09 14:15 UTC - GitHub Copilot - Repaired PR #2177 container recipe context for the new workspace crate after `cargo chef prepare` failed in CI; focused uncached recipe build and `linter all` passed - Pending focused commit
 
 ## Acceptance Criteria
 
