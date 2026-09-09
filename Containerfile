@@ -72,6 +72,7 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 # Build stages below) because they are not part of the production tracker service
 # and do not need to be tested inside the container image:
 #   - workspace-coupling (analysis/coupling tool, no production value)
+#   - clippy-allow-reasons (prospective source-quality check, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
 #   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
 #   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
@@ -82,6 +83,7 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 # or declared target file is missing. `cargo chef prepare` has no `--exclude`
 # flag (only `--bin`), so these stubs cannot be omitted from the recipe stage.
 COPY contrib/dev-tools/analysis/workspace-coupling/Cargo.toml contrib/dev-tools/analysis/workspace-coupling/
+COPY contrib/dev-tools/checks/clippy-allow-reasons/Cargo.toml contrib/dev-tools/checks/clippy-allow-reasons/
 COPY packages/e2e-tools/Cargo.toml packages/e2e-tools/
 COPY packages/persistence-benchmark/Cargo.toml packages/persistence-benchmark/
 COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check-api-server/
@@ -127,6 +129,7 @@ RUN mkdir -p \
       packages/e2e-tools/src/bin \
       packages/persistence-benchmark/src/bin \
       contrib/dev-tools/analysis/workspace-coupling/src \
+      contrib/dev-tools/checks/clippy-allow-reasons/src \
       console/tracker-client/src/bin \
       packages/axum-health-check-api-server/src \
       packages/axum-http-server/src \
@@ -163,6 +166,8 @@ RUN mkdir -p \
       packages/e2e-tools/src/bin/qbittorrent_e2e_runner.rs \
       packages/persistence-benchmark/src/bin/persistence_benchmark_runner.rs \
       contrib/dev-tools/analysis/workspace-coupling/src/main.rs \
+      contrib/dev-tools/checks/clippy-allow-reasons/src/lib.rs \
+      contrib/dev-tools/checks/clippy-allow-reasons/src/main.rs \
       console/tracker-client/src/lib.rs \
       console/tracker-client/src/bin/http_tracker_client.rs \
       console/tracker-client/src/bin/tracker_checker.rs \
