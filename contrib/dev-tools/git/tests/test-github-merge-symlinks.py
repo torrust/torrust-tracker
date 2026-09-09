@@ -64,16 +64,27 @@ tool.main()
 '''
 
 
-def declaration_document(*entries):
-    """Build a declaration carrying one (path, target, reason) triple per entry."""
-    return json.dumps({
-        'namespace': 'com.torrust.repository.symlinks',
-        'version': [1, 0, 0],
-        'symlinks': [
-            {'path': path, 'target': target, 'reason': reason}
-            for path, target, reason in entries
-        ],
-    }, indent=2) + '\n'
+DECLARED_NAMESPACE = 'com.torrust.repository.symlinks'
+DECLARED_VERSION = [1, 0, 0]
+OMITTED = object()  # a header field the built declaration does not carry at all
+
+
+def declaration_document(*entries, namespace=DECLARED_NAMESPACE, version=DECLARED_VERSION):
+    """Build a declaration carrying one (path, target, reason) triple per entry.
+
+    The header fields default to the documented ones, and either can be overridden, OMITTED
+    included, so a test about the header builds exactly the document it is about.
+    """
+    document = {}
+    if namespace is not OMITTED:
+        document['namespace'] = namespace
+    if version is not OMITTED:
+        document['version'] = version
+    document['symlinks'] = [
+        {'path': path, 'target': target, 'reason': reason}
+        for path, target, reason in entries
+    ]
+    return json.dumps(document, indent=2) + '\n'
 
 
 REASON = 'Docker reads only .dockerignore, while Podman and Buildah prefer .containerignore.'
@@ -467,6 +478,126 @@ class DeclarationSourceTest(SymlinkDeclarationTestCase):
         self.assertIn(f"WARNING: Ignoring the symlink declaration '{DECLARATION}'", result.stdout)
 
 
+class DeclarationHeaderTest(SymlinkDeclarationTestCase):
+    """The header is what says a document is a declaration of this format and this revision.
+
+    Every case below commits a link the entry beside it would admit, so the only thing standing
+    between the link and an exemption is the header. Each asserts the link is refused, naming the
+    commit that carries it, and that the report says which field disagreed. The accepting case,
+    the documented header admitting that same link, is DeclaredLinksTest's first test, which
+    builds its declaration from the documented values these cases vary.
+    """
+
+    def declare_under_header(self, **header):
+        """Commit a link and a declaration that would admit it, under the given header."""
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link('.dockerignore', '.containerignore')
+        self.fixture.write(DECLARATION, declaration_document(
+            ('.dockerignore', '.containerignore', REASON), **header))
+        head_commit = self.fixture.commit('Declare a symbolic link under a header under test')
+        self.close_pull_request(head_commit)
+        return head_commit
+
+    def assertHeaderRefused(self, result, head_commit, explanation):
+        """Assert the declaration exempted nothing and the report named the field that disagreed."""
+        self.assertRefused(result, '.dockerignore', head_commit)
+        self.assertNotIn('Accepted symlink', result.stdout)
+        self.assertIn(f"WARNING: Ignoring the symlink declaration '{DECLARATION}' because "
+                      f"{explanation}. No symbolic link is exempted.", result.stdout)
+
+    def it_should_ignore_a_declaration_that_carries_no_namespace(self):
+        # Arrange
+        head_commit = self.declare_under_header(namespace=OMITTED)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 "it carries no 'namespace'; this tool reads a declaration "
+                                 'whose \'namespace\' is "com.torrust.repository.symlinks"')
+
+    def it_should_ignore_a_declaration_belonging_to_another_format(self):
+        # A file that carries a 'symlinks' array is not thereby a declaration of this format.
+
+        # Arrange
+        head_commit = self.declare_under_header(namespace='com.example.other.symlinks')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 'its \'namespace\' is "com.example.other.symlinks" rather than '
+                                 '"com.torrust.repository.symlinks"')
+
+    def it_should_ignore_a_declaration_whose_namespace_is_not_a_string(self):
+        # The documented value inside a JSON array is not the documented value.
+
+        # Arrange
+        head_commit = self.declare_under_header(namespace=[DECLARED_NAMESPACE])
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 'its \'namespace\' is ["com.torrust.repository.symlinks"] '
+                                 'rather than "com.torrust.repository.symlinks"')
+
+    def it_should_ignore_a_declaration_that_carries_no_version(self):
+        # Arrange
+        head_commit = self.declare_under_header(version=OMITTED)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 "it carries no 'version'; this tool reads a declaration "
+                                 "whose 'version' is [1, 0, 0]")
+
+    def it_should_ignore_a_declaration_of_an_unsupported_version(self):
+        # A revision this tool has not been taught is read under no rules rather than under
+        # the rules of the revision it does know.
+
+        # Arrange
+        head_commit = self.declare_under_header(version=[2, 0, 0])
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 "its 'version' is [2, 0, 0] rather than [1, 0, 0]")
+
+    def it_should_ignore_a_declaration_whose_version_is_not_an_integer_triple(self):
+        # Arrange
+        head_commit = self.declare_under_header(version='1.0.0')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 'its \'version\' is "1.0.0" rather than [1, 0, 0]')
+
+    def it_should_ignore_a_declaration_whose_version_carries_a_boolean(self):
+        # JSON's true is not 1, though Python compares them equal, so a header check resting on
+        # equality alone would read this document as the supported version.
+
+        # Arrange
+        head_commit = self.declare_under_header(version=[True, 0, 0])
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertHeaderRefused(result, head_commit,
+                                 "its 'version' is [true, 0, 0] rather than [1, 0, 0]")
+
+
 class CheckedRangeTest(SymlinkDeclarationTestCase):
 
     def it_should_refuse_a_link_only_an_intermediate_commit_carries(self):
@@ -665,8 +796,8 @@ def load_tests(loader, tests, pattern):
     """Collect the behaviour-named tests, which do not use the default 'test' prefix."""
     loader.testMethodPrefix = 'it_should'
     suite = unittest.TestSuite()
-    for case in (DeclaredLinksTest, DeclarationSourceTest, CheckedRangeTest,
-                 ReportRenderingTest, DeclarationArgumentTest):
+    for case in (DeclaredLinksTest, DeclarationSourceTest, DeclarationHeaderTest,
+                 CheckedRangeTest, ReportRenderingTest, DeclarationArgumentTest):
         suite.addTests(loader.loadTestsFromTestCase(case))
     return suite
 
