@@ -4,9 +4,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::{self, Write as _};
 use std::path::PathBuf;
 use std::process::{Command, ExitCode};
-use std::{env, fmt, fs};
+use std::{env, fs};
 
 use clippy_allow_reasons::validate_changed_allows;
+use serde::Serialize;
 
 const EXIT_VIOLATIONS: u8 = 1;
 const EXIT_USAGE_ERROR: u8 = 2;
@@ -14,59 +15,83 @@ const EXIT_USAGE_ERROR: u8 = 2;
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
-        Err(CliError::Usage(error)) => {
-            write_stderr(&error);
-            ExitCode::from(EXIT_USAGE_ERROR)
-        }
         Err(error) => {
-            write_stderr(&error.to_string());
-            ExitCode::from(EXIT_VIOLATIONS)
+            let exit_code = error.exit_code();
+            for diagnostic in error.diagnostics() {
+                emit_diagnostic(&diagnostic);
+            }
+            ExitCode::from(exit_code)
         }
     }
 }
+
+#[derive(Serialize)]
+struct CliDiagnostic {
+    kind: &'static str,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    line: Option<usize>,
+    exit_code: u8,
+}
+
 enum CliError {
     Usage(String),
-    Validation(String),
+    Runtime(String),
+    Violations(Vec<CliDiagnostic>),
 }
-impl From<String> for CliError {
-    fn from(error: String) -> Self {
-        Self::Validation(error)
-    }
-}
-impl fmt::Display for CliError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+
+impl CliError {
+    const fn exit_code(&self) -> u8 {
         match self {
-            Self::Usage(error) | Self::Validation(error) => formatter.write_str(error),
+            Self::Usage(_) => EXIT_USAGE_ERROR,
+            Self::Runtime(_) | Self::Violations(_) => EXIT_VIOLATIONS,
+        }
+    }
+
+    fn diagnostics(self) -> Vec<CliDiagnostic> {
+        match self {
+            Self::Usage(message) => {
+                vec![diagnostic("usage_error", message, None, None, EXIT_USAGE_ERROR)]
+            }
+            Self::Runtime(message) => {
+                vec![diagnostic("runtime_error", message, None, None, EXIT_VIOLATIONS)]
+            }
+            Self::Violations(diagnostics) => diagnostics,
         }
     }
 }
 
 fn run() -> Result<(), CliError> {
-    let workspace_root = workspace_root()?;
+    let workspace_root = workspace_root().map_err(CliError::Runtime)?;
     let base_ref = base_ref().map_err(CliError::Usage)?;
-    let base_commit = git_output(&workspace_root, ["merge-base", "HEAD", &base_ref])?;
-    let changed_lines = changed_rust_lines(&workspace_root, &base_commit)?;
+    let base_commit = git_output(&workspace_root, ["merge-base", "HEAD", &base_ref]).map_err(CliError::Runtime)?;
+    let changed_lines = changed_rust_lines(&workspace_root, &base_commit).map_err(CliError::Runtime)?;
     let mut violations = Vec::new();
 
     for (file, lines) in changed_lines {
         let source_path = workspace_root.join(&file);
         let source = fs::read_to_string(&source_path)
-            .map_err(|error| format!("{}: failed to read source: {error}", source_path.display()))?;
+            .map_err(|error| CliError::Runtime(format!("{}: failed to read source: {error}", source_path.display())))?;
         let file_violations = validate_changed_allows(&source, &lines)
-            .map_err(|error| format!("{}: failed to parse Rust source: {error}", file.display()))?;
+            .map_err(|error| CliError::Runtime(format!("{}: failed to parse Rust source: {error}", file.display())))?;
 
-        violations.extend(
-            file_violations
-                .into_iter()
-                .map(|violation| format!("{}:{}: {}", file.display(), violation.line, violation.message)),
-        );
+        violations.extend(file_violations.into_iter().map(|violation| {
+            diagnostic(
+                "validation_error",
+                violation.message.to_owned(),
+                Some(file.display().to_string()),
+                Some(violation.line),
+                EXIT_VIOLATIONS,
+            )
+        }));
     }
 
     if violations.is_empty() {
-        write_stdout("All newly added or modified Clippy allows have native reasons.");
         Ok(())
     } else {
-        Err(CliError::Validation(violations.join("\n")))
+        Err(CliError::Violations(violations))
     }
 }
 
@@ -164,14 +189,26 @@ fn git_output<const N: usize>(workspace_root: &PathBuf, arguments: [&str; N]) ->
         .map_err(|error| format!("Git output was not valid UTF-8: {error}"))
 }
 
-fn write_stdout(message: &str) {
-    let mut stdout = io::stdout().lock();
-    drop(writeln!(stdout, "{message}"));
+const fn diagnostic(
+    kind: &'static str,
+    message: String,
+    file: Option<String>,
+    line: Option<usize>,
+    exit_code: u8,
+) -> CliDiagnostic {
+    CliDiagnostic {
+        kind,
+        message,
+        file,
+        line,
+        exit_code,
+    }
 }
 
-fn write_stderr(message: &str) {
+fn emit_diagnostic(diagnostic: &CliDiagnostic) {
     let mut stderr = io::stderr().lock();
-    drop(writeln!(stderr, "{message}"));
+    drop(serde_json::to_writer(&mut stderr, diagnostic));
+    drop(stderr.write_all(b"\n"));
 }
 
 #[cfg(test)]
