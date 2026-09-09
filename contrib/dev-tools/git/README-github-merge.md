@@ -60,6 +60,7 @@ Each entry in `symlinks` describes one accepted link: `path` is repository-relat
 - A declaration file absent from the final merged tree at that path is not an error and grants no exception: every symbolic link in every checked commit refuses exactly as it did before this mechanism existed.
 - A declaration file that cannot be read as a valid declaration exempts nothing either. The tool reports why and then refuses links as if no declaration were present, so a broken file can never widen what is accepted, and a tree without links still passes.
 - A run that passes no `--symlinks` argument performs no declaration processing at all: no file is read, nothing is exempted, and neither accepted-link nor stale-entry output is printed.
+- Every path, target, and reason the report prints was chosen by whoever wrote the commit, so each is escaped before it is printed and a value carrying a newline or a terminal escape cannot forge a line of the report. Ordinary paths and targets print exactly as they read, and the escaping is a rendering only: it never changes what the rules above match.
 
 Every accepted link is printed with its path, target, and reason before the maintainer is asked to sign, so what the merge admitted is visible at the moment the decision is made rather than afterwards.
 
@@ -93,7 +94,8 @@ Python with a local stub to verify delegation without contacting GitHub.
 
 Run `python3 contrib/dev-tools/git/tests/test-github-merge-symlinks.py` to test the symbolic-link
 check inside the tool: which links a declaration admits, which it refuses and in which commit,
-where the declaration may come from, and what an omitted `--symlinks` argument does. Each case
+where the declaration may come from, what an omitted `--symlinks` argument does, and how the
+report renders tree content that carries control characters. Each case
 builds a repository and the bare upstream that publishes one pull request to it, and answers the
 signing prompt with a refusal, so the tool's real fetch, merge, and check paths run with no
 network and no GitHub API.

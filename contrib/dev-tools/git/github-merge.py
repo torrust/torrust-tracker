@@ -54,6 +54,19 @@ def sanitize(s, newlines=False):
     '''
     return ''.join(ch for ch in s if unicodedata.category(ch)[0] != "C" or (ch == '\n' and newlines))
 
+def quote_tree_value(value):
+    '''
+    Quote a path or a link target read out of a tree, for a message that reports it.
+
+    Tree content is chosen by whoever wrote the commit, and a path or a link target may
+    legally carry a newline or a terminal escape. Interpolated as it stands, such a value
+    forges lines of this report: a target ending in a newline and the text of an error can
+    print a refusal the tool never made, or hide one it did. The quoted form escapes those
+    characters and delimits the value, so a reader can see where it starts and ends, and it
+    is only ever a rendering: every comparison this check makes runs on the value itself.
+    '''
+    return repr(value)
+
 def git_config_get(option, default=None):
     '''
     Get named configuration option from git repository.
@@ -262,11 +275,11 @@ def check_symlinks(introduced_commits, merge_commit, declaration_path):
 
     for path in sorted(accepted):
         target, reason = accepted[path]
-        print(f"Accepted symlink: '{path}' -> '{target}': {reason}")
+        print(f"Accepted symlink: {quote_tree_value(path)} -> {quote_tree_value(target)}: {sanitize(reason)}")
     for path in sorted(set(declared) - merged_paths):
-        print(f"WARNING: Declared symlink '{path}' is not a symbolic link in the merged result; the entry in '{declaration_path}' is stale and can be dropped once no commit a merge introduces still carries the link.")
+        print(f"WARNING: Declared symlink {quote_tree_value(path)} is not a symbolic link in the merged result; the entry in '{declaration_path}' is stale and can be dropped once no commit a merge introduces still carries the link.")
     for path, commit in refusals:
-        print(f"ERROR: File '{path}' was a symlink in commit {commit}")
+        print(f"ERROR: File {quote_tree_value(path)} was a symlink in commit {commit}")
     # The prompts this report has to precede are written to an unbuffered stderr, so a buffered
     # stdout would deliver the report after the maintainer has already been asked to sign.
     stdout.flush()

@@ -512,6 +512,54 @@ class CheckedRangeTest(SymlinkDeclarationTestCase):
         self.assertNotIn(f"was a symlink in commit {head_commit}", result.stdout)
 
 
+class ReportRenderingTest(SymlinkDeclarationTestCase):
+
+    def it_should_escape_a_control_character_in_an_accepted_target(self):
+        # A link target is tree content, so it can carry a newline followed by the text of a
+        # refusal. Printed as it stands it would add a line the tool never wrote.
+
+        # Arrange
+        forged = '.containerignore\nERROR: File forged is refused in commit 0000000'
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link('.dockerignore', forged)
+        self.fixture.write(DECLARATION, declaration_document(('.dockerignore', forged, REASON)))
+        head_commit = self.fixture.commit('Declare a link whose target carries a newline')
+        self.close_pull_request(head_commit)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertIn("Accepted symlink: '.dockerignore' -> '.containerignore\\nERROR: File forged",
+                      result.stdout)
+        self.assertNotIn('\nERROR: File forged', result.stdout)
+
+    def it_should_escape_a_control_character_in_a_declaration_reason(self):
+        # The reason is tree content too, and reaches the same report.
+
+        # Arrange
+        forged = 'It exists.\nERROR: File forged is refused in commit 0000000'
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link('.dockerignore', '.containerignore')
+        self.fixture.write(DECLARATION,
+                           declaration_document(('.dockerignore', '.containerignore', forged)))
+        head_commit = self.fixture.commit('Declare a link with a reason carrying a newline')
+        self.close_pull_request(head_commit)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertIn("Accepted symlink: '.dockerignore' -> '.containerignore':"
+                      ' It exists.ERROR: File forged is refused in commit 0000000',
+                      result.stdout)
+        self.assertNotIn('\nERROR: File forged', result.stdout)
+
+
 class DeclarationArgumentTest(SymlinkDeclarationTestCase):
 
     def it_should_reject_an_absolute_declaration_path(self):
@@ -546,7 +594,7 @@ def load_tests(loader, tests, pattern):
     loader.testMethodPrefix = 'it_should'
     suite = unittest.TestSuite()
     for case in (DeclaredLinksTest, DeclarationSourceTest, CheckedRangeTest,
-                 DeclarationArgumentTest):
+                 ReportRenderingTest, DeclarationArgumentTest):
         suite.addTests(loader.loadTestsFromTestCase(case))
     return suite
 
