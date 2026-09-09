@@ -41,9 +41,9 @@ Status legend:
 
 ## Suggestions
 
-| # | Thread ID | Path | URL | Suggestion Summary | Decision | Reply URL | Status | Thread State |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `PRRT_kwDOGp2yqc6gsX3y` | `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` | <https://github.com/torrust/torrust-tracker/pull/2186#discussion_r3969447078> | Match the EPIC entry title to #2185 by retaining “check.” | `action`: corrected the EPIC title in `0697bb46`. | <https://github.com/torrust/torrust-tracker/pull/2186#discussion_r3969699813> | DONE | RESOLVED |
+| #   | Thread ID               | Path                                                               | URL                                                                           | Suggestion Summary                                        | Decision                                          | Reply URL                                                                     | Status | Thread State |
+| --- | ----------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6gsX3y` | `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` | <https://github.com/torrust/torrust-tracker/pull/2186#discussion_r3969447078> | Match the EPIC entry title to #2185 by retaining “check.” | `action`: corrected the EPIC title in `0697bb46`. | <https://github.com/torrust/torrust-tracker/pull/2186#discussion_r3969699813> | DONE   | RESOLVED     |
 
 ## Notes
 
