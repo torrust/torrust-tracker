@@ -125,6 +125,31 @@ components, or derive an expected outcome using production code under test. For 
 constraints and example, see
 [Scenario fixtures for causal initial state](../../../../../docs/testing/refactoring-patterns/scenario-fixtures-for-causal-initial-state.md).
 
+### Verify Intent with Prose-First AAA
+
+Before considering any new or materially refactored test ready for maintainer review, make its
+intent explicit and verify that the final code communicates it. This is mandatory for every
+test-producing increment:
+
+1. Write temporary normal-prose **Arrange**, **Act**, and **Assert** paragraphs above the test.
+    State the causal initial state, the production action, and independently specified observable
+    result; do not describe implementation mechanics without explaining their behavioral purpose.
+2. Repeat each paragraph above the corresponding `// Arrange`, `// Act`, or `// Assert` code
+    section.
+3. Compare the code with each paragraph. Refactor names, setup, builders, scenario fixtures, the
+    visible Act, or assertions until the code itself expresses the paragraph.
+4. Remove prose that is redundant once the code communicates the intent. Retain only essential
+    context that cannot be expressed clearly in code without disproportionate complexity or a
+    misleading abstraction.
+5. Record the completed prose-first comparison in the task evidence or file-local test plan before
+    maintainer review and commit.
+
+The temporary prose is the test's specification, not permanent commentary. A parameter bag, an
+opaque fixture, a hidden Act, or an assertion derived through production code is evidence that the
+code has not yet expressed its specification. See
+[Prose-first Arrange-Act-Assert verification](../../../../../docs/testing/refactoring-patterns/prose-first-arrange-act-assert-verification.md)
+for a repository example.
+
 ## Phase 1: Basic Unit Test
 
 ### Naming Convention
@@ -305,6 +330,7 @@ establishes a reusable pattern for future tests.
 
 - [ ] Test name uses `it_should_` prefix
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
+- [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
 - [ ] Behaviour coverage is maximized with maintainable tests
