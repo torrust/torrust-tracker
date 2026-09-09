@@ -148,13 +148,130 @@ def ask_prompt(text):
     print("",file=stderr)
     return reply
 
-def get_symlink_files():
-    files = sorted(subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', 'HEAD']).splitlines())
-    ret = []
-    for f in files:
-        if (int(f.decode('utf-8').split(" ")[0], 8) & 0o170000) == 0o120000:
-            ret.append(f.decode('utf-8').split("\t")[1])
-    return ret
+def get_symlink_entries(commit):
+    '''
+    List the symbolic links in a commit's tree as sorted (path, target) pairs.
+
+    The target is the link's literal content, which is what a declaration has to match.
+    '''
+    entries = []
+    for line in subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', commit]).splitlines():
+        name_sep = line.index(b'\t')
+        metadata = line[:name_sep].split() # perms, type, object id
+        if (int(metadata[0].decode('utf-8'), 8) & 0o170000) != 0o120000:
+            continue
+        path = line[name_sep+1:].decode('utf-8')
+        target = subprocess.check_output([GIT, 'cat-file', 'blob', metadata[2].decode('utf-8')]).decode('utf-8', errors='replace')
+        entries.append((path, target))
+    return sorted(entries)
+
+def symlink_declaration_path_error(path):
+    '''
+    Explain why a value cannot name a declaration inside a tree, or return None when it can.
+
+    The argument names a location in the merged tree rather than in a filesystem, so an
+    absolute value and one that escapes the repository are both rejected before any work.
+    '''
+    if not path:
+        return "--symlinks needs a repository-relative path inside the merged tree, not an empty value"
+    if path.startswith('/') or os.path.isabs(path):
+        return f"--symlinks path '{path}' is absolute; it names a location inside the merged tree, which is always repository-relative"
+    if '..' in path.replace('\\', '/').split('/'):
+        return f"--symlinks path '{path}' escapes the repository; it names a location inside the merged tree"
+    return None
+
+def symlink_target_is_confined(target):
+    '''
+    Report whether a link target stays inside the repository.
+
+    An absolute target and a target containing a '..' segment are never accepted, whatever
+    a declaration says, because this is a property of the target rather than of the file
+    that declares it.
+    '''
+    if not target:
+        return False
+    if target.startswith('/'):
+        return False
+    return '..' not in target.split('/')
+
+def read_symlink_declaration(commit, path):
+    '''
+    Read the symbolic-link declaration at a tree path of a commit.
+
+    Returns the declared links as a dict of path to (target, reason), together with a
+    message explaining why nothing could be declared. An absent file declares nothing and
+    is not a problem; a file that cannot be read as a declaration declares nothing either,
+    and its message is reported so a broken file is visible instead of silently permissive.
+    '''
+    try:
+        raw = subprocess.check_output([GIT, 'show', commit+':'+path], stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        return ({}, None)
+    try:
+        document = json.loads(raw.decode('utf-8'))
+    except (UnicodeDecodeError, ValueError) as exc:
+        return ({}, f'it is not valid JSON ({exc})')
+    if not isinstance(document, dict):
+        return ({}, 'its top level is not a JSON object')
+    listed = document.get('symlinks')
+    if not isinstance(listed, list):
+        return ({}, "it carries no 'symlinks' array")
+    declared = {}
+    for entry in listed:
+        if not isinstance(entry, dict):
+            return ({}, 'one of its entries is not a JSON object')
+        fields = [entry.get(field) for field in ('path', 'target', 'reason')]
+        if not all(isinstance(value, str) and value for value in fields):
+            return ({}, "an entry lacks a non-empty 'path', 'target' or 'reason'")
+        declared_path, target, reason = fields
+        if declared_path in declared:
+            return ({}, f"it declares '{declared_path}' more than once")
+        declared[declared_path] = (target, reason)
+    return (declared, None)
+
+def check_symlinks(introduced_commits, merge_commit, declaration_path):
+    '''
+    Refuse every symbolic link in the checked commits that the declaration does not admit.
+
+    The checked commits are the ones the merge introduces plus the merge commit itself, and
+    the declaration is read from the merge commit alone, so one reviewed statement answers
+    for the whole range. Matching runs from the trees to the declaration: a declared entry
+    can only remove a refusal for a link that exists, never introduce one. An entry that
+    declares no link of the merged result is reported as stale, because the merged result is
+    what a later change has to drop it from. Returns whether the merge may continue.
+    '''
+    declared = {}
+    if declaration_path is not None:
+        declared, problem = read_symlink_declaration(merge_commit, declaration_path)
+        if problem is not None:
+            print(f"WARNING: Ignoring the symlink declaration '{declaration_path}' because {problem}. No symbolic link is exempted.")
+
+    accepted = {}
+    merged_paths = set()
+    refusals = []
+    for commit in list(introduced_commits) + [merge_commit]:
+        entries = get_symlink_entries(commit)
+        if commit == merge_commit:
+            merged_paths = {path for path, _ in entries}
+        for path, target in entries:
+            declaration = declared.get(path)
+            if declaration is not None and declaration[0] == target and symlink_target_is_confined(target):
+                accepted[path] = declaration
+                continue
+            refusals.append((path, commit))
+
+    for path in sorted(accepted):
+        target, reason = accepted[path]
+        print(f"Accepted symlink: '{path}' -> '{target}': {reason}")
+    for path in sorted(set(declared) - merged_paths):
+        print(f"WARNING: Declared symlink '{path}' is not a symbolic link in the merged result; the entry in '{declaration_path}' is stale and can be dropped once no commit a merge introduces still carries the link.")
+    for path, commit in refusals:
+        print(f"ERROR: File '{path}' was a symlink in commit {commit}")
+    # The prompts this report has to precede are written to an unbuffered stderr, so a buffered
+    # stdout would deliver the report after the maintainer has already been asked to sign.
+    stdout.flush()
+
+    return not refusals
 
 def tree_sha512sum(commit='HEAD'):
     # request metadata for entire tree, recursively
@@ -273,11 +390,18 @@ def parse_arguments():
             epilog=epilog)
     parser.add_argument('--repo-from', '-r', metavar='repo_from', type=str, nargs='?',
         help='The repo to fetch the pull request from. Useful for monotree repositories. Can only be specified when branch==master. (default: githubmerge.repository setting)')
+    parser.add_argument('--symlinks', metavar='tree_path', type=str, default=None,
+        help='Repository-relative path, inside the merged tree, of the file declaring which symbolic links this repository accepts. Every declared link whose target matches is exempt from the symlink refusal; everything else still refuses. Without this argument no declaration is read and every symbolic link refuses. (no default)')
     parser.add_argument('pull', metavar='PULL', type=int, nargs=1,
         help='Pull request ID to merge')
     parser.add_argument('branch', metavar='BRANCH', type=str, nargs='?',
         default=None, help='Branch to merge against (default: githubmerge.branch setting, or base branch for pull, or \'master\')')
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.symlinks is not None:
+        path_error = symlink_declaration_path_error(args.symlinks)
+        if path_error is not None:
+            parser.error(path_error)
+    return args
 
 def main():
     # Extract settings from git repo
@@ -390,10 +514,13 @@ def main():
             print("ERROR: Creating merge failed (already merged?).",file=stderr)
             sys.exit(4)
 
-        symlink_files = get_symlink_files()
-        for f in symlink_files:
-            print(f"ERROR: File '{f}' was a symlink")
-        if len(symlink_files) > 0:
+        # Check the symbolic links in every commit the merge introduces, not only in the
+        # merged tip: a link that appears in an intermediate commit and disappears before
+        # the tip still resolves on every checkout, archive, or bisect of the commit that
+        # carries it. The declaration that admits them is read from the merged tree alone.
+        merge_commit = subprocess.check_output([GIT,'rev-parse','HEAD']).decode('utf-8').strip()
+        introduced_commits = subprocess.check_output([GIT,'--no-pager','log','--reverse','--topo-order','--pretty=format:%H',base_branch+'..'+head_branch]).decode('utf-8').split()
+        if not check_symlinks(introduced_commits, merge_commit, args.symlinks):
             sys.exit(4)
 
         # Compute SHA512 of git tree (to be able to detect changes before sign-off)
