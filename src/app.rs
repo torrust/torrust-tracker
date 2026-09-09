@@ -533,9 +533,13 @@ async fn start_the_http_api(
 
 fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.inactive_peer_cleanup_interval > 0 {
-        job_manager.register_legacy(
+        job_manager.spawn(
             "torrent_cleanup",
-            torrent_cleanup::start_job(&config.core, &app_container.tracker_core_container.torrents_manager),
+            component_runner(torrent_cleanup::run_job(
+                config.core.clone(),
+                app_container.tracker_core_container.torrents_manager.clone(),
+                job_manager.new_cancellation_token(),
+            )),
         );
     }
 }
@@ -582,7 +586,8 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::{Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services};
+    use super::{Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_torrent_cleanup};
+    use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
     use crate::container::AppContainer;
 
     #[test]
@@ -648,6 +653,38 @@ mod tests {
             .expect("in-memory listener should stop after cancellation");
 
         assert_eq!(completion, torrust_tracker_events::shutdown::Completion::Cancelled);
+    }
+
+    #[tokio::test]
+    async fn it_should_register_torrent_cleanup_as_a_direct_cancelled_component() {
+        // Arrange
+        let configuration = Configuration {
+            core: Core {
+                inactive_peer_cleanup_interval: 24 * 60 * 60,
+                ..Core::default()
+            },
+            ..Configuration::default()
+        };
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_torrent_cleanup(&configuration, &app_container, &mut job_manager);
+
+        // Act
+        job_manager.cancel();
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: "torrent_cleanup".to_string(),
+                status: JobStatus::Cancelled,
+            }]
+        );
     }
 
     #[tokio::test]

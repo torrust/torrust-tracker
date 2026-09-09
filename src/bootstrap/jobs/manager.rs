@@ -181,7 +181,8 @@ impl<T> Drop for NestedServerTask<T> {
 
 // issue: #1488
 // Transitional compatibility boundary. Do not register new components here.
-// SI-4/SI-5 must migrate these pre-spawned periodic jobs to `JobManager::spawn`.
+// SI-5 must migrate peers inactivity update to `JobManager::spawn`; UDP IP-ban
+// cleanup has its own periodic-job migration.
 /// A pre-spawned job retained for a narrow legacy compatibility boundary.
 ///
 /// `JoinSet` cannot adopt this handle without a wrapper task, so this type is

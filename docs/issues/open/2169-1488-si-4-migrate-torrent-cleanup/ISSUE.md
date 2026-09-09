@@ -6,9 +6,9 @@ priority: p2
 epic: 1488
 github-issue: 2169
 spec-path: docs/issues/open/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md
-branch: 2169-migrate-torrent-cleanup-spec
-related-pr: null
-last-updated-utc: 2026-09-08 11:15
+branch: 2169-migrate-torrent-cleanup
+related-pr: 2181
+last-updated-utc: 2026-09-09 08:35
 semantic-links:
   skill-links:
     - create-issue
@@ -138,15 +138,15 @@ commit is deliberately separate from the migration implementation.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                              | Notes / Expected Output                                                                                                    |
-| --- | ------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Replace pre-spawned API           | Add unspawned `run_job` accepting `CancellationToken` and returning `Completion`.                                          |
-| T2  | TODO   | Migrate loop cancellation         | Replace `ctrl_c()` with `cancellation_token.cancelled()`; preserve interval and weak-manager behavior.                     |
-| T3  | TODO   | Migrate application registration  | Register `torrent_cleanup` directly with `JobManager::spawn` through `component_runner`; remove its `register_legacy` use. |
-| T4  | TODO   | Add deterministic lifecycle tests | Test injected-token runner cancellation and named manager outcome `torrent_cleanup: Cancelled`.                            |
-| T5  | TODO   | Manually verify cleanup behavior  | Announce a peer, observe it through the REST API, then confirm cleanup removes it and logs its run.                        |
-| T6  | TODO   | Add manual-cleanup test skill     | After M4, add a reusable manual verification procedure under `.github/skills/dev/testing/` in a separate commit.           |
-| T7  | TODO   | Validate and record evidence      | Run checks and direct-binary SIGTERM verification; update `verification.md` and acceptance evidence.                       |
+| ID  | Status | Task                              | Notes / Expected Output                                                                                     |
+| --- | ------ | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Replace pre-spawned API           | Added unspawned `run_job` accepting `CancellationToken` and returning `Completion`.                         |
+| T2  | DONE   | Migrate loop cancellation         | Replaced `ctrl_c()` with `cancellation_token.cancelled()` and preserved interval and weak-manager behavior. |
+| T3  | DONE   | Migrate application registration  | Registered `torrent_cleanup` directly with `JobManager::spawn` through `component_runner`.                  |
+| T4  | DONE   | Add deterministic lifecycle tests | Added injected-token, weak-manager expiry, and named manager-outcome coverage.                              |
+| T5  | DONE   | Manually verify cleanup behavior  | Verified the announced peer is removed while the configured peerless torrent remains.                       |
+| T6  | DONE   | Add manual-cleanup test skill     | Added a reusable manual verification procedure under `.github/skills/dev/testing/` in a separate commit.    |
+| T7  | DONE   | Validate and record evidence      | Passed root-library tests and `linter all`; recorded direct-binary SIGTERM and cleanup evidence.            |
 
 ## Commit Points
 
@@ -165,43 +165,45 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 ### Workflow Checkpoints
 
 - [x] Spec reviewed and approved by user/maintainer
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-09-08 10:31 UTC — Copilot — Revised the existing SI-4 draft using #1586 direct-supervisor and #1588 inventory evidence. — [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md), [#1588](../../open/1588-review-shutdown-process-for-all-tasks-jobs/verification.md)
 - 2026-09-08 11:15 UTC — Jose Celano — Approved the revised specification; GitHub issue #2169 created and linked as an EPIC #1488 sub-issue. — https://github.com/torrust/torrust-tracker/issues/2169
+- 2026-09-08 16:26 UTC — Copilot — Migrated torrent cleanup to direct token-aware supervision; deterministic tests, isolated inactive-peer cleanup, and direct-binary SIGTERM verification passed. — `verification.md`
+- 2026-09-09 08:22 UTC — Copilot — Completion review: no material design change and no invalidated assumption, so no `implementation-retrospective.md` is needed; the only discovery was the `metadata.purpose = "configuration"` schema requirement for the isolated config. Independent Task Reviewer approved AC1–AC9; its low-severity documentation findings were applied. — `agent-review-reports.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrent_cleanup.rs` contains no `tokio::signal::ctrl_c()` call.
-- [ ] AC2: Torrent cleanup accepts an injected `CancellationToken` and returns
+- [x] AC1: `torrent_cleanup.rs` contains no `tokio::signal::ctrl_c()` call.
+- [x] AC2: Torrent cleanup accepts an injected `CancellationToken` and returns
       `Completion::Cancelled` after cancellation.
-- [ ] AC3: Weak `TorrentsManager` expiry returns `Completion::Completed`.
-- [ ] AC4: With cleanup enabled, `src/app.rs` registers one named direct
+- [x] AC3: Weak `TorrentsManager` expiry returns `Completion::Completed`.
+- [x] AC4: With cleanup enabled, `src/app.rs` registers one named direct
       `JoinSet` component, `torrent_cleanup`, rather than a legacy handle.
-- [ ] AC5: `JobManager::cancel()` produces the named
+- [x] AC5: `JobManager::cancel()` produces the named
       `torrent_cleanup: JobStatus::Cancelled` outcome without an OS signal.
-- [ ] AC6: Direct-binary SIGTERM evidence shows torrent cleanup's cancellation
+- [x] AC6: Direct-binary SIGTERM evidence shows torrent cleanup's cancellation
       log and cooperative manager outcome, not its deadline-abort outcome.
-- [ ] AC7: SI-5's `peers_inactivity_update` remains outside this scope and may
+- [x] AC7: SI-5's `peers_inactivity_update` remains outside this scope and may
       remain deadline-aborted in the same scenario.
-- [ ] AC8: A local tracker run proves torrent cleanup removes an inactive peer;
+- [x] AC8: A local tracker run proves torrent cleanup removes an inactive peer;
       REST API observations and cleanup log evidence are recorded.
-- [ ] AC9: A reusable manual torrent-cleanup verification skill is added under
+- [x] AC9: A reusable manual torrent-cleanup verification skill is added under
       `.github/skills/dev/testing/` in a commit separate from the migration.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior changes.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior changes.
 
 ## Verification Plan
 
@@ -226,12 +228,12 @@ outcomes, and asserts `torrent_cleanup: JobStatus::Cancelled`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                           | Command / Steps                                                                                                                                                                                                                                                    | Expected Result                                                                                                                                                     | Status | Evidence                                        |
-| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------- |
-| M1  | No direct OS-signal dependency     | Search `src/bootstrap/jobs/torrent_cleanup.rs` for `ctrl_c`.                                                                                                                                                                                                       | No matches.                                                                                                                                                         | TODO   | `verification.md`                               |
-| M2  | Direct-binary SIGTERM cancellation | Build and run `./target/debug/torrust-tracker`; wait for `Tracker shutdown signal handlers installed.`; verify its direct PID; send `SIGTERM`.                                                                                                                     | Torrent cleanup logs cancellation and manager reports it as cooperatively cancelled, not deadline-aborted.                                                          | TODO   | `verification.md`                               |
-| M3  | Remaining migration boundary       | Inspect the same SIGTERM log.                                                                                                                                                                                                                                      | `peers_inactivity_update` may remain deadline-aborted while SI-5 is pending; no conclusion about SI-5 completion.                                                   | TODO   | `verification.md`                               |
-| M4  | Inactive-peer cleanup regression   | Run an isolated local tracker with `inactive_peer_cleanup_interval = 1`, `max_peer_timeout = 1`, and `remove_peerless_torrents = false`; announce a fixed info hash; read it through `GET /api/v1/torrent/{info_hash}`; wait at least five seconds; read it again. | First response contains the announced peer; second response keeps the torrent but has an empty `peers` array. Logs show the cleanup run and post-cleanup `peers=0`. | TODO   | `verification.md`; reusable skill created by T6 |
+| ID  | Scenario                           | Command / Steps                                                                                                                                                                                                                                                    | Expected Result                                                                                                                                                     | Status | Evidence                                                                           |
+| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| M1  | No direct OS-signal dependency     | Search `src/bootstrap/jobs/torrent_cleanup.rs` for `ctrl_c`.                                                                                                                                                                                                       | No matches.                                                                                                                                                         | DONE   | `verification.md`                                                                  |
+| M2  | Direct-binary SIGTERM cancellation | Build and run `./target/debug/torrust-tracker`; wait for `Tracker shutdown signal handlers installed.`; verify its direct PID; send `SIGTERM`.                                                                                                                     | Torrent cleanup logs cancellation and manager reports it as cooperatively cancelled, not deadline-aborted.                                                          | DONE   | `verification.md`                                                                  |
+| M3  | Remaining migration boundary       | The isolated run disables `peers_inactivity_update`; inspect its `register_legacy` call in `src/app.rs` instead.                                                                                                                                                   | `peers_inactivity_update` may remain deadline-aborted while SI-5 is pending; no conclusion about SI-5 completion.                                                   | DONE   | `verification.md`; boundary verified by its `register_legacy` call in `src/app.rs` |
+| M4  | Inactive-peer cleanup regression   | Run an isolated local tracker with `inactive_peer_cleanup_interval = 1`, `max_peer_timeout = 1`, and `remove_peerless_torrents = false`; announce a fixed info hash; read it through `GET /api/v1/torrent/{info_hash}`; wait at least five seconds; read it again. | First response contains the announced peer; second response keeps the torrent but has an empty `peers` array. Logs show the cleanup run and post-cleanup `peers=0`. | DONE   | `verification.md`; reusable skill created by T6                                    |
 
 ## Risks and Trade-offs
 
@@ -252,7 +254,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: Not yet assessed.
+- Retrospective: No material design change occurred. The only runtime discovery was that the isolated configuration metadata requires `purpose = "configuration"`; the implementation itself followed the approved direct-supervisor design.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue folder.
 - If no retrospective is needed, add a concise progress-log entry explaining
