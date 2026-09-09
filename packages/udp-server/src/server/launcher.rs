@@ -314,7 +314,9 @@ async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
 
 #[cfg(test)]
 mod tests {
+    use std::net::SocketAddr;
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio::sync::oneshot;
     use torrust_server_lib::signals::{Halted, Started};
@@ -327,48 +329,70 @@ mod tests {
     use crate::container::UdpTrackerServerContainer;
     use crate::server::bound_socket::BoundSocket;
 
+    struct UdpLauncherDependencies {
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+        bound_socket: BoundSocket,
+        cookie_lifetime: Duration,
+        bound_address: SocketAddr,
+    }
+
+    impl UdpLauncherDependencies {
+        async fn new() -> Self {
+            let configuration = Arc::new(ephemeral_public());
+            let core_config = Arc::new(configuration.core.clone());
+            let udp_tracker_config = Arc::new(
+                configuration
+                    .udp_trackers
+                    .clone()
+                    .expect("UDP test configuration should include a tracker")
+                    .into_iter()
+                    .next()
+                    .expect("UDP test configuration should include one tracker"),
+            );
+            torrust_clock::initialize_static();
+            torrust_tracker_udp_core::initialize_static();
+            logging::setup(&configuration.logging);
+
+            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+            let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+                &core_config,
+                &udp_tracker_config,
+                configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+                configuration_instance_id,
+            )
+            .await;
+            let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+            let bound_socket = BoundSocket::bind(udp_tracker_config.bind_address, false).expect("UDP socket should bind");
+            let bound_address = bound_socket.address();
+
+            Self {
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                bound_socket,
+                cookie_lifetime: udp_tracker_config.cookie_lifetime,
+                bound_address,
+            }
+        }
+    }
+
     #[tokio::test]
     async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
         // Arrange
-        let configuration = Arc::new(ephemeral_public());
-        let core_config = Arc::new(configuration.core.clone());
-        let udp_tracker_config = Arc::new(
-            configuration
-                .udp_trackers
-                .clone()
-                .expect("UDP test configuration should include a tracker")
-                .into_iter()
-                .next()
-                .expect("UDP test configuration should include one tracker"),
-        );
-        torrust_clock::initialize_static();
-        torrust_tracker_udp_core::initialize_static();
-        logging::setup(&configuration.logging);
-
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
-            &core_config,
-            &udp_tracker_config,
-            configuration.udp_tracker_server.max_connection_id_errors_per_ip,
-            configuration_instance_id,
-        )
-        .await;
-        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
-        let bound_socket = BoundSocket::bind(udp_tracker_config.bind_address, false).expect("UDP socket should bind");
-        let address = bound_socket.address();
-        let (tx_start, rx_start) = oneshot::channel::<Started>();
-        let (_tx_halt, rx_halt) = oneshot::channel::<Halted>();
-        drop(rx_start);
+        let dependencies = UdpLauncherDependencies::new().await;
+        let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
+        let (_halt_sender, halt_receiver) = oneshot::channel::<Halted>();
+        drop(startup_notification_receiver);
 
         // Act
         let result = Launcher::run_with_graceful_shutdown(
-            udp_tracker_core_container,
-            udp_tracker_server_container,
-            bound_socket,
-            udp_tracker_config.cookie_lifetime,
+            dependencies.udp_tracker_core_container,
+            dependencies.udp_tracker_server_container,
+            dependencies.bound_socket,
+            dependencies.cookie_lifetime,
             torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
-            tx_start,
-            rx_halt,
+            startup_notification_sender,
+            halt_receiver,
         )
         .await;
 
@@ -377,6 +401,7 @@ mod tests {
             result.expect_err("startup notification should fail").kind(),
             std::io::ErrorKind::BrokenPipe
         );
-        BoundSocket::bind(address, false).expect("UDP socket should be released after startup notification failure");
+        BoundSocket::bind(dependencies.bound_address, false)
+            .expect("UDP socket should be released after startup notification failure");
     }
 }
