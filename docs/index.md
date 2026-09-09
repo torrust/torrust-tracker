@@ -132,8 +132,8 @@ Records of Copilot pull request suggestion reviews.
 
 Records of review summaries, their independently tracked findings, and consolidated responses.
 
-| Document                                               | Description                                  |
-| ------------------------------------------------------ | -------------------------------------------- |
+| Document                                                     | Description                                |
+| ------------------------------------------------------------ | ------------------------------------------ |
 | [pr-review-feedback/README.md](pr-review-feedback/README.md) | Overview of the PR review feedback archive |
 
 ## Skills and Conventions

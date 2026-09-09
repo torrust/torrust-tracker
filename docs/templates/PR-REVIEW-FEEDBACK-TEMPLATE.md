@@ -43,15 +43,15 @@ must not be used interchangeably.
 
 ## Reviews
 
-| Review ID | Submitted at (UTC) | Reviewer | State | URL | Reviewed commit | Consolidated response URL | Response state |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| <REVIEW_ID> | <TIMESTAMP> | <REVIEWER> | <REVIEW_STATE> | <REVIEW_URL> | <COMMIT> | <RESPONSE_URL_OR_PENDING> | <PENDING_OR_POSTED> |
+| Review ID   | Submitted at (UTC) | Reviewer   | State          | URL          | Reviewed commit | Consolidated response URL | Response state      |
+| ----------- | ------------------ | ---------- | -------------- | ------------ | --------------- | ------------------------- | ------------------- |
+| <REVIEW_ID> | <TIMESTAMP>        | <REVIEWER> | <REVIEW_STATE> | <REVIEW_URL> | <COMMIT>        | <RESPONSE_URL_OR_PENDING> | <PENDING_OR_POSTED> |
 
 ## Findings
 
-| ID | Review ID | Source | Comment / thread ID | URL | Summary | Decision | Independent fix commit | Validation | Reply URL | Inline thread state | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F1 | <REVIEW_ID> | <REVIEW_BODY_OR_INLINE> | <COMMENT_OR_THREAD_ID> | <COMMENT_URL> | <SUMMARY> | <DECISION> | <COMMIT_OR_NA> | <VALIDATION> | <REPLY_URL_OR_NA> | <STATE> | <STATUS> |
+| ID  | Review ID   | Source                  | Comment / thread ID    | URL           | Summary   | Decision   | Independent fix commit | Validation   | Reply URL         | Inline thread state | Status   |
+| --- | ----------- | ----------------------- | ---------------------- | ------------- | --------- | ---------- | ---------------------- | ------------ | ----------------- | ------------------- | -------- |
+| F1  | <REVIEW_ID> | <REVIEW_BODY_OR_INLINE> | <COMMENT_OR_THREAD_ID> | <COMMENT_URL> | <SUMMARY> | <DECISION> | <COMMIT_OR_NA>         | <VALIDATION> | <REPLY_URL_OR_NA> | <STATE>             | <STATUS> |
 
 ## Processing Log
 
