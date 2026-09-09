@@ -137,10 +137,12 @@ mod tests {
 
         // Act
         tokio::time::advance(Duration::from_secs(1)).await;
-        let completion = timeout(Duration::from_secs(1), runner)
-            .await
-            .expect("the cleanup runner should stop after the manager is dropped")
-            .expect("the cleanup runner should not panic");
+        tokio::task::yield_now().await;
+        assert!(
+            runner.is_finished(),
+            "the cleanup runner should stop after the manager is dropped"
+        );
+        let completion = runner.await.expect("the cleanup runner should not panic");
 
         // Assert
         assert_eq!(completion, Completion::Completed);
