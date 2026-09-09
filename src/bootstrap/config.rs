@@ -117,6 +117,14 @@ mod tests {
                 std::env::remove_var("TORRUST_TRACKER_CONFIG_TOML");
             }
         }
+
+        #[allow(unsafe_code)]
+        fn remove_path() {
+            // SAFETY: `ENVIRONMENT_LOCK` serializes environment mutations in this test module.
+            unsafe {
+                std::env::remove_var(torrust_tracker_configuration::ENV_VAR_CONFIG_TOML_PATH);
+            }
+        }
     }
 
     impl Drop for ConfigurationPathGuard {
@@ -236,6 +244,7 @@ mod tests {
         let explicit_path = directory.path().join("explicit.toml");
         fs::write(&explicit_path, configuration_with_health_check_port(42155)).expect("write explicit configuration");
         let _path_guard = ConfigurationPathGuard::replace(&directory.path().join("environment.toml"));
+        ConfigurationPathGuard::remove_path();
         ConfigurationPathGuard::set_complete_toml(configuration_with_health_check_port(42156));
 
         // Act

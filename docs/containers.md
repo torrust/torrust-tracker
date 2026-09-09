@@ -147,10 +147,11 @@ podman run -it docker.io/torrust-tracker:debug
 
 ### Arguments
 
-Docker or Podman runtime arguments are placed before the image tag. Tracker
-command-line arguments are placed after it.
+Docker or Podman runtime arguments are placed before the image tag. Because
+tracker arguments after the image tag replace the image `CMD`, include the
+tracker binary before its command-line arguments.
 
-`run [runtime arguments] torrust-tracker:release [tracker arguments]`
+`run [runtime arguments] torrust-tracker:release /usr/bin/torrust-tracker [tracker arguments]`
 
 #### Tracker Command Options
 
@@ -159,6 +160,7 @@ path is evaluated inside the container, so use an in-container mounted path:
 
 ```sh
 docker run -it torrust/tracker:latest \
+  /usr/bin/torrust-tracker \
   --config-toml-path /etc/torrust/tracker/tracker.toml
 ```
 

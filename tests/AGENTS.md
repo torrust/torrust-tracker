@@ -128,8 +128,6 @@ Until these global side effects are eliminated (tracked in
 integration-test binary must start exactly one tracker instance with one fixed
 configuration. Scenario functions run sequentially against that shared instance.
 
-## Test Infrastructure Requirements
-
 ## Test Implementation Language
 
 All tracked repository test code must be Rust. Python is permitted only for
@@ -140,12 +138,16 @@ Manual verification and disposable verification scripts are not tracked test
 code. Follow [the testing strategy](../docs/testing.md#verification-types) and
 the issue template for their separate evidence and rationale requirements.
 
+## Test Infrastructure Requirements
+
 All integration tests at this level must:
 
 1. **Use port `0` for bind addresses by default**: The OS assigns free ephemeral ports,
    preventing conflicts when tests run in parallel. Fixed ports are permitted when the
    test scenario specifically requires distinct addresses (e.g., verifying per-instance
-   behavior). Use non-overlapping port ranges and document the constraint.
+   behavior). Use non-overlapping port ranges and document the constraint. The
+   `cli-configuration` target reserves TCP ports `43152-43156` to distinguish
+   CLI, environment-source, and override selection in executable-boundary tests.
 2. **Use isolated temporary workspaces**: Use `tempfile::TempDir` to create
    isolated directories with separate config files and storage subdirectories
 3. **Extract actual bound ports**: Query `AppContainer`'s `Registar` to get the OS-assigned ports
