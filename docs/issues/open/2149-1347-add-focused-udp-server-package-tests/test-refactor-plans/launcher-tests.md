@@ -109,7 +109,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Assess source-port-zero admission at the launcher boundary
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / low effort
 - **Addresses:** P2
 - **Change:** Determine whether a direct test can call `should_discard_request` with a source-port-
@@ -155,6 +155,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Existing launcher test, admission branches, separate coverage, and #1488 ownership reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R2.
 - [ ] R2 assessment completed and decision recorded.
 - [ ] R3 assessment completed and decision recorded.
 - [ ] R4 design/coverage review completed and decision recorded.
@@ -170,6 +171,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Reviewed and approved R1. The final test retains the direct
   launcher Act and observable failure/rebind assertions, while `UdpLauncherDependencies` owns only
   ordinary construction and the visible dropped startup receiver identifies the causal state.
+- 2026-09-09 - User/maintainer - Approved R2. Add one direct unit test proving the launcher
+  rejects a source-port-zero raw request and immediately emits `UdpRequestDiscarded`, without
+  starting the receive loop, spawning a processor, or asserting later metrics consumption.
 
 ### Validation Evidence
 
@@ -177,7 +181,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, and `git diff --check` passed. The prose-first review separates ordinary launcher construction from the visible dropped receiver state. |
-| R2 | TODO | Awaiting R1 review. |
+| R2 | IN_PROGRESS | Maintainer approved one unit-first source-port-zero admission contract. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
 
