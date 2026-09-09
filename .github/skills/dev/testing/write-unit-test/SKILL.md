@@ -132,17 +132,17 @@ intent explicit and verify that the final code communicates it. This is mandator
 test-producing increment:
 
 1. Write temporary normal-prose **Arrange**, **Act**, and **Assert** paragraphs above the test.
-    State the causal initial state, the production action, and independently specified observable
-    result; do not describe implementation mechanics without explaining their behavioral purpose.
+   State the causal initial state, the production action, and independently specified observable
+   result; do not describe implementation mechanics without explaining their behavioral purpose.
 2. Repeat each paragraph above the corresponding `// Arrange`, `// Act`, or `// Assert` code
-    section.
+   section.
 3. Compare the code with each paragraph. Refactor names, setup, builders, scenario fixtures, the
-    visible Act, or assertions until the code itself expresses the paragraph.
+   visible Act, or assertions until the code itself expresses the paragraph.
 4. Remove prose that is redundant once the code communicates the intent. Retain only essential
-    context that cannot be expressed clearly in code without disproportionate complexity or a
-    misleading abstraction.
+   context that cannot be expressed clearly in code without disproportionate complexity or a
+   misleading abstraction.
 5. Record the completed prose-first comparison in the task evidence or file-local test plan before
-    maintainer review and commit.
+   maintainer review and commit.
 
 The temporary prose is the test's specification, not permanent commentary. A parameter bag, an
 opaque fixture, a hidden Act, or an assertion derived through production code is evidence that the
