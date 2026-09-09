@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/launcher.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/launcher.rs
@@ -173,13 +173,21 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Review design and residual test-level coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** After each approved test, apply and record prose-first AAA verification. Measure
   unit-only and integration-only coverage separately; assign every remaining relevant branch to the
   launcher, processor, request buffer, integration contract, or #1488 shutdown work.
 - **Guardrails:** Do not use combined coverage to claim either boundary, and do not add
   percentage-only tests.
+- **Decision:** No test added. At commit `2f7643ae`, `launcher.rs` unit-only coverage is 278/290
+  lines (95.86%), 274/297 regions (92.26%), and 24/26 functions (92.31%); the report has no
+  uncovered executable line or region entries. The integration-only report gives 68/91 lines
+  (74.73%), 46/75 regions (61.33%), and 9/11 functions (81.82%) for its smaller production-only
+  slice, so it is not used to claim unit coverage. R1 and R3a give each test one visible causal
+  state, direct Act, and single observable assertion. Remaining receive-loop completion, receiver
+  I/O, spawned task lifecycle, request-buffer eviction, and shutdown cancellation/join behavior
+  belong to #1488 SI-14/SI-15; no further launcher test is justified in this issue.
 - **Done when:** remaining lifecycle-sensitive gaps have explicit ownership and all approved tests
   are readable, deterministic, and unit-first where appropriate.
 
@@ -198,9 +206,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R3a source-port-zero split implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3a banned-IP split.
 - [x] R3a banned-IP split implemented, reviewed, validated, and committed.
-- [ ] R4 design/coverage review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R4 design/coverage review completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -234,6 +242,15 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-09 - User/maintainer - Reviewed and approved R3a. Both admission conditions now have a
   decision-only contract and an event-only contract, preserving one behavioral reason to fail per
   test without receive-loop, processor, or metrics-listener setup.
+- 2026-09-09 - GitHub Copilot - Completed R4. Separate measurements give 95.86% unit-only line
+  coverage and 92.26% unit-only region coverage for `launcher.rs`, with no uncovered executable
+  line or region entries. Integration coverage is recorded separately and has a different smaller
+  denominator. The remaining lifecycle-sensitive paths belong to #1488 SI-14/SI-15, so no further
+  launcher test is added.
+- 2026-09-09 - User/maintainer - Reviewed and approved the completed launcher plan. R1 makes the
+  startup-receiver failure state visible; R2/R3 cover immediate source-port-zero and strict banned-
+  IP admission; R3a gives each decision/event fact its own test; R4 records separate test-level
+  coverage and lifecycle ownership decisions.
 - 2026-09-09 - User/maintainer - Approved the final naming refinement. The test context is named
   `UdpLauncherTestContext`, its variable is `launcher`, and
   `with_banned_client_ip(client_socket_addr.ip())` states the causal already-banned-client state
@@ -248,7 +265,8 @@ validation, review, and its mapped commit point—before beginning the next item
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request_when_its_source_port_is_zero`, and `git diff --check` passed. The prose-first review retains the direct admission Act, causal source port, strict policy, and exact immediate event. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests::it_should_discard_a_request`, and `git diff --check` passed. The prose-first review uses `UdpLauncherTestContext::with_banned_client_ip` to keep the causal state, strict Act, and independent discard/event assertions visible. |
 | R3a | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server launcher::tests`, and `git diff --check` passed. Source-port-zero and banned-IP behavior are each split into one decision-only and one event-only test after prose-first review. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | No change: unit-only coverage is 95.86% lines, 92.26% regions, and 92.31% functions, with no uncovered executable line or region entries. The integration-only report has a separate smaller production-only denominator. Remaining lifecycle paths belong to #1488 SI-14/SI-15. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
