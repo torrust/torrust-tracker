@@ -23,7 +23,7 @@ use torrust_tracker_events::shutdown::Completion;
 /// The cleaning task is executed on an `inactive_peer_cleanup_interval`.
 ///
 /// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
-#[allow(
+#[expect(
     clippy::manual_async_fn,
     clippy::needless_pass_by_value,
     reason = "the public constructor must return an unspawned `impl Future` for direct JobManager supervision"
@@ -137,7 +137,13 @@ mod tests {
 
         // Act
         tokio::time::advance(Duration::from_secs(1)).await;
-        tokio::task::yield_now().await;
+        for _ in 0..8 {
+            if runner.is_finished() {
+                break;
+            }
+
+            tokio::task::yield_now().await;
+        }
         assert!(
             runner.is_finished(),
             "the cleanup runner should stop after the manager is dropped"

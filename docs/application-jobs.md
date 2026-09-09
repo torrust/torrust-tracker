@@ -121,10 +121,11 @@ all jobs already follow the desired ownership model.
 ## Current Limitations and Future Work
 
 The current `JobManager` directly owns named component futures in a `JoinSet`
-and keeps a narrow compatibility registry for the pre-spawned torrent-cleanup,
-activity-metrics, and UDP ban-cleanup periodic jobs. All of those tasks share
-one shutdown deadline, but the legacy jobs are not direct `JoinSet` components.
-They are transitional until SI-4/SI-5 migrate their periodic-job APIs.
+and keeps a narrow compatibility registry for the pre-spawned activity-metrics
+and UDP ban-cleanup periodic jobs. All of those tasks share one shutdown
+deadline, but the legacy jobs are not direct `JoinSet` components. They are
+transitional until SI-5 migrates activity metrics and the UDP ban-cleanup
+periodic-job migration is complete.
 
 It is not yet a complete task-supervision system.
 

@@ -46,7 +46,7 @@ torrust-tracker process (Tokio runtime; main)
    └─ JobManager
       ├─ Direct JoinSet components
       │  ├─ seven token-aware event-listener categories [conditional as listed below]
-    │  ├─ torrent cleanup [conditional]
+      │  ├─ torrent cleanup [conditional]
       │  ├─ UDP instance [N configured public bindings]
       │  │  └─ launcher task [component-owned NestedServerTask]
       │  │     ├─ receive loop [launcher-owned; abort and join on halt]
@@ -178,14 +178,14 @@ $$
 
 The constant three represents the HTTP-core listener, UDP-core listener, and
 health-check API. Torrent cleanup is conditional on its cleanup interval. The
-two legacy jobs are separate and individually
-conditional as shown above.
+two legacy jobs are separate and individually conditional as shown above.
 
 ## Findings and Roadmap Mapping
 
 1. The #1586 supervisor boundary is present: direct top-level component
    futures enter `JoinSet`; component child handles do not. The three
-   pre-spawned periodic jobs are a deliberately narrow compatibility registry
+   pre-spawned periodic jobs were a deliberately narrow compatibility registry.
+   The two remaining pre-spawned periodic jobs are retained in that registry
    under the same process-wide deadline.
 2. `main.rs` now handles Unix `SIGTERM` at the executable boundary. SI-1 is
    complete, so this is not an open gap.

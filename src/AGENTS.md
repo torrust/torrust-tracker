@@ -80,13 +80,14 @@ needs — no globals, no lazy statics for domain objects.
 - `wait_for_all(timeout)` — applies one concurrent deadline. It aborts and joins every remaining
   direct component, preventing detached startup jobs.
 
-The torrent-cleanup, activity-metrics, and UDP ban-cleanup jobs retain their pre-existing
-starter and cancellation semantics: the first two listen for Ctrl-C and the latter keeps its
-existing manager token. Because `JoinSet` cannot adopt a pre-spawned `JoinHandle` without a
-forbidden wrapper task, `register_legacy(name, handle)` retains their handles in a narrow
-compatibility registry. They share the same process-wide deadline as direct components and are
-then aborted and joined; they do not claim `JoinSet` ownership. This transitional exception is
-expected to be removed by the SI-4/SI-5 periodic-job migrations. New components must use `spawn`.
+Torrent cleanup is a direct `JoinSet` component that receives the manager's cancellation token.
+Activity metrics and UDP ban cleanup retain their pre-existing starter and cancellation semantics:
+the former listens for Ctrl-C and the latter keeps its existing manager token. Because `JoinSet`
+cannot adopt a pre-spawned `JoinHandle` without a forbidden wrapper task,
+`register_legacy(name, handle)` retains those two handles in a narrow compatibility registry. They
+share the same process-wide deadline as direct components and are then aborted and joined; they do
+not claim `JoinSet` ownership. This transitional exception is expected to be removed when SI-5 and
+the UDP ban-cleanup periodic-job migration are complete. New components must use `spawn`.
 
 Direct components own nested server handles. If the manager aborts an outer component at the
 shared deadline, its drop-safe server-task owner signals normal halt, aborts the nested task, and
