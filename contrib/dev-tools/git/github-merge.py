@@ -63,9 +63,12 @@ def quote_tree_value(value):
     forges lines of this report: a target ending in a newline and the text of an error can
     print a refusal the tool never made, or hide one it did. The quoted form escapes those
     characters and delimits the value, so a reader can see where it starts and ends, and it
-    is only ever a rendering: every comparison this check makes runs on the value itself.
+    is only ever a rendering: every comparison this check makes runs on the bytes themselves.
+
+    The value is the tree's bytes, which need not be valid UTF-8, so the bytes that are not
+    are rendered as escapes rather than replaced, and the rendering stays reversible.
     '''
-    return repr(value)
+    return repr(value.decode('utf-8', errors='backslashreplace'))
 
 def git_config_get(option, default=None):
     '''
@@ -163,18 +166,31 @@ def ask_prompt(text):
 
 def get_symlink_entries(commit):
     '''
-    List the symbolic links in a commit's tree as sorted (path, target) pairs.
+    List the symbolic links in a commit's tree as sorted (path, target) pairs of raw bytes.
 
-    The target is the link's literal content, which is what a declaration has to match.
+    The target is the link's literal content, which is what a declaration has to match, and
+    a tree names both paths and link targets in bytes that need not be valid UTF-8. Decoding
+    either would decide the match on a rendering rather than on the content: a lossy decode
+    maps distinct byte sequences onto the same replacement character, and a strict one raises
+    on content a repository is free to commit. Both are read as bytes and stay bytes, so the
+    comparison is byte for byte as the rules state, and content that cannot be a declared
+    target simply fails to match.
+
+    '-z' asks for the paths themselves. Without it the listing is the path as git renders it,
+    which quotes control characters always and non-ASCII bytes under the default
+    'core.quotePath', so a declaration would have to name git's rendering rather than the path.
     '''
     entries = []
-    for line in subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', commit]).splitlines():
-        name_sep = line.index(b'\t')
-        metadata = line[:name_sep].split() # perms, type, object id
+    listing = subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', '-z', commit])
+    for record in listing.split(b'\0'):
+        if not record:
+            continue
+        name_sep = record.index(b'\t')
+        metadata = record[:name_sep].split() # perms, type, object id
         if (int(metadata[0].decode('utf-8'), 8) & 0o170000) != 0o120000:
             continue
-        path = line[name_sep+1:].decode('utf-8')
-        target = subprocess.check_output([GIT, 'cat-file', 'blob', metadata[2].decode('utf-8')]).decode('utf-8', errors='replace')
+        path = record[name_sep+1:]
+        target = subprocess.check_output([GIT, 'cat-file', 'blob', metadata[2].decode('utf-8')])
         entries.append((path, target))
     return sorted(entries)
 
@@ -195,7 +211,7 @@ def symlink_declaration_path_error(path):
 
 def symlink_target_is_confined(target):
     '''
-    Report whether a link target stays inside the repository.
+    Report whether a link target, given as the tree's bytes, stays inside the repository.
 
     An absolute target and a target containing a '..' segment are never accepted, whatever
     a declaration says, because this is a property of the target rather than of the file
@@ -203,9 +219,9 @@ def symlink_target_is_confined(target):
     '''
     if not target:
         return False
-    if target.startswith('/'):
+    if target.startswith(b'/'):
         return False
-    return '..' not in target.split('/')
+    return b'..' not in target.split(b'/')
 
 def read_symlink_declaration(commit, path):
     '''
@@ -258,6 +274,11 @@ def check_symlinks(introduced_commits, merge_commit, declaration_path):
         declared, problem = read_symlink_declaration(merge_commit, declaration_path)
         if problem is not None:
             print(f"WARNING: Ignoring the symlink declaration '{declaration_path}' because {problem}. No symbolic link is exempted.")
+        # A declaration is JSON, so its paths and targets arrive as text, while a tree names
+        # both in bytes. They are encoded once here, so every comparison below is between the
+        # bytes the declaration stands for and the bytes the tree carries.
+        declared = {path.encode('utf-8'): (target.encode('utf-8'), reason)
+                    for path, (target, reason) in declared.items()}
 
     accepted = {}
     merged_paths = set()

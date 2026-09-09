@@ -128,6 +128,13 @@ class MergeFixture:
             path.unlink()
         path.symlink_to(target)
 
+    def link_bytes(self, relative_path, target):
+        """Create a link from literal bytes, which a tree accepts whether or not they decode."""
+        path = os.path.join(os.fsencode(self.root), relative_path)
+        if os.path.lexists(path):
+            os.unlink(path)
+        os.symlink(target, path)
+
     def remove(self, relative_path):
         (self.root / relative_path).unlink()
 
@@ -267,6 +274,71 @@ class DeclaredLinksTest(SymlinkDeclarationTestCase):
         # Assert
         self.assertRefused(result, '.dockerignore', head_commit)
         self.assertNotIn('Accepted symlink', result.stdout)
+
+    def it_should_refuse_a_link_whose_target_is_not_valid_utf8(self):
+        # A tree stores a link target as bytes, and nothing requires them to decode. Matching a
+        # decoded rendering would admit this link: b'\xff\xfe' rendered with a replacing decoder
+        # is exactly the two replacement characters the declaration names below, and every other
+        # undecodable target of the same length would render the same way. Matching bytes refuses
+        # it, because no text can encode to a sequence that is not valid UTF-8.
+
+        # Arrange
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link_bytes(b'.dockerignore', b'\xff\xfe')
+        replaced = chr(0xfffd) * 2  # what a replacing decoder makes of the two bytes above
+        self.fixture.write(DECLARATION, declaration_document(
+            ('.dockerignore', replaced, REASON)))
+        head_commit = self.fixture.commit('Declare a target that is not valid UTF-8')
+        self.close_pull_request(head_commit)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertRefused(result, '.dockerignore', head_commit)
+        self.assertNotIn('Accepted symlink', result.stdout)
+
+    def it_should_accept_a_declared_target_outside_ascii(self):
+        # The other side of the same rule: a target that does decode still matches, byte for byte.
+
+        # Arrange
+        target = '.containerignore' + chr(0xe9)  # a target ending outside ASCII
+        self.open_pull_request()
+        self.fixture.write(target, 'target\n')
+        self.fixture.link('.dockerignore', target)
+        self.fixture.write(DECLARATION, declaration_document(('.dockerignore', target, REASON)))
+        head_commit = self.fixture.commit('Declare a symbolic link with a target outside ASCII')
+        self.close_pull_request(head_commit)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertIn(f"Accepted symlink: '.dockerignore' -> '{target}': " + REASON, result.stdout)
+
+    def it_should_accept_a_declared_path_outside_ascii(self):
+        # A path is tree bytes as well. Listing a tree without '-z' renders a path outside ASCII
+        # as a quoted escape sequence under the default 'core.quotePath', so a declaration naming
+        # the path itself would never match it.
+
+        # Arrange
+        path = 'dockerignore' + chr(0xe9) + '.link'  # a path outside ASCII
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link_bytes(path.encode('utf-8'), b'.containerignore')
+        self.fixture.write(DECLARATION,
+                           declaration_document((path, '.containerignore', REASON)))
+        head_commit = self.fixture.commit('Declare a symbolic link at a path outside ASCII')
+        self.close_pull_request(head_commit)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertIn(f"Accepted symlink: '{path}' -> '.containerignore': " + REASON, result.stdout)
 
     def it_should_refuse_a_declared_target_that_escapes_the_repository(self):
         # Arrange
