@@ -106,6 +106,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use torrust_clock::clock::Time;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_collection::aggregate::sum::Sum;
+    use torrust_metrics::{label_name, metric_name};
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
@@ -113,7 +116,8 @@ mod tests {
     use super::handle_event;
     use crate::CurrentClock;
     use crate::event::ErrorKind;
-    use crate::statistics::repository::Repository;
+    use crate::event::UdpRequestKind;
+    use crate::statistics::{UDP_TRACKER_SERVER_ERRORS_TOTAL, repository::Repository};
 
     fn sample_ipv4_connection_context() -> ConnectionContext {
         ConnectionContext::new(
@@ -141,5 +145,35 @@ mod tests {
         let stats = stats_repository.get_stats().await;
 
         assert_eq!(stats.udp4_errors_total(), 1);
+    }
+
+    #[tokio::test]
+    async fn should_label_a_general_error_metric_with_connect_request_kind() {
+        // Arrange
+        let stats_repository = Repository::new();
+        let connection_context = sample_ipv4_connection_context();
+        let error_kind = ErrorKind::RequestParse("Invalid request format".to_string());
+        let mut expected_labels = LabelSet::from(connection_context.clone());
+        expected_labels.upsert(label_name!("request_kind"), "connect".to_string().into());
+
+        // Act
+        handle_event(
+            connection_context,
+            Some(UdpRequestKind::Connect),
+            error_kind,
+            &stats_repository,
+            CurrentClock::now(),
+        )
+        .await;
+
+        // Assert
+        let counter_value = {
+            let stats = stats_repository.get_stats().await;
+            stats
+                .metric_collection
+                .sum(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &expected_labels)
+                .expect("connect-labelled general error metric should exist")
+        };
+        assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 }

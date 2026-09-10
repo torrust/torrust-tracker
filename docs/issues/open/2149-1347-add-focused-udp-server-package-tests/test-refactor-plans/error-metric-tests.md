@@ -106,13 +106,19 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover general-error request-kind metric routing
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one unit test for a connect-kind error event and assert only its general-error
   metric route labelled `request_kind=connect`.
 - **Guardrails:** Do not also assert aggregate IPv4/IPv6 totals, connection-ID-error metrics, event
   conversion, listener dispatch, or metric arithmetic.
+- **Prose-first review:** The temporary prose specified that a parsed connect request increments the
+  general-error metric series labelled `request_kind=connect`. The test derives ordinary connection
+  labels from the exact `ConnectionContext` passed to the handler, so fixture-owned labels cannot
+  become a duplicated expectation. It specifies only the causal `request_kind=connect` label
+  independently, calls the local handler directly, and asserts one labelled metric-series value.
+  Temporary prose is redundant and removed.
 - **Done when:** a regression in request-kind label routing has one direct, deterministic failure.
 
 ### R3 - Cover announce cookie-error client-software metric routing
@@ -145,7 +151,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
@@ -165,6 +171,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Approved R2. Add one direct unit test for a connect-kind
   request-parse error and assert only the general error metric labelled `request_kind=connect`.
   Do not assert aggregate totals, client-software metrics, conversion, routing, or metric arithmetic.
+- 2026-09-10 - User/maintainer - Reviewed and approved R2. The test derives ordinary metric labels
+  from its `ConnectionContext`, explicitly adds only `request_kind=connect`, directly invokes the
+  error-metric handler, and asserts one general-error metric series.
 
 ### Validation Evidence
 
@@ -172,7 +181,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
-| R2 | IN_PROGRESS | Maintainer approved the single `request_kind=connect` general-error metric route. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_general_error_metric_with_connect_request_kind`, and `git diff --check` passed. Prose-first review derives fixture-owned connection labels from the context under test and specifies only `request_kind=connect` independently. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
 
