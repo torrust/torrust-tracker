@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/statistics/event/handler/error.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/statistics/event/handler/error.rs
@@ -169,8 +169,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3.
 - [x] R3 implemented, reviewed, validated, and committed.
 - [x] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -194,16 +194,19 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Approved R4. Record the unit-only coverage evidence and retain
   residual peer-client classification, repository failure, request-kind duplication, and metric
   aggregation behavior at their existing ownership boundaries.
+- 2026-09-10 - User/maintainer - Reviewed and approved the completed error-metric plan. The R1-R3
+  tests protect distinct handler-owned routes, and R4 records the residual ownership decisions.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_general_error_metric_with_connect_request_kind`, and `git diff --check` passed. Prose-first review derives fixture-owned connection labels from the context under test and specifies only `request_kind=connect` independently. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_connection_id_error_metric_with_qbittorrent_client_software`, and `git diff --check` passed. Prose-first review keeps the QBitTorrent peer ID and independently specified client labels visible while `AnnounceRequestBuilder` owns incidental request setup. |
 | R4 | DONE | Unit-only `cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json` passed all 160 package unit tests. `error.rs` coverage is 131/151 lines (86.75%), 191/259 regions (73.75%), and 16/16 functions (100%). Residual branches have recorded ownership decisions; no coverage-only tests added. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
