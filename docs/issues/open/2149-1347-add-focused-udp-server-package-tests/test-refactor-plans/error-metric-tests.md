@@ -141,12 +141,20 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Review residual metric-routing coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Apply prose-first review after each test and measure unit-only coverage. Record why
   unselected peer-client variants, repository failures, or metric aggregation remain at their
   existing ownership boundaries.
 - **Guardrails:** Do not add percentage-only cases or broaden the peer-client variant matrix.
+- **Decision:** Unit-only coverage after R2 and R3 is 131/151 lines (86.75%), 191/259 regions
+  (73.75%), and 16/16 functions (100%). Do not add a coverage-only test for residual branches:
+  the `PeerClient` variant matrix is peer-ID classification behavior, while R3 protects this
+  handler's representative known-client route. `Repository::increase_counter` failure paths are
+  repository/observability infrastructure behavior and would require artificial failure injection.
+  Connect, announce, and scrape general-error routes share R2's request-kind label insertion;
+  testing other kinds would duplicate that contract. Metric aggregation and query arithmetic belong
+  to the repository and metric-collection test boundaries.
 - **Done when:** each residual branch has an ownership decision.
 
 ## Progress Tracking
@@ -160,7 +168,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R3.
 - [x] R3 implemented, reviewed, validated, and committed.
-- [ ] R4 coverage/ownership review completed and decision recorded.
+- [x] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -183,6 +191,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Approved R3. Add one direct unit test for the announce
   connection-cookie route with a visible QBitTorrent peer ID and independently specified
   client-software labels only.
+- 2026-09-10 - User/maintainer - Approved R4. Record the unit-only coverage evidence and retain
+  residual peer-client classification, repository failure, request-kind duplication, and metric
+  aggregation behavior at their existing ownership boundaries.
 
 ### Validation Evidence
 
@@ -192,7 +203,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_general_error_metric_with_connect_request_kind`, and `git diff --check` passed. Prose-first review derives fixture-owned connection labels from the context under test and specifies only `request_kind=connect` independently. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_connection_id_error_metric_with_qbittorrent_client_software`, and `git diff --check` passed. Prose-first review keeps the QBitTorrent peer ID and independently specified client labels visible while `AnnounceRequestBuilder` owns incidental request setup. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Unit-only `cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json` passed all 160 package unit tests. `error.rs` coverage is 131/151 lines (86.75%), 191/259 regions (73.75%), and 16/16 functions (100%). Residual branches have recorded ownership decisions; no coverage-only tests added. |
 
 ## Non-Goals
 
