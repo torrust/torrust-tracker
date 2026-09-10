@@ -266,6 +266,8 @@ creation remains subject to maintainer approval of each draft specification.
 | 13    | #2360 - Resolve the crate-level scope of the UDP protocol `empty_enums` allowance | `docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md` | Follow-up of #2347 (`review-finding:pr-2290-f4`): brings one retained Clippy allowance into line with the #2158 exception framework, by a lint-scope change or a maintainer-reviewed framework amendment. Selects no automation architecture. | #2158 exception framework |
 | 14    | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264. | #2264 frontmatter and semantic-link conventions |
 | 15    | #2473 - Run design discussions as asynchronous, attributed rounds (DONE) | `docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md` | Documentation process and a Markdown template only: rewrites the `docs/discussions/` lifecycle so participants contribute through attributed rounds and only the decision needs agreement. Selects no automation architecture. | None; proposed in PR #2467 |
+| 16    | #[To be assigned] - Repair the project dictionary formatter test suite | `docs/issues/drafts/2003-repair-project-dictionary-formatter-test-suite/ISSUE.md`    | Repairs an existing suite for the interim dictionary formatter this EPIC already permits; selects no runner, cache, or enforcement platform.                                    | None                                                      |
+| 17    | #[To be assigned] - Run the developer-tool test suites in CI           | `docs/issues/drafts/2003-run-developer-tool-test-suites-in-ci/ISSUE.md`              | Adds one replaceable CI invocation of suites that already exist, and corrects the notes it falsifies; does not prejudge the execution-tier decision.                            | Subissue 16, which must merge first                       |
 
 ## Delivery Strategy
 
@@ -371,6 +373,7 @@ For each completed subissue in this EPIC, the default completion policy is:
   specification to `docs/issues/open/2003-overhaul-guardrails-and-automation/`
 - 2026-07-22 00:00 UTC - josecelano - Approved a narrowly scoped interim project dictionary
   formatter; it may be replaced or refactored after the EPIC design decision
+- 2026-09-10 09:32 UTC - Specification author - Adopted two candidates from the inventory of EPIC #2190 into the approved early implementation candidates: repair the project dictionary formatter test suite, and run the developer-tool test suites in CI - https://github.com/torrust/torrust-tracker/pull/2193
 - 2026-09-26 12:20 UTC - GitHub Copilot - Maintainer approved subissue #2347 (order 12) to
   triage 32 review findings posted after PRs #2290, #2293, #2300, #2313, and #2320 merged;
   created and linked it under this EPIC

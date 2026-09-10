@@ -47,7 +47,7 @@ The inventory itself is still worth keeping. Each entry was verified against the
 - Assign every inventory item to the EPIC whose own stated scope covers it, and record that assignment.
 - Produce one draft subissue specification per item or group of items sharing a domain, each sized for one focused pull request and each naming its parent EPIC.
 - Create the GitHub subissues from the approved drafts, link them under their parent EPIC, and move each specification into `docs/issues/open/` under the naming convention.
-- Hand the two developer-tool-check items to EPIC #2003, including the row each needs in its subissue table.
+- Hand the two developer-tool-check items to EPIC #2003, adding the row each needs to that EPIC's approved-early-candidates table.
 - Track completion of the subissues this EPIC owns until every inventory item is delivered or explicitly closed as won't-fix.
 
 ### Out of Scope
@@ -124,7 +124,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 ### Phase 2
 
 - Outcome: the approved drafts become GitHub issues, attached to their parent EPIC through the GitHub sub-issues API as the `link-subissue-to-parent-issue` skill describes, with each specification moved from `docs/issues/drafts/` to `docs/issues/open/` under its assigned number.
-- Exit criteria: every row in the Subissues table carries a real issue number, the three handed-away drafts carry theirs, EPIC #2003's subissue table carries the two rows it adopted, and each source artifact a subissue will change carries an `issue: #<number>` marker where the link is high-signal. No `issue-spec:` marker is added to a source artifact before then, because a draft path added now would have to be rewritten as soon as the issue exists.
+- Exit criteria: every row in the Subissues table carries a real issue number, the three handed-away drafts carry theirs, EPIC #2003's two adopted rows carry their assigned numbers, and each source artifact a subissue will change carries an `issue: #<number>` marker where the link is high-signal. No `issue-spec:` marker is added to a source artifact before then, because a draft path added now would have to be rewritten as soon as the issue exists.
 
 ### Phase 3
 
@@ -144,7 +144,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [ ] GitHub issue #2190 converted to an EPIC issue: title, labels, and body updated to match this specification
 - [ ] Subissues created from the approved drafts and attached to their parent EPIC through the GitHub sub-issues API
 - [ ] Subissue specifications moved from `docs/issues/drafts/` to `docs/issues/open/`
-- [ ] EPIC #2003's subissue table updated with the two adopted items
+- [x] EPIC #2003's approved-early-candidates table carries the two adopted rows
+- [ ] Those two rows carry their assigned issue numbers
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
