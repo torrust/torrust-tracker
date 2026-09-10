@@ -37,13 +37,17 @@ Status legend:
 
 ## Processing Log
 
+- 2026-09-10: Started processing suggestions; one Copilot thread was open.
 - 2026-09-10: Reviewed the `last-updated-utc` timestamp-format suggestion against the repository templates and every existing specification. `docs/templates/ISSUE.md:11`, `docs/templates/EPIC.md:7`, `docs/templates/REFACTOR-PLAN.md:6`, and `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md:4` all prescribe `YYYY-MM-DD HH:MM`, and all 68 `last-updated-utc` values under `docs/issues/open/` and `docs/issues/drafts/` use that form; none uses an ISO-8601 designator. Decided `no-action`: the field follows the repository template, and changing one specification alone would make it the only file out of line with the convention.
+- 2026-09-10: Replied with that evidence on [thread 1](https://github.com/torrust/torrust-tracker/pull/2193#discussion_r3977263040) and resolved it; no repository change was needed.
+- 2026-09-10: Answered the maintainer review requesting an EPIC with domain-clustered subissues in [comment 5615823526](https://github.com/torrust/torrust-tracker/pull/2193#issuecomment-5615823526).
+- 2026-09-10: Refreshed the review-thread list; no unresolved threads remained.
 
 ## Suggestions
 
 | #   | Thread ID               | Path                                                              | URL                                                                           | Suggestion Summary                                                                             | Decision                                                                                                                     | Reply URL   | Status | Thread State |
 | --- | ----------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6g_jtS` | `docs/issues/open/2190-maintenance-frictions-cleanup/ISSUE.md`    | <https://github.com/torrust/torrust-tracker/pull/2193#discussion_r3977110619> | Use an ISO-8601 UTC form for `last-updated-utc` instead of `YYYY-MM-DD HH:MM`.                 | `no-action`: the format is the one the repository templates prescribe and every one of the 68 existing specifications uses. | {reply URL} | DONE   | TODO         |
+| 1   | `PRRT_kwDOGp2yqc6g_jtS` | `docs/issues/open/2190-maintenance-frictions-cleanup/ISSUE.md`    | <https://github.com/torrust/torrust-tracker/pull/2193#discussion_r3977110619> | Use an ISO-8601 UTC form for `last-updated-utc` instead of `YYYY-MM-DD HH:MM`.                 | `no-action`: the format is the one the repository templates prescribe and every one of the 68 existing specifications uses. | <https://github.com/torrust/torrust-tracker/pull/2193#discussion_r3977263040> | DONE   | RESOLVED     |
 
 ## Notes
 
