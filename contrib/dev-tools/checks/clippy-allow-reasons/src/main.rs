@@ -127,7 +127,35 @@ fn base_ref() -> Result<String, String> {
 }
 
 fn changed_rust_lines(workspace_root: &PathBuf, base_commit: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usize>>, String> {
-    let diff = git_output(workspace_root, ["diff", "--unified=0", base_commit, "--", "*.rs"])?;
+    let output = Command::new("git")
+        .args([
+            "-c",
+            "diff.noprefix=false",
+            "-c",
+            "diff.mnemonicPrefix=false",
+            "-c",
+            "core.quotePath=false",
+            "--no-pager",
+            "diff",
+            "--no-ext-diff",
+            "--no-color",
+            "--unified=0",
+            base_commit,
+            "--",
+            "*.rs",
+        ])
+        .current_dir(workspace_root)
+        .output()
+        .map_err(|error| format!("failed to run Git diff: {error}"))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "Git diff command failed: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+
+    let diff = String::from_utf8(output.stdout).map_err(|error| format!("Git diff output was not valid UTF-8: {error}"))?;
     parse_changed_rust_lines(&diff)
 }
 
@@ -136,16 +164,28 @@ fn parse_changed_rust_lines(diff: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usi
     let mut current_file = None;
 
     for line in diff.lines() {
+        if line.starts_with("diff --git ") {
+            current_file = None;
+            continue;
+        }
+
         if let Some(file) = line.strip_prefix("+++ b/") {
             current_file = Some(PathBuf::from(file));
             continue;
+        }
+        if let Some(file) = line.strip_prefix("+++ ") {
+            if file == "/dev/null" {
+                current_file = None;
+                continue;
+            }
+            return Err(format!("unrecognized Git diff file header `{line}`"));
         }
 
         let Some(hunk) = line.strip_prefix("@@ ") else {
             continue;
         };
         let Some(file) = &current_file else {
-            continue;
+            return Err(format!("Git diff hunk has no recognized Rust file header `{line}`"));
         };
         let Some(range) = hunk.split_whitespace().nth(1) else {
             continue;
@@ -222,5 +262,14 @@ mod tests {
         let changed_lines = parse_changed_rust_lines(diff).unwrap();
 
         assert_eq!(changed_lines[&PathBuf::from("src/lib.rs")], BTreeSet::from([1, 2, 7]));
+    }
+
+    #[test]
+    fn it_should_reject_an_unrecognized_git_diff_file_header() {
+        let diff = "diff --git a/src/lib.rs b/src/lib.rs\n+++ w/src/lib.rs\n@@ -0,0 +1 @@\n+#[allow(clippy::too_many_lines)]\n";
+
+        let error = parse_changed_rust_lines(diff).unwrap_err();
+
+        assert!(error.contains("unrecognized Git diff file header"));
     }
 }

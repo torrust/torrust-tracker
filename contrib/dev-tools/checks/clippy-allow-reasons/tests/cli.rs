@@ -8,17 +8,8 @@ use serde_json::Value;
 #[test]
 fn it_should_report_a_changed_allow_without_a_native_reason() {
     let workspace = FixtureRepository::new();
-    write_file(
-        workspace.path().join("src/lib.rs").as_path(),
-        "#[allow(clippy::legacy)]\nfn legacy() {}\n",
-    );
-    git(workspace.path(), ["add", "src/lib.rs"]);
-    git(workspace.path(), ["commit", "--quiet", "-m", "test: establish baseline"]);
-    git(workspace.path(), ["switch", "--quiet", "-c", "feature"]);
-    write_file(
-        workspace.path().join("src/lib.rs").as_path(),
-        "#[allow(clippy::legacy)]\nfn legacy() {}\n#[allow(clippy::too_many_lines)]\nfn added() {}\n",
-    );
+    workspace.establish_baseline();
+    workspace.add_undocumented_allow();
 
     let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
         .args(["--base-ref", "develop"])
@@ -38,21 +29,31 @@ fn it_should_report_a_changed_allow_without_a_native_reason() {
 }
 
 #[test]
+fn it_should_detect_an_undocumented_allow_despite_local_git_diff_configuration() {
+    let workspace = FixtureRepository::new();
+    workspace.establish_baseline();
+    workspace.add_undocumented_allow();
+
+    for configuration in [
+        ["diff.noprefix", "true"],
+        ["diff.mnemonicPrefix", "true"],
+        ["color.diff", "always"],
+        ["diff.external", "false"],
+    ] {
+        git(workspace.path(), ["config", configuration[0], configuration[1]]);
+        let output = run_validator(workspace.path(), &["--base-ref", "develop"]);
+
+        assert_eq!(output.status.code(), Some(1));
+        assert_eq!(parse_single_diagnostic(&output.stderr)["kind"], "validation_error");
+    }
+}
+
+#[test]
 fn it_should_not_write_output_when_validation_succeeds() {
     let workspace = FixtureRepository::new();
-    write_file(
-        workspace.path().join("src/lib.rs").as_path(),
-        "#[allow(clippy::legacy, reason = \"Legacy baseline.\")]\nfn legacy() {}\n",
-    );
-    git(workspace.path(), ["add", "src/lib.rs"]);
-    git(workspace.path(), ["commit", "--quiet", "-m", "test: establish baseline"]);
-    git(workspace.path(), ["switch", "--quiet", "-c", "feature"]);
+    workspace.establish_documented_baseline();
 
-    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
-        .args(["--base-ref", "develop"])
-        .current_dir(workspace.path())
-        .output()
-        .expect("failed to run clippy-allow-reasons");
+    let output = run_validator(workspace.path(), &["--base-ref", "develop"]);
 
     assert!(output.status.success());
     assert_eq!(output.stdout, b"");
@@ -63,11 +64,7 @@ fn it_should_not_write_output_when_validation_succeeds() {
 fn it_should_report_usage_errors_as_ndjson() {
     let directory = FixtureDirectory::new();
 
-    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
-        .arg("--unexpected")
-        .current_dir(directory.path())
-        .output()
-        .expect("failed to run clippy-allow-reasons");
+    let output = run_validator(directory.path(), &["--unexpected"]);
 
     assert_eq!(output.status.code(), Some(2));
     assert_eq!(output.stdout, b"");
@@ -80,11 +77,7 @@ fn it_should_report_usage_errors_as_ndjson() {
 fn it_should_report_runtime_errors_as_ndjson() {
     let workspace = FixtureRepository::new();
 
-    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
-        .args(["--base-ref", "missing-base-reference"])
-        .current_dir(workspace.path())
-        .output()
-        .expect("failed to run clippy-allow-reasons");
+    let output = run_validator(workspace.path(), &["--base-ref", "missing-base-reference"]);
 
     assert_eq!(output.status.code(), Some(1));
     assert_eq!(output.stdout, b"");
@@ -98,6 +91,14 @@ fn parse_single_diagnostic(stderr: &[u8]) -> Value {
 
     assert_eq!(lines.len(), 1);
     serde_json::from_str(lines[0]).unwrap()
+}
+
+fn run_validator(directory: &Path, arguments: &[&str]) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+        .args(arguments)
+        .current_dir(directory)
+        .output()
+        .expect("failed to run clippy-allow-reasons")
 }
 
 struct FixtureRepository {
@@ -150,6 +151,57 @@ impl FixtureRepository {
 
     fn path(&self) -> &Path {
         &self.root
+    }
+
+    fn establish_baseline(&self) {
+        write_file(
+            self.path().join("src/lib.rs").as_path(),
+            "#[allow(clippy::legacy)]\nfn legacy() {}\n",
+        );
+        git(self.path(), ["add", "src/lib.rs"]);
+        git(
+            self.path(),
+            [
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "commit",
+                "--quiet",
+                "-m",
+                "test: establish baseline",
+            ],
+        );
+        git(self.path(), ["switch", "--quiet", "-c", "feature"]);
+    }
+
+    fn establish_documented_baseline(&self) {
+        write_file(
+            self.path().join("src/lib.rs").as_path(),
+            "#[allow(clippy::legacy, reason = \"Legacy baseline.\")]\nfn legacy() {}\n",
+        );
+        git(self.path(), ["add", "src/lib.rs"]);
+        git(
+            self.path(),
+            [
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "commit",
+                "--quiet",
+                "-m",
+                "test: establish documented baseline",
+            ],
+        );
+        git(self.path(), ["switch", "--quiet", "-c", "feature"]);
+    }
+
+    fn add_undocumented_allow(&self) {
+        write_file(
+            self.path().join("src/lib.rs").as_path(),
+            "#[allow(clippy::legacy)]\nfn legacy() {}\n#[allow(clippy::too_many_lines)]\nfn added() {}\n",
+        );
     }
 }
 
