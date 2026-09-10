@@ -94,6 +94,19 @@ expanding into a bulk remediation.
 - [x] Replacement implementation completed and verified
 - [x] Acceptance criteria reviewed after replacement implementation and updated with evidence
 
+### PR #2177 Remediation
+
+- [ ] Preserve, commit, or discard pre-existing uncommitted changes before review fixes.
+- [ ] Repair the current failed workflow and record verification against the branch tip.
+- [ ] Process Cameron's maintainer feedback using
+  `docs/pr-review-feedback/pr-2177-review-feedback.md` and the review-feedback workflow.
+- [ ] Process Copilot suggestions using
+  `docs/copilot-pr-reviews/pr-2177-copilot-suggestions.md` and the Copilot-suggestions workflow.
+- [ ] Run final repository validation and independent reviews after all findings are processed.
+- [ ] Rebase onto the latest `torrust/develop`, rerun required checks, and push with
+  `--force-with-lease`.
+- [ ] Confirm required CI checks pass and request refreshed maintainer review.
+
 ### Progress Log
 
 - 2026-09-07 10:45 UTC - GitHub Copilot - Created as an immediately implementable EPIC #2003 child; existing-allow remediation is explicitly separate - This spec
@@ -109,6 +122,7 @@ expanding into a bulk remediation.
 - 2026-09-09 14:15 UTC - GitHub Copilot - Repaired PR #2177 container recipe context for the new workspace crate after `cargo chef prepare` failed in CI; focused uncached recipe build and `linter all` passed - Pending focused commit
 - 2026-09-09 15:10 UTC - GitHub Copilot - Correcting Cameron's PR #2177 review findings: exclude the dev-only checker from nextest archives, parse CLI arguments before Git access, and append validation-evidence corrections - Pending validation
 - 2026-09-09 15:20 UTC - GitHub Copilot - Completed Cameron's requested corrections: all four nextest archive commands exclude `clippy-allow-reasons`; invalid CLI arguments are parsed before Git access; corrected earlier lint-evidence claims - Focused tests, `linter all`, and `docker build --no-cache --target test_debug --file Containerfile .` passed
+- 2026-09-10 09:00 UTC - GitHub Copilot - Started a structured PR #2177 remediation pass; the issue spec tracks merge readiness while separate Cameron and Copilot audit records track individual findings, commits, replies, and thread states - In progress
 
 ## Acceptance Criteria
 
