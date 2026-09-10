@@ -141,25 +141,41 @@ fn parse_lint_items(tokens: proc_macro2::TokenStream) -> Result<Punctuated<Meta,
 }
 
 fn is_temporary(reason: &str) -> bool {
-    reason.to_ascii_lowercase().contains("temporary")
+    let normalized = normalize_reason(reason);
+
+    ["temporary", "temporarily", "todo", "for now", "workaround"]
+        .iter()
+        .any(|marker| normalized.contains(marker))
 }
 
 fn has_temporary_removal_information(reason: &str) -> bool {
-    let normalized = reason.to_ascii_lowercase();
+    let normalized = normalize_reason(reason);
     let has_issue = normalized
         .match_indices('#')
         .any(|(index, _)| normalized[index + 1..].chars().next().is_some_and(char::is_numeric));
-    let has_condition = ["remove when ", "remove after ", "remove by ", "until "]
-        .iter()
-        .any(|prefix| {
-            normalized.contains(prefix)
-                && normalized
-                    .split(prefix)
-                    .nth(1)
-                    .is_some_and(|suffix| !suffix.trim().is_empty())
-        });
+    let has_condition = [
+        "remove when",
+        "remove after",
+        "remove by",
+        "removed when",
+        "removed after",
+        "removed by",
+        "until",
+    ]
+    .iter()
+    .any(|prefix| {
+        normalized.split_once(prefix).is_some_and(|(_, suffix)| {
+            !suffix
+                .trim_matches(|character: char| character == ':' || character.is_whitespace())
+                .is_empty()
+        })
+    });
 
     has_issue || has_condition
+}
+
+fn normalize_reason(reason: &str) -> String {
+    reason.split_whitespace().collect::<Vec<_>>().join(" ").to_ascii_lowercase()
 }
 
 #[cfg(test)]
@@ -252,6 +268,32 @@ mod tests {
             "#[allow(clippy::too_many_arguments, reason = \"Temporary compatibility shim; see #2158.\")]\nfn example() {}\n";
 
         assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
+    }
+
+    #[test]
+    fn it_should_require_removal_information_for_common_temporary_wording() {
+        let source = "#[allow(clippy::too_many_arguments, reason = \"TODO: workaround for now.\")]\nfn example() {}\n";
+
+        let violations = validate_changed_allows(source, &changed(&[1])).unwrap();
+
+        assert_eq!(violations.len(), 1);
+    }
+
+    #[test]
+    fn it_should_accept_normalized_temporary_removal_conditions() {
+        for reason in [
+            "Temporarily retained; remove  when the migration completes.",
+            "Workaround; removed after: the compatibility layer is deleted.",
+            "TODO: remove by the next release.",
+            "For now, retain until the upstream fix is released.",
+        ] {
+            let source = format!("#[allow(clippy::too_many_arguments, reason = \"{reason}\")]\nfn example() {{}}\n");
+
+            assert_eq!(
+                validate_changed_allows(&source, &changed(&[1])).unwrap(),
+                [] as [Violation; 0]
+            );
+        }
     }
 
     #[test]
