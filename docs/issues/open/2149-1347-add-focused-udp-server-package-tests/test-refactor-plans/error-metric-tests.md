@@ -106,7 +106,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover general-error request-kind metric routing
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one unit test for a connect-kind error event and assert only its general-error
@@ -144,7 +144,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Handler, current test, metric ownership, event classification, and unit-only coverage reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R2.
+- [x] Maintainer approved R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
@@ -162,6 +162,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Reviewed and approved R1. The cleaned test directly exercises the
   error-metric handler with a visible request-parse classification and one IPv4 aggregate error
   metric assertion; ordinary connection context setup is named locally.
+- 2026-09-10 - User/maintainer - Approved R2. Add one direct unit test for a connect-kind
+  request-parse error and assert only the general error metric labelled `request_kind=connect`.
+  Do not assert aggregate totals, client-software metrics, conversion, routing, or metric arithmetic.
 
 ### Validation Evidence
 
@@ -169,7 +172,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
-| R2 | TODO | Awaiting R1 review. |
+| R2 | IN_PROGRESS | Maintainer approved the single `request_kind=connect` general-error metric route. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
 
