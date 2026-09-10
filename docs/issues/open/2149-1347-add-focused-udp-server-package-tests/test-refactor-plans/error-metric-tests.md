@@ -88,7 +88,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Clarify the general IPv4 error metric contract
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** Phase 1
 - **Change:** Write temporary Arrange-Act-Assert prose for the existing IPv4 error metric test.
@@ -96,6 +96,12 @@ validation, review, and its mapped commit point—before beginning the next item
   aggregate IPv4 error assertion express that prose.
 - **Guardrails:** Do not add a behavior case, listener, socket, clock abstraction, or broad fixture.
   Keep the independently constructed request-parse error visible.
+- **Prose-first review:** The temporary Arrange prose was “an IPv4 request-parse error has no
+  parsed request kind and uses an empty metrics repository.”
+  `sample_ipv4_connection_context` names ordinary context construction, while the test retains the
+  direct request-parse classification. The Act now calls this file's local `error::handle_event`,
+  rather than the parent event router, and the Assert has one aggregate IPv4 error-metric fact.
+  Temporary prose is redundant and removed.
 - **Done when:** redundant prose can be removed and the test has one metric assertion.
 
 ### R2 - Cover general-error request-kind metric routing
@@ -137,7 +143,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Handler, current test, metric ownership, event classification, and unit-only coverage reviewed.
 - [x] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R3.
@@ -153,13 +159,16 @@ validation, review, and its mapped commit point—before beginning the next item
   announce fixture support, and unit-only coverage. No test or production change has been made.
 - 2026-09-10 - User/maintainer - Approved R1. Apply the prose-first cleanup to the existing IPv4
   general-error metric test only; commit this plan update before modifying the test.
+- 2026-09-10 - User/maintainer - Reviewed and approved R1. The cleaned test directly exercises the
+  error-metric handler with a visible request-parse classification and one IPv4 aggregate error
+  metric assertion; ordinary connection context setup is named locally.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | IN_PROGRESS | Maintainer approved the existing IPv4 error-metric test cleanup. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
 | R2 | TODO | Awaiting R1 review. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
