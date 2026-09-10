@@ -107,6 +107,12 @@ For every test-producing task, apply this development loop:
 4. After the final test-producing task, stop and request maintainer review before final verification, committing, or opening a pull request.
 5. Address review feedback, then complete verification and acceptance review.
 
+A helper is justified by a meaningful name for one coherent action, capability, or state and by
+keeping the caller at a consistent abstraction level—not by a minimum number of callers. A
+single-use helper is appropriate when it hides only incidental mechanics and leaves causal state,
+the production Act, and independently specified expected results visible. Reject vague helpers,
+parameter bags, and helpers that conceal behavior or mix responsibilities.
+
 For multi-input protocol behavior, scenarios should own every related artifact that describes the example, including selector request fields, domain input, and independently specified expected output. Builders may hide irrelevant fields of an individual artifact. Do not derive expected values by calling production mapping or serialization code under test. Keep the production-boundary invocation, concrete expected representation, and final actual-versus-expected assertion visible; helpers may encapsulate only repeated mechanics such as successful-response decoding.
 
 For each subissue implementation, the completion policy is:

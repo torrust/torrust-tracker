@@ -159,8 +159,11 @@ write temporary prose for each section, refactor until the code expresses it, re
 and record the result in task evidence or a file-local plan. Complete this review for every
 test-producing subtask before starting the next one. Stop for maintainer review after the final
 increment before final verification, commit, or pull request. Direct test authors to the test
-refactoring-pattern catalog when applicable. Use the independent Task Reviewer for the final pre-PR
-review of the completed issue, not as a mandatory reviewer for every subtask.
+refactoring-pattern catalog when applicable. Require the test-design review to judge helper
+boundaries by meaningful named actions and abstraction-level alignment, not caller count; a
+single-use helper is valid when it hides only incidental mechanics. Use the independent Task
+Reviewer for the final pre-PR review of the completed issue, not as a mandatory reviewer for every
+subtask.
 
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
