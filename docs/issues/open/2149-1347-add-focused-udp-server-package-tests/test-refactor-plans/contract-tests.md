@@ -105,7 +105,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Assess one adjacent real-loopback contract improvement
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / low effort
 - **Addresses:** P1-P3
 - **Change:** After R1, inspect the nearby connect-response contract. Record whether a small
@@ -113,6 +113,13 @@ validation, review, and its mapped commit point—before beginning the next item
   expected response. Do not add behavior merely to increase integration coverage.
 - **Guardrails:** Preserve distinct unit-test ownership. A no-change decision is preferred to a
   broad fixture extraction.
+- **Assessment:** A narrow cleanup is justified. The adjacent connect contract repeats the complete
+  ephemeral tracker bootstrap that R1 moved into `start_ephemeral_udp_tracker`, proving the helper
+  names a coherent shared lifecycle action rather than hiding one caller's mechanics. Reuse that
+  helper and replace the manual client `match` branches with expectation messages. Keep the causal
+  `ConnectRequest`, direct client send/receive Act, expected transaction ID, and explicit tracker
+  shutdown visible. Do not extract a generic send/receive helper because the connect request and
+  response assertion are the contract's relevant behavior.
 - **Done when:** the next contract cleanup or no-change boundary decision is recorded.
 
 ### R3 - Review residual integration coverage and ownership
@@ -133,7 +140,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Existing real-loopback contracts, receiver boundary, unit-first policy, and candidate seams reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] R2 assessment completed and decision recorded.
+- [x] R2 assessment completed and proposed cleanup recorded.
+- [x] Maintainer approved R2 cleanup.
+- [ ] R2 cleanup implemented, reviewed, validated, and committed.
 - [ ] R3 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -149,6 +158,13 @@ validation, review, and its mapped commit point—before beginning the next item
   coherent abstraction level, not by having multiple callers. Retained
   `start_ephemeral_udp_tracker` because it names a cohesive setup action and keeps the contract test
   focused on real UDP behavior.
+- 2026-09-10 - GitHub Copilot - Completed R2 assessment. The adjacent connect contract repeats
+  R1's tracker bootstrap, so `start_ephemeral_udp_tracker` is a justified shared named action. A
+  narrow cleanup is proposed; it retains the connect request, client exchange, expected transaction
+  ID, and tracker shutdown in the test rather than introducing a generic transport helper.
+- 2026-09-10 - User/maintainer - Approved the R2 cleanup. Reuse the named ephemeral-tracker
+  setup, improve client error messages, and retain the visible connect request, UDP exchange,
+  transaction-ID assertion, and explicit shutdown.
 
 ### Validation Evidence
 
@@ -156,7 +172,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration should_return_a_bad_request_response_when_the_client_sends_an_empty_request`, and `git diff --check` passed. Prose-first review retains named tracker setup, causal empty datagram, visible UDP exchange, and independent protocol-error assertion. |
-| R2 | TODO | Awaiting R1 review. |
+| R2 | IN_PROGRESS | Maintainer approved the narrow adjacent connect-contract cleanup. |
 | R3 | TODO | Awaiting R2 review. |
 
 ## Non-Goals
