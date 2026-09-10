@@ -172,14 +172,14 @@ mod tests {
     fn it_should_accept_a_documented_item_allow() {
         let source = "#[allow(clippy::struct_field_names, reason = \"The wire schema uses external names.\")]\nstruct Schema { field_name: String }\n";
 
-        assert!(validate_changed_allows(source, &changed(&[1])).unwrap().is_empty());
+        assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
     }
 
     #[test]
     fn it_should_accept_a_documented_crate_allow() {
         let source = "#![allow(clippy::module_name_repetitions, reason = \"The generated compatibility module is intentionally named.\")]\n";
 
-        assert!(validate_changed_allows(source, &changed(&[1])).unwrap().is_empty());
+        assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
     }
 
     #[test]
@@ -195,7 +195,7 @@ mod tests {
     fn it_should_accept_a_temporary_reason_with_a_removal_condition() {
         let source = "#[allow(clippy::too_many_arguments, reason = \"Temporary compatibility shim; remove when the v4 migration completes.\")]\nfn example() {}\n";
 
-        assert!(validate_changed_allows(source, &changed(&[1])).unwrap().is_empty());
+        assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
     }
 
     #[test]
@@ -203,13 +203,13 @@ mod tests {
         let source =
             "#[allow(clippy::too_many_arguments, reason = \"Temporary compatibility shim; see #2158.\")]\nfn example() {}\n";
 
-        assert!(validate_changed_allows(source, &changed(&[1])).unwrap().is_empty());
+        assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
     }
 
     #[test]
     fn it_should_ignore_an_unchanged_legacy_allow() {
         let source = "#[allow(clippy::too_many_lines)]\nfn legacy() {}\n";
 
-        assert!(validate_changed_allows(source, &changed(&[2])).unwrap().is_empty());
+        assert_eq!(validate_changed_allows(source, &changed(&[2])).unwrap(), [] as [Violation; 0]);
     }
 }
