@@ -15,8 +15,21 @@ use crate::server::asserts::get_error_response_message;
 
 const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
 
-const fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
+const fn empty_udp_datagram() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
+}
+
+async fn start_ephemeral_udp_tracker() -> torrust_tracker_udp_server::testing::environment::Started {
+    let configuration = configuration::ephemeral();
+    let core_config = Arc::new(configuration.core.clone());
+    let udp_tracker_config = Arc::new(
+        configuration
+            .udp_trackers
+            .expect("UDP test configuration should include a tracker")[0]
+            .clone(),
+    );
+
+    torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await
 }
 
 async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
@@ -42,35 +55,33 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
     logging::setup();
 
-    let cfg = configuration::ephemeral();
-    let core_config = Arc::new(cfg.core.clone());
-    let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-    let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
+    // Arrange
+    let tracker = start_ephemeral_udp_tracker().await;
+    let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+        .await
+        .expect("UDP client should connect to the ephemeral tracker");
 
-    let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
-        Ok(udp_client) => udp_client,
-        Err(err) => panic!("{err}"),
-    };
+    // Act
+    client
+        .client
+        .send(&empty_udp_datagram())
+        .await
+        .expect("UDP client should send the empty datagram");
+    let response_bytes = client
+        .client
+        .receive()
+        .await
+        .expect("UDP tracker should respond to the empty datagram");
+    let response = Response::parse_bytes(&response_bytes, true).expect("UDP tracker response should be valid");
 
-    match client.client.send(&empty_udp_request()).await {
-        Ok(_) => (),
-        Err(err) => panic!("{err}"),
-    }
-
-    let response = match client.client.receive().await {
-        Ok(response) => response,
-        Err(err) => panic!("{err}"),
-    };
-
-    let response = Response::parse_bytes(&response, true).unwrap();
-
+    // Assert
     assert!(
         get_error_response_message(&response)
             .unwrap()
             .contains("Protocol identifier missing")
     );
 
-    env.stop().await;
+    tracker.stop().await;
 }
 
 mod receiving_a_connection_request {
