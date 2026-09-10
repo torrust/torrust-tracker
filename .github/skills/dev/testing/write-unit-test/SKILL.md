@@ -139,6 +139,26 @@ production Act, or expected result, or mixes unrelated responsibilities. See
 [Named helpers for abstraction-level alignment](../../../../../docs/testing/refactoring-patterns/named-helpers-for-abstraction-level-alignment.md)
 for selection criteria and examples.
 
+### Anti-Pattern: Duplicated Fixture-Derived Expectations
+
+Do not extract a second helper that manually reconstructs a representation already derived from a
+fixture when that representation is not independently under test. For example, a test that passes a
+`ConnectionContext` to production code should not separately hard-code every metric label expected
+from that context merely to add one causal label such as `request_kind=connect`. The fixture and
+expectation become coupled by hidden duplication: an unrelated fixture change makes the test fail
+with stale expected details.
+
+Instead, derive fixture-owned details from the exact fixture value used by the Act, and specify only
+the test's causal input or independently asserted result in the test body. In the metric example,
+create `LabelSet::from(connection_context.clone())` and visibly add `request_kind=connect`. Add a
+separate focused test when conversion of the fixture into its derived representation is itself the
+behavior under test.
+
+During prose-first review, ask: **“If this fixture changes, should this test fail?”** If no, derive
+the incidental expectation from the fixture. If yes, keep the relevant fixture value and its
+assertion visibly connected in the test prose; use a scenario or builder if several coordinated
+values establish that causal state.
+
 ### Verify Intent with Prose-First AAA
 
 Before considering any new or materially refactored test ready for maintainer review, make its
