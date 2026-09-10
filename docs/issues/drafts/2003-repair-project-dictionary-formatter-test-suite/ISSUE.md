@@ -8,7 +8,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-repair-project-dictionary-formatter-test-suite/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-10 09:30
+last-updated-utc: 2026-09-10 09:45
 semantic-links:
   skill-links:
     - create-issue
@@ -111,7 +111,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 ### Progress Log
 
-- 2026-09-10 09:30 UTC - Specification author - Drafted from the verified evidence in EPIC #2190; cluster C1, friction F5 - https://github.com/torrust/torrust-tracker/issues/2190
+- 2026-09-10 09:30 UTC - Specification author - Drafted from the verified evidence in EPIC #2190; inventory item F5 - https://github.com/torrust/torrust-tracker/issues/2190
 
 ## Acceptance Criteria
 
