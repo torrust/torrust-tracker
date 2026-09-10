@@ -1,0 +1,68 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review-feedback
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md
+    - docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
+---
+
+<!-- cspell:disable -->
+
+# PR #2177 Review Feedback Tracking
+
+Source: maintainer pull-request reviews and inline review comments for
+<https://github.com/torrust/torrust-tracker/pull/2177>.
+
+## Reviews
+
+| Review ID | Submitted at (UTC) | Reviewer | State | URL | Reviewed commit | Consolidated response URL | Response state |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 5146070207 | 2026-09-08 19:23 | da2ce7 | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5146070207> | 58d42e37 | Pending | PENDING |
+| 5155445019 | 2026-09-09 14:07 | da2ce7 | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155445019> | 16fc1aba | Pending | PENDING |
+| 5155953316 | 2026-09-09 14:48 | da2ce7 | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155953316> | 2377460c | Pending | PENDING |
+| 5156076762 | 2026-09-09 14:58 | da2ce7 | COMMENTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156076762> | 2377460c | Pending | PENDING |
+| 5156728063 | 2026-09-09 15:54 | da2ce7 | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156728063> | 4389614b | Pending | PENDING |
+
+## Findings
+
+| ID | Review ID | Source | Comment / thread ID | URL | Summary | Decision | Independent fix commit | Validation | Reply URL | Inline thread state | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| M1 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6W | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453028> | Support indented changed Clippy attributes. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M2 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6e | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453040> | Keep changed-line tracking correct after added empty diff lines. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M3 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6h | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453044> | Keep the pre-commit fixture valid after adding the check. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M4 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6m | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453052> | Pin Git diff format against user configuration. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M5 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6r | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453063> | Fail if the diff-extraction pipeline fails. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M6 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6u | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453068> | Handle or document multiline crate-level allows. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M7 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6w | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453070> | Isolate disposable Git fixture commits from signing and hooks. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M8 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR6y | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453075> | Avoid GNU-specific `sed -i` in the fixture. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M9 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR60 | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453078> | Document that the old shell fixture is not run automatically. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M10 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR65 | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453082> | Run the check once in a focused CI job and bind the base ref safely. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M11 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR67 | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453087> | Normalize temporary rationale parsing. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M12 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR7A | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453095> | Document old shell-validator rationale limitations. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M13 | 5146070207 | Inline | PRRT_kwDOGp2yqc6gYR7C | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3961453100> | Correct the independent-report ordering contract. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M14 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAg | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369252> | Replace `assert_is_empty` assertions rejected by nightly Clippy. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M15 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAk | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369262> | Prevent Git diff configuration from bypassing changed-file parsing. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M16 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAm | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369265> | Align native-reason policy with documented `expect` use; decide `cfg_attr` and macro scope. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M17 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAo | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369267> | Normalize temporary-reason detection and removal conditions. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M18 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAs | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369274> | Cover accepted changed attributes and supported attribute shapes at CLI level. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M19 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLAx | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369281> | Make disposable Git fixtures independent of signing and hooks configuration. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M20 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLA1 | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369287> | Preserve a diagnostic fallback when stderr serialization or write fails. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M21 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLA- | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369298> | Move the focused check to a fail-fast CI job and bind the base ref through environment. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M22 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLBG | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369308> | Resolve base reference portably and validate staged content in pre-commit. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M23 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLBI | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369315> | Align the skill with supported validation and document limitations. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M24 | 5155445019 | Inline | PRRT_kwDOGp2yqc6gsLBP | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3969369324> | Correct the independent-report ordering contract. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M25 | 5156728063 | Inline | PRRT_kwDOGp2yqc6gu4Bi | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3970442097> | Replace remaining `assert_is_empty` assertions in validator library tests. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M26 | 5156728063 | Inline | PRRT_kwDOGp2yqc6gu4Br | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3970442108> | Correct stale validation evidence after the final lint state is green. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+| M27 | 5156728063 | Inline | PRRT_kwDOGp2yqc6gu4Bv | <https://github.com/torrust/torrust-tracker/pull/2177#discussion_r3970442114> | Normalize Containerfile archive exclusion indentation. | Pending | Pending | Pending | Pending | OPEN | OPEN |
+
+## Processing Log
+
+- 2026-09-10 09:00 UTC - Started audit; detailed findings are pending processing.
+
+## Notes
+
+- Earlier outdated threads remain historical evidence. Their decisions and replies will be recorded
+  when their originating review is processed.
+- The current detailed actions come from the latest changes-requested review; review-level responses
+  will be posted only after every finding in that review is complete.
