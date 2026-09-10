@@ -198,7 +198,32 @@ EOF
     run_in_pseudo_terminal "cd '${fixture_root}' && PATH='${stub_directory}:${PATH}' TEST_PYTHON_ARGUMENTS='${fixture_root}/python-arguments.txt' ./contrib/dev-tools/git/merge-pull-request.sh 2022"
 
     # Assert
-    grep -F -q 'contrib/dev-tools/git/github-merge.py 2022 develop' "${fixture_root}/python-arguments.txt"
+    grep -F -q 'contrib/dev-tools/git/github-merge.py --symlinks .symlinks.json 2022 develop' "${fixture_root}/python-arguments.txt"
+}
+
+it_should_delegate_the_symlink_declaration_tree_path_without_reading_the_working_tree() {
+    # The declaration path names a location in the merged tree the vendored tool has yet to
+    # create, so the wrapper must state it whether or not the working tree carries such a file.
+    # This fixture carries none, which is also the tracker's own situation today.
+
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "symlink-declaration-delegation")
+    local stub_directory="${TEST_DIRECTORY}/symlink-declaration-bin"
+    mkdir -p "${stub_directory}"
+    cat >"${stub_directory}/python3" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >"${TEST_PYTHON_ARGUMENTS}"
+EOF
+    chmod +x "${stub_directory}/python3"
+    [[ ! -e "${fixture_root}/.symlinks.json" ]]
+
+    # Act
+    run_in_pseudo_terminal "cd '${fixture_root}' && PATH='${stub_directory}:${PATH}' TEST_PYTHON_ARGUMENTS='${fixture_root}/python-arguments.txt' ./contrib/dev-tools/git/merge-pull-request.sh 2022"
+
+    # Assert
+    grep -F -q -- '--symlinks .symlinks.json' "${fixture_root}/python-arguments.txt"
+    [[ ! -e "${fixture_root}/.symlinks.json" ]]
 }
 
 it_should_refuse_to_start_the_interactive_tool_without_a_terminal_on_stdin() {
@@ -325,6 +350,7 @@ it_should_explain_how_to_configure_an_unset_repository
 it_should_explain_how_to_configure_an_unset_signing_key
 it_should_refuse_an_empty_signing_key
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight
+it_should_delegate_the_symlink_declaration_tree_path_without_reading_the_working_tree
 it_should_refuse_to_start_the_interactive_tool_without_a_terminal_on_stdin
 it_should_pass_the_dry_run_preflight_without_a_terminal_on_stdin
 it_should_refuse_to_invoke_a_missing_vendored_tool

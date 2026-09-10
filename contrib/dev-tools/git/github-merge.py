@@ -54,6 +54,22 @@ def sanitize(s, newlines=False):
     '''
     return ''.join(ch for ch in s if unicodedata.category(ch)[0] != "C" or (ch == '\n' and newlines))
 
+def quote_tree_value(value):
+    '''
+    Quote a path or a link target read out of a tree, for a message that reports it.
+
+    Tree content is chosen by whoever wrote the commit, and a path or a link target may
+    legally carry a newline or a terminal escape. Interpolated as it stands, such a value
+    forges lines of this report: a target ending in a newline and the text of an error can
+    print a refusal the tool never made, or hide one it did. The quoted form escapes those
+    characters and delimits the value, so a reader can see where it starts and ends, and it
+    is only ever a rendering: every comparison this check makes runs on the bytes themselves.
+
+    The value is the tree's bytes, which need not be valid UTF-8, so the bytes that are not
+    are rendered as escapes rather than replaced, and the rendering stays reversible.
+    '''
+    return repr(value.decode('utf-8', errors='backslashreplace'))
+
 def git_config_get(option, default=None):
     '''
     Get named configuration option from git repository.
@@ -148,13 +164,249 @@ def ask_prompt(text):
     print("",file=stderr)
     return reply
 
-def get_symlink_files():
-    files = sorted(subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', 'HEAD']).splitlines())
-    ret = []
-    for f in files:
-        if (int(f.decode('utf-8').split(" ")[0], 8) & 0o170000) == 0o120000:
-            ret.append(f.decode('utf-8').split("\t")[1])
-    return ret
+def get_symlink_entries(commit, target_by_blob=None):
+    '''
+    List the symbolic links in a commit's tree as sorted (path, target) pairs of raw bytes.
+
+    The target is the link's literal content, which is what a declaration has to match, and
+    a tree names both paths and link targets in bytes that need not be valid UTF-8. Decoding
+    either would decide the match on a rendering rather than on the content: a lossy decode
+    maps distinct byte sequences onto the same replacement character, and a strict one raises
+    on content a repository is free to commit. Both are read as bytes and stay bytes, so the
+    comparison is byte for byte as the rules state, and content that cannot be a declared
+    target simply fails to match.
+
+    '-z' asks for the paths themselves. Without it the listing is the path as git renders it,
+    which quotes control characters always and non-ASCII bytes under the default
+    'core.quotePath', so a declaration would have to name git's rendering rather than the path.
+
+    'target_by_blob' carries link contents already read, so a caller walking a range reads each
+    distinct content once instead of once per commit that carries it. A link usually keeps the
+    same content across a whole pull request, and identical content is one blob whatever the
+    path, so this turns a cost that grows with commits times links into one that grows with the
+    distinct contents the range actually holds. Keyed by object id, it cannot answer for a link
+    whose content changed: a changed target is a different blob and is read.
+    '''
+    if target_by_blob is None:
+        target_by_blob = {}
+    entries = []
+    listing = subprocess.check_output([GIT, 'ls-tree', '--full-tree', '-r', '-z', commit])
+    for record in listing.split(b'\0'):
+        if not record:
+            continue
+        name_sep = record.index(b'\t')
+        metadata = record[:name_sep].split() # perms, type, object id
+        if (int(metadata[0].decode('utf-8'), 8) & 0o170000) != 0o120000:
+            continue
+        path = record[name_sep+1:]
+        blob = metadata[2]
+        if blob not in target_by_blob:
+            target_by_blob[blob] = subprocess.check_output([GIT, 'cat-file', 'blob', blob.decode('utf-8')])
+        entries.append((path, target_by_blob[blob]))
+    return sorted(entries)
+
+def symlink_declaration_path_error(path):
+    '''
+    Explain why a value cannot name a declaration inside a tree, or return None when it can.
+
+    The argument names a location in the merged tree rather than in a filesystem, so an
+    absolute value and one that escapes the repository are both rejected before any work.
+    '''
+    if not path:
+        return "--symlinks needs a repository-relative path inside the merged tree, not an empty value"
+    if path.startswith('/') or os.path.isabs(path):
+        return f"--symlinks path '{path}' is absolute; it names a location inside the merged tree, which is always repository-relative"
+    if '..' in path.replace('\\', '/').split('/'):
+        return f"--symlinks path '{path}' escapes the repository; it names a location inside the merged tree"
+    return None
+
+def symlink_target_is_confined(target):
+    '''
+    Report whether a link target, given as the tree's bytes, stays inside the repository.
+
+    An absolute target and a target containing a '..' segment are never accepted, whatever
+    a declaration says, because this is a property of the target rather than of the file
+    that declares it.
+    '''
+    if not target:
+        return False
+    if target.startswith(b'/'):
+        return False
+    return b'..' not in target.split(b'/')
+
+# The declaration format this tool reads, as the format's own documentation states it. The
+# namespace names the format rather than the repository, so every repository adopting the
+# workflow carries the same value, and the version is the version of the format.
+SYMLINK_DECLARATION_NAMESPACE = 'com.torrust.repository.symlinks'
+SYMLINK_DECLARATION_VERSION = [1, 0, 0]
+
+def quote_declaration_value(value):
+    '''
+    Render a value read out of a declaration, for a message that reports it.
+
+    A declaration is tree content, chosen by whoever wrote the commit, so a value this report
+    names could otherwise carry a newline or a terminal escape and forge a line of the report.
+    The value is rendered as the JSON it came from, which escapes every control character and
+    everything outside ASCII, so the rendering is printable text that cannot forge a line, and
+    a reader sees the value with its type: a string keeps its quotes, and a number does not.
+    '''
+    return json.dumps(value)
+
+def is_declared_literal(found, expected):
+    '''
+    Report whether a value read from a declaration is exactly a literal this tool expects.
+
+    Equality alone would not answer this. Python compares True to 1 and 1 to 1.0 as equal,
+    while JSON's true, 1 and 1.0 are three different documents, so a plain comparison would
+    admit a header that does not carry the value the report says was checked. The type is
+    required alongside the value, and a list matches element by element under the same rule.
+    Python's bool is a subclass of int, which is why an integer literal excludes it explicitly.
+    '''
+    if isinstance(expected, str):
+        return isinstance(found, str) and found == expected
+    if isinstance(expected, int):
+        return isinstance(found, int) and not isinstance(found, bool) and found == expected
+    if isinstance(expected, list):
+        return (isinstance(found, list) and len(found) == len(expected)
+                and all(is_declared_literal(f, e) for f, e in zip(found, expected)))
+    return False
+
+def reject_declaration_constant(name):
+    '''
+    Refuse one of the constants Python's JSON reader accepts outside the JSON grammar.
+
+    JSON has no NaN, Infinity or -Infinity, and Python's reader admits all three by default.
+    A declaration is repository content, chosen by whoever wrote the commit, so without this a
+    document that every conforming reader rejects would be read here and could exempt a link,
+    while the rule that a declaration which is not valid JSON exempts nothing would never have
+    applied to it. Raising ValueError is how that rule is reached: it is what reading a
+    declaration already treats as a document it cannot read, so such a document takes the one
+    path any other invalid JSON takes, with the constant that was found named in the report.
+    '''
+    raise ValueError(f'it carries the non-standard constant {name}')
+
+def symlink_declaration_header_error(document):
+    '''
+    Explain why a document does not declare the format this tool reads, or return None when it does.
+
+    A declaration is only read once it says what it is. The header states the format in
+    'namespace' and the revision of that format in 'version', and both are checked before any
+    entry is read, so a document belonging to another format, or to a revision whose rules this
+    tool has not been taught, exempts nothing rather than being read under rules it was not
+    written to. The check is exact in both directions: an absent field is not a supported value,
+    and a value that merely resembles the supported one is not it either. A later revision of the
+    format therefore has to teach this tool its version rather than pass unread, which is the
+    direction a check that decides what a merge admits has to fail in.
+    '''
+    for field, expected in (('namespace', SYMLINK_DECLARATION_NAMESPACE),
+                            ('version', SYMLINK_DECLARATION_VERSION)):
+        if field not in document:
+            return (f"it carries no '{field}'; this tool reads a declaration whose "
+                    f"'{field}' is {quote_declaration_value(expected)}")
+        found = document[field]
+        if not is_declared_literal(found, expected):
+            return (f"its '{field}' is {quote_declaration_value(found)} rather than "
+                    f"{quote_declaration_value(expected)}")
+    return None
+
+def read_symlink_declaration(commit, path):
+    '''
+    Read the symbolic-link declaration at a tree path of a commit.
+
+    Returns the declared links as a dict of path to (target, reason), together with a
+    message explaining why nothing could be declared. An absent file declares nothing and
+    is not a problem; a file that cannot be read as a declaration declares nothing either,
+    and its message is reported so a broken file is visible instead of silently permissive.
+
+    A document whose header does not declare this format and a supported version of it is a
+    file that cannot be read as a declaration, whatever else it contains, so it takes that
+    same path: nothing is declared, and the report names the field that disagreed.
+
+    The document is read as JSON and nothing wider. Python's reader admits three constants
+    JSON does not define, so it is told to refuse them; the refusal is a ValueError, which is
+    what a document that is not valid JSON already raises here, so wherever in the document a
+    constant appears the file is one that cannot be read and exempts nothing.
+    '''
+    try:
+        raw = subprocess.check_output([GIT, 'show', commit+':'+path], stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        return ({}, None)
+    try:
+        document = json.loads(raw.decode('utf-8'), parse_constant=reject_declaration_constant)
+    except (UnicodeDecodeError, ValueError) as exc:
+        return ({}, f'it is not valid JSON ({exc})')
+    if not isinstance(document, dict):
+        return ({}, 'its top level is not a JSON object')
+    header_problem = symlink_declaration_header_error(document)
+    if header_problem is not None:
+        return ({}, header_problem)
+    listed = document.get('symlinks')
+    if not isinstance(listed, list):
+        return ({}, "it carries no 'symlinks' array")
+    declared = {}
+    for entry in listed:
+        if not isinstance(entry, dict):
+            return ({}, 'one of its entries is not a JSON object')
+        fields = [entry.get(field) for field in ('path', 'target', 'reason')]
+        if not all(isinstance(value, str) and value for value in fields):
+            return ({}, "an entry lacks a non-empty 'path', 'target' or 'reason'")
+        declared_path, target, reason = fields
+        if declared_path in declared:
+            return ({}, f"it declares '{declared_path}' more than once")
+        declared[declared_path] = (target, reason)
+    return (declared, None)
+
+def check_symlinks(introduced_commits, merge_commit, declaration_path):
+    '''
+    Refuse every symbolic link in the checked commits that the declaration does not admit.
+
+    The checked commits are the ones the merge introduces plus the merge commit itself, and
+    the declaration is read from the merge commit alone, so one reviewed statement answers
+    for the whole range. Matching runs from the trees to the declaration: a declared entry
+    can only remove a refusal for a link that exists, never introduce one. An entry that
+    declares no link of the merged result is reported as stale, because the merged result is
+    what a later change has to drop it from. Returns whether the merge may continue.
+    '''
+    declared = {}
+    if declaration_path is not None:
+        declared, problem = read_symlink_declaration(merge_commit, declaration_path)
+        if problem is not None:
+            print(f"WARNING: Ignoring the symlink declaration '{declaration_path}' because {problem}. No symbolic link is exempted.")
+        # A declaration is JSON, so its paths and targets arrive as text, while a tree names
+        # both in bytes. They are encoded once here, so every comparison below is between the
+        # bytes the declaration stands for and the bytes the tree carries.
+        declared = {path.encode('utf-8'): (target.encode('utf-8'), reason)
+                    for path, (target, reason) in declared.items()}
+
+    accepted = {}
+    merged_paths = set()
+    refusals = []
+    # Shared across the walk so each distinct link content is read from the object store once
+    # rather than once per commit that carries it.
+    target_by_blob = {}
+    for commit in list(introduced_commits) + [merge_commit]:
+        entries = get_symlink_entries(commit, target_by_blob)
+        if commit == merge_commit:
+            merged_paths = {path for path, _ in entries}
+        for path, target in entries:
+            declaration = declared.get(path)
+            if declaration is not None and declaration[0] == target and symlink_target_is_confined(target):
+                accepted[path] = declaration
+                continue
+            refusals.append((path, commit))
+
+    for path in sorted(accepted):
+        target, reason = accepted[path]
+        print(f"Accepted symlink: {quote_tree_value(path)} -> {quote_tree_value(target)}: {sanitize(reason)}")
+    for path in sorted(set(declared) - merged_paths):
+        print(f"WARNING: Declared symlink {quote_tree_value(path)} is not a symbolic link in the merged result; the entry in '{declaration_path}' is stale and can be dropped once no commit a merge introduces still carries the link.")
+    for path, commit in refusals:
+        print(f"ERROR: File {quote_tree_value(path)} was a symlink in commit {commit}")
+    # The prompts this report has to precede are written to an unbuffered stderr, so a buffered
+    # stdout would deliver the report after the maintainer has already been asked to sign.
+    stdout.flush()
+
+    return not refusals
 
 def tree_sha512sum(commit='HEAD'):
     # request metadata for entire tree, recursively
@@ -273,11 +525,18 @@ def parse_arguments():
             epilog=epilog)
     parser.add_argument('--repo-from', '-r', metavar='repo_from', type=str, nargs='?',
         help='The repo to fetch the pull request from. Useful for monotree repositories. Can only be specified when branch==master. (default: githubmerge.repository setting)')
+    parser.add_argument('--symlinks', metavar='tree_path', type=str, default=None,
+        help='Repository-relative path, inside the merged tree, of the file declaring which symbolic links this repository accepts. Every declared link whose target matches is exempt from the symlink refusal; everything else still refuses. Without this argument no declaration is read and every symbolic link refuses. (no default)')
     parser.add_argument('pull', metavar='PULL', type=int, nargs=1,
         help='Pull request ID to merge')
     parser.add_argument('branch', metavar='BRANCH', type=str, nargs='?',
         default=None, help='Branch to merge against (default: githubmerge.branch setting, or base branch for pull, or \'master\')')
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.symlinks is not None:
+        path_error = symlink_declaration_path_error(args.symlinks)
+        if path_error is not None:
+            parser.error(path_error)
+    return args
 
 def main():
     # Extract settings from git repo
@@ -390,10 +649,13 @@ def main():
             print("ERROR: Creating merge failed (already merged?).",file=stderr)
             sys.exit(4)
 
-        symlink_files = get_symlink_files()
-        for f in symlink_files:
-            print(f"ERROR: File '{f}' was a symlink")
-        if len(symlink_files) > 0:
+        # Check the symbolic links in every commit the merge introduces, not only in the
+        # merged tip: a link that appears in an intermediate commit and disappears before
+        # the tip still resolves on every checkout, archive, or bisect of the commit that
+        # carries it. The declaration that admits them is read from the merged tree alone.
+        merge_commit = subprocess.check_output([GIT,'rev-parse','HEAD']).decode('utf-8').strip()
+        introduced_commits = subprocess.check_output([GIT,'--no-pager','log','--reverse','--topo-order','--pretty=format:%H',base_branch+'..'+head_branch]).decode('utf-8').split()
+        if not check_symlinks(introduced_commits, merge_commit, args.symlinks):
             sys.exit(4)
 
         # Compute SHA512 of git tree (to be able to detect changes before sign-off)
