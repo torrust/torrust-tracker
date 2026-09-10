@@ -21,6 +21,7 @@ semantic-links:
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
     - docs/issues/open/2175-merge-tool-symlink-exceptions/ISSUE.md
     - docs/issues/closed/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
+    - .gitignore
 ---
 
 <!-- skill-link: create-issue -->
@@ -58,6 +59,7 @@ The remaining reason the wrapper is a shell script is historical: #2022 vendored
 - Update `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md`, `contrib/dev-tools/git/README-github-merge.md` and `AGENTS.md` to the Python entry point and to configuration-key wording.
 - State the Python interpreter version the workflow requires, and check it in the program.
 - Record the static-analysis coverage the port loses and what replaces it.
+- Add a bytecode-cache rule to `.gitignore`, which carries none, so importing a Python file in this tree leaves no untracked directory beside it.
 
 ### Out of Scope
 
@@ -144,6 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | TODO   | Complete the test module | Every behavior in the mapping table below, the pseudo-terminal cases from `pty`, and the repository-neutral cases the bash suite could not express. |
 | T7  | TODO   | Retire the shell wrapper and its suite | `merge-pull-request.sh` and `test-merge-pull-request.sh` are deleted once T6 is green. |
 | T8  | TODO   | Update the documentation and the skill | Skill, vendoring README and `AGENTS.md` name the Python entry point, describe the configuration keys and their defaults, state the interpreter requirement, and state the static-analysis gap. |
+| T9  | TODO   | Ignore Python bytecode caches | `.gitignore` gains `__pycache__/`, a rule it carries for no Python file today. A cache written beside the program leaves an untracked directory in `contrib/dev-tools/git/`, and the wrapper's own clean-tree check refuses a tree that carries one; the engine suite keeps caches out only for the processes it spawns (`tests/test-github-merge-symlinks.py` lines 144-146), which reaches no import the port's suite performs in its own process. |
 
 ### Behavior mapping
 
@@ -195,6 +198,7 @@ The program documents and uses three, matching the shell wrapper and the convent
 | T6 | Remaining test increments, one behavior area per commit. | Commit each reviewed increment before starting the next area, and stop for maintainer review after the final increment. |
 | T7 | Deletion of `merge-pull-request.sh` and `test-merge-pull-request.sh`. | Commit alone, so the removal is independently reviewable and independently revertible. |
 | T8 | Skill, vendoring README and `AGENTS.md` updates. | Commit after the behavior they describe is in the branch. |
+| T9 | The `.gitignore` entry. | Carried in the T1 commit, which is the first change that can write a cache. |
 
 The whole sequence belongs to one pull request rather than to a port followed by a separate retirement. Two entry points for one workflow is an ambiguity that has to be documented for as long as it lasts: the skill, the README and the coverage boundary would each have to say which one is authoritative, and a maintainer following the older instruction would keep using the wrapper that refuses sibling repositories. The port's own suite is the evidence that every behavior survived, so the deletion is best reviewed in the diff that carries that evidence. Keeping T7 as its own commit preserves the ability to revert the removal without reverting the port.
 
@@ -224,6 +228,7 @@ Append one line per meaningful update.
 
 - 2026-09-10 13:22 UTC - Spec author - Draft written against `develop` at `89d45145`; behavior mapping built from `merge-pull-request.sh` and the thirteen cases of `test-merge-pull-request.sh` - this document
 - 2026-09-10 13:57 UTC - Spec author - GitHub issue #2195 created from the reviewed draft; specification moved to `docs/issues/open/2195-merge-wrapper-python-port/ISSUE.md` - https://github.com/torrust/torrust-tracker/issues/2195
+- 2026-09-10 13:57 UTC - Spec author - Added T9 and AC13 after verifying that `.gitignore` carries no bytecode-cache rule and that the engine suite keeps caches out of the tree only for the processes it spawns, so an import the port's suite performs in its own process would write `contrib/dev-tools/git/__pycache__/` into the directory whose cleanliness the wrapper itself requires - This spec
 
 ## Acceptance Criteria
 
@@ -239,6 +244,7 @@ Append one line per meaningful update.
 - [ ] AC10: The skill, the vendoring README and `AGENTS.md` name the Python entry point, document `githubmerge.branch` and `githubmerge.symlinks` with their defaults, and state the interpreter requirement.
 - [ ] AC11: The vendoring README's provenance statement continues to name `github-merge.py` alone, and the new program carries no upstream copyright header.
 - [ ] AC12: The static-analysis coverage the port loses is stated in the vendoring README's coverage boundary, with the referred follow-up named.
+- [ ] AC13: `.gitignore` ignores `__pycache__/`, and running both Python suites from a clean working tree leaves `git status --porcelain` empty.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -253,6 +259,7 @@ Define verification before implementation starts and execute it before closing t
 
 - `python3 contrib/dev-tools/git/tests/test-merge-pull-request.py`
 - `python3 contrib/dev-tools/git/tests/test-github-merge-symlinks.py`, unchanged by this issue and run to show it stays green
+- `git status --porcelain` after both suites, which must print nothing
 - `linter all`
 - Pre-push checks (when applicable)
 
@@ -303,6 +310,7 @@ None are proposed. Every behavior this issue moves is deterministic and belongs 
 | AC10 | TODO | {test/log/PR link} |
 | AC11 | TODO | {test/log/PR link} |
 | AC12 | TODO | {test/log/PR link} |
+| AC13 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 

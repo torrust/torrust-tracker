@@ -383,6 +383,7 @@ programatik
 proot
 proto
 pushmirrors
+pycache
 qbittorrent
 quickcheck
 randomised
