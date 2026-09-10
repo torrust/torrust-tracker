@@ -61,6 +61,9 @@ item below:
 - [ ] Arrange makes the causal initial-state difference visible.
 - [ ] Any builder or scenario fixture is named for that state and owns only incidental mechanics;
       it is not a parameter bag mirroring the production call.
+- [ ] Every helper names a coherent action, capability, or state and keeps the caller at one
+      abstraction level. Do not treat a single-use helper as a defect solely because it has one
+      caller; flag it only when it is vague, hides behavior, or mixes responsibilities.
 - [ ] The production Act remains visible in the test body.
 - [ ] Expected results are independently specified and assertions remain visible.
 - [ ] The test does not duplicate a better-owned protocol, domain, integration, or end-to-end

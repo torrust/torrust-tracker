@@ -95,10 +95,12 @@ one causal initial-state difference; its fixture owns only incidental mechanics;
 Act plus independently specified expected result remain visible. The review must use the mandatory
 prose-first Arrange-Act-Assert comparison: write temporary prose for each section, refactor until
 the code expresses it, remove redundant prose, and retain only irreducible context. Record this
-review in task evidence or a file-local test plan. Commit each reviewed test-design increment before
-starting the next planned file or behavior area. Keep final verification and completion evidence
-separate when it improves reviewability. Use a Conventional Commit message with the narrow affected
-scope, and sign every commit with GPG.
+review in task evidence or a file-local test plan. Assess helper boundaries by meaningful named
+actions and abstraction-level alignment, not caller count: a single-use helper is valid when it
+keeps the test readable and hides only incidental mechanics. Commit each reviewed test-design
+increment before starting the next planned file or behavior area. Keep final verification and
+completion evidence separate when it improves reviewability. Use a Conventional Commit message
+with the narrow affected scope, and sign every commit with GPG.
 
 ## Progress Tracking
 

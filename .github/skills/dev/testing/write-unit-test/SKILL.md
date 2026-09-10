@@ -125,6 +125,20 @@ components, or derive an expected outcome using production code under test. For 
 constraints and example, see
 [Scenario fixtures for causal initial state](../../../../../docs/testing/refactoring-patterns/scenario-fixtures-for-causal-initial-state.md).
 
+### Name Coherent Actions at One Abstraction Level
+
+Use a helper when it gives a coherent sequence of setup or transport actions a meaningful name and
+keeps the caller at one readable abstraction level. A helper does **not** require multiple callers:
+`start_ephemeral_udp_tracker()` can be justified by naming one complete ordinary setup action even
+when one contract test currently uses it.
+
+Judge a helper by semantic value, not reuse count. Keep it when its name expresses a capability or
+state relevant to the test and it hides only incidental mechanics. Reject it when it merely moves
+code away behind a vague name such as `setup()`, becomes a parameter bag, hides the causal state,
+production Act, or expected result, or mixes unrelated responsibilities. See
+[Named helpers for abstraction-level alignment](../../../../../docs/testing/refactoring-patterns/named-helpers-for-abstraction-level-alignment.md)
+for selection criteria and examples.
+
 ### Verify Intent with Prose-First AAA
 
 Before considering any new or materially refactored test ready for maintainer review, make its

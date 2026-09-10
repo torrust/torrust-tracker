@@ -45,7 +45,9 @@ pull request is opened.
    independently specified expected result. Require recorded evidence of the mandatory prose-first
    Arrange-Act-Assert comparison; do not pass a review when a changed test's code has not been
    compared against its temporary prose specification, or when redundant prose remains without an
-   irreducible-context rationale.
+   irreducible-context rationale. Assess helper quality by whether it gives a coherent action,
+   capability, or state a meaningful name and aligns the caller's abstraction level; do not flag a
+   helper solely because it has a single caller.
 4. Validate each acceptance criterion explicitly as one of:
    - `PASS` - implemented and verified
    - `FAIL` - not implemented or incorrect
