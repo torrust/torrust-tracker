@@ -34,6 +34,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/bound-socket-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-dispatch-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/contract-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 

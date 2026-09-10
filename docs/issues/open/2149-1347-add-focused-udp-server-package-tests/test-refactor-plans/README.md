@@ -15,7 +15,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Parse-error adapter tests](error-tests.md) — complete.
 - [Bound-socket tests](bound-socket-tests.md) — complete.
 - [Handler-dispatch tests](handler-dispatch-tests.md) — complete.
-- [Launcher tests](launcher-tests.md) — proposed; awaiting maintainer approval.
+- [Launcher tests](launcher-tests.md) — complete.
+- [Contract tests](contract-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
