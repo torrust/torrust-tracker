@@ -8,7 +8,7 @@ github-issue: 2179
 spec-path: docs/issues/open/2179-docker-e2e-job-package-flag/ISSUE.md
 branch: "2179-docker-e2e-job-package-flag-spec"
 related-pr: null
-last-updated-utc: 2026-09-10 08:15
+last-updated-utc: 2026-09-10 08:42
 semantic-links:
   skill-links:
     - create-issue
@@ -19,11 +19,12 @@ semantic-links:
     - packages/e2e-tools/Cargo.toml
     - docs/issues/closed/1854-1840-workflow-performance-container-test-gating/ISSUE.md
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
+    - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #2179 - Docker E2E job in testing.yaml fails on every feature-branch push: cargo run lacks the e2e-tools package flag
+# Issue #2179 - Docker E2E job in testing.yaml fails on feature-branch pushes: cargo run lacks the e2e-tools package flag
 
 ## Goal
 
@@ -46,9 +47,9 @@ The same four invocations in `.github/workflows/container.yaml` (lines 117, 123,
 
 The divergence has a precise origin, and it is not the guard. Commit `c1b6c5466` ("feat(ci): eliminate duplicate E2E tests and add test binary landscape analysis", 2026-06-03) added only the `if:` guard and its explanatory comment to `testing.yaml`, twelve added lines and no deletions; the runner steps already existed there and predate it. The break arrived the next day in commit `c47173f53` ("ci(container): slim nextest archive by extracting e2e and benchmark packages", 2026-06-04), which moved `src/bin/e2e_tests_runner.rs`, `src/bin/qbittorrent_e2e_runner.rs`, and `src/bin/profiling.rs` into the new `packages/e2e-tools` package as pure renames and touched neither workflow. At that moment both workflows were broken in the same way. Commit `2d1ce246b` ("ci(container): address Copilot review issues after T13/T14 extraction", 2026-06-04) then repaired `container.yaml` alone: its own message records fixing the four `cargo run --bin` invocations to include `-p torrust-tracker-e2e-tools` "so Cargo resolves the binaries after they were extracted out of `src/bin/` into the new e2e-tools package", and wrapping the long `e2e_tests_runner` step in a YAML `>-` block scalar to stay inside the yamllint line-length limit. The identical four invocations in `testing.yaml` were not part of that change and have carried the defect ever since.
 
-What the guard did contribute is the silence. Because `docker-e2e` never runs on pushes to `develop` or on pull requests targeting `develop`, upstream CI has never executed the broken steps, so `develop` has stayed green while the job has failed on every feature-branch push since June 2026. The failure surfaces only where nobody routinely looks: it has been reported on the dependency-update pull requests #2055 and #2106, whose branch pushes do trigger the job, and it is observed directly on the `da2ce7/torrust-tracker` fork, most recently in the `Testing` run for the push of `2175-merge-tool-symlink-exceptions` at `4bff469e` on 2026-09-10, where the `Docker E2E` job builds the tracker image successfully and then fails at step `Run E2E Tests`, leaving the three qBittorrent steps skipped ([run 34444943476](https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212)). The #2055 and #2106 observations are carried here as reported evidence and were not re-checked.
+What the guard did contribute is the silence. Because `docker-e2e` never runs on pushes to `develop` or on pull requests targeting `develop`, upstream CI has never executed the broken steps, so `develop` has stayed green while the job has failed since June 2026 on every feature-branch push that starts a `Testing` run at all. The qualification is the workflow's own path filter: `testing.yaml` carries `paths-ignore` entries for `**/*.md` and `project-words.txt` on both `push` and `pull_request`, so a push whose changed files are all documentation starts no run and produces no failure. Every feature-branch push that carries a non-documentation change reaches the broken steps. The failure surfaces only where nobody routinely looks: it has been reported on the dependency-update pull requests #2055 and #2106, whose branch pushes do trigger the job, and it is observed directly on the `da2ce7/torrust-tracker` fork, most recently in the `Testing` run for the push of `2175-merge-tool-symlink-exceptions` at `4bff469e` on 2026-09-10, where the `Docker E2E` job builds the tracker image successfully and then fails at step `Run E2E Tests`, leaving the three qBittorrent steps skipped ([run 34444943476](https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212)). The #2055 and #2106 observations are carried here as reported evidence and were not re-checked.
 
-One detail of the repair is load-bearing rather than cosmetic. `.yamllint-ci.yml` sets `line-length: max: 200`, and `linter all` runs yamllint over the workflow files. Line 185 is currently 184 characters; adding `-p torrust-tracker-e2e-tools` together with the space separating it from the following argument costs 26 more characters and would take it to 210, over the limit. The other three lines are 153, 151, and 156 characters and land at 179, 177, and 182. The first step must therefore be wrapped in a `>-` block scalar, which is exactly the shape `container.yaml` already uses for the same step and for the same reason.
+One detail of the repair is load-bearing rather than cosmetic. `.yamllint-ci.yml` sets `line-length: max: 200`, and `linter all` runs yamllint over the workflow files. Line 185 is currently 184 characters; inserting `-p torrust-tracker-e2e-tools` together with the space separating it from the following argument adds 29 characters and would take it to 213, over the limit. The other three lines are 153, 151, and 156 characters and land at 182, 180, and 185. The first step must therefore be wrapped in a `>-` block scalar, which is exactly the shape `container.yaml` already uses for the same step and for the same reason.
 
 ## Scope
 
@@ -57,7 +58,7 @@ One detail of the repair is load-bearing rather than cosmetic. `.yamllint-ci.yml
 - Add `-p torrust-tracker-e2e-tools` to the four `cargo run` invocations in the `docker-e2e` job of `.github/workflows/testing.yaml`, at lines 185, 189, 193, and 197, keeping every other argument of each step byte-for-byte as it is today.
 - Wrap the `run-tracker-e2e-tests` step's command in a YAML `>-` block scalar so the added flag does not push the line past the 200-character yamllint limit, matching the form `container.yaml` uses for the same step.
 - Extend the job's existing comment with one sentence recording why the package flag is required: the workspace root is itself a package, so `--bin` alone resolves only against the root package's targets.
-- Verify the fix by pushing the branch to a fork or another in-repo feature branch, where the guard admits the job, and recording the passing run URL in this specification.
+- Verify the fix by pushing the branch to a fork or another in-repo feature branch, where the guard admits the job, and recording the verification in an issue-local `manual-verification-evidence.md` created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`: the steps performed, the commands run, the observed job and step output, and the outcome, with the passing run URL carried there as the reference to the run.
 
 ### Out of Scope
 
@@ -86,14 +87,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                        | Notes / Expected Output                                                                                                                                                                                                                     |
 | --- | ------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Add the package flag and amend the comment  | The four `cargo run` lines in the `docker-e2e` job of `.github/workflows/testing.yaml` carry `-p torrust-tracker-e2e-tools`; the `run-tracker-e2e-tests` step uses a `>-` block scalar; the job comment gains one sentence explaining the flag; `linter all` exits `0`. |
-| T2  | TODO   | Verify on a feature-branch push             | The branch is pushed to a fork or another in-repo feature branch, the `Docker E2E` job of `testing.yaml` runs, its four runner steps execute and pass, and the run URL is recorded as evidence for M1 and AC2.                                |
+| T2  | TODO   | Verify on a feature-branch push             | The branch is pushed to a fork or another in-repo feature branch, the `Docker E2E` job of `testing.yaml` runs, and its four runner steps execute and pass. Issue-local `manual-verification-evidence.md` is created or updated with section V1: the steps performed, the commands run, the observed step output, the outcome, and the run URL as the reference. M1 and AC2 cite that section. |
 
 ## Commit Points
 
 | Task | Coherent change set                                                                                             | Commit policy                                                                                              |
 | ---- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | T1   | The workflow edit: four `cargo run` lines plus the block scalar and the comment sentence, in one file.           | Commit after `linter all` passes. One signed Conventional Commit, scope `ci`.                              |
-| T2   | Evidence only: progress-log entry and manual-scenario rows updated with the run URL, no workflow change.        | Commit after the run completes, or fold into the pull request description if no spec update is warranted.   |
+| T2   | Evidence only: issue-local `manual-verification-evidence.md`, progress-log entry, and manual-scenario rows, no workflow change. | Commit after the run completes. One signed Conventional Commit, scope `docs`.                              |
 
 ## Progress Tracking
 
@@ -105,7 +106,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -118,6 +119,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-08 21:30 UTC - Spec author - Drafted this specification against `develop` at `e4db63d5`. Verified the four invocation line numbers in both workflows, the `if:` guard range, the binaries' location under `packages/e2e-tools/src/bin/`, and the root `Cargo.toml` `[package]`/`default-run` declaration. Traced the divergence to `c47173f53` (package extraction) and `2d1ce246b` (which repaired `container.yaml` only), not to `c1b6c5466`, which added only the guard. Measured the four line lengths against the 200-character limit in `.yamllint-ci.yml` and found that line 185 needs a `>-` block scalar. CI observations for #2055, #2106, and the `merge-tool-symlink-exceptions-spec` push are recorded as reported evidence; no GitHub access was available while drafting.
 - 2026-09-10 08:15 UTC - Spec author - Re-verified both evidence facts before opening the issue. Against `develop` at `89d45145` the four `cargo run` invocations in the `docker-e2e` job still carry no `-p` flag at lines 185, 189, 193, and 197, measuring 184, 153, 151, and 156 characters, so the block-scalar requirement on the first step holds unchanged. The symptom is live on the `da2ce7/torrust-tracker` fork: in the `Testing` run for `4bff469e` the `Docker E2E` job fails at step `Run E2E Tests` after a successful image build, with the three qBittorrent steps skipped - https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212
 - 2026-09-10 08:15 UTC - Spec author - GitHub issue #2179 created from the reviewed draft; specification moved to `docs/issues/open/2179-docker-e2e-job-package-flag/ISSUE.md` - https://github.com/torrust/torrust-tracker/issues/2179
+- 2026-09-10 08:42 UTC - Spec author - Applied three review findings from the specification pull request, each recomputed against `develop` at `89d45145` first. The "every push" claims are qualified: both `testing.yaml` and `container.yaml` ignore pushes whose changed files are all `**/*.md` or `project-words.txt`, so those start no run, and the title, the Background paragraph, and both Risks entries now say so. The line-length arithmetic is corrected: the inserted `-p torrust-tracker-e2e-tools` plus its separating space is 29 characters, not 26, so the four lines land at 213, 182, 180, and 185 rather than 210, 179, 177, and 182; line 185 still exceeds the 200-character limit and still needs the `>-` block scalar, so the repair shape is unchanged. Manual verification now produces an issue-local `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`, as `create-issue` requires, with the run URL carried there as a reference rather than standing in for the evidence.
 
 ## Acceptance Criteria
 
@@ -127,7 +129,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC4: The `docker-e2e` job comment records why the package flag is required.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented (status + evidence)
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -146,12 +148,13 @@ A pull request targeting `develop` cannot verify this fix: the `if:` guard skips
 
 | ID  | Scenario                                          | Command/Steps                                                                                                                                                | Expected Result                                                                                                                                                    | Status | Evidence                                              |
 | --- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------- |
-| M1  | The job runs and passes on a feature-branch push  | Push the fix branch to a fork or to an in-repo branch that is not `develop`, `main`, or `releases/*`, then open the `Testing` workflow run for that push.     | The `Docker E2E` job runs; steps `run-tracker-e2e-tests`, `run-qbittorrent-e2e-test-sqlite3`, `run-qbittorrent-e2e-test-mysql`, and `run-qbittorrent-e2e-test-postgresql` all execute the runners and succeed; the job is green. | TODO   | Run URL of the `Docker E2E` job                       |
-| M2  | Behavior on `develop` is unchanged                 | Open the pull request for this fix against `develop` and inspect its `Testing` workflow run.                                                                  | The `Docker E2E` job is skipped, as it is today, because `container.yaml` covers the event. No new job appears and no existing job changes status.                     | TODO   | Run URL of the pull request's `Testing` workflow      |
+| M1  | The job runs and passes on a feature-branch push  | Push the fix branch to a fork or to an in-repo branch that is not `develop`, `main`, or `releases/*`, then open the `Testing` workflow run for that push.     | The `Docker E2E` job runs; steps `run-tracker-e2e-tests`, `run-qbittorrent-e2e-test-sqlite3`, `run-qbittorrent-e2e-test-mysql`, and `run-qbittorrent-e2e-test-postgresql` all execute the runners and succeed; the job is green. | TODO   | `manual-verification-evidence.md` section V1, carrying the run URL of the `Docker E2E` job |
+| M2  | Behavior on `develop` is unchanged                 | Open the pull request for this fix against `develop` and inspect its `Testing` workflow run.                                                                  | The `Docker E2E` job is skipped, as it is today, because `container.yaml` covers the event. No new job appears and no existing job changes status.                     | TODO   | `manual-verification-evidence.md` section V2, carrying the run URL of the pull request's `Testing` workflow |
 
 Notes:
 
 - Manual verification is mandatory even when automated tests pass.
+- Create `manual-verification-evidence.md` in this issue folder from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these scenarios, and record there the actual prerequisites, steps, commands, job and step output, and outcome. A run URL is a reference to that evidence, not the evidence itself: the run's logs expire and the URL alone preserves neither what was done nor what was observed.
 - If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
 
 ### Acceptance Verification
@@ -159,16 +162,16 @@ Notes:
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                            |
 | ----- | ---------------------- | --------------------------------------------------- |
 | AC1   | TODO                   | Diff of `.github/workflows/testing.yaml`             |
-| AC2   | TODO                   | M1 run URL                                          |
+| AC2   | TODO                   | `manual-verification-evidence.md` section V1 (M1)   |
 | AC3   | TODO                   | Pull request file list                              |
 | AC4   | TODO                   | Diff of `.github/workflows/testing.yaml`             |
 
 ## Risks and Trade-offs
 
-- No material risk to the change itself. The flag value is not a guess: `container.yaml` runs the same four binaries with the same flag against the same package on every push to `develop`, so the invocation form is already proven in CI.
+- No material risk to the change itself. The flag value is not a guess: `container.yaml` runs the same four binaries with the same flag against the same package on every push to `develop` that its own `paths-ignore` filter admits, so the invocation form is already proven in CI.
 - The line-length rule is the only way this edit can go wrong mechanically, and `linter all` catches it before the change leaves the working tree.
-- Verification depends on an event upstream CI does not produce, so the passing run URL must be captured deliberately rather than expected to appear on the pull request. M1 exists for that reason.
-- Restoring the job means feature-branch pushes will start spending E2E time they have not spent since June 2026. That is the job's intended cost, not a regression, and the job already carries `timeout-minutes: 90`.
+- Verification depends on an event upstream CI does not produce, so the run and the evidence recorded from it must be captured deliberately rather than expected to appear on the pull request. M1 exists for that reason.
+- Restoring the job means feature-branch pushes that carry a non-documentation change, the ones the workflow's `paths-ignore` filter admits, will start spending E2E time they have not spent since June 2026. That is the job's intended cost, not a regression, and the job already carries `timeout-minutes: 90`.
 
 ## Implementation Completion Review
 
