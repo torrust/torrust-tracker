@@ -35,9 +35,9 @@ Only add `#[allow(...)]` when:
 
 ## How to Document Exceptions
 
-When adding or modifying `#[allow(clippy::...)]` attributes, use Rust's native `reason` parameter.
-The prospective Rust validator checks changed attributes against the branch merge base, so existing
-allows remain the separate remediation scope of #2158.
+When adding or modifying `#[allow(clippy::...)]` or `#[expect(clippy::...)]` attributes, use Rust's
+native `reason` parameter. The prospective Rust validator checks changed attributes against the
+branch merge base, so existing allows remain the separate remediation scope of #2158.
 
 ```rust
 #[allow(
@@ -55,6 +55,11 @@ enforcement mechanism, but enabling it now would violate this issue's prospectiv
 
 For a temporary item-level suppression, prefer `#[expect(..., reason = "...")]` when it is useful
 to learn that the underlying lint no longer fires. Do not force `expect` for crate-level policy.
+
+The validator also checks changed `cfg_attr(..., allow(clippy::...))` and
+`cfg_attr(..., expect(clippy::...))` controls. Attributes written inside a `macro_rules!` token body
+are not visited by the Rust AST and are out of scope for this prospective check; do not use macros
+to conceal a lint suppression.
 
 For example:
 

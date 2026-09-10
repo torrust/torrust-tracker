@@ -127,6 +127,7 @@ expanding into a bulk remediation.
 - 2026-09-10 09:30 UTC - GitHub Copilot - Completed Cameron finding M25 / BB1 in `65a8d1b4`; nightly Clippy and `linter all` passed, reply posted, and review thread resolved - Done
 - 2026-09-10 10:05 UTC - GitHub Copilot - Addressed Cameron findings M15 / BB2 and M19: pinned and fail-closed Git diff parsing; disposable Git fixtures disable signing and hooks; hostile configuration tests, nightly Clippy, and `linter all` passed - Pending focused commits, replies, and thread resolutions
 - 2026-09-10 10:15 UTC - GitHub Copilot - Completed Cameron findings M15 / BB2 and M19 in `067f379b`; validation passed, replies posted, and both review threads resolved - Done
+- 2026-09-10 10:30 UTC - GitHub Copilot - Addressed Cameron findings M16 / BB3 and M23: native-reason validation now covers changed direct and conditional Clippy `allow` and `expect` controls; the skill documents the macro token-body limitation - Pending focused commits, replies, and thread resolutions
 
 ## Acceptance Criteria
 
