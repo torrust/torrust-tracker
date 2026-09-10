@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/tests/server/contract.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/tests/server/contract.rs
@@ -130,13 +130,23 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Review residual integration coverage and ownership
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure integration-only coverage for selected production seams and compare it with
   separate unit-only evidence. Record only unique loopback behavior; assign internal logic to its
   existing unit boundary or lifecycle work to #1488.
 - **Guardrails:** Do not use combined coverage to claim either boundary and do not add
   percentage-only tests.
+- **Decision:** No test added. At commit `87bf6b73`, integration-only coverage gives
+  `server/receiver.rs` 21/22 lines (95.45%), 29/31 regions (93.55%), and 3/3 functions (100%);
+  `server/processor.rs` 34/34 lines, 20/20 regions, and 7/7 functions (all 100%); and
+  `handlers/mod.rs` 31/31 lines, 18/18 regions, and 5/5 functions (all 100%) for their compiled
+  integration slices. The suite already retains unique real-loopback contracts for malformed
+  packets, connect, announce, scrape, high request volume, IPv6-only binding, strict-mode banning,
+  and disabled connection-ID validation. Unit-only evidence remains the primary proof for internal
+  adapters and admission decisions. The remaining receiver error/pending branches require controlled
+  socket readiness or I/O fault injection with no clearer user-visible contract; receive-loop and
+  teardown lifecycle behavior belongs to #1488. No additional integration contract is justified.
 - **Done when:** the plan identifies whether another real-loopback contract has unique value.
 
 ## Progress Tracking
@@ -149,9 +159,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 assessment completed and proposed cleanup recorded.
 - [x] Maintainer approved R2 cleanup.
 - [x] R2 cleanup implemented, reviewed, validated, and committed.
-- [ ] R3 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R3 coverage/ownership review completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -174,6 +184,14 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Reviewed and approved R2. The shared tracker-start helper keeps
   both adjacent loopback contracts at one abstraction level; the visible connect request, transport
   Act, expected transaction ID, and shutdown preserve the test's behavior-specific contract.
+- 2026-09-10 - GitHub Copilot - Completed R3. Separate measurements confirm integration tests own
+  the real socket receive/send and packet-path slice, while unit tests own internal adapters and
+  admission decisions. The existing suite covers every selected loopback category; receiver
+  fault/pending paths lack a clearer portable user-visible contract, and lifecycle behavior belongs
+  to #1488. No additional integration test is added.
+- 2026-09-10 - User/maintainer - Reviewed and approved the completed contract-test plan. R1/R2
+  clarify the empty-datagram and connect real-loopback contracts; R3 records separate unit versus
+  integration coverage and the justified no-change decision for further transport expansion.
 
 ### Validation Evidence
 
@@ -182,7 +200,8 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration should_return_a_bad_request_response_when_the_client_sends_an_empty_request`, and `git diff --check` passed. Prose-first review retains named tracker setup, causal empty datagram, visible UDP exchange, and independent protocol-error assertion. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration receiving_a_connection_request::should_return_a_connect_response`, and `git diff --check` passed. Prose-first review retains named tracker setup, visible connect request/exchange, independent transaction-ID assertion, and explicit shutdown. |
-| R3 | TODO | Awaiting R2 review. |
+| R3 | DONE | No change: integration-only coverage is 95.45% receiver lines and 100% compiled processor/dispatcher slices; unit tests own internal adapters/admission. Existing loopback contracts cover selected transport behavior, while receiver fault/pending and lifecycle paths lack a clearer contract or belong to #1488. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
