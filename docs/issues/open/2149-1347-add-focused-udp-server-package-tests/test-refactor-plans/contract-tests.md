@@ -85,7 +85,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Clarify the empty-datagram error contract
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1, P3
 - **Change:** Write temporary Arrange-Act-Assert prose for the empty-request contract. Refactor
@@ -94,6 +94,12 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Do not assert logging, internal parser implementation, event delivery, or
   statistics. Do not use sleeps, polling, or a new generic fixture. Keep response parsing and the
   error assertion in the test or a narrowly named decoding helper that does not derive expectations.
+- **Prose-first review:** The temporary Arrange prose was “a running UDP tracker and a real
+  loopback client send an empty datagram.” `start_ephemeral_udp_tracker` names the coherent
+  non-behavioral lifecycle setup, even with one caller, because it keeps the test at the same
+  abstraction level as its real UDP interaction. `empty_udp_datagram` makes the causal input
+  visible. The Act retains send, receive, and protocol decode steps; the Assert independently
+  specifies the missing-protocol-identifier error. Temporary prose is redundant and removed.
 - **Done when:** the code expresses the wire contract without redundant prose and has one clear
   behavioral reason to fail.
 
@@ -126,7 +132,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Existing real-loopback contracts, receiver boundary, unit-first policy, and candidate seams reviewed.
 - [x] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] R2 assessment completed and decision recorded.
 - [ ] R3 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -139,13 +145,17 @@ validation, review, and its mapped commit point—before beginning the next item
   test or production change has been made.
 - 2026-09-10 - User/maintainer - Approved R1. Apply the prose-first Arrange-Act-Assert cleanup to
   the empty-datagram contract only; commit this plan update before modifying the integration test.
+- 2026-09-10 - User/maintainer - Confirmed that a helper is justified by its meaningful name and
+  coherent abstraction level, not by having multiple callers. Retained
+  `start_ephemeral_udp_tracker` because it names a cohesive setup action and keeps the contract test
+  focused on real UDP behavior.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | IN_PROGRESS | Maintainer approved the empty-datagram contract cleanup. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration should_return_a_bad_request_response_when_the_client_sends_an_empty_request`, and `git diff --check` passed. Prose-first review retains named tracker setup, causal empty datagram, visible UDP exchange, and independent protocol-error assertion. |
 | R2 | TODO | Awaiting R1 review. |
 | R3 | TODO | Awaiting R2 review. |
 
