@@ -83,8 +83,8 @@ async functions that receive the `AppContainer` and assert behavior.
 
 Cargo may run these binaries in parallel. Each binary binds to port `0`
 (OS-assigned ephemeral ports) by default, uses its own `TempDir` workspace,
-and configures its in-process tracker through its own environment, so no
-conflict occurs. Fixed-port binaries (e.g., `metrics-fixed-ports`)
+and passes its workspace file through the explicit configuration-path API, so
+no base-source environment conflict occurs. Fixed-port binaries (e.g., `metrics-fixed-ports`)
 use distinct non-overlapping ports and must not run concurrently with other
 binaries that use the same ports.
 
@@ -100,9 +100,11 @@ outranks both environment base sources; per-value
 `TORRUST_TRACKER_CONFIG_OVERRIDE_*` variables still apply. Each child must use a
 separate `TempDir` workspace and port-zero listener configuration.
 
-In-process application fixtures remain environment-based because they call the
-compatibility wrapper `app::start()`. Do not mutate configuration variables
-without the fixture's synchronization guard.
+In-process application fixtures pass their workspace file to
+`app::start_with_explicit_config_toml_path`. Do not mutate configuration
+variables in in-process tests unless legacy environment-source behavior is the
+contract under test; serialize and restore such mutations within that test
+module.
 
 ### Why one binary per configuration?
 
@@ -115,11 +117,7 @@ in the same process:
    global subscriber. Once set, it cannot be reset for a second tracker
    instance in the same process. This means tracker applications sharing a
    process would share logging state and configuration.
-2. **Environment-variable configuration injection in in-process fixtures**:
-   `app::start()` reads configuration from the environment. Multiple tracker
-   instances in the same process would race on those variables. Native child
-   fixtures instead use the main binary's explicit CLI path.
-3. **Static secrets and clock state**: Values such as seed secrets and the
+2. **Static secrets and clock state**: Values such as seed secrets and the
    deterministic test clock are process-global. While these could be refactored
    into injected dependencies, they remain lifecycle constraints today.
 

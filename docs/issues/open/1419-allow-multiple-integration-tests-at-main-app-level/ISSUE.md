@@ -7,7 +7,7 @@ github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-08-24
+last-updated-utc: 2026-09-10 14:38
 semantic-links:
   skill-links:
     - write-unit-test
@@ -128,15 +128,14 @@ Additionally, trackers need isolated storage directories for their databases and
 Using a shared `storage/` directory or relying on default paths causes conflicts when multiple
 trackers run concurrently.
 
-The current test uses `unsafe { env::set_var(...) }` with a safety comment acknowledging this
-limitation.
+The original fixture used `unsafe { env::set_var(...) }` with a safety comment acknowledging this
+limitation. It is retained here as the historical problem that the explicit-path fixture migration resolves.
 
-**Note**: The E2E runner ([`src/console/ci/e2e/runner.rs`](../../../../src/console/ci/e2e/runner.rs))
-demonstrates a pattern where CLI arguments (`--config-toml-path`, `--config-toml`) map to these
-same environment variables (`TORRUST_TRACKER_CONFIG_TOML_PATH`, `TORRUST_TRACKER_CONFIG_TOML`).
-However, the main tracker binary ([`src/main.rs`](../../../../src/main.rs)) does not currently
-accept CLI arguments - it only reads configuration from environment variables. Adding CLI argument
-support to the main binary would be a future improvement, but is out of scope for this issue.
+**Update:** Issue #2151 added `--config-toml-path` to the main tracker
+startup boundary. The shared fixture now passes its workspace-local file to
+`app::start_with_explicit_config_toml_path`, so it no longer needs to mutate
+base-source environment variables. The E2E runner's complete-TOML input remains
+a separate container-runner concern.
 
 **Solution**: Use temporary directories (not just temp files) for complete test isolation:
 
@@ -145,7 +144,8 @@ support to the main binary would be a future improvement, but is out of scope fo
    - Config file (e.g., `tracker-config.toml`)
    - Storage directory (e.g., `tracker-storage/` for database and runtime data)
 3. Configure the tracker to use these isolated paths
-4. Set `TORRUST_TRACKER_CONFIG_TOML_PATH` to point to the temp config file
+4. Pass the temp config-file path directly to
+   `app::start_with_explicit_config_toml_path`
 5. The entire temp directory and its contents are automatically cleaned up when the `TempDir`
    handle is dropped
 
@@ -242,6 +242,10 @@ completed work and remaining tasks are recorded after the decision pivot.
   seconds because current server jobs can consume `wait_for_all`'s per-job timeout. Successful
   process exit is not evidence of cooperative server shutdown; that proof remains deferred to
   #1488.
+- 2026-09-09 - GitHub Copilot - Replaced the shared fixture's test-process configuration
+  environment mutation with `app::start_with_explicit_config_toml_path` using its existing
+  workspace-local file. Removed the environment lock and restoration guard. All eight current
+  main-level integration targets passed together; lifecycle completion remains deferred to #1488.
 
 ## Acceptance Criteria
 
@@ -250,7 +254,8 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [x] AC2: Independent main-level integration-test executables are registered and can run
       concurrently as separate Cargo processes without shared environment state.
 - [x] AC3: Current port-zero suites use an isolated temporary workspace with separate config and storage
-      directories (no shared environment variables or storage paths).
+      directories. The shared fixture selects its workspace file through the explicit-path startup
+      API, with no base-source environment-variable mutation or shared storage paths.
 - [x] AC4: Tests using port 0 can extract the actual bound ports from `AppContainer` to construct
       request URLs.
 - [x] AC5: Port-zero suites use an isolated temp workspace and port 0 where the scenario does not
@@ -372,9 +377,11 @@ lifecycle will be placed in another top-level file, such as `tests/bootstrap.rs`
 such executables concurrently; each suite must therefore still use a unique `TempDir` workspace,
 its own database and storage paths, and port `0` for listeners.
 
-`TORRUST_TRACKER_CONFIG_TOML_PATH` remains process-local under this model, so configuration
-injection through the environment is safe between separate test executables. It must not be
-modified concurrently by separate scenarios in one executable.
+Each fixture passes its workspace-local configuration file directly to
+`app::start_with_explicit_config_toml_path`, so main-level test startup does
+not mutate base-source environment variables. This removes one source of shared
+mutable state; it does not change the one-application-per-executable rule
+imposed by remaining process-global lifecycle constraints.
 
 ### Current Implementation Status
 
@@ -422,6 +429,7 @@ be reviewed before implementation begins.
 | R4  | DONE   | Align test documentation                      | Update `tests/scaffold.rs` references to the removed `stats` target and revise `tests/AGENTS.md` to document the fixture and process-global lifecycle constraints.                                                        |
 | R5  | DONE   | Run mandatory manual integration verification | On 2026-08-24, exit 0: all six targets passed together; `metrics-port-zero` passed with `--nocapture` and in serial mode. Each suite took 60–81 seconds because server jobs can consume the current per-job wait timeout. |
 | R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
+| R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
 | R7  | TODO   | Open partial-improvement PR                   | Submit the fixture, suite migration, focused ordering coverage, and documentation. State that cooperative server shutdown remains owned by #1488.                                                                         |
 | R8  | TODO   | Revisit after shutdown overhaul #1488         | After #1488's production shutdown work merges, review this fixture against its finalized API, update it if needed, and complete AC8a. Keep #1419 open until that review is recorded.                                      |
 | R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |

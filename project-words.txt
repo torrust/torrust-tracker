@@ -381,6 +381,7 @@ programatik
 proot
 proto
 pushmirrors
+pythondontwritebytecode
 qbittorrent
 quickcheck
 randomised
