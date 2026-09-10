@@ -3,13 +3,16 @@ doc-type: epic
 status: planned
 github-issue: 2190
 spec-path: docs/issues/open/2190-maintenance-frictions-cleanup/EPIC.md
+branch: "2190-maintenance-frictions-cleanup-spec"
 epic-owner: null
 last-updated-utc: 2026-09-10 09:10
 semantic-links:
   skill-links:
     - create-issue
+    - link-subissue-to-parent-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/github/link-subissue-to-parent-issue/SKILL.md
     - docs/templates/EPIC.md
     - docs/issues/open/README.md
     - docs/issues/drafts/README.md
@@ -60,6 +63,13 @@ The inventory itself is still worth keeping. Each entry was verified against the
 - Local Markdown link health. `linter lychee` exits 0 on `develop` with all local links passing in 0.137 s, and `.github/workflows/docs-lint.yaml:60` already enforces it; external links are wholly owned by #2185. The `.lycheeignore` file named in the original candidate list does not exist and, per #2150, will not: the configuration lives in `lychee.toml` and `.github/lychee-online.toml`.
 - A second never-run merge-tool suite. No `test-github-merge-symlinks.py` exists on `develop`; `contrib/dev-tools/git/tests/` contains only `test-merge-pull-request.sh`. That Python suite belongs to the unmerged symlink-exceptions work for #2175 and arrives with it.
 
+## Architectural Decisions
+
+No architectural decision is expected from this EPIC. Every item is a mechanical correction to an existing decision's implementation, an action outside this repository, or — for `R1` — a behavioural defect whose own issue carries its design question. A subissue that discovers an architectural decision during implementation raises it under its own parent rather than here, because this EPIC holds no implementation.
+
+- Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`, which the stale-references subissue extends in its related-artifacts list without touching the decision itself.
+- ADRs to create: `None known`.
+
 ## Friction Inventory
 
 Every item was verified against `develop` at revision `f6b73e29` on 2026-09-09; each was observed in the tree rather than reported. The evidence for an item — its files, line numbers, commands, and observed output — lives in the draft specification named in its row, which is the source of truth for it. `Owner` is the EPIC that carries the item to delivery.
@@ -99,8 +109,6 @@ The EPIC delivers specifications, not fixes. Each item is assigned to the EPIC w
 
 Three items leave this EPIC. F5 and the F1/F7 pair go to EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails, whose In Scope undertakes to evaluate check placement across pre-commit, pre-push, and CI and which explicitly permits the interim project-dictionary formatter that these two repair and invoke; both also meet that EPIC's stated exception for low-risk, additive, independently verifiable work that selects no shared runner, cache, or enforcement platform, so neither waits on its architecture decision. F5 is delivered before F1 and F7, because the suite must be green before anything runs it in CI. R1 leaves without a parent: it is a behavioural change to a user-facing error path, needing its own acceptance criteria and its own regression test, and the configuration overhaul EPIC that would have owned it, #1978, is closed. Each of the three drafts names its own parent, and the adopting EPIC's subissue table gains its row when the GitHub issue is created, not in this EPIC's pull request.
 
-No architectural decision is expected from this EPIC. Every item is a mechanical correction to an existing decision's implementation, an action outside this repository, or — for R1 — a behavioural defect whose own issue carries its design question.
-
 For each subissue implementation in this EPIC, the default completion policy is:
 
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
@@ -115,8 +123,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Phase 2
 
-- Outcome: the approved drafts become GitHub issues, linked as subissues of their parent EPIC, with each specification moved from `docs/issues/drafts/` to `docs/issues/open/` under its assigned number.
-- Exit criteria: every row in the Subissues table carries a real issue number, the three handed-away drafts carry theirs, and EPIC #2003's subissue table carries the two rows it adopted.
+- Outcome: the approved drafts become GitHub issues, attached to their parent EPIC through the GitHub sub-issues API as the `link-subissue-to-parent-issue` skill describes, with each specification moved from `docs/issues/drafts/` to `docs/issues/open/` under its assigned number.
+- Exit criteria: every row in the Subissues table carries a real issue number, the three handed-away drafts carry theirs, EPIC #2003's subissue table carries the two rows it adopted, and each source artifact a subissue will change carries an `issue: #<number>` marker where the link is high-signal. No `issue-spec:` marker is added to a source artifact before then, because a draft path added now would have to be rewritten as soon as the issue exists.
 
 ### Phase 3
 
@@ -127,14 +135,14 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted and moved to `docs/issues/open/2190-maintenance-frictions-cleanup/`
-- [x] Spec reviewed and approved by user/maintainer
-- [x] GitHub issue [#2190](https://github.com/torrust/torrust-tracker/issues/2190) created and issue number added to this spec
+- [x] Epic spec drafted and moved to `docs/issues/open/2190-maintenance-frictions-cleanup/`
+- [x] Epic spec reviewed and approved by user/maintainer
+- [x] GitHub epic issue [#2190](https://github.com/torrust/torrust-tracker/issues/2190) created and issue number added to this spec
 - [x] Specification converted from a single implementation issue into a planning-only EPIC
 - [ ] Parent assignment reviewed and approved by a maintainer
 - [ ] Spec-only PR merged into `develop`
 - [ ] GitHub issue #2190 converted to an EPIC issue: title, labels, and body updated to match this specification
-- [ ] Subissues created from the approved drafts and linked under their parent EPIC
+- [ ] Subissues created from the approved drafts and attached to their parent EPIC through the GitHub sub-issues API
 - [ ] Subissue specifications moved from `docs/issues/drafts/` to `docs/issues/open/`
 - [ ] EPIC #2003's subissue table updated with the two adopted items
 - [ ] Subissue statuses kept up to date in the `Subissues` table
@@ -177,6 +185,8 @@ Append one line per meaningful update.
 | AC5   | TODO                   | {issue links}                                                |
 | AC6   | TODO                   | {PR links}                                                   |
 | AC7   | TODO                   | The Out of Scope entries for the two candidates              |
+| AC8   | TODO                   | The gate run recorded on this EPIC's spec-only pull request  |
+| AC9   | TODO                   | This specification and the subissue specifications it lists  |
 
 ## Risks and Trade-offs
 
