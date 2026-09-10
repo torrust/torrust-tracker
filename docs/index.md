@@ -82,10 +82,11 @@ In-depth studies of concrete features, components, or aspects of the application
 typically produced before defining a refactoring plan, introducing a new feature,
 or making architectural decisions.
 
-| Location                                                                   | Description                                         |
-| -------------------------------------------------------------------------- | --------------------------------------------------- |
-| [analysis/AGENTS.md](analysis/AGENTS.md)                                   | Overview of the analysis folder and its conventions |
-| [analysis/20260716-shutdown-process/](analysis/20260716-shutdown-process/) | Analysis of the tracker shutdown process            |
+| Location                                                                                               | Description                                            |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| [analysis/AGENTS.md](analysis/AGENTS.md)                                                               | Overview of the analysis folder and its conventions    |
+| [analysis/20260716-shutdown-process/](analysis/20260716-shutdown-process/)                             | Analysis of the tracker shutdown process               |
+| [analysis/20260909-cli-config-path-test-isolation/](analysis/20260909-cli-config-path-test-isolation/) | Analysis of configuration injection and test isolation |
 
 ## Research Documents
 
