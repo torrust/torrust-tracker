@@ -123,7 +123,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Cover announce cookie-error client-software metric routing
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P2, P3
 - **Change:** Add one unit test with a direct `ConnectionCookie` classification and minimal announce
@@ -131,6 +131,12 @@ validation, review, and its mapped commit point—before beginning the next item
   connection-ID-error metric.
 - **Guardrails:** Keep the selected client label/version independently specified. Do not test the
   peer-ID parser, general error metric, ban counter, or event emission.
+- **Prose-first review:** The temporary prose specified that a connection-cookie error for an
+  announce request with the visible QBitTorrent peer ID increments the connection-ID-error series
+  labelled `QBitTorrent` and `0.0.0`. `AnnounceRequestBuilder` supplies only incidental valid
+  request fields; the peer ID remains visible because it selects the handler-owned client-label
+  route. The test calls the local handler directly and asserts one connection-ID metric series.
+  Temporary prose is redundant and removed.
 - **Done when:** the conditional announce-cookie route has one readable contract.
 
 ### R4 - Review residual metric-routing coverage
@@ -152,8 +158,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R3.
-- [ ] R3 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R3.
+- [x] R3 implemented, reviewed, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -174,6 +180,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Reviewed and approved R2. The test derives ordinary metric labels
   from its `ConnectionContext`, explicitly adds only `request_kind=connect`, directly invokes the
   error-metric handler, and asserts one general-error metric series.
+- 2026-09-10 - User/maintainer - Approved R3. Add one direct unit test for the announce
+  connection-cookie route with a visible QBitTorrent peer ID and independently specified
+  client-software labels only.
 
 ### Validation Evidence
 
@@ -182,7 +191,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_general_error_metric_with_connect_request_kind`, and `git diff --check` passed. Prose-first review derives fixture-owned connection labels from the context under test and specifies only `request_kind=connect` independently. |
-| R3 | TODO | Awaiting R2 review. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_connection_id_error_metric_with_qbittorrent_client_software`, and `git diff --check` passed. Prose-first review keeps the QBitTorrent peer ID and independently specified client labels visible while `AnnounceRequestBuilder` owns incidental request setup. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
