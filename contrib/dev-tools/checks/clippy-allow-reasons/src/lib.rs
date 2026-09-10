@@ -17,7 +17,7 @@ pub struct Violation {
     pub message: &'static str,
 }
 
-/// Validates changed Clippy `allow` attributes in a Rust source file.
+/// Validates changed Clippy lint-suppression attributes in a Rust source file.
 ///
 /// Only attributes whose source span overlaps a line in `changed_lines` are checked. This lets a
 /// caller enforce a prospective policy without requiring an inventory of historical attributes.
@@ -54,57 +54,79 @@ impl AllowVisitor<'_> {
         let start = span.start().line;
         let end = span.end().line;
 
-        if self.changed_lines.range(start..=end).next().is_none() || !is_clippy_allow(attribute) {
+        if self.changed_lines.range(start..=end).next().is_none() {
             return;
         }
 
-        let Some(reason) = allow_reason(attribute) else {
+        for lint_control in clippy_lint_controls(attribute) {
+            self.validate_lint_control(start, lint_control);
+        }
+    }
+
+    fn validate_lint_control(&mut self, line: usize, lint_control: LintControl) {
+        let Some(reason) = lint_control.reason else {
             self.violations.push(Violation {
-                line: start,
-                message: "Clippy allow attributes require `reason = \"<specific rationale>\"`.",
+                line,
+                message: "Clippy allow and expect attributes require `reason = \"<specific rationale>\"`.",
             });
             return;
         };
 
         if reason.trim().is_empty() {
             self.violations.push(Violation {
-                line: start,
-                message: "Clippy allow reasons must not be empty.",
+                line,
+                message: "Clippy allow and expect reasons must not be empty.",
             });
         } else if is_temporary(&reason) && !has_temporary_removal_information(&reason) {
             self.violations.push(Violation {
-                line: start,
-                message: "Temporary Clippy allow reasons require an issue reference or non-empty `remove when`, `remove after`, `remove by`, or `until` condition.",
+                line,
+                message: "Temporary Clippy allow and expect reasons require an issue reference or non-empty `remove when`, `remove after`, `remove by`, or `until` condition.",
             });
         }
     }
 }
 
-fn is_clippy_allow(attribute: &Attribute) -> bool {
-    let Meta::List(list) = &attribute.meta else {
-        return false;
-    };
-
-    if !list.path.is_ident("allow") {
-        return false;
-    }
-
-    parse_allow_items(list.tokens.clone()).is_ok_and(|items| {
-        items.iter().any(
-            |item| matches!(item, Meta::Path(path) if path.segments.first().is_some_and(|segment| segment.ident == "clippy")),
-        )
-    })
+struct LintControl {
+    reason: Option<String>,
 }
 
-fn allow_reason(attribute: &Attribute) -> Option<String> {
-    let Meta::List(list) = &attribute.meta else {
-        return None;
+fn clippy_lint_controls(attribute: &Attribute) -> Vec<LintControl> {
+    clippy_lint_controls_in_meta(&attribute.meta)
+}
+
+fn clippy_lint_controls_in_meta(meta: &Meta) -> Vec<LintControl> {
+    let Meta::List(list) = meta else {
+        return Vec::new();
     };
 
-    let items = parse_allow_items(list.tokens.clone()).ok()?;
-    items.into_iter().find_map(|item| match item {
-        Meta::NameValue(name_value) if name_value.path.is_ident("reason") => match name_value.value {
-            syn::Expr::Lit(expression) => match expression.lit {
+    let Ok(items) = parse_lint_items(list.tokens.clone()) else {
+        return Vec::new();
+    };
+
+    if list.path.is_ident("allow") || list.path.is_ident("expect") {
+        let has_clippy_lint = items.iter().any(
+            |item| matches!(item, Meta::Path(path) if path.segments.first().is_some_and(|segment| segment.ident == "clippy")),
+        );
+        if !has_clippy_lint {
+            return Vec::new();
+        }
+
+        return vec![LintControl {
+            reason: lint_reason(&items),
+        }];
+    }
+
+    if list.path.is_ident("cfg_attr") {
+        return items.iter().skip(1).flat_map(clippy_lint_controls_in_meta).collect();
+    }
+
+    Vec::new()
+}
+
+fn lint_reason(items: &Punctuated<Meta, Token![,]>) -> Option<String> {
+    items.iter().find_map(|item| match item {
+        Meta::NameValue(name_value) if name_value.path.is_ident("reason") => match &name_value.value {
+            syn::Expr::Lit(expression) => match &expression.lit {
                 syn::Lit::Str(reason) => Some(reason.value()),
                 _ => None,
             },
@@ -114,7 +136,7 @@ fn allow_reason(attribute: &Attribute) -> Option<String> {
     })
 }
 
-fn parse_allow_items(tokens: proc_macro2::TokenStream) -> Result<Punctuated<Meta, Token![,]>, syn::Error> {
+fn parse_lint_items(tokens: proc_macro2::TokenStream) -> Result<Punctuated<Meta, Token![,]>, syn::Error> {
     Punctuated::<Meta, Token![,]>::parse_terminated.parse2(tokens)
 }
 
@@ -159,13 +181,39 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_a_changed_expect_without_a_reason() {
+        let source = "#[expect(clippy::too_many_lines)]\nfn example() {}\n";
+
+        let violations = validate_changed_allows(source, &changed(&[1])).unwrap();
+
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].line, 1);
+    }
+
+    #[test]
+    fn it_should_reject_a_changed_cfg_attr_allow_without_a_reason() {
+        let source = "#[cfg_attr(test, allow(clippy::too_many_lines))]\nfn example() {}\n";
+
+        let violations = validate_changed_allows(source, &changed(&[1])).unwrap();
+
+        assert_eq!(violations.len(), 1);
+    }
+
+    #[test]
+    fn it_should_accept_a_documented_changed_cfg_attr_allow() {
+        let source = "#[cfg_attr(test, allow(clippy::too_many_lines, reason = \"Test fixture is intentionally verbose.\"))]\nfn example() {}\n";
+
+        assert_eq!(validate_changed_allows(source, &changed(&[1])).unwrap(), [] as [Violation; 0]);
+    }
+
+    #[test]
     fn it_should_reject_a_changed_allow_with_an_empty_reason() {
         let source = "#[allow(clippy::too_many_lines, reason = \"\")]\nfn example() {}\n";
 
         let violations = validate_changed_allows(source, &changed(&[1])).unwrap();
 
         assert_eq!(violations.len(), 1);
-        assert_eq!(violations[0].message, "Clippy allow reasons must not be empty.");
+        assert_eq!(violations[0].message, "Clippy allow and expect reasons must not be empty.");
     }
 
     #[test]
