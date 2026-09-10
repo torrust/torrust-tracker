@@ -6,8 +6,8 @@ priority: p3
 github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
-related-pr: null
-last-updated-utc: 2026-09-10 14:38
+related-pr: 2189
+last-updated-utc: 2026-09-10 15:49
 semantic-links:
   skill-links:
     - write-unit-test
@@ -210,6 +210,7 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [ ] GitHub issue #1419 already exists (created by maintainer)
 - [x] Implementation completed (partial improvement; cooperative server shutdown remains deferred)
 - [x] Automatic verification completed (current main-level integration-test targets)
+- [x] Partial-improvement PR [#2189](https://github.com/torrust/torrust-tracker/pull/2189) merged
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
@@ -246,6 +247,13 @@ completed work and remaining tasks are recorded after the decision pivot.
   environment mutation with `app::start_with_explicit_config_toml_path` using its existing
   workspace-local file. Removed the environment lock and restoration guard. All eight current
   main-level integration targets passed together; lifecycle completion remains deferred to #1488.
+- 2026-09-10 15:45 UTC - GitHub - Merged partial-improvement PR
+  [#2189](https://github.com/torrust/torrust-tracker/pull/2189). The PR resolved the
+  fixture's base-source environment mutation but did not complete the #1488-dependent
+  cooperative-shutdown follow-up.
+- 2026-09-10 15:49 UTC - josecelano - Reopened GitHub issue #1419 after it was
+  closed accidentally with PR #2189. The remaining R8/AC8a and R9 work still
+  requires the shutdown-overhaul #1488 follow-up and final closure review.
 
 ## Acceptance Criteria
 
@@ -430,7 +438,7 @@ be reviewed before implementation begins.
 | R5  | DONE   | Run mandatory manual integration verification | On 2026-08-24, exit 0: all six targets passed together; `metrics-port-zero` passed with `--nocapture` and in serial mode. Each suite took 60–81 seconds because server jobs can consume the current per-job wait timeout. |
 | R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
 | R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
-| R7  | TODO   | Open partial-improvement PR                   | Submit the fixture, suite migration, focused ordering coverage, and documentation. State that cooperative server shutdown remains owned by #1488.                                                                         |
+| R7  | DONE   | Open partial-improvement PR                   | [PR #2189](https://github.com/torrust/torrust-tracker/pull/2189) merged on 2026-09-10. It delivered explicit workspace-file configuration for the shared fixture; cooperative server shutdown remains owned by #1488. |
 | R8  | TODO   | Revisit after shutdown overhaul #1488         | After #1488's production shutdown work merges, review this fixture against its finalized API, update it if needed, and complete AC8a. Keep #1419 open until that review is recorded.                                      |
 | R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
 
