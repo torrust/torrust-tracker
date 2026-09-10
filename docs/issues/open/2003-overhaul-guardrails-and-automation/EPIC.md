@@ -261,6 +261,8 @@ creation remains subject to maintainer approval of each draft specification.
 | 9     | #2233 - Tune unified PR-review process (DONE)        | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`            | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. | #2219 PR-review workflow evidence |
 | 10    | #2264 - Refactor semantic-link and frontmatter conventions | `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` | Defines document metadata and reference semantics. Its initial read-only frontmatter validator may use pre-commit as its single integration tier but must remain replaceable by the architecture selected here. | Current Markdown conventions and templates |
 | 11    | #2278 - Strengthen PR review author self-audit and evidence generation | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md` | Evidence-driven refinement of author self-audit, audit validation, and proportionate review evidence. It remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. | PR #2270, #2271, and #2272 retrospectives; #2219 and #2233 |
+| 12    | #[To be assigned] - Repair the project dictionary formatter test suite | `docs/issues/drafts/2003-repair-project-dictionary-formatter-test-suite/ISSUE.md`    | Repairs an existing suite for the interim dictionary formatter this EPIC already permits; selects no runner, cache, or enforcement platform.                                    | None                                                      |
+| 13    | #[To be assigned] - Run the developer-tool test suites in CI           | `docs/issues/drafts/2003-run-developer-tool-test-suites-in-ci/ISSUE.md`              | Adds one replaceable CI invocation of suites that already exist, and corrects the notes it falsifies; does not prejudge the execution-tier decision.                            | Subissue 11, which must merge first                       |
 
 ## Delivery Strategy
 
@@ -366,6 +368,7 @@ For each completed subissue in this EPIC, the default completion policy is:
   specification to `docs/issues/open/2003-overhaul-guardrails-and-automation/`
 - 2026-07-22 00:00 UTC - josecelano - Approved a narrowly scoped interim project dictionary
   formatter; it may be replaced or refactored after the EPIC design decision
+- 2026-09-10 09:32 UTC - Specification author - Adopted two candidates from the inventory of EPIC #2190 into the approved early implementation candidates: repair the project dictionary formatter test suite, and run the developer-tool test suites in CI - https://github.com/torrust/torrust-tracker/pull/2193
 
 ## Acceptance Criteria
 
