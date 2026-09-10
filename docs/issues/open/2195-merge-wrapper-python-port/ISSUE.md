@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/merge-wrapper-python-port/ISSUE.md
-branch: "{issue-number}-merge-wrapper-python-port"
+github-issue: 2195
+spec-path: docs/issues/open/2195-merge-wrapper-python-port/ISSUE.md
+branch: "2195-merge-wrapper-python-port-spec"
 related-pr: null
-last-updated-utc: 2026-09-10 13:22
+last-updated-utc: 2026-09-10 13:57
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Port the Maintainer Merge Wrapper to a Repository-Neutral Python Program
+# Issue #2195 - Port the Maintainer Merge Wrapper to a Repository-Neutral Python Program
 
 ## Goal
 
@@ -204,10 +204,10 @@ Record a justified no-change decision in the task's evidence without creating an
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/merge-wrapper-python-port/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Folder-style spec drafted and moved to `docs/issues/open/2195-merge-wrapper-python-port/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue [#2195](https://github.com/torrust/torrust-tracker/issues/2195) created and issue number added to this spec
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -223,6 +223,7 @@ Record a justified no-change decision in the task's evidence without creating an
 Append one line per meaningful update.
 
 - 2026-09-10 13:22 UTC - Spec author - Draft written against `develop` at `89d45145`; behavior mapping built from `merge-pull-request.sh` and the thirteen cases of `test-merge-pull-request.sh` - this document
+- 2026-09-10 13:57 UTC - Spec author - GitHub issue #2195 created from the reviewed draft; specification moved to `docs/issues/open/2195-merge-wrapper-python-port/ISSUE.md` - https://github.com/torrust/torrust-tracker/issues/2195
 
 ## Acceptance Criteria
 
