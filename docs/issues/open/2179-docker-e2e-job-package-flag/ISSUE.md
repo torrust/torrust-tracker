@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: bug
-status: draft
+status: open
 priority: p1
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/docker-e2e-job-package-flag/ISSUE.md
-branch: "{issue-number}-docker-e2e-job-package-flag"
+github-issue: 2179
+spec-path: docs/issues/open/2179-docker-e2e-job-package-flag/ISSUE.md
+branch: "2179-docker-e2e-job-package-flag-spec"
 related-pr: null
-last-updated-utc: 2026-09-08 21:30
+last-updated-utc: 2026-09-10 08:15
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Docker E2E Job in `testing.yaml` Fails on Every Feature-Branch Push
+# Issue #2179 - Docker E2E job in testing.yaml fails on every feature-branch push: cargo run lacks the e2e-tools package flag
 
 ## Goal
 
@@ -46,7 +46,7 @@ The same four invocations in `.github/workflows/container.yaml` (lines 117, 123,
 
 The divergence has a precise origin, and it is not the guard. Commit `c1b6c5466` ("feat(ci): eliminate duplicate E2E tests and add test binary landscape analysis", 2026-06-03) added only the `if:` guard and its explanatory comment to `testing.yaml`, twelve added lines and no deletions; the runner steps already existed there and predate it. The break arrived the next day in commit `c47173f53` ("ci(container): slim nextest archive by extracting e2e and benchmark packages", 2026-06-04), which moved `src/bin/e2e_tests_runner.rs`, `src/bin/qbittorrent_e2e_runner.rs`, and `src/bin/profiling.rs` into the new `packages/e2e-tools` package as pure renames and touched neither workflow. At that moment both workflows were broken in the same way. Commit `2d1ce246b` ("ci(container): address Copilot review issues after T13/T14 extraction", 2026-06-04) then repaired `container.yaml` alone: its own message records fixing the four `cargo run --bin` invocations to include `-p torrust-tracker-e2e-tools` "so Cargo resolves the binaries after they were extracted out of `src/bin/` into the new e2e-tools package", and wrapping the long `e2e_tests_runner` step in a YAML `>-` block scalar to stay inside the yamllint line-length limit. The identical four invocations in `testing.yaml` were not part of that change and have carried the defect ever since.
 
-What the guard did contribute is the silence. Because `docker-e2e` never runs on pushes to `develop` or on pull requests targeting `develop`, upstream CI has never executed the broken steps, so `develop` has stayed green while the job has failed on every feature-branch push since June 2026. The failure surfaces only where nobody routinely looks: it has been reported on the dependency-update pull requests #2055 and #2106, whose branch pushes do trigger the job, and observed on the `da2ce7/torrust-tracker` fork's push of the `merge-tool-symlink-exceptions-spec` branch on 2026-09-08. Those observations are recorded here as reported evidence; they were not reproduced while drafting this specification, which had no GitHub access.
+What the guard did contribute is the silence. Because `docker-e2e` never runs on pushes to `develop` or on pull requests targeting `develop`, upstream CI has never executed the broken steps, so `develop` has stayed green while the job has failed on every feature-branch push since June 2026. The failure surfaces only where nobody routinely looks: it has been reported on the dependency-update pull requests #2055 and #2106, whose branch pushes do trigger the job, and it is observed directly on the `da2ce7/torrust-tracker` fork, most recently in the `Testing` run for the push of `2175-merge-tool-symlink-exceptions` at `4bff469e` on 2026-09-10, where the `Docker E2E` job builds the tracker image successfully and then fails at step `Run E2E Tests`, leaving the three qBittorrent steps skipped ([run 34444943476](https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212)). The #2055 and #2106 observations are carried here as reported evidence and were not re-checked.
 
 One detail of the repair is load-bearing rather than cosmetic. `.yamllint-ci.yml` sets `line-length: max: 200`, and `linter all` runs yamllint over the workflow files. Line 185 is currently 184 characters; adding `-p torrust-tracker-e2e-tools` together with the space separating it from the following argument costs 26 more characters and would take it to 210, over the limit. The other three lines are 153, 151, and 156 characters and land at 179, 177, and 182. The first step must therefore be wrapped in a `>-` block scalar, which is exactly the shape `container.yaml` already uses for the same step and for the same reason.
 
@@ -65,7 +65,7 @@ One detail of the repair is load-bearing rather than cosmetic. `.yamllint-ci.yml
 - Deduplicating `docker-e2e` against the E2E steps in `container.yaml`, or deciding which of the two workflows should own E2E coverage.
 - Any change to the E2E runners themselves, to `packages/e2e-tools`, or to the tracker image build.
 - Any change to `.github/workflows/container.yaml`. It is already correct and is the reference this fix matches.
-- Repairing the stale `src/bin/` inventory in `AGENTS.md`, which still lists `e2e_tests_runner` and `profiling` as root-package binaries and omits `e2e-tools` from the package catalog. It is the same drift from `c47173f53` and is worth its own issue.
+- Repairing the stale `src/bin/` inventory in `AGENTS.md`, which still lists `e2e_tests_runner` and `profiling` as root-package binaries and omits `e2e-tools` from the package catalog. It is the same drift from `c47173f53`, and #2190 has since taken ownership of the five live references that carry it.
 - Any general CI policy about jobs that can only fail where nobody looks. The Design and Ownership Review notes the question; this issue does not answer it.
 
 ## Architectural Decisions
@@ -99,9 +99,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/docker-e2e-job-package-flag/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted and moved to `docs/issues/open/2179-docker-e2e-job-package-flag/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue [#2179](https://github.com/torrust/torrust-tracker/issues/2179) created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -116,6 +116,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-09-08 21:30 UTC - Spec author - Drafted this specification against `develop` at `e4db63d5`. Verified the four invocation line numbers in both workflows, the `if:` guard range, the binaries' location under `packages/e2e-tools/src/bin/`, and the root `Cargo.toml` `[package]`/`default-run` declaration. Traced the divergence to `c47173f53` (package extraction) and `2d1ce246b` (which repaired `container.yaml` only), not to `c1b6c5466`, which added only the guard. Measured the four line lengths against the 200-character limit in `.yamllint-ci.yml` and found that line 185 needs a `>-` block scalar. CI observations for #2055, #2106, and the `merge-tool-symlink-exceptions-spec` push are recorded as reported evidence; no GitHub access was available while drafting.
+- 2026-09-10 08:15 UTC - Spec author - Re-verified both evidence facts before opening the issue. Against `develop` at `89d45145` the four `cargo run` invocations in the `docker-e2e` job still carry no `-p` flag at lines 185, 189, 193, and 197, measuring 184, 153, 151, and 156 characters, so the block-scalar requirement on the first step holds unchanged. The symptom is live on the `da2ce7/torrust-tracker` fork: in the `Testing` run for `4bff469e` the `Docker E2E` job fails at step `Run E2E Tests` after a successful image build, with the three qBittorrent steps skipped - https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212
+- 2026-09-10 08:15 UTC - Spec author - GitHub issue #2179 created from the reviewed draft; specification moved to `docs/issues/open/2179-docker-e2e-job-package-flag/ISSUE.md` - https://github.com/torrust/torrust-tracker/issues/2179
 
 ## Acceptance Criteria
 
@@ -182,6 +184,7 @@ After implementation, compare the result with this specification. Record invalid
 - Origin of the job's `if:` guard: #1854, spec at `docs/issues/closed/1854-1840-workflow-performance-container-test-gating/ISSUE.md`
 - Related EPIC: #1840, spec at `docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md`
 - Reported failing runs: #2055, #2106
+- Observed failing run: the `Docker E2E` job of the fork's `Testing` run for `4bff469e`, 2026-09-10 - https://github.com/da2ce7/torrust-tracker/actions/runs/34444943476/job/102767609212
 - Commit `c1b6c5466` — added the `if:` guard and comment to the `docker-e2e` job
 - Commit `c47173f53` — moved the E2E binaries into `packages/e2e-tools`, breaking both workflows
 - Commit `2d1ce246b` — added `-p torrust-tracker-e2e-tools` to `container.yaml` only
