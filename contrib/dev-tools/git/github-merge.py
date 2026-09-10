@@ -271,6 +271,20 @@ def is_declared_literal(found, expected):
                 and all(is_declared_literal(f, e) for f, e in zip(found, expected)))
     return False
 
+def reject_declaration_constant(name):
+    '''
+    Refuse one of the constants Python's JSON reader accepts outside the JSON grammar.
+
+    JSON has no NaN, Infinity or -Infinity, and Python's reader admits all three by default.
+    A declaration is repository content, chosen by whoever wrote the commit, so without this a
+    document that every conforming reader rejects would be read here and could exempt a link,
+    while the rule that a declaration which is not valid JSON exempts nothing would never have
+    applied to it. Raising ValueError is how that rule is reached: it is what reading a
+    declaration already treats as a document it cannot read, so such a document takes the one
+    path any other invalid JSON takes, with the constant that was found named in the report.
+    '''
+    raise ValueError(f'it carries the non-standard constant {name}')
+
 def symlink_declaration_header_error(document):
     '''
     Explain why a document does not declare the format this tool reads, or return None when it does.
@@ -307,13 +321,18 @@ def read_symlink_declaration(commit, path):
     A document whose header does not declare this format and a supported version of it is a
     file that cannot be read as a declaration, whatever else it contains, so it takes that
     same path: nothing is declared, and the report names the field that disagreed.
+
+    The document is read as JSON and nothing wider. Python's reader admits three constants
+    JSON does not define, so it is told to refuse them; the refusal is a ValueError, which is
+    what a document that is not valid JSON already raises here, so wherever in the document a
+    constant appears the file is one that cannot be read and exempts nothing.
     '''
     try:
         raw = subprocess.check_output([GIT, 'show', commit+':'+path], stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         return ({}, None)
     try:
-        document = json.loads(raw.decode('utf-8'))
+        document = json.loads(raw.decode('utf-8'), parse_constant=reject_declaration_constant)
     except (UnicodeDecodeError, ValueError) as exc:
         return ({}, f'it is not valid JSON ({exc})')
     if not isinstance(document, dict):
