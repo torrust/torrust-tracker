@@ -1,0 +1,187 @@
+---
+doc-type: test-refactor-plan
+issue: 2149
+package: torrust-tracker-udp-server
+target-file: packages/udp-server/src/container.rs
+status: proposed
+semantic-links:
+  related-artifacts:
+    - packages/udp-server/src/container.rs
+    - packages/udp-server/src/event.rs
+    - packages/events/src/bus.rs
+    - packages/udp-server/src/server/launcher.rs
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+---
+
+# UDP Server Container Test Refactor Plan
+
+Follow the shared [purpose, quality goals, plan structure, and required two-phase
+sequence](README.md). This plan applies only to `packages/udp-server/src/container.rs`.
+
+## Phase 1 - Clean Current Tests
+
+### Current state
+
+`container.rs` has no direct tests. `UdpTrackerServerServices::initialize` constructs the package
+`Broadcaster`, an explicitly enabled server `EventBus`, its optional event sender, and a statistics
+repository. `UdpTrackerServerContainer::initialize` exposes cloned handles from those services.
+
+The aggregate package baseline reports `container.rs` as 19/19 lines, 29/29 regions, and 2/2
+functions covered, but that global result does not show which test level provides the coverage.
+Existing launcher unit tests construct the real container and observe server events, while root
+integration tests own multi-listener metrics and banning policy.
+
+### Decision
+
+No cleanup increment is proposed because no local test code exists. Preserve the concise explicit
+container composition. Do not treat indirect aggregate or integration coverage as a reason to
+skip a feasible focused unit test: the issue's unit-only coverage objective requires this package
+composition decision to be assessed at the unit boundary.
+
+## Phase 2 - Add Missing Behavior Tests
+
+### Strengths to preserve
+
+1. `UdpTrackerServerServices::initialize` owns selection of an enabled UDP-server event-publication
+   path.
+2. The container owns package-local coherence between its `event_bus` and `stats_event_sender`.
+3. `packages/events` owns generic enabled/disabled event-bus behavior.
+4. Launcher tests own server admission facts, and root integration tests own multi-listener metrics
+   filtering and banning outcomes.
+
+### Problems and opportunities
+
+#### P1 - The package-selected enabled publication path has no direct unit contract
+
+**Problem.** Indirect launcher coverage proves that the container is exercised, but a failure does
+not isolate the container's own composition decision. Aggregate/global coverage cannot establish
+that this package responsibility has focused unit protection.
+
+**Why it matters.** A future change can disable the server event bus, omit its sender, or wire the
+sender to a different bus while higher-level tests fail less locally or only under a specific
+listener configuration.
+
+**Opportunity.** Add one deterministic asynchronous unit test that initializes
+`UdpTrackerServerServices`, creates a receiver from its `event_bus`, publishes one representative
+UDP-server event through `stats_event_sender`, and asserts that exact event is received. Use one
+absolute timeout solely as a diagnostic failure bound; do not use a delay, socket, spawned server,
+or lifecycle fixture.
+
+The event and its `ConnectionContext` are setup mechanics for observing the container-owned
+publication path. Keep the sender, receiver, exact event, production publication Act, and received
+event assertion visible. Do not derive the expected event through production code.
+
+#### P2 - Multi-listener policy is not a container-unit responsibility
+
+**Decision.** Do not test metrics-enabled/disabled listener policy, root statistics aggregation,
+REST exposure, or banning outcomes here. Those require root composition and retain their existing
+higher-level ownership. This direct unit test protects the package's unconditional event
+publication, not a consumer's policy.
+
+#### P3 - Generic event-bus variants are not this package's responsibility
+
+**Decision.** Do not add a disabled-sender test or a generic `EventBus` matrix. The events package
+owns that implementation. This package needs one contract proving its explicit selection of the
+enabled mode is observable through its own composed services.
+
+## Proposed Refactorings
+
+Apply items in order. Complete one approved increment—including prose-first comparison, focused
+validation, review, and its mapped commit point—before beginning the next item.
+
+### R1 - Record the Phase 1 no-change decision
+
+- **Status:** TODO
+- **Priority:** High impact / trivial effort
+- **Addresses:** Phase 1
+- **Change:** Confirm `container.rs` has no direct tests to clean and that direct unit coverage,
+  not indirect global or integration coverage, is required for the package-owned enabled publication
+  decision.
+- **Guardrails:** Do not move launcher or root tests, change production composition, or introduce a
+  fixture before a specific test requires it.
+- **Done when:** The no-cleanup decision is recorded before adding a test.
+
+### R2 - Cover the enabled server event-publication path
+
+- **Status:** TODO
+- **Priority:** High impact / low effort
+- **Addresses:** P1
+- **Change:** Add one direct asynchronous unit test for `UdpTrackerServerServices::initialize`.
+  Publish a representative event through its available sender and assert that its own event-bus
+  receiver obtains that exact event.
+- **Guardrails:** Keep the causal enabled sender, publication Act, and expected event visible. Use
+  only an absolute diagnostic timeout. Do not assert optional-sender implementation details, test
+  generic disabled behavior, add sockets/tasks, or assert metrics/banning/root policy.
+- **Done when:** Disabling or disconnecting the package-composed publication path has one direct,
+  deterministic unit-test failure.
+
+### R3 - Review residual composition coverage and ownership
+
+- **Status:** TODO
+- **Priority:** Low impact / low effort
+- **Change:** Measure unit-only coverage for `container.rs`, separately retain aggregate/global and
+  integration-only evidence, and record ownership for residual paths.
+- **Guardrails:** Do not add tests merely to increase percentages. Do not claim unit coverage from
+  aggregate/global or integration-only results.
+- **Done when:** Unit-only measurement and each residual ownership decision are recorded.
+
+## Progress Tracking
+
+### Plan Checklist
+
+- [x] Container source, event-bus responsibility, indirect package coverage, and root-policy
+      boundaries reviewed.
+- [ ] Maintainer approved R1.
+- [ ] R1 implemented, reviewed, validated, and committed.
+- [ ] Maintainer approved R2.
+- [ ] R2 implemented, reviewed, validated, and committed.
+- [ ] R3 coverage/ownership review completed and decision recorded.
+- [ ] Maintainer reviewed all approved changes.
+- [ ] Plan completed and ready for final verification.
+
+### Progress Log
+
+- 2026-09-10 - GitHub Copilot - Created this proposed plan after reviewing package container
+  composition, event-bus ownership, existing launcher unit tests, root policy tests, and the
+  clarified unit-first coverage objective. No test or production change has been made.
+
+### Validation Evidence
+
+| Increment | Status | Evidence |
+| --- | --- | --- |
+| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| R1 | TODO | Awaiting maintainer approval. |
+| R2 | TODO | Awaiting R1 completion and maintainer approval. |
+| R3 | TODO | Awaiting approved increments. |
+
+## Non-Goals
+
+- Do not change container production code, event-bus implementation, metrics aggregation, banning,
+  REST exposure, or multi-listener policy.
+- Do not duplicate generic enabled/disabled `EventBus` tests owned by `packages/events`.
+- Do not start sockets, listeners, server tasks, cancellation, shutdown, sleeps, polling, or a
+  lifecycle fixture; those concerns remain owned by #1488.
+- Do not replace root integration tests or use their coverage to claim this direct unit contract.
+
+## Validation Per Approved Increment
+
+- Apply the mandatory prose-first Arrange-Act-Assert comparison before maintainer review.
+- Run the focused `container` unit test and then the package `--lib` target when the increment is
+  approved for broader validation.
+- Run `cargo fmt --all -- --check` and `git diff --check`.
+- Run `linter markdown` and `linter cspell` when this plan changes.
+- Measure and record aggregate/global, unit-only, and integration-only coverage separately whenever
+  coverage informs a decision.
+
+## Completion Criteria
+
+- The package-selected enabled event-publication path has one direct, deterministic unit contract.
+- The test keeps its causal enabled sender, production publication Act, and exact received event
+  visible without a generic fixture.
+- Aggregate/global, unit-only, and integration-only coverage are recorded in separate tables and
+  used only for their respective claims.
+- Generic event-bus behavior, root consumer policy, and lifecycle concerns remain at their existing
+  ownership boundaries.
+- The maintainer reviews every approved increment before the next increment and before final
+  verification.

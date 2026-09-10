@@ -23,7 +23,9 @@ semantic-links:
 
 ## Goal
 
-Improve maintainable automated test coverage across the current Torrust Tracker workspace packages, prioritizing critical behavior and making the published crates robust and reliable for consumers.
+Improve maintainable automated test coverage across the current Torrust Tracker workspace packages,
+prioritizing critical behavior and increasing the proportion of fast package-local unit coverage so
+published crates are robust and reliable for consumers.
 
 ## Why This Is Needed
 
@@ -33,9 +35,18 @@ The repository was reorganized through package refactoring and extraction work. 
 
 ### In Scope
 
-- Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior. Record an issue-local, human-readable coverage-evidence document with the command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered areas. When aggregate coverage includes multiple test binaries, measure and record the unit-test and integration-test contributions separately; do not infer unit coverage from a combined report.
+- Establish and record separate aggregate and unit-only coverage baselines for each package addressed
+  by a subissue, then aim to increase both through critical behavior tests, prioritizing unit-only
+  improvement. Record an issue-local, human-readable coverage-evidence document with the command,
+  measurement scope, per-file results, and prioritized uncovered areas. Aggregate/global coverage
+  includes all selected test binaries and shows broad progress; it must not be used to infer that a
+  source seam has sufficient unit coverage. When aggregate coverage includes multiple test binaries,
+  measure and record unit-only and integration-only contributions separately.
 - Add maintainable, fast, responsibility-oriented unit tests close to the code they protect, using Arrange, Act, Assert (AAA) structure where appropriate.
-- Add integration tests, runnable examples, or end-to-end tests only when a unit test cannot protect the behavior at an appropriate boundary or the higher-level test gives a clearer, more maintainable behavioral contract.
+- Add integration tests, runnable examples, or end-to-end tests only when a unit test cannot protect
+  the behavior at an appropriate boundary or the higher-level test gives a clearer, more maintainable
+  behavioral contract. Existing or newly added higher-level coverage never justifies declining a
+  feasible focused unit test for a package-owned responsibility.
 - When a package behavior is impractical to cover with a unit test, select the narrowest stable test boundary that can cover it: package-local integration or end-to-end tests first, then root `tests/` integration tests or `packages/e2e-tools/` only when the behavior is necessarily composed at that level. Record the chosen boundary and its rationale in the subissue evidence.
 - For every package subissue, assess the applicability and current evidence for unit tests,
   package-local integration tests, runnable examples, package/root/end-to-end tests, mutation
@@ -75,19 +86,40 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Add a row only when work begins on a package subissue. Record its baseline before adding tests and
 its latest measurement after implementation. Link each row to the subissue's issue-local
 `coverage-evidence.md`, which remains the source of truth for measurement scope, per-file detail,
-and prioritized gaps. These aggregate values show progress across the EPIC; they do not determine
-whether a subissue has adequately covered critical behavior.
+and prioritized gaps. Keep aggregate/global and unit-only results in separate tables: they have
+different denominators and answer different questions. Neither aggregate nor integration coverage
+can establish that unit-test coverage is sufficient.
+
+### Aggregate Coverage (All Selected Test Levels)
+
+Aggregate values show broad package progress only; they do not attribute a source seam to a test
+level or determine whether unit coverage is adequate.
 
 | Package                            | Subissue                                                            | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                                    |
 | ---------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `torrust-tracker-axum-http-server` | [#2136](../2136-1347-add-tests-axum-http-server/ISSUE.md)           | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](../2136-1347-add-tests-axum-http-server/coverage-evidence.md)           |
 | `torrust-tracker-udp-server`       | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Not yet measured                                  | Not yet measured                                        | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
+### Unit-Only Coverage
+
+Unit-only values track the primary package-local testing objective. Do not replace a missing or
+weak unit-only result with aggregate, integration, example, or end-to-end coverage.
+
+| Package | Subissue | Baseline | Latest | Change | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| `torrust-tracker-axum-http-server` | [#2136](../2136-1347-add-tests-axum-http-server/ISSUE.md) | See issue-local evidence | See issue-local evidence | See issue-local evidence | [Coverage evidence](../2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
+| `torrust-tracker-udp-server` | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Pending final measurement | Pending final measurement | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
+
 ## Delivery Strategy
 
 Implement independently reviewable, package-scoped subissues. When work begins on a package, add it to the Package Coverage Tracking table and record its starting coverage before adding tests. After implementation, update the row with the latest measurement and percentage-point change. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
 
-Prioritize fast unit tests close to the code being changed. Use package integration tests only when a unit test cannot protect the behavior at an appropriate boundary or the real package boundary produces a clearer, more maintainable contract; retain runnable-example and end-to-end coverage where they add distinct regression value. Coverage percentage informs the work but does not replace testing critical behavior.
+Prioritize fast unit tests close to the code being changed. Use package integration tests only when a
+unit test cannot protect the behavior at an appropriate boundary or the real package boundary
+produces a clearer, more maintainable contract; retain runnable-example and end-to-end coverage
+where they add distinct regression value. A passing higher-level test is not evidence that an
+available unit seam needs no test. Coverage percentage informs the work but does not replace testing
+critical behavior.
 
 When an aggregate coverage command runs unit and integration binaries together, it must not be used as proof that either boundary is adequately covered. For each selected source seam, issue-local evidence must state which test level protects it and, when the aggregate report could conceal that distinction, record separate unit-only and integration-only measurements using the relevant Cargo target selection. Compare results only within the same measurement scope because test-support code may produce different denominators. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
 

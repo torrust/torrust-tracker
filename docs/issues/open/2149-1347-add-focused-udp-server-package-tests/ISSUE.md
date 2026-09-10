@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests"
 related-pr: 2152
-last-updated-utc: 2026-09-07 17:03
+last-updated-utc: 2026-09-10
 semantic-links:
   skill-links:
     - create-issue
@@ -36,6 +36,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/contract-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-metric-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/container-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
@@ -69,10 +70,12 @@ must protect current normal-operation behavior without preempting that design.
 
 ### In Scope
 
-- Establish package-source coverage baseline and final evidence using reproducible aggregate,
-  unit-only, and integration-only `cargo llvm-cov` commands where a combined report could hide the
-  selected boundary. Record per-file results, each test level's contribution, and prioritized
-  uncovered behavior; do not infer unit coverage from aggregate execution.
+- Establish separate aggregate/global and unit-only package-source coverage baselines and final
+  evidence using reproducible `cargo llvm-cov` commands. Aggregate/global coverage tracks all
+  selected test binaries; unit-only coverage tracks the primary package-local objective. Keep their
+  results in separate evidence tables and do not infer unit coverage from aggregate execution. Where
+  aggregate coverage could hide the selected boundary, also record integration-only coverage and
+  each test level's contribution.
 - Inventory current unit, real-loopback package integration, example, root integration, and
   relevant historical coverage before selecting new tests.
 - Add focused, deterministic tests for package-owned transport and dispatch seams where they
@@ -86,6 +89,9 @@ must protect current normal-operation behavior without preempting that design.
 - Review every test-bearing file selected by the evidence inventory. Create one file-local
   refactor plan for each concrete opportunity, then improve test readability, maintainability,
   expressiveness, or behavior coverage without reducing valuable existing protection.
+- Do not decline a feasible deterministic package unit test because integration, example, root, or
+  end-to-end coverage already executes the behavior. Higher-level coverage may retain a distinct
+  contract but is not a substitute for the unit-first objective.
 - Review `tests/server/contract.rs` and add an approved real-socket contract only when a unit test
   cannot protect the behavior at an appropriate boundary or the real-loopback contract is clearer
   and more maintainable. Record why the integration boundary is preferred.
@@ -139,12 +145,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID  | Status      | Task                                        | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | --- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                                                                                                                  |
-| T2  | IN_PROGRESS | Review and approve test design              | Inventory test-bearing files and create one file-local plan per concrete opportunity in [test-refactor-plans/](test-refactor-plans/README.md). Every plan has an ordered cleanup phase for existing tests, then incremental missing-behavior tests with a design review after each addition. The request-buffer, event, parse-error adapter, and bound-socket plans are complete; the next candidate is a `handlers/mod.rs` plan. |
+| T2  | DONE        | Review and approve test design              | The reviewed file-local plans cover request-buffer, event, parse-error adapter, bound socket, handler dispatch, launcher, real-loopback contract, and error-metric seams. The proposed `container.rs` plan is the remaining package-composition assessment and follows the clarified unit-first policy. |
 | T3  | DONE        | Improve request-buffer tests                | Completed the reviewed request-buffer plan: capacity-available, oldest-first eviction, and buffer-drop cleanup contracts are covered; R2 documents the intentional bounded policy and R5 defers the scheduler-dependent race guard. The current per-file comparison is recorded in [coverage-evidence.md](coverage-evidence.md). **Commit point:** completed through focused reviewed increments. |
-| T4  | IN_PROGRESS | Improve dispatch and classification tests   | Completed `event.rs` classification/metric representations and `error.rs` parse-error adapter coverage. Plan `handlers/mod.rs` separately to keep packet dispatch distinct from handler business rules. **Commit point:** one reviewed, coherent classification or dispatch increment plus focused validation.                                                                                                                                                              |
+| T4  | DONE        | Improve dispatch and classification tests   | Completed reviewed `event.rs` classification/metric representations, `error.rs` parse-error adapter coverage, `handlers/mod.rs` packet dispatch coverage, and statistics error-metric routing coverage. **Commit point:** completed through focused reviewed increments. |
 | T5  | DONE        | Improve socket-adapter tests                | Completed the reviewed `server/bound_socket.rs` plan with stable IPv4 loopback port-zero allocation and endpoint-metadata contracts. Platform-specific dual-stack defaults remain intentionally outside the test contract. **Commit point:** completed through focused reviewed increments.                                                                                                                                                                                       |
-| T6  | TODO        | Improve container-composition tests         | Implement a `container.rs` test-plan increment only if review identifies a package-owned composition regression not already proven indirectly. A justified no-change decision completes this task without a commit. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted.                                                                                                                                             |
-| T7  | TODO        | Improve admission or UDP contracts          | Implement one approved `server/launcher.rs` or `tests/server/contract.rs` increment only when the package integration boundary adds unique stable value. Record an infeasible seam rather than forcing a production refactor. **Commit point:** one reviewed admission or real-loopback contract increment plus focused validation.                                                                                                                                          |
+| T6  | IN_PROGRESS | Improve container-composition tests         | The proposed `container.rs` plan identifies one feasible deterministic package unit contract for the explicitly enabled server event-publication path. Existing integration coverage is not a reason to decline it; implementation awaits maintainer approval. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted. |
+| T7  | DONE        | Improve admission or UDP contracts          | Completed reviewed `server/launcher.rs` admission/event increments and `tests/server/contract.rs` real-loopback contract increments. The contract plan records the justified no-change boundary for further transport expansion. **Commit point:** completed through focused reviewed increments. |
 | T8  | TODO        | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                                                                                                                              |
 | T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
 
@@ -281,6 +287,13 @@ responsibility.
 - 2026-09-08 16:13 UTC - GitHub Copilot - Reconciled this implementation specification with the
   completed event, parse-error adapter, and bound-socket plans. The next file-local planning step is
   `handlers/mod.rs`; no additional test behavior is authorized until its two-phase plan is reviewed.
+- 2026-09-10 - User/maintainer - Clarified that #2149 must increase package testing while
+  increasing the proportion of unit tests. Aggregate/global, unit-only, and integration-only
+  coverage are separate evidence streams. Higher-level coverage cannot justify declining a feasible
+  focused package unit test.
+- 2026-09-10 - GitHub Copilot - Completed and pushed the error-metric handler plan. Created the
+  proposed `container.rs` plan for the next feasible deterministic package unit contract; no test or
+  production change is authorized until maintainer approval.
 
 ## Acceptance Criteria
 
