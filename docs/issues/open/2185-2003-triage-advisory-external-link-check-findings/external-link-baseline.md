@@ -33,22 +33,61 @@ Lychee reported 421 `Cannot find fragment` diagnostics, 18 `404` responses, 13 c
 
 ## Failure Dispositions
 
-The following categories cover all 461 report errors:
+The following nine categories cover all 461 report errors. C1 and C9 share one proposed URL-pattern boundary but remain separate to preserve their distinct observed diagnostics.
 
-| ID  | Reported failure pattern                                                                                                                         | Occurrences | Current disposition                                                                                                                                                                         | Next action                                                                                                                                                                          |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| C1  | `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with `Cannot find fragment`, primarily in `docs/copilot-pr-reviews/` |         416 | Candidate for a narrow online-only exclusion. GitHub review-comment DOM anchors are dynamic and cannot be reliably fetched as fragments by Lychee. The URLs remain useful audit references. | Propose a path-and-pattern-specific exclusion; prove a hosted rerun removes only this category while other GitHub links remain checked.                                              |
-| C2  | `localhost` or `127.0.0.1` service URLs with connection-refused/cached diagnostics                                                               |           7 | Candidate for a narrow online-only exclusion. These are intentional local configuration and debugging examples that cannot resolve on a GitHub-hosted runner.                               | Propose an online-only URL-pattern exclusion covering only loopback hosts; preserve non-loopback HTTP/HTTPS validation.                                                              |
-| C3  | `https://docs.rs/torrust-*` and `https://docs.rs/bittorrent-udp-protocol` returning `404`                                                        |          14 | Repair candidate. These package README links point at unavailable documentation pages and are externally observable stale references.                                                       | Verify current published crate names and replacement documentation locations, then repair in a small dedicated slice.                                                                |
-| C4  | Repository GitHub URLs returning `404`                                                                                                           |           3 | Repair candidate. The affected targets are a removed issue-local research file and two removed test paths.                                                                                  | Verify the intended current repository targets or remove obsolete references, then repair in a small dedicated slice.                                                                |
-| C5  | `https://caddyserver.com/docs/protocol/http3` returning `404`                                                                                    |           1 | Repair candidate.                                                                                                                                                                           | Identify the current authoritative Caddy HTTP/3 documentation target before modifying `docs/containers.md`.                                                                          |
-| C6  | Docker Cloud ACI fragments, GitHub issue-comment fragments, and the Star History fragment returning `Cannot find fragment`                       |           5 | Unresolved investigation. Unlike C1, these are distinct target-page semantics and must not be hidden by a broad fragment exclusion.                                                         | Verify each fragment or replacement page individually; repair stale fragments, or propose a specific exclusion only if the target’s rendering makes automated validation impossible. |
-| C7  | Medium and Stack Overflow URLs returning `403`                                                                                                   |           3 | Transient/access-controlled candidate. A `403` does not prove the referenced content is stale.                                                                                              | Rerun once before deciding between retaining the signal, replacing the citation, or documenting a narrowly scoped exception.                                                         |
-| C8  | `https://www.fsf.org/` cached errors and one TLS handshake failure                                                                               |           4 | Transient/network candidate. The same target has multiple diagnostics across documents.                                                                                                     | Rerun once and compare results before any configuration decision.                                                                                                                    |
-| C9  | Cached GitHub review-comment-anchor errors not reported as missing fragments                                                                     |           6 | Covered by the C1 URL pattern, but counted separately because the report cached a different diagnostic.                                                                                     | Verify the C1 exclusion removes both cached and missing-fragment diagnostics for the same exact review-comment URL pattern.                                                          |
-| C10 | Other cached errors in two open issue specs                                                                                                      |           2 | Unresolved investigation. The current artifact’s cached diagnostic is insufficient evidence of stale content.                                                                               | Reproduce or rerun each URL before classifying it as repair, transient failure, or a separate durable exclusion candidate.                                                           |
+### C1: GitHub review-comment missing fragments — 416 occurrences
 
-The C1-C10 occurrence totals equal the report’s 461 errors. C1 and C9 share one proposed URL-pattern boundary but remain separate rows to preserve their distinct observed diagnostics.
+- **Pattern:** `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with `Cannot find fragment`, primarily in `docs/copilot-pr-reviews/`.
+- **Disposition:** Candidate for a narrow online-only exclusion. GitHub review-comment DOM anchors are dynamic and cannot be reliably fetched as fragments by Lychee; the URLs remain useful audit references.
+- **Next action:** Propose a path-and-pattern-specific exclusion and prove a hosted rerun removes only this category while other GitHub links remain checked.
+
+### C2: Local service examples — 7 occurrences
+
+- **Pattern:** `localhost` or `127.0.0.1` service URLs with connection-refused or cached diagnostics.
+- **Disposition:** Candidate for a narrow online-only exclusion. These intentional local configuration and debugging examples cannot resolve on a GitHub-hosted runner.
+- **Next action:** Propose an online-only loopback-only exclusion that preserves non-loopback HTTP/HTTPS validation.
+
+### C3: Unavailable docs.rs crate pages — 14 occurrences
+
+- **Pattern:** `https://docs.rs/torrust-*` and `https://docs.rs/bittorrent-udp-protocol` returning `404`.
+- **Disposition:** Repair candidate. These package README links point at unavailable documentation pages and are externally observable stale references.
+- **Next action:** Verify current published crate names and replacement documentation locations, then repair them in a small dedicated slice.
+
+### C4: Stale repository-controlled GitHub links — 3 occurrences
+
+- **Pattern:** Repository GitHub URLs returning `404`.
+- **Disposition:** Repair candidate. The affected targets are a removed issue-local research file and two removed test paths.
+- **Next action:** Verify the intended current repository targets or remove obsolete references, then repair them in a small dedicated slice.
+
+### C5: Stale Caddy documentation link — 1 occurrence
+
+- **Pattern:** `https://caddyserver.com/docs/protocol/http3` returning `404`.
+- **Disposition:** Repair candidate.
+- **Next action:** Identify the current authoritative Caddy HTTP/3 documentation target before modifying `docs/containers.md`.
+
+### C6: Other missing fragments — 5 occurrences
+
+- **Pattern:** Docker Cloud ACI fragments, GitHub issue-comment fragments, and the Star History fragment returning `Cannot find fragment`.
+- **Disposition:** Unresolved investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
+- **Next action:** Verify each fragment or replacement page individually; repair stale fragments, or propose a specific exclusion only if target rendering makes automated validation impossible.
+
+### C7: Third-party access-controlled links — 3 occurrences
+
+- **Pattern:** Medium and Stack Overflow URLs returning `403`.
+- **Disposition:** Transient/access-controlled candidate. A `403` does not prove the referenced content is stale.
+- **Next action:** Rerun once before deciding between retaining the signal, replacing the citation, or documenting a narrowly scoped exception.
+
+### C8: FSF transport failures — 4 occurrences
+
+- **Pattern:** `https://www.fsf.org/` cached errors and one TLS handshake failure.
+- **Disposition:** Transient/network candidate. The same target has multiple diagnostics across documents.
+- **Next action:** Rerun once and compare results before any configuration decision.
+
+### C9: Cached GitHub review-comment-anchor errors — 8 occurrences
+
+- **Pattern:** `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached-error diagnostics, including two references from open issue specs.
+- **Disposition:** Covered by C1's exact URL pattern, but retained separately because the report cached a different diagnostic.
+- **Next action:** Verify the C1 exclusion removes both cached and missing-fragment diagnostics for the same exact review-comment URL pattern.
 
 ## Affected Reference Inventory
 
@@ -93,7 +132,6 @@ The 14 affected package README files are:
 | `stackoverflow.com/a/56768087/3012842`                                                | `403`                                 | C7                  |
 | `https://www.fsf.org/`                                                                | Cached error or TLS handshake failure | C8                  |
 | `github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached error | Cached error                          | C9                  |
-| Remaining one-off cached-error URLs                                                   | Cached error                          | C10                 |
 
 ## First Remediation Slice
 
