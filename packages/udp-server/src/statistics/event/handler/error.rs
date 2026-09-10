@@ -110,35 +110,34 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
 
+    use super::handle_event;
     use crate::CurrentClock;
-    use crate::event::Event;
-    use crate::statistics::event::handler::error::ErrorKind;
-    use crate::statistics::event::handler::handle_event;
+    use crate::event::ErrorKind;
     use crate::statistics::repository::Repository;
+
+    fn sample_ipv4_connection_context() -> ConnectionContext {
+        ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+            ServiceBinding::new(
+                Protocol::UDP,
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+            )
+            .expect("sample UDP service binding should be valid"),
+        )
+    }
 
     #[tokio::test]
     async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
+        // Arrange
         let stats_repository = Repository::new();
+        let connection_context = sample_ipv4_connection_context();
+        let error_kind = ErrorKind::RequestParse("Invalid request format".to_string());
 
-        handle_event(
-            Event::UdpError {
-                context: ConnectionContext::new(
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-                kind: None,
-                error: ErrorKind::RequestParse("Invalid request format".to_string()),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
+        // Act
+        handle_event(connection_context, None, error_kind, &stats_repository, CurrentClock::now()).await;
 
+        // Assert
         let stats = stats_repository.get_stats().await;
 
         assert_eq!(stats.udp4_errors_total(), 1);
