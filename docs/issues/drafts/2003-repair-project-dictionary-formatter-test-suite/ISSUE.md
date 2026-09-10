@@ -8,7 +8,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-repair-project-dictionary-formatter-test-suite/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-10 09:10
+last-updated-utc: 2026-09-10 09:32
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
 
 # Issue #[To be assigned] - Repair the project dictionary formatter test suite
 
-**Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails
+**Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails. The adoption is argued from that EPIC's own stated scope in EPIC #2190 and is pending its maintainer review; the GitHub issue is created only after that review.
 
 ## Goal
 
