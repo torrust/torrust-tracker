@@ -85,46 +85,40 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 }
 
 mod receiving_a_connection_request {
-    use std::sync::Arc;
-
     use torrust_tracker_client::udp::client::UdpTrackerClient;
-    use torrust_tracker_test_helpers::{configuration, logging};
+    use torrust_tracker_test_helpers::logging;
     use torrust_tracker_udp_protocol::{ConnectRequest, TransactionId};
 
-    use super::DEFAULT_UDP_TIMEOUT;
+    use super::{DEFAULT_UDP_TIMEOUT, start_ephemeral_udp_tracker};
     use crate::server::asserts::is_connect_response;
 
     #[tokio::test]
     async fn should_return_a_connect_response() {
         logging::setup();
 
-        let cfg = configuration::ephemeral();
-        let core_config = Arc::new(cfg.core.clone());
-        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
+        // Arrange
+        let tracker = start_ephemeral_udp_tracker().await;
+        let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+            .await
+            .expect("UDP client should connect to the ephemeral tracker");
+        let transaction_id = TransactionId::new(123);
+        let connect_request = ConnectRequest { transaction_id };
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
-            Ok(udp_tracker_client) => udp_tracker_client,
-            Err(err) => panic!("{err}"),
-        };
+        // Act
+        client
+            .send(connect_request.into())
+            .await
+            .expect("UDP client should send the connect request");
 
-        let connect_request = ConnectRequest {
-            transaction_id: TransactionId::new(123),
-        };
+        let response = client
+            .receive()
+            .await
+            .expect("UDP tracker should respond to the connect request");
 
-        match client.send(connect_request.into()).await {
-            Ok(_) => (),
-            Err(err) => panic!("{err}"),
-        }
+        // Assert
+        assert!(is_connect_response(&response, transaction_id));
 
-        let response = match client.receive().await {
-            Ok(response) => response,
-            Err(err) => panic!("{err}"),
-        };
-
-        assert!(is_connect_response(&response, TransactionId::new(123)));
-
-        env.stop().await;
+        tracker.stop().await;
     }
 }
 
