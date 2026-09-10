@@ -8,7 +8,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2190-widen-workflow-actions-allowlist-entry/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-10 09:30
+last-updated-utc: 2026-09-10 09:45
 semantic-links:
   skill-links:
     - create-issue
@@ -106,7 +106,7 @@ This issue produces evidence rather than a commit. Should it turn out that a fil
 
 ### Progress Log
 
-- 2026-09-10 09:30 UTC - Specification author - Drafted from the verified evidence in EPIC #2190; cluster C7, maintainer action A1 - https://github.com/torrust/torrust-tracker/issues/2190
+- 2026-09-10 09:30 UTC - Specification author - Drafted from the verified evidence in EPIC #2190; inventory item A1 - https://github.com/torrust/torrust-tracker/issues/2190
 
 ## Acceptance Criteria
 
