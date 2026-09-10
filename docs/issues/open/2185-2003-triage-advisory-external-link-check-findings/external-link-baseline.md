@@ -135,7 +135,7 @@ The 14 affected package README files are:
 
 ## First Remediation Slice
 
-C1 and C9 are the first proposed remediation boundary: the exact GitHub pull-request review-comment URL pattern is responsible for 424 of 461 reported errors. No exclusion has been added yet. The next change must be online-only, documented, and verified by a hosted workflow rerun that retains unrelated `404`, `403`, local-example, and third-party diagnostics.
+C1 and C9 are the first remediation boundary: the exact GitHub pull-request review-comment URL pattern is responsible for 424 of 461 reported errors. The online-only configuration excludes exactly that pattern. A two-link local boundary test excluded a matching pull-request review-comment anchor while retaining a non-matching GitHub issue-comment anchor as a visible error. A hosted workflow rerun must still retain unrelated `404`, `403`, local-example, and third-party diagnostics.
 
 ## Deferred Work
 
