@@ -220,6 +220,7 @@ eprint
 eprintln
 esac
 eventfd
+execv
 exploitability
 fastrand
 fdbased
@@ -351,6 +352,7 @@ oneline
 oneshot
 openexr
 openmetrics
+openpty
 opentracker
 opentrackers
 optimisation

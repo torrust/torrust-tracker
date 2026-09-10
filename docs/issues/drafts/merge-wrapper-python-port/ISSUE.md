@@ -54,7 +54,7 @@ The remaining reason the wrapper is a shell script is historical: #2022 vendored
 - Preserve every message a test asserts today, except where this specification names a change and gives the reason.
 - Add `contrib/dev-tools/git/tests/test-merge-pull-request.py`, replacing the bash suite, written with `unittest` in the conventions of `test-github-merge-symlinks.py`, and supplying its pseudo-terminal cases from the standard library rather than from `script(1)`.
 - Add repository-neutral coverage the bash suite could not express: a fixture configured for a repository other than this one that passes preflight, and a fixture configured for a target branch other than `develop`.
-- Remove `merge-pull-request.sh` and `test-merge-pull-request.sh` once the port carries every behaviour.
+- Remove `merge-pull-request.sh` and `test-merge-pull-request.sh` once the port carries every behavior.
 - Update `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md`, `contrib/dev-tools/git/README-github-merge.md` and `AGENTS.md` to the Python entry point and to configuration-key wording.
 - State the Python interpreter version the workflow requires, and check it in the program.
 - Record the static-analysis coverage the port loses and what replaces it.
@@ -63,11 +63,11 @@ The remaining reason the wrapper is a shell script is historical: #2022 vendored
 
 - Any change to the engine's merge semantics. `github-merge.py` is not edited by this issue: no change to fetching, merging, the symbolic-link check, the tree hash, signing, pushing, or any message it prints.
 - Any new runtime dependency. The program and its tests use the Python standard library and the `git` the workflow already requires.
-- Any behaviour that differs between repositories other than through configuration. The program contains no repository name, no branch name outside a documented default, and no conditional keyed on which repository it is running in.
+- Any behavior that differs between repositories other than through configuration. The program contains no repository name, no branch name outside a documented default, and no conditional keyed on which repository it is running in.
 - Vendoring or mirroring the port into `torrust/torrust-index` or any other repository. Adopting it there is separate work in those repositories; this issue only makes it adoptable.
 - Migrating the workflow to Rust. #2003 may later select a different automation architecture; this issue keeps the repository-specific integration narrow, which is what that decision asked for.
 - Adding a Python linter to the `linter` binary. That binary is built from `torrust/torrust-linting` and cannot be changed from here; this issue records the gap and refers it.
-- Enforcing a declaration file against the tree, or any other new policy. The port moves existing behaviour; it adds no check the shell wrapper did not perform.
+- Enforcing a declaration file against the tree, or any other new policy. The port moves existing behavior; it adds no check the shell wrapper did not perform.
 
 ## Architectural Decisions
 
@@ -76,17 +76,17 @@ The remaining reason the wrapper is a shell script is historical: #2022 vendored
 
 ### AD1 - The entry point keeps its name and gains the engine's extension
 
-The program is `merge-pull-request.py`, beside `github-merge.py`. The name is what the skill, the vendoring README, `AGENTS.md` and every maintainer's habit already say, so keeping it means the only thing that changes at the command line is the extension. The extension is kept rather than dropped because the sibling engine carries one, and because it tells a reader which interpreter runs the file without opening it. The alternative, an extensionless `merge-pull-request`, was rejected for that reason: it would be the only executable in the directory whose language is invisible.
+The program is `merge-pull-request.py`, beside `github-merge.py`. The name is what the skill, the vendoring README, `AGENTS.md` and every maintainer's habit already say, so keeping it means the only thing that changes at the command line is the extension. The extension is kept rather than dropped because the sibling engine carries one, and because it tells a reader which interpreter runs the file without opening it. The alternative, `merge-pull-request` with no extension at all, was rejected for that reason: it would be the only executable in the directory whose language is invisible.
 
 ### AD2 - The repository is validated by shape, never by value
 
-`githubmerge.repository` is required and must match `<owner>/<repo>`: exactly one separator, both parts non-empty, an owner limited to letters, digits and hyphens, a repository name limited to letters, digits, hyphens, underscores and dots, and neither part equal to a relative-path name. That is the rule GitHub itself enforces on those names, so a value that passes here is a value the engine can build a remote from, and a value that fails is a typing mistake rather than a policy disagreement.
+`githubmerge.repository` is required and must match `<owner>/<repo>`: exactly one separator, both parts non-empty, an owner limited to letters, digits and hyphens, a repository name limited to letters, digits, hyphens, underscores and dots, and neither part equal to a relative-path name. Those character sets are the ones GitHub accepts for owner and repository names, to be confirmed against its published naming rules during implementation, so a value that passes here is a value the engine can build a remote from, and a value that fails is a typing mistake rather than a policy disagreement.
 
 Validating the shape rather than a value is the point of the change, but it is worth stating what is given up, because a reviewer will ask. Today the wrapper refuses when `githubmerge.repository` names some other repository, which reads like a guard against merging the wrong project. It is not one. The value is repository-local configuration the maintainer set themselves; the engine builds its fetch remote from that same value; and the wrapper's current-branch and clean-tree checks run against the working tree in front of the maintainer either way. A maintainer who has configured a different repository in this checkout has made a mistake the engine shows them in its merge details before anything is signed, and the wrapper refusing it here only means the same mistake in a sibling repository is unreachable by the preflight at all.
 
 ### AD3 - The target branch has a documented default and a documented key
 
-The branch comes from `githubmerge.branch` and defaults to `develop`. A default is needed because the wrapper passes the branch to the engine explicitly and must keep doing so: the engine's own resolution order is the command-line argument, then `githubmerge.branch`, then the pull request's base branch as GitHub reports it, then `master` (line 584). Leaving the branch unset would let a merge target whatever base branch a pull request happens to name, which is the behaviour the wrapper exists to prevent.
+The branch comes from `githubmerge.branch` and defaults to `develop`. A default is needed because the wrapper passes the branch to the engine explicitly and must keep doing so: the engine's own resolution order is the command-line argument, then `githubmerge.branch`, then the pull request's base branch as GitHub reports it, then `master` (line 584). Leaving the branch unset would let a merge target whatever base branch a pull request happens to name, which is the behavior the wrapper exists to prevent.
 
 `develop` is the convention of the repositories that share this tool, and it is not a hidden assumption: the wrapper checks that the checked-out branch equals the resolved target before doing anything else, so a repository whose development branch is named differently fails on its first run with a message naming `githubmerge.branch`. The alternative of requiring the key with no default was rejected because it invalidates every existing configuration on the day the port lands, in exchange for turning a loud first-run failure into a loud first-run failure.
 
@@ -127,8 +127,8 @@ The program spawns child processes, `git` and then the engine, and its tests all
 - Interface and responsibility: the program's public surface is its command line. It owns argument validation, configuration reading, environment preconditions, and the construction of the engine's argument list. It owns no merge logic, reads no declaration file, and parses nothing the engine parses.
 - Child-process ownership in normal operation: every `git` invocation goes through one helper that calls `subprocess.run` with an argument list, captures output, and returns a value; no invocation goes through a shell, and no value read from configuration is interpolated into a command string. The final delegation transfers ownership of the process image to the engine, so beyond that point there is no child to own.
 - Failure and drop paths: a `git` invocation that exits non-zero is a preflight failure with a message naming what was being read, never a traceback. A `git` binary that is absent is reported in the same shape. Because delegation replaces the process, no path leaves the program holding a running child while it exits.
-- Deadlines: the program awaits nothing over a network and holds no readiness operation, so no absolute deadline applies to it. Its tests do hold one: a case that supplies a pseudo-terminal must read from the primary side while the child runs and must bound that wait, so a child that unexpectedly blocks fails the case instead of hanging the suite. That matters more than usual here, because the behaviour under test is a guard against a program that never terminates.
-- Design-review checkpoint: after the first vertical slice, meaning argument handling plus one configuration read plus one preflight failure with its test, the shape is reviewed before the remaining behaviours are ported.
+- Deadlines: the program awaits nothing over a network and holds no readiness operation, so no absolute deadline applies to it. Its tests do hold one: a case that supplies a pseudo-terminal must read from the primary side while the child runs and must bound that wait, so a child that unexpectedly blocks fails the case instead of hanging the suite. That matters more than usual here, because the behavior under test is a guard against a program that never terminates.
+- Design-review checkpoint: after the first vertical slice, meaning argument handling plus one configuration read plus one preflight failure with its test, the shape is reviewed before the remaining behaviors are ported.
 
 ## Implementation Plan
 
@@ -136,28 +136,28 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Establish the program skeleton and its first slice | `merge-pull-request.py` with the command line, the interpreter-version floor, the `git` helper and one configuration read, plus the test module that exercises them. Reviewed before the remaining behaviours are ported. |
+| T1  | TODO   | Establish the program skeleton and its first slice | `merge-pull-request.py` with the command line, the interpreter-version floor, the `git` helper and one configuration read, plus the test module that exercises them. Reviewed before the remaining behaviors are ported. |
 | T2  | TODO   | Port argument handling | `--dry-run`, `-h`/`--help`, and a pull-request argument accepted only in the shape the shell wrapper accepts, with the current message text and exit code `2`. |
 | T3  | TODO   | Port the environment preconditions | Working-tree presence, clean tree, checked-out branch equal to the resolved target, signing key configured, with the current message text and exit code `1`. |
 | T4  | TODO   | Port the configuration reads and their shape rules | `githubmerge.repository`, `githubmerge.branch` and `githubmerge.symlinks` with the defaults and rules of AD2, AD3 and AD4, and messages naming the key and the expected shape. |
 | T5  | TODO   | Port `--dry-run` and delegation | The dry-run report, and `os.execv` on `sys.executable` with the engine, `--symlinks <path>`, the pull-request number and the resolved branch. |
-| T6  | TODO   | Complete the test module | Every behaviour in the mapping table below, the pseudo-terminal cases from `pty`, and the repository-neutral cases the bash suite could not express. |
+| T6  | TODO   | Complete the test module | Every behavior in the mapping table below, the pseudo-terminal cases from `pty`, and the repository-neutral cases the bash suite could not express. |
 | T7  | TODO   | Retire the shell wrapper and its suite | `merge-pull-request.sh` and `test-merge-pull-request.sh` are deleted once T6 is green. |
 | T8  | TODO   | Update the documentation and the skill | Skill, vendoring README and `AGENTS.md` name the Python entry point, describe the configuration keys and their defaults, state the interpreter requirement, and state the static-analysis gap. |
 
-### Behaviour mapping
+### Behavior mapping
 
-Every behaviour of `merge-pull-request.sh` and every case of `test-merge-pull-request.sh` appears once. The bash suite runs thirteen cases (lines 346-358) behind one harness precondition (lines 10-19); all fourteen entries are mapped, and the cases are numbered C1 to C13 in the order that list runs them. "Preserved" means the observable result, message text included, is unchanged.
+Every behavior of `merge-pull-request.sh` and every case of `test-merge-pull-request.sh` appears once. The bash suite runs thirteen cases (lines 346-358) behind one harness precondition (lines 10-19); all fourteen entries are mapped, and the cases are numbered C1 to C13 in the order that list runs them. "Preserved" means the observable result, message text included, is unchanged.
 
-| ID | Behaviour, at its source | Covering bash case | In the port |
+| ID | Behavior, at its source | Covering bash case | In the port |
 | -- | ------------------------ | ------------------ | ----------- |
-| B1 | `--dry-run` recognised as the leading option (lines 100-104) | C1, C2, C3, C4, C5, C6, C10, C13 | Preserved, and accepted in any position, which argparse gives for free and which no case asserts against. |
+| B1 | `--dry-run` recognized as the leading option (lines 100-104) | C1, C2, C3, C4, C5, C6, C10, C13 | Preserved, and accepted in any position, which argparse gives for free and which no case asserts against. |
 | B2 | `-h`/`--help` prints usage and exits `0` (lines 105-108, 18-29) | none | Preserved, with the text on standard output rather than standard error, which is argparse's convention for a help page a user asked for. Error paths keep writing to standard error. |
 | B3 | Exactly one argument, matching `^[1-9][0-9]*$`, else `ERROR: PULL_REQUEST must be a positive integer.`, usage, exit `2` (lines 111-115) | C13 | Preserved with a custom argparse type carrying that exact sentence. A plain integer type is not used: it would accept `0`, `-3`, `007` and surrounding blanks, all of which the shell wrapper rejects. |
 | B4 | Must run inside a Git working tree, else exit `1` (lines 119-122) | none | Preserved. |
 | B5 | Clean working tree via `git status --porcelain`, else exit `1` (lines 31-36) | C2 | Preserved, including that nothing in the working tree is touched. |
-| B6 | `githubmerge.repository` must be set, else a message naming the key and the command that sets it, exit `1` (lines 38-49) | C4 | Preserved, with `<owner>/<repo>` in the suggested command instead of this repository's name, matching the engine's own message (line 552). |
-| B7 | `githubmerge.repository` must equal `torrust/torrust-tracker`, else a message naming the configured value, exit `1` (lines 42-47) | C3 | Replaced by the shape rule of AD2. A well-formed value for any repository passes; a malformed value is refused with a message naming the key, the value found and the expected shape. C3 becomes a malformed-value case, and a new case asserts that a well-formed value for another repository passes preflight. |
+| B6 | `githubmerge.repository` must be set, else a message naming the key and the command that sets it, exit `1` (lines 43-44) | C4 | Preserved, with `<owner>/<repo>` in the suggested command instead of this repository's name, matching the engine's own message (line 552). |
+| B7 | `githubmerge.repository` must equal `torrust/torrust-tracker`, else a message naming the configured value, exit `1` (lines 42, 45-46) | C3 | Replaced by the shape rule of AD2. A well-formed value for any repository passes; a malformed value is refused with a message naming the key, the value found and the expected shape. C3 becomes a malformed-value case, and a new case asserts that a well-formed value for another repository passes preflight. |
 | B8 | Checked-out branch must equal the target, else a message naming both, exit `1` (lines 52-60) | none | Preserved, with the target resolved per AD3 and the message naming `githubmerge.branch`. The `detached HEAD` rendering for an empty current branch is preserved. |
 | B9 | `user.signingkey` must be non-empty, else the repository-local message, exit `1` (lines 62-70) | C5, C6 | Preserved verbatim, including that an empty value is treated as unset. This is the message #2173 added to correct the engine's global-scope advice, and the vendoring README points a reader at it (line 88). |
 | B10 | `--dry-run` reports `Dry-run preflight passed for <repository> PR <number> targeting <branch>.` on standard output and exits `0` before any engine, interpreter or terminal check (lines 129-132) | C1, C10 | Preserved, with the repository and branch now the resolved values. The ordering is preserved because it is what makes the dry run usable without a terminal and without the engine present. |
@@ -170,7 +170,7 @@ Every behaviour of `merge-pull-request.sh` and every case of `test-merge-pull-re
 | B17 | `set -euo pipefail`: an unexpected failure aborts rather than continuing (line 9) | none | Preserved by construction: an unhandled failure is an exception, and every expected failure is an explicit exit. |
 | B18 | Harness precondition: `script(1)` supports the flags the suite passes (lines 10-19) | harness | Dropped with its dependency, per AD7. |
 
-Two behaviours are dropped, B12 and B18, and both because the port removes the reason they existed rather than because the port cannot express them. B7 is the only behaviour deliberately changed, and it is the change this issue exists for.
+Two entries are dropped, B12 and B18, and both because the port removes the reason they existed rather than because the port cannot express them. B7 is the only behavior deliberately changed, and it is the change this issue exists for.
 
 ### Exit codes
 
@@ -192,11 +192,11 @@ The program documents and uses three, matching the shell wrapper and the convent
 | T3 | Environment preconditions and their tests. | Commit after focused validation. |
 | T4 | Configuration reads, shape rules, defaults, and their tests. | Commit after focused validation; this is the commit that makes the program repository-neutral and it should be reviewable alone. |
 | T5 | Dry-run report and delegation, with their tests. | Commit after focused validation. |
-| T6 | Remaining test increments, one behaviour area per commit. | Commit each reviewed increment before starting the next area, and stop for maintainer review after the final increment. |
+| T6 | Remaining test increments, one behavior area per commit. | Commit each reviewed increment before starting the next area, and stop for maintainer review after the final increment. |
 | T7 | Deletion of `merge-pull-request.sh` and `test-merge-pull-request.sh`. | Commit alone, so the removal is independently reviewable and independently revertible. |
-| T8 | Skill, vendoring README and `AGENTS.md` updates. | Commit after the behaviour they describe is in the branch. |
+| T8 | Skill, vendoring README and `AGENTS.md` updates. | Commit after the behavior they describe is in the branch. |
 
-The whole sequence belongs to one pull request rather than to a port followed by a separate retirement. Two entry points for one workflow is an ambiguity that has to be documented for as long as it lasts: the skill, the README and the coverage boundary would each have to say which one is authoritative, and a maintainer following the older instruction would keep using the wrapper that refuses sibling repositories. The port's own suite is the evidence that every behaviour survived, so the deletion is best reviewed in the diff that carries that evidence. Keeping T7 as its own commit preserves the ability to revert the removal without reverting the port.
+The whole sequence belongs to one pull request rather than to a port followed by a separate retirement. Two entry points for one workflow is an ambiguity that has to be documented for as long as it lasts: the skill, the README and the coverage boundary would each have to say which one is authoritative, and a maintainer following the older instruction would keep using the wrapper that refuses sibling repositories. The port's own suite is the evidence that every behavior survived, so the deletion is best reviewed in the diff that carries that evidence. Keeping T7 as its own commit preserves the ability to revert the removal without reverting the port.
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. Use a Conventional Commit message with the narrow affected scope.
 
@@ -222,7 +222,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 Append one line per meaningful update.
 
-- 2026-09-10 13:22 UTC - Spec author - Draft written against `develop` at `89d45145`; behaviour mapping built from `merge-pull-request.sh` and the thirteen cases of `test-merge-pull-request.sh` - this document
+- 2026-09-10 13:22 UTC - Spec author - Draft written against `develop` at `89d45145`; behavior mapping built from `merge-pull-request.sh` and the thirteen cases of `test-merge-pull-request.sh` - this document
 
 ## Acceptance Criteria
 
@@ -231,9 +231,9 @@ Append one line per meaningful update.
 - [ ] AC3: A malformed `githubmerge.repository`, an unset one, a declaration path that is absolute or contains a `..` segment, and an empty declaration path each fail with exit code `1` and a message naming the configuration key and the expected shape, and naming no expected repository.
 - [ ] AC4: The target branch resolves from `githubmerge.branch`, defaults to `develop`, is checked against the checked-out branch, and is passed to the engine explicitly. A fixture configured for another branch passes preflight on that branch and is refused on `develop`.
 - [ ] AC5: The declaration path resolves from `githubmerge.symlinks`, defaults to `.symlinks.json`, is passed unconditionally as `--symlinks`, and is never looked up in the working tree. The wrapper rejects exactly the paths the engine rejects for that argument.
-- [ ] AC6: Every behaviour marked "Preserved" in the mapping table produces the same observable result as the shell wrapper does at `89d45145`, message text included.
+- [ ] AC6: Every behavior marked "Preserved" in the mapping table produces the same observable result as the shell wrapper does at `89d45145`, message text included.
 - [ ] AC7: Delegation replaces the process, so the engine's exit code is the command's exit code, and the engine runs under the interpreter that executed the preflight.
-- [ ] AC8: `python3 contrib/dev-tools/git/tests/test-merge-pull-request.py` covers every mapped behaviour, supplies its terminal cases from the standard library, and requires no tool outside Python and `git`.
+- [ ] AC8: `python3 contrib/dev-tools/git/tests/test-merge-pull-request.py` covers every mapped behavior, supplies its terminal cases from the standard library, and requires no tool outside Python and `git`.
 - [ ] AC9: `merge-pull-request.sh` and `test-merge-pull-request.sh` are removed, and no file in the repository refers to either.
 - [ ] AC10: The skill, the vendoring README and `AGENTS.md` name the Python entry point, document `githubmerge.branch` and `githubmerge.symlinks` with their defaults, and state the interpreter requirement.
 - [ ] AC11: The vendoring README's provenance statement continues to name `github-merge.py` alone, and the new program carries no upstream copyright header.
@@ -257,7 +257,7 @@ Define verification before implementation starts and execute it before closing t
 
 ### Static Analysis Coverage
 
-`linter` offers `markdown`, `yaml`, `toml`, `cspell`, `clippy`, `rustfmt` and `shellcheck`, and the pre-commit hook runs `linter all` alongside the dictionary formatter and `hadolint` (`contrib/dev-tools/git/hooks/pre-commit.sh` lines 52-56). Nothing in that set analyses Python. `merge-pull-request.sh` and `test-merge-pull-request.sh` are checked by `shellcheck` today; after the port they are gone and their replacements are checked by nothing, while `github-merge.py` and the engine suite were already unchecked. The port therefore removes the only static analysis the wrapper had, and it is worth saying plainly rather than discovering later.
+`linter` offers `markdown`, `yaml`, `toml`, `cspell`, `clippy`, `rustfmt` and `shellcheck`, and the pre-commit hook runs `linter all` among its steps, alongside the dictionary formatter, the dependency checks and `hadolint` (`contrib/dev-tools/git/hooks/pre-commit.sh` lines 52-56). Nothing in that set analyzes Python. `merge-pull-request.sh` and `test-merge-pull-request.sh` are checked by `shellcheck` today; after the port they are gone and their replacements are checked by nothing, while `github-merge.py` and the engine suite were already unchecked. The port therefore removes the only static analysis the wrapper had, and it is worth saying plainly rather than discovering later.
 
 The `linter` binary is built from `torrust/torrust-linting` and cannot gain a subcommand from this repository, so this issue does not close the gap. It requires instead that the gap be stated in the vendoring README's coverage boundary and referred to that repository as a request for a Python subcommand, so the Python files here and their equivalents in sibling repositories are covered in one place. A repository-local check script wired into the pre-commit hook, in the shape `lint-containerfile.sh` already uses for `hadolint`, is the fallback if that request is declined; it is the fallback rather than the proposal because it would add a tool installation to every contributor's pre-commit run for files only maintainers execute, and it would leave every sibling repository to repeat the wiring.
 
@@ -272,19 +272,19 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M3 | Misconfigured repository | Set `githubmerge.repository` to a value with no separator and run `--dry-run`. | Exit `1`, with a message naming the key and the `<owner>/<repo>` shape and naming no expected repository. | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Wrong branch checked out | On a branch other than the resolved target, run `--dry-run`. | Exit `1`, with a message naming the checked-out branch, the target, and `githubmerge.branch`. | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | Terminal guard in a real shell | In an interactive terminal session, run the program without `--dry-run` and with standard input redirected from `/dev/null`. | Exit `1` with the loops-forever message, and no engine process started. | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | Real merge inspection and rejection | With maintainer authorisation, run the program without `--dry-run` against a disposable pull request in a terminal, inspect the constructed merge, and answer the signing prompt with a refusal. | The engine runs exactly as it does under the shell wrapper today, the declaration argument is in effect, and the refusal leaves the repository on its target branch with the temporary branches cleaned up. | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | Declared symbolic link still admitted | With maintainer authorisation, repeat M6 against a pull request whose merged result declares a symbolic link at the configured path. | The accepted link is printed with its path, target and reason before the signing prompt, showing the declaration argument survived the port. | TODO | `manual-verification-evidence.md` section V7 |
+| M6 | Real merge inspection and rejection | With maintainer authorization, run the program without `--dry-run` against a disposable pull request in a terminal, inspect the constructed merge, and answer the signing prompt with a refusal. | The engine runs exactly as it does under the shell wrapper today, the declaration argument is in effect, and the refusal leaves the repository on its target branch with the temporary branches cleaned up. | TODO | `manual-verification-evidence.md` section V6 |
+| M7 | Declared symbolic link still admitted | With maintainer authorization, repeat M6 against a pull request whose merged result declares a symbolic link at the configured path. | The accepted link is printed with its path, target and reason before the signing prompt, showing the declaration argument survived the port. | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
 - Manual verification is mandatory even when automated tests pass. It is a real human-oriented use of the workflow, not a simulated result and not merely running automated tests.
 - Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these scenarios. Record actual prerequisites, actions, commands, program output, and outcomes there.
-- M6 and M7 require explicit maintainer authorisation and are the only scenarios that contact GitHub. Neither is signed or pushed as part of this verification.
+- M6 and M7 require explicit maintainer authorization and are the only scenarios that contact GitHub. Neither is signed or pushed as part of this verification.
 - If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
 
 ### Disposable Verification Scripts
 
-None are proposed. Every behaviour this issue moves is deterministic and belongs in the maintained Python suite, which is where the equivalent bash coverage already lives; the scenarios that cannot be automated need GitHub, credentials, a terminal and maintainer judgment, and the manual scenarios above cover them. Should one become necessary during implementation, record its issue-local path, what it verifies and its removal owner, and note that it is Python rather than Rust because it exercises a Python program's command line directly.
+None are proposed. Every behavior this issue moves is deterministic and belongs in the maintained Python suite, which is where the equivalent bash coverage already lives; the scenarios that cannot be automated need GitHub, credentials, a terminal and maintainer judgment, and the manual scenarios above cover them. Should one become necessary during implementation, record its issue-local path, what it verifies and its removal owner, and note that it is Python rather than Rust because it exercises a Python program's command line directly.
 
 ### Acceptance Verification
 
