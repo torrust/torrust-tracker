@@ -120,6 +120,12 @@ validation, review, and its mapped commit point—before beginning the next item
   `ConnectRequest`, direct client send/receive Act, expected transaction ID, and explicit tracker
   shutdown visible. Do not extract a generic send/receive helper because the connect request and
   response assertion are the contract's relevant behavior.
+- **Prose-first review:** The temporary Arrange prose was “a running ephemeral tracker and a
+  loopback client have a connect request with transaction ID 123.” The final code names tracker
+  startup, client connection, and the transaction ID/request directly. The Act retains the real
+  client send/receive exchange and the Assert independently specifies the response transaction ID.
+  `start_ephemeral_udp_tracker` owns only coherent ordinary lifecycle setup; no generic transport
+  helper hides the contract. The temporary prose is redundant and removed.
 - **Done when:** the next contract cleanup or no-change boundary decision is recorded.
 
 ### R3 - Review residual integration coverage and ownership
@@ -142,7 +148,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] R2 assessment completed and proposed cleanup recorded.
 - [x] Maintainer approved R2 cleanup.
-- [ ] R2 cleanup implemented, reviewed, validated, and committed.
+- [x] R2 cleanup implemented, reviewed, validated, and committed.
 - [ ] R3 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -165,6 +171,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - User/maintainer - Approved the R2 cleanup. Reuse the named ephemeral-tracker
   setup, improve client error messages, and retain the visible connect request, UDP exchange,
   transaction-ID assertion, and explicit shutdown.
+- 2026-09-10 - User/maintainer - Reviewed and approved R2. The shared tracker-start helper keeps
+  both adjacent loopback contracts at one abstraction level; the visible connect request, transport
+  Act, expected transaction ID, and shutdown preserve the test's behavior-specific contract.
 
 ### Validation Evidence
 
@@ -172,7 +181,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration should_return_a_bad_request_response_when_the_client_sends_an_empty_request`, and `git diff --check` passed. Prose-first review retains named tracker setup, causal empty datagram, visible UDP exchange, and independent protocol-error assertion. |
-| R2 | IN_PROGRESS | Maintainer approved the narrow adjacent connect-contract cleanup. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server --test integration receiving_a_connection_request::should_return_a_connect_response`, and `git diff --check` passed. Prose-first review retains named tracker setup, visible connect request/exchange, independent transaction-ID assertion, and explicit shutdown. |
 | R3 | TODO | Awaiting R2 review. |
 
 ## Non-Goals
