@@ -7,7 +7,7 @@ github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-09-09
+last-updated-utc: 2026-09-10 14:38
 semantic-links:
   skill-links:
     - write-unit-test
