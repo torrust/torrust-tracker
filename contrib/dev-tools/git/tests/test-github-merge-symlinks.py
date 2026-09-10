@@ -89,6 +89,31 @@ def declaration_document(*entries, namespace=DECLARED_NAMESPACE, version=DECLARE
 
 REASON = 'Docker reads only .dockerignore, while Podman and Buildah prefer .containerignore.'
 
+# A declaration written as text rather than serialized from Python values. A constant JSON does
+# not define cannot be expressed as a Python value a serializer would spell that way, and what is
+# under test is exactly the bytes a commit carries, so the three slots below drop a raw token into
+# the version triple, into a top-level field, or into an entry, and the same template with no slot
+# filled is the valid declaration those cases are compared against.
+DECLARATION_TEMPLATE = '''\
+{{
+  "namespace": "{namespace}",{top_level}
+  "version": {version},
+  "symlinks": [
+    {{
+      "path": ".dockerignore",
+      "target": ".containerignore",
+      "reason": "{reason}"{entry}
+    }}
+  ]
+}}
+'''
+
+
+def templated_declaration(version='[1, 0, 0]', top_level='', entry=''):
+    """Build a declaration admitting the fixture's link, with the given slots filled."""
+    return DECLARATION_TEMPLATE.format(namespace=DECLARED_NAMESPACE, reason=REASON,
+                                       version=version, top_level=top_level, entry=entry)
+
 
 class MergeFixture:
     """A working repository and the bare upstream that publishes one pull request to it."""
@@ -598,6 +623,119 @@ class DeclarationHeaderTest(SymlinkDeclarationTestCase):
                                  "its 'version' is [true, 0, 0] rather than [1, 0, 0]")
 
 
+class DeclarationConstantTest(SymlinkDeclarationTestCase):
+    """JSON defines no NaN, Infinity or -Infinity, while Python's reader accepts all three.
+
+    Every case below commits the fixture's link together with an entry that would admit it, under
+    a declaration whose only fault is one of those constants, so the constant is the only thing
+    standing between the link and an exemption. The last case is the same template with no
+    constant in it, admitting that same link, which fixes that each refusal above is the constant
+    and not the template. Each refusing case asserts the whole warning line, naming the constant
+    that was found, and the refusal that names the commit carrying the link, because a tool that
+    warned and exempted anyway would satisfy an assertion on the warning alone.
+
+    The three positions are covered because the reader refuses a constant before any rule of this
+    format is applied: in the version triple, where the header check would otherwise have the
+    first word; in a top-level field and inside an entry, where nothing else in the document
+    disagrees at all, so a reader admitting the constant would exempt the link.
+    """
+
+    def declare_with_text(self, text):
+        """Commit a link and, as the given text, a declaration that would admit it."""
+        self.open_pull_request()
+        self.fixture.write('.containerignore', 'target\n')
+        self.fixture.link('.dockerignore', '.containerignore')
+        self.fixture.write(DECLARATION, text)
+        head_commit = self.fixture.commit('Declare a symbolic link under a document under test')
+        self.close_pull_request(head_commit)
+        return head_commit
+
+    def assertConstantRefused(self, result, head_commit, constant):
+        """Assert the declaration exempted nothing and the report named the constant found."""
+        self.assertRefused(result, '.dockerignore', head_commit)
+        self.assertNotIn('Accepted symlink', result.stdout)
+        self.assertIn(f"WARNING: Ignoring the symlink declaration '{DECLARATION}' because it is "
+                      f'not valid JSON (it carries the non-standard constant {constant}). '
+                      'No symbolic link is exempted.', result.stdout)
+
+    def refuse_constant_in_version(self, constant):
+        # Arrange
+        head_commit = self.declare_with_text(templated_declaration(version=f'[1, 0, {constant}]'))
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertConstantRefused(result, head_commit, constant)
+
+    def refuse_constant_in_a_top_level_field(self, constant):
+        # Arrange
+        head_commit = self.declare_with_text(
+            templated_declaration(top_level=f'\n  "comment": {constant},'))
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertConstantRefused(result, head_commit, constant)
+
+    def refuse_constant_inside_an_entry(self, constant):
+        # Arrange
+        head_commit = self.declare_with_text(
+            templated_declaration(entry=f',\n      "note": {constant}'))
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertConstantRefused(result, head_commit, constant)
+
+    def it_should_ignore_a_declaration_whose_version_carries_nan(self):
+        self.refuse_constant_in_version('NaN')
+
+    def it_should_ignore_a_declaration_whose_version_carries_infinity(self):
+        self.refuse_constant_in_version('Infinity')
+
+    def it_should_ignore_a_declaration_whose_version_carries_negative_infinity(self):
+        self.refuse_constant_in_version('-Infinity')
+
+    def it_should_ignore_a_declaration_carrying_nan_in_a_top_level_field(self):
+        self.refuse_constant_in_a_top_level_field('NaN')
+
+    def it_should_ignore_a_declaration_carrying_infinity_in_a_top_level_field(self):
+        self.refuse_constant_in_a_top_level_field('Infinity')
+
+    def it_should_ignore_a_declaration_carrying_negative_infinity_in_a_top_level_field(self):
+        self.refuse_constant_in_a_top_level_field('-Infinity')
+
+    def it_should_ignore_a_declaration_carrying_nan_inside_an_entry(self):
+        self.refuse_constant_inside_an_entry('NaN')
+
+    def it_should_ignore_a_declaration_carrying_infinity_inside_an_entry(self):
+        self.refuse_constant_inside_an_entry('Infinity')
+
+    def it_should_ignore_a_declaration_carrying_negative_infinity_inside_an_entry(self):
+        self.refuse_constant_inside_an_entry('-Infinity')
+
+    def it_should_accept_the_same_declaration_with_no_constant_in_it(self):
+        # The control for the nine cases above: the template they vary is a valid declaration,
+        # and the reader that refuses those constants still reads it and still exempts the link.
+
+        # Arrange
+        self.declare_with_text(
+            templated_declaration(top_level='\n  "comment": "an ordinary extra field",',
+                                  entry=',\n      "note": "an ordinary extra field"'))
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertIn("Accepted symlink: '.dockerignore' -> '.containerignore': " + REASON,
+                      result.stdout)
+        self.assertNotIn('Ignoring the symlink declaration', result.stdout)
+
+
 class CheckedRangeTest(SymlinkDeclarationTestCase):
 
     def it_should_refuse_a_link_only_an_intermediate_commit_carries(self):
@@ -797,7 +935,8 @@ def load_tests(loader, tests, pattern):
     loader.testMethodPrefix = 'it_should'
     suite = unittest.TestSuite()
     for case in (DeclaredLinksTest, DeclarationSourceTest, DeclarationHeaderTest,
-                 CheckedRangeTest, ReportRenderingTest, DeclarationArgumentTest):
+                 DeclarationConstantTest, CheckedRangeTest, ReportRenderingTest,
+                 DeclarationArgumentTest):
         suite.addTests(loader.loadTestsFromTestCase(case))
     return suite
 
