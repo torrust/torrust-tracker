@@ -97,7 +97,7 @@ expanding into a bulk remediation.
 ### PR #2177 Remediation
 
 - [ ] Preserve, commit, or discard pre-existing uncommitted changes before review fixes.
-- [ ] Repair the current failed workflow and record verification against the branch tip.
+- [x] Repair the current failed workflow and record verification against the branch tip.
 - [ ] Process Cameron's maintainer feedback using
   `docs/pr-review-feedback/pr-2177-review-feedback.md` and the review-feedback workflow.
 - [ ] Process Copilot suggestions using
@@ -123,6 +123,7 @@ expanding into a bulk remediation.
 - 2026-09-09 15:10 UTC - GitHub Copilot - Correcting Cameron's PR #2177 review findings: exclude the dev-only checker from nextest archives, parse CLI arguments before Git access, and append validation-evidence corrections - Pending validation
 - 2026-09-09 15:20 UTC - GitHub Copilot - Completed Cameron's requested corrections: all four nextest archive commands exclude `clippy-allow-reasons`; invalid CLI arguments are parsed before Git access; corrected earlier lint-evidence claims - Focused tests, `linter all`, and `docker build --no-cache --target test_debug --file Containerfile .` passed
 - 2026-09-10 09:00 UTC - GitHub Copilot - Started a structured PR #2177 remediation pass; the issue spec tracks merge readiness while separate Cameron and Copilot audit records track individual findings, commits, replies, and thread states - In progress
+- 2026-09-10 09:20 UTC - GitHub Copilot - Fixed Cameron finding M25 / BB1: replaced five `assert_is_empty` assertions in the Rust validator library tests; nightly Clippy and `linter all` pass on the branch tip - Pending focused commit, reply, and thread resolution
 
 ## Acceptance Criteria
 
