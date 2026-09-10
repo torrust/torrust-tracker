@@ -73,6 +73,19 @@ Acceptable reasons to defer or avoid direct unit tests include:
 If a feature is hard to test, treat that as design feedback first and improve testability when
 practical.
 
+### Coverage Attribution Is Unit-First
+
+For package-owned behavior, treat unit-only coverage as the primary measurement and aggregate/global
+coverage as a separate broad-progress measurement. An aggregate report can include unit,
+integration, example, or end-to-end binaries; it cannot prove that a source seam has adequate unit
+protection. Record unit-only and integration-only measurements separately when coverage informs a
+test-boundary decision.
+
+Do not reject a feasible focused unit test because an integration, example, or end-to-end test
+already executes the behavior. Decline a unit test only when it cannot protect the behavior at an
+appropriate boundary, or when a higher-level contract is demonstrably clearer and more maintainable;
+record that rationale in the issue-local evidence.
+
 ### Lifecycle Fixture Design Review
 
 When a test fixture manages a child process, asynchronous I/O, network

@@ -11,7 +11,7 @@ measured-utc: 2026-09-07
 This document records the package-source coverage baseline before Issue #2149 adds or changes
 tests.
 
-## Measurement Method
+## Aggregate/Global Coverage Measurement
 
 ```text
 cargo llvm-cov clean --workspace
@@ -21,10 +21,11 @@ cargo llvm-cov -p torrust-tracker-udp-server --all-features --json
 The raw JSON report was generated at commit `2054d494` and filtered by files below
 `packages/udp-server/src/`. Its 62 MB generated output is deliberately retained only in ignored
 local temporary storage, not committed. The table below sums its file `summary` objects. It
-includes package test and test-support code, so it is navigation evidence rather than a
-production-only coverage measure or proof of behavioral completeness.
+includes all selected package test binaries and test-support code, so it is broad navigation
+evidence rather than a production-only coverage measure, proof of behavioral completeness, or
+evidence that unit coverage is sufficient.
 
-## Test-Level Coverage Policy
+## Unit-First Test-Level Coverage Policy
 
 Aggregate package reports can combine unit and integration test binaries, hiding which boundary
 executed a source seam. Unit tests are the default for package-owned behavior because they are fast,
@@ -32,8 +33,9 @@ deterministic, and close to the responsibility under test. Add or retain a packa
 only when a unit test cannot protect the behavior at an appropriate boundary or the real-loopback
 contract is clearer and more maintainable.
 
-When aggregate coverage informs a selected-seam decision, record separate reports before claiming
-coverage ownership:
+Do not decline a feasible deterministic package unit test because integration, example, root, or
+end-to-end coverage already executes the behavior. When aggregate coverage informs a selected-seam
+decision, record separate reports before claiming coverage ownership:
 
 ```text
 cargo llvm-cov clean --workspace
@@ -46,7 +48,14 @@ Do not compare percentages across those reports as a single total: unit reports 
 and test-support code while integration reports compile only the exercised package production slice.
 Use them to identify the test level that protects each selected behavior.
 
-### Handler-Dispatch Test-Level Evidence
+### Test-Level Reporting Tables
+
+Update aggregate/global and unit-only tables independently. Aggregate/global totals show broad
+package progress; unit-only totals show whether the primary package-local objective is improving.
+Integration-only evidence identifies distinct real-boundary protection and must never substitute for
+a unit-only result.
+
+### Selected-Seam Test-Level Evidence
 
 At commit `9eb74c23`, the separate reports for `packages/udp-server/src/handlers/mod.rs` show:
 
@@ -62,12 +71,23 @@ without socket lifecycle or client/server mechanics. Integration tests remain va
 loopback transport behavior, but are neither needed nor used as evidence for this internal dispatch
 contract.
 
-## Baseline Package Coverage
+## Aggregate/Global Package Coverage
 
 | Measurement                   |                  Lines |                Regions |          Functions |
 | ----------------------------- | ---------------------: | ---------------------: | -----------------: |
 | Baseline before issue changes | 4,814 / 4,965 (96.96%) | 6,326 / 6,604 (95.79%) | 485 / 499 (97.19%) |
 | Latest                        |       Not yet measured |       Not yet measured |   Not yet measured |
+
+## Unit-Only Package Coverage
+
+The #2149 baseline predates the separated measurement policy, so no unit-only baseline exists. Do
+not derive one from the aggregate baseline. Record the final unit-only package measurement here and
+compare future unit-only measurements only with an equivalent unit-only command.
+
+| Measurement | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| Baseline before issue changes | Not measured separately | Not measured separately | Not measured separately |
+| Latest | Pending final measurement | Pending final measurement | Pending final measurement |
 
 ## Current Increment Coverage
 

@@ -144,10 +144,20 @@ For testing or coverage-focused issue specs, also require:
 
 - an issue-local, human-readable coverage-evidence document when coverage is measured;
 - the exact reproducible coverage command and a statement of what paths and code types it includes;
-- aggregate baseline/current values **and** per-file coverage plus prioritized uncovered functions,
-  regions, or behavior gaps; and
+- separate aggregate/global and unit-only baseline/current tables, plus per-file coverage and
+  prioritized uncovered functions, regions, or behavior gaps. Aggregate/global coverage tracks all
+  selected test levels; unit-only coverage tracks the primary package-local objective. Do not infer
+  sufficient unit coverage from aggregate, integration, example, or end-to-end results. Record
+  integration-only results separately when they inform an ownership decision; and
 - a policy to retain concise Markdown evidence rather than raw generated JSON, LCOV, or HTML
   artifacts unless the artifact itself has a documented human-review purpose.
+
+For package-testing work, require a feasible focused unit test to be assessed before accepting
+higher-level coverage as sufficient. Integration, example, root, or end-to-end coverage may retain
+a distinct contract, but must not be used to decline a package-owned unit test that is deterministic
+and readable at the unit boundary. A documented no-unit-test decision must state why the behavior
+cannot be protected appropriately by a unit test or why the higher-level boundary is demonstrably
+clearer and more maintainable.
 
 When the plan adds or changes tests, include a progressive test-development loop: use the
 `write-unit-test` skill; make the smallest behavior-focused increment; and, after it passes focused
