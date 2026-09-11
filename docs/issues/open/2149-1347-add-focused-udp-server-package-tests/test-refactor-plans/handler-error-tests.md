@@ -121,7 +121,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Assess one event-context forwarding contract
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P3
 - **Change:** Decide whether one direct assertion for a selected event context field adds distinct
@@ -129,6 +129,16 @@ validation, review, and its mapped commit point—before beginning the next item
   is sufficient.
 - **Guardrails:** Do not test `ErrorKind` conversion, full `ConnectionContext` construction,
   statistics, banning, or listener behavior.
+- **Decision:** A direct public-URL forwarding contract is justified. `handle_error` receives the
+  configured public URL and constructs the published error event's `ConnectionContext`, while
+  `ConnectionContext` owns storage/access and statistics consumers own later use. The test keeps
+  the public URL visible from Arrange through the handler Act and asserts only the received event
+  context's public URL. It uses `kind: None` to avoid request-kind routing and does not assert error
+  classification, statistics, banning, or listener behavior.
+- **Prose-first review:** The temporary prose specified that a configured public URL appears in the
+  published error event context. The final code visibly carries `public_url` from Arrange to the
+  `Some(public_url.clone())` Act argument and one `context.public_url()` assertion. Temporary prose
+  is redundant and removed.
 - **Done when:** The event-context test boundary is explicit.
 
 ### R4 - Record residual ownership and coverage
@@ -151,7 +161,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R1 implemented and focused validation passed.
 - [x] Maintainer approved R2 design review.
 - [x] R2 recorded, validated, and committed.
-- [ ] R3 event-context assessment completed and decision recorded.
+- [x] R3 event-context assessment completed, reviewed, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -166,6 +176,11 @@ validation, review, and its mapped commit point—before beginning the next item
   published error-event contract into focused tests before adding any behavior.
 - 2026-09-11 - User/maintainer - Reviewed and approved R2. The split tests retain visible sender,
   transaction-ID, request-kind, and error-classification values with one Act and one assertion each.
+- 2026-09-11 - User/maintainer - Approved R3. Add one direct error-event public-URL forwarding
+  contract only, keeping request-kind, error classification, statistics, banning, and listener
+  behavior outside the test.
+- 2026-09-11 - User/maintainer - Reviewed and approved R3. The test makes the supplied public URL
+  visible from Arrange through the handler Act and asserts only the received context's public URL.
 
 ### Validation Evidence
 
@@ -173,7 +188,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
-| R3 | TODO | Awaiting approved cleanup. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests::it_should_publish_an_error_event_with_the_supplied_public_url`, and `git diff --check` passed. The public URL remains visible from Arrange through the handler Act and the test asserts only published event-context forwarding. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
