@@ -1,7 +1,7 @@
 # Verification Evidence — Superseded Outcome Reporting Draft
 
 > **Status**: Do not populate. Structured supervisor outcomes are part of issue
-> [#1586](../../open/1586-evaluate-job-manager-join-set/verification.md).
+> [#1586](../../closed/1586-evaluate-job-manager-join-set/verification.md).
 
 ## Environment
 

@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-08-17
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -238,12 +238,12 @@ creation remains subject to maintainer approval of each draft specification.
 
 | Order | Issue                                                | Local Specification                                                                | Why It May Proceed                                                                                            | Dependencies                                     |
 | ----- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| 1     | #2155 - Document AI agent orchestration              | `docs/issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md`              | Documents current profiles and creates evidence for future enforcement; selects no enforcement tool.          | None                                             |
-| 2     | #2156 - Create Markdown template skill               | `docs/issues/open/2156-2003-create-markdown-template-skill/ISSUE.md`               | Documentation convention and skill only; does not alter shared execution architecture.                        | None                                             |
+| 1     | #2155 - Document AI agent orchestration              | `docs/issues/closed/2155-2003-document-ai-agent-orchestration/ISSUE.md`            | Documents current profiles and creates evidence for future enforcement; selects no enforcement tool.          | None                                             |
+| 2     | #2156 - Create Markdown template skill               | `docs/issues/closed/2156-2003-create-markdown-template-skill/ISSUE.md`             | Documentation convention and skill only; does not alter shared execution architecture.                        | None                                             |
 | 3     | #2157 - Require documented Clippy allows             | `docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`             | Focused policy and validator at an existing validation tier; prospective baseline remains replaceable.        | Existing lint entry points                       |
 | 4     | #2158 - Inventory existing Clippy allows             | `docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md`             | Evidence and incremental remediation; does not redesign the linter runner.                                    | #2157 policy conventions, if merged first        |
 | 5     | #2159 - Adopt folder-style issue specifications      | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md`               | Documentation, templates, and root ADR only; prospective and reversible for new work.                         | None                                             |
-| 6     | #2160 - Persist independent agent review reports     | `docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md`     | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
+| 6     | #2160 - Persist independent agent review reports     | `docs/issues/closed/2160-2003-persist-independent-agent-review-reports/ISSUE.md`   | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
 | 7     | #2185 - Triage advisory external-link check findings | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
 
 ## Delivery Strategy

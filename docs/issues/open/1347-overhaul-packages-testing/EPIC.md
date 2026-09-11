@@ -4,7 +4,7 @@ status: open
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-07 10:33
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -61,14 +61,14 @@ The repository was reorganized through package refactoring and extraction work. 
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                             | Local Spec                                                                      | Status | Notes                                                                                                                |
-| ----- | ------------------------------------------------- | ------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| 1     | #1348 - Add tests to the udp-core package         | Not yet created                                                                 | TODO   | Existing subissue; package-level test work.                                                                          |
-| 2     | #1349 - Add tests to the http-core package        | Not yet created                                                                 | TODO   | Existing subissue; package-level test work.                                                                          |
-| 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
-| 4     | #2140 - Review axum-http-server integration tests | `docs/issues/open/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | TODO   | Inventory, coverage/domain analysis, and test-design review precede approved test additions.                         |
-| 5     | #2149 - Add focused UDP server package tests      | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`      | TODO   | Baseline recorded; spec-only PR precedes focused transport, dispatch, socket, and overload test/refactor increments. |
-| 6     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified           | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
+| ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1     | #1348 - Add tests to the udp-core package         | Not yet created                                                                   | TODO   | Existing subissue; package-level test work.                                                                          |
+| 2     | #1349 - Add tests to the http-core package        | Not yet created                                                                   | TODO   | Existing subissue; package-level test work.                                                                          |
+| 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
+| 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
+| 5     | #2149 - Add focused UDP server package tests      | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | TODO   | Baseline recorded; spec-only PR precedes focused transport, dispatch, socket, and overload test/refactor increments. |
+| 6     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -80,7 +80,7 @@ whether a subissue has adequately covered critical behavior.
 
 | Package                            | Subissue                                                            | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                                    |
 | ---------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `torrust-tracker-axum-http-server` | [#2136](../2136-1347-add-tests-axum-http-server/ISSUE.md)           | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](../2136-1347-add-tests-axum-http-server/coverage-evidence.md)           |
+| `torrust-tracker-axum-http-server` | [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](../../closed/2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
 | `torrust-tracker-udp-server`       | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Not yet measured                                  | Not yet measured                                        | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
 ## Delivery Strategy

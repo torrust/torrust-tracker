@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-6-align-grace-periods/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 # Superseded Draft SI-6 — Use Issue #1586 for Supervisor Ownership
 
 > **Status**: Superseded for implementation planning. Existing issue
-> [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
+> [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
 > draft because it requires direct `JoinSet` ownership rather than wrapping
 > already-spawned handles.
 

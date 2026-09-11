@@ -210,5 +210,5 @@ No implementation evidence identified a missing independently releasable
 shutdown slice. The [EPIC #1488 roadmap][issue-1488] remains unchanged.
 
 [issue-1488]: ../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-[issue-1586]: ../../issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
-[issue-1588]: ../../issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
+[issue-1586]: ../../issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
+[issue-1588]: ../../issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md

@@ -1,7 +1,7 @@
 ---
 doc-type: analysis
 status: draft
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-11
 semantic-links:
   related-artifacts:
     - src/main.rs
@@ -30,7 +30,7 @@ semantic-links:
     - packages/axum-server/src/custom_axum_server.rs
     - docs/features/shutdown-process/README.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
+      - docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md
   related-issues:
     - "https://github.com/torrust/torrust-tracker/issues/1488"
