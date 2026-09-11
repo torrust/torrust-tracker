@@ -270,7 +270,7 @@ RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/reci
 # by pre-faulting the linker phases, avoiding redundant linking work in later stages.
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
-  --exclude clippy-allow-reasons \
+    --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -285,7 +285,7 @@ WORKDIR /build/src
 COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
-  --exclude clippy-allow-reasons \
+    --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -299,7 +299,7 @@ WORKDIR /build/src
 COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
-  --exclude clippy-allow-reasons \
+    --exclude clippy-allow-reasons \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
