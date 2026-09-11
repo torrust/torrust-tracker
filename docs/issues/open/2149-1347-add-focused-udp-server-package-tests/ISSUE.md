@@ -40,6 +40,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/receiver-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-event-dispatch-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/banning-event-handler-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/server-states-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
@@ -158,8 +159,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
 | T10 | DONE        | Review receiver unit-test seam               | Completed the reviewed `server/receiver.rs` plan with a deterministic queued-loopback `Stream::poll_next` contract for payload and sender-address adaptation. Pending/error/termination branches and lifecycle behavior retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
 | T11 | DONE        | Review statistics dispatch seam              | Completed the reviewed `statistics/event/handler/mod.rs` assessment. The dispatcher documents its routing-only responsibility and indirect verification; no production injection abstraction or collaborator-side-effect test is justified. **Commit point:** completed through a documented no-test decision. |
-| T12 | IN_PROGRESS | Review banning event-handler seam            | The proposed `banning/event/handler.rs` plan identifies one direct deterministic connection-cookie event contract: record the context client IP and publish the post-update distinct tracked-IP gauge. It excludes listener lifecycle, threshold policy, and collaborator internals; implementation awaits maintainer approval. **Commit point:** one reviewed test or documentation-only no-change decision. |
-| T13 | TODO        | Review server-state lifecycle seam           | Create and approve a `server/states.rs` file-local assessment plan. Preserve #1488 ownership of cancellation, task joining, and shutdown; add a test only for a deterministic non-lifecycle state/registration contract. **Commit point:** one reviewed test or documentation-only deferral decision. |
+| T12 | DONE        | Review banning event-handler seam            | Completed the reviewed `banning/event/handler.rs` plan with direct deterministic contracts for cookie-error client-IP forwarding and distinct tracked-IP gauge publication. Listener lifecycle, threshold policy, and collaborator internals retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T13 | IN_PROGRESS | Review server-state lifecycle seam           | The proposed `server/states.rs` plan retains the existing deterministic startup-error precedence test, declines representation-only and duplicated registration-cleanup tests, and defers remaining lifecycle paths to #1488 SI-14, SI-15, and SI-17. It awaits maintainer approval. **Commit point:** documentation-only no-change/deferral decision. |
 | T14 | TODO        | Review error-handler routing seam            | Create and approve a `handlers/error.rs` file-local plan. Clean existing tests first, then assess response/error-event routing not already protected by error conversion or individual handler tests. **Commit point:** one reviewed test or documentation-only no-change decision. |
 | T15 | TODO        | Review response-metric handler seam          | Create and approve a `statistics/event/handler/response_sent.rs` file-local plan. Clean existing tests first, then assess one direct result/request-kind metric route without duplicating metric aggregation or response conversion. **Commit point:** one reviewed test or documentation-only no-change decision. |
 | T16 | TODO        | Review processor unit-test seam              | Create and approve a `server/processor.rs` file-local plan. Clean existing tests first; assess direct deterministic processing behavior without expanding socket lifecycle, receiver-loop, or shutdown ownership. **Commit point:** one reviewed test or documentation-only no-change decision. |
@@ -326,6 +327,11 @@ responsibility.
   two-IP scenario prevents a hard-coded or event-count gauge from passing while retaining
   `BanService`, repository, listener, transport, and root-composition responsibilities at their
   existing boundaries. No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Created the proposed `server/states.rs` no-change plan after
+  confirming the existing direct startup-error precedence test and public registration-cleanup test
+  retain the only meaningful current contracts. Representation-only tests have no behavioral value,
+  and remaining task/channel/shutdown paths are owned by #1488 SI-14, SI-15, and SI-17. No test or
+  production change has been made.
 
 ## Acceptance Criteria
 
