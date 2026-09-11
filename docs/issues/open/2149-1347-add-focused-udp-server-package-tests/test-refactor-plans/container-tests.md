@@ -107,7 +107,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover the enabled server event-publication path
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one direct asynchronous unit test for `UdpTrackerServerServices::initialize`.
@@ -116,6 +116,12 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Keep the causal enabled sender, publication Act, and expected event visible. Use
   only an absolute diagnostic timeout. Do not assert optional-sender implementation details, test
   generic disabled behavior, add sockets/tasks, or assert metrics/banning/root policy.
+- **Prose-first review:** The temporary prose specified that newly initialized services publish a
+  server event through their enabled sender to their own event-bus receiver. The final code makes
+  the initialized services, available sender, exact representative event, sender publication Act,
+  and received-event assertion visible. `sample_udp_request_received_event` names only incidental
+  valid event construction; no fixture derives the expected event. The timeout is an absolute
+  diagnostic failure bound. Temporary prose is redundant and removed.
 - **Done when:** Disabling or disconnecting the package-composed publication path has one direct,
   deterministic unit-test failure.
 
@@ -137,8 +143,8 @@ validation, review, and its mapped commit point—before beginning the next item
       boundaries reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -151,6 +157,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R1. Record that `container.rs` has no direct test code
   to clean; do not use indirect aggregate/global or higher-level coverage to avoid the R2 unit-test
   assessment.
+- 2026-09-11 - User/maintainer - Approved R2. Add the direct deterministic services event-bus
+  publication test only, retaining the visible sender, event, publication Act, and received-event
+  assertion.
 
 ### Validation Evidence
 
@@ -158,7 +167,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. The explicit no-cleanup decision preserves the feasible R2 unit-test assessment under the unit-first coverage policy. |
-| R2 | TODO | Awaiting R1 completion and maintainer approval. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server container::tests::should_publish_events_through_the_enabled_server_event_bus`, and `git diff --check` passed. Prose-first review keeps the enabled sender, exact event, publication Act, and received-event assertion visible; the timeout is diagnostic only. |
 | R3 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
