@@ -136,6 +136,23 @@ threshold/reset/ban policy belongs to `udp-core` `BanService`; event reception a
 to the listener and #1488; and multi-listener/REST behavior belongs to root composition. No
 coverage-only test is selected.
 
+### Server States Test-Level Evidence
+
+At commit `408938d1`, clean separately collected reports show the following for
+`packages/udp-server/src/server/states.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 72 / 77 (93.51%) | 91 / 102 (89.22%) | 16 / 20 (80.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 72 / 77 (93.51%) | 91 / 102 (89.22%) | 16 / 20 (80.00%) | Direct tests cover all `await_startup_notification` mappings. Remaining lines are the separate bind/public-start and #1488 lifecycle boundaries. |
+| Integration-only (`--test integration`) | 27 / 37 (72.97%) | 16 / 32 (50.00%) | 7 / 11 (63.64%) | Separately exercises real startup/stop paths through package contracts; it does not substitute for focused unit tests. |
+
+The reports have different denominators and are not combined. Remaining unit-only executable lines
+are the bind-error conversion in `Server::<Stopped>::start`, halt/task error mappings in
+`Server::<Running>::stop`, and the existing test's defensive fallback. Bind failure remains at the
+`BoundSocket` and public-start boundary; `stop` remains #1488 lifecycle work; and the fallback is
+not behavior to force through a test. No coverage-only socket/task fixture is selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
