@@ -137,6 +137,14 @@ The 14 affected package README files are:
 
 C1 and C9 are the first remediation boundary: the exact GitHub pull-request review-comment URL pattern is responsible for 424 of 461 reported errors. The online-only configuration excludes exactly that pattern. A two-link local boundary test excluded a matching pull-request review-comment anchor while retaining a non-matching GitHub issue-comment anchor as a visible error. A hosted workflow rerun must still retain unrelated `404`, `403`, local-example, and third-party diagnostics.
 
+## Hosted Verification
+
+[External Link Check run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) ran the merged configuration on revision `427b0c93b01f1264f7ef824097ac5669d899486c`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded; the retained `lychee-external-link-report` artifact is 1,743 bytes and expires on 2026-09-25.
+
+The report recorded 1,816 total checks, 1,288 successful checks, 26 redirects, 476 excluded links, 52 errors, and no timeouts. No URL matching the exact `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` pattern remained in the report. The excluded count is greater than the 424 baseline occurrences because the merged `develop` revision contained additional matching review-comment links.
+
+The report still contained visible `404`, `403`, local loopback, GitHub issue-comment and pull-request-review fragments, third-party missing-fragment, and rate-limited diagnostics. This proves the C1/C9 rule suppresses the intended dynamic review-comment-anchor pattern without hiding unrelated categories. The remaining 52 errors are the next triage input; their exact count is not directly comparable to the 461-error baseline because the checked document set changed between revisions.
+
 ## Deferred Work
 
 C3-C9 are intentionally deferred until C1 is independently reviewed and its exclusion boundary is validated. This prevents the first configuration change from mixing clearly uncheckable dynamic anchors with potentially stale or transient external URLs.
