@@ -51,4 +51,4 @@ Status legend:
 ## Notes
 
 - Both threads are outdated after the baseline-document correction; direct inspection found no `||` table rows in either file.
-- A visible reply will be posted before resolving each thread.
+- A visible reply was posted before resolving each thread.
