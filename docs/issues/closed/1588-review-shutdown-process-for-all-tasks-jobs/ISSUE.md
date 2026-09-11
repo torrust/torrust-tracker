@@ -16,7 +16,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-      - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
+    - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - src/bootstrap/jobs/manager.rs
     - src/bootstrap/jobs/torrent_cleanup.rs
