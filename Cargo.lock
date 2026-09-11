@@ -4805,7 +4805,7 @@ version = "3.0.0-develop"
 dependencies = [
  "anyhow",
  "axum-server",
- "base64 0.22.1",
+ "base64 0.23.1",
  "chrono",
  "clap",
  "nix",
