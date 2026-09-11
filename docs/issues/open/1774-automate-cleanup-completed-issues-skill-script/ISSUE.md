@@ -4,10 +4,10 @@ issue-type: enhancement
 status: planned
 priority: p2
 github-issue: 1774
-spec-path: docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md
+spec-path: docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
 branch: "1774-automate-cleanup-completed-issues-skill-script"
 related-pr: null
-last-updated-utc: 2026-05-13 12:40
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +16,6 @@ semantic-links:
     - docs/issues/open/README.md
     - docs/issues/closed/README.md
 ---
-
 
 # Issue #1774 - Automate cleanup of completed issue specs with a non-interactive script
 
@@ -84,6 +83,7 @@ Status values: TODO, IN_PROGRESS, BLOCKED, DONE.
 
 - 2026-05-13 12:20 UTC - Copilot - Created GitHub issue #1774 for cleanup automation.
 - 2026-05-13 12:40 UTC - Copilot - Added open issue spec file for #1774 in docs/issues/open.
+- 2026-09-11 - Maintainer / GitHub Copilot - Moved this inactive open specification to folder-style layout under the bounded migration exception approved for issue #2159; preserved its lifecycle state and repaired live references.
 
 ## Acceptance Criteria
 

@@ -4,10 +4,10 @@ issue-type: task
 status: open
 priority: p2
 github-issue: 1843
-spec-path: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md
+spec-path: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md
 branch: "1843-migrate-git-hooks-scripts-from-bash-to-rust"
 related-pr: null
-last-updated-utc: 2026-05-27 00:00
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -19,11 +19,10 @@ semantic-links:
     - .githooks/pre-push
     - .github/workflows/copilot-setup-steps.yml
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
-    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md
+    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
     - .github/skills/dev/git-workflow/create-feature-branch/SKILL.md
     - .github/agents/committer.agent.md
 ---
-
 
 # Issue #1843 — Migrate git hooks scripts from Bash to Rust
 
@@ -212,15 +211,15 @@ Bash scripts are removed. **Phase 2** adds new capabilities on top of the alread
 
 ### Phase 2 — Enhancements (new features not present in the original Bash scripts)
 
-| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                    |
-| --- | ------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T17 | TODO   | Implement heartbeat emitter                                  | Background ticker fires every 20–30s while a step is running; emits `heartbeat` NDJSON event (step name, elapsed seconds); extends T3 schema                                                                                                                                                                                                                               |
-| T18 | TODO   | Implement staged file type analysis and smart step selection | `git diff --cached --name-only`; classify changeset (Markdown-only / docs-only / mixed); skip inapplicable steps; emit `step_skip` NDJSON events for skipped steps; extends T3 schema                                                                                                                                                                                      |
-| T19 | TODO   | Implement pre-commit idempotency cache                       | Compute staged tree SHA (`git write-tree`) + step-config hash; check/write `.git/torrust-hooks/pre-commit-cache`; exit 0 immediately on cache hit                                                                                                                                                                                                                          |
-| T20 | TODO   | Implement pre-push idempotency cache                         | Check/write per-commit-SHA records in `.git/torrust-hooks/pre-push-cache`; exit 0 immediately when all pushed commits have passing records                                                                                                                                                                                                                                 |
-| T21 | TODO   | Add Phase 2 unit and integration tests                       | Cover: heartbeat timing and event shape, staged file classification, smart step selection, cache read/write/invalidation, cache-and-smart-skip interaction                                                                                                                                                                                                                 |
-| T22 | TODO   | Implement branch-name validation                             | When the branch uses an issue-number prefix (e.g. `42-some-description`), verify that `docs/issues/open/` contains a matching spec file or directory. If none found, block the commit with exit code 1. Prevents committing under a wrong, closed, or non-existent issue number. See `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md` for context |
-| T23 | TODO   | Verify Phase 2 quality gates                                 | `linter all`, full test suite; all Phase 2 ACs met                                                                                                                                                                                                                                                                                                                         |
+| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                          |
+| --- | ------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T17 | TODO   | Implement heartbeat emitter                                  | Background ticker fires every 20–30s while a step is running; emits `heartbeat` NDJSON event (step name, elapsed seconds); extends T3 schema                                                                                                                                                                                                                                     |
+| T18 | TODO   | Implement staged file type analysis and smart step selection | `git diff --cached --name-only`; classify changeset (Markdown-only / docs-only / mixed); skip inapplicable steps; emit `step_skip` NDJSON events for skipped steps; extends T3 schema                                                                                                                                                                                            |
+| T19 | TODO   | Implement pre-commit idempotency cache                       | Compute staged tree SHA (`git write-tree`) + step-config hash; check/write `.git/torrust-hooks/pre-commit-cache`; exit 0 immediately on cache hit                                                                                                                                                                                                                                |
+| T20 | TODO   | Implement pre-push idempotency cache                         | Check/write per-commit-SHA records in `.git/torrust-hooks/pre-push-cache`; exit 0 immediately when all pushed commits have passing records                                                                                                                                                                                                                                       |
+| T21 | TODO   | Add Phase 2 unit and integration tests                       | Cover: heartbeat timing and event shape, staged file classification, smart step selection, cache read/write/invalidation, cache-and-smart-skip interaction                                                                                                                                                                                                                       |
+| T22 | TODO   | Implement branch-name validation                             | When the branch uses an issue-number prefix (e.g. `42-some-description`), verify that `docs/issues/open/` contains a matching spec file or directory. If none found, block the commit with exit code 1. Prevents committing under a wrong, closed, or non-existent issue number. See `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md` for context |
+| T23 | TODO   | Verify Phase 2 quality gates                                 | `linter all`, full test suite; all Phase 2 ACs met                                                                                                                                                                                                                                                                                                                               |
 
 ## Progress Tracking
 
@@ -246,6 +245,7 @@ Bash scripts are removed. **Phase 2** adds new capabilities on top of the alread
 - 2026-05-27 00:00 UTC - Agent - Incorporated two further ideas: smart step skipping for Markdown-only staged changesets; idempotent hook execution via local SHA-keyed cache
 - 2026-05-27 00:00 UTC - Agent - Aligned spec with global CLI output contract ADR: NDJSON on stderr in all modes; removed TTY/human-text assumption; fixed AC9, T8, M1–M3 exit codes; added ADR §8 lint guard and §9 agent capture risks
 - 2026-05-27 00:00 UTC - Agent - Restructured implementation plan into Phase 1 (core migration, switch over, remove old scripts) and Phase 2 (enhancements); heartbeat moved to Phase 2 (T17); T3 now designs full schema upfront; Phase 1 tests scoped to Phase 1 features; Phase 2 adds T21 tests and T22 verify
+- 2026-09-11 - Maintainer / GitHub Copilot - Moved this inactive open specification to folder-style layout under the bounded migration exception approved for issue #2159; preserved its lifecycle state and repaired live references.
 
 ## Acceptance Criteria
 
@@ -396,12 +396,12 @@ Notes:
 ## References
 
 - Affected scripts:
-  - [`contrib/dev-tools/git/hooks/pre-commit.sh`](../../../contrib/dev-tools/git/hooks/pre-commit.sh)
-  - [`contrib/dev-tools/git/hooks/pre-push.sh`](../../../contrib/dev-tools/git/hooks/pre-push.sh)
-  - [`contrib/dev-tools/git/install-git-hooks.sh`](../../../contrib/dev-tools/git/install-git-hooks.sh)
-- Dispatcher scripts: [`.githooks/pre-commit`](../../../.githooks/pre-commit), [`.githooks/pre-push`](../../../.githooks/pre-push)
-- CI: [`.github/workflows/copilot-setup-steps.yml`](../../../.github/workflows/copilot-setup-steps.yml)
+  - [`contrib/dev-tools/git/hooks/pre-commit.sh`](../../../../contrib/dev-tools/git/hooks/pre-commit.sh)
+  - [`contrib/dev-tools/git/hooks/pre-push.sh`](../../../../contrib/dev-tools/git/hooks/pre-push.sh)
+  - [`contrib/dev-tools/git/install-git-hooks.sh`](../../../../contrib/dev-tools/git/install-git-hooks.sh)
+- Dispatcher scripts: [`.githooks/pre-commit`](../../../../.githooks/pre-commit), [`.githooks/pre-push`](../../../../.githooks/pre-push)
+- CI: [`.github/workflows/copilot-setup-steps.yml`](../../../../.github/workflows/copilot-setup-steps.yml)
 - Engineering policy: `AGENTS.md` § Engineering Policies, rule #3
 - Related closed issue: `docs/issues/closed/1780-refactor-pre-push-checks-performance-and-verbosity.md`
 - Related closed issue: `docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md`
-- Global CLI output contract ADR: [`docs/adrs/20260519000000_define_global_cli_output_contract.md`](../../../docs/adrs/20260519000000_define_global_cli_output_contract.md)
+- Global CLI output contract ADR: [`docs/adrs/20260519000000_define_global_cli_output_contract.md`](../../../adrs/20260519000000_define_global_cli_output_contract.md)

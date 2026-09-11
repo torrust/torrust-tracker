@@ -17,7 +17,7 @@
 # When the branch uses an issue-number prefix (e.g. "42-some-description"), verify that
 # docs/issues/open/ contains a matching spec file or directory starting with that number.
 # This prevents committing under a wrong, closed, or non-existent issue number.
-# See also: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md
+# See also: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md
 
 set -uo pipefail
 

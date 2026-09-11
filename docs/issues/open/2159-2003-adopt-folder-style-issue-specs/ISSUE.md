@@ -54,9 +54,9 @@ spec is touched. This creates avoidable churn and ambiguous expectations.
 - Update templates and indexes so issue-local artifacts are expected to live beside `ISSUE.md` or
   `EPIC.md`.
 - Migrate these inactive open single-file issue specifications to folder-style layout:
-  - `docs/issues/open/1768-refactor-update-dependencies-skill-automation.md`
-  - `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md`
-  - `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md`
+  - `docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md`
+  - `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md`
+  - `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md`
 
 ### Out of Scope
 
@@ -106,6 +106,7 @@ requires a separately recorded reason and maintainer approval.
 - 2026-09-07 11:05 UTC - josecelano - Approved this subissue specification - Chat approval
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2159, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2159
 - 2026-09-11 - Maintainer - Approved a bounded exception for the three named open single-file specifications because they remain open and are known to have no active contributor work. Their migration is aligned with the prospective folder-only convention; all other existing single-file specifications remain outside this issue's migration scope.
+- 2026-09-11 - GitHub Copilot - Migrated the three approved inactive open specifications (#1768, #1774, and #1843) into same-named folders containing `ISSUE.md`, preserved their lifecycle state, and repaired current references. The broader folder-only policy, ADR, and workflow/template alignment remain planned work.
 
 ## Acceptance Criteria
 

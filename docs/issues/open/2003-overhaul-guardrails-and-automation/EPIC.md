@@ -22,9 +22,9 @@ semantic-links:
     - project-words.txt
     - AGENTS.md
     - docs/templates/EPIC.md
-    - docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md
-    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md
-    - docs/issues/open/1768-refactor-update-dependencies-skill-automation.md
+    - docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md
+    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
+    - docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
 ---
@@ -205,11 +205,11 @@ is superseded.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                 | Local Spec                                                                | Status  | Relationship                                                                                                            |
-| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1     | #1843 - Migrate git hooks scripts from Bash to Rust   | `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md`    | BLOCKED | Pause implementation; runner shape, contracts, check ownership, and migration depend on the design decision             |
-| 2     | #1774 - Automate cleanup of completed issue specs     | `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md` | BLOCKED | Pause implementation; action placement, dry-run/apply, GitHub access, and output contract depend on the design decision |
-| 3     | #1768 - Refactor update-dependencies skill automation | `docs/issues/open/1768-refactor-update-dependencies-skill-automation.md`  | BLOCKED | Pause implementation; action decomposition, shared infrastructure, and validation policy depend on the design decision  |
+| Order | Issue                                                 | Local Spec                                                                      | Status  | Relationship                                                                                                            |
+| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1     | #1843 - Migrate git hooks scripts from Bash to Rust   | `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md`    | BLOCKED | Pause implementation; runner shape, contracts, check ownership, and migration depend on the design decision             |
+| 2     | #1774 - Automate cleanup of completed issue specs     | `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md` | BLOCKED | Pause implementation; action placement, dry-run/apply, GitHub access, and output contract depend on the design decision |
+| 3     | #1768 - Refactor update-dependencies skill automation | `docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md`  | BLOCKED | Pause implementation; action decomposition, shared infrastructure, and validation policy depend on the design decision  |
 
 ## Proposed Research and Design Subissues
 

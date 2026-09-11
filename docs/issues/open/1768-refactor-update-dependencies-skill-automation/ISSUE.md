@@ -4,10 +4,10 @@ issue-type: enhancement
 status: planned
 priority: p1
 github-issue: 1768
-spec-path: docs/issues/open/1768-refactor-update-dependencies-skill-automation.md
+spec-path: docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md
 branch: "1768-refactor-update-dependencies-skill-automation"
 related-pr: null
-last-updated-utc: 2026-05-13 09:28
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ Automate the update-dependencies workflow so branch creation, update execution, 
 
 ## Background
 
-The current update workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md) is clear but mostly manual.
+The current update workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md) is clear but mostly manual.
 
 Current pain points:
 
@@ -33,7 +33,7 @@ Current pain points:
 - Update logs and commit body generation are manual.
 - Repeated command runs can drift from the prescribed sequence.
 
-This issue focuses only on dependency-skill automation. Pre-commit performance/verbosity is tracked separately in [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md).
+This issue focuses only on dependency-skill automation. Pre-commit performance/verbosity is tracked separately in [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md).
 
 Automation policy constraint:
 
@@ -59,7 +59,7 @@ Automation policy constraint:
 
 ## Deep Analysis Summary
 
-Current workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md):
+Current workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md):
 
 - Branch creation is documented but not enforced.
 - `cargo update` output capture to `/tmp/cargo-update.txt` is documented, but downstream consumption is manual.
@@ -146,6 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-13 07:24 UTC - Copilot - Added script placement policy (skill-local vs reusable `contrib/dev-tools`).
 - 2026-05-13 07:33 UTC - Copilot - Split combined proposal into two drafts; this spec now focuses only on dependency skill automation.
 - 2026-05-13 09:26 UTC - Copilot - Opened GitHub issue #1768 and moved this spec to `docs/issues/open/`.
+- 2026-09-11 - Maintainer / GitHub Copilot - Moved this inactive open specification to folder-style layout under the bounded migration exception approved for issue #2159; preserved its lifecycle state and repaired live references.
 
 ## Acceptance Criteria
 
@@ -177,7 +178,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## References
 
 - Agent Skills script usage: https://agentskills.io/skill-creation/using-scripts
-- Dependency update skill: [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md)
-- Related dependency skill: [.github/skills/dev/maintenance/add-rust-dependency/SKILL.md](../../../.github/skills/dev/maintenance/add-rust-dependency/SKILL.md)
+- Dependency update skill: [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md)
+- Related dependency skill: [.github/skills/dev/maintenance/add-rust-dependency/SKILL.md](../../../../.github/skills/dev/maintenance/add-rust-dependency/SKILL.md)
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1768
-- Related split issue spec: [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md)
+- Related split issue spec: [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md](../../closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md)
