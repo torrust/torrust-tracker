@@ -19,7 +19,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Contract tests](contract-tests.md) — complete.
 - [Error-metric handler tests](error-metric-tests.md) — complete.
 - [Container tests](container-tests.md) — complete.
-- [Receiver tests](receiver-tests.md) — proposed; awaiting maintainer approval.
+- [Receiver tests](receiver-tests.md) — complete.
+- [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
