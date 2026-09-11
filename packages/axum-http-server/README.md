@@ -4,7 +4,7 @@ The Torrust Bittorrent HTTP tracker.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-axum-http-server).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/).
 
 ## Testing and Coverage
 

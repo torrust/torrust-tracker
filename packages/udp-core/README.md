@@ -8,7 +8,7 @@ You usually don’t need to use this library directly. Instead, you should use t
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-udp-core).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/).
 
 [UDP ban-service benchmarking](docs/benchmarking/banning.md).
 
