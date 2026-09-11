@@ -62,6 +62,34 @@ fn it_should_not_write_output_when_validation_succeeds() {
 }
 
 #[test]
+fn it_should_use_a_local_develop_branch_when_no_expected_remote_exists() {
+    let workspace = FixtureRepository::new();
+    workspace.establish_documented_baseline();
+    workspace.add_documented_allow();
+
+    let output = run_validator(workspace.path(), &[]);
+
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"");
+    assert_eq!(output.stderr, b"");
+}
+
+#[test]
+fn it_should_validate_staged_content_without_failing_for_unstaged_edits() {
+    let workspace = FixtureRepository::new();
+    workspace.establish_documented_baseline();
+    workspace.add_documented_allow();
+    git(workspace.path(), ["add", "src/lib.rs"]);
+    workspace.add_undocumented_allow();
+
+    let output = run_validator(workspace.path(), &["--staged"]);
+
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"");
+    assert_eq!(output.stderr, b"");
+}
+
+#[test]
 fn it_should_accept_supported_documented_attribute_shapes() {
     let workspace = FixtureRepository::new();
     workspace.establish_empty_baseline();

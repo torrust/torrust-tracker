@@ -67,16 +67,18 @@ impl CliError {
 }
 
 fn run() -> Result<(), CliError> {
-    let base_ref = base_ref().map_err(CliError::Usage)?;
+    let arguments = arguments().map_err(CliError::Usage)?;
     let workspace_root = workspace_root().map_err(CliError::Runtime)?;
+    let base_ref = match arguments.base_ref {
+        Some(base_ref) => base_ref,
+        None => default_base_ref(&workspace_root).map_err(CliError::Runtime)?,
+    };
     let base_commit = git_output(&workspace_root, ["merge-base", "HEAD", &base_ref]).map_err(CliError::Runtime)?;
-    let changed_lines = changed_rust_lines(&workspace_root, &base_commit).map_err(CliError::Runtime)?;
+    let changed_lines = changed_rust_lines(&workspace_root, &base_commit, arguments.staged).map_err(CliError::Runtime)?;
     let mut violations = Vec::new();
 
     for (file, lines) in changed_lines {
-        let source_path = workspace_root.join(&file);
-        let source = fs::read_to_string(&source_path)
-            .map_err(|error| CliError::Runtime(format!("{}: failed to read source: {error}", source_path.display())))?;
+        let source = source_for_validation(&workspace_root, &file, arguments.staged).map_err(CliError::Runtime)?;
         let file_violations = validate_changed_allows(&source, &lines)
             .map_err(|error| CliError::Runtime(format!("{}: failed to parse Rust source: {error}", file.display())))?;
 
@@ -106,47 +108,83 @@ fn workspace_root() -> Result<PathBuf, String> {
     Ok(PathBuf::from(root))
 }
 
-fn base_ref() -> Result<String, String> {
-    let mut arguments = env::args().skip(1);
-    let Some(argument) = arguments.next() else {
-        return Ok(String::from("torrust/develop"));
-    };
-
-    if argument != "--base-ref" {
-        return Err(format!(
-            "usage error: unexpected argument `{argument}`; use `--base-ref <REF>`"
-        ));
-    }
-
-    let Some(reference) = arguments.next() else {
-        return Err(String::from("usage error: `--base-ref` requires a Git reference"));
-    };
-
-    if arguments.next().is_some() {
-        return Err(String::from("usage error: expected only `--base-ref <REF>`"));
-    }
-
-    Ok(reference)
+struct Arguments {
+    base_ref: Option<String>,
+    staged: bool,
 }
 
-fn changed_rust_lines(workspace_root: &PathBuf, base_commit: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usize>>, String> {
+fn arguments() -> Result<Arguments, String> {
+    let mut arguments = env::args().skip(1);
+    let mut base_ref = None;
+    let mut staged = false;
+
+    while let Some(argument) = arguments.next() {
+        match argument.as_str() {
+            "--base-ref" if base_ref.is_none() => {
+                let Some(reference) = arguments.next() else {
+                    return Err(String::from("usage error: `--base-ref` requires a Git reference"));
+                };
+                base_ref = Some(reference);
+            }
+            "--staged" if !staged => staged = true,
+            "--base-ref" | "--staged" => return Err(format!("usage error: duplicate argument `{argument}`")),
+            _ => {
+                return Err(format!(
+                    "usage error: unexpected argument `{argument}`; use `--base-ref <REF>` and `--staged`"
+                ));
+            }
+        }
+    }
+
+    Ok(Arguments { base_ref, staged })
+}
+
+fn default_base_ref(workspace_root: &PathBuf) -> Result<String, String> {
+    const CANDIDATES: [&str; 4] = ["origin/develop", "upstream/develop", "torrust/develop", "develop"];
+
+    for candidate in CANDIDATES {
+        if git_ref_exists(workspace_root, candidate)? {
+            return Ok(String::from(candidate));
+        }
+    }
+
+    Err(format!("could not resolve a base reference; tried {}", CANDIDATES.join(", ")))
+}
+
+fn git_ref_exists(workspace_root: &PathBuf, reference: &str) -> Result<bool, String> {
     let output = Command::new("git")
-        .args([
-            "-c",
-            "diff.noprefix=false",
-            "-c",
-            "diff.mnemonicPrefix=false",
-            "-c",
-            "core.quotePath=false",
-            "--no-pager",
-            "diff",
-            "--no-ext-diff",
-            "--no-color",
-            "--unified=0",
-            base_commit,
-            "--",
-            "*.rs",
-        ])
+        .args(["rev-parse", "--verify", "--quiet", reference])
+        .current_dir(workspace_root)
+        .output()
+        .map_err(|error| format!("failed to run Git: {error}"))?;
+
+    Ok(output.status.success())
+}
+
+fn changed_rust_lines(
+    workspace_root: &PathBuf,
+    base_commit: &str,
+    staged: bool,
+) -> Result<BTreeMap<PathBuf, BTreeSet<usize>>, String> {
+    let mut command = Command::new("git");
+    command.args([
+        "-c",
+        "diff.noprefix=false",
+        "-c",
+        "diff.mnemonicPrefix=false",
+        "-c",
+        "core.quotePath=false",
+        "--no-pager",
+        "diff",
+        "--no-ext-diff",
+        "--no-color",
+        "--unified=0",
+    ]);
+    if staged {
+        command.arg("--cached");
+    }
+    let output = command
+        .args([base_commit, "--", "*.rs"])
         .current_dir(workspace_root)
         .output()
         .map_err(|error| format!("failed to run Git diff: {error}"))?;
@@ -160,6 +198,15 @@ fn changed_rust_lines(workspace_root: &PathBuf, base_commit: &str) -> Result<BTr
 
     let diff = String::from_utf8(output.stdout).map_err(|error| format!("Git diff output was not valid UTF-8: {error}"))?;
     parse_changed_rust_lines(&diff)
+}
+
+fn source_for_validation(workspace_root: &PathBuf, file: &PathBuf, staged: bool) -> Result<String, String> {
+    if staged {
+        return git_output(workspace_root, ["show", &format!(":{}", file.display())]);
+    }
+
+    let source_path = workspace_root.join(file);
+    fs::read_to_string(&source_path).map_err(|error| format!("{}: failed to read source: {error}", source_path.display()))
 }
 
 fn parse_changed_rust_lines(diff: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usize>>, String> {
