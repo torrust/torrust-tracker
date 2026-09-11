@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/banning/event/handler.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/banning/event/handler.rs
@@ -169,8 +169,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
 - [x] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -189,15 +189,19 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
   integration-only coverage separately; record residual non-cookie, repository failure,
   `BanService`, listener/#1488, and root-composition ownership without coverage-only tests.
+- 2026-09-11 - User/maintainer - Reviewed and approved the completed banning event-handler plan.
+  The direct tests protect client-IP forwarding and distinct-IP gauge publication as separate
+  contracts, while R4 retains non-selected behavior at its proper ownership boundaries.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | The reviewed source has no colocated test code or concrete cleanup opportunity. Listener, `BanService`, repository, integration, and root tests retain their current ownership boundaries. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server banning::event::handler::tests`, and `git diff --check` passed. The initial multi-assertion test was split into two focused contracts. Prose-first and smell review keep client IPs and expected gauge total visible across Arrange, Act, and Assert while the focused test context hides only ordinary collaborator mechanics. |
 | R4 | DONE | Separate clean reports passed: aggregate/global and unit-only are 81/82 lines (98.78%), 108/110 regions (98.18%), and 12/12 functions (100%); integration-only is 28/29 lines (96.55%), 31/33 regions (93.94%), and 4/4 functions (100%). Non-cookie, repository failure, `BanService`, listener/#1488, and root-composition paths have explicit owners. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
