@@ -31,7 +31,7 @@ implementation this crate builds upon.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/bittorrent-udp-protocol).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 
