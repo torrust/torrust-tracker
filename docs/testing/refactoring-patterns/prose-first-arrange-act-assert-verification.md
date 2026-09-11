@@ -37,6 +37,25 @@ Use temporary normal prose as the test specification, then make the code replace
 The prose constrains refactoring: simplify implementation mechanics, but do not weaken the stated
 behavior merely to make the test shorter.
 
+## Review Test-Code Smells Before Finishing
+
+Before maintainer review, use the prose-first comparison to inspect these design smells. They prompt
+a design decision rather than a mechanical rewrite rule: preserve the clearest behavioral contract
+when a shorter alternative would hide intent or make failures less diagnostic.
+
+| Smell | Question | Response |
+| --- | --- | --- |
+| Complex Arrange | Can the causal initial state be stated without reconstructing plumbing? | Prefer an inline value, readable builder, or scenario fixture named for the resulting state. Let it own coordinated incidental mechanics only. |
+| Multiple assertions | Are several assertions one complete observable result, or multiple behaviors? | Prefer one semantic assertion for a complete result; split unrelated behaviors into focused tests with one reason to fail each. |
+| Hidden fixture coupling | Would an unrelated fixture change fail the test? | Derive incidental expected details from the same fixture used by the Act, while keeping causal expectations visible. |
+| Hidden Act | Does the final test visibly invoke the production behavior? | Keep the Act in the test body. |
+| Production-derived expected value | Does the expected output call code under test? | Construct it independently; a helper may compare it mechanically but must not calculate it through production behavior. |
+
+For example, a receiver test can name the coordinated state `ReceiverWithQueuedLoopbackDatagram`
+and use one semantic assertion for the resulting raw request. The test must still visibly provide
+the causal datagram, await the receiver's next item, and compare an independently established
+payload and sender address.
+
 ## Why This Works
 
 - **Readable and expressive:** reviewers can first agree on behavior in plain language, then see

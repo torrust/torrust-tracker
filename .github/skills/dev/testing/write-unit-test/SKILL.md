@@ -172,6 +172,22 @@ the incidental expectation from the fixture. If yes, keep the relevant fixture v
 assertion visibly connected in the test prose; use a scenario or builder if several coordinated
 values establish that causal state.
 
+### Review Test-Code Smells Before Finishing
+
+Before requesting maintainer review for a test-producing increment, inspect the final test against
+these smells. A smell is a prompt to improve the design, not an automatic rule: keep the clearest
+test when an alternative would weaken its behavioral contract or diagnostic value.
+
+| Smell                          | Review question                                                                   | Preferred response                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complex Arrange                | Can a reader name the causal initial state without reconstructing setup plumbing? | Use inline values, a readable builder, or a narrowly named scenario fixture. Keep causal input visible and move only coordinated incidental mechanics.     |
+| Multiple assertions            | Do the assertions specify one complete observable result or unrelated behaviors?  | Use one higher-level semantic assertion when it preserves the full result and diagnostic clarity; otherwise split the test so each has one reason to fail. |
+| Hidden fixture coupling        | Would an unrelated fixture change fail this test?                                 | Derive incidental expectations from the exact fixture used by the Act; keep independently specified causal values visible.                                 |
+| Hidden production Act          | Can the reader identify the production behavior under test directly?              | Keep the production invocation visible; do not move it into setup or assertion helpers.                                                                    |
+| Production-derived expectation | Is the expected result calculated by code that the test is meant to verify?       | Construct the expected result independently; move only mechanical comparisons into a semantic assertion helper.                                            |
+
+Record material refactoring decisions from this review in the file-local plan or task evidence.
+
 ### Verify Intent with Prose-First AAA
 
 Before considering any new or materially refactored test ready for maintainer review, make its
