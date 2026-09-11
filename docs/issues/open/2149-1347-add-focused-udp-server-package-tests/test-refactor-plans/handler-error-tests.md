@@ -87,7 +87,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Split response and event-publication contracts
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** Phase 1, P1
 - **Change:** Replace the combined test with two focused tests. One uses no sender and asserts only
@@ -96,17 +96,26 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Each test has one Act and one assertion. Keep the sender condition explicit. Do
   not assert a response in the event test or an event in the response test. Do not create generic
   broadcaster, request, or error fixtures.
+- **Result:** The response contract uses no sender and retains only the supplied transaction-ID
+  assertion. The publication contract uses an enabled broadcaster and retains only the published
+  event assertion. The existing no-sender zero-ID fallback test remains separate.
 - **Done when:** Response routing and event publication have one failure reason each.
 
 ### R2 - Review the split test designs
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Perform the mandatory prose-first and test-code-smell review after R1. Verify that
   sender state, transaction ID, request kind, error classification, and every selected event-context
   field are visible from Arrange into Act/Assert.
 - **Guardrails:** Hide only ordinary service-binding, UUID, and broadcaster mechanics. Do not hide
   a value that selects response routing or published-event meaning.
+- **Prose-first review:** The temporary prose specified one response-routing contract and one event
+  publication contract. The response test visibly retains its disabled sender and supplied
+  transaction ID. The event test visibly retains its enabled sender, `Connect` request kind, and
+  internal error. Each directly calls `handle_error` and has one assertion for its selected
+  behavior. Temporary prose is redundant and removed. Event-context forwarding remains an explicit
+  R3 assessment rather than an accidental wildcard assertion.
 - **Done when:** Both tests communicate one behavior and one reason to fail without hidden data
   coupling.
 
@@ -138,10 +147,10 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Handler responsibility, current local tests, error conversion, dispatcher routing, event
       consumers, and unit-only coverage reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented and focused validation passed.
-- [ ] Maintainer approved R2 design review.
-- [ ] R2 recorded, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented and focused validation passed.
+- [x] Maintainer approved R2 design review.
+- [x] R2 recorded, validated, and committed.
 - [ ] R3 event-context assessment completed and decision recorded.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -153,14 +162,17 @@ validation, review, and its mapped commit point—before beginning the next item
   `handlers/error.rs`, its local tests, dispatcher/error-conversion boundaries, event consumers, and
   unit-only line coverage. The existing combined response-and-event test has two independent failure
   reasons; no test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Split the combined response transaction-ID and
+  published error-event contract into focused tests before adding any behavior.
+- 2026-09-11 - User/maintainer - Reviewed and approved R2. The split tests retain visible sender,
+  transaction-ID, request-kind, and error-classification values with one Act and one assertion each.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
-| R2 | TODO | Awaiting R1 review. |
+| R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
 | R3 | TODO | Awaiting approved cleanup. |
 | R4 | TODO | Awaiting approved increments. |
 
