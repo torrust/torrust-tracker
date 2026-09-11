@@ -666,7 +666,7 @@ pub type Port = u16;
 /// match requests and responses.
 pub type TransactionId = i64;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RawRequest {
     payload: Vec<u8>,
     from: SocketAddr,
