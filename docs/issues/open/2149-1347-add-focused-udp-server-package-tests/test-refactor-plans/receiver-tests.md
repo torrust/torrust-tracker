@@ -83,12 +83,15 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Record the Phase 1 no-change decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** Phase 1
 - **Change:** Confirm that `receiver.rs` has no direct tests to clean and that integration coverage
   does not replace the feasible unit-test assessment.
 - **Guardrails:** Do not move or refactor launcher, socket, or integration test code.
+- **Decision:** `receiver.rs` has no colocated test code or concrete cleanup opportunity. The
+  existing integration contracts retain their transport value but do not replace R2's feasible,
+  focused unit test for the package-owned datagram-to-`RawRequest` adapter.
 - **Done when:** The no-cleanup decision is recorded before adding a test.
 
 ### R2 - Cover queued loopback datagram adaptation
@@ -132,8 +135,8 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Receiver source, `BoundSocket` boundary, loopback test feasibility, current unit-only
       coverage, integration coverage, and #1488 lifecycle ownership reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R2.
 - [ ] R2 implemented and focused validation passed.
 - [ ] Maintainer approved R3 design review.
@@ -147,13 +150,16 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - GitHub Copilot - Created this proposed plan after reviewing `Receiver`,
   `BoundSocket`, launcher and integration ownership, clean unit-only coverage, and the clarified
   unit-first coverage policy. No test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Record that `receiver.rs` has no direct test code
+  to clean and retain the feasible R2 adapter unit-test assessment independently of integration
+  coverage.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. Existing integration coverage retains transport value but does not replace the feasible R2 unit-test assessment. |
 | R2 | TODO | Awaiting R1 completion and maintainer approval. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
