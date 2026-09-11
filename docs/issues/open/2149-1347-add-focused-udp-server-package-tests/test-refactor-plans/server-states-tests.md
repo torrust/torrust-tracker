@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/states.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/states.rs
@@ -181,8 +181,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3.
 - [x] R3 design review recorded, validated, and committed.
 - [x] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -209,15 +209,19 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
   integration-only coverage separately and record each remaining executable line with its owner;
   do not add a coverage-only socket or lifecycle test.
+- 2026-09-11 - User/maintainer - Reviewed and approved the completed server-states plan. Direct
+  tests now cover each deterministic startup-notification mapping, while the module documents the
+  public transition and #1488 lifecycle ownership of all remaining paths.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. The no-change conclusion was subsequently narrowed by R2. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server states::tests`, and `git diff --check` passed. Prose-first and smell review retain visible closed-sender/task-outcome causal state, direct startup-notification Act, and one error-variant assertion per test. |
 | R4 | DONE | Separate clean reports: aggregate/global and unit-only are 72/77 lines (93.51%), 91/102 regions (89.22%), and 16/20 functions (80.00%); integration-only is 27/37 lines (72.97%), 16/32 regions (50.00%), and 7/11 functions (63.64%). Remaining unit-only lines are the `BoundSocket`/public-start bind conversion, #1488-owned `stop` mappings, and defensive test fallback. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
