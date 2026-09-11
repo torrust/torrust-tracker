@@ -139,7 +139,6 @@ Apply this loop to every test-producing task:
 ### Progress Log
 
 - 2026-09-11 - GitHub Copilot - Archived this specification after confirming GitHub issue #2140 is closed. Unchecked workflow checkpoints were deliberately preserved because this archive batch did not have evidence to confirm their completion.
-
 - 2026-09-11 UTC - Repository maintenance - Archived this closed issue specification in `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/`.
 - 2026-09-04 - GitHub Copilot - Performed a preliminary review of `packages/axum-http-server/tests/` after #2136. The combined private-and-whitelisted configuration has placeholder modules but no contract tests; private-only and whitelisted-only suites are existing references.
 - 2026-09-04 - User/maintainer - Expanded the draft scope: before selecting new tests, analyze every package integration test, current coverage, and relevant domain behavior; conduct a dedicated test-design review for readability, maintainability, and expressiveness; then propose the prioritized implementation plan.

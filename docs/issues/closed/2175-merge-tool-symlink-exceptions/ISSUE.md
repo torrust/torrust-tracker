@@ -194,7 +194,6 @@ Record a justified no-change decision in the task's evidence without creating an
 ### Progress Log
 
 - 2026-09-11 - GitHub Copilot - Archived this specification after confirming GitHub issue #2175 is closed. Unchecked workflow checkpoints were deliberately preserved because this archive batch did not have evidence to confirm their completion.
-
 - 2026-09-11 UTC - Repository maintenance - Archived this closed issue specification in `docs/issues/closed/2175-merge-tool-symlink-exceptions/`.
 - 2026-09-08 16:08 UTC - Spec author - Drafted this unnumbered specification after verifying the refusal path in the vendored tool, the vendoring policy in the README, the wrapper's invocation, and the absence of symbolic links in the tracker tree - This spec
 - 2026-09-08 16:20 UTC - Spec author - Amended the design to read the declaration from the merged tree rather than the filesystem, after verifying that the local merge commit already exists at the check site (lines 366-397), and propagated the consequence through scope, ownership, plan, rules, criteria, scenarios, and risks - This spec
