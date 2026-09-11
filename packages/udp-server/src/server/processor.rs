@@ -289,7 +289,7 @@ mod tests {
     /// Sending to port 0 would be rejected by the OS with EINVAL; the early
     /// exit avoids the wasted work and the resulting WARN log noise.
     #[tokio::test]
-    async fn processor_does_not_send_a_response_when_client_port_is_0() {
+    async fn processor_does_not_send_an_ipv4_response_when_client_port_is_0() {
         // Arrange
         let (processor, container, cancellation_token) = setup_processor_with_stats_listener().await;
         let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
@@ -306,18 +306,6 @@ mod tests {
             stats.udp4_responses_sent_total(),
             0,
             "no IPv4 response should be sent to port 0"
-        );
-        assert_eq!(
-            stats.udp6_responses_sent_total(),
-            0,
-            "no IPv6 response should be sent to port 0"
-        );
-        // Assert: the request was discarded before any handler work, so the
-        // (valid) connect payload must never reach the connect handler.
-        assert_eq!(
-            stats.udp4_connect_requests_accepted_total(),
-            0,
-            "the connect handler should never run for port-0 requests"
         );
 
         cancellation_token.cancel();
@@ -346,6 +334,26 @@ mod tests {
             1,
             "expected exactly 1 discarded request"
         );
+
+        cancellation_token.cancel();
+    }
+
+    /// Scenario: a parsable connect request arrives from source port 0.
+    ///
+    /// The early port-zero guard must bypass packet handling even though the
+    /// payload itself is valid.
+    #[tokio::test]
+    async fn processor_does_not_dispatch_a_port_zero_connect_request() {
+        // Arrange
+        let (processor, container, cancellation_token) = setup_processor_with_stats_listener().await;
+        let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+
+        // Act
+        processor.process_request(connect_request_from(client_with_port_0)).await;
+        wait_for_discarded_count(&container, 1).await;
+
+        // Assert
+        let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
         // Assert: the request was discarded before any handler work, so the
         // (valid) connect payload must never reach the connect handler.
         assert_eq!(

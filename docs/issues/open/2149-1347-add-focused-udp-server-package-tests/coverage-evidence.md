@@ -190,6 +190,23 @@ listener lifecycle remain owned by `event.rs`, `statistics/metrics.rs`, the repo
 boundary, the parent dispatcher, and the listener, respectively. No coverage-only test is
 selected.
 
+### Processor Test-Level Evidence
+
+At the completed R1 increment, clean separately collected reports show the following for
+`packages/udp-server/src/server/processor.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 122 / 122 (100.00%) | 175 / 175 (100.00%) | 19 / 19 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 109 / 122 (89.34%) | 168 / 175 (96.00%) | 15 / 19 (78.95%) | Direct port-zero tests separately protect IPv4 response suppression, discard-event publication, and valid-connect handler bypass. |
+| Integration-only (`--test integration`) | 34 / 34 (100.00%) | 20 / 20 (100.00%) | 7 / 7 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the portable direct port-zero unit contracts. |
+
+The reports have different denominators and are not combined. Normal handler/send behavior,
+response serialization, socket failures, event consumption, logging, sender absence, launcher
+admission, and lifecycle remain owned by handlers, `udp-protocol`, `BoundSocket`/integration,
+specialized statistics handlers/listeners, the diagnostic boundary, and #1488, respectively. No
+coverage-only or non-portable raw-socket test is selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
