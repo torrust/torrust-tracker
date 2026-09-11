@@ -10,6 +10,7 @@ semantic-links:
   related-artifacts:
     - .github/dependabot.yaml
     - .github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md
+    - docs/templates/CARGO-DEPENDENCY-UPDATE-PR.md
 ---
 
 # Updating Dependencies
@@ -43,18 +44,20 @@ Use `cargo update --dry-run` or read the dependency changelog to classify before
 ## Quick Reference
 
 ```bash
-# Get a timestamp (YYYYMMDD)
-TIMESTAMP=$(date +%Y%m%d)
+# Get one high-resolution timestamp (YYYYMMDD-HHMMSS) for this invocation.
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+UPDATE_OUTPUT=".tmp/${TIMESTAMP}-cargo-update.txt"
+UPDATE_BRANCH="${TIMESTAMP}-update-dependencies"
 
 # Create branch
 git checkout develop && git pull --ff-only
-git checkout -b "${TIMESTAMP}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 
 # Ensure the workspace-local ignored log directory exists.
 mkdir -p .tmp
 
 # Update dependencies
-cargo update 2>&1 | tee .tmp/cargo-update.txt
+cargo update 2>&1 | tee "$UPDATE_OUTPUT"
 
 # If Cargo.lock has no changes, nothing to do — stop here.
 
@@ -63,25 +66,29 @@ cargo update 2>&1 | tee .tmp/cargo-update.txt
 
 # Commit and push (using the captured `cargo update` output as the commit body)
 git add Cargo.lock
-git commit -S -m "chore: update dependencies" -m "$(cat .tmp/cargo-update.txt)"
-git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
+git commit -S -m "chore: update dependencies" -m "$(cat "$UPDATE_OUTPUT")"
+git push {your-fork-remote} "$UPDATE_BRANCH"
 
-# Open a PR targeting torrust/torrust-tracker:develop. Include the complete
-# .tmp/cargo-update.txt output verbatim under a "cargo update output" heading
-# in a fenced text block in the PR description.
+# Open a PR targeting torrust/torrust-tracker:develop. Use
+# docs/templates/CARGO-DEPENDENCY-UPDATE-PR.md and replace its Cargo-output
+# placeholder with the complete "$UPDATE_OUTPUT" contents verbatim.
 ```
 
 ## Complete Workflow
 
 ### Step 1: Create a Branch
 
-Generate a timestamp prefix to avoid branch name conflicts across repeated runs:
+Generate one high-resolution timestamp for both the branch and captured output filename. This
+avoids ordinary same-day/same-second collisions and prevents the output capture of one invocation
+from overwriting another's:
 
 ```bash
-TIMESTAMP=$(date +%Y%m%d)
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+UPDATE_OUTPUT=".tmp/${TIMESTAMP}-cargo-update.txt"
+UPDATE_BRANCH="${TIMESTAMP}-update-dependencies"
 git checkout develop
 git pull --ff-only
-git checkout -b "${TIMESTAMP}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 
 mkdir -p .tmp
 ```
@@ -89,19 +96,23 @@ mkdir -p .tmp
 For breaking-change updates that require a tracked issue:
 
 ```bash
-git checkout -b {issue-number}-update-dependencies
+UPDATE_BRANCH="${TIMESTAMP}-{issue-number}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 ```
 
 ### Step 2: Run Cargo Update
 
 ```bash
 mkdir -p .tmp
-cargo update 2>&1 | tee .tmp/cargo-update.txt
+cargo update 2>&1 | tee "$UPDATE_OUTPUT"
 ```
 
 If `Cargo.lock` has no changes, there is nothing to update — exit early.
 
-Review `.tmp/cargo-update.txt` to identify any major version bumps that may be breaking.
+Review `"$UPDATE_OUTPUT"` to identify any major version bumps that may be breaking.
+
+This unique filename prevents captured-output collisions only. Concurrent update workflows must
+not share a Git working tree because Git's branch checkout and index remain shared.
 
 ### Step 3: Handle Breaking Changes
 
@@ -141,8 +152,8 @@ body unless it contains information that must not be committed.
 
 ```bash
 git add Cargo.lock
-git commit -S -m "chore: update dependencies" -m "$(cat .tmp/cargo-update.txt)"
-git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
+git commit -S -m "chore: update dependencies" -m "$(cat "$UPDATE_OUTPUT")"
+git push {your-fork-remote} "$UPDATE_BRANCH"
 ```
 
 ### Step 6: Open PR
@@ -150,10 +161,11 @@ git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
 Target: `torrust/torrust-tracker:develop`  
 Title: `chore: update dependencies`
 
-Include the complete `.tmp/cargo-update.txt` output in the PR description as well as the commit
-body. Place it verbatim under a `## cargo update output` heading in a fenced `text` code block.
-Do not replace it with a manually abbreviated package list unless the output contains information
-that must not be published.
+Use [the Cargo dependency-update PR template](../../../../../docs/templates/CARGO-DEPENDENCY-UPDATE-PR.md)
+for the PR-body structure. Include the complete `"$UPDATE_OUTPUT"` contents in the PR description
+as well as the commit body, replacing the template's placeholder verbatim. Do not replace it with
+a manually abbreviated package list unless the output contains information that must not be
+published.
 
 ## Decision Guide
 
