@@ -139,13 +139,21 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Record residual handler ownership decisions
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure unit-only coverage and retain aggregate/global and integration-only evidence
   separately when it informs a decision. Record deferrals for non-cookie events, repository failure,
   threshold policy, listener lifecycle, and root composition.
 - **Guardrails:** Do not add percentage-only tests or use higher-level coverage to substitute for the
   direct unit contract.
+- **Decision:** Clean reports show aggregate/global and unit-only coverage of 81/82 lines (98.78%),
+  108/110 regions (98.18%), and 12/12 functions (100%). Integration-only coverage separately
+  reports 28/29 lines (96.55%), 31/33 regions (93.94%), and 4/4 functions (100%). The reports are
+  not combined. Do not add a non-cookie event matrix because listener tests already cover the
+  ignored-event boundary; do not add repository failure tests because the handler only logs that
+  collaborator failure; retain thresholds, resets, and `is_banned` in `udp-core` `BanService`;
+  retain event reception/lifecycle in the listener and #1488; and retain multi-listener/REST policy
+  in root composition tests.
 - **Done when:** Each residual branch has a documented owner.
 
 ## Progress Tracking
@@ -160,7 +168,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 implemented and focused validation passed.
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
-- [ ] R4 coverage/ownership review completed and decision recorded.
+- [x] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -178,6 +186,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Reviewed and approved the R3 design review. Retain the local
   `sample_connection_context` helper because client IP is its visible causal variation; do not add
   a premature cross-module fixture abstraction.
+- 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
+  integration-only coverage separately; record residual non-cookie, repository failure,
+  `BanService`, listener/#1488, and root-composition ownership without coverage-only tests.
 
 ### Validation Evidence
 
@@ -186,7 +197,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no colocated test code or concrete cleanup opportunity. Listener, `BanService`, repository, integration, and root tests retain their current ownership boundaries. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server banning::event::handler::tests`, and `git diff --check` passed. The initial multi-assertion test was split into two focused contracts. Prose-first and smell review keep client IPs and expected gauge total visible across Arrange, Act, and Assert while the focused test context hides only ordinary collaborator mechanics. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Separate clean reports passed: aggregate/global and unit-only are 81/82 lines (98.78%), 108/110 regions (98.18%), and 12/12 functions (100%); integration-only is 28/29 lines (96.55%), 31/33 regions (93.94%), and 4/4 functions (100%). Non-cookie, repository failure, `BanService`, listener/#1488, and root-composition paths have explicit owners. |
 
 ## Non-Goals
 

@@ -119,6 +119,23 @@ The reports have different denominators and are not combined. Pending readiness,
 and stream-termination branches remain at Tokio readiness, platform fault-injection, and #1488
 receive-loop lifecycle boundaries; no mock socket abstraction or percentage-only test is selected.
 
+### Banning Event-Handler Test-Level Evidence
+
+At commit `d357db0a`, clean separately collected reports show the following for
+`packages/udp-server/src/banning/event/handler.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 81 / 82 (98.78%) | 108 / 110 (98.18%) | 12 / 12 (100.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 81 / 82 (98.78%) | 108 / 110 (98.18%) | 12 / 12 (100.00%) | Direct tests protect client-IP forwarding and post-update distinct tracked-IP gauge publication as separate focused handler contracts. |
+| Integration-only (`--test integration`) | 28 / 29 (96.55%) | 31 / 33 (93.94%) | 4 / 4 (100.00%) | Separately confirms listener and real-loopback production-slice execution; it does not substitute for the direct unit contracts. |
+
+The reports have different denominators and are not combined. Non-cookie event ignoring remains
+covered at the listener boundary; repository failure is logging-only collaborator behavior;
+threshold/reset/ban policy belongs to `udp-core` `BanService`; event reception and lifecycle belong
+to the listener and #1488; and multi-listener/REST behavior belongs to root composition. No
+coverage-only test is selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
