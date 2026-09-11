@@ -153,6 +153,25 @@ are the bind-error conversion in `Server::<Stopped>::start`, halt/task error map
 `BoundSocket` and public-start boundary; `stop` remains #1488 lifecycle work; and the fallback is
 not behavior to force through a test. No coverage-only socket/task fixture is selected.
 
+### Handler Error Test-Level Evidence
+
+At commit `496128da`, clean separately collected reports show the following for
+`packages/udp-server/src/handlers/error.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 176 / 178 (98.88%) | 187 / 189 (98.94%) | 23 / 23 (100.00%) | Broad progress only; includes all selected package test binaries and test-only wrappers. |
+| Unit-only (`--lib`) | 155 / 178 (87.08%) | 172 / 189 (91.01%) | 22 / 23 (95.65%) | Direct tests protect supplied and fallback response transaction IDs, error-event request-kind routing, and event public-URL forwarding. |
+| Integration-only (`--test integration`) | 89 / 93 (95.70%) | 54 / 61 (88.52%) | 8 / 8 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the direct unit contracts. |
+
+The reports have different denominators and are not combined. Residual logging level and
+transaction-ID-field paths are diagnostic detail rather than an observable handler contract, so
+tracing capture is not selected. Sender-disabled event suppression is already a prerequisite of
+the response tests but has no distinct observable output that warrants a collaborator-matrix test.
+Protocol error conversion, dispatcher routing, error classification, and statistics/banning
+consumption remain owned by `error.rs`, `handlers/mod.rs`, `event.rs`, and their specialized
+event handlers/listeners, respectively. No coverage-only test is selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
