@@ -22,7 +22,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Receiver tests](receiver-tests.md) — complete.
 - [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — complete.
 - [Banning event-handler tests](banning-event-handler-tests.md) — complete.
-- [Server states tests](server-states-tests.md) — reopened; R2/R3 awaiting maintainer approval.
+- [Server states tests](server-states-tests.md) — complete.
+- [Handler error tests](handler-error-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 

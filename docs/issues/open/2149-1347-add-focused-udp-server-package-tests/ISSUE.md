@@ -41,6 +41,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-event-dispatch-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/banning-event-handler-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/server-states-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-error-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
@@ -160,8 +161,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T10 | DONE        | Review receiver unit-test seam               | Completed the reviewed `server/receiver.rs` plan with a deterministic queued-loopback `Stream::poll_next` contract for payload and sender-address adaptation. Pending/error/termination branches and lifecycle behavior retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
 | T11 | DONE        | Review statistics dispatch seam              | Completed the reviewed `statistics/event/handler/mod.rs` assessment. The dispatcher documents its routing-only responsibility and indirect verification; no production injection abstraction or collaborator-side-effect test is justified. **Commit point:** completed through a documented no-test decision. |
 | T12 | DONE        | Review banning event-handler seam            | Completed the reviewed `banning/event/handler.rs` plan with direct deterministic contracts for cookie-error client-IP forwarding and distinct tracked-IP gauge publication. Listener lifecycle, threshold policy, and collaborator internals retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
-| T13 | IN_PROGRESS | Review server-state lifecycle seam           | The `server/states.rs` plan was reopened after a line-level coverage review: two remaining `await_startup_notification` mappings are cheap deterministic contracts and will be tested; a module comment will document the test-ownership boundary. Bind-error and `stop` paths stay deferred to #1488. R2/R3 await maintainer approval. **Commit point:** one reviewed test increment plus documentation. |
-| T14 | TODO        | Review error-handler routing seam            | Create and approve a `handlers/error.rs` file-local plan. Clean existing tests first, then assess response/error-event routing not already protected by error conversion or individual handler tests. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T13 | DONE        | Review server-state lifecycle seam           | Completed the reviewed `server/states.rs` plan with direct deterministic startup-notification mappings and module ownership documentation. Bind-error and `stop` paths retain explicit `BoundSocket`/public-start and #1488 lifecycle ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T14 | IN_PROGRESS | Review error-handler routing seam            | The proposed `handlers/error.rs` plan begins by splitting its combined response transaction-ID and error-event publication test into focused contracts. It then assesses one event-context forwarding contract and residual logging ownership; implementation awaits maintainer approval. **Commit point:** one reviewed test or documentation-only no-change decision. |
 | T15 | TODO        | Review response-metric handler seam          | Create and approve a `statistics/event/handler/response_sent.rs` file-local plan. Clean existing tests first, then assess one direct result/request-kind metric route without duplicating metric aggregation or response conversion. **Commit point:** one reviewed test or documentation-only no-change decision. |
 | T16 | TODO        | Review processor unit-test seam              | Create and approve a `server/processor.rs` file-local plan. Clean existing tests first; assess direct deterministic processing behavior without expanding socket lifecycle, receiver-loop, or shutdown ownership. **Commit point:** one reviewed test or documentation-only no-change decision. |
 | T17 | TODO        | Record spawner lifecycle deferral            | Create a `server/spawner.rs` file-local assessment plan. Record that the thin task-spawn wrapper is already fully unit-covered and that lifecycle semantics remain owned by #1488; do not add a percentage-only test. **Commit point:** documentation-only decision if material. |
@@ -336,6 +337,10 @@ responsibility.
   uncovered and whether they were hard to test. Two `await_startup_notification` mappings were
   reclassified as cheap deterministic contracts; the plan was reopened to add those tests and a
   module-level comment documenting the testing strategy for future maintainers.
+- 2026-09-11 - GitHub Copilot - Created the proposed `handlers/error.rs` plan after identifying a
+  combined response transaction-ID and error-event publication test with two reasons to fail.
+  The plan requires splitting that test before assessing any new event-context behavior and retains
+  logging, error conversion, routing, and consumer behavior at their existing boundaries.
 
 ## Acceptance Criteria
 
