@@ -96,7 +96,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover queued loopback datagram adaptation
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one direct asynchronous unit test. Queue one explicit loopback datagram before
@@ -105,6 +105,13 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Keep the payload, expected sender address, datagram send, stream Act, and
   assertions visible. The sole timeout is an absolute diagnostic failure bound. Do not add a sleep,
   retry, polling loop, generic UDP helper, server task, event listener, or explicit teardown.
+- **Prose-first review:** The temporary prose specified a receiver with a known IPv4 loopback
+  datagram queued before a single stream Act returns its matching raw request. The final
+  `ReceiverWithQueuedLoopbackDatagram` scenario owns only the coordinated socket binding, client
+  binding, sender-address capture, and pre-Act datagram delivery. The test keeps the causal payload,
+  `receiver.next()` Act, and one whole-value `RawRequest` assertion visible. `RawRequest` derives
+  equality because bytes and sender address are meaningful value semantics, not merely test data.
+  The timeout is an absolute diagnostic bound. Temporary prose is redundant and removed.
 - **Done when:** A regression in normal UDP datagram adaptation has one direct, deterministic
   unit-test failure.
 
@@ -137,10 +144,10 @@ validation, review, and its mapped commit point—before beginning the next item
       coverage, integration coverage, and #1488 lifecycle ownership reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R2.
-- [ ] R2 implemented and focused validation passed.
-- [ ] Maintainer approved R3 design review.
-- [ ] R3 recorded, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 implemented and focused validation passed.
+- [x] Maintainer approved R3 design review.
+- [x] R3 recorded, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -153,6 +160,11 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R1. Record that `receiver.rs` has no direct test code
   to clean and retain the feasible R2 adapter unit-test assessment independently of integration
   coverage.
+- 2026-09-11 - User/maintainer - Approved R2. Add the queued-loopback adapter test only, keeping
+  the datagram send before the single stream Act and retaining only an absolute diagnostic timeout.
+- 2026-09-11 - User/maintainer - Reviewed and approved the R2/R3 test design. Retain the focused
+  `ReceiverWithQueuedLoopbackDatagram` scenario instead of generalizing it prematurely, and compare
+  the whole `RawRequest` directly through its meaningful value equality.
 
 ### Validation Evidence
 
@@ -160,8 +172,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. Existing integration coverage retains transport value but does not replace the feasible R2 unit-test assessment. |
-| R2 | TODO | Awaiting R1 completion and maintainer approval. |
-| R3 | TODO | Awaiting R2 review. |
+| R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server receiver::tests::should_yield_a_raw_request_with_the_received_datagram_and_sender_address`, and `git diff --check` passed. Prose-first and smell review replace a complex Arrange with a state-named queued-loopback scenario and two field assertions with one whole-value `RawRequest` assertion; the visible stream Act remains unchanged. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
