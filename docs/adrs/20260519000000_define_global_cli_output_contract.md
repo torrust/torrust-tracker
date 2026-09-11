@@ -74,6 +74,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `e2e_tests_runner`       | `no-stdout-result`   | CI orchestrator; pass/fail via exit code                              |
 | `qbittorrent_e2e_runner` | `no-stdout-result`   | CI orchestrator; pass/fail via exit code                              |
 | `tracker_client`         | `stdout-result-data` | Announce/scrape results as JSON; monitor progress as NDJSON on stderr |
+| `clippy-allow-reasons`   | `no-stdout-result`   | Prospective repository check; pass/fail via exit code                 |
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
 normative scope of this contract.

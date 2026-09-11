@@ -35,12 +35,42 @@ Only add `#[allow(...)]` when:
 
 ## How to Document Exceptions
 
-When adding `#[allow(...)]` attributes, always include a clear comment explaining why:
+When adding or modifying `#[allow(clippy::...)]` or `#[expect(clippy::...)]` attributes, use Rust's
+native `reason` parameter. The prospective Rust validator checks changed attributes against the
+branch merge base, so existing allows remain the separate remediation scope of #2158.
 
 ```rust
-// This is a temporary workaround during refactoring of the announce response parser
-// TODO: Remove this allowance when the parser is fully refactored
-#[allow(clippy::unnecessary_wraps)]
+#[allow(
+    clippy::unnecessary_wraps,
+    reason = "Temporary parser compatibility shim; remove when #2158 is complete."
+)]
+```
+
+The reason must be specific. A temporary reason must also contain either a stable issue reference
+such as `#2158` or a non-empty `remove when`, `remove after`, `remove by`, `removed when`,
+`removed after`, `removed by`, or `until` condition. The validator treats `temporary`,
+`temporarily`, `TODO`, `for now`, and `workaround` as temporary wording and normalizes whitespace
+before checking the condition.
+
+Do not enable `clippy::allow_attributes_without_reason` workspace-wide until #2158 has remediated
+the historical attributes that lack native reasons. It is the correct eventual compiler-aware
+enforcement mechanism, but enabling it now would violate this issue's prospective-baseline scope.
+
+For a temporary item-level suppression, prefer `#[expect(..., reason = "...")]` when it is useful
+to learn that the underlying lint no longer fires. Do not force `expect` for crate-level policy.
+
+The validator also checks changed `cfg_attr(..., allow(clippy::...))` and
+`cfg_attr(..., expect(clippy::...))` controls. Attributes written inside a `macro_rules!` token body
+are not visited by the Rust AST and are out of scope for this prospective check; do not use macros
+to conceal a lint suppression.
+
+For example:
+
+```rust
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "Temporary parser compatibility shim; remove when #2158 is complete."
+)]
 fn parse_announce_response(data: &[u8]) -> Result<Response, ParseError> {
     // implementation
 }
@@ -93,7 +123,7 @@ for item in &items {
 1. **Identify the warning**: Run `linter clippy` to see specific clippy errors
 2. **Apply suggestion**: Try the suggested fix first
 3. **Verify functionality**: Ensure the change doesn't break existing behavior
-4. **Document exceptions**: Add clear comments for any allowances
+4. **Document exceptions**: Use the native `reason = "..."` parameter for changed Clippy allows
 5. **Run full linters**: Confirm `linter all` passes
 
 ## Related Skills

@@ -340,6 +340,7 @@ nocapture
 nologin
 nonblocking
 nonroot
+noprefix
 notnull
 nping
 nquery
