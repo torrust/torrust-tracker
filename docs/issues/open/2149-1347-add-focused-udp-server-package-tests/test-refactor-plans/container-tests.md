@@ -92,7 +92,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Record the Phase 1 no-change decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** Phase 1
 - **Change:** Confirm `container.rs` has no direct tests to clean and that direct unit coverage,
@@ -100,6 +100,9 @@ validation, review, and its mapped commit point—before beginning the next item
   decision.
 - **Guardrails:** Do not move launcher or root tests, change production composition, or introduce a
   fixture before a specific test requires it.
+- **Decision:** `container.rs` has no direct tests to clean. Its current composition is concise and
+  explicit, so no test-code refactor applies. Indirect aggregate/global and higher-level coverage
+  do not substitute for assessing the feasible focused unit contract in R2.
 - **Done when:** The no-cleanup decision is recorded before adding a test.
 
 ### R2 - Cover the enabled server event-publication path
@@ -132,8 +135,8 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Container source, event-bus responsibility, indirect package coverage, and root-policy
       boundaries reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] R3 coverage/ownership review completed and decision recorded.
@@ -145,13 +148,16 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-10 - GitHub Copilot - Created this proposed plan after reviewing package container
   composition, event-bus ownership, existing launcher unit tests, root policy tests, and the
   clarified unit-first coverage objective. No test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Record that `container.rs` has no direct test code
+  to clean; do not use indirect aggregate/global or higher-level coverage to avoid the R2 unit-test
+  assessment.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. The explicit no-cleanup decision preserves the feasible R2 unit-test assessment under the unit-first coverage policy. |
 | R2 | TODO | Awaiting R1 completion and maintainer approval. |
 | R3 | TODO | Awaiting approved increments. |
 
