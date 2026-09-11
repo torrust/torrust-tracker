@@ -83,12 +83,15 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Record the Phase 1 no-change decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** Phase 1
 - **Change:** Confirm that the dispatcher has no direct test code to clean and that six existing
   specialized-handler tests already cover their parent dispatch arms.
 - **Guardrails:** Do not move existing tests or create a dispatch matrix.
+- **Decision:** The dispatcher has no colocated test code or concrete cleanup opportunity. Its six
+  already-covered parent dispatch arms remain in focused specialized-handler tests. R2 assesses only
+  the unprotected `UdpError` parent-routing gap rather than moving tests or creating a matrix.
 - **Done when:** The no-cleanup decision is recorded before adding a test.
 
 ### R2 - Cover error-event dispatch
@@ -133,8 +136,8 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Dispatcher arms, specialized-handler tests, current unit-only evidence, and listener/repository
       ownership reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R2.
 - [ ] R2 implemented and focused validation passed.
 - [ ] Maintainer approved R3 design review.
@@ -148,13 +151,16 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - GitHub Copilot - Created this proposed plan after mapping each dispatcher arm to
   specialized-handler tests and confirming only `Event::UdpError` lacks a direct parent-dispatcher
   contract. No test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Record that the dispatcher has no direct tests to
+  clean and retain its existing six specialized-handler parent-routing contracts; do not create a
+  dispatch matrix before assessing the single R2 `UdpError` gap.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | The dispatcher has no direct test code or concrete cleanup opportunity. Six existing specialized-handler tests retain their parent-dispatcher contracts; only the `UdpError` arm remains for R2 assessment. |
 | R2 | TODO | Awaiting R1 completion and maintainer approval. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
