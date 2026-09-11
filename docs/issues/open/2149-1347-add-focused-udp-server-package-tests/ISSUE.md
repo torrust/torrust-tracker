@@ -153,6 +153,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T7  | DONE        | Improve admission or UDP contracts          | Completed reviewed `server/launcher.rs` admission/event increments and `tests/server/contract.rs` real-loopback contract increments. The contract plan records the justified no-change boundary for further transport expansion. **Commit point:** completed through focused reviewed increments. |
 | T8  | TODO        | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                                                                                                                              |
 | T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
+| T10 | TODO        | Review receiver unit-test seam               | Create and approve a `server/receiver.rs` file-local plan. Assess one deterministic `Stream::poll_next` loopback-socket contract without lifecycle redesign; record a no-change decision if the boundary requires unstable I/O control. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T11 | TODO        | Review statistics dispatch seam              | Create and approve a `statistics/event/handler/mod.rs` file-local plan. Assess direct event-to-handler dispatch tests only when they protect routing not already covered by individual handler contracts; do not add a dispatch matrix by percentage. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T12 | TODO        | Review banning event-handler seam            | Create and approve a `banning/event/handler.rs` file-local plan. Assess a direct deterministic connection-cookie ban-counter and gauge contract without testing event-listener lifecycle or ban-service internals. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T13 | TODO        | Review server-state lifecycle seam           | Create and approve a `server/states.rs` file-local assessment plan. Preserve #1488 ownership of cancellation, task joining, and shutdown; add a test only for a deterministic non-lifecycle state/registration contract. **Commit point:** one reviewed test or documentation-only deferral decision. |
+| T14 | TODO        | Review error-handler routing seam            | Create and approve a `handlers/error.rs` file-local plan. Clean existing tests first, then assess response/error-event routing not already protected by error conversion or individual handler tests. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T15 | TODO        | Review response-metric handler seam          | Create and approve a `statistics/event/handler/response_sent.rs` file-local plan. Clean existing tests first, then assess one direct result/request-kind metric route without duplicating metric aggregation or response conversion. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T16 | TODO        | Review processor unit-test seam              | Create and approve a `server/processor.rs` file-local plan. Clean existing tests first; assess direct deterministic processing behavior without expanding socket lifecycle, receiver-loop, or shutdown ownership. **Commit point:** one reviewed test or documentation-only no-change decision. |
+| T17 | TODO        | Record spawner lifecycle deferral            | Create a `server/spawner.rs` file-local assessment plan. Record that the thin task-spawn wrapper is already fully unit-covered and that lifecycle semantics remain owned by #1488; do not add a percentage-only test. **Commit point:** documentation-only decision if material. |
+| T18 | TODO        | Record statistics-module ownership           | Create a `statistics/mod.rs` file-local assessment plan. Record metric-description composition ownership and decide whether any missing contract has package-level value; do not add a percentage-only test. **Commit point:** documentation-only decision if material. |
 
 ## Commit Points
 
@@ -171,6 +180,7 @@ starting the next task. Do not combine unrelated source/test areas merely to red
 | T7   | One launcher-admission or real-loopback contract increment  | Commit after focused validation and review. Do not combine with lifecycle redesign.                                                                               |
 | T8   | Mutation evidence that changes the prioritized backlog      | Use a separate documentation-only commit only when it records a material decision or follow-up; otherwise include the evidence in the final documentation commit. |
 | T9   | Refreshed evidence and implementation completion record     | Commit only after the maintainer review, full verification, and acceptance review are complete.                                                                   |
+| T10-T18 | One module-specific unit-test assessment                  | Create, approve, and complete one file-local plan at a time. Commit a focused approved test increment, or a material documented no-change/deferral decision, before beginning the next module. |
 
 Use Conventional Commit messages that name the narrow changed package area, for example
 `test(udp-server): cover active request eviction` or
@@ -294,6 +304,12 @@ responsibility.
 - 2026-09-10 - GitHub Copilot - Completed and pushed the error-metric handler plan. Created the
   proposed `container.rs` plan for the next feasible deterministic package unit contract; no test or
   production change is authorized until maintainer approval.
+- 2026-09-11 - User/maintainer - Requested a complete recheck for remaining package modules before
+  treating #2149 as finished. The unit-only inventory identified nine remaining modules requiring
+  separate assessment: receiver, statistics dispatcher, banning event handler, server states,
+  handler error routing, response-sent metrics, processor, spawner, and statistics module
+  composition. The implementation plan now tracks one explicit subtask per module so each
+  file-local decision remains reviewable.
 
 ## Acceptance Criteria
 

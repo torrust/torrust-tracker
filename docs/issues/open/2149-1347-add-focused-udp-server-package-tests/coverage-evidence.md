@@ -163,17 +163,23 @@ will prioritize meaningful package-owned behavior, not every uncovered line or f
 
 ## Prioritized Behavioral Review Queue
 
-1. `server/request_buffer.rs`: establish the current normal-operation capacity, eviction, and
-   drop cleanup contract without specifying the future shutdown policy.
-2. `event.rs`, `error.rs`, and `handlers/mod.rs`: verify deterministic event/error classification
-   and packet dispatch/error conversion where individual handler tests do not cover the boundary.
-3. `server/bound_socket.rs`: verify stable port-zero and endpoint metadata behavior while treating
-   IPv6/dual-stack availability as platform dependent.
-4. `server/launcher.rs`: consider only a deterministic admission/event contract. Do not expand
-   receive-loop, cancellation, or task-joining coverage before the #1488 UDP lifecycle subissues
-   are approved and implemented.
-5. `tests/server/contract.rs`: add a real-loopback test only when it proves a transport behavior
-   that the preceding unit seams and existing package/root tests cannot express.
+Completed file-plan decisions cover request-buffer, event classification, parse-error conversion,
+bound socket, handler dispatch, launcher admission, real-loopback contract, error metrics, and
+container composition. The following remaining modules require one independently reviewable
+unit-test assessment each; their unit-only figures come from the clean `--lib` report at the
+container-plan checkpoint and are not replaced by aggregate/global or integration-only coverage.
+
+| Issue task | Module | Unit-only coverage | Required assessment boundary |
+| --- | --- | ---: | --- |
+| T10 | `server/receiver.rs` | 15/22 lines (68.18%) | Assess a deterministic `Stream::poll_next` socket-adapter contract; defer if stable I/O control requires lifecycle redesign. |
+| T11 | `statistics/event/handler/mod.rs` | 19/21 lines (90.48%) | Assess direct event dispatch only for routing gaps not already protected by individual handlers. |
+| T12 | `banning/event/handler.rs` | 28/29 lines (96.55%) | Assess direct connection-cookie ban-counter/gauge behavior without listener lifecycle or ban-service internals. |
+| T13 | `server/states.rs` | 45/54 lines (83.33%) | Assess deterministic state/registration behavior; retain #1488 ownership of shutdown and task lifecycle. |
+| T14 | `handlers/error.rs` | 132/154 lines (85.71%) | Clean existing tests first, then assess response/error-event routing not already owned by adapters or handlers. |
+| T15 | `statistics/event/handler/response_sent.rs` | 85/99 lines (85.86%) | Clean existing tests first, then assess one direct result/request-kind metric route. |
+| T16 | `server/processor.rs` | 103/116 lines (88.79%) | Clean existing tests first, then assess direct processing behavior without receiver-loop or shutdown expansion. |
+| T17 | `server/spawner.rs` | 17/17 lines (100.00%) | Record fully covered thin-wrapper and #1488 lifecycle deferral; do not add percentage-only coverage. |
+| T18 | `statistics/mod.rs` | 52/52 lines (100.00%) | Assess metric-description composition ownership; do not add percentage-only coverage. |
 
 ## Boundary and Deferral Decisions
 
