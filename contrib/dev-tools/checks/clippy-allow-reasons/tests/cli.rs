@@ -52,6 +52,23 @@ fn it_should_detect_an_undocumented_allow_despite_local_git_diff_configuration()
 fn it_should_not_write_output_when_validation_succeeds() {
     let workspace = FixtureRepository::new();
     workspace.establish_documented_baseline();
+    workspace.add_documented_allow();
+
+    let output = run_validator(workspace.path(), &["--base-ref", "develop"]);
+
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"");
+    assert_eq!(output.stderr, b"");
+}
+
+#[test]
+fn it_should_accept_supported_documented_attribute_shapes() {
+    let workspace = FixtureRepository::new();
+    workspace.establish_empty_baseline();
+    write_file(
+        workspace.path().join("src/lib.rs").as_path(),
+        "#![allow(\n    clippy::module_name_repetitions,\n    reason = \"The generated compatibility module is intentionally named.\"\n)]\n\nstruct Example;\n\nimpl Example {\n    #[allow(clippy::too_many_lines, reason = \"The generated method mirrors the protocol.\")]\n    fn method(&self) {}\n}\n\nfn statement() {\n    #[allow(clippy::let_and_return, reason = \"The binding keeps the example readable.\")]\n    let value = 1;\n    let _ = value;\n}\n",
+    );
 
     let output = run_validator(workspace.path(), &["--base-ref", "develop"]);
 
@@ -197,10 +214,36 @@ impl FixtureRepository {
         git(self.path(), ["switch", "--quiet", "-c", "feature"]);
     }
 
+    fn establish_empty_baseline(&self) {
+        write_file(self.path().join("src/lib.rs").as_path(), "");
+        git(self.path(), ["add", "src/lib.rs"]);
+        git(
+            self.path(),
+            [
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "commit",
+                "--quiet",
+                "-m",
+                "test: establish empty baseline",
+            ],
+        );
+        git(self.path(), ["switch", "--quiet", "-c", "feature"]);
+    }
+
     fn add_undocumented_allow(&self) {
         write_file(
             self.path().join("src/lib.rs").as_path(),
             "#[allow(clippy::legacy)]\nfn legacy() {}\n#[allow(clippy::too_many_lines)]\nfn added() {}\n",
+        );
+    }
+
+    fn add_documented_allow(&self) {
+        write_file(
+            self.path().join("src/lib.rs").as_path(),
+            "#[allow(clippy::legacy, reason = \"Legacy baseline.\")]\nfn legacy() {}\n#[allow(clippy::too_many_lines, reason = \"The generated fixture is intentionally verbose.\")]\nfn added() {}\n",
         );
     }
 }
