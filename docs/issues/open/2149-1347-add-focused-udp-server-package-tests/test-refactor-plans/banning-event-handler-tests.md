@@ -68,11 +68,11 @@ recorded and that the post-update distinct tracked-IP total is published.
 total, or publish an event-count/threshold value instead of the post-update distinct-IP total.
 Higher-level failures would be less local and less diagnostic.
 
-**Opportunity.** Start with `BanService` already tracking one unrelated IP. Send one direct,
-already-classified connection-cookie event from a visible second client IP to `handle_event`. Assert
-only that the second IP has one recorded error and that the existing domain-oriented gauge accessor
-reports two distinct tracked IPs. The nonempty initial state prevents a hard-coded `1` or a mistaken
-event-count gauge from passing.
+**Opportunity.** Add two direct, focused tests. First, send one already-classified connection-cookie
+event from a visible client IP and assert only that the handler records its error. Second, start
+with `BanService` tracking one unrelated IP, send an event from a visible second IP, and assert only
+that the domain-oriented gauge accessor reports two distinct tracked IPs. The nonempty second-test
+state prevents a hard-coded `1` or a mistaken event-count gauge from passing.
 
 #### P2 - Non-cookie events and collaborator failure paths have no additional handler value
 
@@ -104,15 +104,27 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Status:** TODO
 - **Priority:** High impact / low effort
 - **Addresses:** P1
-- **Change:** Add one direct asynchronous test with a `BanService` seeded with one unrelated IP and
-  a visible second client IP in a direct `Event::UdpError { ErrorKind::ConnectionCookie }`. Invoke
-  the local handler once and assert the selected IP count and post-update distinct-IP gauge total.
-- **Guardrails:** Construct the classified event directly and use a fixed timestamp. Keep the seeded
-  IP, causal client IP, local handler Act, selected-IP count, and domain-oriented gauge assertion
-  visible. Do not assert threshold/banning status, labels, timestamps, listener behavior, protocol
-  conversion, or repository internals.
+- **Change:** Add two direct asynchronous tests with direct
+  `Event::UdpError { ErrorKind::ConnectionCookie }` inputs. The first starts with an empty
+  `BanService` and asserts only the event client IP count. The second begins with an unrelated IP
+  tracked by a small state-named helper, then asserts only the post-update distinct-IP gauge total.
+- **Guardrails:** Construct classified events directly and use a fixed timestamp. Keep each causal
+  client IP, local handler Act, and one observable assertion visible. Do not assert threshold/banning
+  status, labels, timestamps, listener behavior, protocol conversion, or repository internals.
+- **Design revision:** The initial candidate combined client-IP forwarding and gauge publication in
+  one test. Review identified two independent failure reasons, so it was split into two focused
+  contracts. `BanningHandlerTestContext::with_one_tracked_client` names only the coordinated
+  pre-existing tracked-IP state for the gauge test; it does not perform the production Act or
+  interpret its result.
+- **Prose-first review:** The temporary prose distinguished the two handler responsibilities. The
+  first test visibly carries `cookie_error_client_ip` from its event context to its one counter
+  assertion. The second visibly carries `unrelated_client_ip` into the one-tracked-client state,
+  carries a second `cookie_error_client_ip` into the event context, and specifies
+  `expected_distinct_client_ip_total` before the Act and in its one gauge assertion.
+  `BanningHandlerTestContext` hides only ordinary `Arc<RwLock<BanService>>` and `Repository`
+  construction. Temporary prose is redundant and removed.
 - **Done when:** Wrong-IP forwarding, missing counter update, or stale/wrong distinct-IP gauge value
-  yields one direct deterministic handler-contract failure.
+  yields a focused direct deterministic handler-contract failure.
 
 ### R3 - Review the test design after the vertical slice
 
@@ -121,9 +133,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Change:** Complete and record mandatory prose-first Arrange-Act-Assert and test-code-smell
   review. Use a scenario fixture only if several coordinated operations obscure the two-IP initial
   state; otherwise keep the seeded and causal IPs visible inline.
-- **Guardrails:** The two observed projections must remain one complete handler-owned orchestration
-  result. Use one semantic assertion only if it preserves both independently relevant consequences;
-  otherwise retain two focused assertions with a documented single reason to fail.
+- **Guardrails:** Each test must retain one observable result and one reason to fail. The first test
+  owns client-IP forwarding; the second owns post-update distinct-IP gauge publication.
 - **Done when:** The test has maintainer-reviewed AAA structure and a clear coordinated outcome.
 
 ### R4 - Record residual handler ownership decisions
@@ -145,10 +156,10 @@ validation, review, and its mapped commit point—before beginning the next item
       and current unit-only coverage boundaries reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R2.
-- [ ] R2 implemented and focused validation passed.
-- [ ] Maintainer approved R3 design review.
-- [ ] R3 recorded, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 implemented and focused validation passed.
+- [x] Maintainer approved R3 design review.
+- [x] R3 recorded, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -160,6 +171,13 @@ validation, review, and its mapped commit point—before beginning the next item
   composition tests, and the unit-only inventory. No test or production change has been made.
 - 2026-09-11 - User/maintainer - Approved R1. Record that `handler.rs` has no direct test code to
   clean and retain all collaborator contracts at their existing boundaries before assessing R2.
+- 2026-09-11 - User/maintainer - Approved the revised R2 design. Split the initial combined
+  assertion into client-IP forwarding and distinct-IP gauge publication contracts, then refine the
+  Arrange sections so behavioral data remains visible and ordinary collaborator mechanics are
+  hidden in a focused test context.
+- 2026-09-11 - User/maintainer - Reviewed and approved the R3 design review. Retain the local
+  `sample_connection_context` helper because client IP is its visible causal variation; do not add
+  a premature cross-module fixture abstraction.
 
 ### Validation Evidence
 
@@ -167,8 +185,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no colocated test code or concrete cleanup opportunity. Listener, `BanService`, repository, integration, and root tests retain their current ownership boundaries. |
-| R2 | TODO | Awaiting R1 completion and maintainer approval. |
-| R3 | TODO | Awaiting R2 review. |
+| R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server banning::event::handler::tests`, and `git diff --check` passed. The initial multi-assertion test was split into two focused contracts. Prose-first and smell review keep client IPs and expected gauge total visible across Arrange, Act, and Assert while the focused test context hides only ordinary collaborator mechanics. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
