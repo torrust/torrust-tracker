@@ -8,7 +8,7 @@ github-issue: 2157
 spec-path: docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
 branch: "2157-2003-require-documented-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-10 11:30
+last-updated-utc: 2026-09-11 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -98,7 +98,7 @@ expanding into a bulk remediation.
 
 - [ ] Preserve, commit, or discard pre-existing uncommitted changes before review fixes.
 - [x] Repair the current failed workflow and record verification against the branch tip.
-- [ ] Process Cameron's maintainer feedback using
+- [x] Process Cameron's maintainer feedback using
       `docs/pr-review-feedback/pr-2177-review-feedback.md` and the review-feedback workflow.
 - [ ] Process Copilot suggestions using
       `docs/copilot-pr-reviews/pr-2177-copilot-suggestions.md` and the Copilot-suggestions workflow.
@@ -133,6 +133,21 @@ expanding into a bulk remediation.
 - 2026-09-10 11:10 UTC - GitHub Copilot - Completed Cameron finding M17 in `bb1c7e45` and `856d3d33`; validation passed, reply posted, and the review thread resolved - Done
 - 2026-09-10 11:30 UTC - GitHub Copilot - Addressed Cameron finding M20: diagnostic output failures now trigger a fixed NDJSON fallback and are covered by a failing-writer unit test - Pending focused commit, reply, and thread resolution
 - 2026-09-10 11:40 UTC - GitHub Copilot - Completed Cameron finding M20 in `8e21a7e4`; validation passed, reply posted, and the review thread resolved - Done
+- 2026-09-11 08:35 UTC - GitHub Copilot - Completed implementation for Cameron finding M21 in `aea3c0036`: moved the check into a single fail-fast CI job, explicitly fetches the selected base ref, and passes it through `BASE_REF`; the mandatory pre-commit gate passed - Pending review reply and thread resolution; upstream `develop` advanced to `0255a201`
+- 2026-09-11 08:40 UTC - GitHub Copilot - Completed Cameron finding M21: reply posted and thread resolved after `aea3c0036` moved the focused check out of the duplicated unit-test matrix - Done
+- 2026-09-11 08:50 UTC - GitHub Copilot - Addressed Cameron finding M22: the checker resolves a portable default base reference, and pre-commit validates staged/index content with `--staged`; focused tests, strict Clippy, ShellCheck, Markdown lint, and whitespace checks passed - Pending focused commit, review reply, and thread resolution
+- 2026-09-11 09:05 UTC - GitHub Copilot - Completed implementation for Cameron finding M22 in `6ff50131`; the mandatory pre-commit JSON gate passed - Pending review reply and thread resolution
+- 2026-09-11 09:10 UTC - GitHub Copilot - Completed Cameron finding M22: reply posted and thread resolved after `6ff50131` made base selection portable and pre-commit index-backed - Done
+- 2026-09-11 09:15 UTC - GitHub Copilot - Addressed Cameron finding M27: normalized the `clippy-allow-reasons` exclusion indentation across all four nextest archive blocks; structural and whitespace checks passed - Pending focused commit, review reply, and thread resolution
+- 2026-09-11 09:20 UTC - GitHub Copilot - Completed implementation for Cameron finding M27 in `57b6ac68`; the mandatory pre-commit JSON gate passed - Pending review reply and thread resolution
+- 2026-09-11 09:25 UTC - GitHub Copilot - Completed Cameron finding M27: reply posted and thread resolved after `57b6ac68` aligned all archive exclusion blocks - Done
+- 2026-09-11 09:30 UTC - GitHub Copilot - Addressed Cameron finding M24: clarified the append-only independent-review report contract so it accurately preserves immutable append order and explicitly records corrective causality rather than promising timestamp order - Pending focused commit, review reply, and thread resolution
+- 2026-09-11 09:35 UTC - GitHub Copilot - Completed implementation for Cameron finding M24 in `8ff5139b`; the mandatory pre-commit gate passed - Pending review reply and thread resolution
+- 2026-09-11 09:40 UTC - GitHub Copilot - Completed Cameron finding M24: reply posted and thread resolved after `8ff5139b` clarified immutable append-order semantics - Done
+- 2026-09-11 09:45 UTC - GitHub Copilot - Completed historical Cameron findings M1-M14: each received a specific action or approved-supersession response and was resolved - Done
+- 2026-09-11 09:50 UTC - GitHub Copilot - Verified Cameron finding M26 against the current branch tip: `linter all` passed after all five `assert_is_empty` corrections; historical evidence remains append-only - Pending review reply and thread resolution
+- 2026-09-11 09:55 UTC - GitHub Copilot - Completed Cameron finding M26: fresh lint evidence was replied and the thread resolved; append-only validation corrections now name all three stale claims and both affected test areas - Done
+- 2026-09-11 10:00 UTC - GitHub Copilot - Completed the Cameron maintainer-feedback task: the audit records specific outcomes, replies, and resolved status for M1-M27 - Done
 - 2026-09-10 11:20 UTC - GitHub Copilot - Addressed Cameron finding M18: CLI integration tests now exercise a real accepted changed allow plus method, statement, and multiline crate-level forms - Pending focused commits, reply, and thread resolution
 
 ## Acceptance Criteria
@@ -185,10 +200,11 @@ why no retrospective is needed.
 
 ## Validation Evidence Corrections
 
-- 2026-09-09 - The 13:40 and 14:05 entries predate the current branch's final lint state and
-  incorrectly state that `linter all` passed. The current failure is
-  `clippy::assert_is_empty` in the new CLI tests. The assertion style was corrected in response
-  to PR #2177 review; `linter all` now passes. Do not treat those earlier entries as final
+- 2026-09-09 - The 13:40, 14:05, and 14:15 entries predate the current branch's final lint
+  state and incorrectly state that `linter all` passed. The relevant
+  `clippy::assert_is_empty` failures spanned both the validator library and CLI-test coverage.
+  Commit `65a8d1b4` corrected the remaining library assertions in response to PR #2177 review;
+  a fresh `linter all` run on 2026-09-11 passed. Do not treat the earlier entries as final
   acceptance evidence.
 
 ## References
