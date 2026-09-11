@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: in-review
 priority: p2
 epic: null
 github-issue: 2203
 spec-path: docs/issues/open/2203-template-catalog-and-cargo-dependency-pr-template/ISSUE.md
 branch: "2203-template-catalog-and-cargo-dependency-pr-template"
 related-pr: null
-last-updated-utc: 2026-09-11 10:30
+last-updated-utc: 2026-09-11 11:35
 semantic-links:
   skill-links:
     - create-issue
@@ -141,6 +141,7 @@ Append one line per meaningful update.
 - 2026-09-11 10:55 UTC - Task Reviewer - Found malformed semantic-link frontmatter and incomplete issue-state reconciliation; recorded a failed independent review. - `agent-review-reports.md`
 - 2026-09-11 11:00 UTC - GitHub Copilot - Corrected the semantic-link structure, reconciled completed verification states, and assessed that no retrospective is needed because this contained no material discovery beyond a corrected documentation-metadata defect. - `.github/skills/dev/planning/create-markdown-template/SKILL.md`
 - 2026-09-11 11:05 UTC - Task Reviewer - Re-reviewed the remediated change set and passed all acceptance criteria. - `agent-review-reports.md`
+- 2026-09-11 11:35 UTC - GitHub Copilot - Set the specification status to `in-review` while implementation PR #2205 is pending. - `ISSUE.md`
 
 ## Acceptance Criteria
 
