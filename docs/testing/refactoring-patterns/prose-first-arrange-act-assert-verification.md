@@ -37,6 +37,29 @@ Use temporary normal prose as the test specification, then make the code replace
 The prose constrains refactoring: simplify implementation mechanics, but do not weaken the stated
 behavior merely to make the test shorter.
 
+## Reveal Behavioral Data; Hide Collaborator Mechanics
+
+Trace every value from Arrange to its use in the Act or Assert. Keep values visible when they select
+the behavior, establish causal pre-existing state, or independently specify an expected result.
+Hide only ordinary valid collaborator mechanics that do not change the selected behavior, such as
+locks, reference-counted handles, default dependency construction, and required repository setup.
+
+For example, a banning-handler gauge test makes the relationship visible as:
+
+```text
+unrelated_client_ip → state with one tracked client
+cookie_error_client_ip → event context passed to the Act
+expected_distinct_client_ip_total → asserted gauge result
+```
+
+Its test context may own `Arc<RwLock<BanService>>` and `Repository` construction, but must not hide
+the IPs or expected total. Review with two questions:
+
+1. Can a reader trace every value that makes the Act behave differently or sets the expected result
+  from Arrange to Act/Assert?
+2. Does this value merely make an ordinary collaborator valid? If yes, keep it in focused setup
+  rather than the test narrative.
+
 ## Review Test-Code Smells Before Finishing
 
 Before maintainer review, use the prose-first comparison to inspect these design smells. They prompt
@@ -46,6 +69,7 @@ when a shorter alternative would hide intent or make failures less diagnostic.
 | Smell | Question | Response |
 | --- | --- | --- |
 | Complex Arrange | Can the causal initial state be stated without reconstructing plumbing? | Prefer an inline value, readable builder, or scenario fixture named for the resulting state. Let it own coordinated incidental mechanics only. |
+| Hidden behavioral data coupling | Can every behavior-selecting input, causal pre-existing state, and expected value be traced from Arrange into Act/Assert? | Keep those values visible and name their relationship; hide only ordinary collaborator-construction mechanics. |
 | Multiple assertions | Are several assertions one complete observable result, or multiple behaviors? | Prefer one semantic assertion for a complete result; split unrelated behaviors into focused tests with one reason to fail each. |
 | Hidden fixture coupling | Would an unrelated fixture change fail the test? | Derive incidental expected details from the same fixture used by the Act, while keeping causal expectations visible. |
 | Hidden Act | Does the final test visibly invoke the production behavior? | Keep the Act in the test body. |
