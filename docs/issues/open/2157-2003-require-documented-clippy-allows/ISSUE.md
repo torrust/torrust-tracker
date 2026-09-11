@@ -8,7 +8,7 @@ github-issue: 2157
 spec-path: docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
 branch: "2157-2003-require-documented-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-09 14:15
+last-updated-utc: 2026-09-10 11:30
 semantic-links:
   skill-links:
     - create-issue
@@ -131,6 +131,7 @@ expanding into a bulk remediation.
 - 2026-09-10 10:40 UTC - GitHub Copilot - Completed Cameron findings M16 / BB3 and M23 in `415f16f6` and `b2db0d1c`; validation passed, replies posted, and both review threads resolved - Done
 - 2026-09-10 11:00 UTC - GitHub Copilot - Addressed Cameron finding M17: temporary-reason detection recognizes common intent wording and normalizes removal conditions without weakening required issue/removal evidence - Pending focused commits, reply, and thread resolution
 - 2026-09-10 11:10 UTC - GitHub Copilot - Completed Cameron finding M17 in `bb1c7e45` and `856d3d33`; validation passed, reply posted, and the review thread resolved - Done
+- 2026-09-10 11:30 UTC - GitHub Copilot - Addressed Cameron finding M20: diagnostic output failures now trigger a fixed NDJSON fallback and are covered by a failing-writer unit test - Pending focused commit, reply, and thread resolution
 - 2026-09-10 11:20 UTC - GitHub Copilot - Addressed Cameron finding M18: CLI integration tests now exercise a real accepted changed allow plus method, statement, and multiline crate-level forms - Pending focused commits, reply, and thread resolution
 
 ## Acceptance Criteria
