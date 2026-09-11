@@ -70,7 +70,9 @@ specified error response assertion.
 
 **Decision.** Do not add an integration test for the launcher admission decisions, parse-error
 routing, or event classification covered by #2149 unit tests. Add a contract only when real UDP
-datagram transport gives clearer or unique regression value.
+datagram transport gives clearer or unique regression value. This decision does not reject a
+feasible direct `Receiver` unit test: under the issue's unit-first policy, its datagram-to-
+`RawRequest` adapter is assessed separately in `receiver-tests.md`.
 
 #### P3 - Broad integration-fixture extraction is premature
 
