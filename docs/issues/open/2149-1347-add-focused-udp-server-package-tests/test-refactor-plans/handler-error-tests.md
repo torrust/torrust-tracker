@@ -151,6 +151,34 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Do not add percentage-only logging or collaborator-matrix tests.
 - **Done when:** Residual lines and behavior have documented owners.
 
+### R5 - Simplify focused handler calls without hiding their behavior
+
+- **Status:** DONE
+- **Priority:** Medium impact / low effort
+- **Change:** Replace the repeated ten-argument direct `handle_error` calls with focused
+  test-only wrappers. Preserve each test's causal input and its handler-oriented Act while hiding
+  shared ordinary transport context and event-bus plumbing.
+- **Alternatives considered:**
+
+  | Alternative | Benefits | Drawbacks | Decision |
+  | --- | --- | --- | --- |
+  | Keep direct ten-argument calls | The production SUT and every argument are visible. | Every test repeats ordinary connection context; causal inputs are lost among irrelevant socket, configuration, UUID, range, and sender mechanics. | Rejected. |
+  | One positional default-context wrapper | Removes repeated transport setup. | Calls still contain positional `None` values for unrelated arguments, so the Act does not communicate its selected behavior. | Rejected. |
+  | Parameter-bag builder or scenario fixture | Could name and collect all handler inputs. | Becomes an artificial model of the SUT's argument list and hides which field causes the assertion to differ. | Rejected. |
+  | Outcome-named wrappers (`error_response_for`, `published_error_event_for`) | Tests expose only response or event inputs and obtain the observed value directly. | The Act hides the production handler name, introducing a hidden-SUT/hidden-Act smell. | Rejected. |
+  | Handler-oriented outcome wrappers (`handle_error_for_response`, `handle_error_for_published_event`) over one default-context wrapper | Calls retain `handle_error`, expose only causal response/event inputs, return the directly observed `Response` or `Event`, and hide only fixed collaborator mechanics. | The event wrapper owns broadcaster/receiver plumbing and the shared wrapper still has the production signature. | Kept. |
+
+- **Decision:** Keep `handle_error_for_response` and `handle_error_for_published_event`, both
+  delegating to `handle_error_with_default_context`. The inner wrapper is limited to connection
+  context that no test varies; the outer wrappers encode the two observable handler behaviors.
+  This retains a visible handler Act and one reason to fail per test without a parameter bag or
+  repeated irrelevant setup.
+- **Prose-first review:** The temporary prose stated that response tests select only a transaction
+  ID and that event tests select only request kind or public URL. The resulting calls make those
+  values visible, name `handle_error`, and return the observed value for the single assertion.
+  The temporary prose is now redundant and removed.
+- **Done when:** The focused calls communicate the selected handler behavior and validation passes.
+
 ## Progress Tracking
 
 ### Plan Checklist
@@ -162,6 +190,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R2 design review.
 - [x] R2 recorded, validated, and committed.
 - [x] R3 event-context assessment completed, reviewed, validated, and committed.
+- [x] R5 wrapper alternatives reviewed, selected, implemented, and validated.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -181,6 +210,10 @@ validation, review, and its mapped commit point—before beginning the next item
   behavior outside the test.
 - 2026-09-11 - User/maintainer - Reviewed and approved R3. The test makes the supplied public URL
   visible from Arrange through the handler Act and asserts only the received context's public URL.
+- 2026-09-11 - User/maintainer - Approved the handler-oriented wrapper design after reviewing
+  direct calls, a positional wrapper, a parameter-bag builder/scenario, and outcome-only wrappers.
+  The selected wrappers retain `handle_error` in each Act while hiding fixed context and
+  collaborator plumbing.
 
 ### Validation Evidence
 
@@ -189,6 +222,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests::it_should_publish_an_error_event_with_the_supplied_public_url`, and `git diff --check` passed. The public URL remains visible from Arrange through the handler Act and the test asserts only published event-context forwarding. |
+| R5 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The two outer wrappers retain the handler name and selected causal inputs; the inner wrapper centralizes only context that no test varies. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
