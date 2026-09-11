@@ -128,12 +128,21 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Record residual receiver ownership decisions
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure unit-only coverage and record separate aggregate/global and integration-only
   evidence when it informs the decision. Retain the pending, I/O-error, and termination branches at
   their existing Tokio, platform-fault-injection, and #1488 ownership boundaries.
 - **Guardrails:** Do not add a percentage-only test or a hot-path socket abstraction.
+- **Decision:** Separate reports show `receiver.rs` unit-only coverage increased from 15/22 lines
+  (68.18%), 18/31 regions (58.06%), and 3/3 functions (100%) to 55/56 lines (98.21%), 77/79
+  regions (97.47%), and 7/7 functions (100%). Aggregate/global execution independently reports
+  the same 55/56 lines, 77/79 regions, and 7/7 functions, while integration-only execution covers
+  21/22 production lines (95.45%), 29/31 regions (93.55%), and 3/3 functions (100%). Do not add
+  percentage-only tests for pending readiness, I/O error, or `None` termination: they require
+  Tokio waker control, non-portable socket fault injection, or #1488 receive-loop lifecycle policy.
+  Do not add a mock socket abstraction because it would add hot-path indirection to model those
+  implementation mechanics without a distinct package contract.
 - **Done when:** Each residual branch has a documented ownership decision.
 
 ## Progress Tracking
@@ -148,7 +157,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 implemented and focused validation passed.
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
-- [ ] R4 coverage/ownership review completed and decision recorded.
+- [x] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -165,6 +174,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Reviewed and approved the R2/R3 test design. Retain the focused
   `ReceiverWithQueuedLoopbackDatagram` scenario instead of generalizing it prematurely, and compare
   the whole `RawRequest` directly through its meaningful value equality.
+- 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
+  integration-only coverage separately; record residual pending, error, termination, and socket
+  abstraction decisions without adding a percentage-only test.
 
 ### Validation Evidence
 
@@ -173,7 +185,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. Existing integration coverage retains transport value but does not replace the feasible R2 unit-test assessment. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server receiver::tests::should_yield_a_raw_request_with_the_received_datagram_and_sender_address`, and `git diff --check` passed. Prose-first and smell review replace a complex Arrange with a state-named queued-loopback scenario and two field assertions with one whole-value `RawRequest` assertion; the visible stream Act remains unchanged. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Separate clean reports passed. `receiver.rs` unit-only coverage increased from 15/22 lines (68.18%), 18/31 regions (58.06%), and 3/3 functions (100%) to 55/56 lines (98.21%), 77/79 regions (97.47%), and 7/7 functions (100%). Aggregate/global separately reports the same result; integration-only separately reports 21/22 production lines (95.45%), 29/31 regions (93.55%), and 3/3 functions (100%). Pending, I/O-error, termination, and mock-abstraction paths have explicit ownership decisions. |
 
 ## Non-Goals
 

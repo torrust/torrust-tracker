@@ -104,6 +104,21 @@ The reports have different denominators and are not combined. The remaining comp
 are internal allocation or handle-cloning mechanics, generic events-package behavior, or root
 consumer policy; no additional coverage-only container test is selected.
 
+### Receiver Test-Level Evidence
+
+At commit `45bada2d`, clean separately collected reports show the following for
+`packages/udp-server/src/server/receiver.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 55 / 56 (98.21%) | 77 / 79 (97.47%) | 7 / 7 (100.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 55 / 56 (98.21%) | 77 / 79 (97.47%) | 7 / 7 (100.00%) | Direct queued-loopback test protects the package-owned datagram-to-`RawRequest` adapter. Before the increment, this scope covered 15 / 22 lines (68.18%) and 18 / 31 regions (58.06%). |
+| Integration-only (`--test integration`) | 21 / 22 (95.45%) | 29 / 31 (93.55%) | 3 / 3 (100.00%) | Separately confirms real-loopback production-slice execution; it does not substitute for the direct unit contract. |
+
+The reports have different denominators and are not combined. Pending readiness, receive-error,
+and stream-termination branches remain at Tokio readiness, platform fault-injection, and #1488
+receive-loop lifecycle boundaries; no mock socket abstraction or percentage-only test is selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
