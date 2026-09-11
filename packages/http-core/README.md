@@ -8,7 +8,7 @@ You usually don’t need to use this library directly. Instead, you should use t
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/crate/torrust-tracker/).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 

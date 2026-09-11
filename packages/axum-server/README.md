@@ -4,7 +4,7 @@ A wrapper for the Axum server used by Torrust tracker HTTP services to add timeo
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/crate/torrust-tracker/).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## Notes
 
