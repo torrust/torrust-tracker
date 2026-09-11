@@ -126,7 +126,11 @@ expanding into a bulk remediation.
 - 2026-09-10 09:20 UTC - GitHub Copilot - Fixed Cameron finding M25 / BB1: replaced five `assert_is_empty` assertions in the Rust validator library tests; nightly Clippy and `linter all` pass on the branch tip - Pending focused commit, reply, and thread resolution
 - 2026-09-10 09:30 UTC - GitHub Copilot - Completed Cameron finding M25 / BB1 in `65a8d1b4`; nightly Clippy and `linter all` passed, reply posted, and review thread resolved - Done
 - 2026-09-10 10:05 UTC - GitHub Copilot - Addressed Cameron findings M15 / BB2 and M19: pinned and fail-closed Git diff parsing; disposable Git fixtures disable signing and hooks; hostile configuration tests, nightly Clippy, and `linter all` passed - Pending focused commits, replies, and thread resolutions
+- 2026-09-10 10:15 UTC - GitHub Copilot - Completed Cameron findings M15 / BB2 and M19 in `067f379b`; validation passed, replies posted, and both review threads resolved - Done
+- 2026-09-10 10:30 UTC - GitHub Copilot - Addressed Cameron findings M16 / BB3 and M23: native-reason validation now covers changed direct and conditional Clippy `allow` and `expect` controls; the skill documents the macro token-body limitation - Pending focused commits, replies, and thread resolutions
+- 2026-09-10 10:40 UTC - GitHub Copilot - Completed Cameron findings M16 / BB3 and M23 in `415f16f6` and `b2db0d1c`; validation passed, replies posted, and both review threads resolved - Done
 - 2026-09-10 11:00 UTC - GitHub Copilot - Addressed Cameron finding M17: temporary-reason detection recognizes common intent wording and normalizes removal conditions without weakening required issue/removal evidence - Pending focused commits, reply, and thread resolution
+- 2026-09-10 11:10 UTC - GitHub Copilot - Completed Cameron finding M17 in `bb1c7e45` and `856d3d33`; validation passed, reply posted, and the review thread resolved - Done
 
 ## Acceptance Criteria
 
