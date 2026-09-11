@@ -153,12 +153,19 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Record final coverage and residual ownership
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure unit-only coverage after R2 and record it alongside separate aggregate/global
   and integration-only figures. Confirm the bind-error and `stop` lines remain the only intentional
   gaps.
 - **Guardrails:** Do not add percentage-only tests or a socket/task fixture for the deferred paths.
+- **Decision:** Clean reports show aggregate/global and unit-only coverage of 72/77 lines (93.51%),
+  91/102 regions (89.22%), and 16/20 functions (80.00%). Integration-only coverage separately
+  reports 27/37 lines (72.97%), 16/32 regions (50.00%), and 7/11 functions (63.64%). The reports
+  are not combined. Remaining unit-only executable lines are 105 (bind-error conversion), 184 and
+  190-191 (`Running::stop` halt/task failure mapping), and 232 (the existing test's defensive
+  fallback). Bind failure remains at the `BoundSocket` and public-start boundary; `stop` remains
+  #1488 lifecycle work; the defensive fallback is not behavior to force through a test.
 - **Done when:** The remaining uncovered lines are enumerated with their owners.
 
 ## Progress Tracking
@@ -173,7 +180,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 implemented and focused validation passed.
 - [x] Maintainer approved R3.
 - [x] R3 design review recorded, validated, and committed.
-- [ ] R4 coverage/ownership review completed and decision recorded.
+- [x] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -199,6 +206,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Reviewed and approved the R3 test design. Retain
   `launcher_task_with_successful_result` because it hides duplicated incidental `Spawner`
   construction while the successful versus aborted task outcome remains visible in each test.
+- 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
+  integration-only coverage separately and record each remaining executable line with its owner;
+  do not add a coverage-only socket or lifecycle test.
 
 ### Validation Evidence
 
@@ -207,7 +217,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. The no-change conclusion was subsequently narrowed by R2. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server states::tests`, and `git diff --check` passed. Prose-first and smell review retain visible closed-sender/task-outcome causal state, direct startup-notification Act, and one error-variant assertion per test. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Separate clean reports: aggregate/global and unit-only are 72/77 lines (93.51%), 91/102 regions (89.22%), and 16/20 functions (80.00%); integration-only is 27/37 lines (72.97%), 16/32 regions (50.00%), and 7/11 functions (63.64%). Remaining unit-only lines are the `BoundSocket`/public-start bind conversion, #1488-owned `stop` mappings, and defensive test fallback. |
 
 ## Non-Goals
 
