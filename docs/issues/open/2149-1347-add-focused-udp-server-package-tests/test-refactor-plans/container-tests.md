@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/container.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/container.rs
@@ -153,8 +153,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
 - [x] R3 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -170,15 +170,19 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R3. Measure aggregate/global, unit-only, and
   integration-only coverage separately and record residual composition ownership without adding a
   percentage-only test.
+- 2026-09-11 - User/maintainer - Reviewed and approved the completed container plan. The direct
+  unit test protects the enabled publication path, while R3 records separate coverage evidence and
+  retains internal allocation, generic event-bus, and root-policy behavior at their proper owners.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. The explicit no-cleanup decision preserves the feasible R2 unit-test assessment under the unit-first coverage policy. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server container::tests::should_publish_events_through_the_enabled_server_event_bus`, and `git diff --check` passed. Prose-first review keeps the enabled sender, exact event, publication Act, and received-event assertion visible; the timeout is diagnostic only. |
 | R3 | DONE | Separate clean reports passed: aggregate/global package source is 5,423/5,548 lines (97.75%), 7,088/7,340 regions (96.57%), and 551/565 functions (97.52%); unit-only is 5,317/5,548 lines (95.84%), 6,961/7,340 regions (94.84%), and 535/565 functions (94.69%); integration-only is 1,118/1,469 lines (76.11%), 1,190/1,654 regions (71.95%), and 148/187 functions (79.14%). `container.rs` unit-only coverage is 59/59 lines, 72/72 regions, and 5/5 functions (all 100%); integration-only separately covers 19/19 production lines, 29/29 regions, and 2/2 functions (all 100%). |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
