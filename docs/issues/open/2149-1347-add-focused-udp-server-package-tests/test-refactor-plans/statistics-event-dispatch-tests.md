@@ -94,30 +94,40 @@ validation, review, and its mapped commit point—before beginning the next item
   the unprotected `UdpError` parent-routing gap rather than moving tests or creating a matrix.
 - **Done when:** The no-cleanup decision is recorded before adding a test.
 
-### R2 - Cover error-event dispatch
+### R2 - Assess error-event dispatch
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
-- **Change:** Add one direct asynchronous test that gives the parent dispatcher an IPv4
-  `Event::UdpError` with `kind: None` and visible request-parse classification, then asserts only
-  the aggregate IPv4 error metric.
+- **Change:** Originally proposed one direct asynchronous test that gives the parent dispatcher
+  an IPv4 `Event::UdpError` and asserts the aggregate IPv4 error metric.
 - **Guardrails:** Keep the event classification, parent dispatcher Act, and one metric assertion
   visible. Do not assert labels, client metrics, event conversion, logs, listener behavior, or
   repository arithmetic.
-- **Done when:** Removing or routing the `UdpError` parent dispatch arm incorrectly causes one direct,
-  deterministic unit-test failure.
+- **Decision:** No dispatcher unit test is added. The module's responsibility is exhaustive
+  variant delegation with unchanged payload, repository, and timestamp. An omitted variant is a
+  compile error, and the module exposes no seam that observes delegation without asserting a
+  collaborator's metric side effect. A metric-based test would require knowing collaborator
+  behavior and would fail for handler or repository reasons, not only routing reasons. Adding a
+  production abstraction solely to unit test trivial delegation is not justified. The module
+  documents this ownership, and routing remains verified indirectly by the parent-dispatcher
+  tests inside specialized handler modules.
+- **Done when:** The no-test decision and indirect verification path are recorded in the module
+  and this plan.
 
 ### R3 - Review the test design after the vertical slice
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Complete and record the mandatory prose-first Arrange-Act-Assert and test-code-smell
-  review. Remove temporary prose only after the final code makes the error event, parent Act, and
-  one metric assertion clear.
+  review for the candidate test.
 - **Guardrails:** Keep one behavior and one reason to fail. Use an ordinary IPv4 context helper
   only if it names incidental construction without hiding the causal error event.
-- **Done when:** The test has maintainer-reviewed readable AAA structure and one reason to fail.
+- **Review outcome:** The candidate test had one Act and one assertion, but its only observable
+  result was a collaborator metric. The review identified a hidden-collaborator-knowledge smell:
+  the test could fail for error-handler or repository reasons rather than dispatcher routing. The
+  candidate was removed before commit; the duplicated IPv4 context helper was also removed.
+- **Done when:** The review outcome is recorded and no misleading dispatcher test remains.
 
 ### R4 - Record residual dispatch ownership decisions
 
@@ -138,10 +148,10 @@ validation, review, and its mapped commit point—before beginning the next item
       ownership reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved R2.
-- [ ] R2 implemented and focused validation passed.
-- [ ] Maintainer approved R3 design review.
-- [ ] R3 recorded, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 candidate implemented, reviewed, and replaced by a documented no-test decision.
+- [x] Maintainer approved R3 design review.
+- [x] R3 recorded, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -154,6 +164,15 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R1. Record that the dispatcher has no direct tests to
   clean and retain its existing six specialized-handler parent-routing contracts; do not create a
   dispatch matrix before assessing the single R2 `UdpError` gap.
+- 2026-09-11 - User/maintainer - Approved R2 as an assessment. After reviewing the candidate
+  test, questioned whether a metric-based assertion strictly tests the dispatcher and whether a
+  unit test is appropriate for a trivial delegation module.
+- 2026-09-11 - GitHub Copilot - Analysed the module's responsibility and failure modes: variant
+  omission is compiler-enforced; routing or payload loss has no observable seam without
+  collaborator side effects or a production abstraction. Recommended a no-test decision.
+- 2026-09-11 - User/maintainer - Agreed with the no-test decision. Requested recording the
+  decision in this plan and a module comment explaining why there are no unit tests and how the
+  routing is verified by other means.
 
 ### Validation Evidence
 
@@ -161,8 +180,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The dispatcher has no direct test code or concrete cleanup opportunity. Six existing specialized-handler tests retain their parent-dispatcher contracts; only the `UdpError` arm remains for R2 assessment. |
-| R2 | TODO | Awaiting R1 completion and maintainer approval. |
-| R3 | TODO | Awaiting R2 review. |
+| R2/R3 | DONE | The candidate `UdpError` metric-based dispatcher test passed focused validation but was removed after design review because its only observable result belonged to collaborators. The module now documents its routing-only responsibility and indirect verification via specialized-handler parent-dispatcher tests. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
