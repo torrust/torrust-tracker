@@ -88,12 +88,15 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R1 - Record the Phase 1 no-change decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** Phase 1
 - **Change:** Confirm that `handler.rs` has no direct tests to clean and that existing listener,
   BanService, repository, integration, and root contracts remain at their current boundaries.
 - **Guardrails:** Do not move or refactor collaborator tests.
+- **Decision:** `handler.rs` has no colocated test code or concrete cleanup opportunity. Listener,
+  `BanService`, repository, integration, and root contracts remain at their existing boundaries.
+  R2 separately assesses the feasible direct handler orchestration contract.
 - **Done when:** The no-cleanup decision is recorded before adding a test.
 
 ### R2 - Cover cookie-error event orchestration
@@ -140,8 +143,8 @@ validation, review, and its mapped commit point—before beginning the next item
 
 - [x] Handler responsibility, `BanService`, repository, listener, package-contract, root-composition,
       and current unit-only coverage boundaries reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved R2.
 - [ ] R2 implemented and focused validation passed.
 - [ ] Maintainer approved R3 design review.
@@ -155,13 +158,15 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - GitHub Copilot - Created this proposed plan after reviewing direct handler behavior,
   listener tests, `BanService` ownership, repository/metric ownership, package contracts, root
   composition tests, and the unit-only inventory. No test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Record that `handler.rs` has no direct test code to
+  clean and retain all collaborator contracts at their existing boundaries before assessing R2.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| R1 | DONE | The reviewed source has no colocated test code or concrete cleanup opportunity. Listener, `BanService`, repository, integration, and root tests retain their current ownership boundaries. |
 | R2 | TODO | Awaiting R1 completion and maintainer approval. |
 | R3 | TODO | Awaiting R2 review. |
 | R4 | TODO | Awaiting approved increments. |
