@@ -234,6 +234,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_publish_an_error_event_with_the_supplied_public_url() {
+        // Arrange
+        let broadcaster = crate::event::sender::Broadcaster::default();
+        let mut receiver = broadcaster.subscribe();
+        let sender = Some(Arc::new(broadcaster) as Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>);
+        let public_url = "udp://tracker.example.test:6969".to_string();
+        let error = internal_error();
+
+        // Act
+        handle_error(
+            None,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            service_binding(),
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            Some(public_url.clone()),
+            Uuid::nil(),
+            &sender,
+            0.0..1.0,
+            &error,
+            None,
+        )
+        .await;
+
+        // Assert
+        let Event::UdpError { context, .. } = receiver.recv().await.expect("error event should be published") else {
+            panic!("published event should be a UDP error");
+        };
+        assert_eq!(context.public_url(), Some(public_url.as_str()));
+    }
+
+    #[tokio::test]
     async fn it_should_return_a_zero_transaction_id_without_an_event_sender() {
         // Arrange
         let sender = None;
