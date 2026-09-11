@@ -120,7 +120,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover the remaining startup-notification error mappings
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** D4
 - **Change:** Add two direct asynchronous tests beside the existing one. The first drops the
@@ -130,6 +130,12 @@ validation, review, and its mapped commit point—before beginning the next item
 - **Guardrails:** Keep the closed sender and the task outcome visible in each Arrange. Use no
   socket, container, registrar, or `Launcher`. Each test asserts one error variant. Do not assert the
   inner message text beyond what identifies the variant.
+- **Prose-first review:** The temporary prose distinguished a closed startup sender plus either a
+  successfully completed launcher or an explicitly aborted launcher task. The final tests retain
+  `drop(tx_start)`, `launcher_task_with_successful_result`, and visible `task.abort()` as their
+  causal input/output relationships. The direct `await_startup_notification` Act and one typed
+  error-variant assertion remain visible. The helper hides only repeated incidental `Spawner`
+  construction. Temporary prose is redundant and removed.
 - **Done when:** Each `await_startup_notification` branch has one focused deterministic test.
 
 ### R3 - Document the module test-ownership boundary
@@ -163,10 +169,10 @@ validation, review, and its mapped commit point—before beginning the next item
       evidence, and #1488 lifecycle ownership reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 decision recorded, validated, and committed.
-- [ ] Maintainer approved R2.
-- [ ] R2 implemented and focused validation passed.
-- [ ] Maintainer approved R3.
-- [ ] R3 module comment added, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 implemented and focused validation passed.
+- [x] Maintainer approved R3.
+- [x] R3 design review recorded, validated, and committed.
 - [ ] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -188,6 +194,11 @@ validation, review, and its mapped commit point—before beginning the next item
   test's defensive `panic!` arm.
 - 2026-09-11 - User/maintainer - Requested the plan be reopened to add those tests and a module
   comment documenting the testing strategy for future maintainers.
+- 2026-09-11 - User/maintainer - Approved R2. Add only the two deterministic closed-startup
+  notification mappings; do not introduce socket, registrar, container, or `Launcher` setup.
+- 2026-09-11 - User/maintainer - Reviewed and approved the R3 test design. Retain
+  `launcher_task_with_successful_result` because it hides duplicated incidental `Spawner`
+  construction while the successful versus aborted task outcome remains visible in each test.
 
 ### Validation Evidence
 
@@ -195,8 +206,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. The no-change conclusion was subsequently narrowed by R2. |
-| R2 | TODO | Awaiting maintainer approval. |
-| R3 | TODO | Awaiting R2 completion and maintainer approval. |
+| R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server states::tests`, and `git diff --check` passed. Prose-first and smell review retain visible closed-sender/task-outcome causal state, direct startup-notification Act, and one error-variant assertion per test. |
 | R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
