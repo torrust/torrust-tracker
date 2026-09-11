@@ -28,3 +28,18 @@ semantic-links:
   - Record the cancelled-run correction in `ISSUE.md`.
   - Commit and review the hosted-verification evidence without closing issue #2185.
   - Continue with the next independently reviewable category after the evidence is merged.
+
+### 2026-09-11 09:42 UTC - Task Reviewer
+
+- Invocation scope: Independent review of the uncommitted C2 loopback-exclusion slice for issue #2185 in `.github/lychee-online.toml`, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Uncommitted diff, `.github/workflows/external-link-check.yaml`, `lychee.toml`, installed Lychee `0.24.2` implementation, and an explicit three-link online-config boundary check.
+- Evidence: `.github/lychee-online.toml` alone adds `exclude_loopback = true`; the unchanged `lychee.toml` remains offline and has no loopback exclusion. The online workflow continues to use the online config. Lychee `0.24.2` maps this option exclusively to loopback filtering: IPv4 `127.0.0.0/8`, IPv6 `::1/128`, and the `localhost` hostname; private and link-local filtering are separate disabled options. The explicit check of `http://127.0.0.1:9/`, `http://localhost:9/`, and `https://www.rust-lang.org/` reported 3 total, 2 excluded, 1 successful, 1 redirect, and 0 errors. The issue and baseline record the same test and correctly state that hosted verification is pending.
+- Findings:
+  - Resolved: C2 is online-only, narrowly limited to loopback addresses and `localhost`, and does not enable broad private, link-local, or public-address exclusion.
+  - Pending: The required hosted rerun has not yet verified C2 removal in the workflow report while retaining unrelated failures and its uploaded artifact. The prior hosted evidence only validates C1/C9.
+  - Correction applied: AC3 and AC5 were marked complete despite the new C2 slice awaiting its required hosted evidence; both checkboxes and the acceptance-verification table now correctly show pending status.
+  - Scope: The three-file diff contains no unrelated workflow, local-policy, timeout, retry, concurrency, path, or URL-pattern policy changes. `git diff --check` passed.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Manually dispatch the hosted External Link Check with the C2 change, retain the report artifact, and record its URL, revision, counts, C2 absence, remaining unrelated failures, and upload outcome.
+  - After that evidence is independently reviewed, restore AC3 and AC5 only if the hosted boundary behavior passes.
