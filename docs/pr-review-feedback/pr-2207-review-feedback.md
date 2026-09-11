@@ -1,0 +1,53 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review-feedback
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md
+    - docs/copilot-pr-reviews/pr-2207-copilot-suggestions.md
+---
+
+<!-- cspell:disable -->
+
+# PR #2207 Review Feedback Tracking
+
+Source: pull-request reviews and inline review comments for <https://github.com/torrust/torrust-tracker/pull/2207>.
+
+## Purpose
+
+Track Cameron's maintainer review independently from the Copilot review-thread audit. The six inline B1/B2 findings are shared with the active Copilot-suggestions workflow; this record preserves their review-level disposition without duplicating replies or resolutions.
+
+## Reviews
+
+| Review ID  | Submitted at (UTC)  | Reviewer | State             | URL                                                                                 | Reviewed commit                            | Consolidated response URL | Response state |
+| ---------- | ------------------- | -------- | ----------------- | ----------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------- | -------------- |
+| 5181622606 | 2026-09-11 17:24:04 | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | `f7e54854f42bdf058599e6e8c93545be3a1d2957` | <https://github.com/torrust/torrust-tracker/pull/2207#issuecomment-5638648995> | POSTED         |
+
+## Findings
+
+| ID  | Review ID  | Source      | Comment / thread ID     | URL                                                                                 | Summary                                                                                                 | Decision  | Independent fix commit | Validation                                     | Reply URL                                                                     | Inline thread state | Status  |
+| --- | ---------- | ----------- | ----------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------- | ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- | ------------------- | ------- |
+| F1  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxM` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747664>       | De-indent six folded ADR `related-artifacts` entries.                                                   | ACTION    | `327794a7`             | Semantic YAML assertion, Markdown lint, Lychee | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991916459> | RESOLVED            | DONE    |
+| F2  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxT` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747670>       | De-indent two folded SIGTERM retrospective test-path entries.                                           | ACTION    | `327794a7`             | Semantic YAML assertion, Markdown lint, Lychee | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991918142> | RESOLVED            | DONE    |
+| F3  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxU` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747672>       | De-indent the archived issue #1586 entry in issue #1588 frontmatter.                                    | ACTION    | `327794a7`             | Semantic YAML assertion, Markdown lint, Lychee | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991938986> | RESOLVED            | DONE    |
+| F4  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxX` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747677>       | De-indent the orchestration-document entry in issue #2155 retrospective frontmatter.                    | ACTION    | `327794a7`             | Semantic YAML assertion, Markdown lint, Lychee | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991941643> | RESOLVED            | DONE    |
+| F5  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxa` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747682>       | De-indent the archived issue #1588 entry in shutdown-analysis frontmatter.                              | ACTION    | `327794a7`             | Semantic YAML assertion, Markdown lint, Lychee | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991946370> | RESOLVED            | DONE    |
+| F6  | 5181622606 | Inline      | `PRRT_kwDOGp2yqc6hknxe` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991747686>       | Make the approved issue #2159 scope exception visible in the PR description.                            | NO_ACTION | N/A                    | Live PR body inspected                         | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3991957484> | RESOLVED            | DONE    |
+| F7  | 5181622606 | Review body | N/A                     | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | Squash conflict-marker cleanup into the archive commit so no merged revision contains conflict markers. | ACTION    | `8934e9c9`             | All PR commits signature-verified; precise marker scan; diff check | N/A                                                                           | NOT_APPLICABLE      | DONE    |
+| F8  | 5181622606 | Review body | N/A                     | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | Split unrelated policy changes and add a maintenance trail reference.                                   | FOLLOW_UP | N/A                    | User-directed branch scope retained | N/A                                                                           | NOT_APPLICABLE      | BLOCKED |
+| F9  | 5181622606 | Review body | N/A                     | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | Refresh `task-inventory.md` metadata after repairing its live links.                                    | ACTION    | `c7b54e3a`             | Markdown lint                                  | N/A                                                                           | NOT_APPLICABLE      | DONE    |
+| F10 | 5181622606 | Review body | N/A                     | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | Remove or evidence-link the unverifiable independent-review claim in the PR body.                       | ACTION    | N/A                    | Live PR body inspected                         | N/A                                                                           | NOT_APPLICABLE      | DONE    |
+| F11 | 5181622606 | Review body | N/A                     | <https://github.com/torrust/torrust-tracker/pull/2207#pullrequestreview-5181622606> | Record why archived specs retain unverified workflow checkpoints.                                       | ACTION    | `7cfb6a3b`             | Markdown lint, Lychee                          | N/A                                                                           | NOT_APPLICABLE      | DONE    |
+
+## Processing Log
+
+- 2026-09-11 17:24 UTC - Started Cameron (`da2ce7`) review audit for submitted review 5181622606.
+- 2026-09-11 17:24 UTC - Recorded F1-F6 as `FOLLOW_UP` because the active Copilot-suggestions workflow already owns the same inline threads. This workflow will not duplicate replies or resolutions.
+- 2026-09-11 - Completed F1-F6 through the Copilot thread workflow and recorded their reply URLs here.
+- 2026-09-11 - Completed F7, F9, F10, and F11. F8 remains blocked by the user's explicit decision to retain the independently committed work in this PR.
+- 2026-09-11 - Posted the consolidated response for review 5181622606 at <https://github.com/torrust/torrust-tracker/pull/2207#issuecomment-5638648995>.
+
+## Notes
+
+- The duplicate Copilot-authored thread `PRRT_kwDOGp2yqc6hkOMl` is intentionally excluded from this maintainer-review record.
+- F8 requires maintainer direction because the user explicitly chose to keep the separate commits together on this branch and PR; it must not be silently overridden.
