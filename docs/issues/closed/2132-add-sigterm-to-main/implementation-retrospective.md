@@ -7,8 +7,8 @@ semantic-links:
     - docs/issues/closed/2132-add-sigterm-to-main/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-tracker-refactor-plan.md
-      - tests/lifecycle/native_tracker.rs
-      - tests/lifecycle/signals.rs
+    - tests/lifecycle/native_tracker.rs
+    - tests/lifecycle/signals.rs
 ---
 
 # Implementation Retrospective

@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - docs/issues/closed/2155-2003-document-ai-agent-orchestration/ISSUE.md
-      - docs/agents/orchestration.md
+    - docs/agents/orchestration.md
 ---
 
 # Implementation Retrospective — Issue #2155
