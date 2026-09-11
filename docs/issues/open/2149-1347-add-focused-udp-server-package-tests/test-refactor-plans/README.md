@@ -21,7 +21,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Container tests](container-tests.md) — complete.
 - [Receiver tests](receiver-tests.md) — complete.
 - [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — complete.
-- [Banning event-handler tests](banning-event-handler-tests.md) — proposed; awaiting maintainer approval.
+- [Banning event-handler tests](banning-event-handler-tests.md) — complete.
+- [Server states tests](server-states-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
