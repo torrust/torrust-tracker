@@ -29,6 +29,20 @@ semantic-links:
   - Commit and review the hosted-verification evidence without closing issue #2185.
   - Continue with the next independently reviewable category after the evidence is merged.
 
+### 2026-09-11 15:50 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of C2 hosted-verification evidence in `ISSUE.md` and `external-link-baseline.md`.
+- Inputs: GitHub Actions [run 34616458439](https://github.com/torrust/torrust-tracker/actions/runs/34616458439), its downloaded report artifact, and the merged online configuration.
+- Evidence: The run completed with a visible Lychee failure on `f6df96bf1ad59812db47457b84dcd5926c267c61`; `Upload Lychee Report` succeeded. The unexpired `lychee-external-link-report` artifact is 1,533 bytes and expires on 2026-09-25. Its report records 1,857 total checks, 1,318 successes, 25 redirects, 495 exclusions, 44 errors, and no timeouts. No `localhost`, `127.0.0.1`, or exact `#discussion_r` pull-request review-comment URL remained, while unrelated `404`, `403`, FSF transport, issue-comment, pull-request-review, and other missing-fragment failures remained visible.
+- Findings:
+  - Resolved: C2 loopback filtering is hosted-verified and remains narrow.
+  - Resolved: T3, AC3, AC5, and M4 can be complete for the C1/C9+C2 exclusion slices.
+  - Pending: Keep issue #2185 open for C3-C8, AC2/AC6, final quality/manual evidence, acceptance re-review, and completion review.
+- Verdict: REVIEW PASSED.
+- Follow-up actions:
+  - Commit and review the C2 hosted-verification evidence without closing issue #2185.
+  - Continue with the next independently reviewable category after the evidence is merged.
+
 ### 2026-09-11 09:42 UTC - Task Reviewer
 
 - Invocation scope: Independent review of the uncommitted C2 loopback-exclusion slice for issue #2185 in `.github/lychee-online.toml`, `ISSUE.md`, and `external-link-baseline.md`.

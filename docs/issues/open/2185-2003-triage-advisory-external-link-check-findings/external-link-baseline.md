@@ -44,8 +44,8 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C2: Local service examples — 7 occurrences
 
     - **Pattern:** `localhost` or `127.0.0.1` service URLs with connection-refused or cached diagnostics.
-    - **Disposition:** Online-only `exclude_loopback = true` candidate. These intentional local configuration and debugging examples cannot resolve on a GitHub-hosted runner.
-    - **Next action:** Local boundary verification is complete: an explicit online configuration excluded `127.0.0.1` and `localhost` while checking `https://www.rust-lang.org/` successfully. Verify the hosted report removes C2 while retaining unrelated failures and its artifact.
+    - **Disposition:** Resolved with online-only `exclude_loopback = true`. These intentional local configuration and debugging examples cannot resolve on a GitHub-hosted runner.
+    - **Next action:** Complete. The local boundary test excluded `127.0.0.1` and `localhost` while checking `https://www.rust-lang.org/` successfully. Hosted [run 34616458439](https://github.com/torrust/torrust-tracker/actions/runs/34616458439) excluded 495 links and contained no loopback URLs while retaining 44 unrelated errors and its report artifact.
 
 ### C3: Unavailable docs.rs crate pages — 14 occurrences
 
