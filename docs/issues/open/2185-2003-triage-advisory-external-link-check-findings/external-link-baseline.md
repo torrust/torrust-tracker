@@ -50,7 +50,7 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C3: Unavailable docs.rs crate pages — 14 occurrences
 
 - **Pattern:** `https://docs.rs/torrust-*` and `https://docs.rs/bittorrent-udp-protocol` returning `404`.
-- **Disposition:** Repaired. These package README links pointed at unavailable individual crate pages; the corresponding workspace packages inherit the shared `https://docs.rs/crate/torrust-tracker/` documentation target.
+- **Disposition:** Repaired. These package README links pointed at unavailable individual crate pages; the corresponding workspace packages inherit the shared `https://docs.rs/crate/torrust-tracker/latest` documentation target.
 - **Next action:** Complete local verification: all 14 affected package manifests report the shared target through Cargo metadata, and docs.rs returned HTTP 200 for it. Verify removal from a hosted report after this repair slice merges.
 
 ### C4: Stale repository-controlled GitHub links — 3 occurrences
@@ -110,7 +110,7 @@ The 14 affected package README files are:
 - `packages/udp-protocol/README.md`
 - `packages/udp-server/README.md`
 
-All 14 links now use `https://docs.rs/crate/torrust-tracker/`. Cargo metadata reports the same inherited documentation value for each workspace package, and docs.rs redirects this target to `https://docs.rs/crate/torrust-tracker/latest` with HTTP 200.
+All 14 links now use `https://docs.rs/crate/torrust-tracker/latest`. Cargo metadata reports the same inherited documentation value for each workspace package, and docs.rs returns HTTP 200 for this canonical target.
 
 ### C4-C6: Individually actionable or investigatory URLs
 

@@ -4,7 +4,7 @@ A library with functionality to handle events in [Torrust Tracker](https://githu
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/crate/torrust-tracker/).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 
