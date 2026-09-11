@@ -92,12 +92,18 @@ coverage.
 
 ### R1 - Record the reviewed no-change and lifecycle deferral decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Retain the current startup-error precedence test and record the representation,
   registration-cleanup, and #1488 lifecycle ownership decisions.
 - **Guardrails:** Do not change production code, move existing tests, add a socket/task fixture, or
   create a percentage-only test.
+- **Decision:** Retain the current direct `await_startup_notification` error-precedence test and the
+  existing public `server/mod.rs` registration-error and listener-release contract. Do not add
+  representation-only tests for state construction or derived types. Defer bind-error, closed-startup
+  success, task join failure, stop, halt, receive-loop, and processor-task paths to #1488 SI-14,
+  SI-15, and SI-17 because they require lifecycle ownership, cancellation, joining, or shutdown
+  policy that this issue must not define.
 - **Done when:** The plan records why no new `states.rs` test is appropriate and which existing test
   or issue owns each remaining behavior.
 
@@ -107,10 +113,10 @@ coverage.
 
 - [x] State transition responsibilities, existing unit/public-server/integration tests, unit-only
       evidence, and #1488 lifecycle ownership reviewed.
-- [ ] Maintainer approved R1.
-- [ ] R1 decision recorded, validated, and committed.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer approved R1.
+- [x] R1 decision recorded, validated, and committed.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -118,13 +124,17 @@ coverage.
   responsibilities, the colocated startup-error precedence test, public registration cleanup,
   integration boundaries, and #1488 lifecycle ownership. No test or production change has been
   made.
+- 2026-09-11 - User/maintainer - Approved R1. Record the reviewed no-change decision: retain the
+  existing startup-error precedence and public registration-cleanup contracts, decline
+  representation-only tests, and defer all remaining task/channel/shutdown behavior to #1488.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1 | TODO | Awaiting maintainer approval. |
+| Plan documentation | DONE | Markdown and spelling checks passed after maintainer review changes. |
+| R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. No state-layer test, fixture, or production change is warranted. |
+| Plan completion | DONE | Maintainer reviewed the no-change and lifecycle-deferral decision before the next file plan begins. |
 
 ## Non-Goals
 
