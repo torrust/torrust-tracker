@@ -45,6 +45,9 @@ Track Cameron's maintainer review independently from the Copilot review-thread a
 | F15 | 5182099574 | Inline      | `PRRT_kwDOGp2yqc6hlp54` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992155252>       | Restore 28 shutdown-analysis metadata entries.                                                          | ACTION    | `e028d627`             | Semantic YAML assertion, Markdown lint, Lychee                     | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993342911> | RESOLVED            | DONE        |
 | F16 | 5182099574 | Inline      | `PRRT_kwDOGp2yqc6hlp6A` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992155262>       | Correct the maintainer audit's source-fix commits.                                                      | ACTION    | `4a48a6ca`             | Markdown lint, Lychee                                              | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993344950> | RESOLVED            | DONE        |
 | F17 | 5182099574 | Inline      | `PRRT_kwDOGp2yqc6hlp6H` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992155268>       | Correct the Copilot audit's source-fix history.                                                         | ACTION    | `80f5eb23`             | Markdown lint, Lychee                                              | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993362486> | RESOLVED            | DONE        |
+| F18 | N/A        | Follow-up inline | `PRRT_kwDOGp2yqc6hnluR` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992911499> | Verify F1, F2, F4, and F5 identify the source repair commit accurately. | NO_ACTION | `4a48a6ca` | Live audit inspected | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993653175> | RESOLVED | DONE |
+| F19 | N/A        | Follow-up inline | `PRRT_kwDOGp2yqc6hnluW` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992911506> | Verify review 5182099574 and all six of its findings are represented. | NO_ACTION | `d5f1ff7c` | Live audit inspected | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993654117> | RESOLVED | DONE |
+| F20 | N/A        | Follow-up inline | `PRRT_kwDOGp2yqc6hnlua` | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3992911511> | Verify the Copilot audit distinguishes the two source-repair commits. | NO_ACTION | `80f5eb23` | Live Copilot audit inspected | <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993654943> | RESOLVED | DONE |
 
 ## Processing Log
 
@@ -55,6 +58,7 @@ Track Cameron's maintainer review independently from the Copilot review-thread a
 - 2026-09-11 - Posted the consolidated response for review 5181622606 at <https://github.com/torrust/torrust-tracker/pull/2207#issuecomment-5638648995>.
 - 2026-09-11 - The initial replies for F1, F2, F4, and F5 were premature: `327794a7` repairs F3 only. The four re-raised source findings were repaired in `e028d627` and are tracked as F12-F15.
 - 2026-09-11 - Resolved F12-F17 after recording their reply URLs and posted the consolidated response for review 5182099574 at <https://github.com/torrust/torrust-tracker/pull/2207#issuecomment-5641003289>.
+- 2026-09-11 19:58 UTC - Cameron opened three follow-up inline checks after the audit corrections had already landed. All were `NO_ACTION`, replied to, and resolved because `4a48a6ca`, `d5f1ff7c`, and `80f5eb23` already contained the requested records.
 
 ## Notes
 
