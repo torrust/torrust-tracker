@@ -16,13 +16,13 @@ Source: maintainer pull-request reviews and inline review comments for
 
 ## Reviews
 
-| Review ID  | Submitted at (UTC) | Reviewer | State             | URL                                                                                 | Reviewed commit | Consolidated response URL | Response state |
-| ---------- | ------------------ | -------- | ----------------- | ----------------------------------------------------------------------------------- | --------------- | ------------------------- | -------------- |
-| 5146070207 | 2026-09-08 19:23   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5146070207> | 58d42e37        | Pending                   | PENDING        |
-| 5155445019 | 2026-09-09 14:07   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155445019> | 16fc1aba        | Pending                   | PENDING        |
-| 5155953316 | 2026-09-09 14:48   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155953316> | 2377460c        | Pending                   | PENDING        |
-| 5156076762 | 2026-09-09 14:58   | da2ce7   | COMMENTED         | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156076762> | 2377460c        | Pending                   | PENDING        |
-| 5156728063 | 2026-09-09 15:54   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156728063> | 4389614b        | Pending                   | PENDING        |
+| Review ID  | Submitted at (UTC) | Reviewer | State             | URL                                                                                 | Reviewed commit | Consolidated response URL                                                      | Response state |
+| ---------- | ------------------ | -------- | ----------------- | ----------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------ | -------------- |
+| 5146070207 | 2026-09-08 19:23   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5146070207> | 58d42e37        | <https://github.com/torrust/torrust-tracker/pull/2177#issuecomment-5632926313> | DONE           |
+| 5155445019 | 2026-09-09 14:07   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155445019> | 16fc1aba        | <https://github.com/torrust/torrust-tracker/pull/2177#issuecomment-5632926495> | DONE           |
+| 5155953316 | 2026-09-09 14:48   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5155953316> | 2377460c        | <https://github.com/torrust/torrust-tracker/pull/2177#issuecomment-5632926683> | DONE           |
+| 5156076762 | 2026-09-09 14:58   | da2ce7   | COMMENTED         | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156076762> | 2377460c        | <https://github.com/torrust/torrust-tracker/pull/2177#issuecomment-5632926845> | DONE           |
+| 5156728063 | 2026-09-09 15:54   | da2ce7   | CHANGES_REQUESTED | <https://github.com/torrust/torrust-tracker/pull/2177#pullrequestreview-5156728063> | 4389614b        | <https://github.com/torrust/torrust-tracker/pull/2177#issuecomment-5632926999> | DONE           |
 
 ## Findings
 
@@ -79,6 +79,7 @@ Source: maintainer pull-request reviews and inline review comments for
 - 2026-09-11 09:45 UTC - M1-M14 completed: all historical threads received specific action or supersession replies and were resolved; tracker rows were synchronized.
 - 2026-09-11 09:50 UTC - M26 verified: fresh current-tip `linter all` passed after all five affected assertions were corrected; ready to reply and resolve.
 - 2026-09-11 09:55 UTC - M26 completed: fresh lint evidence was replied and the thread resolved; append-only corrections now name all three stale claims and both affected test areas.
+- 2026-09-11 10:25 UTC - Consolidated responses posted for every Cameron review after all its associated findings were resolved.
 
 ## Notes
 
