@@ -18,7 +18,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Launcher tests](launcher-tests.md) — complete.
 - [Contract tests](contract-tests.md) — complete.
 - [Error-metric handler tests](error-metric-tests.md) — complete.
-- [Container tests](container-tests.md) — proposed; awaiting maintainer approval.
+- [Container tests](container-tests.md) — complete.
+- [Receiver tests](receiver-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
