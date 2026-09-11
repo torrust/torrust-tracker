@@ -64,8 +64,8 @@ The script runs these steps in order:
 1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
    `LC_ALL=C sort -u`
 2. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
-  check for changed staged Clippy allow attributes. The command resolves the first available
-  base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
+   check for changed staged Clippy allow attributes. The command resolves the first available
+   base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
 3. `cargo machete --with-metadata` - unused dependency check
 4. `cargo deny check bans` - workspace layer-boundary dependency check
 5. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
