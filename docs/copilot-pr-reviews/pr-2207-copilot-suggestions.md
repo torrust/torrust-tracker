@@ -37,6 +37,7 @@ Status legend:
 
 - 2026-09-11: Started processing suggestions.
 - 2026-09-11: Resolved all seven initial threads. The first B1 replies were premature: `327794a7` corrects only issue #1588 (row 4); the ADR, #2132, #2155, and shutdown-analysis source repairs landed in `e028d627` after Cameron re-raised them. B2 was already addressed by the live PR description.
+- 2026-09-11: Corrected this audit's repair-commit history in `80f5eb23`; Cameron's re-raised audit thread was resolved at <https://github.com/torrust/torrust-tracker/pull/2207#discussion_r3993362486>.
 - 2026-09-11: Refreshed review threads after the history rewrite; no unresolved threads remain.
 
 ## Suggestions
