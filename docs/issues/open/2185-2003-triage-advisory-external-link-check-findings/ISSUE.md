@@ -8,7 +8,7 @@ github-issue: 2185
 spec-path: docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: null
-last-updated-utc: 2026-09-10 07:25
+last-updated-utc: 2026-09-11 08:27
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
     - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
+    - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/agent-review-reports.md
     - .github/workflows/external-link-check.yaml
     - .github/lychee-online.toml
 ---
@@ -87,8 +88,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ----------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.                      |
 | T2  | TODO        | Repair clearly stale references           | Small, reviewable repairs replace or remove only references confirmed stale, with replacement-target evidence.             |
-| T3  | IN_PROGRESS | Add justified narrow exclusions           | Added the exact C1/C9 pull-request review-comment-anchor candidate; hosted boundary verification is pending.               |
-| T4  | TODO        | Revalidate hosted signal                  | A manually dispatched run after each remediation slice demonstrates the expected change without hiding remaining failures. |
+| T3  | DONE        | Add justified narrow exclusions           | The exact C1/C9 review-comment-anchor rule was verified on a merged upstream hosted run.                                  |
+| T4  | DONE        | Revalidate hosted signal                  | Hosted run 34578523069 excluded the intended anchors while retaining visible unrelated failures and its report artifact.  |
 | T5  | TODO        | Document operations and review completion | Triage procedure, residual risks, acceptance evidence, and independent review are updated from observed results.           |
 
 ## Commit Points
@@ -109,7 +110,7 @@ A category that needs no repository change is recorded in issue-local evidence w
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-triage-advisory-external-link-check-findings/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Baseline classification independently reviewed
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -117,7 +118,7 @@ A category that needs no repository change is recorded in issue-local evidence w
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -128,14 +129,16 @@ A category that needs no repository change is recorded in issue-local evidence w
 - 2026-09-09 15:15 UTC - Copilot - Downloaded the retained report from [run 34347690674](https://github.com/torrust/torrust-tracker/actions/runs/34347690674), classified all 461 errors in `external-link-baseline.md`, and selected only GitHub pull-request review-comment anchors as the first proposed remediation slice. No production configuration or link was changed.
 - 2026-09-10 07:09 UTC - Task Reviewer - Independently re-parsed the retained report and passed the corrected classification: $416+7+14+3+1+5+3+4+8=461$, with C1/C9 covering 424 exact GitHub pull-request review-comment-anchor failures. No broad exclusion is proposed; no configuration or link changed in this evidence-only slice.
 - 2026-09-10 07:25 UTC - Copilot - Added the exact C1/C9 URL-pattern exclusion to `.github/lychee-online.toml`. A two-link Lychee boundary test excluded a pull-request review-comment anchor while retaining a GitHub issue-comment anchor as a visible error. Hosted rerun evidence remains pending.
+- 2026-09-11 08:27 UTC - Copilot - After PR #2197 merged, [run 34577938048](https://github.com/torrust/torrust-tracker/actions/runs/34577938048) was cancelled while its Lychee step was still in progress. Its upload step retained an empty, unusable report artifact, so it provides no usable Lychee output. Replacement [run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) completed on merged revision `427b0c93`: it visibly failed with 52 remaining errors, excluded 476 links, uploaded a 1,743-byte report artifact, and contained no matching C1/C9 `#discussion_r` URLs. Unrelated `404`, `403`, loopback, issue-comment, other-fragment, and rate-limit failures remained visible.
+- 2026-09-11 08:32 UTC - Task Reviewer - Independently reviewed the replacement hosted run and report artifact. The evidence supports T3/T4, AC3-AC5, and M4; the issue remains open for the remaining C2-C8 work. See `agent-review-reports.md`.
 
 ## Acceptance Criteria
 
 - [x] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
 - [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct.
-- [ ] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
-- [ ] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
-- [ ] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.
+- [x] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
+- [x] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
+- [x] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.
 - [ ] AC6: Documentation explains any permanent exclusion rationale and preserves the existing rerun-then-repair-or-narrow-exclusion triage policy.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant tests pass or their documented non-applicability is reviewed.
@@ -161,7 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | Reproduce baseline             | Manually dispatch `external-link-check.yaml` on `develop`; download `lychee-external-link-report`.            | Report is available even when Lychee fails; baseline counts and categories can be reviewed.                                                     | DONE   | [Run 34347690674](https://github.com/torrust/torrust-tracker/actions/runs/34347690674), revision `7abc30b2`, 461 errors, 0 timeouts. |
 | M2  | Classify durable failures      | Review all report entries and group by URL/pattern, response type, owning document, and proposed disposition. | Every baseline failure has a traceable disposition; no broad host-level suppression is proposed.                                                | DONE   | `external-link-baseline.md`; independent reconciliation passed on 2026-09-10.                                                        |
 | M3  | Verify reference repairs       | Check each changed target using the appropriate authoritative source, then run local validation.              | Replacement reference is correct and offline local-link validation remains clean.                                                               | TODO   | Focused commands and review evidence.                                                                                                |
-| M4  | Verify exclusion boundaries    | Dispatch the hosted workflow after adding a proposed exclusion.                                               | The intended durable false-positive category is absent, while representative unrelated external failures remain visible and the report uploads. | TODO   | Hosted run URL and artifact summary.                                                                                                 |
+| M4  | Verify exclusion boundaries    | Dispatch the hosted workflow after adding a proposed exclusion.                                               | The intended durable false-positive category is absent, while representative unrelated external failures remain visible and the report uploads. | DONE   | [Run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) on `427b0c93`: 476 excluded, 52 remaining errors, no C1/C9 matches, and a retained 1,743-byte report artifact. |
 | M5  | Distinguish transient failures | Re-run a newly observed timeout, 403, or other potentially transient result once.                             | The record distinguishes a persistent failure from a transient response before an exclusion or repair decision.                                 | TODO   | Pair of hosted-run URLs and comparison.                                                                                              |
 
 ### Acceptance Verification
@@ -170,9 +173,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ----- | ---------------------- | ----------------------------------------------------------------- |
 | AC1   | DONE                   | `external-link-baseline.md` from run 34347690674.                 |
 | AC2   | TODO                   | Reviewed reference-repair commits and target evidence.            |
-| AC3   | TODO                   | Configuration diff and hosted rerun showing exclusion boundaries. |
-| AC4   | TODO                   | Workflow source and hosted failure/report artifact.               |
-| AC5   | TODO                   | Hosted rerun comparison for each remediation slice.               |
+| AC3   | DONE                   | Exact online-only rule and run 34578523069 report evidence.       |
+| AC4   | DONE                   | Run 34578523069 failed visibly and uploaded its report artifact.  |
+| AC5   | DONE                   | Run 34578523069 records 476 exclusions and 52 remaining errors.  |
 | AC6   | TODO                   | Updated documentation and reviewer confirmation.                  |
 
 ## Risks and Trade-offs
