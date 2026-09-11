@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
     - docs/containers.md
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
-    - docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
+    - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---

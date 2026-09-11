@@ -3,7 +3,7 @@ name: open-pull-request
 description: Open a pull request from a feature branch using GitHub CLI (preferred) or GitHub MCP tools. Covers pre-flight checks, correct base/head configuration for fork workflows, title/body conventions, and post-creation validation. Use when asked to "open PR", "create pull request", or "submit branch for review".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Open a Pull Request
@@ -17,15 +17,27 @@ metadata:
 
 Before opening a PR:
 
-- [ ] Working tree is clean (`git status`)
+- [ ] Working tree is clean: `git status --short` has no output. **Do not open a PR while any tracked or untracked change is present.** Commit the intended changes, or deliberately discard/stash unrelated changes first.
 - [ ] Upstream target repository confirmed from workspace metadata (`Cargo.toml` → `repository`)
-- [ ] Branch is rebased on the latest `develop` from upstream (`<upstream-remote>/develop`); verify with `git log --oneline HEAD..<upstream-remote>/develop` (empty output means up to date) and rebase if behind
+- [ ] Branch is rebased on the latest fetched `develop` from upstream (`<upstream-remote>/develop`): run `git fetch <upstream-remote>`, then verify `git log --oneline HEAD..<upstream-remote>/develop` has no output. Rebase if it is behind.
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
 - [ ] PR body claims are aligned with the actual commit range (`<upstream-remote>/develop..HEAD`)
 - [ ] If manual verification used temporary local-only patches, PR body explicitly says they are not included
 - [ ] PR body paragraphs are written as single continuous lines (no hard line wrapping)
+
+### Required pre-flight order
+
+Run these checks immediately before `gh pr create` or an equivalent MCP creation request:
+
+```bash
+git status --short
+git fetch <upstream-remote>
+git log --oneline HEAD..<upstream-remote>/develop
+```
+
+Stop if the first command prints any path or the final command prints any commit. First restore a clean working tree, then rebase on the fetched upstream `develop`, repeat the checks, and only then create the PR. A clean working tree is required both before rebasing and before opening the PR so no uncommitted changes are accidentally omitted from, or confused with, the proposed commit range.
 
 ### Keeping the branch up to date
 

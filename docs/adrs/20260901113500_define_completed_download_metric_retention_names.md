@@ -1,7 +1,7 @@
 ---
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2122-expose-unambiguous-download-counter-semantics/ISSUE.md
+    - docs/issues/closed/2122-expose-unambiguous-download-counter-semantics/ISSUE.md
     - docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md
     - packages/tracker-core/src/statistics/mod.rs
     - packages/tracker-core/src/statistics/event/handler.rs
