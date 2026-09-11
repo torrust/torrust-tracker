@@ -32,14 +32,16 @@ at the unit boundary.
 
 Six dispatch arms already have parent-dispatcher tests colocated with their specialized handlers:
 request aborted, discarded, banned, received, accepted, and response sent. The three error-metric
-handler tests intentionally call their local `error::handle_event` directly, so none exercises the
-parent `Event::UdpError` dispatch arm.
+handler tests intentionally call their local `error::handle_event` directly. The remaining
+`Event::UdpError` arm has no independent observable seam: a metric assertion would test the error
+handler and repository in addition to delegation.
 
 ### Decision
 
 No cleanup increment is proposed because the dispatcher has no direct test code. Preserve the
 specialized handler tests and their existing parent-router coverage. Do not create a seven-event
-matrix: only the unprotected `UdpError` arm has a distinct direct unit-routing gap.
+matrix or a production injection seam: `UdpError` delegation has no strict direct unit boundary in
+the current design.
 
 ## Phase 2 - Add Missing Behavior Tests
 
@@ -54,20 +56,20 @@ matrix: only the unprotected `UdpError` arm has a distinct direct unit-routing g
 
 ### Problems and opportunities
 
-#### P1 - Error-event dispatch has no direct parent-router contract
+#### P1 - Error-event dispatch has no strict direct unit boundary
 
-**Problem.** `Event::UdpError` is the only parent dispatch arm without a unit test that invokes the
-parent `handle_event` function. The local error-handler tests do not protect omission, replacement,
-or payload loss in this match arm.
+**Problem.** `Event::UdpError` is the only parent dispatch arm without a specialized-handler test
+that invokes the parent `handle_event` function. The local error-handler tests do not exercise the
+dispatcher arm directly.
 
-**Why it matters.** A refactor can omit the arm, route it incorrectly, or stop forwarding the error
-payload while the specialized handler tests continue to pass because they bypass the dispatcher.
+**Why it matters.** A refactor can route the arm incorrectly or stop forwarding an error payload.
+An omitted arm is compiler-enforced by the exhaustive `match`.
 
-**Opportunity.** Add one direct unit test with an IPv4 `Event::UdpError`, `kind: None`, and a
-visible `ErrorKind::RequestParse`. Call the parent dispatcher and assert only the aggregate IPv4
-error metric is one. This proves the event reached the error-metric route without reproducing
-request-kind labels, client-software labels, peer-ID parsing, event conversion, or metric-query
-mechanics.
+**Decision.** Do not add a direct test. The attempted metric-based test observed the specialized
+error handler and repository rather than strict delegation, so it could fail for collaborator
+behavior. The dispatcher returns no result and has no injectable collaborator seam. Adding a
+production abstraction solely to observe a trivial delegation would add indirection without a
+production benefit.
 
 #### P2 - Other event variants are already represented at this boundary
 
@@ -131,13 +133,21 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Record residual dispatch ownership decisions
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure unit-only coverage and retain aggregate/global and integration-only evidence
   separately if it informs the assessment. Record why the other six event arms retain their
   existing test coverage.
 - **Guardrails:** Do not add percentage-only tests or use aggregate/integration coverage as proof
   that this dispatcher's unit coverage is sufficient.
+- **Decision:** Fresh clean reports show unit-only coverage of 19/21 lines (90.48%), 41/52 regions
+  (78.85%), and 2/2 functions (100%). Integration-only coverage separately reports 17/21 lines
+  (80.95%), 40/52 regions (76.92%), and 2/2 functions (100%). The reports are not combined. The
+  remaining `UdpError` delegation arm is intentionally not covered by a strict direct unit test:
+  omission is compiler-enforced and the current design has no non-collaborator observation seam.
+  Existing specialized-handler parent-routing tests retain their observable metric contracts; the
+  local error-handler tests retain error-routing behavior. Do not add a percentage-only test or a
+  production injection abstraction.
 - **Done when:** The unit-only dispatch coverage and every residual ownership decision are recorded.
 
 ## Progress Tracking
@@ -152,7 +162,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 candidate implemented, reviewed, and replaced by a documented no-test decision.
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
-- [ ] R4 coverage/ownership review completed and decision recorded.
+- [x] R4 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -173,6 +183,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Agreed with the no-test decision. Requested recording the
   decision in this plan and a module comment explaining why there are no unit tests and how the
   routing is verified by other means.
+- 2026-09-11 - User/maintainer - Approved R4. Measure and record separate unit-only and
+  integration-only coverage, then retain the no-test decision without adding a percentage-only
+  test or a production injection abstraction.
 
 ### Validation Evidence
 
@@ -181,7 +194,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The dispatcher has no direct test code or concrete cleanup opportunity. Six existing specialized-handler tests retain their parent-dispatcher contracts; only the `UdpError` arm remains for R2 assessment. |
 | R2/R3 | DONE | The candidate `UdpError` metric-based dispatcher test passed focused validation but was removed after design review because its only observable result belonged to collaborators. The module now documents its routing-only responsibility and indirect verification via specialized-handler parent-dispatcher tests. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Fresh clean reports: unit-only is 19/21 lines (90.48%), 41/52 regions (78.85%), and 2/2 functions (100%); integration-only is 17/21 lines (80.95%), 40/52 regions (76.92%), and 2/2 functions (100%). The remaining `UdpError` delegation arm lacks a strict non-collaborator observation seam; omission is compiler-enforced, and no production injection abstraction is justified. |
 
 ## Non-Goals
 
@@ -204,9 +217,10 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ## Completion Criteria
 
-- The `UdpError` parent dispatch arm has one direct deterministic unit contract.
-- The test keeps the causal error event, parent dispatcher Act, and one observable metric assertion
-  visible without a dispatch matrix.
+- The dispatcher routing responsibility and the reason it has no strict colocated unit test are
+  documented in the module and this plan.
+- The candidate metric-based test is rejected because it tests collaborator side effects rather
+  than only dispatcher delegation.
 - Existing specialized-handler tests retain ownership of their metric-routing contracts.
 - Aggregate/global, unit-only, and integration-only coverage are kept separate in evidence.
 - The maintainer reviews every approved increment before the next increment and before final
