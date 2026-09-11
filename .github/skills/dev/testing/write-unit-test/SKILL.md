@@ -138,6 +138,26 @@ components, or derive an expected outcome using production code under test. For 
 constraints and example, see
 [Scenario fixtures for causal initial state](../../../../../docs/testing/refactoring-patterns/scenario-fixtures-for-causal-initial-state.md).
 
+### Reveal Behavioral Data; Hide Collaborator Mechanics
+
+Trace every value that crosses from Arrange into the Act or Assert. Keep a value visible in the test
+body when it selects the behavior under test, establishes a causal initial state, or independently
+specifies an expected result. Its use in the Act or Assert must make that relationship readable.
+Hide only ordinary valid collaborator-construction mechanics that do not vary the selected behavior,
+such as locks, reference-counted handles, default dependency construction, or required repository
+setup.
+
+For example, a banning-handler gauge test keeps an `unrelated_client_ip` visible when it establishes
+the pre-existing tracked-IP state, keeps the event's `cookie_error_client_ip` visible where it enters
+the event context, and keeps `expected_distinct_client_ip_total` visible before the Act and in the
+Assert. A state-named test context may hide its `Arc<RwLock<BanService>>` and `Repository` setup.
+Do not hide the relevant IPs or expected total inside that context.
+
+During review, ask: **“Can the reader follow every value that makes the Act behave differently or
+sets the expected result from its Arrange origin to its Act/Assert use?”** If not, expose that value
+or rename/refocus the scenario. Also ask: **“Does this value merely make an ordinary collaborator
+valid?”** If yes, it belongs in focused setup rather than the test narrative.
+
 ### Name Coherent Actions at One Abstraction Level
 
 Use a helper when it gives a coherent sequence of setup or transport actions a meaningful name and
@@ -178,13 +198,14 @@ Before requesting maintainer review for a test-producing increment, inspect the 
 these smells. A smell is a prompt to improve the design, not an automatic rule: keep the clearest
 test when an alternative would weaken its behavioral contract or diagnostic value.
 
-| Smell                          | Review question                                                                   | Preferred response                                                                                                                                         |
-| ------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Complex Arrange                | Can a reader name the causal initial state without reconstructing setup plumbing? | Use inline values, a readable builder, or a narrowly named scenario fixture. Keep causal input visible and move only coordinated incidental mechanics.     |
-| Multiple assertions            | Do the assertions specify one complete observable result or unrelated behaviors?  | Use one higher-level semantic assertion when it preserves the full result and diagnostic clarity; otherwise split the test so each has one reason to fail. |
-| Hidden fixture coupling        | Would an unrelated fixture change fail this test?                                 | Derive incidental expectations from the exact fixture used by the Act; keep independently specified causal values visible.                                 |
-| Hidden production Act          | Can the reader identify the production behavior under test directly?              | Keep the production invocation visible; do not move it into setup or assertion helpers.                                                                    |
-| Production-derived expectation | Is the expected result calculated by code that the test is meant to verify?       | Construct the expected result independently; move only mechanical comparisons into a semantic assertion helper.                                            |
+| Smell                           | Review question                                                                                     | Preferred response                                                                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complex Arrange                 | Can a reader name the causal initial state without reconstructing setup plumbing?                   | Use inline values, a readable builder, or a narrowly named scenario fixture. Keep causal input visible and move only coordinated incidental mechanics.     |
+| Hidden behavioral data coupling | Can the reader trace every causal input and expected value from Arrange into its Act or Assert use? | Keep behavior-selecting inputs, causal pre-existing state, and independent expected values visible; hide only ordinary collaborator construction.          |
+| Multiple assertions             | Do the assertions specify one complete observable result or unrelated behaviors?                    | Use one higher-level semantic assertion when it preserves the full result and diagnostic clarity; otherwise split the test so each has one reason to fail. |
+| Hidden fixture coupling         | Would an unrelated fixture change fail this test?                                                   | Derive incidental expectations from the exact fixture used by the Act; keep independently specified causal values visible.                                 |
+| Hidden production Act           | Can the reader identify the production behavior under test directly?                                | Keep the production invocation visible; do not move it into setup or assertion helpers.                                                                    |
+| Production-derived expectation  | Is the expected result calculated by code that the test is meant to verify?                         | Construct the expected result independently; move only mechanical comparisons into a semantic assertion helper.                                            |
 
 Record material refactoring decisions from this review in the file-local plan or task evidence.
 
