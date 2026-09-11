@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/receiver.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/receiver.rs
@@ -158,8 +158,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
 - [x] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -177,15 +177,20 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R4. Measure aggregate/global, unit-only, and
   integration-only coverage separately; record residual pending, error, termination, and socket
   abstraction decisions without adding a percentage-only test.
+- 2026-09-11 - User/maintainer - Reviewed and approved the completed receiver plan. The direct unit
+  test protects the normal datagram-to-`RawRequest` adapter, while R4 records separate coverage
+  evidence and retains pending, error, termination, and socket-abstraction behavior at their proper
+  ownership boundaries.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. Existing integration coverage retains transport value but does not replace the feasible R2 unit-test assessment. |
 | R2/R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server receiver::tests::should_yield_a_raw_request_with_the_received_datagram_and_sender_address`, and `git diff --check` passed. Prose-first and smell review replace a complex Arrange with a state-named queued-loopback scenario and two field assertions with one whole-value `RawRequest` assertion; the visible stream Act remains unchanged. |
 | R4 | DONE | Separate clean reports passed. `receiver.rs` unit-only coverage increased from 15/22 lines (68.18%), 18/31 regions (58.06%), and 3/3 functions (100%) to 55/56 lines (98.21%), 77/79 regions (97.47%), and 7/7 functions (100%). Aggregate/global separately reports the same result; integration-only separately reports 21/22 production lines (95.45%), 29/31 regions (93.55%), and 3/3 functions (100%). Pending, I/O-error, termination, and mock-abstraction paths have explicit ownership decisions. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
