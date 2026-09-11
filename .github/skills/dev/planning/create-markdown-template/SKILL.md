@@ -4,13 +4,14 @@ description: Create or maintain reusable Markdown document templates in the torr
 metadata:
   author: torrust
   version: "1.0"
-  semantic-links:
-    related-artifacts:
-      - docs/templates/
-      - docs/index.md
-      - docs/AGENTS.md
-      - .github/skills/add-new-skill/SKILL.md
-      - .github/skills/dev/planning/write-markdown-docs/SKILL.md
+semantic-links:
+  related-artifacts:
+    - docs/templates/
+    - docs/templates/README.md
+    - docs/index.md
+    - docs/AGENTS.md
+    - .github/skills/add-new-skill/SKILL.md
+    - .github/skills/dev/planning/write-markdown-docs/SKILL.md
 ---
 
 # Creating Markdown Templates
@@ -40,7 +41,10 @@ resembles a template.
 
 ## Create or Update the Template
 
-1. Place the reusable Markdown file in `docs/templates/`.
+1. Place the reusable Markdown file in `docs/templates/`. Exception: use
+   `.github/PULL_REQUEST_TEMPLATE/` only for templates that must be offered through GitHub's
+   contributor-facing template picker. Do not create a GitHub-native adapter merely to duplicate
+   a canonical repository template.
 2. Use an uppercase descriptive filename, such as `SECURITY-ANALYSIS.md`.
 3. Add YAML frontmatter with high-signal `semantic-links.related-artifacts` entries. Follow the
    [semantic skill-link convention](../../../../../docs/skills/semantic-skill-link-convention.md).
@@ -48,7 +52,9 @@ resembles a template.
    logs, or stale concrete data into a reusable template.
 5. State whether the template is intended for new concrete documents only and where those documents
    belong.
-6. Add the template to the catalog in `docs/index.md` and update a relevant collection README when
+6. Add or materially update the template's entry in `docs/templates/README.md`, which catalogs its
+   purpose, intended destination, and primary workflow or agent.
+7. Add the template to the catalog in `docs/index.md` and update a relevant collection README when
    authors need local procedural context.
 
 ## Link Instead of Duplicating
@@ -73,7 +79,7 @@ linter cspell
 Run `linter all` when the template or related workflow changes affect more than Markdown. Validate
 that:
 
-- the template appears in `docs/templates/` and `docs/index.md`;
+- the template appears in `docs/templates/`, `docs/templates/README.md`, and `docs/index.md`;
 - the linked collection README and skills point to the template;
 - the template has valid frontmatter and no accidental `#NUMBER` enumeration; and
 - retained inline examples have a recorded rationale.

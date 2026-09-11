@@ -152,8 +152,10 @@ that type.
 
 | Template                                                                               | Description                                                       |
 | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [templates/README.md](templates/README.md)                                             | Template catalog, purpose, destinations, and usage policy         |
 | [templates/ADR.md](templates/ADR.md)                                                   | Template for Architectural Decision Records                       |
 | [templates/AGENT-REVIEW-REPORTS.md](templates/AGENT-REVIEW-REPORTS.md)                 | Template for chronological issue-local independent-review reports |
+| [templates/CARGO-DEPENDENCY-UPDATE-PR.md](templates/CARGO-DEPENDENCY-UPDATE-PR.md)     | Template for Cargo dependency-update PR descriptions              |
 | [templates/EPIC.md](templates/EPIC.md)                                                 | Template for EPIC issue specifications                            |
 | [templates/IMPLEMENTATION-RETROSPECTIVE.md](templates/IMPLEMENTATION-RETROSPECTIVE.md) | Template for issue-local implementation retrospectives            |
 | [templates/ISSUE.md](templates/ISSUE.md)                                               | Template for task / bug / feature issue specifications            |
