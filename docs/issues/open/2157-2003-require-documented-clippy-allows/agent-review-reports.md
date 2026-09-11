@@ -10,7 +10,9 @@ semantic-links:
 # Agent Review Reports - Issue #2157 - Require Documented Clippy Allows
 
 > Append one completed independent-review entry at a time. Do not modify, reorder, or remove
-> earlier entries. A correction is a new entry that names the earlier conclusion.
+> earlier entries. The report preserves append order, which may differ from wall-clock order when
+> a completed review or correction is recorded after an earlier timestamped entry. A correction or
+> follow-up entry names the earlier conclusion it changes or resolves.
 
 ## Reports
 
