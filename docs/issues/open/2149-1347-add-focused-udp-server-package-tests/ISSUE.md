@@ -26,6 +26,7 @@ semantic-links:
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/tests/server/contract.rs
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
@@ -160,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T5  | DONE        | Improve socket-adapter tests                | Completed the reviewed `server/bound_socket.rs` plan with stable IPv4 loopback port-zero allocation and endpoint-metadata contracts. Platform-specific dual-stack defaults remain intentionally outside the test contract. **Commit point:** completed through focused reviewed increments.                                                                                                                                                                                       |
 | T6  | DONE        | Improve container-composition tests         | Completed the reviewed `container.rs` plan with a direct deterministic unit contract for enabled server event publication. Separate aggregate/global, unit-only, and integration-only evidence records the residual ownership decisions. **Commit point:** completed through focused reviewed increments. |
 | T7  | DONE        | Improve admission or UDP contracts          | Completed reviewed `server/launcher.rs` admission/event increments and `tests/server/contract.rs` real-loopback contract increments. The contract plan records the justified no-change boundary for further transport expansion. **Commit point:** completed through focused reviewed increments. |
-| T8  | TODO        | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                                                                                                                              |
+| T8  | DONE        | Perform bounded mutation assessment         | Completed a bounded two-mutant `Processor::process_request` sample. The port-zero comparison inversion was caught; the whole-body replacement was unviable; there were no surviving viable mutants and no new follow-up. [mutation-evidence.md](mutation-evidence.md) records configuration, timeout, scope, and limitations. **Commit point:** material documentation decision. |
 | T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
 | T10 | DONE        | Review receiver unit-test seam               | Completed the reviewed `server/receiver.rs` plan with a deterministic queued-loopback `Stream::poll_next` contract for payload and sender-address adaptation. Pending/error/termination branches and lifecycle behavior retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
 | T11 | DONE        | Review statistics dispatch seam              | Completed the reviewed `statistics/event/handler/mod.rs` assessment. The dispatcher documents its routing-only responsibility and indirect verification; no production injection abstraction or collaborator-side-effect test is justified. **Commit point:** completed through a documented no-test decision. |
@@ -358,12 +359,15 @@ responsibility.
 - 2026-09-11 - GitHub Copilot - Completed the `statistics/mod.rs` no-test assessment. Metric
   declaration composition is fully covered at repository initialization, aggregation, handler, and
   service boundaries; direct registry inventory tests would duplicate those contracts.
+- 2026-09-11 - GitHub Copilot - Completed the bounded mutation assessment for the processor
+  port-zero guard. The focused test module caught guard inversion; the only other generated mutant
+  was unviable, and no behavior-relevant survivor requires a new test.
 
 ## Acceptance Criteria
 
 - [ ] Coverage evidence records reproducible package-source baseline/final measurements, scope,
       aggregate comparison, per-file detail, and prioritized gaps.
-- [ ] The current unit, package integration, example, root/E2E, mutation, property, and fuzz
+- [x] The current unit, package integration, example, root/E2E, mutation, property, and fuzz
       evidence is assessed, with selected, deferred, and inapplicable levels justified.
 - [ ] Coverage evidence distinguishes unit-only and integration-only contributions for every
   selected seam where aggregate package coverage could conceal the responsible test boundary.
