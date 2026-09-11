@@ -77,18 +77,25 @@ Do not add a `states.rs` registration-failure test. The existing public `server/
 asserts both `UdpError::Registration` source preservation and actual UDP listener release. Moving or
 repeating it here would duplicate socket binding, task spawning, registration, and cleanup behavior.
 
-#### D4 - Defer remaining startup and stop lifecycle paths
+#### D4 - Cover the remaining deterministic startup-notification mappings
 
-Do not add tests for bind errors, successful closed-startup notification, task join failures,
-`Server::<Running>::stop`, halt signalling, receive-loop completion, or processor-task outcomes.
-They require socket contention, task cancellation/abortion, joining, or shutdown policy. SI-14,
-SI-15, and SI-17 under #1488 own the successor lifecycle design and tests.
+Add direct tests for the two `await_startup_notification` outcomes that the existing test does not
+cover: a closed startup notification with a successfully finished launcher maps to
+`UdpError::StartupNotification`, and a closed startup notification with a failed launcher task join
+maps to `UdpError::FailedToStartOrStopServer`. Both use the same visible closed-sender Arrange as
+the current test, differ only in the task outcome, and need no socket, container, or registrar.
+
+#### D5 - Defer bind and stop lifecycle paths
+
+Do not add tests for bind errors, `Server::<Running>::stop`, halt signalling, receive-loop
+completion, or processor-task outcomes. They require socket contention or exercise the legacy
+shutdown mechanism that SI-14, SI-15, and SI-17 under #1488 are replacing. Document this ownership
+in the module so future maintainers know the deferral is intentional.
 
 ## Proposed Refactorings
 
-This plan has no test-producing increment. Record and validate the no-change decisions after
-maintainer approval; do not add a fixture, mock, or production abstraction solely to increase
-coverage.
+Apply items in order. Complete one approved increment—including prose-first comparison, focused
+validation, review, and its mapped commit point—before beginning the next item.
 
 ### R1 - Record the reviewed no-change and lifecycle deferral decision
 
@@ -106,6 +113,47 @@ coverage.
   policy that this issue must not define.
 - **Done when:** The plan records why no new `states.rs` test is appropriate and which existing test
   or issue owns each remaining behavior.
+- **Revision:** After the maintainer asked which lines remained uncovered and whether they were
+  hard to test, the two remaining `await_startup_notification` mappings were reclassified as cheap
+  deterministic contracts. R2 and R3 below supersede the blanket no-change decision for those two
+  branches only; the bind and `stop` deferrals stand.
+
+### R2 - Cover the remaining startup-notification error mappings
+
+- **Status:** TODO
+- **Priority:** High impact / low effort
+- **Addresses:** D4
+- **Change:** Add two direct asynchronous tests beside the existing one. The first drops the
+  startup sender while the launcher task returns `Ok(Spawner)` and asserts
+  `UdpError::StartupNotification`. The second drops the startup sender and aborts the task before
+  awaiting it, asserting `UdpError::FailedToStartOrStopServer`.
+- **Guardrails:** Keep the closed sender and the task outcome visible in each Arrange. Use no
+  socket, container, registrar, or `Launcher`. Each test asserts one error variant. Do not assert the
+  inner message text beyond what identifies the variant.
+- **Done when:** Each `await_startup_notification` branch has one focused deterministic test.
+
+### R3 - Document the module test-ownership boundary
+
+- **Status:** TODO
+- **Priority:** Medium impact / trivial effort
+- **Addresses:** D5
+- **Change:** Add a short module-level comment to `states.rs` stating which behavior is unit tested
+  here, which is protected at the public `server/mod.rs` boundary, and which lifecycle paths are
+  intentionally deferred to #1488 so future maintainers do not mistake the gap for an oversight.
+- **Guardrails:** Keep the comment factual and brief; do not restate the plan or add speculative
+  future design.
+- **Done when:** A reader of `states.rs` can locate each behavior's test owner without opening the
+  issue documents.
+
+### R4 - Record final coverage and residual ownership
+
+- **Status:** TODO
+- **Priority:** Low impact / low effort
+- **Change:** Measure unit-only coverage after R2 and record it alongside separate aggregate/global
+  and integration-only figures. Confirm the bind-error and `stop` lines remain the only intentional
+  gaps.
+- **Guardrails:** Do not add percentage-only tests or a socket/task fixture for the deferred paths.
+- **Done when:** The remaining uncovered lines are enumerated with their owners.
 
 ## Progress Tracking
 
@@ -115,8 +163,13 @@ coverage.
       evidence, and #1488 lifecycle ownership reviewed.
 - [x] Maintainer approved R1.
 - [x] R1 decision recorded, validated, and committed.
-- [x] Maintainer reviewed all approved changes.
-- [x] Plan completed and ready for final verification.
+- [ ] Maintainer approved R2.
+- [ ] R2 implemented and focused validation passed.
+- [ ] Maintainer approved R3.
+- [ ] R3 module comment added, validated, and committed.
+- [ ] R4 coverage/ownership review completed and decision recorded.
+- [ ] Maintainer reviewed all approved changes.
+- [ ] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -127,14 +180,24 @@ coverage.
 - 2026-09-11 - User/maintainer - Approved R1. Record the reviewed no-change decision: retain the
   existing startup-error precedence and public registration-cleanup contracts, decline
   representation-only tests, and defer all remaining task/channel/shutdown behavior to #1488.
+- 2026-09-11 - User/maintainer - Asked which lines remained uncovered and whether they were hard to
+  test. Fresh unit-only coverage listed lines 95, 149, 152, 174, 180, 181, and 215. Lines 149 and
+  152 are cheap deterministic `await_startup_notification` mappings using the existing test pattern;
+  the blanket no-change decision was too conservative for them. Lines 174/180/181 (`stop`) and 95
+  (bind failure) remain deferred to #1488 and the `BoundSocket` boundary. Line 215 is the existing
+  test's defensive `panic!` arm.
+- 2026-09-11 - User/maintainer - Requested the plan be reopened to add those tests and a module
+  comment documenting the testing strategy for future maintainers.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | DONE | Markdown and spelling checks passed after maintainer review changes. |
-| R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. No state-layer test, fixture, or production change is warranted. |
-| Plan completion | DONE | Maintainer reviewed the no-change and lifecycle-deferral decision before the next file plan begins. |
+| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| R1 | DONE | `cargo test -p torrust-tracker-udp-server states::tests` and `cargo test -p torrust-tracker-udp-server server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` retain the focused existing unit and public-transition contracts. The no-change conclusion was subsequently narrowed by R2. |
+| R2 | TODO | Awaiting maintainer approval. |
+| R3 | TODO | Awaiting R2 completion and maintainer approval. |
+| R4 | TODO | Awaiting approved increments. |
 
 ## Non-Goals
 
@@ -143,8 +206,10 @@ coverage.
 - Do not test derived representations, field assignment, aliases, or macro-generated display.
 - Do not duplicate registration-error cleanup, real-loopback transport, or standalone environment
   coverage.
-- Do not test halt cancellation, task abortion/joining, receive-loop completion, active-request
-  draining, or shutdown policy before #1488's SI-14, SI-15, and SI-17 work is complete.
+- Do not test `Server::<Running>::stop`, halt cancellation, receive-loop completion, active-request
+  draining, or shutdown policy before #1488's SI-14, SI-15, and SI-17 work is complete. Aborting a
+  test-owned task to exercise `await_startup_notification`'s join-failure mapping is in scope; it
+  does not touch the production shutdown path.
 
 ## Validation Per Approved Increment
 
@@ -157,9 +222,12 @@ coverage.
 
 ## Completion Criteria
 
-- The existing direct startup-error precedence test retains its focused deterministic contract.
+- Every `await_startup_notification` branch has one focused deterministic unit test.
+- The module documents which behavior is unit tested locally, which is protected at the public
+  `server/mod.rs` boundary, and which lifecycle paths are deferred to #1488.
 - Each remaining state-layer behavior has a documented representation, public-transition, or #1488
   lifecycle owner.
 - No fixture, mock, abstraction, or percentage-only test is introduced without a distinct
   package-owned behavioral reason.
-- The maintainer reviews the no-change decision before the next file plan begins.
+- The maintainer reviews every approved increment before the next increment and before final
+  verification.
