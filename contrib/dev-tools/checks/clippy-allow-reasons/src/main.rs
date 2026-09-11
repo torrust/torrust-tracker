@@ -1,7 +1,7 @@
 //! Command-line adapter for prospective Clippy `allow` rationale validation.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::{self, Write as _};
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitCode};
 use std::{env, fs};
@@ -18,7 +18,10 @@ fn main() -> ExitCode {
         Err(error) => {
             let exit_code = error.exit_code();
             for diagnostic in error.diagnostics() {
-                emit_diagnostic(&diagnostic);
+                if emit_diagnostic(&diagnostic).is_err() {
+                    emit_output_failure(exit_code);
+                    break;
+                }
             }
             ExitCode::from(exit_code)
         }
@@ -245,15 +248,38 @@ const fn diagnostic(
     }
 }
 
-fn emit_diagnostic(diagnostic: &CliDiagnostic) {
+fn emit_diagnostic(diagnostic: &CliDiagnostic) -> io::Result<()> {
     let mut stderr = io::stderr().lock();
-    drop(serde_json::to_writer(&mut stderr, diagnostic));
-    drop(stderr.write_all(b"\n"));
+    write_diagnostic(&mut stderr, diagnostic)
+}
+
+fn emit_output_failure(exit_code: u8) {
+    let mut stderr = io::stderr().lock();
+    drop(stderr.write_all(b"{\"kind\":\"output_error\",\"message\":\"failed to emit diagnostic\",\"exit_code\":"));
+    drop(write!(stderr, "{exit_code}"));
+    drop(stderr.write_all(b"}\n"));
+}
+
+fn write_diagnostic(writer: &mut impl Write, diagnostic: &CliDiagnostic) -> io::Result<()> {
+    serde_json::to_writer(&mut *writer, diagnostic)?;
+    writer.write_all(b"\n")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct FailingWriter;
+
+    impl Write for FailingWriter {
+        fn write(&mut self, _buffer: &[u8]) -> io::Result<usize> {
+            Err(io::Error::other("intentional write failure"))
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
 
     #[test]
     fn it_should_parse_added_lines_from_multiple_rust_hunks() {
@@ -271,5 +297,14 @@ mod tests {
         let error = parse_changed_rust_lines(diff).unwrap_err();
 
         assert!(error.contains("unrecognized Git diff file header"));
+    }
+
+    #[test]
+    fn it_should_report_a_diagnostic_write_failure() {
+        let diagnostic = diagnostic("runtime_error", String::from("failure"), None, None, EXIT_VIOLATIONS);
+
+        let error = write_diagnostic(&mut FailingWriter, &diagnostic).unwrap_err();
+
+        assert_eq!(error.kind(), io::ErrorKind::Other);
     }
 }
