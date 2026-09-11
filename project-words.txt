@@ -16,6 +16,7 @@ BuildKit
 Buildah
 Buildx
 CALLSITE
+CDLA
 Celano
 Cinstrument
 Condvar
@@ -62,6 +63,7 @@ Lphant
 MSRV
 Mbps
 Mebibytes
+NOASSERTION
 NOSYSTEM
 Naim
 Norberg
@@ -110,6 +112,7 @@ Vagaa
 Vitaly
 Vuze
 WEBUI
+WHATWG
 Weidendorfer
 Werror
 Winsock
@@ -507,6 +510,7 @@ urlencode
 uroot
 usize
 valgrind
+valuevec
 vmlinux
 vtable
 vulns

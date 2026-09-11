@@ -29,6 +29,8 @@
         "TEMP-*.md",
         "mutants.out",
         "mutants.out.old",
+        "docs/issues/open/269-review-dependency-licenses/locked-license-inventory.json",
+        "docs/issues/open/269-review-dependency-licenses/runtime-license-inventory.json",
         "docs/issues/**/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py",
         "contrib/dev-tools/git/github-merge.py",
         "docs/issues/**/evidence/*.html"
