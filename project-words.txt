@@ -285,6 +285,7 @@ jdbe
 josecelano
 kallsyms
 kcachegrind
+kentbeck
 kexec
 keyout
 kptr
@@ -442,6 +443,7 @@ sqlx
 srcset
 sscanf
 stabilised
+stackoverflow
 subissue
 subkey
 subsec

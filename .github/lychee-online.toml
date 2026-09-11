@@ -7,6 +7,10 @@ include_fragments = "full"
 # Avoid immutable historical issue records with known stale relative links.
 exclude_path = [ "(^|/)docs/issues/closed/" ]
 
+# GitHub renders pull-request review-comment anchors dynamically, so Lychee cannot
+# reliably validate them. Keep all other GitHub URLs and fragments checked.
+exclude = [ "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#discussion_r[0-9]+$" ]
+
 # Bound requests to respect external services while retaining actionable failures.
 timeout = 20
 max_retries = 2
