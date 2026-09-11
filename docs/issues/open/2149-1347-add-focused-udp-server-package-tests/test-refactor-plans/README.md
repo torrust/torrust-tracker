@@ -20,7 +20,8 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Error-metric handler tests](error-metric-tests.md) — complete.
 - [Container tests](container-tests.md) — complete.
 - [Receiver tests](receiver-tests.md) — complete.
-- [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — proposed; awaiting maintainer approval.
+- [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — complete.
+- [Banning event-handler tests](banning-event-handler-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
