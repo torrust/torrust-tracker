@@ -178,11 +178,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_publish_the_exact_error_with_the_supplied_transaction_id() {
+    async fn it_should_return_an_error_response_with_the_supplied_transaction_id() {
         // Arrange
-        let broadcaster = crate::event::sender::Broadcaster::default();
-        let mut receiver = broadcaster.subscribe();
-        let sender = Some(Arc::new(broadcaster) as Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>);
+        let sender = None;
         let transaction_id = TransactionId(I32::new(42));
         let error = internal_error();
 
@@ -203,6 +201,32 @@ mod tests {
 
         // Assert
         assert!(matches!(response, Response::Error(ErrorResponse { transaction_id: actual, .. }) if actual == transaction_id));
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_an_error_event_with_the_supplied_request_kind() {
+        // Arrange
+        let broadcaster = crate::event::sender::Broadcaster::default();
+        let mut receiver = broadcaster.subscribe();
+        let sender = Some(Arc::new(broadcaster) as Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>);
+        let error = internal_error();
+
+        // Act
+        handle_error(
+            Some(UdpRequestKind::Connect),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            service_binding(),
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            None,
+            Uuid::nil(),
+            &sender,
+            0.0..1.0,
+            &error,
+            None,
+        )
+        .await;
+
+        // Assert
         assert!(matches!(
             receiver.recv().await.unwrap(),
             Event::UdpError { kind: Some(UdpRequestKind::Connect), error: ErrorKind::InternalServer(message), .. } if message == "failure"
