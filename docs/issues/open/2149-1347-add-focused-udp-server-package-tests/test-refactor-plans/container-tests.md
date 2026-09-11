@@ -127,12 +127,19 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Review residual composition coverage and ownership
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure unit-only coverage for `container.rs`, separately retain aggregate/global and
   integration-only evidence, and record ownership for residual paths.
 - **Guardrails:** Do not add tests merely to increase percentages. Do not claim unit coverage from
   aggregate/global or integration-only results.
+- **Decision:** The separately measured reports show `container.rs` at 59/59 lines, 72/72 regions,
+  and 5/5 functions (all 100%) for aggregate/global and unit-only execution; integration-only
+  execution independently covers its 19 production lines, 29 regions, and 2 functions (all 100%).
+  The R2 unit test provides the direct package-owned enabled-publication contract. Do not add a
+  coverage-only test for `UdpTrackerServerContainer::initialize` cloning service handles, empty
+  repository state, generic disabled-bus behavior, or root consumer policy: those would test an
+  internal allocation detail, `Repository`, `packages/events`, or root composition respectively.
 - **Done when:** Unit-only measurement and each residual ownership decision are recorded.
 
 ## Progress Tracking
@@ -145,7 +152,7 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved R2.
 - [x] R2 implemented, reviewed, validated, and committed.
-- [ ] R3 coverage/ownership review completed and decision recorded.
+- [x] R3 coverage/ownership review completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -160,6 +167,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R2. Add the direct deterministic services event-bus
   publication test only, retaining the visible sender, event, publication Act, and received-event
   assertion.
+- 2026-09-11 - User/maintainer - Approved R3. Measure aggregate/global, unit-only, and
+  integration-only coverage separately and record residual composition ownership without adding a
+  percentage-only test.
 
 ### Validation Evidence
 
@@ -168,7 +178,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
 | R1 | DONE | The reviewed source has no direct test code or concrete cleanup opportunity. The explicit no-cleanup decision preserves the feasible R2 unit-test assessment under the unit-first coverage policy. |
 | R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server container::tests::should_publish_events_through_the_enabled_server_event_bus`, and `git diff --check` passed. Prose-first review keeps the enabled sender, exact event, publication Act, and received-event assertion visible; the timeout is diagnostic only. |
-| R3 | TODO | Awaiting approved increments. |
+| R3 | DONE | Separate clean reports passed: aggregate/global package source is 5,423/5,548 lines (97.75%), 7,088/7,340 regions (96.57%), and 551/565 functions (97.52%); unit-only is 5,317/5,548 lines (95.84%), 6,961/7,340 regions (94.84%), and 535/565 functions (94.69%); integration-only is 1,118/1,469 lines (76.11%), 1,190/1,654 regions (71.95%), and 148/187 functions (79.14%). `container.rs` unit-only coverage is 59/59 lines, 72/72 regions, and 5/5 functions (all 100%); integration-only separately covers 19/19 production lines, 29/29 regions, and 2/2 functions (all 100%). |
 
 ## Non-Goals
 

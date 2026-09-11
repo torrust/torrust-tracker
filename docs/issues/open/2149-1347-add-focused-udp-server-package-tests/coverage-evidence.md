@@ -76,7 +76,7 @@ contract.
 | Measurement                   |                  Lines |                Regions |          Functions |
 | ----------------------------- | ---------------------: | ---------------------: | -----------------: |
 | Baseline before issue changes | 4,814 / 4,965 (96.96%) | 6,326 / 6,604 (95.79%) | 485 / 499 (97.19%) |
-| Latest                        |       Not yet measured |       Not yet measured |   Not yet measured |
+| Latest container-plan checkpoint | 5,423 / 5,548 (97.75%) | 7,088 / 7,340 (96.57%) | 551 / 565 (97.52%) |
 
 ## Unit-Only Package Coverage
 
@@ -87,7 +87,22 @@ compare future unit-only measurements only with an equivalent unit-only command.
 | Measurement | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: |
 | Baseline before issue changes | Not measured separately | Not measured separately | Not measured separately |
-| Latest | Pending final measurement | Pending final measurement | Pending final measurement |
+| Latest container-plan checkpoint | 5,317 / 5,548 (95.84%) | 6,961 / 7,340 (94.84%) | 535 / 565 (94.69%) |
+
+### Container Composition Test-Level Evidence
+
+At commit `3c56dc45`, clean separately collected reports show the following for
+`packages/udp-server/src/container.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 59 / 59 (100.00%) | 72 / 72 (100.00%) | 5 / 5 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 59 / 59 (100.00%) | 72 / 72 (100.00%) | 5 / 5 (100.00%) | The direct R2 test protects the package-owned enabled sender-to-event-bus publication path. |
+| Integration-only (`--test integration`) | 19 / 19 (100.00%) | 29 / 29 (100.00%) | 2 / 2 (100.00%) | Separately confirms higher-level execution of the compiled production slice; it does not substitute for the direct unit contract. |
+
+The reports have different denominators and are not combined. The remaining composition details
+are internal allocation or handle-cloning mechanics, generic events-package behavior, or root
+consumer policy; no additional coverage-only container test is selected.
 
 ## Current Increment Coverage
 
