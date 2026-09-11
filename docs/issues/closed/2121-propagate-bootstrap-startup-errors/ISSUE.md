@@ -180,6 +180,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-09-11 - GitHub Copilot - Archived this specification after confirming GitHub issue #2121 is closed. Unchecked workflow checkpoints were deliberately preserved because this archive batch did not have evidence to confirm their completion.
+
 - 2026-09-11 UTC - Repository maintenance - Archived this closed issue specification in `docs/issues/closed/2121-propagate-bootstrap-startup-errors/`.
 - 2026-08-28 11:58 UTC - GitHub Copilot/User - Recorded a deferred draft after observing expected startup failures converted to `expect` or `panic` during #2107.
 - 2026-08-31 15:46 UTC - GitHub Copilot - Reconciled the draft with merged and closed #2107. The formal issue draft defines typed configuration and composition errors through `setup()` and `app::start()` while retaining post-setup runtime failures and `check_seed()` outside scope.
