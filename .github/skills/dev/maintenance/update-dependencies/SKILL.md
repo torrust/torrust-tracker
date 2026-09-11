@@ -47,10 +47,11 @@ Use `cargo update --dry-run` or read the dependency changelog to classify before
 # Get one high-resolution timestamp (YYYYMMDD-HHMMSS) for this invocation.
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 UPDATE_OUTPUT=".tmp/${TIMESTAMP}-cargo-update.txt"
+UPDATE_BRANCH="${TIMESTAMP}-update-dependencies"
 
 # Create branch
 git checkout develop && git pull --ff-only
-git checkout -b "${TIMESTAMP}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 
 # Ensure the workspace-local ignored log directory exists.
 mkdir -p .tmp
@@ -66,7 +67,7 @@ cargo update 2>&1 | tee "$UPDATE_OUTPUT"
 # Commit and push (using the captured `cargo update` output as the commit body)
 git add Cargo.lock
 git commit -S -m "chore: update dependencies" -m "$(cat "$UPDATE_OUTPUT")"
-git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
+git push {your-fork-remote} "$UPDATE_BRANCH"
 
 # Open a PR targeting torrust/torrust-tracker:develop. Use
 # docs/templates/CARGO-DEPENDENCY-UPDATE-PR.md and replace its Cargo-output
@@ -84,9 +85,10 @@ from overwriting another's:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 UPDATE_OUTPUT=".tmp/${TIMESTAMP}-cargo-update.txt"
+UPDATE_BRANCH="${TIMESTAMP}-update-dependencies"
 git checkout develop
 git pull --ff-only
-git checkout -b "${TIMESTAMP}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 
 mkdir -p .tmp
 ```
@@ -94,7 +96,8 @@ mkdir -p .tmp
 For breaking-change updates that require a tracked issue:
 
 ```bash
-git checkout -b "${TIMESTAMP}-{issue-number}-update-dependencies"
+UPDATE_BRANCH="${TIMESTAMP}-{issue-number}-update-dependencies"
+git checkout -b "$UPDATE_BRANCH"
 ```
 
 ### Step 2: Run Cargo Update
@@ -150,7 +153,7 @@ body unless it contains information that must not be committed.
 ```bash
 git add Cargo.lock
 git commit -S -m "chore: update dependencies" -m "$(cat "$UPDATE_OUTPUT")"
-git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
+git push {your-fork-remote} "$UPDATE_BRANCH"
 ```
 
 ### Step 6: Open PR
