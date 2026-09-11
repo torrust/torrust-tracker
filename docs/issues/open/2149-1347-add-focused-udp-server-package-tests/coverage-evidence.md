@@ -172,6 +172,24 @@ Protocol error conversion, dispatcher routing, error classification, and statist
 consumption remain owned by `error.rs`, `handlers/mod.rs`, `event.rs`, and their specialized
 event handlers/listeners, respectively. No coverage-only test is selected.
 
+### Response-Sent Handler Test-Level Evidence
+
+At the completed R1 increment, clean separately collected reports show the following for
+`packages/udp-server/src/statistics/event/handler/response_sent.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 129 / 130 (99.23%) | 172 / 174 (98.85%) | 8 / 8 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 122 / 130 (93.85%) | 149 / 174 (85.63%) | 8 / 8 (100.00%) | Direct `Ok { Connect }` handler test protects the successful connect processing-average route. Retained tests protect parent-dispatcher IPv4/IPv6 response-total routes. |
+| Integration-only (`--test integration`) | 40 / 41 (97.56%) | 91 / 93 (97.85%) | 2 / 2 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the direct unit contract. |
+
+The reports have different denominators and are not combined. Error-response no-average behavior
+is a negative collaborator/metric assertion and is not selected. Announce/scrape label
+representation, metric aggregation/accessors, counter-write failure logging, parent routing, and
+listener lifecycle remain owned by `event.rs`, `statistics/metrics.rs`, the repository/logging
+boundary, the parent dispatcher, and the listener, respectively. No coverage-only test is
+selected.
+
 ## Current Increment Coverage
 
 The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.

@@ -68,6 +68,7 @@ pub async fn handle_event(
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::time::Duration;
 
     use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -79,6 +80,38 @@ mod tests {
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
+
+    #[tokio::test]
+    async fn should_update_the_connect_processing_time_average_for_a_successful_connect_response() {
+        // Arrange
+        let stats_repository = Repository::new();
+        let request_kind = crate::event::UdpRequestKind::Connect;
+        let processing_time = Duration::from_secs(1);
+
+        // Act
+        super::handle_event(
+            ConnectionContext::new(
+                ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
+                    .expect("UDP service binding should be valid"),
+            ),
+            crate::event::UdpResponseKind::Ok { req_kind: request_kind },
+            processing_time,
+            &stats_repository,
+            CurrentClock::now(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(
+            stats_repository
+                .get_stats()
+                .await
+                .udp_avg_connect_processing_time_ns_averaged(),
+            1_000_000_000
+        );
+    }
 
     #[tokio::test]
     async fn should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event() {
