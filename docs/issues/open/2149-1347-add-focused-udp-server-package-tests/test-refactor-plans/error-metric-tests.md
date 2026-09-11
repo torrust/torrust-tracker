@@ -1,0 +1,235 @@
+---
+doc-type: test-refactor-plan
+issue: 2149
+package: torrust-tracker-udp-server
+target-file: packages/udp-server/src/statistics/event/handler/error.rs
+status: completed
+semantic-links:
+  related-artifacts:
+    - packages/udp-server/src/statistics/event/handler/error.rs
+    - packages/udp-server/src/statistics/metrics.rs
+    - packages/udp-server/src/event.rs
+    - packages/udp-server/src/statistics/event/handler/mod.rs
+    - packages/udp-server/src/handlers/announce.rs
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+---
+
+# UDP Error-Metric Handler Test Refactor Plan
+
+Follow the shared [purpose, quality goals, plan structure, and required two-phase
+sequence](README.md). This plan applies only to
+`packages/udp-server/src/statistics/event/handler/error.rs`.
+
+## Phase 1 - Clean Current Tests
+
+### Current state
+
+The handler has one direct asynchronous test. It verifies that an IPv4 UDP error event increments
+the aggregate IPv4 error metric, but it mixes a full inline connection context, event construction,
+repository setup, event handling, and metric assertion without Arrange-Act-Assert headings or
+named ordinary setup. At commit `23889a84`, unit-only coverage is 71/106 lines (66.98%), 70/173
+regions (40.46%), and 10/11 functions (90.91%).
+
+### Decision
+
+Start with a mandatory prose-first Arrange-Act-Assert cleanup of the existing general-error metric
+test. Use helpers only when they name coherent ordinary event/context setup and maintain a single
+abstraction level. Keep the causal error/request-kind input, direct `handle_event` Act, and one
+metric assertion visible. Do not create a general metrics fixture or derive expected metric values
+through production code.
+
+## Phase 2 - Add Missing Behavior Tests
+
+### Strengths to preserve
+
+1. `error::handle_event` owns routing one `Event::UdpError` payload into general and conditional
+   connection-ID metric updates.
+2. `event.rs` owns conversion of internal errors into `ErrorKind`; these tests must construct the
+   classification directly rather than reproduce conversion behavior.
+3. `statistics/event/handler/mod.rs` owns dispatch from the event enum; these tests call the
+   local error handler directly.
+4. `statistics/metrics.rs` and `statistics/repository.rs` own metric aggregation/query behavior.
+5. `torrust-peer-id` owns peer-client classification. A fixed QBitTorrent-style peer ID may select
+   an already-known client label, but tests must not reproduce the parser's variant matrix.
+
+### Problems and opportunities
+
+#### P1 - General-error request-kind label routing is not directly protected
+
+**Problem.** The existing test covers an IPv4 event without a request kind, but not the handler's
+`request_kind` label insertion for parsed requests.
+
+**Opportunity.** Add one direct error event with `UdpRequestKind::Connect` and assert only the
+general error metric query for the `connect` request-kind label. Do not duplicate event
+classification or metric collection arithmetic.
+
+#### P2 - Announce connection-cookie errors have an untested client-software metric route
+
+**Problem.** The conditional branch increments the connection-ID-error counter only when a
+connection-cookie error belongs to an announce request, labelling it by client software name and
+version.
+
+**Opportunity.** Add one direct announce `UdpRequestKind` with a fixed QBitTorrent-style peer ID
+and `ErrorKind::ConnectionCookie`. Assert only the connection-ID-error metric associated with its
+independently specified client-software labels. Do not test non-announce suppression, peer-ID
+parsing, or the general-error counter in the same test.
+
+#### P3 - Peer-client mapping variants are not this handler's responsibility
+
+**Decision.** Do not create a table for every `PeerClient` variant. The handler's metric-routing
+contract needs one representative known client and can defer unknown/other classification to the
+peer-ID library and a future targeted observability need.
+
+## Proposed Refactorings
+
+Apply items in order. Complete one approved increment—including prose-first comparison, focused
+validation, review, and its mapped commit point—before beginning the next item.
+
+### R1 - Clarify the general IPv4 error metric contract
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Addresses:** Phase 1
+- **Change:** Write temporary Arrange-Act-Assert prose for the existing IPv4 error metric test.
+  Refactor until a named ordinary IPv4 connection context, direct error-handler Act, and one
+  aggregate IPv4 error assertion express that prose.
+- **Guardrails:** Do not add a behavior case, listener, socket, clock abstraction, or broad fixture.
+  Keep the independently constructed request-parse error visible.
+- **Prose-first review:** The temporary Arrange prose was “an IPv4 request-parse error has no
+  parsed request kind and uses an empty metrics repository.”
+  `sample_ipv4_connection_context` names ordinary context construction, while the test retains the
+  direct request-parse classification. The Act now calls this file's local `error::handle_event`,
+  rather than the parent event router, and the Assert has one aggregate IPv4 error-metric fact.
+  Temporary prose is redundant and removed.
+- **Done when:** redundant prose can be removed and the test has one metric assertion.
+
+### R2 - Cover general-error request-kind metric routing
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Addresses:** P1
+- **Change:** Add one unit test for a connect-kind error event and assert only its general-error
+  metric route labelled `request_kind=connect`.
+- **Guardrails:** Do not also assert aggregate IPv4/IPv6 totals, connection-ID-error metrics, event
+  conversion, listener dispatch, or metric arithmetic.
+- **Prose-first review:** The temporary prose specified that a parsed connect request increments the
+  general-error metric series labelled `request_kind=connect`. The test derives ordinary connection
+  labels from the exact `ConnectionContext` passed to the handler, so fixture-owned labels cannot
+  become a duplicated expectation. It specifies only the causal `request_kind=connect` label
+  independently, calls the local handler directly, and asserts one labelled metric-series value.
+  Temporary prose is redundant and removed.
+- **Done when:** a regression in request-kind label routing has one direct, deterministic failure.
+
+### R3 - Cover announce cookie-error client-software metric routing
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Addresses:** P2, P3
+- **Change:** Add one unit test with a direct `ConnectionCookie` classification and minimal announce
+  request using a fixed QBitTorrent-style peer ID. Assert only the client-software-labelled
+  connection-ID-error metric.
+- **Guardrails:** Keep the selected client label/version independently specified. Do not test the
+  peer-ID parser, general error metric, ban counter, or event emission.
+- **Prose-first review:** The temporary prose specified that a connection-cookie error for an
+  announce request with the visible QBitTorrent peer ID increments the connection-ID-error series
+  labelled `QBitTorrent` and `0.0.0`. `AnnounceRequestBuilder` supplies only incidental valid
+  request fields; the peer ID remains visible because it selects the handler-owned client-label
+  route. The test calls the local handler directly and asserts one connection-ID metric series.
+  Temporary prose is redundant and removed.
+- **Done when:** the conditional announce-cookie route has one readable contract.
+
+### R4 - Review residual metric-routing coverage
+
+- **Status:** DONE
+- **Priority:** Low impact / low effort
+- **Change:** Apply prose-first review after each test and measure unit-only coverage. Record why
+  unselected peer-client variants, repository failures, or metric aggregation remain at their
+  existing ownership boundaries.
+- **Guardrails:** Do not add percentage-only cases or broaden the peer-client variant matrix.
+- **Decision:** Unit-only coverage after R2 and R3 is 131/151 lines (86.75%), 191/259 regions
+  (73.75%), and 16/16 functions (100%). Do not add a coverage-only test for residual branches:
+  the `PeerClient` variant matrix is peer-ID classification behavior, while R3 protects this
+  handler's representative known-client route. `Repository::increase_counter` failure paths are
+  repository/observability infrastructure behavior and would require artificial failure injection.
+  Connect, announce, and scrape general-error routes share R2's request-kind label insertion;
+  testing other kinds would duplicate that contract. Metric aggregation and query arithmetic belong
+  to the repository and metric-collection test boundaries.
+- **Done when:** each residual branch has an ownership decision.
+
+## Progress Tracking
+
+### Plan Checklist
+
+- [x] Handler, current test, metric ownership, event classification, and unit-only coverage reviewed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R2.
+- [x] R2 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved R3.
+- [x] R3 implemented, reviewed, validated, and committed.
+- [x] R4 coverage/ownership review completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
+
+### Progress Log
+
+- 2026-09-10 - GitHub Copilot - Created this proposed plan after reviewing the error-metric
+  handler, current local test, event/router ownership, metric query boundaries, representative
+  announce fixture support, and unit-only coverage. No test or production change has been made.
+- 2026-09-10 - User/maintainer - Approved R1. Apply the prose-first cleanup to the existing IPv4
+  general-error metric test only; commit this plan update before modifying the test.
+- 2026-09-10 - User/maintainer - Reviewed and approved R1. The cleaned test directly exercises the
+  error-metric handler with a visible request-parse classification and one IPv4 aggregate error
+  metric assertion; ordinary connection context setup is named locally.
+- 2026-09-10 - User/maintainer - Approved R2. Add one direct unit test for a connect-kind
+  request-parse error and assert only the general error metric labelled `request_kind=connect`.
+  Do not assert aggregate totals, client-software metrics, conversion, routing, or metric arithmetic.
+- 2026-09-10 - User/maintainer - Reviewed and approved R2. The test derives ordinary metric labels
+  from its `ConnectionContext`, explicitly adds only `request_kind=connect`, directly invokes the
+  error-metric handler, and asserts one general-error metric series.
+- 2026-09-10 - User/maintainer - Approved R3. Add one direct unit test for the announce
+  connection-cookie route with a visible QBitTorrent peer ID and independently specified
+  client-software labels only.
+- 2026-09-10 - User/maintainer - Approved R4. Record the unit-only coverage evidence and retain
+  residual peer-client classification, repository failure, request-kind duplication, and metric
+  aggregation behavior at their existing ownership boundaries.
+- 2026-09-10 - User/maintainer - Reviewed and approved the completed error-metric plan. The R1-R3
+  tests protect distinct handler-owned routes, and R4 records the residual ownership decisions.
+
+### Validation Evidence
+
+| Increment | Status | Evidence |
+| --- | --- | --- |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
+| R1 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event`, and `git diff --check` passed. Prose-first review keeps request-parse classification, local handler Act, and one aggregate IPv4 metric assertion visible. |
+| R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_general_error_metric_with_connect_request_kind`, and `git diff --check` passed. Prose-first review derives fixture-owned connection labels from the context under test and specifies only `request_kind=connect` independently. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server statistics::event::handler::error::tests::should_label_a_connection_id_error_metric_with_qbittorrent_client_software`, and `git diff --check` passed. Prose-first review keeps the QBitTorrent peer ID and independently specified client labels visible while `AnnounceRequestBuilder` owns incidental request setup. |
+| R4 | DONE | Unit-only `cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json` passed all 160 package unit tests. `error.rs` coverage is 131/151 lines (86.75%), 191/259 regions (73.75%), and 16/16 functions (100%). Residual branches have recorded ownership decisions; no coverage-only tests added. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
+
+## Non-Goals
+
+- Do not change event classification, listener dispatch, metrics repository behavior, peer-ID
+  parsing, ban policy, or production error-metric logic.
+- Do not create sockets, event buses, listeners, databases, sleeps, polling, or generic fixtures.
+- Do not test every client-software variant or combine general-error and connection-ID-error
+  assertions in one test.
+
+## Validation Per Approved Increment
+
+- Apply the mandatory prose-first Arrange-Act-Assert comparison before maintainer review.
+- Run focused `statistics::event::handler::error` tests.
+- Run `cargo fmt --all -- --check` and `git diff --check`.
+- Run `linter markdown` and `linter cspell` when this plan changes.
+- Measure unit-only coverage when coverage informs a decision.
+
+## Completion Criteria
+
+- The existing aggregate-error test has a clear causal input, direct handler Act, and one metric
+  assertion.
+- Each new test protects exactly one handler-owned metric-routing decision.
+- Event classification, peer-client parsing, metric aggregation, and event dispatch remain at their
+  existing ownership boundaries.
+- The maintainer reviews every approved increment before the next increment and before final
+  verification.

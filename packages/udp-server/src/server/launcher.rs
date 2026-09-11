@@ -314,61 +314,111 @@ async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio::sync::oneshot;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::signals::{Halted, Started};
     use torrust_tracker_configuration::v3_0_0::logging;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+    use torrust_tracker_udp_core::event::ConnectionContext;
 
     use super::Launcher;
+    use crate::RawRequest;
     use crate::container::UdpTrackerServerContainer;
+    use crate::event::Event;
     use crate::server::bound_socket::BoundSocket;
+
+    const TEST_LOG_TARGET: &str = "udp://test";
+    // This is an absolute failure bound, not a scheduling delay. Event-publication regressions
+    // must fail diagnostically instead of leaving the test process waiting indefinitely.
+    const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
+
+    struct UdpLauncherTestContext {
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+        cookie_lifetime: Duration,
+        bind_address: SocketAddr,
+        max_connection_id_errors_per_ip: u32,
+    }
+
+    impl UdpLauncherTestContext {
+        async fn new() -> Self {
+            let configuration = Arc::new(ephemeral_public());
+            let core_config = Arc::new(configuration.core.clone());
+            let udp_tracker_config = Arc::new(
+                configuration
+                    .udp_trackers
+                    .clone()
+                    .expect("UDP test configuration should include a tracker")
+                    .into_iter()
+                    .next()
+                    .expect("UDP test configuration should include one tracker"),
+            );
+            torrust_clock::initialize_static();
+            torrust_tracker_udp_core::initialize_static();
+            logging::setup(&configuration.logging);
+
+            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+            let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+                &core_config,
+                &udp_tracker_config,
+                configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+                configuration_instance_id,
+            )
+            .await;
+            let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+
+            Self {
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                cookie_lifetime: udp_tracker_config.cookie_lifetime,
+                bind_address: udp_tracker_config.bind_address,
+                max_connection_id_errors_per_ip: configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+            }
+        }
+
+        async fn with_banned_client_ip(client_ip: IpAddr) -> Self {
+            let context = Self::new().await;
+            let mut ban_service = context.udp_tracker_core_container.ban_service.write().await;
+
+            for _ in 0..=context.max_connection_id_errors_per_ip {
+                ban_service.increase_counter(&client_ip);
+            }
+
+            drop(ban_service);
+            context
+        }
+    }
+
+    fn sample_udp_service_binding(bind_address: SocketAddr) -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, SocketAddr::new(bind_address.ip(), 6969))
+            .expect("sample UDP service binding should be valid")
+    }
 
     #[tokio::test]
     async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
         // Arrange
-        let configuration = Arc::new(ephemeral_public());
-        let core_config = Arc::new(configuration.core.clone());
-        let udp_tracker_config = Arc::new(
-            configuration
-                .udp_trackers
-                .clone()
-                .expect("UDP test configuration should include a tracker")
-                .into_iter()
-                .next()
-                .expect("UDP test configuration should include one tracker"),
-        );
-        torrust_clock::initialize_static();
-        torrust_tracker_udp_core::initialize_static();
-        logging::setup(&configuration.logging);
-
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
-            &core_config,
-            &udp_tracker_config,
-            configuration.udp_tracker_server.max_connection_id_errors_per_ip,
-            configuration_instance_id,
-        )
-        .await;
-        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
-        let bound_socket = BoundSocket::bind(udp_tracker_config.bind_address, false).expect("UDP socket should bind");
-        let address = bound_socket.address();
-        let (tx_start, rx_start) = oneshot::channel::<Started>();
-        let (_tx_halt, rx_halt) = oneshot::channel::<Halted>();
-        drop(rx_start);
+        let launcher = UdpLauncherTestContext::new().await;
+        let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");
+        let bound_address = bound_socket.address();
+        let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
+        let (_halt_sender, halt_receiver) = oneshot::channel::<Halted>();
+        drop(startup_notification_receiver);
 
         // Act
         let result = Launcher::run_with_graceful_shutdown(
-            udp_tracker_core_container,
-            udp_tracker_server_container,
+            launcher.udp_tracker_core_container,
+            launcher.udp_tracker_server_container,
             bound_socket,
-            udp_tracker_config.cookie_lifetime,
+            launcher.cookie_lifetime,
             torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
-            tx_start,
-            rx_halt,
+            startup_notification_sender,
+            halt_receiver,
         )
         .await;
 
@@ -377,6 +427,136 @@ mod tests {
             result.expect_err("startup notification should fail").kind(),
             std::io::ErrorKind::BrokenPipe
         );
-        BoundSocket::bind(address, false).expect("UDP socket should be released after startup notification failure");
+        BoundSocket::bind(bound_address, false).expect("UDP socket should be released after startup notification failure");
+    }
+
+    #[tokio::test]
+    async fn it_should_require_discarding_a_request_when_its_source_port_is_zero() {
+        // Arrange
+        let launcher = UdpLauncherTestContext::new().await;
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(should_discard);
+    }
+
+    #[tokio::test]
+    async fn it_should_require_discarding_a_request_when_its_client_ip_is_banned_in_strict_mode() {
+        // Arrange
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);
+        let launcher = UdpLauncherTestContext::with_banned_client_ip(client_socket_addr.ip()).await;
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(should_discard);
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_request_banned_event_when_its_client_ip_is_banned_in_strict_mode() {
+        // Arrange
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);
+        let launcher = UdpLauncherTestContext::with_banned_client_ip(client_socket_addr.ip()).await;
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
+
+        // Act
+        let _ = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(
+            tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, event_receiver.recv())
+                .await
+                .expect("request-banned event should be published before the test deadline")
+                .expect("request-banned event receiver should remain connected"),
+            Event::UdpRequestBanned {
+                context: ConnectionContext::new(
+                    launcher.udp_tracker_core_container.configuration_instance_id,
+                    client_socket_addr,
+                    server_service_binding,
+                ),
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_request_discarded_event_when_its_source_port_is_zero() {
+        // Arrange
+        let launcher = UdpLauncherTestContext::new().await;
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
+
+        // Act
+        let _ = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(
+            tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, event_receiver.recv())
+                .await
+                .expect("request-discarded event should be published before the test deadline")
+                .expect("request-discarded event receiver should remain connected"),
+            Event::UdpRequestDiscarded {
+                context: ConnectionContext::new(
+                    launcher.udp_tracker_core_container.configuration_instance_id,
+                    client_socket_addr,
+                    server_service_binding,
+                ),
+            }
+        );
     }
 }

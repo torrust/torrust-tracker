@@ -166,10 +166,6 @@ mod tests {
     use crate::error::Error;
     use crate::event::{ErrorKind, Event, UdpRequestKind};
 
-    fn service_binding() -> ServiceBinding {
-        ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap()
-    }
-
     fn internal_error() -> Error {
         Error::Internal {
             location: std::panic::Location::caller(),
@@ -177,58 +173,102 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn it_should_publish_the_exact_error_with_the_supplied_transaction_id() {
-        // Arrange
+    /// Calls the production handler with ordinary connection context that no
+    /// test in this module varies.
+    async fn handle_error_with_default_context(
+        request_kind: Option<UdpRequestKind>,
+        public_url: Option<String>,
+        sender: &crate::event::sender::Sender,
+        error: &Error,
+        transaction_id: Option<TransactionId>,
+    ) -> Response {
+        handle_error(
+            request_kind,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
+                .expect("UDP service binding should be valid"),
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            public_url,
+            Uuid::nil(),
+            sender,
+            0.0..1.0,
+            error,
+            transaction_id,
+        )
+        .await
+    }
+
+    /// Calls `handle_error` for its error-response behavior without an event sender.
+    async fn handle_error_for_response(transaction_id: Option<TransactionId>, error: &Error) -> Response {
+        handle_error_with_default_context(None, None, &None, error, transaction_id).await
+    }
+
+    /// Calls `handle_error` for its error-event publication behavior.
+    async fn handle_error_for_published_event(
+        request_kind: Option<UdpRequestKind>,
+        public_url: Option<String>,
+        error: &Error,
+    ) -> Event {
         let broadcaster = crate::event::sender::Broadcaster::default();
         let mut receiver = broadcaster.subscribe();
         let sender = Some(Arc::new(broadcaster) as Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>);
+
+        handle_error_with_default_context(request_kind, public_url, &sender, error, None).await;
+
+        receiver.recv().await.expect("error event should be published")
+    }
+
+    #[tokio::test]
+    async fn it_should_return_an_error_response_with_the_supplied_transaction_id() {
+        // Arrange
         let transaction_id = TransactionId(I32::new(42));
         let error = internal_error();
 
         // Act
-        let response = handle_error(
-            Some(UdpRequestKind::Connect),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
-            service_binding(),
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            None,
-            Uuid::nil(),
-            &sender,
-            0.0..1.0,
-            &error,
-            Some(transaction_id),
-        )
-        .await;
+        let response = handle_error_for_response(Some(transaction_id), &error).await;
 
         // Assert
         assert!(matches!(response, Response::Error(ErrorResponse { transaction_id: actual, .. }) if actual == transaction_id));
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_an_error_event_with_the_supplied_request_kind() {
+        // Arrange
+        let error = internal_error();
+
+        // Act
+        let event = handle_error_for_published_event(Some(UdpRequestKind::Connect), None, &error).await;
+
+        // Assert
         assert!(matches!(
-            receiver.recv().await.unwrap(),
+            event,
             Event::UdpError { kind: Some(UdpRequestKind::Connect), error: ErrorKind::InternalServer(message), .. } if message == "failure"
         ));
     }
 
     #[tokio::test]
-    async fn it_should_return_a_zero_transaction_id_without_an_event_sender() {
+    async fn it_should_publish_an_error_event_with_the_supplied_public_url() {
         // Arrange
-        let sender = None;
+        let public_url = "udp://tracker.example.test:6969".to_string();
         let error = internal_error();
 
         // Act
-        let response = handle_error(
-            None,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
-            service_binding(),
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            None,
-            Uuid::nil(),
-            &sender,
-            0.0..1.0,
-            &error,
-            None,
-        )
-        .await;
+        let event = handle_error_for_published_event(None, Some(public_url.clone()), &error).await;
+
+        // Assert
+        let Event::UdpError { context, .. } = event else {
+            panic!("published event should be a UDP error");
+        };
+        assert_eq!(context.public_url(), Some(public_url.as_str()));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_zero_transaction_id_without_an_event_sender() {
+        // Arrange
+        let error = internal_error();
+
+        // Act
+        let response = handle_error_for_response(None, &error).await;
 
         // Assert
         assert!(

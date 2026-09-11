@@ -166,3 +166,185 @@ pub mod bus {
 
     pub type EventBus = torrust_tracker_events::bus::EventBus<Event>;
 }
+
+#[cfg(test)]
+mod tests {
+    use std::net::Ipv4Addr;
+    use std::num::NonZeroU16;
+    use std::panic::Location;
+    use std::str::FromStr;
+
+    use torrust_info_hash::InfoHash;
+    use torrust_metrics::label::LabelValue;
+    use torrust_peer_id::PeerId;
+    use torrust_tracker_core::databases::error::Error as DatabaseError;
+    use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+    use torrust_tracker_primitives::Driver;
+    use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
+    use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+    use torrust_tracker_udp_protocol::{
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash as UdpInfoHash, NumberOfBytes,
+        NumberOfPeers, PeerKey, Port, TransactionId,
+    };
+    use zerocopy::byteorder::network_endian::I32;
+
+    use super::{ErrorKind, UdpRequestKind};
+    use crate::error::{Error, SendableRequestParseError};
+
+    fn announce_request() -> AnnounceRequest {
+        AnnounceRequest {
+            connection_id: ConnectionId(I32::new(0).into()),
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId(I32::new(0)),
+            info_hash: UdpInfoHash([0; 20]),
+            peer_id: PeerId([0; 20]),
+            bytes_downloaded: NumberOfBytes(I32::new(0).into()),
+            bytes_left: NumberOfBytes(I32::new(0).into()),
+            bytes_uploaded: NumberOfBytes(I32::new(0).into()),
+            event: AnnounceEvent::None.into(),
+            ip_address: Ipv4Addr::UNSPECIFIED.into(),
+            key: PeerKey::new(0),
+            peers_wanted: NumberOfPeers::new(0),
+            port: Port::new(NonZeroU16::MIN),
+        }
+    }
+
+    #[test]
+    fn it_should_classify_an_invalid_request_as_a_request_parse_error() {
+        // Arrange
+        let error = Error::InvalidRequest {
+            request_parse_error: SendableRequestParseError {
+                message: "invalid request".to_string(),
+                opt_connection_id: None,
+                opt_transaction_id: None,
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::RequestParse(
+                "SendableRequestParseError: message: invalid request, connection_id: None, transaction_id: None".to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_connection_cookie_error() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::ConnectionCookieError {
+                source: ConnectionCookieError::ValueExpired {
+                    expired_value: 1.0,
+                    min_value: 2.0,
+                },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::ConnectionCookie("cookie value is expired: 1, expected > 2".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_whitelist_error() {
+        // Arrange
+        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0") // DevSkim: ignore DS173237
+            .expect("test info hash should be valid");
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::TrackerCoreWhitelistError {
+                source: WhitelistError::TorrentNotWhitelisted {
+                    info_hash,
+                    location: Location::caller(),
+                },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert!(
+            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_database_error() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::TrackerCoreAnnounceError {
+                source: AnnounceError::Database(DatabaseError::MalformedDatabaseRecord {
+                    message: "corrupt record".to_string(),
+                    driver: Driver::Sqlite3,
+                }),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::Database("Malformed Sqlite3 database record: corrupt record".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_an_internal_error() {
+        // Arrange
+        let error = Error::Internal {
+            location: Location::caller(),
+            message: "internal failure".to_string(),
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(actual, ErrorKind::InternalServer("internal failure".to_string()));
+    }
+
+    #[test]
+    fn it_should_classify_an_authentication_error() {
+        // Arrange
+        let location = Location::caller();
+        let error = Error::AuthRequired { location };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(actual, ErrorKind::TrackerAuthentication(location.to_string()));
+    }
+
+    #[test]
+    fn it_should_convert_request_kinds_to_metric_labels_and_display_values() {
+        // Arrange
+        let cases = [
+            (UdpRequestKind::Connect, "connect"),
+            (
+                UdpRequestKind::Announce {
+                    announce_request: announce_request(),
+                },
+                "announce",
+            ),
+            (UdpRequestKind::Scrape, "scrape"),
+        ];
+
+        // Act and Assert
+        for (request_kind, expected) in cases {
+            assert_eq!(request_kind.to_string(), expected);
+            assert_eq!(LabelValue::from(request_kind), LabelValue::new(expected));
+        }
+    }
+}

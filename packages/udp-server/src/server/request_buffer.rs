@@ -3,7 +3,7 @@ use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
-// issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+// ADR: packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 /// A ring buffer for managing active UDP request abort handles.
 ///
 /// The `ActiveRequests` struct maintains a fixed-size ring buffer of abort
@@ -36,10 +36,16 @@ impl Drop for ActiveRequests {
 impl ActiveRequests {
     /// Inserts an abort handle for a UDP request processor task.
     ///
-    /// If the buffer is full, this method attempts to make space by:
+    /// If the buffer is full, this method traverses handles from oldest to newest. It:
     ///
-    /// 1. Removing finished tasks.
-    /// 2. Removing the oldest unfinished task if no finished tasks are found.
+    /// 1. Removes completed handles encountered before the first still-active handle.
+    /// 2. Gives that oldest active task one scheduler yield to finish.
+    /// 3. Aborts that task when no earlier completed handle created capacity; otherwise it
+    ///    continues the bounded traversal. It retains at most one subsequently encountered active
+    ///    handle for re-entry.
+    ///
+    /// It intentionally does not scan all newer handles before selecting this eviction. See the
+    /// module ADR for the request-hot-path performance rationale.
     ///
     /// Returns `true` if a task was removed, `false` otherwise.
     ///
@@ -66,28 +72,22 @@ impl ActiveRequests {
                 let mut old_task_aborted = false;
 
                 for old_task in self.rb.pop_iter() {
-                    // We found a finished tasks ... increase the counter and
-                    // continue searching for more and ...
+                    // A completed task before the first still-active task frees capacity.
                     if old_task.is_finished() {
                         finished += 1;
                         continue;
                     }
 
-                    // The current removed tasks is not finished.
-
-                    // Give it a second chance to finish.
+                    // Give the oldest still-active task one opportunity to finish.
                     tokio::task::yield_now().await;
 
-                    // Recheck if it finished ... increase the counter and
-                    // continue searching for more and ...
+                    // If it completed while yielded, it also frees capacity.
                     if old_task.is_finished() {
                         finished += 1;
                         continue;
                     }
 
-                    // At this point we found a "definitive" unfinished task.
-
-                    // Log unfinished task.
+                    // This is the first task that remains active after yielding.
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         local_addr,
@@ -95,8 +95,7 @@ impl ActiveRequests {
                         "Udp::run_udp_server::loop (got unfinished task)"
                     );
 
-                    // If no finished tasks were found, abort the current
-                    // unfinished task.
+                    // No older completed task created capacity, so evict this oldest active task.
                     if finished == 0 {
                         // We make place aborting this task.
                         old_task.abort();
@@ -111,11 +110,7 @@ impl ActiveRequests {
                         break;
                     }
 
-                    // At this point we found at least one finished task, but the
-                    // current one is not finished and it was removed from the
-                    // buffer, so we need to re-insert in in the buffer.
-
-                    // Save the unfinished task for re-entry.
+                    // Earlier completed tasks created capacity; retain this active task for re-entry.
                     unfinished_task = Some(old_task);
                 }
 
@@ -124,18 +119,14 @@ impl ActiveRequests {
                 // buffer to be full again. That means the "expects" should
                 // never happen.
 
-                // Reinsert the unfinished task if any.
+                // Reinsert the active task that followed at least one completed task, if any.
                 if let Some(h) = unfinished_task {
                     self.rb.try_push(h).expect("it was previously inserted");
                 }
 
                 // Insert the new task.
                 //
-                // Notice that space has already been made for this new task in
-                // the buffer. One or many old task have already been finished
-                // or yielded, freeing space in the buffer. Or a single
-                // unfinished task has been aborted to make space for this new
-                // task.
+                // Earlier completed tasks, or one oldest active task eviction, made capacity.
                 if !new_task.is_finished() {
                     self.rb.try_push(new_task).expect("it should have space for this new task.");
                 }
@@ -143,5 +134,192 @@ impl ActiveRequests {
                 old_task_aborted
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use tokio::sync::oneshot;
+    use tokio::task::JoinHandle;
+
+    use ringbuf::traits::{Observer, Producer};
+
+    use super::ActiveRequests;
+
+    // This is an absolute failure bound, not a scheduling delay. A cleanup regression must fail
+    // the test with a useful message rather than leave the test process waiting forever.
+    const TASK_COMPLETION_TIMEOUT: Duration = Duration::from_secs(1);
+
+    struct PendingTask {
+        completion_sender: oneshot::Sender<()>,
+        join_handle: JoinHandle<()>,
+    }
+
+    impl PendingTask {
+        fn new() -> Self {
+            let (completion_sender, completion_receiver) = oneshot::channel::<()>();
+            let join_handle = tokio::spawn(async move {
+                drop(completion_receiver.await);
+            });
+
+            Self {
+                completion_sender,
+                join_handle,
+            }
+        }
+
+        fn abort_handle(&self) -> tokio::task::AbortHandle {
+            self.join_handle.abort_handle()
+        }
+
+        fn insert_into(self, active_requests: &mut ActiveRequests) -> Self {
+            // `force_push` is the Act being tested. Direct insertion here establishes the full
+            // pending-buffer state without executing that behavior during Arrange, keeping the
+            // oldest task and capacity-exhausted condition independently controlled.
+            active_requests
+                .rb
+                .try_push(self.abort_handle())
+                .expect("a request buffer with available capacity should accept the pending task");
+            self
+        }
+
+        async fn assert_was_aborted(self, message: &str) {
+            let join_result = tokio::time::timeout(TASK_COMPLETION_TIMEOUT, self.join_handle)
+                .await
+                .expect("pending task should complete or abort before the cleanup deadline");
+
+            join_result.expect_err(message);
+        }
+
+        async fn assert_completed_after_cleanup(self) {
+            drop(self.completion_sender);
+
+            let join_result = tokio::time::timeout(TASK_COMPLETION_TIMEOUT, self.join_handle)
+                .await
+                .expect("pending task should complete before the cleanup deadline");
+
+            join_result.expect("pending task should complete after test cleanup");
+        }
+    }
+
+    struct FullBufferWithPendingTasks {
+        active_requests: ActiveRequests,
+        oldest_task: Option<PendingTask>,
+        retained_tasks: Vec<PendingTask>,
+        incoming_task: PendingTask,
+    }
+
+    impl FullBufferWithPendingTasks {
+        fn new() -> Self {
+            let mut active_requests = ActiveRequests::default();
+            let oldest_task = PendingTask::new().insert_into(&mut active_requests);
+
+            let retained_task_count = active_requests
+                .rb
+                .capacity()
+                .get()
+                .checked_sub(1)
+                .expect("the active request buffer should have capacity for an oldest task");
+            let mut retained_tasks = Vec::with_capacity(retained_task_count);
+            for _ in 0..retained_task_count {
+                retained_tasks.push(PendingTask::new().insert_into(&mut active_requests));
+            }
+
+            let incoming_task = PendingTask::new();
+
+            Self {
+                active_requests,
+                oldest_task: Some(oldest_task),
+                retained_tasks,
+                incoming_task,
+            }
+        }
+
+        fn incoming_task_abort_handle(&self) -> tokio::task::AbortHandle {
+            self.incoming_task.abort_handle()
+        }
+
+        async fn assert_oldest_task_was_aborted(&mut self) {
+            self.oldest_task
+                .take()
+                .expect("scenario should retain the oldest task")
+                .assert_was_aborted("oldest pending task should be evicted when capacity is exhausted")
+                .await;
+        }
+
+        async fn abort_and_join_retained_tasks(self) {
+            drop(self.active_requests);
+
+            for task in self.retained_tasks {
+                task.assert_was_aborted("retained task should be aborted during test cleanup")
+                    .await;
+            }
+            self.incoming_task
+                .assert_was_aborted("incoming task should be aborted during test cleanup")
+                .await;
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_not_evict_a_pending_task_when_the_buffer_has_available_capacity() {
+        // Arrange
+        let task = PendingTask::new();
+        let mut active_requests = ActiveRequests::default();
+
+        // Act
+        let task_was_evicted = active_requests.force_push(task.abort_handle(), "127.0.0.1:6969").await;
+
+        // Assert
+        assert!(!task_was_evicted);
+        assert!(!task.join_handle.is_finished());
+
+        task.assert_completed_after_cleanup().await;
+    }
+
+    #[tokio::test]
+    async fn it_should_evict_the_oldest_pending_task_when_the_buffer_is_full() {
+        // Arrange
+        let mut scenario = FullBufferWithPendingTasks::new();
+
+        // Act
+        let task_was_evicted = scenario
+            .active_requests
+            .force_push(scenario.incoming_task_abort_handle(), "127.0.0.1:6969")
+            .await;
+
+        // Assert
+        assert!(task_was_evicted);
+        scenario.assert_oldest_task_was_aborted().await;
+        scenario.abort_and_join_retained_tasks().await;
+    }
+
+    #[tokio::test]
+    async fn it_should_abort_a_pending_task_when_the_request_buffer_is_dropped() {
+        // Arrange
+        let completed_task = tokio::spawn(async {});
+        let completed_task_abort_handle = completed_task.abort_handle();
+        completed_task
+            .await
+            .expect("completed task should finish before the buffer is dropped");
+
+        let pending_task = PendingTask::new();
+        let mut active_requests = ActiveRequests::default();
+        // The completed handle establishes mixed buffer state. `force_push` is not used here
+        // because this test's Act is dropping the buffer, not admitting a request.
+        active_requests
+            .rb
+            .try_push(completed_task_abort_handle)
+            .expect("an empty request buffer should accept the completed task");
+        let pending_task = pending_task.insert_into(&mut active_requests);
+
+        // Act
+        drop(active_requests);
+
+        // Assert
+        pending_task
+            .assert_was_aborted("pending task should be aborted when the request buffer is dropped")
+            .await;
     }
 }

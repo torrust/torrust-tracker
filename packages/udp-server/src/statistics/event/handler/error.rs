@@ -106,41 +106,111 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use torrust_clock::clock::Time;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_collection::aggregate::sum::Sum;
+    use torrust_metrics::{label_name, metric_name};
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_peer_id::PeerId;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
 
+    use super::handle_event;
     use crate::CurrentClock;
-    use crate::event::Event;
-    use crate::statistics::event::handler::error::ErrorKind;
-    use crate::statistics::event::handler::handle_event;
-    use crate::statistics::repository::Repository;
+    use crate::event::ErrorKind;
+    use crate::event::UdpRequestKind;
+    use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+    use crate::statistics::{
+        UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL, repository::Repository,
+    };
+
+    fn sample_ipv4_connection_context() -> ConnectionContext {
+        ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+            ServiceBinding::new(
+                Protocol::UDP,
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+            )
+            .expect("sample UDP service binding should be valid"),
+        )
+    }
 
     #[tokio::test]
     async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
+        // Arrange
         let stats_repository = Repository::new();
+        let connection_context = sample_ipv4_connection_context();
+        let error_kind = ErrorKind::RequestParse("Invalid request format".to_string());
 
+        // Act
+        handle_event(connection_context, None, error_kind, &stats_repository, CurrentClock::now()).await;
+
+        // Assert
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp4_errors_total(), 1);
+    }
+
+    #[tokio::test]
+    async fn should_label_a_general_error_metric_with_connect_request_kind() {
+        // Arrange
+        let stats_repository = Repository::new();
+        let connection_context = sample_ipv4_connection_context();
+        let error_kind = ErrorKind::RequestParse("Invalid request format".to_string());
+        let mut expected_labels = LabelSet::from(connection_context.clone());
+        expected_labels.upsert(label_name!("request_kind"), "connect".to_string().into());
+
+        // Act
         handle_event(
-            Event::UdpError {
-                context: ConnectionContext::new(
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-                kind: None,
-                error: ErrorKind::RequestParse("Invalid request format".to_string()),
-            },
+            connection_context,
+            Some(UdpRequestKind::Connect),
+            error_kind,
             &stats_repository,
             CurrentClock::now(),
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
+        // Assert
+        let counter_value = {
+            let stats = stats_repository.get_stats().await;
+            stats
+                .metric_collection
+                .sum(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &expected_labels)
+                .expect("connect-labelled general error metric should exist")
+        };
+        assert!((counter_value - 1.0).abs() < f64::EPSILON);
+    }
 
-        assert_eq!(stats.udp4_errors_total(), 1);
+    #[tokio::test]
+    async fn should_label_a_connection_id_error_metric_with_qbittorrent_client_software() {
+        // Arrange
+        let stats_repository = Repository::new();
+        let announce_request = AnnounceRequestBuilder::default()
+            .with_peer_id(PeerId(*b"-qB00000000000000001"))
+            .into();
+        let expected_labels = LabelSet::from([
+            (label_name!("client_software_name"), "QBitTorrent".to_string().into()),
+            (label_name!("client_software_version"), "0.0.0".to_string().into()),
+        ]);
+
+        // Act
+        handle_event(
+            sample_ipv4_connection_context(),
+            Some(UdpRequestKind::Announce { announce_request }),
+            ErrorKind::ConnectionCookie("connection ID is invalid".to_string()),
+            &stats_repository,
+            CurrentClock::now(),
+        )
+        .await;
+
+        // Assert
+        let counter_value = {
+            let stats = stats_repository.get_stats().await;
+            stats
+                .metric_collection
+                .sum(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &expected_labels)
+                .expect("QBitTorrent connection-ID-error metric should exist")
+        };
+        assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 }

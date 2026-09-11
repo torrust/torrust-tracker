@@ -1,3 +1,13 @@
+//! Typed UDP server lifecycle states.
+//!
+//! # Test ownership
+//!
+//! Colocated tests cover deterministic `await_startup_notification` error
+//! mappings. The public `server` module owns registration-error preservation
+//! and listener-release coverage. Bind failures, halt signalling, task
+//! joining, and `Running::stop` are legacy lifecycle behavior deferred to
+//! Issue #1488 and its UDP lifecycle subissues; do not add coverage-only tests
+//! for those paths here.
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -190,10 +200,17 @@ impl Server<Running> {
 
 #[cfg(test)]
 mod tests {
+    use std::net::SocketAddr;
+
     use tokio::sync::oneshot;
+    use tokio::task::JoinHandle;
 
     use super::{UdpError, await_startup_notification};
     use crate::server::spawner::Spawner;
+
+    fn launcher_task_with_successful_result() -> JoinHandle<Result<Spawner, std::io::Error>> {
+        tokio::spawn(async { Ok(Spawner::new(SocketAddr::from(([127, 0, 0, 1], 6969)))) })
+    }
 
     #[tokio::test]
     async fn it_should_preserve_a_broken_pipe_launcher_error_when_startup_notification_fails() {
@@ -215,5 +232,34 @@ mod tests {
             panic!("launcher error should not be collapsed into a startup-notification error");
         };
         assert_eq!(source.kind(), std::io::ErrorKind::BrokenPipe);
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_startup_notification_error_when_the_launcher_finishes_successfully() {
+        // Arrange
+        let (tx_start, rx_start) = oneshot::channel();
+        drop(tx_start);
+        let mut task = launcher_task_with_successful_result();
+
+        // Act
+        let result = await_startup_notification(rx_start, &mut task).await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpError::StartupNotification { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_server_failure_error_when_the_launcher_task_is_aborted() {
+        // Arrange
+        let (tx_start, rx_start) = oneshot::channel();
+        drop(tx_start);
+        let mut task = launcher_task_with_successful_result();
+        task.abort();
+
+        // Act
+        let result = await_startup_notification(rx_start, &mut task).await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpError::FailedToStartOrStopServer(_))));
     }
 }

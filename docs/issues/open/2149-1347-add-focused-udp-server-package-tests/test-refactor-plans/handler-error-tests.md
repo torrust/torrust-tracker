@@ -1,0 +1,272 @@
+---
+doc-type: test-refactor-plan
+issue: 2149
+package: torrust-tracker-udp-server
+target-file: packages/udp-server/src/handlers/error.rs
+status: proposed
+semantic-links:
+  related-artifacts:
+    - packages/udp-server/src/handlers/error.rs
+    - packages/udp-server/src/handlers/mod.rs
+    - packages/udp-server/src/error.rs
+    - packages/udp-server/src/event.rs
+    - packages/udp-server/src/statistics/event/handler/error.rs
+    - packages/udp-server/src/banning/event/handler.rs
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+---
+
+# UDP Handler Error Test Refactor Plan
+
+Follow the shared [purpose, quality goals, plan structure, and required two-phase
+sequence](README.md). This plan applies only to `packages/udp-server/src/handlers/error.rs`.
+
+## Phase 1 - Clean Current Tests
+
+### Current state
+
+`handle_error` logs an error, optionally publishes a `UdpError` event, and returns a protocol error
+response. The first existing test combines two independently observable outcomes: it asserts the
+returned response transaction ID and the published event. The second test asserts the zero fallback
+transaction ID when no event sender is present. Unit-only evidence before this plan is 132/154 lines
+(85.71%), 129/145 regions (88.97%), and 13/14 functions (92.86%).
+
+The current combined test has two reasons to fail. A response transaction-ID regression and an
+event-publication regression are owned by different behavior branches and should be separate
+contracts. Its Arrange also exposes broadcaster/receiver mechanics only because it tests event
+publication; those mechanics must not appear in the response-only test.
+
+### Decision
+
+Split the combined test before adding behavior. Keep response transaction-ID routing in a
+sender-disabled test, and keep event publication in a sender-enabled test. Do not use a fixture that
+hides the causal sender state, request kind, event inputs, response transaction ID, or expected
+published event. A narrowly named ordinary helper is allowed only for repeated valid service-binding
+or internal-error construction.
+
+## Phase 2 - Assess Missing Behavior Tests
+
+### Strengths to preserve
+
+1. `handle_error` owns response construction and optional server-error event publication.
+2. `handlers/mod.rs` owns deciding when a parsed or unparsed request reaches `handle_error`.
+3. `error.rs` owns conversion from protocol parse errors to the server `Error` type.
+4. `event.rs` owns the stable `ErrorKind` classification consumed by statistics and banning.
+5. Statistics and banning handlers/listeners own event consumption and metric/policy effects.
+
+### Problems and opportunities
+
+#### P1 - Response construction and optional event publication are coupled in one test
+
+**Problem.** The existing sender-enabled test asserts both a response transaction ID and a published
+event. A failure cannot identify whether response routing or event publication regressed.
+
+**Opportunity.** Split it into one response contract and one event-publication contract. The response
+test uses no event sender and asserts only the explicitly supplied transaction ID. The event test
+uses an enabled broadcaster and asserts only the published `UdpError` carries the independently
+specified request kind and error classification. Keep the event context's client address/public URL
+visible only if those fields are selected as its observable event contract.
+
+#### P2 - Logging branches are not behavior-focused test targets
+
+**Decision.** Do not test warn/error level selection or transaction-ID log-field branches merely to
+cover lines 70-74 and 90-104. They are diagnostic implementation details, and tracing-capture tests
+would couple this unit suite to logging structure rather than response or publication behavior.
+
+#### P3 - Error event context forwarding needs assessment after cleanup
+
+**Decision.** After the split, assess whether the event test should assert one independently relevant
+context field, such as the supplied public URL. Add it only if that protects handler-owned event
+construction without duplicating `ConnectionContext`, `ErrorKind::from`, or event-consumer tests.
+Do not broaden the event assertion into a conversion or consumer-policy matrix.
+
+## Proposed Refactorings
+
+Apply items in order. Complete one approved increment—including prose-first comparison, focused
+validation, review, and its mapped commit point—before beginning the next item.
+
+### R1 - Split response and event-publication contracts
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Addresses:** Phase 1, P1
+- **Change:** Replace the combined test with two focused tests. One uses no sender and asserts only
+  an explicitly supplied transaction ID in the returned error response. One uses an enabled sender
+  and asserts only the published event's selected routing payload.
+- **Guardrails:** Each test has one Act and one assertion. Keep the sender condition explicit. Do
+  not assert a response in the event test or an event in the response test. Do not create generic
+  broadcaster, request, or error fixtures.
+- **Result:** The response contract uses no sender and retains only the supplied transaction-ID
+  assertion. The publication contract uses an enabled broadcaster and retains only the published
+  event assertion. The existing no-sender zero-ID fallback test remains separate.
+- **Done when:** Response routing and event publication have one failure reason each.
+
+### R2 - Review the split test designs
+
+- **Status:** DONE
+- **Priority:** High impact / low effort
+- **Change:** Perform the mandatory prose-first and test-code-smell review after R1. Verify that
+  sender state, transaction ID, request kind, error classification, and every selected event-context
+  field are visible from Arrange into Act/Assert.
+- **Guardrails:** Hide only ordinary service-binding, UUID, and broadcaster mechanics. Do not hide
+  a value that selects response routing or published-event meaning.
+- **Prose-first review:** The temporary prose specified one response-routing contract and one event
+  publication contract. The response test visibly retains its disabled sender and supplied
+  transaction ID. The event test visibly retains its enabled sender, `Connect` request kind, and
+  internal error. Each directly calls `handle_error` and has one assertion for its selected
+  behavior. Temporary prose is redundant and removed. Event-context forwarding remains an explicit
+  R3 assessment rather than an accidental wildcard assertion.
+- **Done when:** Both tests communicate one behavior and one reason to fail without hidden data
+  coupling.
+
+### R3 - Assess one event-context forwarding contract
+
+- **Status:** DONE
+- **Priority:** Medium impact / low effort
+- **Addresses:** P3
+- **Change:** Decide whether one direct assertion for a selected event context field adds distinct
+  handler-owned value after R1. Record a no-change decision when the existing event payload contract
+  is sufficient.
+- **Guardrails:** Do not test `ErrorKind` conversion, full `ConnectionContext` construction,
+  statistics, banning, or listener behavior.
+- **Decision:** A direct public-URL forwarding contract is justified. `handle_error` receives the
+  configured public URL and constructs the published error event's `ConnectionContext`, while
+  `ConnectionContext` owns storage/access and statistics consumers own later use. The test keeps
+  the public URL visible from Arrange through the handler Act and asserts only the received event
+  context's public URL. It uses `kind: None` to avoid request-kind routing and does not assert error
+  classification, statistics, banning, or listener behavior.
+- **Prose-first review:** The temporary prose specified that a configured public URL appears in the
+  published error event context. The final code visibly carries `public_url` from Arrange to the
+  `Some(public_url.clone())` Act argument and one `context.public_url()` assertion. Temporary prose
+  is redundant and removed.
+- **Done when:** The event-context test boundary is explicit.
+
+### R4 - Record residual ownership and coverage
+
+- **Status:** DONE
+- **Priority:** Low impact / low effort
+- **Change:** Measure aggregate/global, unit-only, and integration-only coverage separately when it
+  informs a decision. Record ownership for logging branches, lower-level error conversion,
+  dispatcher routing, event consumers, and sender-disabled behavior not selected by R1.
+- **Guardrails:** Do not add percentage-only logging or collaborator-matrix tests.
+- **Coverage evidence:** At commit `496128da`, clean reports measure this file at 176/178 lines
+  (98.88%), 187/189 regions (98.94%), and 23/23 functions (100.00%) aggregate/global; 155/178
+  lines (87.08%), 172/189 regions (91.01%), and 22/23 functions (95.65%) unit-only; and 89/93
+  lines (95.70%), 54/61 regions (88.52%), and 8/8 functions (100.00%) integration-only. The
+  different denominators include different test binaries and test-only code; they must not be
+  combined into one percentage.
+- **Residual ownership:** `log_error` and its cookie/non-cookie plus transaction-ID logging
+  branches are diagnostic implementation detail; tracing-capture tests are not selected. The
+  sender-disabled `trigger_udp_error_event` branch is exercised as a prerequisite of the focused
+  response contracts, but has no separate observable output worth a collaborator-matrix test.
+  Protocol parse-error conversion belongs to `error.rs`; parsed/unparsed request routing belongs
+  to `handlers/mod.rs`; `ErrorKind` classification belongs to `event.rs`; statistics and banning
+  consumption belong to their event handlers/listeners. Existing package integration tests retain
+  their real-loopback contracts without replacing the direct handler unit contracts.
+- **Done when:** Residual lines and behavior have documented owners.
+
+### R5 - Simplify focused handler calls without hiding their behavior
+
+- **Status:** DONE
+- **Priority:** Medium impact / low effort
+- **Change:** Replace the repeated ten-argument direct `handle_error` calls with focused
+  test-only wrappers. Preserve each test's causal input and its handler-oriented Act while hiding
+  shared ordinary transport context and event-bus plumbing.
+- **Alternatives considered:**
+
+  | Alternative | Benefits | Drawbacks | Decision |
+  | --- | --- | --- | --- |
+  | Keep direct ten-argument calls | The production SUT and every argument are visible. | Every test repeats ordinary connection context; causal inputs are lost among irrelevant socket, configuration, UUID, range, and sender mechanics. | Rejected. |
+  | One positional default-context wrapper | Removes repeated transport setup. | Calls still contain positional `None` values for unrelated arguments, so the Act does not communicate its selected behavior. | Rejected. |
+  | Parameter-bag builder or scenario fixture | Could name and collect all handler inputs. | Becomes an artificial model of the SUT's argument list and hides which field causes the assertion to differ. | Rejected. |
+  | Outcome-named wrappers (`error_response_for`, `published_error_event_for`) | Tests expose only response or event inputs and obtain the observed value directly. | The Act hides the production handler name, introducing a hidden-SUT/hidden-Act smell. | Rejected. |
+  | Handler-oriented outcome wrappers (`handle_error_for_response`, `handle_error_for_published_event`) over one default-context wrapper | Calls retain `handle_error`, expose only causal response/event inputs, return the directly observed `Response` or `Event`, and hide only fixed collaborator mechanics. | The event wrapper owns broadcaster/receiver plumbing and the shared wrapper still has the production signature. | Kept. |
+
+- **Decision:** Keep `handle_error_for_response` and `handle_error_for_published_event`, both
+  delegating to `handle_error_with_default_context`. The inner wrapper is limited to connection
+  context that no test varies; the outer wrappers encode the two observable handler behaviors.
+  This retains a visible handler Act and one reason to fail per test without a parameter bag or
+  repeated irrelevant setup.
+- **Prose-first review:** The temporary prose stated that response tests select only a transaction
+  ID and that event tests select only request kind or public URL. The resulting calls make those
+  values visible, name `handle_error`, and return the observed value for the single assertion.
+  The temporary prose is now redundant and removed.
+- **Done when:** The focused calls communicate the selected handler behavior and validation passes.
+
+## Progress Tracking
+
+### Plan Checklist
+
+- [x] Handler responsibility, current local tests, error conversion, dispatcher routing, event
+      consumers, and unit-only coverage reviewed.
+- [x] Maintainer approved R1.
+- [x] R1 implemented and focused validation passed.
+- [x] Maintainer approved R2 design review.
+- [x] R2 recorded, validated, and committed.
+- [x] R3 event-context assessment completed, reviewed, validated, and committed.
+- [x] R5 wrapper alternatives reviewed, selected, implemented, and validated.
+- [x] R4 coverage/ownership review completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
+
+### Progress Log
+
+- 2026-09-11 - GitHub Copilot - Created this proposed plan after reviewing
+  `handlers/error.rs`, its local tests, dispatcher/error-conversion boundaries, event consumers, and
+  unit-only line coverage. The existing combined response-and-event test has two independent failure
+  reasons; no test or production change has been made.
+- 2026-09-11 - User/maintainer - Approved R1. Split the combined response transaction-ID and
+  published error-event contract into focused tests before adding any behavior.
+- 2026-09-11 - User/maintainer - Reviewed and approved R2. The split tests retain visible sender,
+  transaction-ID, request-kind, and error-classification values with one Act and one assertion each.
+- 2026-09-11 - User/maintainer - Approved R3. Add one direct error-event public-URL forwarding
+  contract only, keeping request-kind, error classification, statistics, banning, and listener
+  behavior outside the test.
+- 2026-09-11 - User/maintainer - Reviewed and approved R3. The test makes the supplied public URL
+  visible from Arrange through the handler Act and asserts only the received context's public URL.
+- 2026-09-11 - User/maintainer - Approved the handler-oriented wrapper design after reviewing
+  direct calls, a positional wrapper, a parameter-bag builder/scenario, and outcome-only wrappers.
+  The selected wrappers retain `handle_error` in each Act while hiding fixed context and
+  collaborator plumbing.
+- 2026-09-11 - GitHub Copilot - Completed R4 with clean aggregate/global, unit-only, and
+  integration-only reports at commit `496128da`. Logging, conversion, dispatch, and consumer
+  residuals retain their existing owners; no coverage-only test is justified.
+
+### Validation Evidence
+
+| Increment | Status | Evidence |
+| --- | --- | --- |
+| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
+| R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests::it_should_publish_an_error_event_with_the_supplied_public_url`, and `git diff --check` passed. The public URL remains visible from Arrange through the handler Act and the test asserts only published event-context forwarding. |
+| R5 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The two outer wrappers retain the handler name and selected causal inputs; the inner wrapper centralizes only context that no test varies. |
+| R4 | DONE | Clean `cargo llvm-cov` aggregate/global, `--lib`, and `--test integration` reports were collected at `496128da`; see `coverage-evidence.md` for the figures and scope interpretation. |
+
+## Non-Goals
+
+- Do not change production error handling, protocol response serialization, event classification,
+  dispatcher routing, statistics/banning behavior, logging format/level, or listener lifecycle.
+- Do not test lower-level parse-error conversion, client-software classification, metrics/gauges,
+  banning policy, sockets, tasks, or root composition.
+- Do not add tracing-capture, mock-repository, mock-sender, generic broadcaster, or percentage-only
+  tests.
+
+## Validation Per Approved Increment
+
+- Apply mandatory prose-first Arrange-Act-Assert and test-code-smell review before maintainer
+  review.
+- Run `cargo test -p torrust-tracker-udp-server handlers::error::tests`.
+- Run `cargo fmt --all -- --check` and `git diff --check`.
+- Run `linter markdown` and `linter cspell` when this plan changes.
+- Measure aggregate/global, unit-only, and integration-only coverage separately whenever coverage
+  informs a decision.
+
+## Completion Criteria
+
+- Response transaction-ID routing and optional event publication have separate focused tests.
+- Every retained assertion observes handler-owned behavior rather than logging, conversion, or event
+  consumer behavior.
+- The plan records whether event-context forwarding has one independently valuable contract.
+- Residual logging, conversion, routing, and event-consumer behavior remains at its existing owner.
+- The maintainer reviews every approved increment before the next increment and before final
+  verification.

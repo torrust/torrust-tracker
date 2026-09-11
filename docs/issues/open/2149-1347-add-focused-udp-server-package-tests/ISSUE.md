@@ -6,9 +6,9 @@ priority: p2
 epic: 1347
 github-issue: 2149
 spec-path: docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
-branch: "2149-add-focused-udp-server-package-tests-spec"
+branch: "2149-add-focused-udp-server-package-tests"
 related-pr: 2152
-last-updated-utc: 2026-09-07 09:42
+last-updated-utc: 2026-09-10
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,28 @@ semantic-links:
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/tests/server/contract.rs
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/event-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/bound-socket-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-dispatch-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/contract-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-metric-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/container-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/receiver-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-event-dispatch-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/banning-event-handler-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/server-states-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-error-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/response-sent-handler-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/processor-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/spawner-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-module-tests.md
+    - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -59,21 +80,31 @@ must protect current normal-operation behavior without preempting that design.
 
 ### In Scope
 
-- Establish package-source coverage baseline and final evidence using a reproducible
-  `cargo llvm-cov` command, aggregate comparison, per-file results, and prioritized uncovered
-  behavior.
+- Establish separate aggregate/global and unit-only package-source coverage baselines and final
+  evidence using reproducible `cargo llvm-cov` commands. Aggregate/global coverage tracks all
+  selected test binaries; unit-only coverage tracks the primary package-local objective. Keep their
+  results in separate evidence tables and do not infer unit coverage from aggregate execution. Where
+  aggregate coverage could hide the selected boundary, also record integration-only coverage and
+  each test level's contribution.
 - Inventory current unit, real-loopback package integration, example, root integration, and
   relevant historical coverage before selecting new tests.
 - Add focused, deterministic tests for package-owned transport and dispatch seams where they
   protect observable behavior: socket binding metadata, packet/error conversion, event/error
   classification, container composition, and normal-operation request-buffer capacity/cleanup.
+- Establish and record a reproducible release-performance baseline before an approved production
+  change to a UDP hot-path file. Compare equivalent repeated measurements after the change; do not
+  require throughput measurements for test-only changes.
 - Assess launcher admission behavior only where it can be tested without timing dependence,
   production refactoring, or a competing lifecycle design.
 - Review every test-bearing file selected by the evidence inventory. Create one file-local
   refactor plan for each concrete opportunity, then improve test readability, maintainability,
   expressiveness, or behavior coverage without reducing valuable existing protection.
-- Review `tests/server/contract.rs` and add only approved real-socket contracts that cover a
-  stable package transport behavior not already protected at a better boundary.
+- Do not decline a feasible deterministic package unit test because integration, example, root, or
+  end-to-end coverage already executes the behavior. Higher-level coverage may retain a distinct
+  contract but is not a substitute for the unit-first objective.
+- Review `tests/server/contract.rs` and add an approved real-socket contract only when a unit test
+  cannot protect the behavior at an appropriate boundary or the real-loopback contract is clearer
+  and more maintainable. Record why the integration boundary is preferred.
 - Perform a bounded mutation-testing assessment after the evidence and incremental test plan are
   approved; retain only behavior-relevant survivors as a follow-up queue.
 
@@ -95,8 +126,9 @@ must protect current normal-operation behavior without preempting that design.
 ## Architectural Decisions
 
 - Related ADRs: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
+- Package-local ADR: `packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md`
 - Related shutdown governance: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
-- ADRs to create: None expected. Create one if this work identifies a durable package or
+- ADRs to create: None known. Create one if this work identifies another durable package or
   cross-package ownership/design decision.
 
 ## Design and Ownership Review
@@ -120,17 +152,26 @@ without evidence of a shared capability.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
-| ID  | Status | Task                                        | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                    |
-| --- | ------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                |
-| T2  | TODO   | Review and approve test design              | Inventory test-bearing files and create one file-local plan per concrete opportunity in [test-refactor-plans/](test-refactor-plans/README.md). Each plan identifies strengths, problems, ordered improvements, scope guardrails, and focused validation. Assess unit, package integration, example, root/E2E, mutation, property, and fuzz techniques before adding tests. |
-| T3  | TODO   | Improve request-buffer tests                | Implement the approved `server/request_buffer.rs` plan increment for current normal-operation capacity, finished-task removal, eviction, or drop cleanup. Explicitly exclude shutdown drain/deadline policy. **Commit point:** one reviewed request-buffer plan increment plus its focused validation.                                                                     |
-| T4  | TODO   | Improve dispatch and classification tests   | Implement the approved plan increment(s) for `event.rs`, `error.rs`, or `handlers/mod.rs`. Keep event/error classification and packet-dispatch behavior separate from handler business rules. **Commit point:** one reviewed, coherent classification or dispatch increment plus focused validation.                                                                       |
-| T5  | TODO   | Improve socket-adapter tests                | Implement the approved `server/bound_socket.rs` or `server/receiver.rs` plan increment for stable socket metadata, port-zero allocation, or receive adaptation. Do not assert platform-specific dual-stack defaults. **Commit point:** one reviewed socket-adapter increment plus focused validation.                                                                      |
-| T6  | TODO   | Improve container-composition tests         | Implement a `container.rs` test-plan increment only if review identifies a package-owned composition regression not already proven indirectly. A justified no-change decision completes this task without a commit. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted.                                           |
-| T7  | TODO   | Improve admission or UDP contracts          | Implement one approved `server/launcher.rs` or `tests/server/contract.rs` increment only when the package integration boundary adds unique stable value. Record an infeasible seam rather than forcing a production refactor. **Commit point:** one reviewed admission or real-loopback contract increment plus focused validation.                                        |
-| T8  | TODO   | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                            |
-| T9  | TODO   | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                         |
+| ID  | Status      | Task                                        | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                                                                                                                  |
+| T2  | DONE        | Review and approve test design              | The reviewed file-local plans cover request-buffer, event, parse-error adapter, bound socket, handler dispatch, launcher, real-loopback contract, error metrics, and container composition. The proposed `server/receiver.rs` plan is the next package-local unit-test assessment and follows the clarified unit-first policy. |
+| T3  | DONE        | Improve request-buffer tests                | Completed the reviewed request-buffer plan: capacity-available, oldest-first eviction, and buffer-drop cleanup contracts are covered; R2 documents the intentional bounded policy and R5 defers the scheduler-dependent race guard. The current per-file comparison is recorded in [coverage-evidence.md](coverage-evidence.md). **Commit point:** completed through focused reviewed increments. |
+| T4  | DONE        | Improve dispatch and classification tests   | Completed reviewed `event.rs` classification/metric representations, `error.rs` parse-error adapter coverage, `handlers/mod.rs` packet dispatch coverage, and statistics error-metric routing coverage. **Commit point:** completed through focused reviewed increments. |
+| T5  | DONE        | Improve socket-adapter tests                | Completed the reviewed `server/bound_socket.rs` plan with stable IPv4 loopback port-zero allocation and endpoint-metadata contracts. Platform-specific dual-stack defaults remain intentionally outside the test contract. **Commit point:** completed through focused reviewed increments.                                                                                                                                                                                       |
+| T6  | DONE        | Improve container-composition tests         | Completed the reviewed `container.rs` plan with a direct deterministic unit contract for enabled server event publication. Separate aggregate/global, unit-only, and integration-only evidence records the residual ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T7  | DONE        | Improve admission or UDP contracts          | Completed reviewed `server/launcher.rs` admission/event increments and `tests/server/contract.rs` real-loopback contract increments. The contract plan records the justified no-change boundary for further transport expansion. **Commit point:** completed through focused reviewed increments. |
+| T8  | DONE        | Perform bounded mutation assessment         | Completed a bounded two-mutant `Processor::process_request` sample. The port-zero comparison inversion was caught; the whole-body replacement was unviable; there were no surviving viable mutants and no new follow-up. [mutation-evidence.md](mutation-evidence.md) records configuration, timeout, scope, and limitations. **Commit point:** material documentation decision. |
+| T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
+| T10 | DONE        | Review receiver unit-test seam               | Completed the reviewed `server/receiver.rs` plan with a deterministic queued-loopback `Stream::poll_next` contract for payload and sender-address adaptation. Pending/error/termination branches and lifecycle behavior retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T11 | DONE        | Review statistics dispatch seam              | Completed the reviewed `statistics/event/handler/mod.rs` assessment. The dispatcher documents its routing-only responsibility and indirect verification; no production injection abstraction or collaborator-side-effect test is justified. **Commit point:** completed through a documented no-test decision. |
+| T12 | DONE        | Review banning event-handler seam            | Completed the reviewed `banning/event/handler.rs` plan with direct deterministic contracts for cookie-error client-IP forwarding and distinct tracked-IP gauge publication. Listener lifecycle, threshold policy, and collaborator internals retain explicit ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T13 | DONE        | Review server-state lifecycle seam           | Completed the reviewed `server/states.rs` plan with direct deterministic startup-notification mappings and module ownership documentation. Bind-error and `stop` paths retain explicit `BoundSocket`/public-start and #1488 lifecycle ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T14 | DONE | Review error-handler routing seam            | Completed the reviewed `handlers/error.rs` plan: response transaction-ID routing, error-event request-kind routing, and public-URL forwarding are focused contracts. The plan records reviewed test-wrapper alternatives and residual logging/conversion/dispatch/consumer ownership with separate coverage scopes. **Commit point:** completed through focused reviewed increments. |
+| T15 | DONE | Review response-metric handler seam          | Completed the reviewed `statistics/event/handler/response_sent.rs` plan: one direct successful-connect processing-average contract complements retained parent-dispatcher IPv4/IPv6 total-counter contracts. The plan records the no-change readability review and separate coverage/ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T16 | DONE | Review processor unit-test seam              | Completed the reviewed `server/processor.rs` plan: portable direct port-zero tests separately protect IPv4 response suppression, discard-event publication, and valid-connect handler bypass. The plan records the no-change fixture review and separate coverage/ownership decisions. **Commit point:** completed through focused reviewed increments. |
+| T17 | DONE | Record spawner lifecycle deferral            | Completed the `server/spawner.rs` no-test assessment. The thin task-spawn wrapper is already fully covered through server-state paths; it has no distinct observable contract, and launcher/task lifecycle semantics remain owned by #1488. **Commit point:** material documentation decision. |
+| T18 | DONE | Record statistics-module ownership           | Completed the `statistics/mod.rs` no-test assessment. Metric declaration composition is already fully covered through repository initialization and specialized metric behavior tests; no distinct module-level observable contract remains. **Commit point:** material documentation decision. |
 
 ## Commit Points
 
@@ -149,6 +190,7 @@ starting the next task. Do not combine unrelated source/test areas merely to red
 | T7   | One launcher-admission or real-loopback contract increment  | Commit after focused validation and review. Do not combine with lifecycle redesign.                                                                               |
 | T8   | Mutation evidence that changes the prioritized backlog      | Use a separate documentation-only commit only when it records a material decision or follow-up; otherwise include the evidence in the final documentation commit. |
 | T9   | Refreshed evidence and implementation completion record     | Commit only after the maintainer review, full verification, and acceptance review are complete.                                                                   |
+| T10-T18 | One module-specific unit-test assessment                  | Create, approve, and complete one file-local plan at a time. Commit a focused approved test increment, or a material documented no-change/deferral decision, before beginning the next module. |
 
 Use Conventional Commit messages that name the narrow changed package area, for example
 `test(udp-server): cover active request eviction` or
@@ -229,13 +271,106 @@ responsibility.
 - 2026-09-07 10:08 UTC - GitHub Copilot - Opened spec-only PR #2152 against `develop` from the
   fork branch `josecelano:2149-add-focused-udp-server-package-tests-spec`. The PR uses
   `Related to #2149` and does not close the implementation issue.
+- 2026-09-07 11:10 UTC - GitHub Copilot - Spec-only PR #2152 was merged into `develop`. Created
+  the implementation branch from the merged commit and began T2 with the proposed
+  [request-buffer test refactor plan](test-refactor-plans/request-buffer-tests.md). No test or
+  production change has been made; implementation awaits maintainer approval of R1.
+- 2026-09-07 11:10 UTC - User/maintainer - Identified `ActiveRequests` as a UDP hot-path concern.
+  Added a performance-evidence policy requiring equivalent release throughput baseline and after
+  measurements before any approved hot-path production change, while keeping focused test-only
+  changes free from unnecessary benchmark work.
+- 2026-09-07 11:27 UTC - User/maintainer - Approved the request-buffer test refactor plan. Commit
+  all accumulated #2149 planning and performance-evidence changes before beginning the R1
+  test-only implementation increment.
+- 2026-09-07 15:12 UTC - GitHub Copilot - Preserved the failed R2 experiment in an ignored handoff
+  while investigating whether its full-scan expectation represented a production defect or an
+  intentional policy. No production change was made.
+- 2026-09-07 15:27 UTC - User/maintainer - After reviewing the request-buffer history, confirmed
+  that R2's observed oldest-first eviction behavior is an intentional performance trade-off, not a
+  defect. Approved a package-local ADR and source-comment clarification as an independent
+  documentation commit. The unsupported bug-handoff conclusion is withdrawn.
+- 2026-09-07 17:03 UTC - User/maintainer - Reviewed and approved completion of the request-buffer
+  plan. Its current package-source measurement is 92.31% lines, 87.89% regions, and 95.65%
+  functions for `server/request_buffer.rs`; the issue-local evidence records the baseline comparison.
+- 2026-09-08 08:13 UTC - GitHub Copilot - Began the next file-local planning step after the
+  completed request-buffer review. The proposed [event test plan](test-refactor-plans/event-tests.md)
+  targets deterministic internal-error classification and request-kind metric representations without
+  duplicating event emission, consumer, protocol, or tracker-core coverage.
+- 2026-09-08 11:31 UTC - GitHub Copilot - Began the next file-local planning step after completing
+  the event plan. The proposed [parse-error adapter plan](test-refactor-plans/error-tests.md) targets
+  `RequestParseError` to server response-routing-metadata conversion without duplicating protocol
+  parsing, event classification, or error-response serialization.
+- 2026-09-08 11:38 UTC - User/maintainer - Required all subsequent file-local plans to first clean
+  existing test code, then add missing behavior tests one at a time with a post-test design review.
+  The shared plan guidance and proposed [bound-socket plan](test-refactor-plans/bound-socket-tests.md)
+  now record this two-phase sequence.
+- 2026-09-08 16:13 UTC - GitHub Copilot - Reconciled this implementation specification with the
+  completed event, parse-error adapter, and bound-socket plans. The next file-local planning step is
+  `handlers/mod.rs`; no additional test behavior is authorized until its two-phase plan is reviewed.
+- 2026-09-10 - User/maintainer - Clarified that #2149 must increase package testing while
+  increasing the proportion of unit tests. Aggregate/global, unit-only, and integration-only
+  coverage are separate evidence streams. Higher-level coverage cannot justify declining a feasible
+  focused package unit test.
+- 2026-09-10 - GitHub Copilot - Completed and pushed the error-metric handler plan. Created the
+  proposed `container.rs` plan for the next feasible deterministic package unit contract; no test or
+  production change is authorized until maintainer approval.
+- 2026-09-11 - User/maintainer - Requested a complete recheck for remaining package modules before
+  treating #2149 as finished. The unit-only inventory identified nine remaining modules requiring
+  separate assessment: receiver, statistics dispatcher, banning event handler, server states,
+  handler error routing, response-sent metrics, processor, spawner, and statistics module
+  composition. The implementation plan now tracks one explicit subtask per module so each
+  file-local decision remains reviewable.
+- 2026-09-11 - GitHub Copilot - Created the proposed `server/receiver.rs` plan after confirming a
+  single queued IPv4 loopback datagram can directly exercise `Receiver`'s `RawRequest` adaptation
+  without a server task, polling loop, sleep, retry, or shutdown behavior. The existing integration
+  no-new-contract decision remains intact and does not replace this feasible unit-test assessment.
+- 2026-09-11 - GitHub Copilot - Created the proposed statistics event-dispatch plan after mapping
+  all seven parent dispatcher arms. Only `Event::UdpError` lacks a direct parent-dispatcher unit
+  contract; the other arms already have focused parent-router tests in specialized handler modules.
+  No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Created the proposed banning event-handler plan after confirming
+  the handler owns a meaningful direct event-to-client-IP-and-gauge orchestration seam. The proposed
+  two-IP scenario prevents a hard-coded or event-count gauge from passing while retaining
+  `BanService`, repository, listener, transport, and root-composition responsibilities at their
+  existing boundaries. No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Created the proposed `server/states.rs` no-change plan after
+  confirming the existing direct startup-error precedence test and public registration-cleanup test
+  retain the only meaningful current contracts. Representation-only tests have no behavioral value,
+  and remaining task/channel/shutdown paths are owned by #1488 SI-14, SI-15, and SI-17. No test or
+  production change has been made.
+- 2026-09-11 - User/maintainer - Challenged the T13 no-change conclusion by asking which lines were
+  uncovered and whether they were hard to test. Two `await_startup_notification` mappings were
+  reclassified as cheap deterministic contracts; the plan was reopened to add those tests and a
+  module-level comment documenting the testing strategy for future maintainers.
+- 2026-09-11 - GitHub Copilot - Created the proposed `handlers/error.rs` plan after identifying a
+  combined response transaction-ID and error-event publication test with two reasons to fail.
+  The plan requires splitting that test before assessing any new event-context behavior and retains
+  logging, error conversion, routing, and consumer behavior at their existing boundaries.
+- 2026-09-11 - GitHub Copilot - Created the proposed
+  `statistics/event/handler/response_sent.rs` plan after confirming the existing parent-dispatcher
+  IPv4/IPv6 total-counter contracts and a distinct direct successful-connect processing-average
+  seam. No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Created the proposed `server/processor.rs` plan after confirming
+  the current portable direct port-zero guard tests combine response suppression, discard-event
+  publication, and handler-bypass assertions. No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Completed the `server/spawner.rs` no-test assessment. The thin
+  wrapper is fully covered through server-state paths; direct tests would duplicate state behavior
+  or introduce a launcher/task injection seam before #1488 defines lifecycle ownership.
+- 2026-09-11 - GitHub Copilot - Completed the `statistics/mod.rs` no-test assessment. Metric
+  declaration composition is fully covered at repository initialization, aggregation, handler, and
+  service boundaries; direct registry inventory tests would duplicate those contracts.
+- 2026-09-11 - GitHub Copilot - Completed the bounded mutation assessment for the processor
+  port-zero guard. The focused test module caught guard inversion; the only other generated mutant
+  was unviable, and no behavior-relevant survivor requires a new test.
 
 ## Acceptance Criteria
 
 - [ ] Coverage evidence records reproducible package-source baseline/final measurements, scope,
       aggregate comparison, per-file detail, and prioritized gaps.
-- [ ] The current unit, package integration, example, root/E2E, mutation, property, and fuzz
+- [x] The current unit, package integration, example, root/E2E, mutation, property, and fuzz
       evidence is assessed, with selected, deferred, and inapplicable levels justified.
+- [ ] Coverage evidence distinguishes unit-only and integration-only contributions for every
+  selected seam where aggregate package coverage could conceal the responsible test boundary.
 - [ ] Every selected test-bearing file has a reviewed file-local refactor plan that records
       strengths, concrete problems, ordered improvements, guardrails, validation, and justified
       no-change decisions where applicable.
@@ -246,6 +381,8 @@ responsibility.
       output in generic helpers.
 - [ ] Request-buffer tests distinguish current normal-operation capacity/cleanup behavior from
       the shutdown policy owned by SI-15.
+- [ ] Any approved production change to a UDP hot-path file has reproducible before/after release
+      performance evidence with equivalent workload and environment details.
 - [ ] Any asynchronous fixture or lifecycle test change completes the Design and Ownership Review,
       uses bounded absolute deadlines, and has a post-vertical-slice review.
 - [ ] Package integration tests are added only when the actual loopback UDP boundary provides
@@ -261,6 +398,8 @@ responsibility.
 ### Automatic Checks
 
 - `cargo llvm-cov -p torrust-tracker-udp-server --all-features --json`
+- `cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json`
+- `cargo llvm-cov -p torrust-tracker-udp-server --all-features --test integration --json`
 - `cargo test -p torrust-tracker-udp-server`
 - `cargo test -p torrust-tracker-udp-server --test integration`
 - `linter all`
@@ -286,13 +425,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC4   | TODO                   | Approved refactor increments and focused validation       |
 | AC5   | TODO                   | Focused test paths and test output                        |
 | AC6   | TODO                   | Request-buffer tests and SI-15 deferral record            |
-| AC7   | TODO                   | Design and Ownership Review or explicit non-applicability |
-| AC8   | TODO                   | Approved real-loopback contract evidence                  |
-| AC9   | TODO                   | `linter all` output                                       |
-| AC10  | TODO                   | Package test output                                       |
-| AC11  | TODO                   | Manual-verification table                                 |
-| AC12  | TODO                   | Post-implementation acceptance review                     |
-| AC13  | TODO                   | Documentation diff and completion review                  |
+| AC7   | TODO                   | `performance-evidence.md` and any required result report  |
+| AC8   | TODO                   | Design and Ownership Review or explicit non-applicability |
+| AC9   | TODO                   | Approved real-loopback contract evidence                  |
+| AC10  | TODO                   | `linter all` output                                       |
+| AC11  | TODO                   | Package test output                                       |
+| AC12  | TODO                   | Manual-verification table                                 |
+| AC13  | TODO                   | Post-implementation acceptance review                     |
+| AC14  | TODO                   | Documentation diff and completion review                  |
 
 ## Risks and Trade-offs
 
@@ -301,11 +441,21 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
   subissues rather than encoding accidental behavior in a test.
 - Package coverage includes test code and can hide low-value framework or fixture coverage. Use it
   to navigate per-file gaps, while selecting tests by observable risk and ownership.
+- Aggregate package coverage can also hide whether a unit-test or integration-test binary executes
+  a seam. Treat unit tests as the default; add an integration test only when the unit boundary is
+  unsuitable or the real-loopback contract is clearer and more maintainable. Record separate
+  unit-only and integration-only evidence when aggregate coverage informs a decision.
 - Socket behavior varies by host IPv6 and dual-stack support. Test port-zero and endpoint metadata
   invariants, and retain existing availability guards rather than asserting a universal dual-stack
   default.
 - Mutation testing can be slow and generate a tool-specific backlog. Keep it bounded and use only
   behavior-relevant surviving mutants to challenge assertions.
+- A production hot-path refactor can cause a throughput regression even when its tests pass.
+  Mitigate this with the conditional, reproducible baseline policy in
+  [performance-evidence.md](performance-evidence.md), not with a single noisy benchmark run.
+- A coverage increment can uncover a production defect outside its intended delivery scope.
+  Mitigate this by preserving a reproducible handoff, fixing the defect on an independent branch,
+  then rebasing this branch before resuming dependent coverage work.
 
 ## Implementation Completion Review
 
@@ -325,6 +475,8 @@ material design changes, unexpected verification results, and reusable test-desi
 - Completed package-testing predecessors: #2136 and #2140
 - Package: `packages/udp-server/`
 - Current real-loopback contracts: `packages/udp-server/tests/server/contract.rs`
+- Performance measurement policy: [performance-evidence.md](performance-evidence.md)
+- Canonical benchmarking guide: `docs/benchmarking.md`
 - Shutdown EPIC: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
 - UDP receive-loop lifecycle draft: `docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md`
 - Active-request policy draft: `docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md`

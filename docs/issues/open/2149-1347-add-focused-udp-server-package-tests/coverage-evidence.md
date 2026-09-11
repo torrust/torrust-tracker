@@ -11,7 +11,7 @@ measured-utc: 2026-09-07
 This document records the package-source coverage baseline before Issue #2149 adds or changes
 tests.
 
-## Measurement Method
+## Aggregate/Global Coverage Measurement
 
 ```text
 cargo llvm-cov clean --workspace
@@ -21,15 +21,207 @@ cargo llvm-cov -p torrust-tracker-udp-server --all-features --json
 The raw JSON report was generated at commit `2054d494` and filtered by files below
 `packages/udp-server/src/`. Its 62 MB generated output is deliberately retained only in ignored
 local temporary storage, not committed. The table below sums its file `summary` objects. It
-includes package test and test-support code, so it is navigation evidence rather than a
-production-only coverage measure or proof of behavioral completeness.
+includes all selected package test binaries and test-support code, so it is broad navigation
+evidence rather than a production-only coverage measure, proof of behavioral completeness, or
+evidence that unit coverage is sufficient.
 
-## Baseline Package Coverage
+## Unit-First Test-Level Coverage Policy
+
+Aggregate package reports can combine unit and integration test binaries, hiding which boundary
+executed a source seam. Unit tests are the default for package-owned behavior because they are fast,
+deterministic, and close to the responsibility under test. Add or retain a package integration test
+only when a unit test cannot protect the behavior at an appropriate boundary or the real-loopback
+contract is clearer and more maintainable.
+
+Do not decline a feasible deterministic package unit test because integration, example, root, or
+end-to-end coverage already executes the behavior. When aggregate coverage informs a selected-seam
+decision, record separate reports before claiming coverage ownership:
+
+```text
+cargo llvm-cov clean --workspace
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json
+cargo llvm-cov clean --workspace
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --test integration --json
+```
+
+Do not compare percentages across those reports as a single total: unit reports include unit test
+and test-support code while integration reports compile only the exercised package production slice.
+Use them to identify the test level that protects each selected behavior.
+
+### Test-Level Reporting Tables
+
+Update aggregate/global and unit-only tables independently. Aggregate/global totals show broad
+package progress; unit-only totals show whether the primary package-local objective is improving.
+Integration-only evidence identifies distinct real-boundary protection and must never substitute for
+a unit-only result.
+
+### Selected-Seam Test-Level Evidence
+
+At commit `9eb74c23`, the separate reports for `packages/udp-server/src/handlers/mod.rs` show:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Unit-only (`--lib`) | 184 / 214 (85.98%) | 224 / 249 (89.96%) | 32 / 37 (86.49%) | The direct `handle_packet` test executes the selected sendable parse-error routing seam. No executable source-line entries are uncovered in this report. |
+| Integration-only (`--test integration`) | 31 / 31 (100.00%) | 18 / 18 (100.00%) | 5 / 5 (100.00%) | The real-loopback suite executes a separate compiled production slice; its smaller denominator excludes unit-test and test-support code. |
+| Combined package report | 205 / 214 (95.79%) | 239 / 249 (95.98%) | 35 / 37 (94.59%) | Navigation-only aggregate; it must not be used to attribute the selected dispatcher coverage to unit or integration tests. |
+
+The unit test is the appropriate primary boundary for sendable parse-error routing: it makes the
+raw packet, dispatcher Act, returned request kind, and response transaction ID directly readable
+without socket lifecycle or client/server mechanics. Integration tests remain valuable for actual
+loopback transport behavior, but are neither needed nor used as evidence for this internal dispatch
+contract.
+
+## Aggregate/Global Package Coverage
 
 | Measurement                   |                  Lines |                Regions |          Functions |
 | ----------------------------- | ---------------------: | ---------------------: | -----------------: |
 | Baseline before issue changes | 4,814 / 4,965 (96.96%) | 6,326 / 6,604 (95.79%) | 485 / 499 (97.19%) |
-| Latest                        |       Not yet measured |       Not yet measured |   Not yet measured |
+| Latest container-plan checkpoint | 5,423 / 5,548 (97.75%) | 7,088 / 7,340 (96.57%) | 551 / 565 (97.52%) |
+
+## Unit-Only Package Coverage
+
+The #2149 baseline predates the separated measurement policy, so no unit-only baseline exists. Do
+not derive one from the aggregate baseline. Record the final unit-only package measurement here and
+compare future unit-only measurements only with an equivalent unit-only command.
+
+| Measurement | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| Baseline before issue changes | Not measured separately | Not measured separately | Not measured separately |
+| Latest container-plan checkpoint | 5,317 / 5,548 (95.84%) | 6,961 / 7,340 (94.84%) | 535 / 565 (94.69%) |
+
+### Container Composition Test-Level Evidence
+
+At commit `3c56dc45`, clean separately collected reports show the following for
+`packages/udp-server/src/container.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 59 / 59 (100.00%) | 72 / 72 (100.00%) | 5 / 5 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 59 / 59 (100.00%) | 72 / 72 (100.00%) | 5 / 5 (100.00%) | The direct R2 test protects the package-owned enabled sender-to-event-bus publication path. |
+| Integration-only (`--test integration`) | 19 / 19 (100.00%) | 29 / 29 (100.00%) | 2 / 2 (100.00%) | Separately confirms higher-level execution of the compiled production slice; it does not substitute for the direct unit contract. |
+
+The reports have different denominators and are not combined. The remaining composition details
+are internal allocation or handle-cloning mechanics, generic events-package behavior, or root
+consumer policy; no additional coverage-only container test is selected.
+
+### Receiver Test-Level Evidence
+
+At commit `45bada2d`, clean separately collected reports show the following for
+`packages/udp-server/src/server/receiver.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 55 / 56 (98.21%) | 77 / 79 (97.47%) | 7 / 7 (100.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 55 / 56 (98.21%) | 77 / 79 (97.47%) | 7 / 7 (100.00%) | Direct queued-loopback test protects the package-owned datagram-to-`RawRequest` adapter. Before the increment, this scope covered 15 / 22 lines (68.18%) and 18 / 31 regions (58.06%). |
+| Integration-only (`--test integration`) | 21 / 22 (95.45%) | 29 / 31 (93.55%) | 3 / 3 (100.00%) | Separately confirms real-loopback production-slice execution; it does not substitute for the direct unit contract. |
+
+The reports have different denominators and are not combined. Pending readiness, receive-error,
+and stream-termination branches remain at Tokio readiness, platform fault-injection, and #1488
+receive-loop lifecycle boundaries; no mock socket abstraction or percentage-only test is selected.
+
+### Banning Event-Handler Test-Level Evidence
+
+At commit `d357db0a`, clean separately collected reports show the following for
+`packages/udp-server/src/banning/event/handler.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 81 / 82 (98.78%) | 108 / 110 (98.18%) | 12 / 12 (100.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 81 / 82 (98.78%) | 108 / 110 (98.18%) | 12 / 12 (100.00%) | Direct tests protect client-IP forwarding and post-update distinct tracked-IP gauge publication as separate focused handler contracts. |
+| Integration-only (`--test integration`) | 28 / 29 (96.55%) | 31 / 33 (93.94%) | 4 / 4 (100.00%) | Separately confirms listener and real-loopback production-slice execution; it does not substitute for the direct unit contracts. |
+
+The reports have different denominators and are not combined. Non-cookie event ignoring remains
+covered at the listener boundary; repository failure is logging-only collaborator behavior;
+threshold/reset/ban policy belongs to `udp-core` `BanService`; event reception and lifecycle belong
+to the listener and #1488; and multi-listener/REST behavior belongs to root composition. No
+coverage-only test is selected.
+
+### Server States Test-Level Evidence
+
+At commit `408938d1`, clean separately collected reports show the following for
+`packages/udp-server/src/server/states.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 72 / 77 (93.51%) | 91 / 102 (89.22%) | 16 / 20 (80.00%) | Broad progress only; it includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 72 / 77 (93.51%) | 91 / 102 (89.22%) | 16 / 20 (80.00%) | Direct tests cover all `await_startup_notification` mappings. Remaining lines are the separate bind/public-start and #1488 lifecycle boundaries. |
+| Integration-only (`--test integration`) | 27 / 37 (72.97%) | 16 / 32 (50.00%) | 7 / 11 (63.64%) | Separately exercises real startup/stop paths through package contracts; it does not substitute for focused unit tests. |
+
+The reports have different denominators and are not combined. Remaining unit-only executable lines
+are the bind-error conversion in `Server::<Stopped>::start`, halt/task error mappings in
+`Server::<Running>::stop`, and the existing test's defensive fallback. Bind failure remains at the
+`BoundSocket` and public-start boundary; `stop` remains #1488 lifecycle work; and the fallback is
+not behavior to force through a test. No coverage-only socket/task fixture is selected.
+
+### Handler Error Test-Level Evidence
+
+At commit `496128da`, clean separately collected reports show the following for
+`packages/udp-server/src/handlers/error.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 176 / 178 (98.88%) | 187 / 189 (98.94%) | 23 / 23 (100.00%) | Broad progress only; includes all selected package test binaries and test-only wrappers. |
+| Unit-only (`--lib`) | 155 / 178 (87.08%) | 172 / 189 (91.01%) | 22 / 23 (95.65%) | Direct tests protect supplied and fallback response transaction IDs, error-event request-kind routing, and event public-URL forwarding. |
+| Integration-only (`--test integration`) | 89 / 93 (95.70%) | 54 / 61 (88.52%) | 8 / 8 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the direct unit contracts. |
+
+The reports have different denominators and are not combined. Residual logging level and
+transaction-ID-field paths are diagnostic detail rather than an observable handler contract, so
+tracing capture is not selected. Sender-disabled event suppression is already a prerequisite of
+the response tests but has no distinct observable output that warrants a collaborator-matrix test.
+Protocol error conversion, dispatcher routing, error classification, and statistics/banning
+consumption remain owned by `error.rs`, `handlers/mod.rs`, `event.rs`, and their specialized
+event handlers/listeners, respectively. No coverage-only test is selected.
+
+### Response-Sent Handler Test-Level Evidence
+
+At the completed R1 increment, clean separately collected reports show the following for
+`packages/udp-server/src/statistics/event/handler/response_sent.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 129 / 130 (99.23%) | 172 / 174 (98.85%) | 8 / 8 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 122 / 130 (93.85%) | 149 / 174 (85.63%) | 8 / 8 (100.00%) | Direct `Ok { Connect }` handler test protects the successful connect processing-average route. Retained tests protect parent-dispatcher IPv4/IPv6 response-total routes. |
+| Integration-only (`--test integration`) | 40 / 41 (97.56%) | 91 / 93 (97.85%) | 2 / 2 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the direct unit contract. |
+
+The reports have different denominators and are not combined. Error-response no-average behavior
+is a negative collaborator/metric assertion and is not selected. Announce/scrape label
+representation, metric aggregation/accessors, counter-write failure logging, parent routing, and
+listener lifecycle remain owned by `event.rs`, `statistics/metrics.rs`, the repository/logging
+boundary, the parent dispatcher, and the listener, respectively. No coverage-only test is
+selected.
+
+### Processor Test-Level Evidence
+
+At the completed R1 increment, clean separately collected reports show the following for
+`packages/udp-server/src/server/processor.rs`:
+
+| Measurement scope | Lines | Regions | Functions | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| Aggregate/global | 122 / 122 (100.00%) | 175 / 175 (100.00%) | 19 / 19 (100.00%) | Broad progress only; includes all selected package test binaries and test-only code. |
+| Unit-only (`--lib`) | 109 / 122 (89.34%) | 168 / 175 (96.00%) | 15 / 19 (78.95%) | Direct port-zero tests separately protect IPv4 response suppression, discard-event publication, and valid-connect handler bypass. |
+| Integration-only (`--test integration`) | 34 / 34 (100.00%) | 20 / 20 (100.00%) | 7 / 7 (100.00%) | Existing real-loopback contracts exercise a separate compiled production slice; they do not replace the portable direct port-zero unit contracts. |
+
+The reports have different denominators and are not combined. Normal handler/send behavior,
+response serialization, socket failures, event consumption, logging, sender absence, launcher
+admission, and lifecycle remain owned by handlers, `udp-protocol`, `BoundSocket`/integration,
+specialized statistics handlers/listeners, the diagnostic boundary, and #1488, respectively. No
+coverage-only or non-portable raw-socket test is selected.
+
+## Current Increment Coverage
+
+The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
+It is an interim comparison, not the final Issue #2149 measurement; later file-plan increments can
+change package totals and source-file denominators.
+
+| Source file | Baseline lines | Current lines | Change | Baseline regions | Current regions | Change | Baseline functions | Current functions | Change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `server/request_buffer.rs` | 24 / 45 (53.33%) | 144 / 156 (92.31%) | +38.98 pp | 36 / 74 (48.65%) | 196 / 223 (87.89%) | +39.24 pp | 3 / 4 (75.00%) | 22 / 23 (95.65%) | +20.65 pp |
+
+The added test code increases the measured denominator because package-source coverage includes
+`#[cfg(test)]` code. The meaningful result is that the capacity-available, oldest-first eviction,
+and buffer-drop cleanup contracts now execute deterministically. The remaining uncovered areas are
+the intentionally untested scheduler-dependent incoming-task race guard and implementation details
+not selected by the approved plan.
 
 ## Baseline Detailed File Report
 
@@ -74,17 +266,23 @@ will prioritize meaningful package-owned behavior, not every uncovered line or f
 
 ## Prioritized Behavioral Review Queue
 
-1. `server/request_buffer.rs`: establish the current normal-operation capacity, eviction, and
-   drop cleanup contract without specifying the future shutdown policy.
-2. `event.rs`, `error.rs`, and `handlers/mod.rs`: verify deterministic event/error classification
-   and packet dispatch/error conversion where individual handler tests do not cover the boundary.
-3. `server/bound_socket.rs`: verify stable port-zero and endpoint metadata behavior while treating
-   IPv6/dual-stack availability as platform dependent.
-4. `server/launcher.rs`: consider only a deterministic admission/event contract. Do not expand
-   receive-loop, cancellation, or task-joining coverage before the #1488 UDP lifecycle subissues
-   are approved and implemented.
-5. `tests/server/contract.rs`: add a real-loopback test only when it proves a transport behavior
-   that the preceding unit seams and existing package/root tests cannot express.
+Completed file-plan decisions cover request-buffer, event classification, parse-error conversion,
+bound socket, handler dispatch, launcher admission, real-loopback contract, error metrics, and
+container composition. The following remaining modules require one independently reviewable
+unit-test assessment each; their unit-only figures come from the clean `--lib` report at the
+container-plan checkpoint and are not replaced by aggregate/global or integration-only coverage.
+
+| Issue task | Module | Unit-only coverage | Required assessment boundary |
+| --- | --- | ---: | --- |
+| T10 | `server/receiver.rs` | 15/22 lines (68.18%) | Assess a deterministic `Stream::poll_next` socket-adapter contract; defer if stable I/O control requires lifecycle redesign. |
+| T11 | `statistics/event/handler/mod.rs` | 19/21 lines (90.48%) | Assess direct event dispatch only for routing gaps not already protected by individual handlers. |
+| T12 | `banning/event/handler.rs` | 28/29 lines (96.55%) | Assess direct connection-cookie ban-counter/gauge behavior without listener lifecycle or ban-service internals. |
+| T13 | `server/states.rs` | 45/54 lines (83.33%) | Assess deterministic state/registration behavior; retain #1488 ownership of shutdown and task lifecycle. |
+| T14 | `handlers/error.rs` | 132/154 lines (85.71%) | Clean existing tests first, then assess response/error-event routing not already owned by adapters or handlers. |
+| T15 | `statistics/event/handler/response_sent.rs` | 85/99 lines (85.86%) | Clean existing tests first, then assess one direct result/request-kind metric route. |
+| T16 | `server/processor.rs` | 103/116 lines (88.79%) | Clean existing tests first, then assess direct processing behavior without receiver-loop or shutdown expansion. |
+| T17 | `server/spawner.rs` | 17/17 lines (100.00%) | Record fully covered thin-wrapper and #1488 lifecycle deferral; do not add percentage-only coverage. |
+| T18 | `statistics/mod.rs` | 52/52 lines (100.00%) | Assess metric-description composition ownership; do not add percentage-only coverage. |
 
 ## Boundary and Deferral Decisions
 

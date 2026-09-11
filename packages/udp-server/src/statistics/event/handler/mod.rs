@@ -1,3 +1,20 @@
+//! Statistics event dispatcher.
+//!
+//! This module only delegates each [`Event`] variant to its specialized
+//! statistics handler, forwarding the event payload, repository, and
+//! timestamp unchanged. It owns no metric names, labels, aggregation, or
+//! error classification.
+//!
+//! # Test ownership
+//!
+//! There are intentionally no colocated unit tests. Rust's exhaustive `match`
+//! makes an omitted variant a compile error, and the module exposes no seam
+//! that can observe delegation without asserting collaborator side effects.
+//! Routing through this dispatcher is verified indirectly by the
+//! parent-dispatcher tests inside each specialized handler module, which
+//! assert the observable metric owned by that handler. Adding a production
+//! abstraction solely to unit test this trivial delegation was judged not to
+//! be justified under Issue #2149.
 mod error;
 mod request_aborted;
 mod request_accepted;

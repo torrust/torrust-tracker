@@ -144,16 +144,36 @@ For testing or coverage-focused issue specs, also require:
 
 - an issue-local, human-readable coverage-evidence document when coverage is measured;
 - the exact reproducible coverage command and a statement of what paths and code types it includes;
-- aggregate baseline/current values **and** per-file coverage plus prioritized uncovered functions,
-  regions, or behavior gaps; and
+- separate aggregate/global and unit-only baseline/current tables, plus per-file coverage and
+  prioritized uncovered functions, regions, or behavior gaps. Aggregate/global coverage tracks all
+  selected test levels; unit-only coverage tracks the primary package-local objective. Do not infer
+  sufficient unit coverage from aggregate, integration, example, or end-to-end results. Record
+  integration-only results separately when they inform an ownership decision; and
 - a policy to retain concise Markdown evidence rather than raw generated JSON, LCOV, or HTML
   artifacts unless the artifact itself has a documented human-review purpose.
 
-When the plan adds or changes tests, include a progressive test-development loop: make the smallest
-behavior-focused increment, review its design and focused validation before the next test-producing
-task, and stop for maintainer review after the final increment before final verification, commit, or
-pull request. Direct test authors to the `write-unit-test` skill and the test refactoring-pattern
-catalog when applicable.
+For package-testing work, require a feasible focused unit test to be assessed before accepting
+higher-level coverage as sufficient. Integration, example, root, or end-to-end coverage may retain
+a distinct contract, but must not be used to decline a package-owned unit test that is deterministic
+and readable at the unit boundary. A documented no-unit-test decision must state why the behavior
+cannot be protected appropriately by a unit test or why the higher-level boundary is demonstrably
+clearer and more maintainable.
+
+When the plan adds or changes tests, include a progressive test-development loop: use the
+`write-unit-test` skill; make the smallest behavior-focused increment; and, after it passes focused
+validation, perform and record an explicit design review before maintainer review and commit. The
+review must confirm the test exposes the one causal initial-state difference, its fixture owns only
+incidental mechanics, and the production Act plus independently specified expected result remain
+visible. Make the review enforceable with the mandatory prose-first Arrange-Act-Assert comparison:
+write temporary prose for each section, refactor until the code expresses it, remove redundant prose,
+and record the result in task evidence or a file-local plan. Complete this review for every
+test-producing subtask before starting the next one. Stop for maintainer review after the final
+increment before final verification, commit, or pull request. Direct test authors to the test
+refactoring-pattern catalog when applicable. Require the test-design review to judge helper
+boundaries by meaningful named actions and abstraction-level alignment, not caller count; a
+single-use helper is valid when it hides only incidental mechanics. Use the independent Task
+Reviewer for the final pre-PR review of the completed issue, not as a mandatory reviewer for every
+subtask.
 
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
