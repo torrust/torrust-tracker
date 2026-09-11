@@ -8,7 +8,7 @@ github-issue: 2185
 spec-path: docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: null
-last-updated-utc: 2026-09-11 15:38
+last-updated-utc: 2026-09-11 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status      | Task                                      | Notes / Expected Output                                                                                                    |
 | --- | ----------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.                      |
-| T2  | TODO        | Repair clearly stale references           | Small, reviewable repairs replace or remove only references confirmed stale, with replacement-target evidence.             |
+| T2  | IN_PROGRESS | Repair clearly stale references           | Repaired C3's 14 unavailable package-specific docs.rs links; hosted verification is pending.                              |
 | T3  | DONE        | Add justified narrow exclusions           | C1/C9 and C2 online-only rules are verified on merged upstream hosted runs.                                              |
 | T4  | DONE        | Revalidate hosted signal                  | Hosted run 34616458439 excluded C1/C9 and C2 while retaining visible unrelated failures and its report artifact.         |
 | T5  | TODO        | Document operations and review completion | Triage procedure, residual risks, acceptance evidence, and independent review are updated from observed results.           |
@@ -133,11 +133,12 @@ A category that needs no repository change is recorded in issue-local evidence w
 - 2026-09-11 08:32 UTC - Task Reviewer - Independently reviewed the replacement hosted run and report artifact. The evidence supports T3/T4, AC3-AC5, and M4; the issue remains open for the remaining C2-C8 work. See `agent-review-reports.md`.
 - 2026-09-11 09:25 UTC - Copilot - Added online-only `exclude_loopback = true` for C2. With explicit online configuration, a three-link boundary test excluded `127.0.0.1` and `localhost` while checking `https://www.rust-lang.org/` successfully. Hosted verification remains pending.
 - 2026-09-11 15:38 UTC - Copilot - After PR #2202 merged, [run 34616458439](https://github.com/torrust/torrust-tracker/actions/runs/34616458439) completed on merged revision `f6df96bf`: it visibly failed with 44 remaining errors, excluded 495 links, uploaded a retained 1,533-byte report artifact, and contained no loopback (`localhost` or `127.0.0.1`) or C1/C9 `#discussion_r` URLs. Unrelated `404`, `403`, FSF transport, issue-comment, pull-request-review, and other missing-fragment failures remained visible.
+- 2026-09-11 16:45 UTC - Copilot - Verified the 14 C3 package manifests each inherit `documentation = https://docs.rs/crate/torrust-tracker/`; that target returned HTTP 200 and redirects to `latest`. Replaced only the 14 unavailable package-specific docs.rs links with the shared tracker documentation target. Hosted workflow verification remains pending.
 
 ## Acceptance Criteria
 
 - [x] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
-- [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct.
+- [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct. C3 repair evidence is recorded; hosted verification remains pending.
 - [x] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
 - [x] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
 - [x] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.

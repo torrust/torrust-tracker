@@ -57,3 +57,16 @@ semantic-links:
 - Follow-up actions:
   - Manually dispatch the hosted External Link Check with the C2 change, retain the report artifact, and record its URL, revision, counts, C2 absence, remaining unrelated failures, and upload outcome.
   - After that evidence is independently reviewed, restore AC3 and AC5 only if the hosted boundary behavior passes.
+
+### 2026-09-11 16:45 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C3 docs.rs repair slice for issue #2185: all changed package `README.md` files, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Uncommitted diff and status; the C3 inventory in `external-link-baseline.md`; root and package Cargo manifests; resolved `cargo metadata --no-deps --format-version 1`; and live HTTP header checks for the replacement and all replaced docs.rs URLs.
+- Evidence: Exactly 14 package README files changed, exactly matching the 14 C3 inventory entries, with no missing or extra paths. Each changes only its Crate documentation URL: the prior individual docs.rs target returns HTTP 404, and the replacement is `https://docs.rs/crate/torrust-tracker/`. Every affected package declares `documentation.workspace = true`; resolved Cargo metadata gives all 14 the inherited `https://docs.rs/crate/torrust-tracker/` value from `[workspace.package]`. The replacement returns HTTP 200 after its expected redirect to `/crate/torrust-tracker/latest`. The five non-C3 package documentation links remain unchanged. `git diff --check` passes.
+- Findings:
+  - Resolved: The C3 repair is precisely scoped and each replacement target agrees with its package's resolved Cargo documentation metadata.
+  - Pending: Hosted External Link Check verification is correctly recorded as pending. Do not mark T2, AC2, M3, or a C3 hosted-verification result complete until a merged hosted run and retained report prove the 14 stale URLs no longer appear while unrelated failures remain visible.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Merge the C3 slice, manually dispatch the advisory workflow, retain its report artifact, and record the run URL, revision, counts, absence of all 14 replaced URLs, remaining failures, and upload outcome.
+  - Independently review that hosted evidence before completing C3-related issue criteria.
