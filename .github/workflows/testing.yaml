@@ -42,8 +42,6 @@ jobs:
       - id: checkout
         name: Checkout Repository
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - id: setup
         name: Setup Toolchain
@@ -92,10 +90,6 @@ jobs:
         name: Run All Linters
         run: linter all
 
-      - id: documented-clippy-allows
-        name: Check Documented Clippy Allows
-        run: cargo run --quiet --package clippy-allow-reasons -- --base-ref "origin/${{ github.base_ref || 'develop' }}"
-
       - id: test-docs
         name: Run Documentation Tests
         run: cargo test --doc --workspace
@@ -103,6 +97,34 @@ jobs:
       - id: test
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+
+  documented-clippy-allows:
+    name: Documented Clippy Allows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_REF: ${{ github.base_ref || 'develop' }}
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: fetch-base
+        name: Fetch Base Branch
+        run: git fetch origin "$BASE_REF"
+
+      - id: check
+        name: Check Documented Clippy Allows
+        run: cargo run --quiet --package clippy-allow-reasons -- --base-ref "origin/$BASE_REF"
 
   layer-bans:
     name: Layer Boundary Bans
