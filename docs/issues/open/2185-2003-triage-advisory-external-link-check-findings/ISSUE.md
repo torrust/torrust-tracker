@@ -8,7 +8,7 @@ github-issue: 2185
 spec-path: docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: null
-last-updated-utc: 2026-09-11 08:27
+last-updated-utc: 2026-09-11 09:25
 semantic-links:
   skill-links:
     - create-issue
@@ -88,7 +88,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ----------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.                      |
 | T2  | TODO        | Repair clearly stale references           | Small, reviewable repairs replace or remove only references confirmed stale, with replacement-target evidence.             |
-| T3  | DONE        | Add justified narrow exclusions           | The exact C1/C9 review-comment-anchor rule was verified on a merged upstream hosted run.                                  |
+| T3  | IN_PROGRESS | Add justified narrow exclusions           | C1/C9 is verified; the C2 loopback-only candidate passed its local boundary test and awaits hosted verification.           |
 | T4  | DONE        | Revalidate hosted signal                  | Hosted run 34578523069 excluded the intended anchors while retaining visible unrelated failures and its report artifact.  |
 | T5  | TODO        | Document operations and review completion | Triage procedure, residual risks, acceptance evidence, and independent review are updated from observed results.           |
 
@@ -131,14 +131,15 @@ A category that needs no repository change is recorded in issue-local evidence w
 - 2026-09-10 07:25 UTC - Copilot - Added the exact C1/C9 URL-pattern exclusion to `.github/lychee-online.toml`. A two-link Lychee boundary test excluded a pull-request review-comment anchor while retaining a GitHub issue-comment anchor as a visible error. Hosted rerun evidence remains pending.
 - 2026-09-11 08:27 UTC - Copilot - After PR #2197 merged, [run 34577938048](https://github.com/torrust/torrust-tracker/actions/runs/34577938048) was cancelled while its Lychee step was still in progress. Its upload step retained an empty, unusable report artifact, so it provides no usable Lychee output. Replacement [run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) completed on merged revision `427b0c93`: it visibly failed with 52 remaining errors, excluded 476 links, uploaded a 1,743-byte report artifact, and contained no matching C1/C9 `#discussion_r` URLs. Unrelated `404`, `403`, loopback, issue-comment, other-fragment, and rate-limit failures remained visible.
 - 2026-09-11 08:32 UTC - Task Reviewer - Independently reviewed the replacement hosted run and report artifact. The evidence supports T3/T4, AC3-AC5, and M4; the issue remains open for the remaining C2-C8 work. See `agent-review-reports.md`.
+- 2026-09-11 09:25 UTC - Copilot - Added online-only `exclude_loopback = true` for C2. With explicit online configuration, a three-link boundary test excluded `127.0.0.1` and `localhost` while checking `https://www.rust-lang.org/` successfully. Hosted verification remains pending.
 
 ## Acceptance Criteria
 
 - [x] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
 - [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct.
-- [x] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
+- [ ] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
 - [x] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
-- [x] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.
+- [ ] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.
 - [ ] AC6: Documentation explains any permanent exclusion rationale and preserves the existing rerun-then-repair-or-narrow-exclusion triage policy.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant tests pass or their documented non-applicability is reviewed.
@@ -173,9 +174,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ----- | ---------------------- | ----------------------------------------------------------------- |
 | AC1   | DONE                   | `external-link-baseline.md` from run 34347690674.                 |
 | AC2   | TODO                   | Reviewed reference-repair commits and target evidence.            |
-| AC3   | DONE                   | Exact online-only rule and run 34578523069 report evidence.       |
+| AC3   | TODO                   | C1/C9 is hosted-verified; C2 awaits a hosted boundary rerun.      |
 | AC4   | DONE                   | Run 34578523069 failed visibly and uploaded its report artifact.  |
-| AC5   | DONE                   | Run 34578523069 records 476 exclusions and 52 remaining errors.  |
+| AC5   | TODO                   | C1/C9 run 34578523069 is recorded; C2 awaits a hosted rerun.     |
 | AC6   | TODO                   | Updated documentation and reviewer confirmation.                  |
 
 ## Risks and Trade-offs

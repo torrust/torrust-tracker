@@ -11,6 +11,10 @@ exclude_path = [ "(^|/)docs/issues/closed/" ]
 # reliably validate them. Keep all other GitHub URLs and fragments checked.
 exclude = [ "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#discussion_r[0-9]+$" ]
 
+# Localhost and loopback examples are intentionally unavailable to hosted runners.
+# This preserves checking for all non-loopback URLs, including public addresses.
+exclude_loopback = true
+
 # Bound requests to respect external services while retaining actionable failures.
 timeout = 20
 max_retries = 2
