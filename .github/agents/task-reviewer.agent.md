@@ -58,12 +58,12 @@ pull request is opened.
    lessons, material design changes, or meaningful deviations from the original
    plan. Otherwise require a concise issue progress-log entry explaining why no
    retrospective was needed.
-6. Confirm that mandatory manual scenarios were executed against the finished
+7. Confirm that mandatory manual scenarios were executed against the finished
    artifact and recorded in `manual-verification-evidence.md` with actual
    commands or interactions, observed output, relevant logs, and conclusions.
    Do not accept automated test or disposable-script output as manual evidence.
-7. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
-8. Return an overall status:
+8. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
+9. Return an overall status:
    - `REVIEW PASSED` when all required criteria pass and no blocking issues remain.
    - `REVIEW FAILED` when any required criterion fails or blocking issues remain.
 
