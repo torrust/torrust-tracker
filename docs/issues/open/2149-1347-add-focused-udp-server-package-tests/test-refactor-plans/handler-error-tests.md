@@ -143,12 +143,26 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R4 - Record residual ownership and coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Measure aggregate/global, unit-only, and integration-only coverage separately when it
   informs a decision. Record ownership for logging branches, lower-level error conversion,
   dispatcher routing, event consumers, and sender-disabled behavior not selected by R1.
 - **Guardrails:** Do not add percentage-only logging or collaborator-matrix tests.
+- **Coverage evidence:** At commit `496128da`, clean reports measure this file at 176/178 lines
+  (98.88%), 187/189 regions (98.94%), and 23/23 functions (100.00%) aggregate/global; 155/178
+  lines (87.08%), 172/189 regions (91.01%), and 22/23 functions (95.65%) unit-only; and 89/93
+  lines (95.70%), 54/61 regions (88.52%), and 8/8 functions (100.00%) integration-only. The
+  different denominators include different test binaries and test-only code; they must not be
+  combined into one percentage.
+- **Residual ownership:** `log_error` and its cookie/non-cookie plus transaction-ID logging
+  branches are diagnostic implementation detail; tracing-capture tests are not selected. The
+  sender-disabled `trigger_udp_error_event` branch is exercised as a prerequisite of the focused
+  response contracts, but has no separate observable output worth a collaborator-matrix test.
+  Protocol parse-error conversion belongs to `error.rs`; parsed/unparsed request routing belongs
+  to `handlers/mod.rs`; `ErrorKind` classification belongs to `event.rs`; statistics and banning
+  consumption belong to their event handlers/listeners. Existing package integration tests retain
+  their real-loopback contracts without replacing the direct handler unit contracts.
 - **Done when:** Residual lines and behavior have documented owners.
 
 ### R5 - Simplify focused handler calls without hiding their behavior
@@ -191,9 +205,9 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] R2 recorded, validated, and committed.
 - [x] R3 event-context assessment completed, reviewed, validated, and committed.
 - [x] R5 wrapper alternatives reviewed, selected, implemented, and validated.
-- [ ] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] R4 coverage/ownership review completed and decision recorded.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -214,6 +228,9 @@ validation, review, and its mapped commit point—before beginning the next item
   direct calls, a positional wrapper, a parameter-bag builder/scenario, and outcome-only wrappers.
   The selected wrappers retain `handle_error` in each Act while hiding fixed context and
   collaborator plumbing.
+- 2026-09-11 - GitHub Copilot - Completed R4 with clean aggregate/global, unit-only, and
+  integration-only reports at commit `496128da`. Logging, conversion, dispatch, and consumer
+  residuals retain their existing owners; no coverage-only test is justified.
 
 ### Validation Evidence
 
@@ -223,7 +240,7 @@ validation, review, and its mapped commit point—before beginning the next item
 | R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests::it_should_publish_an_error_event_with_the_supplied_public_url`, and `git diff --check` passed. The public URL remains visible from Arrange through the handler Act and the test asserts only published event-context forwarding. |
 | R5 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The two outer wrappers retain the handler name and selected causal inputs; the inner wrapper centralizes only context that no test varies. |
-| R4 | TODO | Awaiting approved increments. |
+| R4 | DONE | Clean `cargo llvm-cov` aggregate/global, `--lib`, and `--test integration` reports were collected at `496128da`; see `coverage-evidence.md` for the figures and scope interpretation. |
 
 ## Non-Goals
 
