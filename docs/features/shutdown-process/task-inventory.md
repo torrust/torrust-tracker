@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-09
+last-updated-utc: 2026-09-11
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
