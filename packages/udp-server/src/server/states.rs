@@ -1,3 +1,13 @@
+//! Typed UDP server lifecycle states.
+//!
+//! # Test ownership
+//!
+//! Colocated tests cover deterministic `await_startup_notification` error
+//! mappings. The public `server` module owns registration-error preservation
+//! and listener-release coverage. Bind failures, halt signalling, task
+//! joining, and `Running::stop` are legacy lifecycle behavior deferred to
+//! Issue #1488 and its UDP lifecycle subissues; do not add coverage-only tests
+//! for those paths here.
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
