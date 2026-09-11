@@ -44,6 +44,8 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-error-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/response-sent-handler-tests.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/processor-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/spawner-tests.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-module-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
@@ -167,8 +169,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T14 | DONE | Review error-handler routing seam            | Completed the reviewed `handlers/error.rs` plan: response transaction-ID routing, error-event request-kind routing, and public-URL forwarding are focused contracts. The plan records reviewed test-wrapper alternatives and residual logging/conversion/dispatch/consumer ownership with separate coverage scopes. **Commit point:** completed through focused reviewed increments. |
 | T15 | DONE | Review response-metric handler seam          | Completed the reviewed `statistics/event/handler/response_sent.rs` plan: one direct successful-connect processing-average contract complements retained parent-dispatcher IPv4/IPv6 total-counter contracts. The plan records the no-change readability review and separate coverage/ownership decisions. **Commit point:** completed through focused reviewed increments. |
 | T16 | DONE | Review processor unit-test seam              | Completed the reviewed `server/processor.rs` plan: portable direct port-zero tests separately protect IPv4 response suppression, discard-event publication, and valid-connect handler bypass. The plan records the no-change fixture review and separate coverage/ownership decisions. **Commit point:** completed through focused reviewed increments. |
-| T17 | TODO        | Record spawner lifecycle deferral            | Create a `server/spawner.rs` file-local assessment plan. Record that the thin task-spawn wrapper is already fully unit-covered and that lifecycle semantics remain owned by #1488; do not add a percentage-only test. **Commit point:** documentation-only decision if material. |
-| T18 | TODO        | Record statistics-module ownership           | Create a `statistics/mod.rs` file-local assessment plan. Record metric-description composition ownership and decide whether any missing contract has package-level value; do not add a percentage-only test. **Commit point:** documentation-only decision if material. |
+| T17 | DONE | Record spawner lifecycle deferral            | Completed the `server/spawner.rs` no-test assessment. The thin task-spawn wrapper is already fully covered through server-state paths; it has no distinct observable contract, and launcher/task lifecycle semantics remain owned by #1488. **Commit point:** material documentation decision. |
+| T18 | DONE | Record statistics-module ownership           | Completed the `statistics/mod.rs` no-test assessment. Metric declaration composition is already fully covered through repository initialization and specialized metric behavior tests; no distinct module-level observable contract remains. **Commit point:** material documentation decision. |
 
 ## Commit Points
 
@@ -350,6 +352,12 @@ responsibility.
 - 2026-09-11 - GitHub Copilot - Created the proposed `server/processor.rs` plan after confirming
   the current portable direct port-zero guard tests combine response suppression, discard-event
   publication, and handler-bypass assertions. No test or production change has been made.
+- 2026-09-11 - GitHub Copilot - Completed the `server/spawner.rs` no-test assessment. The thin
+  wrapper is fully covered through server-state paths; direct tests would duplicate state behavior
+  or introduce a launcher/task injection seam before #1488 defines lifecycle ownership.
+- 2026-09-11 - GitHub Copilot - Completed the `statistics/mod.rs` no-test assessment. Metric
+  declaration composition is fully covered at repository initialization, aggregation, handler, and
+  service boundaries; direct registry inventory tests would duplicate those contracts.
 
 ## Acceptance Criteria
 
