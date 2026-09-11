@@ -52,10 +52,14 @@ resembles a template.
    logs, or stale concrete data into a reusable template.
 5. State whether the template is intended for new concrete documents only and where those documents
    belong.
-6. Add or materially update the template's entry in `docs/templates/README.md`, which catalogs its
-   purpose, intended destination, and primary workflow or agent.
-7. Add the template to the catalog in `docs/index.md` and update a relevant collection README when
-   authors need local procedural context.
+6. For a canonical repository template in `docs/templates/`, add or materially update its entry in
+   `docs/templates/README.md`, which catalogs its purpose, intended destination, and primary
+   workflow or agent.
+7. For a canonical repository template in `docs/templates/`, add the template to the catalog in
+   `docs/index.md` and update a relevant collection README when authors need local procedural
+   context. For a GitHub-native template in `.github/PULL_REQUEST_TEMPLATE/`, use GitHub's picker
+   placement and maintain only the applicable GitHub-facing documentation; do not create a duplicate
+   `docs/templates/` entry solely to satisfy this workflow.
 
 ## Link Instead of Duplicating
 
@@ -79,7 +83,8 @@ linter cspell
 Run `linter all` when the template or related workflow changes affect more than Markdown. Validate
 that:
 
-- the template appears in `docs/templates/`, `docs/templates/README.md`, and `docs/index.md`;
+- a canonical repository template appears in `docs/templates/`, `docs/templates/README.md`, and
+   `docs/index.md`, while a GitHub-native template appears in `.github/PULL_REQUEST_TEMPLATE/`;
 - the linked collection README and skills point to the template;
 - the template has valid frontmatter and no accidental `#NUMBER` enumeration; and
 - retained inline examples have a recorded rationale.
