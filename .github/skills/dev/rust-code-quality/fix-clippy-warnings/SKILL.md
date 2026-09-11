@@ -47,7 +47,10 @@ branch merge base, so existing allows remain the separate remediation scope of #
 ```
 
 The reason must be specific. A temporary reason must also contain either a stable issue reference
-such as `#2158` or a non-empty `remove when`, `remove after`, `remove by`, or `until` condition.
+such as `#2158` or a non-empty `remove when`, `remove after`, `remove by`, `removed when`,
+`removed after`, `removed by`, or `until` condition. The validator treats `temporary`,
+`temporarily`, `TODO`, `for now`, and `workaround` as temporary wording and normalizes whitespace
+before checking the condition.
 
 Do not enable `clippy::allow_attributes_without_reason` workspace-wide until #2158 has remediated
 the historical attributes that lack native reasons. It is the correct eventual compiler-aware
