@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/statistics/event/handler/mod.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/statistics/event/handler/mod.rs
@@ -163,8 +163,8 @@ validation, review, and its mapped commit point—before beginning the next item
 - [x] Maintainer approved R3 design review.
 - [x] R3 recorded, validated, and committed.
 - [x] R4 coverage/ownership review completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -186,15 +186,19 @@ validation, review, and its mapped commit point—before beginning the next item
 - 2026-09-11 - User/maintainer - Approved R4. Measure and record separate unit-only and
   integration-only coverage, then retain the no-test decision without adding a percentage-only
   test or a production injection abstraction.
+- 2026-09-11 - User/maintainer - Reviewed and approved the completed statistics event-dispatch
+  plan. The module documents its routing-only responsibility and indirect verification boundary;
+  no production abstraction or collaborator-side-effect test is justified.
 
 ### Validation Evidence
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
+| Plan documentation | DONE | Markdown and spelling checks passed after all maintainer review changes. |
 | R1 | DONE | The dispatcher has no direct test code or concrete cleanup opportunity. Six existing specialized-handler tests retain their parent-dispatcher contracts; only the `UdpError` arm remains for R2 assessment. |
 | R2/R3 | DONE | The candidate `UdpError` metric-based dispatcher test passed focused validation but was removed after design review because its only observable result belonged to collaborators. The module now documents its routing-only responsibility and indirect verification via specialized-handler parent-dispatcher tests. |
 | R4 | DONE | Fresh clean reports: unit-only is 19/21 lines (90.48%), 41/52 regions (78.85%), and 2/2 functions (100%); integration-only is 17/21 lines (80.95%), 40/52 regions (76.92%), and 2/2 functions (100%). The remaining `UdpError` delegation arm lacks a strict non-collaborator observation seam; omission is compiler-enforced, and no production injection abstraction is justified. |
+| Plan completion | DONE | Maintainer reviewed all approved increments and evidence before the next file plan begins. |
 
 ## Non-Goals
 
