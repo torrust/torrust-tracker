@@ -87,7 +87,7 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 
 - **Pattern:** `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached-error diagnostics, including two references from open issue specs.
 - **Disposition:** Covered by C1's exact URL pattern, but retained separately because the report cached a different diagnostic.
-- **Next action:** Verify the C1 exclusion removes both cached and missing-fragment diagnostics for the same exact review-comment URL pattern.
+- **Next action:** Complete offline. `lychee --dump` with the configured online policy found zero matching pull-request review-comment anchors and retained both GitHub issue-comment anchors. A hosted rerun remains required only to verify the aggregate report, artifact upload, and unrelated failures.
 
 ## Affected Reference Inventory
 
