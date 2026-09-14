@@ -116,12 +116,10 @@ mod tests {
 
     use super::handle_event;
     use crate::CurrentClock;
-    use crate::event::ErrorKind;
-    use crate::event::UdpRequestKind;
+    use crate::event::{ErrorKind, UdpRequestKind};
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
-    use crate::statistics::{
-        UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL, repository::Repository,
-    };
+    use crate::statistics::repository::Repository;
+    use crate::statistics::{UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL};
 
     fn sample_ipv4_connection_context() -> ConnectionContext {
         ConnectionContext::new(

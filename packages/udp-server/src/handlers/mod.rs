@@ -268,9 +268,9 @@ pub(crate) mod tests {
     use torrust_tracker_udp_protocol::{ConnectionId, ErrorResponse, Request, Response, ScrapeRequest, TransactionId};
     use zerocopy::byteorder::network_endian::{I32, I64};
 
-    use crate::event as server_event;
+    use crate::handlers::handle_packet;
     use crate::testing::environment::EnvContainer;
-    use crate::{RawRequest, handlers::handle_packet};
+    use crate::{RawRequest, event as server_event};
 
     pub struct CoreTrackerServices {
         pub core_config: Arc<Core>,

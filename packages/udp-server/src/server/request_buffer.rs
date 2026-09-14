@@ -141,10 +141,9 @@ impl ActiveRequests {
 mod tests {
     use std::time::Duration;
 
+    use ringbuf::traits::{Observer, Producer};
     use tokio::sync::oneshot;
     use tokio::task::JoinHandle;
-
-    use ringbuf::traits::{Observer, Producer};
 
     use super::ActiveRequests;
 
