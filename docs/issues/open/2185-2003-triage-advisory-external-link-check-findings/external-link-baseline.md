@@ -56,8 +56,8 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C4: Stale repository-controlled GitHub links — 3 occurrences
 
 - **Pattern:** Repository GitHub URLs returning `404`.
-- **Disposition:** Repaired locally. The IPv6 research file moved from the open issue folder to the closed issue folder; the removed historical test paths are replaced by the current `tests/scaffold.rs` example and `tests/metrics/` targets.
-- **Next action:** Verify removal from a hosted report after this repair slice merges.
+- **Disposition:** Repaired and hosted-verified. The IPv6 research file moved from the open issue folder to the closed issue folder; the removed historical test paths are replaced by the current `tests/scaffold.rs` example and `tests/metrics/` targets.
+- **Next action:** Complete. Hosted [run 34843399874](https://github.com/torrust/torrust-tracker/actions/runs/34843399874) contains none of the three replaced URLs while retaining unrelated errors and its report artifact.
 
 ### C5: Stale Caddy documentation link — 1 occurrence
 
@@ -153,6 +153,12 @@ The report still contained visible `404`, `403`, local loopback, GitHub issue-co
 
 The downloaded report contains 31 errors and no occurrence of any of C3's 14 replaced package-specific docs.rs URLs. It retains unrelated FSF transport, Docker missing-fragment, GitHub issue-comment and pull-request-review-anchor, stale-reference, third-party `403`, and Star History fragment errors. The count is not directly comparable to C2's 44 errors because PR #2207 archived issue specifications that were part of C2's checked document set. This verifies the C3 repair without adding an exclusion or hiding remaining external-link failures.
 
+### C4 repair verification
+
+[External Link Check run 34843399874](https://github.com/torrust/torrust-tracker/actions/runs/34843399874) ran after PR #2212 merged on revision `618723d49283432a99ea5604fc31becfa1a63a84`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 1,191 bytes and expires on 2026-09-28.
+
+The downloaded report records 1,782 total checks, 1,224 unique links, 1,196 successful checks, 25 redirects, 558 excluded links, 28 errors, and no timeouts. It contains none of C4's three replaced repository-controlled URLs. It retains unrelated Caddy `404`, Medium and Stack Overflow `403`, FSF transport, Docker missing-fragment, GitHub issue-comment and pull-request-review-anchor, and Star History fragment errors. The count is not directly comparable to C3's 31 errors because intervening merged changes modified the checked document set. This verifies the C4 repair without adding an exclusion or hiding remaining external-link failures.
+
 ## Deferred Work
 
-C4-C9 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
+C5-C9 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
