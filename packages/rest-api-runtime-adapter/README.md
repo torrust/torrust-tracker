@@ -4,7 +4,7 @@ Tracker-specific runtime adapter for the REST API application layer.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-rest-api-runtime-adapter).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 

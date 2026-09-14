@@ -4,7 +4,7 @@ The Torrust Tracker Rest API.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-axum-tracker-api-server).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 

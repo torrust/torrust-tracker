@@ -4,7 +4,7 @@ Contract/protocol types for the Torrust Tracker REST API.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-rest-api-protocol).
+[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
 
 ## License
 
