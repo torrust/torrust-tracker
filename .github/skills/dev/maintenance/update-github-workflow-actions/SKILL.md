@@ -33,8 +33,8 @@ For Cargo dependency updates, use
 ## Quick Reference
 
 ```bash
-# Use one high-resolution timestamp for this invocation's temporary evidence.
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+# Use one nanosecond-resolution timestamp for this invocation's temporary evidence.
+TIMESTAMP=$(date +%Y%m%d-%H%M%S-%N)
 UPDATE_BRANCH="${TIMESTAMP}-update-github-workflow-actions"
 ALLOWLIST_CURRENT=".tmp/${TIMESTAMP}-allowed-actions-current.txt"
 ALLOWLIST_NEW=".tmp/${TIMESTAMP}-allowed-actions-new.txt"
@@ -62,7 +62,7 @@ git push {your-fork-remote} "$UPDATE_BRANCH"
 
 ## Update Workflow
 
-1. Generate one high-resolution timestamp and use it for the dedicated branch and `.tmp/` evidence filenames shown in the quick reference. This prevents same-second collisions between independent invocations. Concurrent update workflows must not share a working tree because Git branches and the index are shared.
+1. Generate one nanosecond-resolution timestamp and use it for the dedicated branch and `.tmp/` evidence filenames shown in the quick reference. This prevents same-second collisions between independent invocations. Concurrent update workflows must not share a working tree because Git branches and the index are shared.
 2. Start from an up-to-date `develop` branch and create that dedicated branch.
 3. Identify every matching action reference and review the action's release notes for compatibility or security implications. If no workflow reference needs an update, stop without committing.
 4. Update all intended `.github/workflows/*.yaml` references consistently. Dependabot manages GitHub Actions updates through `.github/dependabot.yaml`; preserve its explicit version format.
