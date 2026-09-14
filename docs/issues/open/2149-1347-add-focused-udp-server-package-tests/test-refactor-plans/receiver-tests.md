@@ -112,6 +112,10 @@ validation, review, and its mapped commit point—before beginning the next item
   `receiver.next()` Act, and one whole-value `RawRequest` assertion visible. `RawRequest` derives
   equality because bytes and sender address are meaningful value semantics, not merely test data.
   The timeout is an absolute diagnostic bound. Temporary prose is redundant and removed.
+- **Public API note (2026-09-14):** deriving `PartialEq`/`Eq` on the public `RawRequest` type is
+  the one production-surface change in this issue. It is deliberate: payload bytes plus sender
+  address form meaningful structural value equality that callers may rely on, and it enables the
+  whole-value assertion above. No behavioral code path changed.
 - **Done when:** A regression in normal UDP datagram adaptation has one direct, deterministic
   unit-test failure.
 
