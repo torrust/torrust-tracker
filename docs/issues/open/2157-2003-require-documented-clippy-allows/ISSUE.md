@@ -8,7 +8,7 @@ github-issue: 2157
 spec-path: docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md
 branch: "2157-2003-require-documented-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-11 10:25
+last-updated-utc: 2026-09-14 12:40
 semantic-links:
   skill-links:
     - create-issue
@@ -103,8 +103,8 @@ expanding into a bulk remediation.
 - [x] Process Copilot suggestions using
       `docs/copilot-pr-reviews/pr-2177-copilot-suggestions.md` and the Copilot-suggestions workflow.
 - [ ] Run final repository validation and independent reviews after all findings are processed.
-- [ ] Rebase onto the latest `torrust/develop`, rerun required checks, and push with
-      `--force-with-lease`.
+- [x] Rebase onto the latest `torrust/develop`, rerun required checks, and push with
+  `--force-with-lease`.
 - [ ] Confirm required CI checks pass and request refreshed maintainer review.
 
 ### Progress Log
@@ -150,6 +150,12 @@ expanding into a bulk remediation.
 - 2026-09-11 10:00 UTC - GitHub Copilot - Completed the Cameron maintainer-feedback task: the audit records specific outcomes, replies, and resolved status for M1-M27 - Done
 - 2026-09-11 10:15 UTC - GitHub Copilot - Completed the Copilot-suggestions task: all six original review threads received specific action or approved-supersession replies and were resolved - Done
 - 2026-09-11 10:25 UTC - GitHub Copilot - Posted and recorded consolidated responses for all five Cameron reviews after their associated findings were resolved - Done
+- 2026-09-14 12:15 UTC - GitHub Copilot - Rebased PR #2177 onto `torrust/develop` at `8d93b691`; upstream workflow-skill conflict resolution introduced a Markdown lint regression now repaired locally - Pending focused signed commit, push, and fresh CI
+- 2026-09-14 12:20 UTC - GitHub Copilot - Found a second rebase-conflict regression: the unit-job checkout `uses:` key in `testing.yaml` had incorrect indentation, causing YAML parsing to fail; repaired locally - Pending validation, focused signed commit, push, and fresh CI
+- 2026-09-14 12:25 UTC - GitHub Copilot - Corrected the issue-progress wording after CSpell rejected a nonstandard indentation term; rerunning the complete validation gate - Pending focused signed commits, push, and fresh CI
+- 2026-09-14 12:30 UTC - GitHub Copilot - Removed the remaining CSpell-rejected term from the issue progress record - Pending complete validation, focused signed commits, push, and fresh CI
+- 2026-09-14 12:35 UTC - GitHub Copilot - Validated both rebase-conflict repairs: the full mandatory pre-commit JSON gate passed, including Markdown, YAML, CSpell, Clippy, formatting, ShellCheck, and documentation tests - Pending focused signed commits, push, and fresh CI
+- 2026-09-14 12:40 UTC - GitHub Copilot - Committed both rebase-conflict CI repairs in `94c47af5`: restored valid unit-job YAML and Markdownlint-compliant workflow-actions guidance; full pre-commit gate passed - Pending issue tracking commit, push, and fresh CI
 - 2026-09-10 11:20 UTC - GitHub Copilot - Addressed Cameron finding M18: CLI integration tests now exercise a real accepted changed allow plus method, statement, and multiline crate-level forms - Pending focused commits, reply, and thread resolution
 
 ## Acceptance Criteria
