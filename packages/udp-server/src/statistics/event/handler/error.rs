@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_label_a_general_error_metric_with_connect_request_kind() {
+    async fn it_should_label_a_general_error_metric_with_connect_request_kind() {
         // Arrange
         let stats_repository = Repository::new();
         let connection_context = sample_ipv4_connection_context();
@@ -180,7 +180,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_label_a_connection_id_error_metric_with_qbittorrent_client_software() {
+    async fn it_should_label_a_connection_id_error_metric_with_qbittorrent_client_software() {
         // Arrange
         let stats_repository = Repository::new();
         let announce_request = AnnounceRequestBuilder::default()

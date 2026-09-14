@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_record_the_connection_cookie_error_for_its_client_ip() {
+    async fn it_should_record_the_connection_cookie_error_for_its_client_ip() {
         // Arrange
         let cookie_error_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 2));
         let context = BanningHandlerTestContext::with_no_tracked_clients();
@@ -117,7 +117,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_publish_the_distinct_client_ip_total_after_a_connection_cookie_error() {
+    async fn it_should_publish_the_distinct_client_ip_total_after_a_connection_cookie_error() {
         // Arrange
         let unrelated_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1));
         let cookie_error_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 2));

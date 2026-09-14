@@ -86,7 +86,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_publish_events_through_the_enabled_server_event_bus() {
+    async fn it_should_publish_events_through_the_enabled_server_event_bus() {
         // Arrange
         let services = UdpTrackerServerServices::initialize();
         let event = sample_udp_request_received_event();

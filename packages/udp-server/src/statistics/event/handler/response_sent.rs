@@ -82,7 +82,7 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
-    async fn should_update_the_connect_processing_time_average_for_a_successful_connect_response() {
+    async fn it_should_update_the_connect_processing_time_average_for_a_successful_connect_response() {
         // Arrange
         let stats_repository = Repository::new();
         let request_kind = crate::event::UdpRequestKind::Connect;
