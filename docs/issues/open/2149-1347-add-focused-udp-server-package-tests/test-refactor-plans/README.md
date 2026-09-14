@@ -23,7 +23,9 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Statistics event-dispatch tests](statistics-event-dispatch-tests.md) — complete.
 - [Banning event-handler tests](banning-event-handler-tests.md) — complete.
 - [Server states tests](server-states-tests.md) — complete.
-- [Handler error tests](handler-error-tests.md) — proposed; awaiting maintainer approval.
+- [Handler error tests](handler-error-tests.md) — complete.
+- [Response-sent handler tests](response-sent-handler-tests.md) — complete.
+- [Processor tests](processor-tests.md) — complete.
 
 ## Shared Purpose
 

@@ -33,7 +33,7 @@ the local ignored output directory retains tool logs only for this working sessi
 
 | Mutation | Outcome | Interpretation |
 | --- | --- | --- |
-| Replace `client_socket_addr.port() == 0` with `!= 0` | Caught | The focused port-zero response-suppression, discard-event, and handler-bypass tests reject an inverted guard. |
+| Replace `client_socket_addr.port() == 0` with `!= 0` | Caught | The focused direct discard-event test rejects an inverted guard. |
 | Replace `Processor::process_request` body with `()` | Unviable | The generated mutation cannot satisfy the method's async control flow/type requirements; it is not a test-suite survivor. |
 
 There were no surviving viable mutants. No follow-up test or production change is selected.
