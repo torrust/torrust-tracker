@@ -1,5 +1,6 @@
 # Deployment (Workspace Packages)
 #
+# skill-link: update-github-workflow-actions
 # adr: docs/adrs/20260629000000_adopt_independent_package_versioning.md
 #
 # PRIMARY publishing path for publishable workspace packages. Every publishable crate versions
@@ -110,7 +111,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - id: setup
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -131,7 +132,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - id: setup
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable

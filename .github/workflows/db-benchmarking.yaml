@@ -1,5 +1,6 @@
 name: Database Benchmarking
 
+# skill-link: update-github-workflow-actions
 # adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
 # sccache added for cross-run compilation caching on bare CI builds.
 
@@ -30,7 +31,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain
@@ -60,7 +61,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain
@@ -90,7 +91,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain

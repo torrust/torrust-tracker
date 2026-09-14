@@ -1,5 +1,6 @@
 name: Upload Coverage Report (PR)
 
+# skill-link: update-github-workflow-actions
 # cspell:ignore mapfile
 
 on:
@@ -25,13 +26,13 @@ jobs:
       # Codecov requires a checkout. This trusted workflow must check out only the
       # default branch before retrieving fork-produced artifacts.
       - name: Checkout trusted repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           path: repo_root
 
       - name: "Download existing coverage report"
         id: prepare_report
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             var fs = require('fs');
@@ -141,7 +142,7 @@ jobs:
           echo "override_commit=$commit_sha" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v7.0.0
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}

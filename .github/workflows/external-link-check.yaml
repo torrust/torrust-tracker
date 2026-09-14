@@ -21,7 +21,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: setup-toolchain
         name: Setup Toolchain
@@ -46,7 +46,7 @@ jobs:
       - id: upload-report
         name: Upload Lychee Report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: lychee-external-link-report
           path: lychee-report.md
