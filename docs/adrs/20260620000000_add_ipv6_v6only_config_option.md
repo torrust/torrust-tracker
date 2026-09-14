@@ -7,7 +7,7 @@ semantic-links:
     - packages/configuration/src/v2_0_0/http_tracker.rs
     - packages/udp-server/src/server/bound_socket.rs
     - packages/axum-http-server/src/server.rs
-    - docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md
+    - docs/issues/closed/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md
 ---
 
 # Add `ipv6_v6only` Config Option for Separate IPv4/IPv6 Sockets
@@ -37,7 +37,7 @@ separate IPv4 socket (`0.0.0.0:<port>`) to bind on the same port.
 Detailed implementation steps, config examples, and platform portability notes
 are documented in the issue spec ([#1671](https://github.com/torrust/torrust-tracker/issues/1671))
 and in the research document
-[docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md](https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md).
+[docs/issues/closed/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md](https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/closed/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md).
 
 ### Alternatives Considered
 

@@ -39,8 +39,8 @@ The Torrust Tracker project uses a three-layer testing strategy:
 
 After implementing issue #1419 (parallel integration test infrastructure), the project has a
 foundation for writing independent, concurrent integration tests at the main application level.
-Currently, only one test suite exists (`tests/servers/api/contract/stats/`), which verifies global
-metrics aggregation across multiple tracker instances.
+Current metrics-focused integration coverage is organized under `tests/metrics/`, with
+`tests/scaffold.rs` retaining a global-stats scenario example across multiple tracker instances.
 
 This issue tracks the expansion of **integration test coverage** (layer 2) for application-level
 concerns that cannot be tested at the package level:
@@ -181,7 +181,7 @@ Suggested approach:
 ### Automatic Checks
 
 - `linter all` exits with code `0`
-- `cargo test --test stats` passes all new integration tests
+- Current focused integration-test commands pass for each affected target
 - `cargo test --workspace` passes (no regressions)
 - CI pipeline passes with new tests running in parallel
 
@@ -189,7 +189,7 @@ Suggested approach:
 
 | ID  | Check                         | Expected Outcome                                                   |
 | --- | ----------------------------- | ------------------------------------------------------------------ |
-| M1  | Run `cargo test --test stats` | All integration tests pass, no port conflicts or config collisions |
+| M1  | Run each focused integration-test target | All integration tests pass, no port conflicts or config collisions |
 | M2  | Run with `RUST_LOG=debug`     | Verify multiple services log startup without errors                |
 | M3  | Review test execution time    | Integration tests complete faster than equivalent E2E tests        |
 
@@ -211,9 +211,8 @@ Suggested approach:
 ### Integration Test Infrastructure
 
 - [tests/AGENTS.md](../../../tests/AGENTS.md) - Guidelines for main-level vs package-level tests
-- [tests/stats.rs](https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs) - Historical integration-test scaffolding
-- [tests/servers/api/contract/stats/](https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats) - Historical global
-  stats test example
+- [tests/scaffold.rs](https://github.com/torrust/torrust-tracker/blob/develop/tests/scaffold.rs) - Preserved global-stats scenario example
+- [tests/metrics/](https://github.com/torrust/torrust-tracker/tree/develop/tests/metrics) - Current focused metrics integration-test targets
 
 ### Testing Strategy Documentation
 
