@@ -107,6 +107,11 @@ mapped commit point—before beginning the next item.
   inline case table must retain each concrete request-kind input and exact string value visibly.
 - **Guardrails:** The announce fixture must be minimal and local. Do not derive expected labels by
   calling production conversion code or make metric-repository assertions.
+- **Table-form rationale (2026-09-14):** the inline `(input, expected)` case table is a reviewed
+  exception to the prose-first one-Arrange/Act/Assert layout. All three cases share one behavior
+  (representation mapping), each row keeps its concrete request kind and exact expected string
+  visible, and a failing row names its case in the assertion diff. Splitting into three tests would
+  triple the announce-fixture noise without adding a distinct failure reason per contract.
 - **Done when:** all three request kinds have exact independently specified `LabelValue` and display
   contracts.
 
