@@ -70,3 +70,17 @@ semantic-links:
 - Follow-up actions:
   - Merge the C3 slice, manually dispatch the advisory workflow, retain its report artifact, and record the run URL, revision, counts, absence of all 14 replaced URLs, remaining failures, and upload outcome.
   - Independently review that hosted evidence before completing C3-related issue criteria.
+
+### 2026-09-14 10:00 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C3 hosted-verification evidence in `ISSUE.md`, `external-link-baseline.md`, the supplied downloaded report, GitHub Actions run 34829466145, and `.github/workflows/external-link-check.yaml`.
+- Evidence: Run 34829466145 completed on `952911af2321e848ac95ad183e8e8b96d8fd354a` with the expected visible `Check External Links` failure. `Upload Lychee Report` succeeded under the workflow's unconditional upload policy. The retained `lychee-external-link-report` artifact is 1,357 bytes, is not expired, and expires at `2026-09-28T09:51:01Z`. The supplied report contains none of C3's 14 retired package-specific docs.rs targets while retaining representative unrelated FSF transport, Docker fragment, GitHub comment/review-fragment, stale-reference, third-party `403`, and Star History fragment failures.
+- Findings:
+  - Resolved: The merged hosted evidence verifies the C3 repair boundary without adding an exclusion or suppressing unrelated failures. M3 may remain DONE.
+  - Correction required: The supplied report summary and its individual entries both show 31 errors, not 24. Correct the C3 count in `ISSUE.md` and `external-link-baseline.md`.
+  - Correction required: AC2 must remain pending for remaining repair slices, but its wording must no longer state that C3 hosted verification is pending.
+  - Pending: Keep T2 and AC2 pending, and keep all issue-wide completion, quality, manual-verification, acceptance-review, and implementation-completion-review criteria pending.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Correct the C3 error count and stale AC2-hosted-verification wording.
+  - Preserve this review entry as append-only evidence; do not close issue #2185.
