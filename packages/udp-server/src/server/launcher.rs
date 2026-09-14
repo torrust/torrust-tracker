@@ -395,8 +395,10 @@ mod tests {
         }
     }
 
-    fn sample_udp_service_binding(bind_address: SocketAddr) -> ServiceBinding {
-        ServiceBinding::new(Protocol::UDP, SocketAddr::new(bind_address.ip(), 6969))
+    /// Pure fixture: admission only clones this binding into the published event
+    /// context, so any valid UDP binding works and no launcher state is involved.
+    fn sample_udp_service_binding() -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .expect("sample UDP service binding should be valid")
     }
 
@@ -439,9 +441,11 @@ mod tests {
             payload: Vec::new(),
             from: client_socket_addr,
         };
-        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let server_service_binding = sample_udp_service_binding();
 
         // Act
+        // The source-port-zero guard runs before ban policy is evaluated, so the
+        // validation-policy argument is inert for this contract.
         let should_discard = Launcher::should_discard_request(
             &request,
             &launcher.udp_tracker_core_container,
@@ -465,7 +469,7 @@ mod tests {
             payload: Vec::new(),
             from: client_socket_addr,
         };
-        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let server_service_binding = sample_udp_service_binding();
 
         // Act
         let should_discard = Launcher::should_discard_request(
@@ -491,7 +495,7 @@ mod tests {
             payload: Vec::new(),
             from: client_socket_addr,
         };
-        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let server_service_binding = sample_udp_service_binding();
         let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
 
         // Act
@@ -530,10 +534,12 @@ mod tests {
             payload: Vec::new(),
             from: client_socket_addr,
         };
-        let server_service_binding = sample_udp_service_binding(launcher.bind_address);
+        let server_service_binding = sample_udp_service_binding();
         let mut event_receiver = launcher.udp_tracker_server_container.event_bus.receiver();
 
         // Act
+        // The source-port-zero guard runs before ban policy is evaluated, so the
+        // validation-policy argument is inert for this contract.
         let _ = Launcher::should_discard_request(
             &request,
             &launcher.udp_tracker_core_container,
