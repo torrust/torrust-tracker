@@ -107,7 +107,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 
 | Package | Subissue | Baseline | Latest | Change | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `torrust-tracker-axum-http-server` | [#2136](../2136-1347-add-tests-axum-http-server/ISSUE.md) | See issue-local evidence | See issue-local evidence | See issue-local evidence | [Coverage evidence](../2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
+| `torrust-tracker-axum-http-server` | [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) | See issue-local evidence | See issue-local evidence | See issue-local evidence | [Coverage evidence](../../closed/2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
 | `torrust-tracker-udp-server` | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Pending final measurement | Pending final measurement | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
 ## Delivery Strategy
