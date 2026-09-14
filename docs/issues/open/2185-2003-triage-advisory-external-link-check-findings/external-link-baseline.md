@@ -161,4 +161,4 @@ The downloaded report records 1,782 total checks, 1,224 unique links, 1,196 succ
 
 ## Deferred Work
 
-C5-C9 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
+C5-C8 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
