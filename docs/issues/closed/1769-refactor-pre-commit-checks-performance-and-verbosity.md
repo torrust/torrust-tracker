@@ -27,7 +27,6 @@ semantic-links:
     - docs/issues/open/1770-refactor-pre-push-checks-performance-and-verbosity.md
 ---
 
-
 # Issue #1769 - Refactor pre-commit checks for lower verbosity and faster feedback
 
 ## Goal
@@ -404,4 +403,4 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - CI testing workflow: [.github/workflows/testing.yaml](../../../.github/workflows/testing.yaml)
 - Skill reference: [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md)
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1769
-- Related split issue spec: [docs/issues/open/1768-refactor-update-dependencies-skill-automation.md](1768-refactor-update-dependencies-skill-automation.md)
+- Related split issue spec: [docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md](../open/1768-refactor-update-dependencies-skill-automation/ISSUE.md)

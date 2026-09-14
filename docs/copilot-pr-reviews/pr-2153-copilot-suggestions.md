@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - process-copilot-suggestions
   related-artifacts:
-    - docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
+    - docs/issues/closed/2151-add-tracker-config-path-argument/ISSUE.md
     - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
 ---
 

@@ -1,6 +1,6 @@
 # Verification Evidence — Superseded Concurrent Supervisor Outcomes
 
-> **Status**: Do not populate. Issue [#1586](../../open/1586-evaluate-job-manager-join-set/verification.md)
+> **Status**: Do not populate. Issue [#1586](../../closed/1586-evaluate-job-manager-join-set/verification.md)
 > owns the direct `JobManager` ownership and outcome evidence.
 
 ## Environment

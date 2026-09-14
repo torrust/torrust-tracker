@@ -209,6 +209,6 @@ mechanism. Issue #2155 deliberately does not make that selection.
 
 - [Repository agent profiles](../../.github/agents/README.md)
 - [AI agent documentation index](README.md)
-- [Issue #2155 specification](../issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md)
-- [Issue #2160 specification](../issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md)
+- [Issue #2155 specification](../issues/closed/2155-2003-document-ai-agent-orchestration/ISSUE.md)
+- [Issue #2160 specification](../issues/closed/2160-2003-persist-independent-agent-review-reports/ISSUE.md)
 - [AI agent context, capability, and portability governance ADR](../adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md)

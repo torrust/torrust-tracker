@@ -11,7 +11,7 @@ related-pr: 2112
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-09-01 10:27
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - packages/tracker-core/src/container.rs
     - share/container/entry_script_sh
     - contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh
-    - docs/issues/open/2121-propagate-bootstrap-startup-errors/ISSUE.md
+    - docs/issues/closed/2121-propagate-bootstrap-startup-errors/ISSUE.md
     - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t2-rest-route-contract.md
     - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t3-persistence-free-runtime.md
     - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/manual-m2-persistence-requirements.md

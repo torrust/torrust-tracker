@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -149,10 +149,10 @@ deterministic tests, and manual evidence.
 
 | Sequence | Draft | Work item                                                                                                                 | Status     | Independently releasable scope                                                                       |
 | -------- | ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------- |
-| 0        | #1588 | [Revalidate task inventory](../1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)                                  | Open       | Implementation-time inventory and ownership evidence; no runtime behavior changes.                   |
-| 1        | SI-1  | [Add `SIGTERM` at `main()`](../2132-add-sigterm-to-main/ISSUE.md)                                                         | Open #2132 | Incremental signal-boundary compatibility fix.                                                       |
-| 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../1586-evaluate-job-manager-join-set/ISSUE.md)                                     | Open       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy.               |
-| 3        | SI-4  | [Migrate torrent cleanup](../2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                              | Open #2169 | One periodic component adopts token cancellation.                                                    |
+| 0        | #1588 | [Revalidate task inventory](../../closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)                         | Done       | Implementation-time inventory and ownership evidence; no runtime behavior changes.                   |
+| 1        | SI-1  | [Add `SIGTERM` at `main()`](../../closed/2132-add-sigterm-to-main/ISSUE.md)                                                | Done       | Incremental signal-boundary compatibility fix.                                                       |
+| 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md)                            | Done       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy.               |
+| 3        | SI-4  | [Migrate torrent cleanup](../../closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                    | Done       | One periodic component adopts token cancellation.                                                    |
 | 4        | SI-5  | [Migrate activity metrics](../../drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                              | Draft      | One periodic component adopts token cancellation.                                                    |
 | 5        | SI-2  | [Add token-aware server lifecycle API](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)                     | Draft      | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
 | 6        | SI-10 | [Add token-aware, joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)         | Draft      | Additive helper alongside existing API; no consumer breaks.                                          |

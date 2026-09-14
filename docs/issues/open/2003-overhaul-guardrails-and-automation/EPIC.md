@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-08-17
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -22,9 +22,9 @@ semantic-links:
     - project-words.txt
     - AGENTS.md
     - docs/templates/EPIC.md
-    - docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md
-    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md
-    - docs/issues/open/1768-refactor-update-dependencies-skill-automation.md
+    - docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md
+    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
+    - docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
 ---
@@ -205,11 +205,11 @@ is superseded.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                 | Local Spec                                                                | Status  | Relationship                                                                                                            |
-| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1     | #1843 - Migrate git hooks scripts from Bash to Rust   | `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md`    | BLOCKED | Pause implementation; runner shape, contracts, check ownership, and migration depend on the design decision             |
-| 2     | #1774 - Automate cleanup of completed issue specs     | `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md` | BLOCKED | Pause implementation; action placement, dry-run/apply, GitHub access, and output contract depend on the design decision |
-| 3     | #1768 - Refactor update-dependencies skill automation | `docs/issues/open/1768-refactor-update-dependencies-skill-automation.md`  | BLOCKED | Pause implementation; action decomposition, shared infrastructure, and validation policy depend on the design decision  |
+| Order | Issue                                                 | Local Spec                                                                      | Status  | Relationship                                                                                                            |
+| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1     | #1843 - Migrate git hooks scripts from Bash to Rust   | `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md`    | BLOCKED | Pause implementation; runner shape, contracts, check ownership, and migration depend on the design decision             |
+| 2     | #1774 - Automate cleanup of completed issue specs     | `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md` | BLOCKED | Pause implementation; action placement, dry-run/apply, GitHub access, and output contract depend on the design decision |
+| 3     | #1768 - Refactor update-dependencies skill automation | `docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md`  | BLOCKED | Pause implementation; action decomposition, shared infrastructure, and validation policy depend on the design decision  |
 
 ## Proposed Research and Design Subissues
 
@@ -238,12 +238,12 @@ creation remains subject to maintainer approval of each draft specification.
 
 | Order | Issue                                                | Local Specification                                                                | Why It May Proceed                                                                                            | Dependencies                                     |
 | ----- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| 1     | #2155 - Document AI agent orchestration              | `docs/issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md`              | Documents current profiles and creates evidence for future enforcement; selects no enforcement tool.          | None                                             |
-| 2     | #2156 - Create Markdown template skill               | `docs/issues/open/2156-2003-create-markdown-template-skill/ISSUE.md`               | Documentation convention and skill only; does not alter shared execution architecture.                        | None                                             |
+| 1     | #2155 - Document AI agent orchestration              | `docs/issues/closed/2155-2003-document-ai-agent-orchestration/ISSUE.md`            | Documents current profiles and creates evidence for future enforcement; selects no enforcement tool.          | None                                             |
+| 2     | #2156 - Create Markdown template skill               | `docs/issues/closed/2156-2003-create-markdown-template-skill/ISSUE.md`             | Documentation convention and skill only; does not alter shared execution architecture.                        | None                                             |
 | 3     | #2157 - Require documented Clippy allows             | `docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`             | Focused policy and validator at an existing validation tier; prospective baseline remains replaceable.        | Existing lint entry points                       |
 | 4     | #2158 - Inventory existing Clippy allows             | `docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md`             | Evidence and incremental remediation; does not redesign the linter runner.                                    | #2157 policy conventions, if merged first        |
 | 5     | #2159 - Adopt folder-style issue specifications      | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md`               | Documentation, templates, and root ADR only; prospective and reversible for new work.                         | None                                             |
-| 6     | #2160 - Persist independent agent review reports     | `docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md`     | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
+| 6     | #2160 - Persist independent agent review reports     | `docs/issues/closed/2160-2003-persist-independent-agent-review-reports/ISSUE.md`   | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
 | 7     | #2185 - Triage advisory external-link check findings | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
 
 ## Delivery Strategy

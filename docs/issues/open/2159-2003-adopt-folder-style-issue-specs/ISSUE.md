@@ -8,7 +8,7 @@ github-issue: 2159
 spec-path: docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md
 branch: "2159-2003-adopt-folder-style-issue-specs"
 related-pr: null
-last-updated-utc: 2026-09-07 11:20
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -32,8 +32,8 @@ semantic-links:
 ## Goal
 
 Make folder-style specifications the only layout for new issues and EPICs, while retaining existing
-single-file specifications as historical artifacts unless a future issue has an independent reason
-to migrate one.
+single-file specifications as historical artifacts except for the explicitly approved, bounded
+migration of three inactive open issue specifications.
 
 ## Background
 
@@ -53,12 +53,28 @@ spec is touched. This creates avoidable churn and ambiguous expectations.
   only where historical accuracy requires it.
 - Update templates and indexes so issue-local artifacts are expected to live beside `ISSUE.md` or
   `EPIC.md`.
+- Migrate these inactive open single-file issue specifications to folder-style layout:
+  - `docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md`
+  - `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md`
+  - `docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md`
 
 ### Out of Scope
 
 - Bulk or incidental migration of existing single-file issue specs.
 - Changing the separate refactor-plan lifecycle unless it is explicitly included after review.
 - Building automated migration tooling.
+
+### Approved Bounded Migration Exception
+
+The three named open specifications are an explicit exception to the no-bulk-migration policy. The
+maintainer confirmed that all three remain open and that no contributor is currently working on
+them. Migrate only their primary-spec layout from a single Markdown file to a same-named directory
+containing `ISSUE.md`; preserve each specification's content, GitHub issue identity, lifecycle
+state, and references, then repair live links to the new path.
+
+This exception does not authorize migration of any other existing single-file specification. Closed
+single-file specifications remain historical artifacts, and any additional open-spec migration
+requires a separately recorded reason and maintainer approval.
 
 ## Architectural Decisions
 
@@ -67,12 +83,12 @@ spec is touched. This creates avoidable churn and ambiguous expectations.
 
 ## Implementation Plan
 
-| ID  | Status | Task                              | Notes / Expected Output                                     |
-| --- | ------ | --------------------------------- | ----------------------------------------------------------- |
-| T1  | TODO   | Identify conflicting guidance     | Inventory active paths and migration requirements.          |
-| T2  | TODO   | Record the ADR                    | Define scope, legacy treatment, and consequences.           |
-| T3  | TODO   | Align templates and workflows     | Update current issue-spec documentation and indexes.        |
-| T4  | TODO   | Validate new and legacy scenarios | Prove new specs are folders and old specs remain untouched. |
+| ID  | Status | Task                              | Notes / Expected Output                                                                                       |
+| --- | ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Identify conflicting guidance     | Inventory active paths, the approved exception, and migration requirements.                                   |
+| T2  | TODO   | Record the ADR                    | Define scope, legacy treatment, and consequences.                                                             |
+| T3  | TODO   | Align templates and workflows     | Update current issue-spec documentation and indexes.                                                          |
+| T4  | TODO   | Validate new and legacy scenarios | Prove new specs are folders, the three excepted open specs migrated, and other legacy specs remain untouched. |
 
 ## Progress Tracking
 
@@ -89,12 +105,14 @@ spec is touched. This creates avoidable churn and ambiguous expectations.
 - 2026-09-07 10:45 UTC - GitHub Copilot - Created as an immediately implementable EPIC #2003 child specification - This spec
 - 2026-09-07 11:05 UTC - josecelano - Approved this subissue specification - Chat approval
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2159, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2159
+- 2026-09-11 - Maintainer - Approved a bounded exception for the three named open single-file specifications because they remain open and are known to have no active contributor work. Their migration is aligned with the prospective folder-only convention; all other existing single-file specifications remain outside this issue's migration scope.
+- 2026-09-11 - GitHub Copilot - Migrated the three approved inactive open specifications (#1768, #1774, and #1843) into same-named folders containing `ISSUE.md`, preserved their lifecycle state, and repaired current references. The broader folder-only policy, ADR, and workflow/template alignment remain planned work.
 
 ## Acceptance Criteria
 
 - [ ] A root ADR requires folder-style layout for new issue and EPIC specs and rejects bulk migration.
 - [ ] Active issue creation guidance and templates no longer present single-file specs as a new-spec option.
-- [ ] Existing single-file specs remain valid historical records and are not migrated by this change.
+- [ ] Existing single-file specs remain valid historical records and are not migrated by this change, except for the three explicitly named inactive open specifications.
 - [ ] New issue-local artifacts have a clear home beside the folder's primary spec file.
 - [ ] `linter all` exits with code `0` and relevant documentation checks pass.
 
@@ -107,10 +125,10 @@ spec is touched. This creates avoidable churn and ambiguous expectations.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario             | Command/Steps                                                 | Expected Result                                                              | Status | Evidence               |
-| --- | -------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ | ---------------------- |
-| M1  | Draft a new spec     | Follow the updated creation workflow.                         | The only offered primary-spec path is a folder with `ISSUE.md` or `EPIC.md`. | TODO   | Pending implementation |
-| M2  | Review a legacy spec | Inspect a legacy single-file spec under the updated guidance. | It remains unchanged and is described accurately as legacy.                  | TODO   | Pending implementation |
+| ID  | Scenario                              | Command/Steps                                                                           | Expected Result                                                                                              | Status | Evidence               |
+| --- | ------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------ | ---------------------- |
+| M1  | Draft a new spec                      | Follow the updated creation workflow.                                                   | The only offered primary-spec path is a folder with `ISSUE.md` or `EPIC.md`.                                 | TODO   | Pending implementation |
+| M2  | Review legacy and excepted open specs | Inspect a retained legacy single-file spec and the three approved open-spec migrations. | The retained legacy spec remains unchanged; each named inactive open spec is a folder containing `ISSUE.md`. | TODO   | Pending implementation |
 
 ### Acceptance Verification
 

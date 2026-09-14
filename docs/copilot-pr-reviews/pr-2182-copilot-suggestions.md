@@ -4,8 +4,8 @@ semantic-links:
     - process-copilot-suggestions
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
-    - docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
-    - docs/issues/open/2162-enforce-lychee-and-schedule-external-link-checks/agent-review-reports.md
+    - docs/issues/closed/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
+    - docs/issues/closed/2162-enforce-lychee-and-schedule-external-link-checks/agent-review-reports.md
 ---
 
 <!-- cspell:disable -->

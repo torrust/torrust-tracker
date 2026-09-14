@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-7-observable-shutdown-progress/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-11
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 # Superseded Draft SI-7 — Fold Outcome Reporting into Issue #1586
 
 > **Status**: Superseded for implementation planning. Its structured-outcome
-> requirement is part of issue [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md);
+> requirement is part of issue [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md);
 > optional periodic progress is a later additive presentation task after
 > operational feedback.
 
