@@ -3,6 +3,9 @@
     "editor.formatOnSave": true
   },
   "[markdown]": {
+    // Editor Markdown formatters conflict with the markdownlint rules enforced
+    // by `linter all` (for example table padding and hard-wrap style), so
+    // Markdown is formatted only by the lint gate, not on save.
     "editor.formatOnSave": false
   },
   "[ignore]": {
