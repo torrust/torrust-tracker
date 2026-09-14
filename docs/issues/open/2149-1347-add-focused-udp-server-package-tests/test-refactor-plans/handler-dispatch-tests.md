@@ -92,7 +92,7 @@ before beginning the next item.
 
 ### R1 - Record the Phase 1 no-change decision
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Change:** Confirm that `handlers/mod.rs` has no direct tests to clean and that its existing
   support remains local to the handler modules.
@@ -100,7 +100,7 @@ before beginning the next item.
 
 ### R2 - Cover sendable parse-failure routing
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add one direct asynchronous `handle_packet` test using a fixed malformed payload with

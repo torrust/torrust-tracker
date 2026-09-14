@@ -2,14 +2,13 @@
 doc-type: coverage-evidence
 issue: 2149
 package: torrust-tracker-udp-server
-measured-commit: 2054d494
-measured-utc: 2026-09-07
+measured-commit: 8683d543
+measured-utc: 2026-09-14
 ---
 
 # UDP Server Coverage Evidence
 
-This document records the package-source coverage baseline before Issue #2149 adds or changes
-tests.
+This document records the package-source coverage baseline and final measurement for Issue #2149.
 
 ## Aggregate/Global Coverage Measurement
 
@@ -76,7 +75,7 @@ contract.
 | Measurement                   |                  Lines |                Regions |          Functions |
 | ----------------------------- | ---------------------: | ---------------------: | -----------------: |
 | Baseline before issue changes | 4,814 / 4,965 (96.96%) | 6,326 / 6,604 (95.79%) | 485 / 499 (97.19%) |
-| Latest container-plan checkpoint | 5,423 / 5,548 (97.75%) | 7,088 / 7,340 (96.57%) | 551 / 565 (97.52%) |
+| Final measurement             | 5,560 / 5,682 (97.85%) | 7,278 / 7,531 (96.64%) | 577 / 591 (97.63%) |
 
 ## Unit-Only Package Coverage
 
@@ -87,7 +86,15 @@ compare future unit-only measurements only with an equivalent unit-only command.
 | Measurement | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: |
 | Baseline before issue changes | Not measured separately | Not measured separately | Not measured separately |
-| Latest container-plan checkpoint | 5,317 / 5,548 (95.84%) | 6,961 / 7,340 (94.84%) | 535 / 565 (94.69%) |
+| Final measurement | 5,465 / 5,682 (96.18%) | 7,180 / 7,531 (95.34%) | 561 / 591 (94.92%) |
+
+## Final Integration-Only Package Coverage
+
+The clean final `--test integration` report measures 1,118 / 1,469 lines (76.11%), 1,190 / 1,654
+regions (71.95%), and 148 / 187 functions (79.14%) below `packages/udp-server/src/`. Its smaller
+compiled production slice has a different denominator from aggregate/global and unit-only reports.
+It confirms retained loopback contracts and must not be combined with, or used to replace,
+unit-first evidence.
 
 ### Container Composition Test-Level Evidence
 

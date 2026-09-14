@@ -117,7 +117,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Review the test design after the vertical slice
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Complete and record the mandatory prose-first Arrange-Act-Assert comparison after
   R2. Remove redundant temporary prose only after the final code makes the queued datagram, single

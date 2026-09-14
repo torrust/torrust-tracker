@@ -140,7 +140,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Document the module test-ownership boundary
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / trivial effort
 - **Addresses:** D5
 - **Change:** Add a short module-level comment to `states.rs` stating which behavior is unit tested

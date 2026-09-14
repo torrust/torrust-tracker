@@ -101,7 +101,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Cover cookie-error event orchestration
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1
 - **Change:** Add two direct asynchronous tests with direct
@@ -128,7 +128,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R3 - Review the test design after the vertical slice
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** Complete and record mandatory prose-first Arrange-Act-Assert and test-code-smell
   review. Use a scenario fixture only if several coordinated operations obscure the two-IP initial

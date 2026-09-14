@@ -107,7 +107,7 @@ validation, review, and its mapped commit point—before beginning the next item
 
 ### R2 - Assess one adjacent real-loopback contract improvement
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P1-P3
 - **Change:** After R1, inspect the nearby connect-response contract. Record whether a small
