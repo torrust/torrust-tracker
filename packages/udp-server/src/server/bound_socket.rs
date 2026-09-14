@@ -138,3 +138,47 @@ impl Debug for BoundSocket {
         f.debug_struct("UdpSocket").field("addr", &local_addr).finish_non_exhaustive()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use url::Url;
+
+    use super::BoundSocket;
+
+    #[tokio::test]
+    async fn it_should_bind_to_a_non_zero_port_when_port_zero_is_requested() {
+        // Arrange
+        let requested_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
+
+        // Act
+        let bound_socket = BoundSocket::bind(requested_address, false).expect("IPv4 loopback socket should bind");
+
+        // Assert
+        assert_ne!(bound_socket.address().port(), 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_report_consistent_udp_endpoint_metadata() {
+        // Arrange
+        let requested_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
+        let bound_socket = BoundSocket::bind(requested_address, false).expect("IPv4 loopback socket should bind");
+        let expected_address = bound_socket.address();
+
+        // Act
+        let actual_url = bound_socket.url();
+        let actual_service_binding = bound_socket.service_binding();
+
+        // Assert
+        assert_eq!(
+            actual_url,
+            Url::parse(&format!("udp://{expected_address}")).expect("bound UDP address should form a URL")
+        );
+        assert_eq!(
+            actual_service_binding,
+            ServiceBinding::new(Protocol::UDP, expected_address).expect("bound UDP address should form a service binding")
+        );
+    }
+}

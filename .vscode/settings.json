@@ -2,6 +2,12 @@
   "[rust]": {
     "editor.formatOnSave": true
   },
+  "[markdown]": {
+    // Editor Markdown formatters conflict with the markdownlint rules enforced
+    // by `linter all` (for example table padding and hard-wrap style), so
+    // Markdown is formatted only by the lint gate, not on save.
+    "editor.formatOnSave": false
+  },
   "[ignore]": {
     "rust-analyzer.cargo.extraEnv": {
       "RUSTFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",

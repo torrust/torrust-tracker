@@ -38,22 +38,32 @@ pull request is opened.
    - Acceptance criteria list
    - Claimed implementation scope
 2. Inspect relevant diffs/files and run focused checks as needed.
-3. Validate each acceptance criterion explicitly as one of:
+3. When changed tests are in scope, apply the `Test Design` checklist from
+   `.github/skills/dev/task-reviews/review-task/SKILL.md` to every changed test. Report each
+   violated item as a repository-convention finding with concrete remediation; do not pass the
+   review while a test fixture is a parameter bag or hides the causal state, production Act, or
+   independently specified expected result. Require recorded evidence of the mandatory prose-first
+   Arrange-Act-Assert comparison; do not pass a review when a changed test's code has not been
+   compared against its temporary prose specification, or when redundant prose remains without an
+   irreducible-context rationale. Assess helper quality by whether it gives a coherent action,
+   capability, or state a meaningful name and aligns the caller's abstraction level; do not flag a
+   helper solely because it has a single caller.
+4. Validate each acceptance criterion explicitly as one of:
    - `PASS` - implemented and verified
    - `FAIL` - not implemented or incorrect
    - `PENDING` - partial/unclear or missing evidence
-4. If the issue spec contains checklist items, mark only verified `PASS` items as done.
-5. Review the completion-review evidence. Require an issue-local
+5. If the issue spec contains checklist items, mark only verified `PASS` items as done.
+6. Review the completion-review evidence. Require an issue-local
    `implementation-retrospective.md` when implementation revealed reusable
    lessons, material design changes, or meaningful deviations from the original
    plan. Otherwise require a concise issue progress-log entry explaining why no
    retrospective was needed.
-6. Confirm that mandatory manual scenarios were executed against the finished
+7. Confirm that mandatory manual scenarios were executed against the finished
    artifact and recorded in `manual-verification-evidence.md` with actual
    commands or interactions, observed output, relevant logs, and conclusions.
    Do not accept automated test or disposable-script output as manual evidence.
-7. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
-8. Return an overall status:
+8. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
+9. Return an overall status:
    - `REVIEW PASSED` when all required criteria pass and no blocking issues remain.
    - `REVIEW FAILED` when any required criterion fails or blocking issues remain.
 

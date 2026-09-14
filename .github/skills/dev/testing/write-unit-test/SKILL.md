@@ -73,6 +73,19 @@ Acceptable reasons to defer or avoid direct unit tests include:
 If a feature is hard to test, treat that as design feedback first and improve testability when
 practical.
 
+### Coverage Attribution Is Unit-First
+
+For package-owned behavior, treat unit-only coverage as the primary measurement and aggregate/global
+coverage as a separate broad-progress measurement. An aggregate report can include unit,
+integration, example, or end-to-end binaries; it cannot prove that a source seam has adequate unit
+protection. Record unit-only and integration-only measurements separately when coverage informs a
+test-boundary decision.
+
+Do not reject a feasible focused unit test because an integration, example, or end-to-end test
+already executes the behavior. Decline a unit test only when it cannot protect the behavior at an
+appropriate boundary, or when a higher-level contract is demonstrably clearer and more maintainable;
+record that rationale in the issue-local evidence.
+
 ### Lifecycle Fixture Design Review
 
 When a test fixture manages a child process, asynchronous I/O, network
@@ -124,6 +137,102 @@ Whatever the tool, do not hide the Act or assertions inside it, let it accumulat
 components, or derive an expected outcome using production code under test. For the full
 constraints and example, see
 [Scenario fixtures for causal initial state](../../../../../docs/testing/refactoring-patterns/scenario-fixtures-for-causal-initial-state.md).
+
+### Reveal Behavioral Data; Hide Collaborator Mechanics
+
+Trace every value that crosses from Arrange into the Act or Assert. Keep a value visible in the test
+body when it selects the behavior under test, establishes a causal initial state, or independently
+specifies an expected result. Its use in the Act or Assert must make that relationship readable.
+Hide only ordinary valid collaborator-construction mechanics that do not vary the selected behavior,
+such as locks, reference-counted handles, default dependency construction, or required repository
+setup.
+
+For example, a banning-handler gauge test keeps an `unrelated_client_ip` visible when it establishes
+the pre-existing tracked-IP state, keeps the event's `cookie_error_client_ip` visible where it enters
+the event context, and keeps `expected_distinct_client_ip_total` visible before the Act and in the
+Assert. A state-named test context may hide its `Arc<RwLock<BanService>>` and `Repository` setup.
+Do not hide the relevant IPs or expected total inside that context.
+
+During review, ask: **“Can the reader follow every value that makes the Act behave differently or
+sets the expected result from its Arrange origin to its Act/Assert use?”** If not, expose that value
+or rename/refocus the scenario. Also ask: **“Does this value merely make an ordinary collaborator
+valid?”** If yes, it belongs in focused setup rather than the test narrative.
+
+### Name Coherent Actions at One Abstraction Level
+
+Use a helper when it gives a coherent sequence of setup or transport actions a meaningful name and
+keeps the caller at one readable abstraction level. A helper does **not** require multiple callers:
+`start_ephemeral_udp_tracker()` can be justified by naming one complete ordinary setup action even
+when one contract test currently uses it.
+
+Judge a helper by semantic value, not reuse count. Keep it when its name expresses a capability or
+state relevant to the test and it hides only incidental mechanics. Reject it when it merely moves
+code away behind a vague name such as `setup()`, becomes a parameter bag, hides the causal state,
+production Act, or expected result, or mixes unrelated responsibilities. See
+[Named helpers for abstraction-level alignment](../../../../../docs/testing/refactoring-patterns/named-helpers-for-abstraction-level-alignment.md)
+for selection criteria and examples.
+
+### Anti-Pattern: Duplicated Fixture-Derived Expectations
+
+Do not extract a second helper that manually reconstructs a representation already derived from a
+fixture when that representation is not independently under test. For example, a test that passes a
+`ConnectionContext` to production code should not separately hard-code every metric label expected
+from that context merely to add one causal label such as `request_kind=connect`. The fixture and
+expectation become coupled by hidden duplication: an unrelated fixture change makes the test fail
+with stale expected details.
+
+Instead, derive fixture-owned details from the exact fixture value used by the Act, and specify only
+the test's causal input or independently asserted result in the test body. In the metric example,
+create `LabelSet::from(connection_context.clone())` and visibly add `request_kind=connect`. Add a
+separate focused test when conversion of the fixture into its derived representation is itself the
+behavior under test.
+
+During prose-first review, ask: **“If this fixture changes, should this test fail?”** If no, derive
+the incidental expectation from the fixture. If yes, keep the relevant fixture value and its
+assertion visibly connected in the test prose; use a scenario or builder if several coordinated
+values establish that causal state.
+
+### Review Test-Code Smells Before Finishing
+
+Before requesting maintainer review for a test-producing increment, inspect the final test against
+these smells. A smell is a prompt to improve the design, not an automatic rule: keep the clearest
+test when an alternative would weaken its behavioral contract or diagnostic value.
+
+| Smell                           | Review question                                                                                     | Preferred response                                                                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complex Arrange                 | Can a reader name the causal initial state without reconstructing setup plumbing?                   | Use inline values, a readable builder, or a narrowly named scenario fixture. Keep causal input visible and move only coordinated incidental mechanics.     |
+| Hidden behavioral data coupling | Can the reader trace every causal input and expected value from Arrange into its Act or Assert use? | Keep behavior-selecting inputs, causal pre-existing state, and independent expected values visible; hide only ordinary collaborator construction.          |
+| Multiple assertions             | Do the assertions specify one complete observable result or unrelated behaviors?                    | Use one higher-level semantic assertion when it preserves the full result and diagnostic clarity; otherwise split the test so each has one reason to fail. |
+| Hidden fixture coupling         | Would an unrelated fixture change fail this test?                                                   | Derive incidental expectations from the exact fixture used by the Act; keep independently specified causal values visible.                                 |
+| Hidden production Act           | Can the reader identify the production behavior under test directly?                                | Keep the production invocation visible; do not move it into setup or assertion helpers.                                                                    |
+| Production-derived expectation  | Is the expected result calculated by code that the test is meant to verify?                         | Construct the expected result independently; move only mechanical comparisons into a semantic assertion helper.                                            |
+
+Record material refactoring decisions from this review in the file-local plan or task evidence.
+
+### Verify Intent with Prose-First AAA
+
+Before considering any new or materially refactored test ready for maintainer review, make its
+intent explicit and verify that the final code communicates it. This is mandatory for every
+test-producing increment:
+
+1. Write temporary normal-prose **Arrange**, **Act**, and **Assert** paragraphs above the test.
+   State the causal initial state, the production action, and independently specified observable
+   result; do not describe implementation mechanics without explaining their behavioral purpose.
+2. Repeat each paragraph above the corresponding `// Arrange`, `// Act`, or `// Assert` code
+   section.
+3. Compare the code with each paragraph. Refactor names, setup, builders, scenario fixtures, the
+   visible Act, or assertions until the code itself expresses the paragraph.
+4. Remove prose that is redundant once the code communicates the intent. Retain only essential
+   context that cannot be expressed clearly in code without disproportionate complexity or a
+   misleading abstraction.
+5. Record the completed prose-first comparison in the task evidence or file-local test plan before
+   maintainer review and commit.
+
+The temporary prose is the test's specification, not permanent commentary. A parameter bag, an
+opaque fixture, a hidden Act, or an assertion derived through production code is evidence that the
+code has not yet expressed its specification. See
+[Prose-first Arrange-Act-Assert verification](../../../../../docs/testing/refactoring-patterns/prose-first-arrange-act-assert-verification.md)
+for a repository example.
 
 ## Phase 1: Basic Unit Test
 
@@ -305,6 +414,7 @@ establishes a reusable pattern for future tests.
 
 - [ ] Test name uses `it_should_` prefix
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
+- [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
 - [ ] Behaviour coverage is maximized with maintainable tests
