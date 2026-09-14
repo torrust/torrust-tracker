@@ -104,7 +104,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_yield_a_raw_request_with_the_received_datagram_and_sender_address() {
+    async fn it_should_yield_a_raw_request_with_the_received_datagram_and_sender_address() {
         // Arrange
         let mut scenario = ReceiverWithQueuedLoopbackDatagram::new(vec![1, 2, 3]).await;
 
