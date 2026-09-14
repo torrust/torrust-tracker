@@ -4,8 +4,8 @@ status: planned
 github-issue: 2190
 spec-path: docs/issues/open/2190-maintenance-frictions-cleanup/EPIC.md
 branch: "2190-maintenance-frictions-cleanup-spec"
-epic-owner: null
-last-updated-utc: 2026-09-10 09:32
+epic-owner: da2ce7
+last-updated-utc: 2026-09-14 16:54
 semantic-links:
   skill-links:
     - create-issue
