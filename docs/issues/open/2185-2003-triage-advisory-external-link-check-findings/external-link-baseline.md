@@ -56,8 +56,8 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C4: Stale repository-controlled GitHub links — 3 occurrences
 
 - **Pattern:** Repository GitHub URLs returning `404`.
-- **Disposition:** Repair candidate. The affected targets are a removed issue-local research file and two removed test paths.
-- **Next action:** Verify the intended current repository targets or remove obsolete references, then repair them in a small dedicated slice.
+- **Disposition:** Repaired locally. The IPv6 research file moved from the open issue folder to the closed issue folder; the removed historical test paths are replaced by the current `tests/scaffold.rs` example and `tests/metrics/` targets.
+- **Next action:** Verify removal from a hosted report after this repair slice merges.
 
 ### C5: Stale Caddy documentation link — 1 occurrence
 
@@ -116,9 +116,9 @@ All 14 links now use `https://docs.rs/crate/torrust-tracker/latest`. Cargo metad
 
 | URL                                                                                                                                         | Diagnostic       | Source                                                              | Disposition |
 | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------- | ----------- |
-| `https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md` | `404`            | `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`         | C4          |
-| `https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs`                                                                    | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4          |
-| `https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats`                                                  | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4          |
+| `https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md` | `404`            | `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`         | C4: replaced with archived research document |
+| `https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs`                                                                    | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current scaffold example |
+| `https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats`                                                  | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current metrics targets |
 | `https://caddyserver.com/docs/protocol/http3`                                                                                               | `404`            | `docs/containers.md`                                                | C5          |
 | `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes`                                                                  | Missing fragment | `docs/containers.md`                                                | C6          |
 | `https://docs.docker.com/cloud/aci-integration/#exposing-ports`                                                                             | Missing fragment | `docs/containers.md`                                                | C6          |

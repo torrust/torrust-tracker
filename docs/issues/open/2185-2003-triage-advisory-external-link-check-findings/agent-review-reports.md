@@ -84,3 +84,17 @@ semantic-links:
 - Follow-up actions:
   - Correct the C3 error count and stale AC2-hosted-verification wording.
   - Preserve this review entry as append-only evidence; do not close issue #2185.
+
+### 2026-09-14 12:10 UTC - Task Reviewer
+
+- Invocation scope: Independent read-only review of the uncommitted C4 repository-controlled stale-link repair slice for issue #2185 in `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`, `docs/issues/drafts/increase-main-app-integration-test-coverage.md`, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Scoped uncommitted diff; `torrust/develop` tree; commits `dc449858` and `8151e920`; current `tests/scaffold.rs` and `tests/metrics/` sources; prior issue-local review reports.
+- Evidence: Commit `dc449858` renames the #1671 research document from `docs/issues/open/` to `docs/issues/closed/`; `torrust/develop` contains that archived target. Commit `8151e920` deletes `tests/stats.rs` and `tests/servers/api/contract/stats/mod.rs`; current `torrust/develop` contains `tests/scaffold.rs` and four `tests/metrics/` targets. The repaired ADR and draft contain the three intended replacement destinations. The old URLs remain only as inline-code historical entries in `external-link-baseline.md`, not as active repaired-document links. Exactly the four requested documentation files changed; no online/local Lychee configuration or workflow diff exists, and `git diff --check` passes.
+- Findings:
+  - Correction required: The draft statement that current integration coverage is organized under `tests/metrics/` is overly broad. Current `tests/` also contains `banning/`, `configuration/`, and `lifecycle/` suites. Describe `tests/metrics/` as the current metrics-focused coverage instead.
+  - Resolved: The C4 archive and test-path replacement claims follow from repository history and the current `torrust/develop` tree.
+  - Pending: Keep T2 and AC2 pending until a hosted post-merge External Link Check confirms the three C4 stale URLs are absent while unrelated failures and report upload remain visible.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Correct the overly broad test-layout sentence in the draft.
+  - Merge the coherent C4 slice, manually dispatch or observe the hosted External Link Check, retain its report artifact, and append the run URL, revision, counts, C4 URL absence, remaining failures, and upload outcome before completing T2 or AC2.
