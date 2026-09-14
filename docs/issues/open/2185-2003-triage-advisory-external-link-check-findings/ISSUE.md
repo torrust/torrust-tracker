@@ -179,7 +179,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC2   | TODO                   | C3 target and hosted verification are recorded; remaining repair slices must be verified. |
 | AC3   | DONE                   | C1/C9 and C2 hosted runs show each exact exclusion remains narrow. |
 | AC4   | DONE                   | Run 34578523069 failed visibly and uploaded its report artifact.   |
-| AC5   | DONE                   | Runs 34578523069 and 34616458439 record each exclusion slice.      |
+| AC5   | DONE                   | Runs 34578523069, 34616458439, and 34829466145 record each completed remediation slice. |
 | AC6   | TODO                   | Updated documentation and reviewer confirmation.                   |
 
 ## Risks and Trade-offs
