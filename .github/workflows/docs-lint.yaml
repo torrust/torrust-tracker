@@ -33,7 +33,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain
@@ -43,13 +43,13 @@ jobs:
 
       - id: node
         name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: "20"
 
       - id: cache
         name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@v2.9.2
 
       - id: linter
         name: Install Internal Linter

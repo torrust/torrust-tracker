@@ -1,4 +1,5 @@
 name: Labels
+# skill-link: update-github-workflow-actions
 on:
   workflow_dispatch:
   push:
@@ -15,7 +16,7 @@ jobs:
     steps:
       - id: backup
         name: Export to Workflow Artifact
-        uses: EndBug/export-label-config@v1
+        uses: EndBug/export-label-config@v1.0.1
 
   sync:
     name: Synchronize Labels from Repo
@@ -25,11 +26,11 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - id: sync
         name: Apply Labels from File
-        uses: EndBug/label-sync@v2
+        uses: EndBug/label-sync@v2.3.3
         with:
           config-file: .github/labels.json
           delete-other-labels: true

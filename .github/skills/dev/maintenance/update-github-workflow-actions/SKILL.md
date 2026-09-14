@@ -27,6 +27,7 @@ For Cargo dependency updates, use
 - Keep actions on explicit versions. Do not replace an exact action version with a moving major tag solely to work around an allowlist failure.
 - Keep workflow actions updated to current safe versions to receive their security fixes.
 - When this work accompanies a Cargo dependency update, use its dedicated branch and update workflow actions only after the Cargo update has been validated.
+- When an organization allowed-actions policy update is required, record it in both the signed commit message body and the pull-request description. State whether the change added, replaced, or retained allowlist patterns, and list every affected pattern. Do not claim the policy was updated unless it has been confirmed.
 
 ## Update Workflow
 
@@ -39,7 +40,7 @@ For Cargo dependency updates, use
    - Confirm that the configured pattern matches the full `uses:` reference, including its version.
 5. Add one semantic `skill-link: update-github-workflow-actions` comment near the workflow's top-level metadata and review the related skills when updating the workflow policy.
 6. Run `linter yaml`, `git diff --check`, and the relevant repository checks before committing.
-7. Commit with a signed Conventional Commit, push the branch to the fork remote, and open a PR targeting `develop`.
+7. Commit with a signed Conventional Commit, push the branch to the fork remote, and open a PR targeting `develop`. When step 4 required an organization policy update, include its exact allowlist changes in the commit body and PR description. Explicitly state that existing entries were retained when the update is additive, so maintainers know no other Torrust repositories lost authorization.
 8. Confirm affected workflow runs are queued and pass. If a run is blocked by the allowlist, correct the organization policy and rerun the failed jobs; do not weaken the workflow pin.
 
 ## Allowlist Failure Diagnosis
