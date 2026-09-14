@@ -248,6 +248,18 @@ mod tests {
                 .await;
         }
 
+        /// Checked before the buffer is dropped: `ActiveRequests::drop` aborts every
+        /// remaining handle, so a post-drop check could not distinguish exactly-one
+        /// eviction from an eviction that discarded additional in-flight requests.
+        fn assert_retained_tasks_are_still_active(&self) {
+            for task in &self.retained_tasks {
+                assert!(
+                    !task.join_handle.is_finished(),
+                    "only the oldest task should be evicted when capacity is exhausted"
+                );
+            }
+        }
+
         async fn abort_and_join_retained_tasks(self) {
             drop(self.active_requests);
 
@@ -291,6 +303,7 @@ mod tests {
         // Assert
         assert!(task_was_evicted);
         scenario.assert_oldest_task_was_aborted().await;
+        scenario.assert_retained_tasks_are_still_active();
         scenario.abort_and_join_retained_tasks().await;
     }
 
