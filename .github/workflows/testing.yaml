@@ -41,7 +41,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-  uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7.0.1
 
       - id: setup
         name: Setup Toolchain
