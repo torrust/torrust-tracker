@@ -155,4 +155,4 @@ The downloaded report contains 31 errors and no occurrence of any of C3's 14 rep
 
 ## Deferred Work
 
-C3-C9 are intentionally deferred until C1 is independently reviewed and its exclusion boundary is validated. This prevents the first configuration change from mixing clearly uncheckable dynamic anchors with potentially stale or transient external URLs.
+C4-C9 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
