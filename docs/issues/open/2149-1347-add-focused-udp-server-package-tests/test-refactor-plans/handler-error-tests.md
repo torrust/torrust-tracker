@@ -236,8 +236,8 @@ validation, review, and its mapped commit point—before beginning the next item
 
 | Increment | Status | Evidence |
 | --- | --- | --- |
-| Plan documentation | TODO | Run Markdown and spelling checks after maintainer review changes. |
-| R1/R2 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
+| Plan documentation | DONE | Markdown and spelling checks passed after maintainer review changes. |
+| R1/R2 | DONE | **Corrected 2026-09-14:** the recorded `cargo fmt --all -- --check` pass used stable rustfmt, which ignores the repository's unstable import-grouping options; nightly rustfmt failed at that head on unrelated pre-existing files until commit `14dc4066`. `cargo test -p torrust-tracker-udp-server handlers::error::tests` and `git diff --check` passed as recorded. The combined test was split into one sender-disabled transaction-ID response contract and one sender-enabled event-publication contract; prose-first review confirms one reason to fail per test. |
 | R3 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests::it_should_publish_an_error_event_with_the_supplied_public_url`, and `git diff --check` passed. The public URL remains visible from Arrange through the handler Act and the test asserts only published event-context forwarding. |
 | R5 | DONE | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server handlers::error::tests`, and `git diff --check` passed. The two outer wrappers retain the handler name and selected causal inputs; the inner wrapper centralizes only context that no test varies. |
 | R4 | DONE | Clean `cargo llvm-cov` aggregate/global, `--lib`, and `--test integration` reports were collected at `496128da`; see `coverage-evidence.md` for the figures and scope interpretation. |

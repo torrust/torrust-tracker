@@ -27,6 +27,19 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 - [Response-sent handler tests](response-sent-handler-tests.md) — complete.
 - [Processor tests](processor-tests.md) — complete.
 
+## Formatting Validation Correction (2026-09-14)
+
+Every plan validation row that records `cargo fmt --all -- --check ... passed` before
+2026-09-14 ran **stable** rustfmt, which only warns about this repository's unstable
+`imports_granularity`/`group_imports` options and therefore does not enforce them. Nightly
+rustfmt — used by CI's formatting check and the pre-push hook — rejected import grouping in
+`handlers/mod.rs`, `server/request_buffer.rs`, and `statistics/event/handler/error.rs` at those
+heads. Commit `14dc4066` applies the nightly formatting; from that commit forward
+`cargo +nightly fmt --all -- --check` passes. The rows flagged by review remain corrected in
+place; the other historical rows' formatting claims should be read as stable-rustfmt results
+only. All other commands recorded in those rows (focused tests, `git diff --check`) were
+re-runnable and held.
+
 ## Shared Purpose
 
 Each plan improves test code without changing production behavior. It applies only to its target
