@@ -98,3 +98,18 @@ semantic-links:
 - Follow-up actions:
   - Correct the overly broad test-layout sentence in the draft.
   - Merge the coherent C4 slice, manually dispatch or observe the hosted External Link Check, retain its report artifact, and append the run URL, revision, counts, C4 URL absence, remaining failures, and upload outcome before completing T2 or AC2.
+
+### 2026-09-14 16:05 UTC - Task Reviewer
+
+- Invocation scope: Independent read-only review of the uncommitted C4 hosted-verification evidence in `ISSUE.md`, `external-link-baseline.md`, the supplied downloaded report, GitHub Actions run 34843399874, and `.github/workflows/external-link-check.yaml`.
+- Evidence: Run 34843399874 completed on `618723d49283432a99ea5604fc31becfa1a63a84`. `Check External Links` failed visibly and `Upload Lychee Report` succeeded under the workflow's `if: always()` upload policy. The official unexpired `lychee-external-link-report` artifact is 1,191 bytes and expires at `2026-09-28T12:50:59Z`. The supplied report records 1,782 total checks, 1,224 unique links, 1,196 successful checks, 25 redirects, 558 exclusions, 28 errors, and zero timeouts.
+- Findings:
+  - Resolved: The report contains none of C4's three retired repository-controlled URLs.
+  - Resolved: Representative unrelated Caddy `404`, Medium and Stack Overflow `403`, FSF transport, Docker missing-fragment, GitHub issue-comment/pull-request-review-anchor, and Star History fragment failures remain visible.
+  - Resolved: The C4 evidence correctly cautions that its 28 errors are not directly comparable with C3's 31 errors because intervening merged changes modified the checked document set.
+  - Correction required: Add run 34843399874 to AC5's evidence row so the documented evidence explicitly includes the hosted rerun for the C4 remediation slice.
+  - Pending: Keep T2 and AC2 pending for C5-C8 and remaining repair verification. Keep all issue-wide quality, manual-verification, acceptance-review, implementation-completion-review, and closure criteria pending.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Make the AC5 evidence-row correction.
+  - Preserve this review as append-only evidence; do not close issue #2185.
