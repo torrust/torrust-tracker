@@ -11,8 +11,8 @@ semantic-links:
     - packages/udp-server/src/event.rs
     - packages/udp-server/src/statistics/event/handler/mod.rs
     - packages/udp-server/src/handlers/announce.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Error-Metric Handler Test Refactor Plan

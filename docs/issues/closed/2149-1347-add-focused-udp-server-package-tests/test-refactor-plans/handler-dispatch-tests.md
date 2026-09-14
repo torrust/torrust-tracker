@@ -11,8 +11,8 @@ semantic-links:
     - packages/udp-server/src/server/processor.rs
     - packages/udp-server/src/error.rs
     - packages/udp-protocol/src/request.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Handler Dispatch Test Refactor Plan

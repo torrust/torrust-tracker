@@ -11,8 +11,8 @@ semantic-links:
     - packages/udp-server/src/statistics/metrics.rs
     - packages/udp-server/src/statistics/repository.rs
     - packages/udp-server/src/event.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Response-Sent Handler Test Refactor Plan

@@ -10,8 +10,8 @@ semantic-links:
     - packages/udp-server/src/event.rs
     - packages/events/src/bus.rs
     - packages/udp-server/src/server/launcher.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Server Container Test Refactor Plan

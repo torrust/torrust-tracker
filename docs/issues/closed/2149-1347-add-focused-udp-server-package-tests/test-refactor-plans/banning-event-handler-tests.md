@@ -13,8 +13,8 @@ semantic-links:
     - packages/udp-server/src/statistics/metrics.rs
     - packages/udp-server/tests/server/contract.rs
     - tests/banning/udp_metrics_disabled_port_zero.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Banning Event-Handler Test Refactor Plan

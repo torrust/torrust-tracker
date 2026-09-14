@@ -11,8 +11,8 @@ semantic-links:
     - packages/udp-server/src/handlers/mod.rs
     - packages/udp-server/src/handlers/error.rs
     - packages/udp-protocol/src/request.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Server Parse-Error Adapter Test Plan
