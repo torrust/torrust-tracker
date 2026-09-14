@@ -51,7 +51,7 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 
 - **Pattern:** `https://docs.rs/torrust-*` and `https://docs.rs/bittorrent-udp-protocol` returning `404`.
 - **Disposition:** Repaired. These package README links pointed at unavailable individual crate pages; the corresponding workspace packages inherit the shared `https://docs.rs/crate/torrust-tracker/latest` documentation target.
-- **Next action:** Complete local verification: all 14 affected package manifests report the shared target through Cargo metadata, and docs.rs returned HTTP 200 for it. Verify removal from a hosted report after this repair slice merges.
+- **Next action:** Complete. All 14 affected package manifests report the shared target through Cargo metadata, docs.rs returned HTTP 200 for it, and hosted [run 34829466145](https://github.com/torrust/torrust-tracker/actions/runs/34829466145) contained none of the replaced URLs while retaining unrelated errors and its report artifact.
 
 ### C4: Stale repository-controlled GitHub links — 3 occurrences
 
@@ -147,6 +147,12 @@ The report recorded 1,816 total checks, 1,288 successful checks, 26 redirects, 4
 
 The report still contained visible `404`, `403`, local loopback, GitHub issue-comment and pull-request-review fragments, third-party missing-fragment, and rate-limited diagnostics. This proves the C1/C9 rule suppresses the intended dynamic review-comment-anchor pattern without hiding unrelated categories. The remaining 52 errors are the next triage input; their exact count is not directly comparable to the 461-error baseline because the checked document set changed between revisions.
 
+### C3 repair verification
+
+[External Link Check run 34829466145](https://github.com/torrust/torrust-tracker/actions/runs/34829466145) ran after PR #2208 merged on revision `952911af2321e848ac95ad183e8e8b96d8fd354a`. The `Check External Links` step failed visibly with exit code 2 and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 1,357 bytes and expires on 2026-09-28.
+
+The downloaded report contains 31 errors and no occurrence of any of C3's 14 replaced package-specific docs.rs URLs. It retains unrelated FSF transport, Docker missing-fragment, GitHub issue-comment and pull-request-review-anchor, stale-reference, third-party `403`, and Star History fragment errors. The count is not directly comparable to C2's 44 errors because PR #2207 archived issue specifications that were part of C2's checked document set. This verifies the C3 repair without adding an exclusion or hiding remaining external-link failures.
+
 ## Deferred Work
 
-C3-C9 are intentionally deferred until C1 is independently reviewed and its exclusion boundary is validated. This prevents the first configuration change from mixing clearly uncheckable dynamic anchors with potentially stale or transient external URLs.
+C4-C9 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
