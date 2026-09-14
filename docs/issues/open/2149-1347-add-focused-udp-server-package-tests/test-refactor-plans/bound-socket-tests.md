@@ -177,6 +177,9 @@ review and availability guard.
 
 ### Validation Evidence
 
+> Formatting claims recorded before 2026-09-14 are stable-rustfmt results; see the
+> [formatting validation correction](README.md#formatting-validation-correction-2026-09-14).
+
 | Increment | Status | Evidence |
 | --- | --- | --- |
 | Plan documentation | TODO | Run Markdown and spelling checks after plan review changes. |
