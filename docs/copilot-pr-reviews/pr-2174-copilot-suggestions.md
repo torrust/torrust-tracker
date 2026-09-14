@@ -4,8 +4,8 @@ semantic-links:
     - process-copilot-suggestions
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
     - packages/udp-server/src/server/request_buffer.rs
 ---
 
@@ -34,9 +34,9 @@ Status legend:
 | # | Thread ID | Path | URL | Suggestion Summary | Decision | Reply URL | Status | Thread State |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | `PRRT_kwDOGp2yqc6goHu9` | `packages/udp-server/src/server/request_buffer.rs` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777870) | Bound task-completion waits so a cleanup regression cannot hang CI. | action: added one-second absolute cleanup bound in `1ef8589b`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968614576) | DONE | RESOLVED |
-| 2 | `PRRT_kwDOGp2yqc6goHvj` | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777918) | Update stale request-buffer implementation status. | no-action: duplicate suggestion addressed in `01cde544`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968226077) | DONE | RESOLVED |
-| 3 | `PRRT_kwDOGp2yqc6goHv9` | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777950) | Update stale request-buffer implementation status. | action: corrected test-only completion/deferred benchmark status in `01cde544`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968216396) | DONE | RESOLVED |
-| 4 | `PRRT_kwDOGp2yqc6goHwW` | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777992) | Mark completed handler-dispatch plan as complete. | no-action: already addressed in `9c05e359`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968220747) | DONE | RESOLVED |
+| 2 | `PRRT_kwDOGp2yqc6goHvj` | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777918) | Update stale request-buffer implementation status. | no-action: duplicate suggestion addressed in `01cde544`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968226077) | DONE | RESOLVED |
+| 3 | `PRRT_kwDOGp2yqc6goHv9` | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777950) | Update stale request-buffer implementation status. | action: corrected test-only completion/deferred benchmark status in `01cde544`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968216396) | DONE | RESOLVED |
+| 4 | `PRRT_kwDOGp2yqc6goHwW` | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967777992) | Mark completed handler-dispatch plan as complete. | no-action: already addressed in `9c05e359`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968220747) | DONE | RESOLVED |
 | 5 | `PRRT_kwDOGp2yqc6goHwn` | `packages/udp-server/src/server/request_buffer.rs` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967778018) | Avoid direct ring-buffer mutation in tests where public behavior can express setup. | no-action: `force_push` is the test Act; direct insertion remains controlled Arrange mechanics. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968617981) | DONE | RESOLVED |
 | 6 | `PRRT_kwDOGp2yqc6goHwz` | `packages/udp-server/src/server/request_buffer.rs` | [thread](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3967778042) | Avoid hard-coded active-request capacity in test setup. | action: derive the retained count from actual buffer capacity in `1ef8589b`. | [reply](https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3968621167) | DONE | RESOLVED |
 

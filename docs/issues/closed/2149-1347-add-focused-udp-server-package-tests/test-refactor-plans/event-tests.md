@@ -11,8 +11,8 @@ semantic-links:
     - packages/udp-server/src/handlers/error.rs
     - packages/udp-server/src/statistics/event/handler/error.rs
     - docs/adrs/20260727000000_events_are_objective_facts.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---
 
 # UDP Server Event Test Refactor Plan

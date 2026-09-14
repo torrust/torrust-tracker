@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p2
 epic: 1347
 github-issue: 2149
-spec-path: docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
+spec-path: docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests"
-related-pr: 2152
+related-pr: 2174
 last-updated-utc: 2026-09-14
 semantic-links:
   skill-links:
@@ -25,30 +25,30 @@ semantic-links:
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/tests/server/contract.rs
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/manual-verification-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/implementation-retrospective.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/event-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/bound-socket-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-dispatch-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/contract-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-metric-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/container-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/receiver-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-event-dispatch-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/banning-event-handler-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/server-states-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-error-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/response-sent-handler-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/processor-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/spawner-tests.md
-    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-module-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/manual-verification-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/implementation-retrospective.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/event-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/bound-socket-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-dispatch-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/contract-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-metric-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/container-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/receiver-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-event-dispatch-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/banning-event-handler-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/server-states-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/handler-error-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/response-sent-handler-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/processor-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/spawner-tests.md
+    - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/statistics-module-tests.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
@@ -246,8 +246,8 @@ responsibility.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence.
 - [x] Evidence-based implementation completion review recorded.
 - [x] Reviewer validated acceptance criteria and updated checkboxes.
-- [ ] Committer verified specification progress before commit.
-- [ ] Issue closed and specification moved to `docs/issues/closed/`.
+- [x] Committer verified specification progress before commit.
+- [x] Issue closed and specification moved to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -369,6 +369,8 @@ responsibility.
   unit-only, and integration-only coverage is recorded separately. Independent review identified
   and the branch corrected processor test polling and unjoined listener ownership before the final
   evidence and retrospective were recorded.
+
+- 2026-09-14 - GitHub Copilot - Issue #2149 closed by merged PR #2174 (approved by da2ce7 after five review rounds; merge commit `Merge torrust/torrust-tracker#2174`). Specification archived to `docs/issues/closed/`; EPIC #1347 tables updated with final aggregate and unit-only coverage.
 
 ## Acceptance Criteria
 

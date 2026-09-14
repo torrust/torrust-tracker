@@ -78,7 +78,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2     | #1349 - Add tests to the http-core package        | Not yet created                                                                   | TODO   | Existing subissue; package-level test work.                                                                          |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
-| 5     | #2149 - Add focused UDP server package tests      | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | TODO   | Baseline recorded; spec-only PR precedes focused transport, dispatch, socket, and overload test/refactor increments. |
+| 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
 | 6     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -98,7 +98,7 @@ level or determine whether unit coverage is adequate.
 | Package                            | Subissue                                                            | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                                    |
 | ---------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `torrust-tracker-axum-http-server` | [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](../../closed/2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
-| `torrust-tracker-udp-server`       | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Not yet measured                                  | Not yet measured                                        | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
+| `torrust-tracker-udp-server`       | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Lines: 97.85%; regions: 96.64%; functions: 97.63% | Lines: +0.89 pp; regions: +0.85 pp; functions: +0.44 pp | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -108,7 +108,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | Package | Subissue | Baseline | Latest | Change | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `torrust-tracker-axum-http-server` | [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) | See issue-local evidence | See issue-local evidence | See issue-local evidence | [Coverage evidence](../../closed/2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
-| `torrust-tracker-udp-server` | [#2149](../2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Pending final measurement | Pending final measurement | [Coverage evidence](../2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
+| `torrust-tracker-udp-server` | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Lines: 96.18%; regions: 95.34%; functions: 94.92% | Not comparable (no unit-only baseline) | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
 ## Delivery Strategy
 
