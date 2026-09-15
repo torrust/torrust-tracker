@@ -13,6 +13,12 @@ COMPLEXITY_AUDITOR="${PROJECT_ROOT}/.github/agents/complexity-auditor.agent.md"
 TASK_REVIEWER="${PROJECT_ROOT}/.github/agents/task-reviewer.agent.md"
 PR_REVIEWER="${PROJECT_ROOT}/.github/agents/pr-reviewer.agent.md"
 COPILOT_HANDLER="${PROJECT_ROOT}/.github/agents/copilot-suggestions-handler.agent.md"
+COPILOT_PROMPT="${PROJECT_ROOT}/.github/prompts/process-copilot-suggestions.prompt.md"
+ORCHESTRATION="${PROJECT_ROOT}/docs/agents/orchestration.md"
+COPILOT_REDIRECT="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md"
+FEEDBACK_REDIRECT="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md"
+FETCH_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md"
+RESOLVE_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md"
 
 require_text() {
     local file_path=$1
@@ -103,15 +109,46 @@ it_should_keep_commit_authority_with_the_caller_and_committer() {
     done
 }
 
-it_should_keep_copilot_tracking_separate_from_independent_reviews() {
+it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
+    local compatibility_redirect
+    local helper_skill
+
     require_absent_text "${COPILOT_HANDLER}" 'agent-review-reports.md'
-    require_text "${COPILOT_HANDLER}" 'docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md'
+    require_text "${COPILOT_HANDLER}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+    require_text "${COPILOT_HANDLER}" 'process-pr-review skill'
+    require_wrapped_text "${COPILOT_HANDLER}" 'Do not maintain a parallel Copilot-only audit procedure.'
+    require_wrapped_text "${COPILOT_HANDLER}" 'commit-subject citation'
+    require_absent_text "${COPILOT_HANDLER}" 'commit SHA'
+    require_absent_text "${COPILOT_HANDLER}" 'branch SHA'
+    require_text "${COPILOT_PROMPT}" 'process PR review skill'
+    require_text "${COPILOT_PROMPT}" 'canonical skill exclusively defines audit fields'
+    require_text "${COPILOT_PROMPT}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+    require_wrapped_text "${COPILOT_PROMPT}" 'commit-subject citation'
+    require_absent_text "${COPILOT_PROMPT}" 'commit SHA'
+    require_absent_text "${COPILOT_PROMPT}" 'branch SHA'
+    require_text "${ORCHESTRATION}" 'process_pr_review[process-pr-review]'
+    require_text "${ORCHESTRATION}" 'pr_review_audit[Pull-request review audit]'
+    require_absent_text "${ORCHESTRATION}" 'Copilot suggestions tracker'
+
+    for compatibility_redirect in "${COPILOT_REDIRECT}" "${FEEDBACK_REDIRECT}"; do
+        require_yaml_frontmatter "${compatibility_redirect}"
+        require_text "${compatibility_redirect}" 'This compatibility entry point is retained for one release.'
+        require_text "${compatibility_redirect}" 'process-pr-review'
+        require_text "${compatibility_redirect}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+        require_absent_text "${compatibility_redirect}" 'docs/copilot-pr-reviews/'
+        require_absent_text "${compatibility_redirect}" 'docs/pr-review-feedback/'
+    done
+
+    for helper_skill in "${FETCH_THREADS}" "${RESOLVE_THREADS}"; do
+        require_text "${helper_skill}" 'component skill within the **process-pr-review** workflow'
+        require_text "${helper_skill}" 'See **process-pr-review** for the full end-to-end process.'
+    done
 }
 
 it_should_define_the_reusable_report_template_contract
 it_should_grant_each_independent_reviewer_edit_access
 it_should_define_the_shared_create_append_or_skip_policy
 it_should_keep_commit_authority_with_the_caller_and_committer
-it_should_keep_copilot_tracking_separate_from_independent_reviews
+it_should_keep_pr_review_tracking_separate_from_independent_reviews
 
 printf 'All agent review report contract tests passed.\n'

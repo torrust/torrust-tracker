@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T15:30:00Z
+last-updated-utc: 2026-09-15T15:50:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -331,7 +331,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Draft unified `process-pr-review` skill         | Added `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` with GraphQL-first fetching, author classification, normalization, deduplication, current-tree verification, and resolution rules. M2 passed against the pinned PR #2174 data. |
 | T4  | DONE   | Create unified audit directory and template     | Created `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`; Git-renamed all records, retaining four duplicate Copilot audits with an explicit `-legacy` suffix and migration notes. Removed both old parents and templates. Markdown, spell, link, and whitespace checks passed. |
 | T5  | DONE   | Publish requested reviewer finding format       | Created `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and matched its advisory contract in the unified skill. M3 parsed the pinned literal as `F42`, `Major`, `ORIGINAL`, and the expected summary. Markdown, link, spell, and whitespace checks passed. |
-| T6  | TODO   | Deprecate the two old skills                    | Replace only the bodies of `process-copilot-suggestions` and `process-pr-review-feedback` with the compatibility redirects in the contract. Validate every result from the specified repository-wide search and skill-link synchronization. |
+| T6  | DONE   | Deprecate the two old skills                    | Replaced both legacy skill bodies with one-release compatibility redirects to `process-pr-review`. Updated helper skills, the Copilot agent/prompt entry points, and orchestration diagrams to delegate to the unified skill and canonical audit. The affected contract test now prevents parallel procedures/trackers and branch-SHA citation wording. The required search now returns only redirect identities and historical issue descriptions. The focused shell test, ShellCheck, Markdown, link, spell, and whitespace checks passed. |
 | T7  | TODO   | Verify and record evidence                      | Complete M1-M3 in `manual-verification-evidence.md`; M2's PR #2174 dry run is mandatory and a next-real-PR run is optional. Record fetched versus simulated inputs and the GraphQL final-thread result. |
 
 ## Commit Points
@@ -403,6 +403,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   to `F42`, `Major`, `ORIGINAL`, and the pinned summary without free-prose parsing. Markdown,
   CSpell, Lychee, and whitespace checks passed. Evidence: `manual-verification-evidence.md`
   section V3.
+- 2026-09-15 15:50 UTC - GitHub Copilot - Completed T6. Replaced both legacy workflow skills
+  with one-release compatibility redirects to `process-pr-review` and synchronized their helper,
+  agent, prompt, and orchestration references. The required search returns only the redirect names
+  themselves and historical issue descriptions; no live workflow invokes the old skills. The
+  repaired `test-agent-review-report-contract.sh` now rejects a parallel Copilot procedure or
+  tracker and branch-SHA citation wording, and requires the orchestration route through the unified
+  skill and canonical audit. Prose-first test comparison: Arrange provides the four migrated
+  skill documents and the Copilot entry-point/orchestration artifacts; Act runs the structural
+  shell test; Assert requires every legacy entry point to delegate to the unified workflow, use
+  the canonical audit, and avoid legacy audit locations or SHA citation wording. The test's
+  focused assertions express that contract directly; its helper functions remain because they
+  provide specific file-and-expected-text diagnostics. It and ShellCheck, Markdown, CSpell,
+  Lychee, and whitespace checks passed.
 
 ## Acceptance Criteria
 
@@ -411,7 +424,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       reproduced historical violation.
 - [x] AC2: The issue and test-plan templates require naming the toolchain for every recorded
       validation command, and at least one in-repo example follows the requirement.
-- [ ] AC3: One unified `process-pr-review` skill handles Copilot and human reviewer threads with
+- [x] AC3: One unified `process-pr-review` skill handles Copilot and human reviewer threads with
       documented deduplication, superseded-thread, and consolidated-response rules; the two old skills
       redirect to it.
 - [x] AC4: All PR-review audit records are under the canonical `docs/pr-reviews/` parent
@@ -452,7 +465,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | `manual-verification-evidence.md` section V1; hook JSON result with `failed_step=Checking nightly Rust formatting` |
 | AC2   | DONE                   | `docs/templates/ISSUE.md` nightly Rust example; `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` |
-| AC3   | TODO                   |          |
+| AC3   | DONE                   | Unified skill; two one-release redirect stubs; required T6 search; strengthened `test-agent-review-report-contract.sh`; ShellCheck; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
 | AC6   | TODO                   |          |

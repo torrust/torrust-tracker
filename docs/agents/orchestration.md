@@ -49,7 +49,8 @@ flowchart TD
     pull_request[Open pull request]
     pr_reviewer[PR Reviewer]
     suggestions_handler[Copilot Suggestions Handler]
-    suggestions_tracker[Copilot suggestions tracker]
+    process_pr_review[process-pr-review]
+    pr_review_audit[Pull-request review audit]
     merge_ready[Ready for merge]
     merged[Merged]
   end
@@ -72,7 +73,8 @@ flowchart TD
   pr_reviewer -. verdict; remediation owner is not defined .-> implementer
   pr_reviewer -. APPROVE or COMMENT .-> merge_ready
   pull_request -. open Copilot threads .-> suggestions_handler
-  suggestions_handler --> suggestions_tracker
+  suggestions_handler --> process_pr_review
+  process_pr_review --> pr_review_audit
   suggestions_handler -. action fixes .-> committer
   suggestions_handler -. all threads resolved .-> merge_ready
   merge_ready -. merged by repository workflow .-> merged
@@ -121,8 +123,8 @@ flowchart TD
 
 This view shows conditional paths after a pull request exists. No profile defines a universal PR
 entry, merge transition, remediation owner for a PR Reviewer finding, or mandatory re-review after
-a fix; those paths are therefore dashed. Solid arrows apply only to the Copilot Suggestions
-Handler's required per-thread tracker update.
+a fix; those paths are therefore dashed. Copilot-specific entry points delegate their review
+processing and audit semantics to `process-pr-review`.
 
 ```mermaid
 flowchart TD
@@ -131,7 +133,8 @@ flowchart TD
   pr_verdict[Review verdict]
   remediation[Remediation owner not defined by PR Reviewer]
   copilot_handler_detail[Copilot Suggestions Handler]
-  copilot_tracker_detail[Copilot suggestions tracker]
+  process_pr_review_detail[process-pr-review]
+  pr_review_audit_detail[Pull-request review audit]
   action_decision{Action needed?}
   committer_detail[Committer]
   push_update[Push updated branch]
@@ -145,13 +148,14 @@ flowchart TD
   remediation -. updated branch .-> existing_pr
   pr_verdict -. approve or comment .-> merge_ready_detail
   existing_pr -. open Copilot threads .-> copilot_handler_detail
-  copilot_handler_detail --> copilot_tracker_detail
-  copilot_handler_detail -. decide per thread .-> action_decision
+  copilot_handler_detail --> process_pr_review_detail
+  process_pr_review_detail --> pr_review_audit_detail
+  process_pr_review_detail -. decide per finding .-> action_decision
   action_decision -. action fix .-> committer_detail
   committer_detail -. push .-> push_update
   push_update -. recheck .-> refetch_threads
   refetch_threads -. new threads .-> copilot_handler_detail
-  action_decision -. no action: reply and resolve .-> copilot_tracker_detail
+  action_decision -. no action: reply and resolve .-> pr_review_audit_detail
   copilot_handler_detail -. all threads resolved .-> merge_ready_detail
   merge_ready_detail -. merged by repository workflow .-> merged_detail
 ```
@@ -182,7 +186,7 @@ These paths support the delivery path but are not universal prerequisites.
 | Task Reviewer               | A failed review with a persisted report whose durable history is needed. | The caller may request a focused documentation commit through Committer.        | This preserves the failed review as evidence; it does not authorize implementation work before remediation.                                                           |
 | ClippyFixer                 | Concrete Clippy warnings from the user or `linter clippy`.               | Focused remediation and documented exceptions; Committer creates commits.       | The profile currently declares no `edit` tool although it describes source modifications. Issue #2158 tracks this capability mismatch.                                |
 | PR Reviewer                 | An existing PR and its actual diff/check context.                        | Findings and `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`.                        | The profile does not define a remediation owner, thread-publication step, or required re-review after fixes.                                                          |
-| Copilot Suggestions Handler | Unresolved Copilot review threads on an existing PR.                     | Per-thread decision, reply, resolution, and `docs/copilot-pr-reviews/` tracker. | It handles Copilot threads only, replies before resolving, and fetches the threads again after each push. An action fix is validated and committed through Committer. |
+| Copilot Suggestions Handler | Unresolved Copilot review threads on an existing PR.                     | Per-thread decision, reply, resolution, and the unified `docs/pr-reviews/` audit. | It handles Copilot threads only, replies before resolving, and fetches the threads again after each push. An action fix is validated and committed through Committer. |
 
 ## Artifact Ownership
 
@@ -191,7 +195,7 @@ These paths support the delivery path but are not universal prerequisites.
 | Issue or EPIC specification      | Planner or the user; Task Reviewer may update verified checkboxes. | `docs/issues/drafts/`, then `docs/issues/open/` or `docs/issues/closed/`.                      | Scope, acceptance criteria, verification, and progress record.                                          |
 | Implementation completion review | Implementer.                                                       | Issue specification folder when a retrospective is required; otherwise the issue progress log. | Records material discoveries and lessons before independent verification.                               |
 | Signed commit                    | Committer.                                                         | Git history.                                                                                   | Records a validated, GPG-signed change.                                                                 |
-| Copilot suggestions tracker      | Copilot Suggestions Handler.                                       | `docs/copilot-pr-reviews/pr-<number>-copilot-suggestions.md`.                                  | Records per-thread decisions, replies, and resolution state.                                            |
+| Pull-request review audit         | PR author.                                                          | `docs/pr-reviews/pr-<number>-review.md`.                                                        | Records all review findings, dispositions, replies, and resolution state.                              |
 | Independent review report        | Complexity Auditor, Task Reviewer, or PR Reviewer.                 | `agent-review-reports.md` in a folder-style issue specification.                               | Chronological evidence, findings, verdict, and follow-up actions; Issue #2160 establishes the workflow. |
 
 ## Known Gaps and Future Enforcement
