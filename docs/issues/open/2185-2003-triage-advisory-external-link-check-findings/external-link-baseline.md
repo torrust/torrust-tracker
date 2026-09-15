@@ -62,10 +62,10 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C5: Stale Caddy documentation link — 1 occurrence
 
 - **Pattern:** `https://caddyserver.com/docs/protocol/http3` returning `404`.
-- **Disposition:** Follow-up repair pending hosted verification. Caddy's current server-options reference documents the `protocols` setting, including HTTP/3 as `h3`.
+- **Disposition:** Repaired and hosted-verified. Caddy's current server-options reference documents the `protocols` setting, including HTTP/3 as `h3`.
 - **Replacement:** `https://caddyserver.com/docs/caddyfile/options` returned HTTP 200.
-- **Evidence:** Hosted [run 34953081017](https://github.com/torrust/torrust-tracker/actions/runs/34953081017) contains no retired C5 URL but reports the prior `#servers` replacement fragment as missing; its advisory failure and report upload remain visible.
-- **Next action:** Run a hosted workflow to verify the replacement without a fragment while unrelated external-link failures remain visible.
+- **Evidence:** Hosted [run 34953081017](https://github.com/torrust/torrust-tracker/actions/runs/34953081017) contains no retired C5 URL but reports the prior `#servers` replacement fragment as missing. Follow-up [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) ran on merged revision `bbb58fa8`, contains neither the retired URL nor the replacement without a fragment as an error, retained 37 unrelated errors with no timeouts, and successfully uploaded its report artifact.
+- **Next action:** Complete. Keep the C6-C8 categories under their independent dispositions.
 
 ### C6: Other missing fragments — 5 occurrences
 
@@ -161,6 +161,12 @@ The downloaded report contains 31 errors and no occurrence of any of C3's 14 rep
 
 The downloaded report records 1,782 total checks, 1,224 unique links, 1,196 successful checks, 25 redirects, 558 excluded links, 28 errors, and no timeouts. It contains none of C4's three replaced repository-controlled URLs. It retains unrelated Caddy `404`, Medium and Stack Overflow `403`, FSF transport, Docker missing-fragment, GitHub issue-comment and pull-request-review-anchor, and Star History fragment errors. The count is not directly comparable to C3's 31 errors because intervening merged changes modified the checked document set. This verifies the C4 repair without adding an exclusion or hiding remaining external-link failures.
 
+### C5 repair verification
+
+[External Link Check run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) ran after PR #2225 merged on revision `bbb58fa802ff1cd2f330ac9146fee3dc76ce496b`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` records 2,006 total checks, 1,424 unique links, 1,249 successful checks, 25 redirects, 720 exclusions, 37 errors, and no timeouts.
+
+The downloaded report contains neither the retired `https://caddyserver.com/docs/protocol/http3` URL nor the `https://caddyserver.com/docs/caddyfile/options` replacement without a fragment as an error. It retains unrelated Docker missing fragments, Medium and Stack Overflow `403` responses, FSF transport errors, GitHub comment and review fragments, and the Star History fragment. This verifies the C5 repair without adding an exclusion or hiding remaining external-link failures.
+
 ## Deferred Work
 
-C5-C8 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.
+C6-C8 remain deferred until each category's affected references or transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing stale-reference, missing-fragment, and transient/access-controlled findings in one change.

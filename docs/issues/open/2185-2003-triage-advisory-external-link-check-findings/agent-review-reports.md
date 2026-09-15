@@ -153,3 +153,17 @@ semantic-links:
 - Follow-up actions:
   - Obtain and independently review the hosted verification for the C5 target without a fragment.
   - Keep issue #2185 open and do not complete its remaining issue-wide verification or completion checkpoints from this diagnostic run.
+
+### 2026-09-15 13:04 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C5 hosted-verification evidence in `ISSUE.md` and `external-link-baseline.md`, with the active Caddy reference in `docs/containers.md`.
+- Inputs: Merged PR #2225 commit `bbb58fa802ff1cd2f330ac9146fee3dc76ce496b`, GitHub Actions [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822), and its downloaded `lychee-external-link-report` artifact.
+- Evidence: The run completed with its expected advisory failure on the merged C5 revision. `Check External Links` failed visibly while `Upload Lychee Report` succeeded. The retained 1,277-byte artifact expires on 2026-09-29. Its report records 2,006 total checks, 1,424 unique links, 1,249 successful checks, 25 redirects, 720 exclusions, 37 errors, and no timeouts. It contains neither the retired `https://caddyserver.com/docs/protocol/http3` URL nor the current Caddy options URL without a fragment as an error, while unrelated Docker missing fragments, third-party `403` responses, FSF transport errors, GitHub comment/review fragments, and the Star History fragment remain visible.
+- Findings:
+  - Resolved: C5 is hosted-verified without adding an exclusion or hiding unrelated external-link failures.
+  - Correction required: Add run 34971438822 to AC5's consolidated evidence row.
+  - Pending: Keep T2 and M3 in progress for C6-C8. Keep AC2, AC6, issue-wide quality, manual-verification, acceptance-review, implementation-completion-review, and closure checkpoints pending.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Add the C5 run to AC5's evidence row and commit the C5 hosted-verification record.
+  - Continue C6-C8 under their independent dispositions; do not close issue #2185.
