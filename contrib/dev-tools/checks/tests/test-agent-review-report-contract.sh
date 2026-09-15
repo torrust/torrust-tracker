@@ -9,6 +9,8 @@ set -euo pipefail
 
 PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
 TEMPLATE="${PROJECT_ROOT}/docs/templates/AGENT-REVIEW-REPORTS.md"
+PR_REVIEW_TEMPLATE="${PROJECT_ROOT}/docs/templates/PR-REVIEW-TEMPLATE.md"
+REVIEW_FINDINGS_TEMPLATE="${PROJECT_ROOT}/.github/PULL_REQUEST_TEMPLATE/review-findings.md"
 COMPLEXITY_AUDITOR="${PROJECT_ROOT}/.github/agents/complexity-auditor.agent.md"
 TASK_REVIEWER="${PROJECT_ROOT}/.github/agents/task-reviewer.agent.md"
 PR_REVIEWER="${PROJECT_ROOT}/.github/agents/pr-reviewer.agent.md"
@@ -175,10 +177,41 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md'
 }
 
+it_should_define_analysis_fields_for_new_pr_review_audits() {
+    require_text "${PR_REVIEW_TEMPLATE}" '| Author class |'
+    require_text "${PR_REVIEW_TEMPLATE}" '| Category |'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PR_REVIEW_TEMPLATE}" '- Author class: `Copilot`, `Human`, `Unknown`'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PR_REVIEW_TEMPLATE}" '`link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PR_REVIEW_TEMPLATE}" '`documentation`, `maintainability`, `security`, `other`'
+    require_text "${PR_REVIEW_TEMPLATE}" 'exactly one primary'
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" $'For every new audit row, record the source author\'s derived `Author class` and exactly one primary `Category`.'
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" 'Historical records predate this schema and remain unchanged.'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" 'Classify `github-copilot[bot]` and'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" '`copilot-pull-request-reviewer` as `Copilot`, human accounts as `Human`, and'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" 'every other bot or unavailable author as `Unknown`.'
+    require_text "${PROCESS_PR_REVIEW}" '**Categorize for future analysis.** For every new audit row, assign exactly one'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" 'primary category: `link-integrity`, `formatting`, `metadata`, `testing`,'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" '`correctness`, `documentation`, `maintainability`, `security`, or `other`.'
+    require_text "${PROCESS_PR_REVIEW}" 'author class, finding ID, severity, category, summary, relationship, disposition,'
+    require_wrapped_text "${PROCESS_PR_REVIEW}" 'Categorize the concern rather than its proposed fix;'
+    require_text "${PROCESS_PR_REVIEW}" 'listed category fits. Do not backfill or reinterpret historical audit records.'
+    require_wrapped_text "${PROCESS_PR_REVIEW}" 'Historical records remain valid without the analysis fields.'
+    require_absent_text "${REVIEW_FINDINGS_TEMPLATE}" 'Category'
+}
+
 it_should_define_the_reusable_report_template_contract
 it_should_grant_each_independent_reviewer_edit_access
 it_should_define_the_shared_create_append_or_skip_policy
 it_should_keep_commit_authority_with_the_caller_and_committer
 it_should_keep_pr_review_tracking_separate_from_independent_reviews
+it_should_define_analysis_fields_for_new_pr_review_audits
 
 printf 'All agent review report contract tests passed.\n'

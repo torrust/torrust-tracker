@@ -24,6 +24,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
+- Author class: `Copilot`, `Human`, `Unknown`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
 
 ## Findings
 
@@ -32,9 +35,14 @@ actionable assertions. Assign a reviewer-provided finding ID when available; oth
 `F<ordinal>` in source-review and source-order order. Before action, map a later request for the
 same current-tree change to `RE_RAISE_OF:<FindingId>`.
 
-| PR number | Source review ID | Source URL | Finding ID | Severity | Summary | Relationship | Disposition | Current-tree verification | Resolution reference | Reply URL | Thread state |
-| --------- | ---------------- | ---------- | ---------- | -------- | ------- | ------------ | ----------- | ------------------------- | -------------------- | --------- | ------------ |
-| <PR_NUMBER> | <REVIEW_ID> | <SOURCE_URL> | <FINDING_ID> | <SEVERITY> | <SUMMARY> | <RELATIONSHIP> | <DISPOSITION> | <COMMAND_OR_INSPECTION_AND_RESULT> | <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL> | <REPLY_URL_OR_NA> | <THREAD_STATE> |
+For every new audit row, record the source author's derived `Author class` and exactly one primary
+`Category`. Classify the category from the concern, not the proposed fix; use `other` only when no
+listed category fits. These fields make future audit records suitable for deterministic aggregation.
+Historical records predate this schema and remain unchanged.
+
+| PR number | Source review ID | Source URL | Author class | Finding ID | Severity | Category | Summary | Relationship | Disposition | Current-tree verification | Resolution reference | Reply URL | Thread state |
+| --------- | ---------------- | ---------- | ------------ | ---------- | -------- | -------- | ------- | ------------ | ----------- | ------------------------- | -------------------- | --------- | ------------ |
+| <PR_NUMBER> | <REVIEW_ID> | <SOURCE_URL> | <AUTHOR_CLASS> | <FINDING_ID> | <SEVERITY> | <CATEGORY> | <SUMMARY> | <RELATIONSHIP> | <DISPOSITION> | <COMMAND_OR_INSPECTION_AND_RESULT> | <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL> | <REPLY_URL_OR_NA> | <THREAD_STATE> |
 
 ## Processing Log
 

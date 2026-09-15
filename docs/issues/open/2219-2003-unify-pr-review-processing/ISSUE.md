@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T16:35:00Z
+last-updated-utc: 2026-09-15T17:15:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -36,7 +36,8 @@ Parent EPIC: #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 Make processing pull-request review feedback deterministic and auditable: one unified workflow
 and audit record regardless of reviewer identity, a structured finding format reviewers are asked
 to follow, and local quality gates that match CI's toolchains so recorded validation evidence
-cannot be a false green.
+cannot be a false green. New audit records also preserve normalized categories and reviewer classes
+so merged review resolutions can be mined for recurring feedback and automation opportunities.
 
 ## EPIC Alignment
 
@@ -333,6 +334,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Publish requested reviewer finding format       | Created `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and matched its advisory contract in the unified skill. M3 parsed the pinned literal as `F42`, `Major`, `ORIGINAL`, and the expected summary. Markdown, link, spell, and whitespace checks passed. |
 | T6  | DONE   | Deprecate the two old skills                    | Replaced both legacy skill bodies with one-release compatibility redirects to `process-pr-review`. Updated helper skills, the Copilot agent/prompt entry points, and orchestration diagrams to delegate to the unified skill and canonical audit. The affected contract test now prevents parallel procedures/trackers and branch-SHA citation wording. The required search now returns only redirect identities and historical issue descriptions. The focused shell test, ShellCheck, Markdown, link, spell, and whitespace checks passed. |
 | T7  | DONE   | Verify and record evidence                      | M1-M3 are complete in `manual-verification-evidence.md`; M2 records fetched versus simulated inputs and the GraphQL final-thread result. AC6 ownership was verified in the unified skill and audit template. The final independent completion review passed; the final documentation commit remains. |
+| T8  | DONE   | Add analysis-ready fields to new audits          | Added `Author class` and one primary `Category` to the unified template and workflow. Categories are `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`, `documentation`, `maintainability`, `security`, and `other`. Historical records remain unchanged. The contract test, full lint suite, and independent completion review passed. |
 
 ## Commit Points
 
@@ -345,6 +347,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5   | Reviewer finding-format documentation                   | Commit after M3 and focused documentation validation. |
 | T6   | Old-skill compatibility redirects and link updates      | Commit after the specified search and required review. |
 | T7   | Evidence and retrospective                              | Final documentation commit after review.             |
+| T8   | Future-only analysis audit schema                       | Commit after focused structural and documentation validation. |
 
 ## Progress Tracking
 
@@ -429,6 +432,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   parses as five distinct related-artifact entries, V1 accurately records eight current-tree hook
   steps, and the retrospective's metadata-coverage improvement is implemented by the parser-backed
   structural test. The full linter suite and focused contract test passed.
+- 2026-09-15 16:55 UTC - GitHub Copilot - Remediated the first T8 schema review. The structural
+  test now requires both Copilot account mappings, all author-class values, all nine categories
+  including `correctness` in both canonical documents, exactly one primary category, the template's
+  explicit every-new-row derived-author-class requirement, and the author-side normalization boundary
+  by excluding `Category` from the advisory reviewer template. It also retains the historical-record
+  boundary. Prose-first test comparison: Arrange provides the canonical template, unified skill,
+  and advisory reviewer template; Act runs the structural shell test; Assert verifies the complete
+  future-only analytics contract while retaining historical audit validity and reviewers' free-form
+  advisory format. The explicit file-content assertions remain because this cross-document schema
+  has no executable implementation boundary. Focused contract, ShellCheck, Markdown, CSpell,
+  Lychee, YAML, and whitespace checks passed.
+- 2026-09-15 17:15 UTC - GitHub Copilot Task Reviewer - Re-reviewed the completed T8 contract
+  and reported `REVIEW PASSED`: the template and workflow require one derived author class and
+  exactly one primary category per new audit row; both Copilot account mappings, Human, and Unknown
+  are covered; all nine categories are asserted in both canonical documents; the advisory reviewer
+  template remains category-free; and historical audits are unchanged and valid. The focused
+  contract test, ShellCheck, and full linter suite passed.
 
 ## Acceptance Criteria
 
@@ -448,6 +468,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC6: The unified skill and audit template state that the PR author solely owns the tracked
   record and that reviewers (including repository review agents) have no repository-artifact
   obligation.
+- [x] AC7: New audits record a normalized author class and exactly one primary category from a
+  documented controlled vocabulary, while historical audits remain unchanged and valid.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -482,6 +504,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
 | AC6   | DONE                   | `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` ownership section; `docs/templates/PR-REVIEW-TEMPLATE.md` ownership section |
+| AC7   | DONE                   | `docs/templates/PR-REVIEW-TEMPLATE.md`; `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`; `test-agent-review-report-contract.sh`; ShellCheck; `linter all`; independent completion review |
 
 ## Risks and Trade-offs
 
