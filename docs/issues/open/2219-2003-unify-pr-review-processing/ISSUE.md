@@ -8,25 +8,20 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T12:45:00Z
+last-updated-utc: 2026-09-15T15:15:00Z
 semantic-links:
   skill-links:
     - create-issue
-    - process-copilot-suggestions
-    - process-pr-review-feedback
+    - process-pr-review
   related-artifacts:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
-    - .github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md
+    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
     - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
     - docs/pr-reviews/
-    - docs/pr-review-feedback/
-    - docs/copilot-pr-reviews/
-    - docs/templates/PR-REVIEW-FEEDBACK-TEMPLATE.md
-    - docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md
-    - docs/pr-review-feedback/pr-2174-review-feedback.md
+    - docs/templates/PR-REVIEW-TEMPLATE.md
+    - docs/pr-reviews/pr-2174-review.md
     - contrib/dev-tools/git/hooks/pre-commit.sh
 ---
 
@@ -95,7 +90,7 @@ never a precondition: the unified skill must process free-form reviews with the 
 
 Processing the review feedback on PR #2174 (four `CHANGES_REQUESTED` rounds from a maintainer
 plus six Copilot threads) exposed systematic weaknesses. The full experience is recorded in
-`docs/pr-review-feedback/pr-2174-review-feedback.md` and in the consolidated response
+`docs/pr-reviews/pr-2174-review.md` and in the consolidated response
 <https://github.com/torrust/torrust-tracker/pull/2174#issuecomment-5663269593>.
 
 Observed pain points, in decreasing order of cost:
@@ -273,12 +268,21 @@ responses are supplementary only.
 
 T4 moves every tracked file in `docs/copilot-pr-reviews/` and `docs/pr-review-feedback/` to
 `docs/pr-reviews/` with `git mv`: the two `README.md` files, `EXAMPLE-COMPLETED.md`, all
-`pr-*-copilot-suggestions.md` files, and all `pr-*-review-feedback.md` files. Rename each per-PR
-file to `pr-<PR_NUMBER>-review.md`; where both sources exist for one PR, merge their histories and
-content into that one audit as a documented migration exception. Remove both old top-level
-directories after migration. T4 must run a repository-wide search for
+`pr-*-copilot-suggestions.md` files, and all `pr-*-review-feedback.md` files. Rename each
+non-duplicate per-PR file to `pr-<PR_NUMBER>-review.md`. Where both source audits exist for one
+PR, preserve the maintainer audit as `pr-<PR_NUMBER>-review.md` and preserve the Copilot audit as
+`pr-<PR_NUMBER>-copilot-suggestions-legacy.md`; append a migration note to each record rather
+than risking loss or reinterpretation of completed findings. The unified filename is mandatory for
+new audits only. Remove both old top-level directories after migration. T4 must run a repository-wide search for
 `docs/(copilot-pr-reviews|pr-review-feedback)|process-(copilot-suggestions|pr-review-feedback)` and
 repair every tracked link, frontmatter reference, and skill-link marker.
+
+T4 proceeds while PRs #2194, #2193, and #2187 remain open. After T4 merges, each author rebases
+and moves its unmerged `docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md` record to
+`docs/pr-reviews/pr-<PR_NUMBER>-review.md`, preserving its source URLs, dispositions, replies, and
+thread state. The author uses `process-pr-review` for later or re-raised feedback. Existing resolved
+findings remain valid historical evidence and are not reprocessed. Restart review only if the rebase
+materially changes reviewed production behavior, not because the audit record moved.
 
 T6 retains the two old skill directories as one-release compatibility redirects. Each stub keeps
 valid skill frontmatter, states that it is deprecated, links to `process-pr-review`, and contains no
@@ -325,7 +329,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Align local formatting gate with CI             | Added `Checking nightly Rust formatting` to `contrib/dev-tools/git/hooks/pre-commit.sh`, running `cargo +nightly fmt --all -- --check`. M1 failed at that named step on the pinned fixture; the updated current-tree hook passed. |
 | T2  | DONE   | Add toolchain column/note to evidence templates | Updated `docs/templates/ISSUE.md`, `create-issue`, and `write-unit-test` to require toolchain-qualified results. The template gives `cargo +nightly fmt --all -- --check` as a nightly-Rust example. Markdown, link, spell, and whitespace checks passed. |
 | T3  | DONE   | Draft unified `process-pr-review` skill         | Added `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` with GraphQL-first fetching, author classification, normalization, deduplication, current-tree verification, and resolution rules. M2 passed against the pinned PR #2174 data. |
-| T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`, then perform the exact migration in the Migration and Compatibility Contract. Validate with the specified repository-wide search, Markdown/link/spell checks, and `git diff --check`. |
+| T4  | DONE   | Create unified audit directory and template     | Created `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`; Git-renamed all records, retaining four duplicate Copilot audits with an explicit `-legacy` suffix and migration notes. Removed both old parents and templates. Markdown, spell, link, and whitespace checks passed. |
 | T5  | TODO   | Publish requested reviewer finding format       | Create `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and add the identical advisory guidance to the unified skill. Validate M3's literal comment and Markdown/link/spell checks. |
 | T6  | TODO   | Deprecate the two old skills                    | Replace only the bodies of `process-copilot-suggestions` and `process-pr-review-feedback` with the compatibility redirects in the contract. Validate every result from the specified repository-wide search and skill-link synchronization. |
 | T7  | TODO   | Verify and record evidence                      | Complete M1-M3 in `manual-verification-evidence.md`; M2's PR #2174 dry run is mandatory and a next-real-PR run is optional. Record fetched versus simulated inputs and the GraphQL final-thread result. |
@@ -387,6 +391,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   fetched source threads normalized to `F1` and `F2`; the deliberately simulated later duplicate
   normalizes to `F3=RE_RAISE_OF:F1`. The final GraphQL helper reported no unresolved threads.
   Evidence: `manual-verification-evidence.md` section V2.
+- 2026-09-15 15:15 UTC - GitHub Copilot - Completed T4. Created the unified audit directory and
+  template, Git-renamed all legacy audit records, and removed the old audit parents and templates.
+  The four PRs with both source audit types retain their maintainer record under the unified name
+  and their Copilot record under an explicit `-legacy` suffix, with migration notes preserving
+  provenance. Existing active PR audit branches will rebase and migrate their unmerged records
+  under the documented transition protocol. Markdown, CSpell, Lychee, and whitespace checks
+  passed.
 
 ## Acceptance Criteria
 
@@ -398,7 +409,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC3: One unified `process-pr-review` skill handles Copilot and human reviewer threads with
       documented deduplication, superseded-thread, and consolidated-response rules; the two old skills
       redirect to it.
-- [ ] AC4: All PR-review audit records are under the canonical `docs/pr-reviews/` parent
+- [x] AC4: All PR-review audit records are under the canonical `docs/pr-reviews/` parent
   directory; one unified per-PR audit template exists and the migrated documentation directs
   new PRs to it.
 - [ ] AC5: The requested reviewer finding format is documented, linked from the PR template, and
@@ -437,7 +448,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC1   | DONE                   | `manual-verification-evidence.md` section V1; hook JSON result with `failed_step=Checking nightly Rust formatting` |
 | AC2   | DONE                   | `docs/templates/ISSUE.md` nightly Rust example; `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` |
 | AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
 
@@ -470,12 +481,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## References
 
 - Motivating PR: <https://github.com/torrust/torrust-tracker/pull/2174>
-- Full pain-point audit: `docs/pr-review-feedback/pr-2174-review-feedback.md` (migrated by T4)
+- Full pain-point audit: `docs/pr-reviews/pr-2174-review.md`
 - Consolidated review response: <https://github.com/torrust/torrust-tracker/pull/2174#issuecomment-5663269593>
-- Prior mixed-workflow audit: `docs/pr-review-feedback/pr-2207-review-feedback.md`
-- Current skills: `.github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md`,
-  `.github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md`
-- Current templates: `docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md`,
-  `docs/templates/PR-REVIEW-FEEDBACK-TEMPLATE.md`
+- Prior mixed-workflow audit: `docs/pr-reviews/pr-2207-review.md`
+- Current skill: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`
+- Current template: `docs/templates/PR-REVIEW-TEMPLATE.md`
 - Pre-push nightly parity precedent: `contrib/dev-tools/git/hooks/pre-push.sh`
 - External linter repository: <https://github.com/torrust/torrust-linting>
