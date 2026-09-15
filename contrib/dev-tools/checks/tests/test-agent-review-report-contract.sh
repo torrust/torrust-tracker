@@ -22,6 +22,7 @@ FEEDBACK_REDIRECT="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-pr-revi
 FETCH_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md"
 RESOLVE_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md"
 PROCESS_PR_REVIEW="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-pr-review/SKILL.md"
+SEMANTIC_LINK_CONVENTION="${PROJECT_ROOT}/docs/skills/semantic-skill-link-convention.md"
 
 require_text() {
     local file_path=$1
@@ -200,11 +201,32 @@ it_should_define_analysis_fields_for_new_pr_review_audits() {
     require_text "${PROCESS_PR_REVIEW}" 'primary category: `link-integrity`, `formatting`, `metadata`, `testing`,'
     # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
     require_text "${PROCESS_PR_REVIEW}" '`correctness`, `documentation`, `maintainability`, `security`, or `other`.'
-    require_text "${PROCESS_PR_REVIEW}" 'author class, finding ID, severity, category, summary, relationship, disposition,'
+    require_text "${PROCESS_PR_REVIEW}" 'author class, finding ID, review finding reference, severity, category, summary,'
     require_wrapped_text "${PROCESS_PR_REVIEW}" 'Categorize the concern rather than its proposed fix;'
     require_text "${PROCESS_PR_REVIEW}" 'listed category fits. Do not backfill or reinterpret historical audit records.'
     require_wrapped_text "${PROCESS_PR_REVIEW}" 'Historical records remain valid without the analysis fields.'
     require_absent_text "${REVIEW_FINDINGS_TEMPLATE}" 'Category'
+}
+
+it_should_define_portable_review_finding_references() {
+    require_text "${SEMANTIC_LINK_CONVENTION}" "| \`review-finding\`    | \`pr-<number>-<id>\`"
+    require_text "${SEMANTIC_LINK_CONVENTION}" "\`review-finding:pr-<PR_NUMBER>-<FINDING_ID>\`"
+    require_text "${SEMANTIC_LINK_CONVENTION}" "\`review-finding:pr-2230-f1\`"
+    require_text "${SEMANTIC_LINK_CONVENTION}" 'It is immutable once assigned'
+    require_wrapped_text "${SEMANTIC_LINK_CONVENTION}" 'GitHub thread, comment, review, and URL identifiers remain source metadata'
+    require_wrapped_text "${SEMANTIC_LINK_CONVENTION}" "Use the reference in Markdown prose or as a \`semantic-links.related-artifacts\` value"
+    require_text "${PR_REVIEW_TEMPLATE}" '| Review finding reference |'
+    require_text "${PR_REVIEW_TEMPLATE}" '<REVIEW_FINDING_REFERENCE>'
+    require_text "${PR_REVIEW_TEMPLATE}" 'Assign each new row an immutable repository reference in the form'
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" "\`review-finding:pr-<PR_NUMBER>-<FINDING_ID>\`, with the finding ID lowercased."
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" 'GitHub identifiers remain source metadata, not the canonical finding reference.'
+    require_text "${PR_REVIEW_TEMPLATE}" 'Never change a reference after assigning it.'
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" 'This convention applies to new audits only. Historical audit records remain unchanged'
+    require_text "${PROCESS_PR_REVIEW}" 'order. Assign the immutable repository reference'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_text "${PROCESS_PR_REVIEW}" '`review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, lowercasing the finding ID in'
+    require_wrapped_text "${PROCESS_PR_REVIEW}" 'GitHub identifiers remain source metadata, not the canonical finding reference.'
+    require_wrapped_text "${PROCESS_PR_REVIEW}" 'Never change the reference after assigning it. Historical audit records remain unchanged'
 }
 
 it_should_define_the_reusable_report_template_contract
@@ -213,5 +235,6 @@ it_should_define_the_shared_create_append_or_skip_policy
 it_should_keep_commit_authority_with_the_caller_and_committer
 it_should_keep_pr_review_tracking_separate_from_independent_reviews
 it_should_define_analysis_fields_for_new_pr_review_audits
+it_should_define_portable_review_finding_references
 
 printf 'All agent review report contract tests passed.\n'

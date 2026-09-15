@@ -143,6 +143,48 @@ Summary=Validation evidence omits the formatter toolchain.
 
 The literal advisory-format comment normalizes to the pinned fields without free-prose parsing.
 
+### V4 - Portable Review-Finding Reference
+
+- Goal: Verify that a deterministic repository reference can identify an audit row and be cited
+  from prose and semantic-link metadata without a GitHub identifier.
+- Initial state: Representative PR number `2230` and canonical finding ID `F1`.
+- Status: `DONE`
+
+#### Steps Performed
+
+Ran the following command:
+
+```sh
+set -euo pipefail
+pr_number=2230
+finding_id=F1
+reference="review-finding:pr-${pr_number}-${finding_id,,}"
+row="${pr_number}|${finding_id}|${reference}"
+prose="Motivated by ${reference}."
+yaml="    - ${reference}"
+[[ "${reference}" == 'review-finding:pr-2230-f1' ]]
+[[ "${reference}" =~ ^review-finding:pr-[0-9]+-f[0-9]+$ ]]
+[[ "${row}" == '2230|F1|review-finding:pr-2230-f1' ]]
+printf '%s\n%s\n%s\n' "${row}" "${prose}" "${yaml}"
+```
+
+The command exited `0` after deriving the lowercase reference from `2230` and `F1`, asserting its
+exact value, format, and audit-row placement, then printing both documented citation forms.
+`set -euo pipefail` makes a failed assertion return nonzero instead of reaching the final `printf`.
+
+#### Observed Result
+
+```text
+2230|F1|review-finding:pr-2230-f1
+Motivated by review-finding:pr-2230-f1.
+    - review-finding:pr-2230-f1
+```
+
+#### Conclusion
+
+The deterministic reference identifies the repository audit concept independently of GitHub
+review, thread, comment, and URL identifiers, while supporting both documented citation forms.
+
 ## Failures and Follow-up
 
 Record any failed or blocked process, diagnosis, remediation, and rerun result here.

@@ -22,8 +22,9 @@ verification.
 
 The repository now has a nightly formatting check in the local pre-commit gate, one GraphQL-first
 pull-request review workflow, one audit location and template, advisory reviewer finding guidance,
-and compatibility redirects for the retired review skills. Manual scenarios M1-M3, the full linter
-suite, focused structural checks, and the mandatory pre-commit gate passed.
+compatibility redirects for the retired review skills, and portable deterministic references for
+new review findings. Manual scenarios M1-M4, the full linter suite, focused structural checks, and
+the mandatory pre-commit gate passed.
 
 ## What Went Well
 
@@ -45,6 +46,10 @@ The first T6 migration left Copilot agent, prompt, and orchestration diagram rou
 read as a parallel workflow. The compatibility redirects, entry points, diagrams, and structural
 contract test now all delegate to `process-pr-review` and the canonical pull-request audit.
 
+T9 made the normalized finding a repository concept instead of a GitHub-only resource. The chosen
+reference derives from the canonical audit filename and finding ID, allowing later ADRs and issue
+specifications to cite the concern while retaining provider identifiers as source provenance.
+
 ## Root Cause
 
 The original implementation plan identified the major workflow differences but did not pin the
@@ -58,6 +63,8 @@ documentation changes to retain conflicting behavior.
    protocol parity.
 2. Treat all invocation surfaces, including agents, prompts, diagrams, frontmatter, and helpers, as
    one workflow contract and protect them with focused structural checks.
+3. Give recurring review findings a repository-controlled reference before using their audit data
+   to motivate durable guardrails or architectural decisions.
 
 ## Avoiding Overcorrection
 
@@ -69,6 +76,6 @@ checks for their established scope.
 ## Evidence
 
 - Issue #2219: `docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md`
-- Manual scenarios: `manual-verification-evidence.md` sections V1-V3
+- Manual scenarios: `manual-verification-evidence.md` sections V1-V4
 - Independent review history: `agent-review-reports.md`
 - T1-T6 commits: `41178d4e`, `06ad5d30`, `8c4bfaf2`, `04c9d42a`, `0427067b`, and `402c5033`

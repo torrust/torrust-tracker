@@ -196,3 +196,44 @@ semantic-links:
 - Follow-up actions:
   - Update only the listed issue-state items, then include this report, the retrospective, and the
     final issue-state documentation in the coherent documentation commit.
+
+### 2026-09-15 17:40 UTC - GitHub Copilot Task Reviewer
+
+- Invocation scope: Final independent completion review of uncommitted T9 only for issue #2219:
+  portable review-finding references, AC8, V4 manual evidence, the retrospective, and the
+  focused structural contract test. Historical `docs/pr-reviews/` records were reviewed only for
+  the required no-change boundary.
+- Inputs: `docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md`,
+  `manual-verification-evidence.md`, `implementation-retrospective.md`,
+  `docs/skills/semantic-skill-link-convention.md`, `docs/templates/PR-REVIEW-TEMPLATE.md`, the
+  unified `process-pr-review` skill, and
+  `contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`.
+- Evidence: The focused contract test and ShellCheck passed; `git diff --check` passed; and the
+  scoped diff confirms no file under `docs/pr-reviews/` changed. The structural assertions cover
+  the canonical convention/template/workflow format and example, immutable assignment rule,
+  row field, GitHub-source-metadata boundary, citation forms, and new-audits-only historical
+  boundary. The T9 decision table records the deterministic-reference and opaque-ULID advantages,
+  disadvantages, and decisions. The retrospective explicitly lists V1-V4. V4 records the
+  expected audit-row, prose, and `semantic-links.related-artifacts` output, but its command
+  cannot establish the claimed assertions or literal starting form.
+- Acceptance criteria:
+  - FAIL: AC8 cannot be verified. V4's command has a leading space before both required initial
+    assignments and its `[[ ... ]]` predicates do not control the command exit status because a
+    succeeding final `printf` follows them without fail-fast control flow.
+- Findings:
+  - Major: `manual-verification-evidence.md` V4 does not meet the specified executable-evidence
+    contract. The command must literally begin with `pr_number=2230` followed by `finding_id=F1`,
+    derive the reference with lowercase transformation, and make every exact-value, format, and
+    audit-row assertion exit nonzero on failure. The current leading space violates the required
+    command form, and each failed predicate can be masked by the final `printf`, yielding exit 0.
+    Remove the extra code indentation and use failure-propagating assertion control flow while
+    retaining the required first assignments; rerun and record the actual zero-exit output.
+- Completion-review finding: PENDING. The folder-style retrospective is present and lists V1-V4,
+  including the reusable T9 lesson. Its claimed V4 completion remains unsupported until the
+  manual evidence is corrected and rerun.
+- Issue spec updates: None. AC8 remains unchecked and T9 remains `IN_PROGRESS` because the sole
+  blocking manual verification has not been validly demonstrated.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - Correct and rerun V4 as described, then request a focused T9 re-review before setting T9 or
+    AC8 to `DONE`.

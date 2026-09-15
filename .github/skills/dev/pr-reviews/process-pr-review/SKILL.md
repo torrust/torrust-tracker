@@ -23,6 +23,14 @@ review agents, deliver findings through GitHub only and create no repository
 artifact. Process all authors through this workflow; author classification adds
 context but never changes the audit or resolution requirements.
 
+## Purpose
+
+Process every review finding correctly, efficiently, traceably, and deterministically: handle
+every actionable suggestion, reply to every resolvable thread, and record each finding's progress
+through resolution. The normalized audit data also supports continuous improvement: identify
+recurring errors, review-process patterns, and automation or guardrail candidates so common
+feedback is prevented earlier and future review processing consumes fewer tokens.
+
 ## Prerequisites
 
 - Target pull request number and permission to push its branch and reply to its
@@ -45,9 +53,12 @@ context but never changes the audit or resolution requirements.
    or verdict that contains no request. Preserve the source review ID and URL.
 3. **Assign and deduplicate findings.** Use a reviewer-provided finding ID when
    present. Otherwise assign `F<ordinal>` in source-review and source-order
-   order. Before action, compare a new item with all earlier findings against the
-   current tree. A later item requesting the same current-tree change is a
-   re-raise: keep its source row and record `RE_RAISE_OF:<FindingId>`.
+   order. Assign the immutable repository reference
+   `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, lowercasing the finding ID in
+   the reference. Before action, compare a new item with all earlier findings
+   against the current tree. A later item requesting the same current-tree
+   change is a re-raise: keep its source row and record
+   `RE_RAISE_OF:<FindingId>`.
 4. **Categorize for future analysis.** For every new audit row, assign exactly one
    primary category: `link-integrity`, `formatting`, `metadata`, `testing`,
    `correctness`, `documentation`, `maintainability`, `security`, or `other`.
@@ -77,8 +88,14 @@ context but never changes the audit or resolution requirements.
 ## Required Audit Fields
 
 Every new normalized finding row records PR number, source review ID, source URL,
-author class, finding ID, severity, category, summary, relationship, disposition,
-current-tree verification, resolution reference, reply URL, and thread state.
+author class, finding ID, review finding reference, severity, category, summary,
+relationship, disposition, current-tree verification, resolution reference, reply
+URL, and thread state. The immutable repository reference is
+`review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with a lowercase finding ID; use it
+when another repository artifact needs to cite the finding. GitHub identifiers
+remain source metadata, not the canonical finding reference. Never change the
+reference after assigning it. Historical audit records remain unchanged and do
+not need review-finding references.
 Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
 `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
 `maintainability`, `security`, or `other`. Severity is `Blocker`, `Major`,

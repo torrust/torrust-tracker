@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T17:15:00Z
+last-updated-utc: 2026-09-15T17:50:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,7 @@ semantic-links:
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - docs/pr-reviews/pr-2174-review.md
     - contrib/dev-tools/git/hooks/pre-commit.sh
+    - docs/skills/semantic-skill-link-convention.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -38,6 +39,8 @@ and audit record regardless of reviewer identity, a structured finding format re
 to follow, and local quality gates that match CI's toolchains so recorded validation evidence
 cannot be a false green. New audit records also preserve normalized categories and reviewer classes
 so merged review resolutions can be mined for recurring feedback and automation opportunities.
+Each new finding also has an immutable repository-controlled reference so ADRs, issue specifications,
+and other artifacts can cite it without depending on GitHub identifiers.
 
 ## EPIC Alignment
 
@@ -265,6 +268,28 @@ and resolution reference. Final completion fetches threads with the GraphQL-firs
 `fetch-review-threads` skill and demonstrates no unresolved actionable thread; REST review-comment
 responses are supplementary only.
 
+### T9 Review-Finding Reference Decision
+
+Every new normalized finding row has the immutable repository-controlled reference
+`review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with the finding ID lowercased in the reference.
+For example, `F1` in PR #2230 is `review-finding:pr-2230-f1`. ADRs, issue specifications, and
+other repository artifacts cite the reference in prose or in `semantic-links.related-artifacts`.
+The reference resolves to the matching row in `docs/pr-reviews/pr-<PR_NUMBER>-review.md`.
+
+The reference is assigned when the row is created and is never changed, including after a rebase,
+thread move, provider migration, or later categorization. GitHub review, thread, comment, and URL
+identifiers remain source metadata used to fetch, reply to, and resolve feedback; they are never
+the canonical finding reference.
+
+| Option | Advantages | Disadvantages | Decision |
+| ------ | ---------- | ------------- | -------- |
+| Deterministic `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` | Requires no generator or new global index; is readable and self-locating from the canonical audit filename and row; adds no opaque identifier column; is easy to validate; and remains resolvable from Git-tracked repository history without a GitHub API. | Includes the PR number, which originated on GitHub; depends on the author never reassigning a finding ID; and would need an explicit forge namespace if audits from multiple forges with colliding PR numbers are merged. | Chosen. GitHub-originated numbers are retained as repository archive keys, not live provider identifiers. The workflow already requires source-order IDs and immutable audit history; a future multi-forge migration can add a namespace without rewriting existing references. |
+| Opaque ULID `review-finding:RF-<ULID>` | Is independent of provider and PR numbering, collision-resistant across forges, and time-sortable. | Is not self-locating or readable; needs an ID generator and duplicate/format validation; adds a new audit-table column; and can be omitted or malformed when a row is created. | Rejected for now. Its extra machinery solves a multi-forge problem the repository does not yet have. |
+
+This convention is future-only. Historical audit records retain their original fields and are not
+backfilled or reinterpreted. If an older finding needs to motivate later work, cite its audit path
+and local finding ID until a separately reviewed derived-data process exists.
+
 ### Migration and Compatibility Contract
 
 T4 moves every tracked file in `docs/copilot-pr-reviews/` and `docs/pr-review-feedback/` to
@@ -335,6 +360,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | Deprecate the two old skills                    | Replaced both legacy skill bodies with one-release compatibility redirects to `process-pr-review`. Updated helper skills, the Copilot agent/prompt entry points, and orchestration diagrams to delegate to the unified skill and canonical audit. The affected contract test now prevents parallel procedures/trackers and branch-SHA citation wording. The required search now returns only redirect identities and historical issue descriptions. The focused shell test, ShellCheck, Markdown, link, spell, and whitespace checks passed. |
 | T7  | DONE   | Verify and record evidence                      | M1-M3 are complete in `manual-verification-evidence.md`; M2 records fetched versus simulated inputs and the GraphQL final-thread result. AC6 ownership was verified in the unified skill and audit template. The final independent completion review passed; the final documentation commit remains. |
 | T8  | DONE   | Add analysis-ready fields to new audits          | Added `Author class` and one primary `Category` to the unified template and workflow. Categories are `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`, `documentation`, `maintainability`, `security`, and `other`. Historical records remain unchanged. The contract test, full lint suite, and independent completion review passed. |
+| T9  | DONE   | Make review findings portable concepts          | Added immutable deterministic `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` references for new audit rows, separate from GitHub source metadata, and allowed ADRs and issue specifications to cite them. Historical audits remain unchanged. The contract test, V4 manual evidence, full lint suite, and independent completion review passed. |
 
 ## Commit Points
 
@@ -348,6 +374,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6   | Old-skill compatibility redirects and link updates      | Commit after the specified search and required review. |
 | T7   | Evidence and retrospective                              | Final documentation commit after review.             |
 | T8   | Future-only analysis audit schema                       | Commit after focused structural and documentation validation. |
+| T9   | Portable review-finding reference convention             | Commit after focused structural and documentation validation. |
 
 ## Progress Tracking
 
@@ -449,6 +476,30 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   are covered; all nine categories are asserted in both canonical documents; the advisory reviewer
   template remains category-free; and historical audits are unchanged and valid. The focused
   contract test, ShellCheck, and full linter suite passed.
+- 2026-09-15 17:30 UTC - User/maintainer - Approved T9 as an extension to #2219. Selected the
+  deterministic repository reference `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` instead of an
+  opaque ULID. The complete trade-off record is in the implementation contract.
+- 2026-09-15 17:35 UTC - GitHub Copilot - Implemented T9's deterministic reference convention in
+  the semantic-link guidance, audit template, and unified workflow without modifying historical
+  audits. V4 manually demonstrated a representative `review-finding:pr-2230-f1` in an audit row,
+  prose citation, and `semantic-links.related-artifacts` value. Prose-first test comparison:
+  Arrange provides the convention, template, and workflow; Act runs the structural shell test;
+  Assert requires the identifier format/example, row column, immutability, and GitHub-provenance
+  boundary. These cross-document assertions remain because no executable production boundary
+  exists. The retrospective records this reusable convention extension; focused contract,
+  ShellCheck, Markdown, CSpell, Lychee, YAML, and whitespace checks passed.
+- 2026-09-15 17:45 UTC - GitHub Copilot - Remediated the first T9 completion review. V4 now
+  records the exact executed reference-construction command, its zero exit status, and its output
+  for the audit row, prose citation, and `semantic-links.related-artifacts` citation. The structural
+  test now requires the explicit never-change immutability rule, both permitted citation forms, and
+  the future-only historical-audit boundary in addition to format, row field, and GitHub provenance.
+  The focused contract test and ShellCheck passed.
+- 2026-09-15 17:50 UTC - GitHub Copilot Task Reviewer - Re-reviewed the completed T9 convention
+  and reported `REVIEW PASSED`: V4's exact fail-fast command derives and verifies the lowercase
+  reference before printing audit-row, prose, and semantic-link citations; the contract test covers
+  the identifier, immutability, citation forms, GitHub provenance, and future-only history; the
+  deterministic-versus-ULID decision is complete; and no historical audit changed. The focused
+  contract test, ShellCheck, and full linter suite passed.
 
 ## Acceptance Criteria
 
@@ -470,6 +521,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   obligation.
 - [x] AC7: New audits record a normalized author class and exactly one primary category from a
   documented controlled vocabulary, while historical audits remain unchanged and valid.
+- [x] AC8: Every new audit row has an immutable deterministic repository-controlled review-finding
+  reference that other artifacts can cite, while GitHub identifiers remain source metadata and
+  historical audits remain unchanged.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -493,6 +547,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | DONE | `manual-verification-evidence.md` section V2 |
 | M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | DONE | `manual-verification-evidence.md` section V3 |
+| M4  | Portable finding reference        | Construct a representative `review-finding:pr-2230-f1` row and cite it in prose and `semantic-links.related-artifacts`. | The reference is deterministic, provider-independent, and usable in both citation forms. | DONE | `manual-verification-evidence.md` section V4 |
 
 ### Acceptance Verification
 
@@ -505,6 +560,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
 | AC6   | DONE                   | `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` ownership section; `docs/templates/PR-REVIEW-TEMPLATE.md` ownership section |
 | AC7   | DONE                   | `docs/templates/PR-REVIEW-TEMPLATE.md`; `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`; `test-agent-review-report-contract.sh`; ShellCheck; `linter all`; independent completion review |
+| AC8   | DONE                   | `manual-verification-evidence.md` section V4; semantic-link convention; audit template; unified workflow; `test-agent-review-report-contract.sh`; ShellCheck; `linter all`; independent completion review |
 
 ## Risks and Trade-offs
 

@@ -40,9 +40,18 @@ For every new audit row, record the source author's derived `Author class` and e
 listed category fits. These fields make future audit records suitable for deterministic aggregation.
 Historical records predate this schema and remain unchanged.
 
-| PR number | Source review ID | Source URL | Author class | Finding ID | Severity | Category | Summary | Relationship | Disposition | Current-tree verification | Resolution reference | Reply URL | Thread state |
-| --------- | ---------------- | ---------- | ------------ | ---------- | -------- | -------- | ------- | ------------ | ----------- | ------------------------- | -------------------- | --------- | ------------ |
-| <PR_NUMBER> | <REVIEW_ID> | <SOURCE_URL> | <AUTHOR_CLASS> | <FINDING_ID> | <SEVERITY> | <CATEGORY> | <SUMMARY> | <RELATIONSHIP> | <DISPOSITION> | <COMMAND_OR_INSPECTION_AND_RESULT> | <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL> | <REPLY_URL_OR_NA> | <THREAD_STATE> |
+Assign each new row an immutable repository reference in the form
+`review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with the finding ID lowercased. For example, audit
+finding `F1` for PR #2230 is `review-finding:pr-2230-f1`. Use this reference to link the finding
+from ADRs, issue specifications, and other repository artifacts. GitHub identifiers remain source
+metadata, not the canonical finding reference. Never change a reference after assigning it.
+
+This convention applies to new audits only. Historical audit records remain unchanged and do not
+need review-finding references.
+
+| PR number | Source review ID | Source URL | Author class | Finding ID | Review finding reference | Severity | Category | Summary | Relationship | Disposition | Current-tree verification | Resolution reference | Reply URL | Thread state |
+| --------- | ---------------- | ---------- | ------------ | ---------- | ------------------------ | -------- | -------- | ------- | ------------ | ----------- | ------------------------- | -------------------- | --------- | ------------ |
+| <PR_NUMBER> | <REVIEW_ID> | <SOURCE_URL> | <AUTHOR_CLASS> | <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <SEVERITY> | <CATEGORY> | <SUMMARY> | <RELATIONSHIP> | <DISPOSITION> | <COMMAND_OR_INSPECTION_AND_RESULT> | <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL> | <REPLY_URL_OR_NA> | <THREAD_STATE> |
 
 ## Processing Log
 
