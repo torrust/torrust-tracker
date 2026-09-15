@@ -36,12 +36,13 @@ Status legend:
 ## Processing Log
 
 - 2026-09-15: Started processing Copilot suggestions after rebasing onto `torrust/develop`.
+- 2026-09-15: Resolved the one Copilot thread after replying; refreshed review data confirmed no unresolved threads remain.
 
 ## Suggestions
 
 | # | Thread ID | Path | URL | Suggestion Summary | Decision | Reply URL | Status | Thread State |
 | - | --------- | ---- | --- | ------------------ | -------- | --------- | ------ | ------------ |
-| 1 | `PRRT_kwDOGp2yqc6igscQ` | `docs/features/shutdown-process/task-inventory.md` | [comment](https://github.com/torrust/torrust-tracker/pull/2227#discussion_r4015452979) | Keep feature-analysis timestamp format consistent. | action: restore the date-only `last-updated-utc` convention used by feature-supporting analyses. | Pending | OPEN | OPEN |
+| 1 | `PRRT_kwDOGp2yqc6igscQ` | `docs/features/shutdown-process/task-inventory.md` | [comment](https://github.com/torrust/torrust-tracker/pull/2227#discussion_r4015452979) | Keep feature-analysis timestamp format consistent. | action: restored the date-only `last-updated-utc` convention used by feature-supporting analyses in `f8bc7dbc`. | [reply](https://github.com/torrust/torrust-tracker/pull/2227#discussion_r4015837455) | DONE | RESOLVED |
 
 ## Notes
 
