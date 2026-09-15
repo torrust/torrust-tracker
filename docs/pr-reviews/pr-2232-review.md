@@ -80,3 +80,8 @@ https://github.com/torrust/torrust-tracker/pull/2232.
   read; split the audit into a compact tracking table plus a Finding Details section, updating the
   canonical template, workflow, and contract test in the same change. All required fields remain
   recorded.
+- 2026-09-15 19:10 UTC - Deferred automation candidate: use a high-capability model to assess
+  findings against the current tree, decide their disposition, and specify a bounded solution;
+  route that solution to a lower-cost implementation model for validation and evidence capture;
+  then independently verify the result before resolving the finding. Defer custom-agent design
+  until this manual workflow has completed its first asynchronous human-review round.
