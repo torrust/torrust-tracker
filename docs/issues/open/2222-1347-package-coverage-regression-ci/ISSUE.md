@@ -190,6 +190,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 - 2026-09-15 - GitHub Copilot - Promoted the existing draft from ignored `.tmp/` storage to this canonical EPIC-prefixed folder-style draft path after confirming PR #2148 merged. Refreshed stale metadata and validation guidance; GitHub issue creation awaits maintainer review.
 - 2026-09-15 - User/maintainer - Approved the refreshed folder-style draft.
 - 2026-09-15 - GitHub Copilot - Created GitHub issue #2222 and moved the approved specification to this canonical open-issue path.
+- 2026-09-15 - GitHub Copilot - Historical 2026-09-06 draft entries retain date-only timestamps:
+  their ignored `.tmp/` source had no Git history or durable timing evidence, so exact UTC times
+  cannot be recovered without fabrication. All future entries use the canonical UTC format.
 
 ## Acceptance Criteria
 
