@@ -24,7 +24,7 @@ Current markers:
 | Marker              | Value                  | Meaning                                                                                        |
 | ------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | `skill-link`        | `<skill-name>`         | This artifact affects the linked skill and should trigger a skill review when changed.         |
-| `related-artifacts` | `<repo-relative-path>` | List of artifacts related to this file; linked files should be reviewed when this one changes. |
+| `related-artifacts` | `<repo-relative-path>` or `review-finding:pr-<number>-<id>` | List of artifacts related to this file; linked files should be reviewed when this one changes. |
 | `issue-spec`        | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path.          |
 | `issue`             | `#<number>`            | This artifact is affected by the GitHub issue with the given number.                           |
 | `review-finding`    | `pr-<number>-<id>`     | Repository-controlled identifier for one normalized pull-request review finding.               |
