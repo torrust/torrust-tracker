@@ -732,7 +732,7 @@ dependencies = [
  "proc-macro2",
  "serde",
  "serde_json",
- "syn 2.0.119",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -4807,7 +4807,7 @@ version = "3.0.0-develop"
 dependencies = [
  "anyhow",
  "axum-server",
- "base64 0.22.1",
+ "base64 0.23.1",
  "chrono",
  "clap",
  "nix",
@@ -6045,7 +6045,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "syn 2.0.119",
+ "syn 3.0.5",
  "walkdir",
 ]
 
