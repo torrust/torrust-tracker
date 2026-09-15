@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T15:50:00Z
+last-updated-utc: 2026-09-15T16:35:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -332,7 +332,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Create unified audit directory and template     | Created `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`; Git-renamed all records, retaining four duplicate Copilot audits with an explicit `-legacy` suffix and migration notes. Removed both old parents and templates. Markdown, spell, link, and whitespace checks passed. |
 | T5  | DONE   | Publish requested reviewer finding format       | Created `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and matched its advisory contract in the unified skill. M3 parsed the pinned literal as `F42`, `Major`, `ORIGINAL`, and the expected summary. Markdown, link, spell, and whitespace checks passed. |
 | T6  | DONE   | Deprecate the two old skills                    | Replaced both legacy skill bodies with one-release compatibility redirects to `process-pr-review`. Updated helper skills, the Copilot agent/prompt entry points, and orchestration diagrams to delegate to the unified skill and canonical audit. The affected contract test now prevents parallel procedures/trackers and branch-SHA citation wording. The required search now returns only redirect identities and historical issue descriptions. The focused shell test, ShellCheck, Markdown, link, spell, and whitespace checks passed. |
-| T7  | TODO   | Verify and record evidence                      | Complete M1-M3 in `manual-verification-evidence.md`; M2's PR #2174 dry run is mandatory and a next-real-PR run is optional. Record fetched versus simulated inputs and the GraphQL final-thread result. |
+| T7  | DONE   | Verify and record evidence                      | M1-M3 are complete in `manual-verification-evidence.md`; M2 records fetched versus simulated inputs and the GraphQL final-thread result. AC6 ownership was verified in the unified skill and audit template. The final independent completion review passed; the final documentation commit remains. |
 
 ## Commit Points
 
@@ -354,14 +354,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2219 created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -416,6 +416,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   focused assertions express that contract directly; its helper functions remain because they
   provide specific file-and-expected-text diagnostics. It and ShellCheck, Markdown, CSpell,
   Lychee, and whitespace checks passed.
+- 2026-09-15 16:30 UTC - GitHub Copilot - Remediated the first T7 completion review. Corrected
+  the unified skill's malformed `related-artifacts` metadata and V1's stale seven-step claim. The
+  structural test now parses the unified skill frontmatter and requires all canonical related
+  artifacts. Prose-first comparison: Arrange provides the canonical skill metadata; Act parses
+  it with the already-installed PyYAML dependency; Assert requires every expected artifact as a
+  distinct list member. This parsing assertion is retained because text matching cannot detect
+  syntactically valid but structurally wrong YAML. The focused contract test, ShellCheck, YAML,
+  Markdown, CSpell, Lychee, and whitespace checks passed.
+- 2026-09-15 16:35 UTC - GitHub Copilot Task Reviewer - Re-reviewed the repaired T7 completion
+  state and reported `REVIEW PASSED`: AC1-AC6 and M1-M3 are complete, the unified skill metadata
+  parses as five distinct related-artifact entries, V1 accurately records eight current-tree hook
+  steps, and the retrospective's metadata-coverage improvement is implemented by the parser-backed
+  structural test. The full linter suite and focused contract test passed.
 
 ## Acceptance Criteria
 
@@ -432,14 +445,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   new PRs to it.
 - [x] AC5: The requested reviewer finding format is documented, linked from the PR template, and
       explicitly advisory.
-- [ ] AC6: The unified skill and audit template state that the PR author solely owns the tracked
-      record and that reviewers (including repository review agents) have no repository-artifact
-      obligation.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC6: The unified skill and audit template state that the PR author solely owns the tracked
+  record and that reviewers (including repository review agents) have no repository-artifact
+  obligation.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -468,7 +481,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC3   | DONE                   | Unified skill; two one-release redirect stubs; required T6 search; strengthened `test-agent-review-report-contract.sh`; ShellCheck; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
-| AC6   | TODO                   |          |
+| AC6   | DONE                   | `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` ownership section; `docs/templates/PR-REVIEW-TEMPLATE.md` ownership section |
 
 ## Risks and Trade-offs
 
@@ -490,11 +503,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from the repository template at
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
-- If no retrospective is needed, add a concise progress-log entry explaining why the work had no
-  material discovery.
+- Retrospective: `implementation-retrospective.md` records the material implementation discoveries
+  and reusable improvements.
+- Final acceptance review: `REVIEW PASSED` after remediation of the unified-skill metadata and V1
+  hook-step evidence.
 
 ## References
 

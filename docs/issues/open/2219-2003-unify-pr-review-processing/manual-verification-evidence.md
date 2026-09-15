@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
-last-updated-utc: 2026-09-15T15:30:00Z
+last-updated-utc: 2026-09-15T16:30:00Z
 ---
 
 # Manual Verification Evidence - Unify PR Review Processing
@@ -37,7 +37,7 @@ or simulated results as execution evidence.
   This bypassed only the unrelated aggregate-linter failure so the changed hook could reach the
   named nightly formatter step.
 4. Ran the changed hook with `--format=json`. It exited 1 at `Checking nightly Rust formatting`.
-5. Ran the changed hook on the current tree with `--format=json`. All seven steps passed,
+5. Ran the changed hook on the current tree with `--format=json`. All eight steps passed,
   including `Checking nightly Rust formatting`.
 
 #### Observed Result

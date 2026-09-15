@@ -19,6 +19,7 @@ COPILOT_REDIRECT="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-copilot-
 FEEDBACK_REDIRECT="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md"
 FETCH_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md"
 RESOLVE_THREADS="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md"
+PROCESS_PR_REVIEW="${PROJECT_ROOT}/.github/skills/dev/pr-reviews/process-pr-review/SKILL.md"
 
 require_text() {
     local file_path=$1
@@ -55,6 +56,28 @@ require_yaml_frontmatter() {
 
     if [[ $(sed -n '1p' "${file_path}") != '---' ]] || ! sed -n '2,/^---$/p' "${file_path}" | grep -Fx -q -- '---'; then
         printf 'Expected %s to begin with closed YAML frontmatter.\n' "${file_path}" >&2
+        return 1
+    fi
+}
+
+require_yaml_related_artifact() {
+    local file_path=$1
+    local expected_artifact=$2
+
+    if ! python3 - "${file_path}" "${expected_artifact}" <<'PY'
+import sys
+
+import yaml
+
+file_path, expected_artifact = sys.argv[1:]
+with open(file_path, encoding="utf-8") as source_file:
+    frontmatter = source_file.read().split("---", 2)[1]
+
+related_artifacts = yaml.safe_load(frontmatter)["metadata"]["semantic-links"]["related-artifacts"]
+sys.exit(expected_artifact not in related_artifacts)
+PY
+    then
+        printf 'Expected %s YAML frontmatter to contain related artifact: %s\n' "${file_path}" "${expected_artifact}" >&2
         return 1
     fi
 }
@@ -143,6 +166,13 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
         require_text "${helper_skill}" 'component skill within the **process-pr-review** workflow'
         require_text "${helper_skill}" 'See **process-pr-review** for the full end-to-end process.'
     done
+
+    require_yaml_frontmatter "${PROCESS_PR_REVIEW}"
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/templates/PR-REVIEW-TEMPLATE.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/PULL_REQUEST_TEMPLATE/review-findings.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md'
 }
 
 it_should_define_the_reusable_report_template_contract
