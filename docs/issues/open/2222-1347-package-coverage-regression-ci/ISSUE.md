@@ -178,7 +178,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 - [x] Draft moved to `docs/issues/open/` with assigned issue number.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed.
-- [ ] Manual verification scenarios executed and recorded.
+- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -237,11 +237,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Command/Steps                                                                                               | Expected Result                                                                                           | Status | Evidence |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | One-build comparison proof of concept | Run a controlled changed-package comparison using a `develop` summary artifact and the PR workspace report. | Summary has identical package/source scope, no base rebuild, and a correct delta.                         | TODO   | —        |
-| M2  | Codecov components proof of concept   | Apply a disposable or non-blocking component configuration in a controlled branch/repository context.       | Confirm component path and status semantics, timing, and fork-upload compatibility.                       | TODO   | —        |
-| M3  | Equal, improved, and reduced coverage | Exercise ratio calculation with controlled report fixtures or changes.                                      | Report-only summary correctly identifies each delta without blocking merge.                               | TODO   | —        |
-| M4  | Non-package and unavailable baseline  | Exercise documentation/workspace-config-only changes and new, deleted, or unmatched renamed packages.       | No package is falsely selected; summary explicitly reports non-comparable outcomes.                       | TODO   | —        |
-| M5  | Fork pull request                     | Inspect the generated workflow and a fork PR run.                                                           | The report-only check runs in `pull_request` without secrets; the trusted uploader remains artifact-only. | TODO   | —        |
+| M1  | One-build comparison proof of concept | Run a controlled changed-package comparison using a `develop` summary artifact and the PR workspace report. | Summary has identical package/source scope, no base rebuild, and a correct delta.                         | TODO   | [manual evidence](manual-verification-evidence.md#m1-one-build-comparison-proof-of-concept) |
+| M2  | Codecov components proof of concept   | Apply a disposable or non-blocking component configuration in a controlled branch/repository context.       | Confirm component path and status semantics, timing, and fork-upload compatibility.                       | TODO   | [manual evidence](manual-verification-evidence.md#m2-codecov-components-proof-of-concept) |
+| M3  | Equal, improved, and reduced coverage | Exercise ratio calculation with controlled report fixtures or changes.                                      | Report-only summary correctly identifies each delta without blocking merge.                               | TODO   | [manual evidence](manual-verification-evidence.md#m3-equal-improved-and-reduced-coverage) |
+| M4  | Non-package and unavailable baseline  | Exercise documentation/workspace-config-only changes and new, deleted, or unmatched renamed packages.       | No package is falsely selected; summary explicitly reports non-comparable outcomes.                       | TODO   | [manual evidence](manual-verification-evidence.md#m4-non-package-and-unavailable-baseline) |
+| M5  | Fork pull request                     | Inspect the generated workflow and a fork PR run.                                                           | The report-only check runs in `pull_request` without secrets; the trusted uploader remains artifact-only. | TODO   | [manual evidence](manual-verification-evidence.md#m5-fork-pull-request) |
 
 ## Acceptance Verification
 
