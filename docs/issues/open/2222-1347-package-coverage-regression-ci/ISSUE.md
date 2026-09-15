@@ -151,7 +151,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T4  | TODO   | Publish and compare report-only summaries      | Publish base summaries on `develop`, retrieve the PR-base summary, compare it with the PR head summary, and write a readable non-blocking job summary. Make baseline unavailability explicit without fabricating a comparison.                                                                                        |
 | T5  | TODO   | Add focused automated coverage                 | Test discovery, report filtering, artifact/base-summary selection, and ratio decisions: equal, increased, decreased, zero-total, new, removed, renamed, and unavailable baseline.                                                                                                                                     |
 | T6  | TODO   | Review first vertical slice                    | Verify runtime, cleanup, summary quality, artifact retention, fork safety, and whether shell remains appropriate. Record observed deltas to recommend a tolerance and required-check decision.                                                                                                                        |
-| T7  | TODO   | Document rollout and verify                    | Update canonical documentation, run required checks, exercise manual pass/fail/exceptional scenarios, and review acceptance criteria. Do not enable a required regression gate without a separate maintainer approval.                                                                                                |
+| T7  | TODO   | Reconcile completion records                   | Before final verification, verify issue frontmatter, task/checkpoint/acceptance tables, evidence links, workflow names, and the EPIC #1347 registration agree. Search for stale `TODO`/`IN_PROGRESS` states and provisional wording. |
+| T8  | TODO   | Document rollout and verify                    | Update canonical documentation, run required checks, exercise manual pass/fail/exceptional scenarios, and review acceptance criteria. Do not enable a required regression gate without a separate maintainer approval.                                                                                                |
+
+## Commit Points
+
+| Task | Coherent change set | Commit policy |
+| --- | --- | --- |
+| T1 | Candidate-mechanism research and controlled prototype evidence | Commit after evidence review. |
+| T2 | Selected report-only design decision | Commit after maintainer approval. |
+| T3 | Changed-package discovery and source-only summary command | Commit after focused command tests. |
+| T4 | Base-summary publication, retrieval, and report-only comparison workflow | Commit after fork-safety and workflow validation. |
+| T5 | Focused tests for selection, filtering, and ratio decisions | Commit after test-design review and focused tests. |
+| T6 | First-slice runtime, cleanup, and safety review evidence | Documentation-only commit when it records a material decision. |
+| T7 | Reconciled completion records | Documentation-only commit before final verification. |
+| T8 | Final documentation, verification, and completion evidence | Commit after the final maintainer review. |
 
 ## Progress Tracking
 
