@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-14
+last-updated-utc: 2026-09-15T09:00:00Z
 semantic-links:
   skill-links:
     - create-issue
