@@ -83,6 +83,14 @@ retain temporarily with a tracked follow-up.
 | T5  | TODO   | Remediate in reviewable batches   | Use ClippyFixer for focused fixes; group commits by package or rationale category.                                         |
 | T6  | TODO   | Validate final inventory          | Ensure no allow lacks a recorded disposition and relevant checks pass.                                                     |
 
+### Classification and Remediation Sequencing
+
+Perform a classification-first pass, grouping entries by rationale category while recording a
+source-specific decision for every row. Then remediate one category and package-scoped batch at a
+time. This avoids inconsistent decisions for repeated lint families and keeps source changes,
+rationale comments, tests, and commits reviewable. The issue-local inventory is the authoritative
+record of category order and entry-level classification evidence.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -103,6 +111,7 @@ retain temporarily with a tracked follow-up.
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2158, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2158
 - 2026-09-15 - GitHub Copilot - Started the source-root inventory with the generated first batch (A001-A025); baseline scan found 234 attributes and 244 lint allowances - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Completed and cross-checked the source-location baseline (A001-A234); classification remains pending - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Recorded a category-first classification and package-scoped remediation sequence; individual source decisions remain pending - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria

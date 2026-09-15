@@ -24,6 +24,30 @@ remediation remain separate work; an entry marked **Pending** is recorded but no
 - **Temporary** — requires a stable removal condition and an approved, linked follow-up issue.
 - **Pending** — not yet classified; no decision is implied.
 
+## Grouped Classification Process
+
+Classify source occurrences by rationale category before remediating them. This establishes a
+consistent decision for repeated lint families while preserving per-entry evidence when a source
+occurrence differs. A category decision is not a blanket exception: every entry must still receive
+a disposition, evidence, and (when retained) a nearby source rationale.
+
+| Order | Rationale category | Lint families | Review approach |
+| ----- | ------------------ | ------------- | --------------- |
+| 1 | Compatibility and external API shape | `struct_field_names`, `module_name_repetitions`, `redundant_field_names`, `from_over_into`, `extra_unused_lifetimes` | Identify external, wire, and public API naming contracts; retain only the narrow necessary scope. |
+| 2 | Intentional executable or CLI output | `print_stdout`, `print_stderr`, `exit` | Confirm the binary or command-line output contract; retain output only where it is an intentional interface. |
+| 3 | Framework-required async signatures | `unused_async`, `manual_async_fn`, `async_yields_async` | Confirm framework trait or handler signatures that require the async shape. |
+| 4 | Numeric-domain conversions | `cast_possible_truncation`, `cast_sign_loss`, `cast_precision_loss` | Establish bounds and loss-tolerance invariants for each conversion family; do not apply a blanket decision. |
+| 5 | Trait and public API ergonomics | `double_must_use`, `must_use_candidate`, `needless_pass_by_value`, `unnecessary_wraps`, `result_large_err`, `future_not_send` | Evaluate public trait contracts, error-size trade-offs, async Send boundaries, and API compatibility. |
+| 6 | Documentation and panic contracts | `doc_markdown`, `missing_errors_doc`, `missing_panics_doc` | Add or correct focused documentation unless the public or test-only contract provides concrete evidence for retaining the exception. |
+| 7 | Type and callable-shape constraints | `struct_excessive_bools`, `empty_enums`, `too_many_arguments`, `unused_self` | Evaluate whether an externally constrained schema, trait shape, or focused design change best expresses the contract. |
+| 8 | Test, example, benchmark, and fixture code | `missing_panics_doc`, `unused_async`, output and conversion lints | Confirm the non-production target and whether a focused local change is clearer than a suppression. |
+| 9 | Module visibility and imports | `redundant_pub_crate`, `wildcard_imports` | Confirm module visibility and import intent; prefer the narrowest visibility and explicit imports unless compatibility evidence requires otherwise. |
+| 10 | UDP protocol crate baseline | All crate-level lints in `packages/udp-protocol/src/lib.rs` | Review each lint independently; reduce scope or remove where practical before retaining any crate-wide exception. |
+| 11 | Likely direct removals | `derivable_impls`, `needless_borrow`, `explicit_iter_loop`, `chunks_exact_to_as_chunks`, `default_trait_access`, `legacy_numeric_constants`, `match_same_arms`, `semicolon_if_nothing_returned` | Apply the focused Clippy remediation and validate the owning package. |
+
+After classification, remediate one category and package-scoped batch at a time. Do not create a
+temporary GitHub follow-up until its folder-style draft specification has been reviewed and approved.
+
 ## Entries
 
 | ID | Source location | Scope | Lint name(s) | Rationale category | Evidence | Owner | Disposition |
