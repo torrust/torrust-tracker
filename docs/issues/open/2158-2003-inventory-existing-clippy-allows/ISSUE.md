@@ -59,6 +59,11 @@ retain temporarily with a tracked follow-up.
   the removal condition and links the inventory entry. Request user approval before creating the
   follow-up GitHub issue, then replace the draft reference with the assigned issue number.
 
+> **Current investigation exception:** numeric-conversion draft material is retained under this
+> issue's `numeric-conversion-follow-up-drafts/` folder at maintainer request while the complete
+> inventory is classified. It is not yet a standalone issue specification and must be re-evaluated
+> before promotion to `docs/issues/drafts/` or GitHub issue creation.
+
 ### Out of Scope
 
 - Introducing the prospective enforcement mechanism for new allows; that belongs to the sibling policy issue.
@@ -117,6 +122,7 @@ record of category order and entry-level classification evidence.
 - 2026-09-15 - GitHub Copilot - Classified macro-generated trait allowances and the remaining UDP server, peer-key error, and JSON serialization naming allowances; compatibility entries with the recorded lint families are now classified - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Classified all ten intentional command-line output and process-exit attributes as retained; each exposes a binary, example, benchmark, or shared console output contract - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Classified all 12 async-signature and lifecycle allowances as retained: two-phase server startup, Axum trait/handler boundaries, and uniform asynchronous benchmark calls provide source-specific evidence - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Added issue-local numeric-conversion follow-up drafts for metric aggregate safety, wire-width validation, and domain conversion contracts; defer GitHub issue or EPIC creation until the completed inventory is re-evaluated - `numeric-conversion-follow-up-drafts/README.md`
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
