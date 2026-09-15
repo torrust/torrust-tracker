@@ -112,6 +112,11 @@ record of category order and entry-level classification evidence.
 - 2026-09-15 - GitHub Copilot - Started the source-root inventory with the generated first batch (A001-A025); baseline scan found 234 attributes and 244 lint allowances - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Completed and cross-checked the source-location baseline (A001-A234); classification remains pending - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Recorded a category-first classification and package-scoped remediation sequence; individual source decisions remain pending - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Began compatibility classification: retained 13 `derive_more` macro-expansion allowances with existing removal conditions and identified three `Into` implementations for focused removal - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Continued compatibility classification with source-specific decisions for six server lifecycle/API names and three standard conversion-trait allowances - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Classified macro-generated trait allowances and the remaining UDP server, peer-key error, and JSON serialization naming allowances; compatibility entries with the recorded lint families are now classified - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Classified all ten intentional command-line output and process-exit attributes as retained; each exposes a binary, example, benchmark, or shared console output contract - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Classified all 12 async-signature and lifecycle allowances as retained: two-phase server startup, Axum trait/handler boundaries, and uniform asynchronous benchmark calls provide source-specific evidence - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
