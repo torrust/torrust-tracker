@@ -1,12 +1,14 @@
 //! Job that runs a task on intervals to update peers' activity metrics.
+use std::future::Future;
 use std::sync::Arc;
 
 use chrono::Utc;
-use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_name;
+use torrust_tracker_events::shutdown::Completion;
 use tracing::instrument;
 
 use super::repository::Repository;
@@ -15,38 +17,41 @@ use crate::{CurrentClock, Registry};
 
 #[must_use]
 #[instrument(skip(swarms, stats_repository))]
-pub fn start_job(
-    swarms: &Arc<Registry>,
-    stats_repository: &Arc<Repository>,
+pub fn run_job(
+    swarms: Arc<Registry>,
+    stats_repository: Arc<Repository>,
     inactivity_cutoff: DurationSinceUnixEpoch,
-) -> JoinHandle<()> {
-    let weak_swarms = std::sync::Arc::downgrade(swarms);
-    let weak_stats_repository = std::sync::Arc::downgrade(stats_repository);
+    cancellation_token: CancellationToken,
+) -> impl Future<Output = Completion> + Send + 'static {
+    async move {
+        let weak_swarms = Arc::downgrade(&swarms);
+        let weak_stats_repository = Arc::downgrade(&stats_repository);
+        drop(swarms);
+        drop(stats_repository);
 
-    let interval_in_secs = 15; // todo: make this configurable
-
-    tokio::spawn(async move {
+        let interval_in_secs = 15; // todo: make this configurable
         let interval = std::time::Duration::from_secs(interval_in_secs);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await;
 
         loop {
             tokio::select! {
-                _ = tokio::signal::ctrl_c() => {
-                    tracing::info!("Stopping peers activity metrics update job (ctrl-c signal received) ...");
-                    break;
+                biased;
+                () = cancellation_token.cancelled() => {
+                    tracing::info!("Stopping peers activity metrics update job ...");
+                    return Completion::Cancelled;
                 }
                 _ = interval.tick() => {
                     if let (Some(swarms), Some(stats_repository)) = (weak_swarms.upgrade(), weak_stats_repository.upgrade()) {
                         update_activity_metrics(interval_in_secs, &swarms, &stats_repository, inactivity_cutoff).await;
                     } else {
                         tracing::info!("Stopping peers activity metrics update job (can't upgrade weak pointers) ...");
-                        break;
+                        return Completion::Completed;
                     }
                 }
             }
         }
-    })
+    }
 }
 
 async fn update_activity_metrics(
@@ -101,4 +106,94 @@ async fn update_inactive_torrents_total(stats_repository: &Arc<Repository>, inac
             CurrentClock::now(),
         )
         .await;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio::time::timeout;
+    use tokio_util::sync::CancellationToken;
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_tracker_events::shutdown::Completion;
+
+    use super::run_job;
+    use crate::Registry;
+    use crate::statistics::repository::Repository;
+
+    #[tokio::test]
+    async fn it_should_return_cancelled_when_the_token_is_cancelled() {
+        // Arrange
+        let swarms = Arc::new(Registry::new(None));
+        let stats_repository = Arc::new(Repository::new());
+        let cancellation_token = CancellationToken::new();
+        let runner = run_job(
+            swarms,
+            stats_repository,
+            DurationSinceUnixEpoch::default(),
+            cancellation_token.clone(),
+        );
+
+        // Act
+        cancellation_token.cancel();
+        let completion = timeout(Duration::from_secs(1), runner)
+            .await
+            .expect("the activity metrics runner should stop after cancellation");
+
+        // Assert
+        assert_eq!(completion, Completion::Cancelled);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_return_completed_when_the_registry_is_dropped() {
+        // Arrange: the only strong registry reference is dropped with the
+        // block below, before the runner's first update tick.
+        let stats_repository = Arc::new(Repository::new());
+        let runner = {
+            let swarms = Arc::new(Registry::new(None));
+
+            run_job(
+                swarms,
+                stats_repository.clone(),
+                DurationSinceUnixEpoch::default(),
+                CancellationToken::new(),
+            )
+        };
+        let runner = tokio::spawn(runner);
+        tokio::task::yield_now().await;
+
+        // Act
+        tokio::time::advance(Duration::from_secs(15)).await;
+        let completion = runner.await.expect("the activity metrics runner should not panic");
+
+        // Assert
+        assert_eq!(completion, Completion::Completed);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_return_completed_when_the_statistics_repository_is_dropped() {
+        // Arrange: the only strong statistics repository reference is dropped
+        // with the block below, before the runner's first update tick.
+        let swarms = Arc::new(Registry::new(None));
+        let runner = {
+            let stats_repository = Arc::new(Repository::new());
+
+            run_job(
+                swarms.clone(),
+                stats_repository,
+                DurationSinceUnixEpoch::default(),
+                CancellationToken::new(),
+            )
+        };
+        let runner = tokio::spawn(runner);
+        tokio::task::yield_now().await;
+
+        // Act
+        tokio::time::advance(Duration::from_secs(15)).await;
+        let completion = runner.await.expect("the activity metrics runner should not panic");
+
+        // Assert
+        assert_eq!(completion, Completion::Completed);
+    }
 }
