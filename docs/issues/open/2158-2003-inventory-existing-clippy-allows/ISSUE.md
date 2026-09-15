@@ -8,7 +8,7 @@ github-issue: 2158
 spec-path: docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-15 14:26
+last-updated-utc: 2026-09-15 14:43
 semantic-links:
   skill-links:
     - create-issue
@@ -119,6 +119,30 @@ lint. Every retained attribute requires a native, source-specific `reason`; a te
 must also state a stable removal condition or approved issue reference, consistent with #2157's
 prospective validator.
 
+### Handoff, Branch, and PR Plan
+
+The tracked #2158 specification, its inventory, and approved issue specifications are the durable
+source of truth. Use `.tmp/2158-remediation-plan.md` only as an ignored working board while
+drafting, reviewing, and sequencing artifacts. It must link to durable artifacts and must not be
+the only record of an approval, issue number, branch, PR, validation result, or disposition change.
+Copy each completed decision to the relevant tracked specification and inventory row before moving
+the working board to its next state.
+
+| Order | Branch and PR | Scope | Completion gate |
+| ----- | ------------- | ----- | --------------- |
+| 1 | Current `2158-2003-inventory-existing-clippy-allows` documentation PR | Complete inventory and handoff plan only | Review and merge before all remediation work |
+| 2 | `feat/numeric-conversion-remediation-plan` specification-only PR | One numeric-conversion EPIC plus the metric-aggregate, wire-validation, and domain-contract child specifications | Draft all four artifacts, obtain maintainer approval as one bundle, create the EPIC first and then its child issues, move specifications to `open/`, and merge the PR using `Related to #2158` |
+| 3 | `fix/udp-protocol-clippy-baseline` specification-only PR | One approved follow-up for the twelve nonnumeric UDP protocol crate-level allows | Complete only after the numeric bundle is separated and maintainer approval is recorded |
+| 4 | Package-scoped #2158 remediation branches and PRs | Direct `Remove` changes and retained rationale annotations | One package or coherent rationale batch per PR, linked to #2158; update evidence by inventory ID |
+| 5 | Temporary follow-up implementation branches and PRs | Approved numeric child issues or UDP baseline issue | Branch from current `develop`, link only the issue the PR fully implements, and record removed/narrowed allows in the inventory |
+| 6 | Final #2158 validation PR or closing update | Regenerated inventory and acceptance evidence | Reconcile every source allowance after all relevant remediation merges |
+
+The numeric EPIC and all three child issues belong in one specification branch and one
+documentation-only PR because they define one reviewed cross-package program. Create their GitHub
+issues only after the maintainer has approved the complete bundle. Create the EPIC first so the
+child issues can reference its assigned number. Do not combine that specification PR with code
+remediation, the UDP baseline specification, or temporary source artifacts.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -152,6 +176,7 @@ prospective validator.
 - 2026-09-15 - GitHub Copilot - Added an issue-local UDP protocol crate-baseline design input for the thirteen broad inherited allowances; defer GitHub issue or EPIC creation until the complete inventory is re-evaluated - `udp-protocol-clippy-baseline-draft.md`
 - 2026-09-15 - GitHub Copilot - Completed the classification pass: retained explicit configuration, visibility, and error/composition-boundary contracts; identified six direct stale or mechanical removals - `clippy-allow-inventory.md`
 - 2026-09-15 - josecelano - Approved the post-classification execution sequence: #2158 owns direct removals and retained-rationale remediation; only approved temporary design work becomes a follow-up issue or numeric-conversion EPIC - Chat decision
+- 2026-09-15 - josecelano - Approved a durable handoff plan: use a local ignored coordination board while the tracked #2158 artifacts remain authoritative; create the approved numeric EPIC and child specifications in one documentation-only branch and PR - Chat decision
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
