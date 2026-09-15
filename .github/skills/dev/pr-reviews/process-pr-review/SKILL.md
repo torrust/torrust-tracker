@@ -8,7 +8,7 @@ metadata:
     related-artifacts:
       - docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
       - docs/templates/PR-REVIEW-TEMPLATE.md
-      - .github/PULL_REQUEST_TEMPLATE/review-findings.md
+      - docs/templates/REVIEW-FINDINGS.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
 ---
@@ -108,7 +108,7 @@ the analysis fields.
 
 ## Advisory Reviewer Finding Format
 
-The GitHub [review finding template](../../../../PULL_REQUEST_TEMPLATE/review-findings.md) is
+The [review finding template](../../../../../docs/templates/REVIEW-FINDINGS.md) is
 advisory: never reject a review for omitting it. For a formatted inline finding, require the first
 line `[<Severity>][<FindingId>] <summary>`, with severity limited to `Blocker`, `Major`, `Minor`,
 `Nit`, or `Suggestion`. Each independently actionable finding gets its own inline thread. A

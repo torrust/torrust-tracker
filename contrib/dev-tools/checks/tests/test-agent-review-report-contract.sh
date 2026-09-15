@@ -10,7 +10,7 @@ set -euo pipefail
 PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
 TEMPLATE="${PROJECT_ROOT}/docs/templates/AGENT-REVIEW-REPORTS.md"
 PR_REVIEW_TEMPLATE="${PROJECT_ROOT}/docs/templates/PR-REVIEW-TEMPLATE.md"
-REVIEW_FINDINGS_TEMPLATE="${PROJECT_ROOT}/.github/PULL_REQUEST_TEMPLATE/review-findings.md"
+REVIEW_FINDINGS_TEMPLATE="${PROJECT_ROOT}/docs/templates/REVIEW-FINDINGS.md"
 COMPLEXITY_AUDITOR="${PROJECT_ROOT}/.github/agents/complexity-auditor.agent.md"
 TASK_REVIEWER="${PROJECT_ROOT}/.github/agents/task-reviewer.agent.md"
 PR_REVIEWER="${PROJECT_ROOT}/.github/agents/pr-reviewer.agent.md"
@@ -175,7 +175,7 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
     require_yaml_frontmatter "${PROCESS_PR_REVIEW}"
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/templates/PR-REVIEW-TEMPLATE.md'
-    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/PULL_REQUEST_TEMPLATE/review-findings.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/templates/REVIEW-FINDINGS.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md'
 }
