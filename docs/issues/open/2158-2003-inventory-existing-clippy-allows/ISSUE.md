@@ -90,8 +90,8 @@ retain temporarily with a tracked follow-up.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-inventory-existing-clippy-allows/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2158 created and issue number added to this spec
-- [ ] Issue-local `clippy-allow-inventory.md` created and completeness checked
-- [ ] ClippyFixer has the `edit` tool and its documented commit delegation remains intact
+- [x] Issue-local `clippy-allow-inventory.md` created and completeness checked
+- [x] ClippyFixer has the `edit` tool and its documented commit delegation remains intact
 - [ ] Draft specifications created and approved before every temporary-allow follow-up GitHub issue
 - [ ] Implementation completed and verified
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -101,6 +101,9 @@ retain temporarily with a tracked follow-up.
 - 2026-09-07 10:45 UTC - GitHub Copilot - Created as separate remediation work for the existing Clippy-allow baseline - This spec
 - 2026-09-07 11:05 UTC - josecelano - Approved this subissue specification - Chat approval
 - 2026-09-07 11:10 UTC - GitHub Copilot - Created GitHub issue #2158, linked it to EPIC #2003, and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2158
+- 2026-09-15 - GitHub Copilot - Started the source-root inventory with the generated first batch (A001-A025); baseline scan found 234 attributes and 244 lint allowances - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Completed and cross-checked the source-location baseline (A001-A234); classification remains pending - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
 
