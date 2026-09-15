@@ -7,15 +7,16 @@ metadata:
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/check-thread-reply-status.sh
 ---
 
 # Resolving PR Review Threads
 
-This is a component skill within the **process-copilot-suggestions** workflow.
+This is a component skill within the **process-pr-review** workflow.
 Use this skill after the requested code or documentation changes are already implemented,
 validated, committed, and pushed.
 
-**Part of larger workflow**: See **process-copilot-suggestions** for the full end-to-end process.
+**Part of larger workflow**: See **process-pr-review** for the full end-to-end process.
 
 ## Preconditions
 
@@ -60,6 +61,16 @@ Successful output should report `isResolved: true`.
 
 ## Batch Pattern
 
+Before any batch resolution, confirm every targeted thread already has a reply. Run the
+`fetch-review-threads` helper script `check-thread-reply-status.sh` first; it exits with code 1
+when any thread lacks a reply. Only proceed with the batch resolver once it exits 0. This
+preserves the workflow rule that every resolvable thread is replied to before it is resolved.
+
+```bash
+bash ../fetch-review-threads/scripts/check-thread-reply-status.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+```
+
 For multiple threads, resolve them one by one and check each result:
 
 Preferred script usage:
@@ -93,5 +104,6 @@ done
 
 - [ ] All targeted threads were verified against the current branch state
 - [ ] Validation passed before resolution
+- [ ] Every thread had a reply before any batch resolution (`check-thread-reply-status.sh` exits 0)
 - [ ] Each resolved mutation returned `isResolved: true`
 - [ ] Any intentionally unresolved feedback is documented with reasoning

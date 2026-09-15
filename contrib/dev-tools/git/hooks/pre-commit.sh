@@ -53,6 +53,7 @@ declare -a STEPS=(
     "Checking documented Clippy allows|cargo run --quiet --package clippy-allow-reasons -- --staged"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
+    "Checking nightly Rust formatting|cargo +nightly fmt --all -- --check"
     "Running all linters|linter all"
     "Linting Containerfile with hadolint|./contrib/dev-tools/checks/lint-containerfile.sh"
     "Running documentation tests|cargo test --doc --workspace"
