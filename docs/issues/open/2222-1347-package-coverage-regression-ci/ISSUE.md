@@ -8,7 +8,7 @@ github-issue: 2222
 spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
 branch: "2222-1347-package-coverage-regression-ci"
 related-pr: null
-last-updated-utc: 2026-09-15T09:30:00Z
+last-updated-utc: 2026-09-15 10:42
 semantic-links:
   skill-links:
     - create-issue
