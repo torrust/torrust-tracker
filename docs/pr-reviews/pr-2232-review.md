@@ -196,9 +196,10 @@ https://github.com/torrust/torrust-tracker/pull/2232.
   terms; round-scoping for re-pushed heads (F48) and a checklist N/A convention (F49) also remain
   open on the reviewer side.
 - Solution: deferred; aligning the reviewer-side skill is follow-up work outside this PR's
-  author-side scope and will be tracked as its own task.
+  author-side scope, tracked in issue #2233 together with the other first-use improvement
+  candidates.
 - Current-tree verification: `git diff` over `review-pr/SKILL.md` in this PR is empty, as reported.
-- Resolution reference: FOLLOW_UP recorded in this audit's processing log
+- Resolution reference: https://github.com/torrust/torrust-tracker/issues/2233
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5687518457
 
 ## Processing Log
@@ -231,3 +232,8 @@ https://github.com/torrust/torrust-tracker/pull/2232.
   vocabulary, round scoping for re-pushed heads, and the checklist N/A convention in a dedicated
   task. The review body is non-resolvable, so the disposition reply is the consolidated PR
   response whose URL is stored in each detail entry.
+- 2026-09-15 20:40 UTC - Documented the first-use lessons in the #2219 implementation
+  retrospective and opened follow-up issue #2233 covering F12, the code-span path guardrail
+  (F4/F5), the retirement obligation inventory (F6), the rename-purity verification step (F4),
+  and the tiered model-routing design. Re-requested Cameron's review on the remediated head;
+  awaiting the next round.

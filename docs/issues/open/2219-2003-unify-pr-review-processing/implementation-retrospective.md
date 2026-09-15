@@ -50,6 +50,29 @@ T9 made the normalized finding a repository concept instead of a GitHub-only res
 reference derives from the canonical audit filename and finding ID, allowing later ADRs and issue
 specifications to cite the concern while retaining provider identifiers as source provenance.
 
+## First Real Use: PR #2232 Review Rounds
+
+PR #2232 exercised the unified workflow on its own pull request: one Copilot round (F1-F3, all
+fixed and resolved) and one asynchronous human round (F4-F12, changes requested). The process held
+up: free-prose findings normalized deterministically, each fix landed in its own signed commit,
+and the reviewer independently verified the audit identifiers byte-for-byte. First use also
+improved the audit format itself: the single 15-column findings table proved hard to read and was
+split into a compact tracking table plus a Finding Details section (`review-finding:pr-2232-*`
+records the full round).
+
+The human round exposed four evidence-backed gaps, tracked for follow-up work:
+
+1. Repository paths inside Markdown code spans are invisible to every existing gate; Lychee
+   validates links only (root cause of `review-finding:pr-2232-f4` and
+   `review-finding:pr-2232-f5`).
+2. Retiring a document can silently drop the normative safeguards it carried; retirement needs an
+   obligation inventory (`review-finding:pr-2232-f6`).
+3. Bulk renames need mechanical purity verification: diff each renamed file against its
+   merge-base original and assert that only the intended lines changed
+   (`review-finding:pr-2232-f4`).
+4. Test scripts must declare or avoid host dependencies so a missing interpreter module cannot
+   masquerade as a content violation (`review-finding:pr-2232-f7`).
+
 ## Root Cause
 
 The original implementation plan identified the major workflow differences but did not pin the
@@ -65,6 +88,11 @@ documentation changes to retain conflicting behavior.
    one workflow contract and protect them with focused structural checks.
 3. Give recurring review findings a repository-controlled reference before using their audit data
    to motivate durable guardrails or architectural decisions.
+4. Follow-up candidates from the PR #2232 rounds: a code-span path existence check, a document
+   retirement obligation inventory, a rename-purity migration step, reviewer-side `review-pr`
+   skill alignment (`review-finding:pr-2232-f12`), and tiered model routing where a
+   high-capability model evaluates findings and a lower-cost model implements the bounded
+   solutions under independent verification.
 
 ## Avoiding Overcorrection
 
@@ -78,4 +106,5 @@ checks for their established scope.
 - Issue #2219: `docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md`
 - Manual scenarios: `manual-verification-evidence.md` sections V1-V4
 - Independent review history: `agent-review-reports.md`
+- First-real-use audit: `docs/pr-reviews/pr-2232-review.md` (findings F1-F12)
 - T1-T6 commits: `41178d4e`, `06ad5d30`, `8c4bfaf2`, `04c9d42a`, `0427067b`, and `402c5033`
