@@ -85,10 +85,14 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 
 ## Required Audit Fields
 
-Every new normalized finding row records PR number, source review ID, source URL,
+Every new normalized finding records PR number, source review ID, source URL,
 author class, finding ID, review finding reference, severity, category, summary,
 relationship, disposition, current-tree verification, resolution reference, reply
-URL, and thread state. The immutable repository reference is
+URL, and thread state. Record each finding as one compact tracking row (finding
+ID, review finding reference, author class, severity, category, relationship,
+disposition, thread state) plus one matching detail entry carrying the remaining
+narrative and source-metadata fields, as laid out in the audit template. The
+immutable repository reference is
 `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with a lowercase finding ID; use it
 when another repository artifact needs to cite the finding. GitHub identifiers
 remain source metadata, not the canonical finding reference. Never change the

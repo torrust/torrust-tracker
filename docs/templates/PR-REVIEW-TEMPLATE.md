@@ -49,9 +49,29 @@ metadata, not the canonical finding reference. Never change a reference after as
 This convention applies to new audits only. Historical audit records remain unchanged and do not
 need review-finding references.
 
-| PR number | Source review ID | Source URL | Author class | Finding ID | Review finding reference | Severity | Category | Summary | Relationship | Disposition | Current-tree verification | Resolution reference | Reply URL | Thread state |
-| --------- | ---------------- | ---------- | ------------ | ---------- | ------------------------ | -------- | -------- | ------- | ------------ | ----------- | ------------------------- | -------------------- | --------- | ------------ |
-| <PR_NUMBER> | <REVIEW_ID> | <SOURCE_URL> | <AUTHOR_CLASS> | <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <SEVERITY> | <CATEGORY> | <SUMMARY> | <RELATIONSHIP> | <DISPOSITION> | <COMMAND_OR_INSPECTION_AND_RESULT> | <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL> | <REPLY_URL_OR_NA> | <THREAD_STATE> |
+Record each finding in two coordinated places: one compact tracking row below, and one matching
+entry in `## Finding Details` for the narrative fields. The pair shares the finding ID and
+together records every required audit field.
+
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <AUTHOR_CLASS> | <SEVERITY> | <CATEGORY> | <RELATIONSHIP> | <DISPOSITION> | <THREAD_STATE> |
+
+## Finding Details
+
+Create one entry per tracking row, in the same order. Keep the concern and the applied solution
+readable as prose; this section carries the source metadata and verification evidence.
+
+### <FINDING_ID> - <SUMMARY>
+
+- PR number: <PR_NUMBER>
+- Source review ID: <REVIEW_ID>
+- Source URL: <SOURCE_URL>
+- Concern: <WHAT_THE_REVIEWER_REPORTED>
+- Solution: <WHAT_WAS_DONE_AND_WHY_OR_WHY_NOT>
+- Current-tree verification: <COMMAND_OR_INSPECTION_AND_RESULT>
+- Resolution reference: <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL>
+- Reply URL: <REPLY_URL_OR_NA>
 
 ## Processing Log
 

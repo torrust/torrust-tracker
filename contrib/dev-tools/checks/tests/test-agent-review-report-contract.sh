@@ -208,6 +208,17 @@ it_should_define_analysis_fields_for_new_pr_review_audits() {
     require_absent_text "${REVIEW_FINDINGS_TEMPLATE}" 'Category'
 }
 
+it_should_split_audit_tracking_from_finding_details() {
+    require_text "${PR_REVIEW_TEMPLATE}" '| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |'
+    require_text "${PR_REVIEW_TEMPLATE}" '## Finding Details'
+    require_text "${PR_REVIEW_TEMPLATE}" '### <FINDING_ID> - <SUMMARY>'
+    require_text "${PR_REVIEW_TEMPLATE}" '- Current-tree verification: <COMMAND_OR_INSPECTION_AND_RESULT>'
+    require_text "${PR_REVIEW_TEMPLATE}" '- Resolution reference: <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL>'
+    # shellcheck disable=SC2016 # Expected text includes literal Markdown code spans.
+    require_wrapped_text "${PR_REVIEW_TEMPLATE}" 'Record each finding in two coordinated places: one compact tracking row below, and one matching entry in `## Finding Details` for the narrative fields.'
+    require_wrapped_text "${PROCESS_PR_REVIEW}" 'Record each finding as one compact tracking row (finding ID, review finding reference, author class, severity, category, relationship, disposition, thread state) plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.'
+}
+
 it_should_define_portable_review_finding_references() {
     require_text "${SEMANTIC_LINK_CONVENTION}" "| \`review-finding\`    | \`pr-<number>-<id>\`"
     require_text "${SEMANTIC_LINK_CONVENTION}" "\`review-finding:pr-<PR_NUMBER>-<FINDING_ID>\`"
@@ -235,6 +246,7 @@ it_should_define_the_shared_create_append_or_skip_policy
 it_should_keep_commit_authority_with_the_caller_and_committer
 it_should_keep_pr_review_tracking_separate_from_independent_reviews
 it_should_define_analysis_fields_for_new_pr_review_audits
+it_should_split_audit_tracking_from_finding_details
 it_should_define_portable_review_finding_references
 
 printf 'All agent review report contract tests passed.\n'
