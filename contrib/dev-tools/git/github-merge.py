@@ -622,6 +622,12 @@ def main():
     except subprocess.CalledProcessError:
         print(f"ERROR: Cannot find merge of pull request {pull_reference} on {host_repo_from}.", file=stderr)
         sys.exit(3)
+    github_merge_base = subprocess.check_output([GIT,'rev-parse',merge_branch+'^1']).decode('utf-8').strip()
+    current_base = subprocess.check_output([GIT,'rev-parse',base_branch]).decode('utf-8').strip()
+    if github_merge_base != current_base:
+        print(f"ERROR: GitHub's merge for {pull_reference} is based on {github_merge_base}, but {branch} is at {current_base}.", file=stderr)
+        print(f"Rebase the pull request branch onto {branch}, push it, wait for GitHub to recompute the merge, then retry.", file=stderr)
+        sys.exit(4)
     subprocess.check_call([GIT,'checkout','-q',base_branch])
     subprocess.call([GIT,'branch','-q','-D',local_merge_branch], stderr=devnull)
     subprocess.check_call([GIT,'checkout','-q','-b',local_merge_branch])

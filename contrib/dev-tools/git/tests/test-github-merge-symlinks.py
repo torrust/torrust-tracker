@@ -186,12 +186,16 @@ class MergeFixture:
     def checkout(self, name):
         self.git('checkout', '--quiet', name)
 
-    def publish_pull_request(self, head_commit):
+    def publish_pull_request(self, head_commit, merge_commit=None):
         """Publish the target branch and the pull request's refs the way the forge exposes them."""
+        if merge_commit is None:
+            base_commit = self.git('rev-parse', TARGET_BRANCH).strip()
+            merge_commit = self.git('commit-tree', f'{head_commit}^{{tree}}', '-p', base_commit,
+                                    '-p', head_commit, '-m', 'GitHub pull request merge').strip()
         self.git('push', '--quiet', str(self.upstream),
                  f'+{TARGET_BRANCH}:refs/heads/{TARGET_BRANCH}',
                  f'+{head_commit}:refs/pull/{PULL_REQUEST}/head',
-                 f'+{head_commit}:refs/pull/{PULL_REQUEST}/merge')
+                 f'+{merge_commit}:refs/pull/{PULL_REQUEST}/merge')
 
     def merge(self, *arguments, answer='x\n'):
         return subprocess.run(
@@ -901,6 +905,32 @@ class ReportRenderingTest(SymlinkDeclarationTestCase):
         self.assertNotIn('\nERROR: File forged', result.stdout)
 
 
+class StalePullRequestBaseTest(SymlinkDeclarationTestCase):
+
+    def it_should_refuse_a_pull_request_whose_github_merge_has_a_stale_base(self):
+        # Arrange
+        self.open_pull_request()
+        self.fixture.write('feature.md', 'pull request change\n')
+        head_commit = self.fixture.commit('Change from pull request')
+        self.fixture.checkout(TARGET_BRANCH)
+        self.fixture.branch('github-merge')
+        self.fixture.git('merge', '--quiet', '--no-ff', '--no-gpg-sign', '-m',
+                         'GitHub pull request merge', head_commit)
+        github_merge = self.fixture.git('rev-parse', 'HEAD').strip()
+        self.fixture.checkout(TARGET_BRANCH)
+        self.fixture.write('base.md', 'new target branch change\n')
+        self.fixture.commit('Advance target branch')
+        self.fixture.publish_pull_request(head_commit, github_merge)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertIn("GitHub's merge for torrust/torrust-tracker#2175 is based on", result.stderr)
+        self.assertIn('Rebase the pull request branch onto develop', result.stderr)
+
+
 class DeclarationArgumentTest(SymlinkDeclarationTestCase):
 
     def it_should_reject_an_absolute_declaration_path(self):
@@ -936,7 +966,7 @@ def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
     for case in (DeclaredLinksTest, DeclarationSourceTest, DeclarationHeaderTest,
                  DeclarationConstantTest, CheckedRangeTest, ReportRenderingTest,
-                 DeclarationArgumentTest):
+                 StalePullRequestBaseTest, DeclarationArgumentTest):
         suite.addTests(loader.loadTestsFromTestCase(case))
     return suite
 
