@@ -28,9 +28,9 @@ and its [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
 
 - **Direct component**: a named component future spawned directly by
   `JobManager` into its `JoinSet`.
-- **Legacy job**: one of the two pre-spawned periodic-job handles retained by
-  `JobManager` outside the `JoinSet` until SI-5 migrates its API and the
-  UDP IP-ban cleanup receives its own periodic-job migration.
+- **Legacy job**: the pre-spawned UDP IP-ban cleanup handle retained by
+  `JobManager` outside the `JoinSet` until it receives its own periodic-job
+  migration.
 - **Owner**: `JobManager` owns direct component tasks and the retained legacy
   handles; a direct component owns any nested server task it starts.
 - **Service**: a runtime capability stored in an application or instance
@@ -121,11 +121,10 @@ all jobs already follow the desired ownership model.
 ## Current Limitations and Future Work
 
 The current `JobManager` directly owns named component futures in a `JoinSet`
-and keeps a narrow compatibility registry for the pre-spawned activity-metrics
-and UDP ban-cleanup periodic jobs. All of those tasks share one shutdown
-deadline, but the legacy jobs are not direct `JoinSet` components. They are
-transitional until SI-5 migrates activity metrics and the UDP ban-cleanup
-periodic-job migration is complete.
+and keeps a narrow compatibility registry only for the pre-spawned UDP
+ban-cleanup periodic job. All of those tasks share one shutdown deadline, but
+the legacy job is not a direct `JoinSet` component. It is transitional until
+the UDP ban-cleanup periodic-job migration is complete.
 
 It is not yet a complete task-supervision system.
 

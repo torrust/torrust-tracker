@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 1488
 github-issue: 2221
-spec-path: docs/issues/open/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
+spec-path: docs/issues/closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
 branch: 2221-migrate-activity-metrics-updater
 related-pr: 2224
-last-updated-utc: 2026-09-15 10:20
+last-updated-utc: 2026-09-15 11:50
 semantic-links:
   skill-links:
     - create-issue
@@ -206,7 +206,7 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -217,6 +217,7 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 - 2026-09-15 09:57 UTC — Task Reviewer — Approved implementation behavior and identified documentation-completion gaps; findings resolved below. — `agent-review-reports.md`
 - 2026-09-15 10:00 UTC — Copilot — Completion review: no material design change or invalidated assumption occurred. The only implementation discovery was that deterministic paused Tokio time requires the `test-util` feature, now confined to package dev-dependencies; this is routine test infrastructure, not a reusable architectural lesson, so no separate retrospective is needed.
 - 2026-09-15 10:04 UTC — Copilot — Final verification passed: `linter all`, workspace documentation tests, focused lifecycle tests, and all pre-push checks. — `.tmp/pre-push-*.log`
+- 2026-09-15 11:50 UTC — Repository maintenance — PR #2224 merged and GitHub issue #2221 closed; archived this specification in `docs/issues/closed/2221-1488-si-5-migrate-activity-metrics-updater/`.
 
 ## Acceptance Criteria
 

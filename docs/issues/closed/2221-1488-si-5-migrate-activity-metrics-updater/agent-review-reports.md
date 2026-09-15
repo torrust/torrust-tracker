@@ -1,7 +1,7 @@
 ---
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
+    - docs/issues/closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
     - packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs
     - src/app.rs
     - src/bootstrap/jobs/activity_metrics_updater.rs

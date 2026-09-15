@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
-last-updated-utc: 2026-09-15 09:49
+issue-spec: docs/issues/closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
+last-updated-utc: 2026-09-15 11:50
 ---
 
 # Manual Verification Evidence

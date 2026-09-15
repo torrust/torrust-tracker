@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-11
+last-updated-utc: 2026-09-15
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -72,6 +72,7 @@ flowchart TD
     cancel --> direct["Direct top-level JoinSet components"]
     direct --> listeners["Token-aware event listeners"]
     direct --> cleanup["Torrent cleanup (conditional)"]
+    direct --> inactivity["Peers inactivity update (conditional)"]
     direct --> udp["UDP instances (N)"]
     udp --> udpLauncher["Owned launcher and receive loop"]
     udpLauncher --> udpRequests["Request processors: AbortHandle buffer"]
@@ -83,8 +84,7 @@ flowchart TD
     health --> healthController["Owned, joined drain controller"]
     direct --> framework["Axum/Hyper framework-owned work"]
     manager["JobManager shared 10-second deadline"] --> direct
-    manager --> legacy["Legacy registry: two periodic jobs"]
-    legacy --> inactivity["Peers inactivity update: Ctrl-C"]
+    manager --> legacy["Legacy registry: UDP IP-ban cleanup"]
     legacy --> ban["UDP IP-ban cleanup: token-aware"]
 ```
 
@@ -110,7 +110,7 @@ each row.
 | Health-check drain controller | 1           | Component-owned  | `Halted` / global signal | SI-13                  |
 | Health-check request work     | Per request | Framework-owned  | Request lifetime         | —                      |
 | Torrent cleanup               | 0–1         | Direct `JoinSet` | Root token               | SI-4 complete          |
-| Peers inactivity update       | 0–1         | Legacy registry  | Direct Ctrl-C            | SI-5                   |
+| Peers inactivity update       | 0–1         | Direct `JoinSet` | Root token               | SI-5 complete          |
 | UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token               | Periodic-job migration |
 
 ## Detailed Inventory
@@ -120,6 +120,10 @@ each row.
 - **Torrent cleanup** — starts when `inactive_peer_cleanup_interval > 0`. Its
   unspawned runner observes the root token or weak-manager expiry and reports
   cooperative cancellation or normal completion to `JobManager`.
+- **Peers inactivity update** — starts when `tracker_usage_statistics` is
+  enabled. Its unspawned runner observes the root token or weak registry or
+  statistics-repository expiry and reports cooperative cancellation or normal
+  completion to `JobManager`.
 - **Swarm-registry statistics listener** — starts only when
   `tracker_usage_statistics` is enabled. Its unspawned runner receives the
   root token and reports either cooperative cancellation or completion.
@@ -163,9 +167,6 @@ each row.
 
 ### Legacy Registry
 
-- **Peers inactivity update** — starts with `tracker_usage_statistics`. Its
-  pre-spawned legacy handle similarly observes direct Ctrl-C or weak-dependency
-  expiry, ignores `jobs.cancel()`, and is aborted then joined at the deadline.
 - **UDP IP-ban cleanup** — starts with UDP services. Its pre-spawned legacy
   handle observes the root token; the manager waits for it or aborts and joins
   it at the deadline.
@@ -178,20 +179,19 @@ $$
 
 The constant three represents the HTTP-core listener, UDP-core listener, and
 health-check API. Torrent cleanup is conditional on its cleanup interval. The
-two legacy jobs are separate and individually conditional as shown above.
+sole legacy job is separately conditional as shown above.
 
 ## Findings and Roadmap Mapping
 
 1. The #1586 supervisor boundary is present: direct top-level component
-   futures enter `JoinSet`; component child handles do not. The three
-   pre-spawned periodic jobs were a deliberately narrow compatibility registry.
-   The two remaining pre-spawned periodic jobs are retained in that registry
-   under the same process-wide deadline.
+  futures enter `JoinSet`; component child handles do not. The pre-spawned UDP
+  IP-ban cleanup job remains the sole deliberately narrow compatibility
+  registry entry under the same process-wide deadline.
 2. `main.rs` now handles Unix `SIGTERM` at the executable boundary. SI-1 is
    complete, so this is not an open gap.
-3. `peers_inactivity_update` still subscribes to Ctrl-C directly and therefore
-   requires the deadline-abort fallback after `jobs.cancel()`. Its migration is
-   SI-5. Torrent cleanup is a direct token-aware component after SI-4.
+3. `peers_inactivity_update` is a direct token-aware component after SI-5. It
+  observes `jobs.cancel()` and reports cooperative cancellation; torrent
+  cleanup is a direct token-aware component after SI-4.
 4. Server libraries still combine private `Halted` channels with
    `global_shutdown_signal` behavior. The additive lifecycle API belongs to
    SI-2; supported-consumer deprecation/removal follows in SI-18 and SI-19.
@@ -207,7 +207,7 @@ two legacy jobs are separate and individually conditional as shown above.
    SI-20.
 
 No implementation evidence identified a missing independently releasable
-shutdown slice. The [EPIC #1488 roadmap][issue-1488] remains unchanged.
+shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.
 
 [issue-1488]: ../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 [issue-1586]: ../../issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
