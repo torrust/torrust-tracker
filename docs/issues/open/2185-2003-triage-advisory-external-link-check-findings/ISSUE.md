@@ -181,7 +181,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                           |
 | ----- | ---------------------- | ------------------------------------------------------------------ |
 | AC1   | DONE                   | `external-link-baseline.md` from run 34347690674.                  |
-| AC2   | TODO                   | C3 and C4 target and hosted verification are recorded; remaining repair slices must be verified. |
+| AC2   | TODO                   | C3-C5 target and hosted verification are recorded; remaining repair slices must be verified. |
 | AC3   | DONE                   | C1/C9 and C2 hosted runs show each exact exclusion remains narrow. |
 | AC4   | DONE                   | Run 34578523069 failed visibly and uploaded its report artifact.   |
 | AC5   | DONE                   | Runs 34578523069, 34616458439, 34829466145, 34843399874, and 34971438822 record each completed remediation slice. |
