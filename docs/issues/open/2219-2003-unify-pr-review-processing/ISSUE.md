@@ -62,8 +62,8 @@ sibling process subissues (#2155, #2156, #2159, #2160):
   model is chosen; the current integration points are the pre-commit hook and the `linter`
   rustfmt step, and both remain replaceable by the EPIC's later architecture decision.
 
-On promotion from draft, add this issue to the EPIC's Approved Early Implementation Candidates
-table with a "Why It May Proceed" entry restating the above.
+This issue is registered in the EPIC's Approved Early Implementation Candidates table with a
+"Why It May Proceed" entry restating the above.
 
 ## Roles and Ownership
 
