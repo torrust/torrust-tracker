@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T09:00:00Z
+last-updated-utc: 2026-09-15T10:15:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -174,10 +174,8 @@ Observed pain points, in decreasing order of cost:
   clear it is a request that streamlines processing, not a gate on reviewers.
 - Migrate the current `docs/copilot-pr-reviews/` and `docs/pr-review-feedback/` records below
   the canonical `docs/pr-reviews/` parent directory. Preserve files as Git renames and repair all
-  links, skill metadata, and templates in one dedicated migration increment. The final layout may
-  retain topic subdirectories (for example, `docs/pr-reviews/copilot-suggestions/` and
-  `docs/pr-reviews/maintainer-feedback/`) only if each remains necessary after the unified audit
-  template is adopted; otherwise retain one flat per-PR audit directory.
+  links, skill metadata, and templates in one dedicated migration increment. The final layout is
+  flat: `docs/pr-reviews/pr-<PR_NUMBER>-review.md`; do not retain topic subdirectories.
 
 ### Out of Scope
 
@@ -203,30 +201,145 @@ Observed pain points, in decreasing order of cost:
 Not applicable: this issue changes shell/lint tooling configuration, skills, templates, and
 documentation. No child processes, asynchronous I/O, or test fixtures are designed here.
 
+## Implementation Contract
+
+This section resolves the implementation choices material to a repeatable outcome. A task must
+update this contract before proceeding when its stated command, file set, or success criterion
+becomes impossible; it must not silently substitute a different workflow.
+
+### T1 Formatter-Gate Decision
+
+The installed `linter 0.2.0` executes `cargo fmt --check --quiet`, so it cannot express the CI
+command or select a toolchain. T1 therefore adds a named `Checking nightly Rust formatting` step
+to `contrib/dev-tools/git/hooks/pre-commit.sh` that runs this exact command:
+
+```sh
+cargo +nightly fmt --all -- --check
+```
+
+This is the hook's sole CI-parity formatter result. `linter all` remains an independent aggregate
+linter invocation until `torrust/torrust-linting` releases a version that can omit or configure
+its stable rustfmt component. Its stable rustfmt output must never be recorded or described as
+formatter-parity evidence. If such a release becomes available before T1 is implemented, T1 may
+instead pin that release and remove the dedicated hook step only when the linter invokes the exact
+command above; record the released version and upstream change URL in the progress log.
+
+There is no established hook test harness. T1 proves the new step with the negative M1 detached
+worktree reproduction and a passing current-tree hook run. The historical fixture is parent commit
+`defe8466aa5b33fed02484fdf97e997546b612e8`, immediately preceding the unique subject
+`style(udp-server): fix rustfmt import grouping`. Its affected files are
+`packages/udp-server/src/handlers/mod.rs`, `packages/udp-server/src/server/request_buffer.rs`, and
+`packages/udp-server/src/statistics/event/handler/error.rs`. From a detached worktree at that
+parent, the named nightly step must exit nonzero and identify at least one of those paths.
+
+### Unified Audit Contract
+
+Every new audit is `docs/pr-reviews/pr-<PR_NUMBER>-review.md`, copied from
+`docs/templates/PR-REVIEW-TEMPLATE.md`. The PR author exclusively owns this tracked record;
+reviewers, including repository review agents, create no repository artifact. One normalized row
+represents one independent concern, including a concern stated in a multi-finding review body.
+
+| Field | Required value |
+| ----- | -------------- |
+| PR number | Target pull request number. |
+| Source review ID | GitHub review ID, including review-body-only findings. |
+| Source URL | Stable review, thread, or comment URL. |
+| Finding ID | Reviewer-provided ID, or an author-assigned `F<ordinal>` in source-review and source-order order. |
+| Severity | `Blocker`, `Major`, `Minor`, `Nit`, or `Suggestion`; append `(inferred)` when derived from free prose. |
+| Summary | Concise statement of one independent concern. |
+| Relationship | `ORIGINAL` or `RE_RAISE_OF:<FindingId>`. |
+| Disposition | `FIXED`, `NO_ACTION`, `SUPERSEDED`, or `FOLLOW_UP`; no row is closed with an undocumented value. |
+| Current-tree verification | Command or file inspection and its result supporting the reply claim. |
+| Resolution reference | Unique Conventional Commit subject and/or durable reply URL; never a branch SHA that can change after a rebase. |
+| Reply URL | Thread reply or consolidated response URL. |
+| Thread state | `RESOLVED`, `NON_RESOLVABLE`, or `SUPERSEDED`. |
+
+Classify `github-copilot[bot]` and `copilot-pull-request-reviewer` as Copilot, a human GitHub
+account as human, and every other bot or unavailable author as `unknown`; classification changes
+triage context only, never the contract. Split a review body into a row for each independently
+actionable assertion; its summary/verdict text has no row unless it makes an independent request.
+A later thread is a duplicate/re-raise when it requests the same current-tree change as an existing
+finding. It receives its own source row and `RE_RAISE_OF` relationship before any action.
+
+Before replying or resolving an inline thread, re-derive the stated claim against the current tree.
+For an outdated or superseded thread, reply exactly `Superseded by <FindingId>: <reason>.`, record
+`SUPERSEDED`/`NO_ACTION` and `SUPERSEDED`, then resolve it. One consolidated PR response may cover
+multiple review rounds only when it names every review ID and every finding ID with its disposition
+and resolution reference. Final completion fetches threads with the GraphQL-first
+`fetch-review-threads` skill and demonstrates no unresolved actionable thread; REST review-comment
+responses are supplementary only.
+
+### Migration and Compatibility Contract
+
+T4 moves every tracked file in `docs/copilot-pr-reviews/` and `docs/pr-review-feedback/` to
+`docs/pr-reviews/` with `git mv`: the two `README.md` files, `EXAMPLE-COMPLETED.md`, all
+`pr-*-copilot-suggestions.md` files, and all `pr-*-review-feedback.md` files. Rename each per-PR
+file to `pr-<PR_NUMBER>-review.md`; where both sources exist for one PR, merge their histories and
+content into that one audit as a documented migration exception. Remove both old top-level
+directories after migration. T4 must run a repository-wide search for
+`docs/(copilot-pr-reviews|pr-review-feedback)|process-(copilot-suggestions|pr-review-feedback)` and
+repair every tracked link, frontmatter reference, and skill-link marker.
+
+T6 retains the two old skill directories as one-release compatibility redirects. Each stub keeps
+valid skill frontmatter, states that it is deprecated, links to `process-pr-review`, and contains no
+workflow instructions that conflict with the unified skill. Delete both stubs in the first release
+after a repository-wide search finds no `skill-link` or documented invocation of either old name.
+
+### Reviewer-Format Contract
+
+No GitHub-native PR template currently exists. T5 creates
+`.github/PULL_REQUEST_TEMPLATE/review-findings.md` and links the advisory finding guidance in the
+unified skill. The template's required wording states that the format is advisory and no review is
+rejected for omitting it; requires one independent finding per inline thread; requires the first
+line `[<Severity>][<FindingId>] <summary>`; permits only `Blocker`, `Major`, `Minor`, `Nit`, and
+`Suggestion`; requires re-raises to use the original finding ID; and asks review bodies to contain
+only a round verdict/summary instead of duplicated detailed findings.
+
+### Fixed Dry-Run Fixture
+
+T7's required acceptance evidence is a dry run of PR #2174 review `5155990517`:
+<https://github.com/torrust/torrust-tracker/pull/2174#pullrequestreview-5155990517>. Fetch the
+review body and its two source comments at
+<https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3969816901> and
+<https://github.com/torrust/torrust-tracker/pull/2174#discussion_r3969816911>, plus review threads
+through `fetch-review-threads`. It must normalize two original inline findings, author-assign
+`F1` and `F2` in source order, and record one review-body summary with no independent row. It does
+not contain a re-raise; the dry run additionally models a later comment repeating `F1` as
+`F3 | RE_RAISE_OF:F1`. M3 processes the following literal advisory comment into the specified row:
+
+```text
+[Major][F42] Validation evidence omits the formatter toolchain.
+```
+
+Expected normalized values are `Finding ID=F42`, `Severity=Major`, `Relationship=ORIGINAL`, and
+`Summary=Validation evidence omits the formatter toolchain.` GitHub data is fetched for the review
+and threads; the subsequent re-raise and M3 comment are simulated fixtures, clearly labelled as
+such in the evidence.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                            | Notes / Expected Output                                                                                                                                                                                                 |
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Align local formatting gate with CI             | `pre-commit.sh` (or the `linter` rustfmt step, coordinated with `torrust/torrust-linting`) fails exactly when CI's nightly formatting check fails. Verified by reproducing a violation preceding PR #2174's `style(udp-server): fix rustfmt import grouping` commit locally. |
-| T2  | TODO   | Add toolchain column/note to evidence templates | `docs/templates/ISSUE.md` validation guidance and the test-refactor-plan guidance require naming the toolchain for each recorded command result.                                                                          |
-| T3  | TODO   | Draft unified `process-pr-review` skill         | One skill with author-based dispatch, deduplication step, superseded-thread disposition, consolidated-response rule, GraphQL-first fetching. Existing `fetch-review-threads`/`resolve-review-threads` helper skills are reused. |
-| T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` as the canonical parent; migrate both existing top-level audit directories as Git renames, repair links/metadata, and add one template that supersedes `COPILOT-SUGGESTIONS-TEMPLATE.md` and `PR-REVIEW-FEEDBACK-TEMPLATE.md`. |
-| T5  | TODO   | Publish requested reviewer finding format       | Advisory format documented and linked from the PR template; includes the severity header line, one-finding-per-thread rule, and re-raise referencing.                                                                    |
-| T6  | TODO   | Deprecate the two old skills                    | `process-copilot-suggestions` and `process-pr-review-feedback` bodies redirect to the unified skill; skill-link markers updated repository-wide.                                                                          |
-| T7  | TODO   | Verify and record evidence                      | Run the unified workflow end-to-end on the next real reviewed PR (or a dry-run against PR #2174's recorded threads) and record findings in this issue's evidence.                                                        |
+| T1  | TODO   | Align local formatting gate with CI             | Change `contrib/dev-tools/git/hooks/pre-commit.sh`; add the named nightly command from the contract and document the `linter 0.2.0` limitation. Validate M1, then `cargo +nightly fmt --all -- --check`, the hook, and `git diff --check`. |
+| T2  | TODO   | Add toolchain column/note to evidence templates | Change `docs/templates/ISSUE.md` and `.github/skills/dev/testing/write-unit-test/SKILL.md`. Require every validation command result to name its toolchain; add one in-repo example. Validate Markdown, links, spell checking, and `git diff --check`. |
+| T3  | TODO   | Draft unified `process-pr-review` skill         | Create `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` implementing the Unified Audit Contract and reusing `fetch-review-threads`/`resolve-review-threads`. Validate its frontmatter, command paths, and M2 dry run against the contract. |
+| T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`, then perform the exact migration in the Migration and Compatibility Contract. Validate with the specified repository-wide search, Markdown/link/spell checks, and `git diff --check`. |
+| T5  | TODO   | Publish requested reviewer finding format       | Create `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and add the identical advisory guidance to the unified skill. Validate M3's literal comment and Markdown/link/spell checks. |
+| T6  | TODO   | Deprecate the two old skills                    | Replace only the bodies of `process-copilot-suggestions` and `process-pr-review-feedback` with the compatibility redirects in the contract. Validate every result from the specified repository-wide search and skill-link synchronization. |
+| T7  | TODO   | Verify and record evidence                      | Complete M1-M3 in `manual-verification-evidence.md`; M2's PR #2174 dry run is mandatory and a next-real-PR run is optional. Record fetched versus simulated inputs and the GraphQL final-thread result. |
 
 ## Commit Points
 
 | Task | Coherent change set                                     | Commit policy                                        |
 | ---- | ------------------------------------------------------- | ---------------------------------------------------- |
-| T1   | Hook/linter formatting-toolchain fix                    | Commit after reproducing the historical false green. |
-| T2   | Template toolchain-evidence requirement                 | Commit after focused validation and required review. |
-| T3   | Unified skill                                           | Commit after focused validation and required review. |
+| T1   | Hook-level nightly formatter-parity step                | Commit after M1 fails as specified and the current tree passes. |
+| T2   | Toolchain-evidence template guidance                    | Commit after focused documentation validation and required review. |
+| T3   | Unified skill                                           | Commit after M2 contract dry-run validation and required review. |
 | T4   | Unified audit-directory migration and template          | Commit after link validation and required review.    |
-| T5   | Reviewer finding-format documentation                   | Commit after focused validation and required review. |
-| T6   | Old-skill deprecation and skill-link updates            | Commit after focused validation and required review. |
+| T5   | Reviewer finding-format documentation                   | Commit after M3 and focused documentation validation. |
+| T6   | Old-skill compatibility redirects and link updates      | Commit after the specified search and required review. |
 | T7   | Evidence and retrospective                              | Final documentation commit after review.             |
 
 ## Progress Tracking
@@ -256,6 +369,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   candidate under EPIC #2003.
 - 2026-09-15 - GitHub Copilot - Created GitHub issue #2219 and moved the approved specification
   to this canonical open-issue path.
+- 2026-09-15 10:15 UTC - GitHub Copilot - Hardened the implementation contract before T1: pinned
+  `linter 0.2.0` as unable to select nightly rustfmt, selected the hook-level parity step, fixed
+  the audit and migration layouts, and pinned M1-M3 fixtures. Created empty manual-verification
+  evidence; no implementation behavior changed.
 
 ## Acceptance Criteria
 
@@ -295,9 +412,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                          | Human-oriented command/steps                                                                                                       | Expected Result                                                            | Status | Evidence                                     |
 | --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | False-green reproduction          | Check out a commit preceding PR #2174's `style(udp-server): fix rustfmt import grouping` and run the updated pre-commit gate.          | The gate fails on the import-grouping violations that CI failed on.         | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Unified workflow dry run          | Walk one recorded PR #2174 review round through the unified skill's steps, producing the unified audit rows.                          | Every finding maps to exactly one row; re-raises map to the original ID.    | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Reviewer-format round trip        | Write one sample review comment in the requested format and process it through the unified skill.                                    | Severity and finding ID are extracted without free-prose interpretation.     | TODO   | `manual-verification-evidence.md` section V3 |
+| M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | TODO | `manual-verification-evidence.md` section V2 |
+| M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | TODO | `manual-verification-evidence.md` section V3 |
 
 ### Acceptance Verification
 
