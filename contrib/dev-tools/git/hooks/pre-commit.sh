@@ -54,6 +54,7 @@ declare -a STEPS=(
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Running all linters|linter all"
+    "Checking nightly Rust formatting|cargo +nightly fmt --all -- --check"
     "Linting Containerfile with hadolint|./contrib/dev-tools/checks/lint-containerfile.sh"
     "Running documentation tests|cargo test --doc --workspace"
 )

@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T10:15:00Z
+last-updated-utc: 2026-09-15T12:35:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -322,7 +322,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                            | Notes / Expected Output                                                                                                                                                                                                 |
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Align local formatting gate with CI             | Change `contrib/dev-tools/git/hooks/pre-commit.sh`; add the named nightly command from the contract and document the `linter 0.2.0` limitation. Validate M1, then `cargo +nightly fmt --all -- --check`, the hook, and `git diff --check`. |
+| T1  | DONE   | Align local formatting gate with CI             | Added `Checking nightly Rust formatting` to `contrib/dev-tools/git/hooks/pre-commit.sh`, running `cargo +nightly fmt --all -- --check`. M1 failed at that named step on the pinned fixture; the updated current-tree hook passed. |
 | T2  | TODO   | Add toolchain column/note to evidence templates | Change `docs/templates/ISSUE.md` and `.github/skills/dev/testing/write-unit-test/SKILL.md`. Require every validation command result to name its toolchain; add one in-repo example. Validate Markdown, links, spell checking, and `git diff --check`. |
 | T3  | TODO   | Draft unified `process-pr-review` skill         | Create `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` implementing the Unified Audit Contract and reusing `fetch-review-threads`/`resolve-review-threads`. Validate its frontmatter, command paths, and M2 dry run against the contract. |
 | T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`, then perform the exact migration in the Migration and Compatibility Contract. Validate with the specified repository-wide search, Markdown/link/spell checks, and `git diff --check`. |
@@ -373,10 +373,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `linter 0.2.0` as unable to select nightly rustfmt, selected the hook-level parity step, fixed
   the audit and migration layouts, and pinned M1-M3 fixtures. Created empty manual-verification
   evidence; no implementation behavior changed.
+- 2026-09-15 12:35 UTC - GitHub Copilot - Completed T1. Added the named nightly formatter step
+  to the pre-commit hook. In the pinned historical worktree, a test-only `linter` passthrough
+  bypassed unrelated pre-existing Lychee failures so the hook reached and failed at that exact
+  step; its formatter diagnostics named all three historical import-grouping files. The current
+  tree's complete hook passed. Evidence: `manual-verification-evidence.md` section V1.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A rustfmt violation of the repository's unstable import-grouping options fails the
+- [x] AC1: A rustfmt violation of the repository's unstable import-grouping options fails the
       local pre-commit gate exactly as it fails CI's formatting check, demonstrated on a
       reproduced historical violation.
 - [ ] AC2: The issue and test-plan templates require naming the toolchain for every recorded
@@ -412,7 +417,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                          | Human-oriented command/steps                                                                                                       | Expected Result                                                            | Status | Evidence                                     |
 | --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | TODO | `manual-verification-evidence.md` section V2 |
 | M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | TODO | `manual-verification-evidence.md` section V3 |
 
@@ -420,7 +425,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
+| AC1   | DONE                   | `manual-verification-evidence.md` section V1; hook JSON result with `failed_step=Checking nightly Rust formatting` |
 | AC2   | TODO                   |          |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
