@@ -5,6 +5,7 @@ scope: complete-resolved-cargo-graph
 input-lockfile: Cargo.lock
 input-lockfile-sha256: 4fc7f17ed1d348a4500ef3772c661cda43799f5ef44fb51514386d7b408156d4
 input-revision: c30fbff4
+initial-review-record-commit: 1daf4e2d9bd117da6a43bf391f27f5b5c1e73ed5
 next-scheduled-review-utc: 2027-02-28
 ---
 
@@ -24,8 +25,11 @@ outcome. This report is technical analysis, not legal advice.
 
 The review covers all 575 packages resolved by the locked workspace graph,
 including normal, build, development, target-specific, optional, and
-transitive dependencies. It uses commit `c30fbff4` and the lockfile checksum
-in this document's frontmatter.
+transitive dependencies. Its inventory input is commit `c30fbff4`, the
+lockfile checksum in this document's frontmatter, and the immutable initial
+review record commit `1daf4e2d9bd117da6a43bf391f27f5b5c1e73ed5`. That commit
+adds the `workspace-coupling` license-inheritance change required for the
+retained inventory to reproduce byte-for-byte; see E6.
 
 The complete declared-license inventory was produced with:
 
@@ -78,7 +82,7 @@ Use this report structure for each twice-yearly review.
 | `openmetrics-parser` 0.4.4 declares `LGPL-3.0` and is runtime-reachable through `torrust-metrics`.                                                | E1, E2, E7 | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.                                                  |
 | `bencode2json` 0.1.0 declares `LGPL-3.0` in the complete locked graph.                                                                            | E1, E7     | PENDING  | Classify its locked-graph role and distribution obligations; obtain maintainer approval or legal escalation.                                      |
 | `webpki-root-certs` 1.0.9 declares `CDLA-Permissive-2.0`.                                                                                         | E2, E4     | PENDING  | Classify the license and any applicable notices.                                                                                                  |
-| `ring`, `aws-lc-sys`, `aws-lc-rs`, `encoding_rs`, and `unicode-ident` have conjunctive or mixed declarations.                                     | E1, E4     | PENDING  | Record selected paths, retained notices, and maintainer rationale.                                                                                |
+| `ring`, `aws-lc-sys`, `aws-lc-rs`, `brotli`, `encoding_rs`, `matchit`, and `unicode-ident` have conjunctive or mixed declarations.               | E1, E4     | PENDING  | Record selected paths, retained notices, and maintainer rationale.                                                                                |
 | `workspace-coupling` lacked a declared license.                                                                                                   | E6         | RESOLVED | It now inherits the workspace `AGPL-3.0-only` declaration.                                                                                        |
 
 Common permissive and dual-permissive declarations were included in the full
@@ -135,7 +139,7 @@ needed for the decision checklist; it is not a compatibility conclusion.
 | `bencode2json` 0.1.0                    | A normal dependency of the publishable `torrust-tracker-client` console-client package. It is present in the complete locked graph; the current evidence does not show it as a main tracker runtime dependency.                                                                                                                                                                                                                                              | Maintainer classification of console-client distribution and legal escalation if needed.                                                  |
 | `webpki-root-certs` 1.0.9               | Reached through `reqwest` and `rustls-platform-verifier`; normal dependency paths reach the tracker application, server packages, and client artifacts.                                                                                                                                                                                                                                                                                                      | Maintainer classification of runtime distribution and any notice-handling work.                                                           |
 | `ring`, `aws-lc-sys`, and `aws-lc-rs`   | TLS dependencies reached through Rustls, Axum server, Reqwest, and related normal dependency paths that reach tracker runtime packages.                                                                                                                                                                                                                                                                                                                      | Maintainer classification of the compound expressions, bundled notices, and any legal escalation.                                         |
-| `encoding_rs` and `unicode-ident`       | Transitive dependencies in the locked workspace graph with verified package license texts and non-routine conjunctive declarations.                                                                                                                                                                                                                                                                                                                          | Maintainer classification of the selected license paths, notices, and any legal escalation.                                               |
+| `brotli`, `encoding_rs`, `matchit`, and `unicode-ident` | Runtime-reachable transitive dependencies with non-routine conjunctive declarations. `brotli` and `matchit` each combine only permissive BSD-3-Clause and MIT terms, but remain recorded because the review protocol includes conjunctive declarations.                                                                                                                                                                                   | Maintainer classification of the selected license paths, notices, and any legal escalation.                                               |
 
 All package declarations, source links, and license-file evidence for these
 facts are retained in [evidence.md](evidence.md). A maintainer only needs to

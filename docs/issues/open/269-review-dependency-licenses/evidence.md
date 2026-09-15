@@ -92,8 +92,8 @@ cargo license --avoid-dev-deps --json | jq \
 - **Method:** Inspected each `Cargo.toml` and license files under
   `$CARGO_HOME/registry/src/index.crates.io-*` (common Unix default:
   `~/.cargo`) for `bloom` 0.3.2, `webpki-root-certs` 1.0.9, `ring` 0.17.14,
-  `aws-lc-sys` 0.44.0, `aws-lc-rs` 1.18.0, `encoding_rs` 0.8.35, and
-  `unicode-ident` 1.0.24.
+  `aws-lc-sys` 0.44.0, `aws-lc-rs` 1.18.0, `brotli` 8.0.4, `encoding_rs`
+  0.8.35, `matchit` 0.8.4, and `unicode-ident` 1.0.24.
 - **Observation:** Each manifest matches the declared expression in the
   inventory. Each package includes one or more license files. `bloom` declares
   `GPL-2.0`; its `src/lib.rs`, `src/bloom.rs`, and `src/valuevec.rs` each carry
@@ -152,7 +152,8 @@ cargo license --avoid-dev-deps --json | jq \
   server packages.
 - **Conclusion:** The GPL-2.0 finding is not limited to a test or build-only
   dependency and must not receive a compatibility approval without qualified
-  legal review.
+  legal review. E8 records the later technical remediation of this historical
+  finding.
 - **Report Links:** [Findings](initial-review.md#findings) and
   [Required Actions](initial-review.md#required-actions).
 
