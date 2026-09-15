@@ -146,15 +146,41 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn it_should_return_completed_when_the_collaborators_are_dropped() {
-        // Arrange: the only strong collaborator references are dropped with
-        // the block below, before the runner's first update tick.
+    async fn it_should_return_completed_when_the_registry_is_dropped() {
+        // Arrange: the only strong registry reference is dropped with the
+        // block below, before the runner's first update tick.
+        let stats_repository = Arc::new(Repository::new());
         let runner = {
             let swarms = Arc::new(Registry::new(None));
-            let stats_repository = Arc::new(Repository::new());
 
             run_job(
                 swarms,
+                stats_repository.clone(),
+                DurationSinceUnixEpoch::default(),
+                CancellationToken::new(),
+            )
+        };
+        let runner = tokio::spawn(runner);
+        tokio::task::yield_now().await;
+
+        // Act
+        tokio::time::advance(Duration::from_secs(15)).await;
+        let completion = runner.await.expect("the activity metrics runner should not panic");
+
+        // Assert
+        assert_eq!(completion, Completion::Completed);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_return_completed_when_the_statistics_repository_is_dropped() {
+        // Arrange: the only strong statistics repository reference is dropped
+        // with the block below, before the runner's first update tick.
+        let swarms = Arc::new(Registry::new(None));
+        let runner = {
+            let stats_repository = Arc::new(Repository::new());
+
+            run_job(
+                swarms.clone(),
                 stats_repository,
                 DurationSinceUnixEpoch::default(),
                 CancellationToken::new(),

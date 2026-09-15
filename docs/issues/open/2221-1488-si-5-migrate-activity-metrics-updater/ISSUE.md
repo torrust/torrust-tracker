@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: in-review
 priority: p2
 epic: 1488
 github-issue: 2221
 spec-path: docs/issues/open/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
 branch: 2221-migrate-activity-metrics-updater
-related-pr: null
-last-updated-utc: 2026-09-15 09:30
+related-pr: 2224
+last-updated-utc: 2026-09-15 10:20
 semantic-links:
   skill-links:
     - create-issue

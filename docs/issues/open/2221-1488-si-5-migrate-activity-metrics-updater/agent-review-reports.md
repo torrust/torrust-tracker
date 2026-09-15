@@ -27,3 +27,10 @@ semantic-links:
 - Follow-up actions:
   - Record the required completion-review assessment before requesting another review.
   - Synchronize the manual-scenario status fields with the recorded evidence; run and record required pre-push checks before publication.
+
+### 2026-09-15 10:20 UTC - Task Reviewer Correction
+
+- Correction scope: Recheck the three documentation-completion findings in the 2026-09-15 09:57 UTC report.
+- Evidence: `ISSUE.md` records completed manual scenario status, acceptance re-review, completion assessment, and pre-push validation; `manual-verification-evidence.md` contains the corresponding runtime evidence.
+- Findings: The required completion review now explains why no separate retrospective is needed. The M1--M4 status cells now match the recorded evidence. The pre-push checks are recorded as passed.
+- Verdict: REVIEW PASSED

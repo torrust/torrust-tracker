@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-15
+last-updated-utc: 2026-09-15 10:20
 semantic-links:
   skill-links:
     - create-issue
