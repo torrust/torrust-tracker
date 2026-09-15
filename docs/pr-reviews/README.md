@@ -22,5 +22,3 @@ Create new records from [PR-REVIEW-TEMPLATE.md](../templates/PR-REVIEW-TEMPLATE.
 Historical duplicate source audits for a PR use the `-copilot-suggestions-legacy.md` suffix.
 They preserve completed evidence from before the unified workflow and are not templates for new
 records.
-
-See [EXAMPLE-COMPLETED.md](EXAMPLE-COMPLETED.md) for a completed historical audit.
