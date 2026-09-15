@@ -36,12 +36,13 @@ Status legend:
 ## Processing Log
 
 - 2026-09-15: Started processing one Copilot suggestion.
+- 2026-09-15: Completed the suggestion; it received a reply before resolution.
 
 ## Suggestions
 
 | #   | Thread ID               | Path                                                                                 | URL                                                                          | Suggestion Summary                                                              | Decision | Reply URL | Status | Thread State |
 | --- | ----------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6iicKw` | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | https://github.com/torrust/torrust-tracker/pull/2228#discussion_r4016132105 | Include C5 in AC2's recorded hosted-verification evidence while retaining TODO. | action | Pending | OPEN | OPEN |
+| 1   | `PRRT_kwDOGp2yqc6iicKw` | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | https://github.com/torrust/torrust-tracker/pull/2228#discussion_r4016132105 | Include C5 in AC2's recorded hosted-verification evidence while retaining TODO. | action | https://github.com/torrust/torrust-tracker/pull/2228#discussion_r4016892533 | DONE | RESOLVED |
 
 ## Notes
 
