@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
-last-updated-utc: 2026-09-15T12:45:00Z
+last-updated-utc: 2026-09-15T15:30:00Z
 ---
 
 # Manual Verification Evidence - Unify PR Review Processing
@@ -106,21 +106,42 @@ context but produced no independent finding row because it summarized the two in
 
 - Goal: Normalize the literal advisory-format comment in the issue contract.
 - Initial state: `[Major][F42] Validation evidence omits the formatter toolchain.`
-- Status: `TODO`
+- Status: `DONE`
 
 #### Steps Performed
 
-1. Pending execution.
+1. Ran the following command, which restricts matching to the five contract severities and the
+  `[<Severity>][<FindingId>] <summary>` first-line form:
+
+   ```sh
+   comment='[Major][F42] Validation evidence omits the formatter toolchain.'
+   if [[ "$comment" =~ ^\[(Blocker|Major|Minor|Nit|Suggestion)\]\[(F[0-9]+)\]\ (.+)$ ]]; then
+     severity=${BASH_REMATCH[1]}
+     finding_id=${BASH_REMATCH[2]}
+     summary=${BASH_REMATCH[3]}
+     relationship=ORIGINAL
+     printf 'Finding ID=%s\nSeverity=%s\nRelationship=%s\nSummary=%s\n' "$finding_id" "$severity" "$relationship" "$summary"
+     [[ "$finding_id" == F42 && "$severity" == Major && "$relationship" == ORIGINAL && "$summary" == 'Validation evidence omits the formatter toolchain.' ]]
+   else
+     exit 1
+   fi
+   ```
+
+2. The command exited 0 after asserting the parsed finding ID, severity, relationship, and
+  summary against the pinned M3 expected values.
 
 #### Observed Result
 
 ```text
-Pending execution.
+Finding ID=F42
+Severity=Major
+Relationship=ORIGINAL
+Summary=Validation evidence omits the formatter toolchain.
 ```
 
 #### Conclusion
 
-Pending execution.
+The literal advisory-format comment normalizes to the pinned fields without free-prose parsing.
 
 ## Failures and Follow-up
 

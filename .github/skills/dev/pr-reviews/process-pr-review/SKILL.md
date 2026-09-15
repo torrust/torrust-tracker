@@ -8,6 +8,7 @@ metadata:
     related-artifacts:
       - docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
         - docs/templates/PR-REVIEW-TEMPLATE.md
+        - .github/PULL_REQUEST_TEMPLATE/review-findings.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
 ---
@@ -74,6 +75,15 @@ verification, resolution reference, reply URL, and thread state. Severity is
 `Blocker`, `Major`, `Minor`, `Nit`, or `Suggestion`; mark a severity inferred
 from free prose as inferred. Resolution references are unique Conventional
 Commit subjects and/or durable reply URLs, never branch SHAs.
+
+## Advisory Reviewer Finding Format
+
+The GitHub [review finding template](../../../../PULL_REQUEST_TEMPLATE/review-findings.md) is
+advisory: never reject a review for omitting it. For a formatted inline finding, require the first
+line `[<Severity>][<FindingId>] <summary>`, with severity limited to `Blocker`, `Major`, `Minor`,
+`Nit`, or `Suggestion`. Each independently actionable finding gets its own inline thread. A
+re-raised finding uses the original finding ID and states the re-raise in its body. Review bodies
+contain only the round verdict or summary; do not duplicate detailed inline findings there.
 
 ## Completion Checklist
 

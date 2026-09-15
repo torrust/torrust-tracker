@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T15:15:00Z
+last-updated-utc: 2026-09-15T15:30:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -330,7 +330,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Add toolchain column/note to evidence templates | Updated `docs/templates/ISSUE.md`, `create-issue`, and `write-unit-test` to require toolchain-qualified results. The template gives `cargo +nightly fmt --all -- --check` as a nightly-Rust example. Markdown, link, spell, and whitespace checks passed. |
 | T3  | DONE   | Draft unified `process-pr-review` skill         | Added `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` with GraphQL-first fetching, author classification, normalization, deduplication, current-tree verification, and resolution rules. M2 passed against the pinned PR #2174 data. |
 | T4  | DONE   | Create unified audit directory and template     | Created `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`; Git-renamed all records, retaining four duplicate Copilot audits with an explicit `-legacy` suffix and migration notes. Removed both old parents and templates. Markdown, spell, link, and whitespace checks passed. |
-| T5  | TODO   | Publish requested reviewer finding format       | Create `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and add the identical advisory guidance to the unified skill. Validate M3's literal comment and Markdown/link/spell checks. |
+| T5  | DONE   | Publish requested reviewer finding format       | Created `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and matched its advisory contract in the unified skill. M3 parsed the pinned literal as `F42`, `Major`, `ORIGINAL`, and the expected summary. Markdown, link, spell, and whitespace checks passed. |
 | T6  | TODO   | Deprecate the two old skills                    | Replace only the bodies of `process-copilot-suggestions` and `process-pr-review-feedback` with the compatibility redirects in the contract. Validate every result from the specified repository-wide search and skill-link synchronization. |
 | T7  | TODO   | Verify and record evidence                      | Complete M1-M3 in `manual-verification-evidence.md`; M2's PR #2174 dry run is mandatory and a next-real-PR run is optional. Record fetched versus simulated inputs and the GraphQL final-thread result. |
 
@@ -398,6 +398,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   provenance. Existing active PR audit branches will rebase and migrate their unmerged records
   under the documented transition protocol. Markdown, CSpell, Lychee, and whitespace checks
   passed.
+- 2026-09-15 15:30 UTC - GitHub Copilot - Completed T5. Added the advisory GitHub review-finding
+  template and identical parsing contract to `process-pr-review`. The literal M3 input normalized
+  to `F42`, `Major`, `ORIGINAL`, and the pinned summary without free-prose parsing. Markdown,
+  CSpell, Lychee, and whitespace checks passed. Evidence: `manual-verification-evidence.md`
+  section V3.
 
 ## Acceptance Criteria
 
@@ -412,7 +417,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC4: All PR-review audit records are under the canonical `docs/pr-reviews/` parent
   directory; one unified per-PR audit template exists and the migrated documentation directs
   new PRs to it.
-- [ ] AC5: The requested reviewer finding format is documented, linked from the PR template, and
+- [x] AC5: The requested reviewer finding format is documented, linked from the PR template, and
       explicitly advisory.
 - [ ] AC6: The unified skill and audit template state that the PR author solely owns the tracked
       record and that reviewers (including repository review agents) have no repository-artifact
@@ -439,7 +444,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | DONE | `manual-verification-evidence.md` section V2 |
-| M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | TODO | `manual-verification-evidence.md` section V3 |
+| M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | DONE | `manual-verification-evidence.md` section V3 |
 
 ### Acceptance Verification
 
@@ -449,7 +454,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC2   | DONE                   | `docs/templates/ISSUE.md` nightly Rust example; `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` |
 | AC3   | TODO                   |          |
 | AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
-| AC5   | TODO                   |          |
+| AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
 | AC6   | TODO                   |          |
 
 ## Risks and Trade-offs
