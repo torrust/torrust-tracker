@@ -4,7 +4,7 @@ status: open
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-11
+last-updated-utc: 2026-09-14
 semantic-links:
   skill-links:
     - create-issue
@@ -12,6 +12,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - docs/issues/open/1347-overhaul-packages-testing/subissue-spec-guidelines.md
     - docs/testing/README.md
     - docs/testing/refactoring-patterns/README.md
     - docs/skills/semantic-skill-link-convention.md
@@ -67,6 +68,15 @@ The repository was reorganized through package refactoring and extraction work. 
 - Replacing the existing end-to-end test suite.
 - Unrelated production refactoring not justified by improving testability.
 - Treating coverage percentage as proof of correct behavior.
+
+## Subissue Specification Guidelines
+
+New subissue specifications must follow the
+[subissue specification guidelines](subissue-spec-guidelines.md), distilled from the completed
+subissues #2136, #2140, and #2149. They record the validated practices to keep, the required
+corrections (toolchain-pinned validation, complete module inventory, lightweight decision
+records, module-level approval gates, defined verification terms, guidance-change separation,
+reconciliation, handoff notes, and rebase-stable citations), and a spec-drafting checklist.
 
 ## Subissues
 
