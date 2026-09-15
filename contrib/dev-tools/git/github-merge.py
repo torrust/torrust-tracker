@@ -38,6 +38,7 @@ ATTR_NAME = ''
 ATTR_WARN = ''
 ATTR_HL = ''
 COMMIT_FORMAT = '%H %s (%an)%d'
+EXIT_STALE_MERGE_BASE = 4
 if os.name == 'posix': # if posix, assume we can use basic terminal escapes
     ATTR_RESET = '\033[0m'
     ATTR_PR = '\033[1;36m'
@@ -627,7 +628,7 @@ def main():
     if github_merge_base != current_base:
         print(f"ERROR: GitHub's merge for {pull_reference} is based on {github_merge_base}, but {branch} is at {current_base}.", file=stderr)
         print(f"Rebase the pull request branch onto {branch}, push it, wait for GitHub to recompute the merge, then retry.", file=stderr)
-        sys.exit(4)
+        sys.exit(EXIT_STALE_MERGE_BASE)
     subprocess.check_call([GIT,'checkout','-q',base_branch])
     subprocess.call([GIT,'branch','-q','-D',local_merge_branch], stderr=devnull)
     subprocess.check_call([GIT,'checkout','-q','-b',local_merge_branch])

@@ -190,8 +190,9 @@ class MergeFixture:
         """Publish the target branch and the pull request's refs the way the forge exposes them."""
         if merge_commit is None:
             base_commit = self.git('rev-parse', TARGET_BRANCH).strip()
-            merge_commit = self.git('commit-tree', f'{head_commit}^{{tree}}', '-p', base_commit,
-                                    '-p', head_commit, '-m', 'GitHub pull request merge').strip()
+            merge_tree = self.git('merge-tree', '--write-tree', base_commit, head_commit).strip()
+            merge_commit = self.git('commit-tree', merge_tree, '-p', base_commit, '-p', head_commit,
+                                    '-m', 'GitHub pull request merge').strip()
         self.git('push', '--quiet', str(self.upstream),
                  f'+{TARGET_BRANCH}:refs/heads/{TARGET_BRANCH}',
                  f'+{head_commit}:refs/pull/{PULL_REQUEST}/head',
