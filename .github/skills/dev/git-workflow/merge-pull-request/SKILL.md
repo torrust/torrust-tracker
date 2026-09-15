@@ -104,6 +104,13 @@ If it passes and an authorized maintainer wants an inspection attempt, run:
 ./contrib/dev-tools/git/merge-pull-request.sh <pull-request-number>
 ```
 
+Immediately before starting the interactive merge, rebase the pull-request branch onto the latest
+`develop`, push it, and wait for GitHub to recompute the pull request merge and required checks.
+The tool compares GitHub's merge base with the fetched `develop` tip and refuses a stale merge
+before constructing or signing a local commit. A direct-push rejection containing `GH013` and
+"Changes must be made through a pull request" can therefore mean that GitHub's merge ref was
+stale, not that a new pull request is required: rebase, push, wait for recomputation, then retry.
+
 The vendor tool fetches the pull request and upstream base, checks out its temporary branches,
 and creates an unsigned local merge with `git merge --commit --no-edit --no-ff --no-gpg-sign`.
 Inspect the displayed commit graph, merge title, PR description, and `git diff HEAD~`. If no
