@@ -170,13 +170,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                 | Notes / Expected Output                                                                                                                                     |
 | --- | ------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Replace pre-spawned package API      | Add unspawned `run_job` accepting `CancellationToken` and returning `Completion`; remove `start_job` and the `ctrl_c()` branch.                             |
-| T2  | TODO   | Drop unused `tokio` `signal` feature | Remove `signal` from the package's `tokio` features if the package has no other user; keep it otherwise and record why.                                     |
-| T3  | TODO   | Migrate bootstrap wrapper            | `src/bootstrap/jobs/activity_metrics_updater.rs` returns the unspawned runner and forwards the token.                                                       |
-| T4  | TODO   | Migrate application registration     | `start_peers_inactivity_update` registers `peers_inactivity_update` through `JobManager::spawn` and `component_runner`; no `register_legacy` call.          |
-| T5  | TODO   | Add deterministic lifecycle tests    | Injected-token cancellation, weak-pointer expiry, and named manager-outcome coverage; follow the `write-unit-test` skill.                                   |
-| T6  | TODO   | Update architecture docs             | Update `src/AGENTS.md` job tree and legacy-registry description so only `udp_ban_cleanup` is described as legacy.                                           |
-| T7  | TODO   | Validate and record evidence         | Pass focused tests, `linter all`, and pre-push checks; record direct-binary SIGTERM and metrics-still-updated evidence in `manual-verification-evidence.md`. |
+| T1  | DONE   | Replace pre-spawned package API      | Added unspawned `run_job` accepting `CancellationToken` and returning `Completion`; removed `start_job` and the `ctrl_c()` branch.                           |
+| T2  | DONE   | Drop unused `tokio` `signal` feature | Removed `signal` from normal Tokio features; added test-only `test-util` for deterministic paused-time coverage.                                            |
+| T3  | DONE   | Migrate bootstrap wrapper            | `src/bootstrap/jobs/activity_metrics_updater.rs` returns the unspawned runner and forwards the token.                                                       |
+| T4  | DONE   | Migrate application registration     | `start_peers_inactivity_update` registers `peers_inactivity_update` through `JobManager::spawn` and `component_runner`; no `register_legacy` call.          |
+| T5  | DONE   | Add deterministic lifecycle tests    | Added injected-token cancellation, weak-collaborator expiry, and named manager-outcome coverage.                                                            |
+| T6  | DONE   | Update architecture docs             | Updated `src/AGENTS.md`; only `udp_ban_cleanup` is now documented as legacy.                                                                                |
+| T7  | DONE   | Validate and record evidence         | Focused tests, `linter all`, workspace documentation tests, and pre-push checks passed; manual evidence is recorded.                                        |
 
 ## Commit Points
 
@@ -198,14 +198,14 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR deliberately skipped: maintainer agreed spec and implementation share one branch because the change follows the reviewed #2169 pattern
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -213,33 +213,37 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 - 2026-09-15 09:04 UTC — Copilot — Rewrote the SI-5 draft to the current issue template using the #2169 (SI-4) migration as the reference design; awaiting maintainer review. — [#2169](../../closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)
 - 2026-09-15 09:20 UTC — Jose Celano — Approved the draft; decided on a single spec-plus-implementation branch and deferred the stale-cutoff bug to a separate follow-up issue.
 - 2026-09-15 09:30 UTC — Copilot — Created GitHub issue #2221, linked it as an EPIC #1488 sub-issue, and moved the spec to `docs/issues/open/`. — https://github.com/torrust/torrust-tracker/issues/2221
+- 2026-09-15 09:49 UTC — Copilot — Migrated the updater to direct token-aware supervision; focused deterministic tests and direct-binary SIGTERM plus two-interval metrics evidence passed. — `manual-verification-evidence.md`
+- 2026-09-15 09:57 UTC — Task Reviewer — Approved implementation behavior and identified documentation-completion gaps; findings resolved below. — `agent-review-reports.md`
+- 2026-09-15 10:00 UTC — Copilot — Completion review: no material design change or invalidated assumption occurred. The only implementation discovery was that deterministic paused Tokio time requires the `test-util` feature, now confined to package dev-dependencies; this is routine test infrastructure, not a reusable architectural lesson, so no separate retrospective is needed.
+- 2026-09-15 10:04 UTC — Copilot — Final verification passed: `linter all`, workspace documentation tests, focused lifecycle tests, and all pre-push checks. — `.tmp/pre-push-*.log`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `activity_metrics_updater.rs` in the `swarm-coordination-registry`
+- [x] AC1: `activity_metrics_updater.rs` in the `swarm-coordination-registry`
       package contains no `tokio::signal::ctrl_c()` call.
-- [ ] AC2: The updater accepts an injected `CancellationToken` and returns
+- [x] AC2: The updater accepts an injected `CancellationToken` and returns
       `Completion::Cancelled` after cancellation.
-- [ ] AC3: Weak-pointer expiry of the registry or statistics repository returns
+- [x] AC3: Weak-pointer expiry of the registry or statistics repository returns
       `Completion::Completed`.
-- [ ] AC4: With `tracker_usage_statistics = true`, `src/app.rs` registers one
+- [x] AC4: With `tracker_usage_statistics = true`, `src/app.rs` registers one
       named direct `JoinSet` component, `peers_inactivity_update`, rather than
       a legacy handle.
-- [ ] AC5: `JobManager::cancel()` produces the named
+- [x] AC5: `JobManager::cancel()` produces the named
       `peers_inactivity_update: JobStatus::Cancelled` outcome without an OS
       signal.
-- [ ] AC6: Direct-binary SIGTERM evidence shows the updater's cancellation log
+- [x] AC6: Direct-binary SIGTERM evidence shows the updater's cancellation log
       and cooperative manager outcome, not its deadline-abort outcome.
-- [ ] AC7: Activity metrics are still updated during normal operation
+- [x] AC7: Activity metrics are still updated during normal operation
       (`Updating peers and torrents activity metrics ...` debug logs across at
       least two intervals and non-error gauge updates).
-- [ ] AC8: `udp_ban_cleanup` remains the only `register_legacy` registration
+- [x] AC8: `udp_ban_cleanup` remains the only `register_legacy` registration
       and is not changed by this task.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes (`src/AGENTS.md`).
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior/workflow changes (`src/AGENTS.md`).
 
 ## Verification Plan
 
@@ -269,10 +273,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                           | Human-oriented command/steps                                                                                                                                                                                      | Expected Result                                                                                                                                                     | Status | Evidence                                     |
 | --- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No direct OS-signal dependency     | `rg 'ctrl_c' packages/swarm-coordination-registry/`                                                                                                                                                               | No matches.                                                                                                                                                         | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Direct-binary SIGTERM cancellation | Build; run `./target/debug/torrust-tracker` with an isolated config where `tracker_usage_statistics = true`; wait for `Tracker shutdown signal handlers installed.`; confirm the direct PID; `kill -TERM <pid>`. | Log shows `Stopping peers activity metrics update job ...` and `Job completed after cooperative cancellation job=peers_inactivity_update`; no abort outcome for it. | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Metrics still updated              | Run the same binary with `RUST_LOG=debug` for at least 35 seconds (two 15s intervals) before stopping.                                                                                                            | At least two `Updating peers and torrents activity metrics (executed every 15 secs) ...` entries with matching `updated in ... ms` lines.                           | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Remaining migration boundary       | Inspect `src/app.rs` for `register_legacy` calls.                                                                                                                                                                 | Only `udp_ban_cleanup` remains; it may still be deadline-aborted in M2 and that is expected.                                                                        | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | No direct OS-signal dependency     | `rg 'ctrl_c' packages/swarm-coordination-registry/`                                                                                                                                                               | No matches.                                                                                                                                                         | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Direct-binary SIGTERM cancellation | Build; run `./target/debug/torrust-tracker` with an isolated config where `tracker_usage_statistics = true`; wait for `Tracker shutdown signal handlers installed.`; confirm the direct PID; `kill -TERM <pid>`. | Log shows `Stopping peers activity metrics update job ...` and `Job completed after cooperative cancellation job=peers_inactivity_update`; no abort outcome for it. | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Metrics still updated              | Run the same binary with `RUST_LOG=debug` for at least 35 seconds (two 15s intervals) before stopping.                                                                                                            | At least two `Updating peers and torrents activity metrics (executed every 15 secs) ...` entries with matching `updated in ... ms` lines.                           | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Remaining migration boundary       | Inspect `src/app.rs` for `register_legacy` calls.                                                                                                                                                                 | Only `udp_ban_cleanup` remains; it may still be deadline-aborted in M2 and that is expected.                                                                        | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -292,14 +296,14 @@ SIGTERM procedure from #2169 applies unchanged.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC1   | DONE                   | Package source search in `manual-verification-evidence.md` V1 |
+| AC2   | DONE                   | Package injected-token test |
+| AC3   | DONE                   | Package paused-time weak-collaborator test |
+| AC4   | DONE                   | Application wiring and `manual-verification-evidence.md` V4 |
+| AC5   | DONE                   | Application named-outcome test |
+| AC6   | DONE                   | `manual-verification-evidence.md` V2 |
+| AC7   | DONE                   | `manual-verification-evidence.md` V3 |
+| AC8   | DONE                   | `manual-verification-evidence.md` V4 |
 
 ## Risks and Trade-offs
 
@@ -327,7 +331,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: No separate retrospective is needed. The token-aware direct-supervision design followed the approved #2169 pattern without material deviation. Tokio's test-only `test-util` feature was the only discovery; it is confined to dev-dependencies and does not establish a reusable architecture decision.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue folder.
 - If no retrospective is needed, add a concise progress-log entry explaining

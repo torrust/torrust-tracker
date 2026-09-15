@@ -2,19 +2,24 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_events::shutdown::Completion;
 
 use crate::CurrentClock;
 use crate::container::AppContainer;
 
-#[must_use]
-pub fn start_job(config: &Configuration, app_container: &Arc<AppContainer>) -> JoinHandle<()> {
-    torrust_tracker_swarm_coordination_registry::statistics::activity_metrics_updater::start_job(
-        &app_container.swarm_coordination_registry_container.swarms.clone(),
-        &app_container.swarm_coordination_registry_container.stats_repository.clone(),
+pub fn run_job(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    cancellation_token: CancellationToken,
+) -> impl Future<Output = Completion> + Send + 'static {
+    torrust_tracker_swarm_coordination_registry::statistics::activity_metrics_updater::run_job(
+        app_container.swarm_coordination_registry_container.swarms.clone(),
+        app_container.swarm_coordination_registry_container.stats_repository.clone(),
         peer_inactivity_cutoff_timestamp(config.core.tracker_policy.max_peer_timeout),
+        cancellation_token,
     )
 }
 

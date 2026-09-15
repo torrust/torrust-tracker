@@ -546,9 +546,13 @@ fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContaine
 
 fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.tracker_usage_statistics {
-        job_manager.register_legacy(
+        job_manager.spawn(
             "peers_inactivity_update",
-            activity_metrics_updater::start_job(config, app_container),
+            component_runner(activity_metrics_updater::run_job(
+                config,
+                app_container,
+                job_manager.new_cancellation_token(),
+            )),
         );
     } else {
         tracing::info!("Peers inactivity update job is disabled.");
@@ -586,7 +590,10 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::{Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_torrent_cleanup};
+    use super::{
+        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_peers_inactivity_update,
+        start_torrent_cleanup,
+    };
     use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
     use crate::container::AppContainer;
 
@@ -682,6 +689,38 @@ mod tests {
             outcomes,
             vec![JobOutcome {
                 name: "torrent_cleanup".to_string(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_register_peers_inactivity_update_as_a_direct_cancelled_component() {
+        // Arrange
+        let configuration = Configuration {
+            core: Core {
+                tracker_usage_statistics: true,
+                ..Core::default()
+            },
+            ..Configuration::default()
+        };
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_peers_inactivity_update(&configuration, &app_container, &mut job_manager);
+
+        // Act
+        job_manager.cancel();
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: "peers_inactivity_update".to_string(),
                 status: JobStatus::Cancelled,
             }]
         );
