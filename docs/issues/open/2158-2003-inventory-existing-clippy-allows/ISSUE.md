@@ -123,6 +123,11 @@ record of category order and entry-level classification evidence.
 - 2026-09-15 - GitHub Copilot - Classified all ten intentional command-line output and process-exit attributes as retained; each exposes a binary, example, benchmark, or shared console output contract - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Classified all 12 async-signature and lifecycle allowances as retained: two-phase server startup, Axum trait/handler boundaries, and uniform asynchronous benchmark calls provide source-specific evidence - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Added issue-local numeric-conversion follow-up drafts for metric aggregate safety, wire-width validation, and domain conversion contracts; defer GitHub issue or EPIC creation until the completed inventory is re-evaluated - `numeric-conversion-follow-up-drafts/README.md`
+- 2026-09-15 - GitHub Copilot - Began trait/API ergonomics classification: retained ten `async_trait` macro-expansion `double_must_use` allowances with existing source evidence - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Classified Figment callback error types and ownership, standard-trait, driver-symmetry, and Tokio lock API allowances; identified three stale configuration `unnecessary_wraps` suppressions for focused removal - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Classified non-UDP-protocol documentation and panic-contract allowances: retained one deprecated public API field name and identified two missing panic-documentation suppressions for removal - `clippy-allow-inventory.md`
+- 2026-09-15 - GitHub Copilot - Added an issue-local UDP protocol crate-baseline design input for the thirteen broad inherited allowances; defer GitHub issue or EPIC creation until the complete inventory is re-evaluated - `udp-protocol-clippy-baseline-draft.md`
+- 2026-09-15 - GitHub Copilot - Completed the classification pass: retained explicit configuration, visibility, and error/composition-boundary contracts; identified six direct stale or mechanical removals - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
