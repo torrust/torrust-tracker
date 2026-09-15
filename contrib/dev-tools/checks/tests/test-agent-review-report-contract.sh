@@ -67,19 +67,21 @@ require_yaml_related_artifact() {
     local file_path=$1
     local expected_artifact=$2
 
-    if ! python3 - "${file_path}" "${expected_artifact}" <<'PY'
-import sys
-
-import yaml
-
-file_path, expected_artifact = sys.argv[1:]
-with open(file_path, encoding="utf-8") as source_file:
-    frontmatter = source_file.read().split("---", 2)[1]
-
-related_artifacts = yaml.safe_load(frontmatter)["metadata"]["semantic-links"]["related-artifacts"]
-sys.exit(expected_artifact not in related_artifacts)
-PY
-    then
+    # Parses the block-style related-artifacts list used across repository frontmatter.
+    if ! awk -v artifact="${expected_artifact}" '
+        NR == 1 && $0 != "---" { exit 1 }
+        NR > 1 && $0 == "---" { exit !found }
+        /^[[:space:]]*related-artifacts:[[:space:]]*$/ { in_list = 1; next }
+        in_list && /^[[:space:]]*-[[:space:]]/ {
+            value = $0
+            sub(/^[[:space:]]*-[[:space:]]*/, "", value)
+            sub(/[[:space:]]*$/, "", value)
+            if (value == artifact) { found = 1 }
+            next
+        }
+        in_list { in_list = 0 }
+        END { exit !found }
+    ' "${file_path}"; then
         printf 'Expected %s YAML frontmatter to contain related artifact: %s\n' "${file_path}" "${expected_artifact}" >&2
         return 1
     fi
