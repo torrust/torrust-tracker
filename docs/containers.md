@@ -272,7 +272,7 @@ If Caddy runs in a container, publish both protocols on `443`:
 --publish 0.0.0.0:443:443/udp
 ```
 
-Reference: [Caddy HTTP/3 documentation](https://caddyserver.com/docs/protocol/http3)
+Reference: [Caddy server options](https://caddyserver.com/docs/caddyfile/options#servers)
 
 Latest reference from Torrust Tracker Demo:
 [torrust-tracker-demo Caddy config](https://raw.githubusercontent.com/torrust/torrust-tracker-demo/refs/heads/main/server/opt/torrust/storage/caddy/etc/Caddyfile)

@@ -113,3 +113,17 @@ semantic-links:
 - Follow-up actions:
   - Make the AC5 evidence-row correction.
   - Preserve this review as append-only evidence; do not close issue #2185.
+
+### 2026-09-15 07:07 UTC - Task Reviewer
+
+- Invocation scope: Independent read-only review of the uncommitted C5 Caddy HTTP/3 documentation-link repair in `docs/containers.md`, `ISSUE.md`, and `external-link-baseline.md` for issue #2185.
+- Evidence: The retired active reference `https://caddyserver.com/docs/protocol/http3` returns HTTP 404. Its replacement, `https://caddyserver.com/docs/caddyfile/options#servers`, returns HTTP 200 and is Caddy's authoritative server-options documentation. It documents the `protocols` option, including HTTP/3 as `h3`, directly supporting the documented `servers :443 { protocols h1 h2 h3 }` configuration.
+- Findings:
+  - Resolved: The patch replaces exactly one active stale Caddy reference and retains the retired URL as historical baseline evidence.
+  - Resolved: No online or local Lychee configuration, workflow, testing policy, or exclusion category changes.
+  - Resolved: `git diff --check`, `linter all`, focused local-link validation, and the active-source absence check pass.
+  - Pending: Keep T2, M3, and AC2 in progress until a hosted External Link Check confirms the retired URL is absent while unrelated failures and report upload remain visible.
+- Verdict: PASS.
+- Follow-up actions:
+  - Commit and merge the C5 repair as an isolated slice, then dispatch the hosted External Link Check and record independently reviewed artifact evidence.
+  - Do not close issue #2185.
