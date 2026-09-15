@@ -62,9 +62,10 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C5: Stale Caddy documentation link — 1 occurrence
 
 - **Pattern:** `https://caddyserver.com/docs/protocol/http3` returning `404`.
-- **Disposition:** Repaired locally; hosted verification pending. Caddy's current server-options reference documents the `protocols` setting, including HTTP/3 as `h3`.
-- **Replacement:** `https://caddyserver.com/docs/caddyfile/options#servers` returned HTTP 200.
-- **Next action:** Run a hosted workflow to verify the retired URL is absent while unrelated external-link failures remain visible.
+- **Disposition:** Follow-up repair pending hosted verification. Caddy's current server-options reference documents the `protocols` setting, including HTTP/3 as `h3`.
+- **Replacement:** `https://caddyserver.com/docs/caddyfile/options` returned HTTP 200.
+- **Evidence:** Hosted [run 34953081017](https://github.com/torrust/torrust-tracker/actions/runs/34953081017) contains no retired C5 URL but reports the prior `#servers` replacement fragment as missing; its advisory failure and report upload remain visible.
+- **Next action:** Run a hosted workflow to verify the replacement without a fragment while unrelated external-link failures remain visible.
 
 ### C6: Other missing fragments — 5 occurrences
 
@@ -120,7 +121,7 @@ All 14 links now use `https://docs.rs/crate/torrust-tracker/latest`. Cargo metad
 | `https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md` | `404`            | `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`         | C4: replaced with archived research document |
 | `https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs`                                                                    | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current scaffold example |
 | `https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats`                                                  | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current metrics targets |
-| `https://caddyserver.com/docs/protocol/http3`                                                                                               | `404`            | `docs/containers.md`                                                | C5: replaced with `https://caddyserver.com/docs/caddyfile/options#servers` |
+| `https://caddyserver.com/docs/protocol/http3`                                                                                               | `404`            | `docs/containers.md`                                                | C5: replaced with `https://caddyserver.com/docs/caddyfile/options` |
 | `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes`                                                                  | Missing fragment | `docs/containers.md`                                                | C6          |
 | `https://docs.docker.com/cloud/aci-integration/#exposing-ports`                                                                             | Missing fragment | `docs/containers.md`                                                | C6          |
 | `https://github.com/torrust/torrust-tracker/issues/1669#issuecomment-4010991467`                                                            | Missing fragment | `docs/issues/open/1669-overhaul-packages/EPIC.md`                   | C6          |
