@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
-last-updated-utc: 2026-09-15T12:35:00Z
+last-updated-utc: 2026-09-15T12:45:00Z
 ---
 
 # Manual Verification Evidence - Unify PR Review Processing
@@ -66,21 +66,41 @@ it did not replace or alter the nightly formatter command under test.
 - Goal: Normalize the fixed PR #2174 review fixture, including the simulated re-raise.
 - Initial state: Fetched review `5155990517` and its two pinned inline-comment URLs; simulated
   re-raise clearly labelled.
-- Status: `TODO`
+- Status: `DONE`
 
 #### Steps Performed
 
-1. Pending execution.
+1. Fetched all PR #2174 review threads with
+  `get-pr-review-threads.sh --pr-number 2174 --output-file .tmp/2219-pr-2174-threads.json`.
+2. Located the two pinned source comments in GraphQL thread IDs `PRRT_kwDOGp2yqc6gtUXI` and
+  `PRRT_kwDOGp2yqc6gtUXL`.
+3. Normalized the fetched `Major` validation-evidence comment as `F1 | ORIGINAL` and the fetched
+  `Nit` fixture-naming comment as `F2 | ORIGINAL`, in source order.
+4. Modelled a later comment requesting the same current-tree change as F1 as the explicitly
+  simulated `F3 | RE_RAISE_OF:F1` row.
+5. Ran `list-unresolved-threads.sh --threads-file .tmp/2219-pr-2174-threads.json`.
 
 #### Observed Result
 
 ```text
-Pending execution.
+The source threads were both `isResolved=true` and `isOutdated=true`; each included a durable
+source-comment URL and author reply URL. The final unresolved-thread helper produced no output and
+exited 0.
+
+Normalized dry-run rows:
+
+| Finding ID | Source review ID | Severity | Relationship | Thread state |
+| ---------- | ---------------- | -------- | ------------ | ------------ |
+| F1 | 5155990517 | Major (inferred) | ORIGINAL | RESOLVED |
+| F2 | 5155990517 | Nit (inferred) | ORIGINAL | RESOLVED |
+| F3 | simulated later comment | Major (inferred) | RE_RAISE_OF:F1 | simulated |
 ```
 
 #### Conclusion
 
-Pending execution.
+The unified skill can normalize human review threads, preserve their GraphQL state, and model a
+re-raised concern without duplicating the original finding. The review body was fetched as source
+context but produced no independent finding row because it summarized the two inline concerns.
 
 ### V3 - Reviewer-Format Round Trip
 

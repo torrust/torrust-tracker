@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T12:40:00Z
+last-updated-utc: 2026-09-15T12:45:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -324,7 +324,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE   | Align local formatting gate with CI             | Added `Checking nightly Rust formatting` to `contrib/dev-tools/git/hooks/pre-commit.sh`, running `cargo +nightly fmt --all -- --check`. M1 failed at that named step on the pinned fixture; the updated current-tree hook passed. |
 | T2  | DONE   | Add toolchain column/note to evidence templates | Updated `docs/templates/ISSUE.md`, `create-issue`, and `write-unit-test` to require toolchain-qualified results. The template gives `cargo +nightly fmt --all -- --check` as a nightly-Rust example. Markdown, link, spell, and whitespace checks passed. |
-| T3  | TODO   | Draft unified `process-pr-review` skill         | Create `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` implementing the Unified Audit Contract and reusing `fetch-review-threads`/`resolve-review-threads`. Validate its frontmatter, command paths, and M2 dry run against the contract. |
+| T3  | DONE   | Draft unified `process-pr-review` skill         | Added `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` with GraphQL-first fetching, author classification, normalization, deduplication, current-tree verification, and resolution rules. M2 passed against the pinned PR #2174 data. |
 | T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`, then perform the exact migration in the Migration and Compatibility Contract. Validate with the specified repository-wide search, Markdown/link/spell checks, and `git diff --check`. |
 | T5  | TODO   | Publish requested reviewer finding format       | Create `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and add the identical advisory guidance to the unified skill. Validate M3's literal comment and Markdown/link/spell checks. |
 | T6  | TODO   | Deprecate the two old skills                    | Replace only the bodies of `process-copilot-suggestions` and `process-pr-review-feedback` with the compatibility redirects in the contract. Validate every result from the specified repository-wide search and skill-link synchronization. |
@@ -382,6 +382,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `create-issue` skill, plus `write-unit-test` test-plan guidance, now require naming a toolchain
   or runtime when it can affect a recorded command result. The issue template includes a concrete
   nightly Rust formatter example. Markdown, link, spell, and whitespace checks passed.
+- 2026-09-15 12:45 UTC - GitHub Copilot - Completed T3. Added the unified
+  `process-pr-review` skill and dry-ran it against the pinned PR #2174 GraphQL fixture. The two
+  fetched source threads normalized to `F1` and `F2`; the deliberately simulated later duplicate
+  normalizes to `F3=RE_RAISE_OF:F1`. The final GraphQL helper reported no unresolved threads.
+  Evidence: `manual-verification-evidence.md` section V2.
 
 ## Acceptance Criteria
 
@@ -422,7 +427,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                          | Human-oriented command/steps                                                                                                       | Expected Result                                                            | Status | Evidence                                     |
 | --- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | False-green reproduction          | In a detached worktree at `defe8466aa5b33fed02484fdf97e997546b612e8`, run the updated hook with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.     | `Checking nightly Rust formatting` exits nonzero and names at least one pinned affected path. | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | TODO | `manual-verification-evidence.md` section V2 |
+| M2  | Unified workflow dry run          | Fetch PR #2174 review `5155990517` and its two pinned inline comments, then normalize them and the simulated `F3` re-raise through the unified skill. | Exactly two fetched original rows and simulated `F3=RE_RAISE_OF:F1`; GraphQL reports the recorded final thread state. | DONE | `manual-verification-evidence.md` section V2 |
 | M3  | Reviewer-format round trip        | Normalize the literal `[Major][F42] Validation evidence omits the formatter toolchain.` comment in the Unified Audit Contract. | Produces the pinned `F42`, `Major`, `ORIGINAL`, and summary values without free-prose parsing. | TODO | `manual-verification-evidence.md` section V3 |
 
 ### Acceptance Verification
