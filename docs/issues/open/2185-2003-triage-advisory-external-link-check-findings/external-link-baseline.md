@@ -70,8 +70,9 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C6: Other missing fragments — 5 occurrences
 
 - **Pattern:** Docker Cloud ACI fragments, GitHub issue-comment fragments, and the Star History fragment returning `Cannot find fragment`.
-- **Disposition:** Unresolved investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
-- **Next action:** Verify each fragment or replacement page individually; repair stale fragments, or propose a specific exclusion only if target rendering makes automated validation impossible.
+- **Disposition:** Two Docker Cloud ACI fragments repaired pending hosted verification; GitHub issue-comment and Star History fragments remain under investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
+- **Evidence:** Both Docker Cloud ACI pages now redirect to Docker's retired-page notice. Azure's current Azure Files documentation describes the replacement mount-path behavior, and Azure's troubleshooting documentation confirms that ACI does not support Docker-style port mapping.
+- **Next action:** Run a hosted workflow to verify the two Docker fragment URLs are absent while unrelated failures remain visible. Verify the GitHub issue-comment and Star History fragments independently.
 
 ### C7: Third-party access-controlled links — 3 occurrences
 
@@ -122,8 +123,8 @@ All 14 links now use `https://docs.rs/crate/torrust-tracker/latest`. Cargo metad
 | `https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs`                                                                    | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current scaffold example |
 | `https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats`                                                  | `404`            | `docs/issues/drafts/increase-main-app-integration-test-coverage.md` | C4: replaced with current metrics targets |
 | `https://caddyserver.com/docs/protocol/http3`                                                                                               | `404`            | `docs/containers.md`                                                | C5: replaced with `https://caddyserver.com/docs/caddyfile/options` |
-| `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes`                                                                  | Missing fragment | `docs/containers.md`                                                | C6          |
-| `https://docs.docker.com/cloud/aci-integration/#exposing-ports`                                                                             | Missing fragment | `docs/containers.md`                                                | C6          |
+| `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes`                                                                  | Missing fragment | `docs/containers.md`                                                | C6: replaced with Azure Files mount-path documentation |
+| `https://docs.docker.com/cloud/aci-integration/#exposing-ports`                                                                             | Missing fragment | `docs/containers.md`                                                | C6: replaced with Azure ACI troubleshooting documentation |
 | `https://github.com/torrust/torrust-tracker/issues/1669#issuecomment-4010991467`                                                            | Missing fragment | `docs/issues/open/1669-overhaul-packages/EPIC.md`                   | C6          |
 | `https://github.com/torrust/torrust-tracker/issues/269#issuecomment-1749443211`                                                             | Missing fragment | `docs/issues/open/269-review-dependency-licenses/ISSUE.md`          | C6          |
 | `https://star-history.dera.page/#torrust/torrust-tracker`                                                                                   | Missing fragment | `README.md`                                                         | C6          |
