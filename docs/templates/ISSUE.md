@@ -160,6 +160,10 @@ Notes:
 - Manual verification is mandatory even when automated tests pass. It is a
   real human-oriented use of the feature or reproduction of the bug fix, not a
   simulated result and not merely running automated tests.
+- Every recorded validation command result must identify the toolchain or
+  runtime that produced it when one can affect behavior. For example, record
+  `cargo +nightly fmt --all -- --check` as `nightly Rust toolchain`, rather than
+  the ambiguous `cargo fmt --all -- --check`.
 - Create `manual-verification-evidence.md` from
   `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these
   scenarios. Record actual prerequisites, actions, commands, program output,

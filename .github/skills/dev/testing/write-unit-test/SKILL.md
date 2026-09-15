@@ -52,6 +52,12 @@ Manual verification is separate real use of the finished artifact; record its
 actual evidence in `manual-verification-evidence.md` as defined by
 [`docs/testing.md`](../../../../../docs/testing.md#verification-types).
 
+When recording validation evidence in an issue specification or test-refactor
+plan, name the toolchain or runtime that produced every command result when it
+can affect behavior. For example, record `cargo +nightly fmt --all -- --check`
+as `nightly Rust toolchain`; do not present `cargo fmt --all -- --check` as an
+unqualified formatter result.
+
 Practical priority order:
 
 1. Unit tests first (fast, deterministic, low maintenance)

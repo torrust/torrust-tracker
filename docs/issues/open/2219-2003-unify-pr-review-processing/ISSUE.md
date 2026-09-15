@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T12:35:00Z
+last-updated-utc: 2026-09-15T12:40:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -323,7 +323,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                            | Notes / Expected Output                                                                                                                                                                                                 |
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE   | Align local formatting gate with CI             | Added `Checking nightly Rust formatting` to `contrib/dev-tools/git/hooks/pre-commit.sh`, running `cargo +nightly fmt --all -- --check`. M1 failed at that named step on the pinned fixture; the updated current-tree hook passed. |
-| T2  | TODO   | Add toolchain column/note to evidence templates | Change `docs/templates/ISSUE.md` and `.github/skills/dev/testing/write-unit-test/SKILL.md`. Require every validation command result to name its toolchain; add one in-repo example. Validate Markdown, links, spell checking, and `git diff --check`. |
+| T2  | DONE   | Add toolchain column/note to evidence templates | Updated `docs/templates/ISSUE.md`, `create-issue`, and `write-unit-test` to require toolchain-qualified results. The template gives `cargo +nightly fmt --all -- --check` as a nightly-Rust example. Markdown, link, spell, and whitespace checks passed. |
 | T3  | TODO   | Draft unified `process-pr-review` skill         | Create `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` implementing the Unified Audit Contract and reusing `fetch-review-threads`/`resolve-review-threads`. Validate its frontmatter, command paths, and M2 dry run against the contract. |
 | T4  | TODO   | Create unified audit directory and template     | Create `docs/pr-reviews/` and `docs/templates/PR-REVIEW-TEMPLATE.md`, then perform the exact migration in the Migration and Compatibility Contract. Validate with the specified repository-wide search, Markdown/link/spell checks, and `git diff --check`. |
 | T5  | TODO   | Publish requested reviewer finding format       | Create `.github/PULL_REQUEST_TEMPLATE/review-findings.md` and add the identical advisory guidance to the unified skill. Validate M3's literal comment and Markdown/link/spell checks. |
@@ -378,13 +378,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   bypassed unrelated pre-existing Lychee failures so the hook reached and failed at that exact
   step; its formatter diagnostics named all three historical import-grouping files. The current
   tree's complete hook passed. Evidence: `manual-verification-evidence.md` section V1.
+- 2026-09-15 12:40 UTC - GitHub Copilot - Completed T2. The issue template and its linked
+  `create-issue` skill, plus `write-unit-test` test-plan guidance, now require naming a toolchain
+  or runtime when it can affect a recorded command result. The issue template includes a concrete
+  nightly Rust formatter example. Markdown, link, spell, and whitespace checks passed.
 
 ## Acceptance Criteria
 
 - [x] AC1: A rustfmt violation of the repository's unstable import-grouping options fails the
       local pre-commit gate exactly as it fails CI's formatting check, demonstrated on a
       reproduced historical violation.
-- [ ] AC2: The issue and test-plan templates require naming the toolchain for every recorded
+- [x] AC2: The issue and test-plan templates require naming the toolchain for every recorded
       validation command, and at least one in-repo example follows the requirement.
 - [ ] AC3: One unified `process-pr-review` skill handles Copilot and human reviewer threads with
       documented deduplication, superseded-thread, and consolidated-response rules; the two old skills
@@ -426,7 +430,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | `manual-verification-evidence.md` section V1; hook JSON result with `failed_step=Checking nightly Rust formatting` |
-| AC2   | TODO                   |          |
+| AC2   | DONE                   | `docs/templates/ISSUE.md` nightly Rust example; `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
