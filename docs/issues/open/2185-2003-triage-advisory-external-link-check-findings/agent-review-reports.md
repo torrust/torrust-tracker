@@ -127,3 +127,24 @@ semantic-links:
 - Follow-up actions:
   - Commit and merge the C5 repair as an isolated slice, then dispatch the hosted External Link Check and record independently reviewed artifact evidence.
   - Do not close issue #2185.
+
+### 2026-09-15 10:21 UTC - Task Reviewer
+
+- Invocation scope: Independent review of the uncommitted C5 follow-up repair for issue #2185 in `docs/containers.md`, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Scoped uncommitted diff and status; `docs/containers.md`; C5 issue and baseline entries; supplied `/tmp/c5-lychee-report/lychee-report.md`; GitHub Actions run 34953081017; and focused/full validation output.
+- Evidence: Run 34953081017 completed with conclusion `failure` on `a1ddcaa01968ee227b3bdf937b9257b420345931`. Its `Check External Links` step visibly failed with exit code 2, while `Upload Lychee Report` succeeded. The official unexpired `lychee-external-link-report` artifact is 1,342 bytes and expires at `2026-09-29T09:39:45Z`. The supplied artifact report records 1,952 total checks, 1,379 unique links, 1,226 successful checks, 25 redirects, 686 exclusions, 38 errors, and 2 timeouts. It contains no retired C5 URL and records `https://caddyserver.com/docs/caddyfile/options#servers` as a missing-fragment error. The repaired Caddy server-options URL without a fragment returns HTTP 200, supports the documented `servers` / `protocols` configuration, and is Caddy's authoritative options page. The diff removes only that fragment and updates issue evidence; it changes no Lychee configuration or workflow. `git diff --check`, `linter all`, and focused local-link validation passed.
+- Acceptance criteria matrix:
+  - PASS: The prior hosted run is accurately recorded as failed diagnostic evidence while retaining a successful report upload.
+  - PASS: C5's retired URL is absent from the supplied hosted report, and the prior replacement fragment is accurately identified as missing.
+  - PASS: The active replacement is the narrow authoritative URL without a fragment and is reachable with HTTP 200.
+  - PENDING: C5 hosted verification remains required because run 34953081017 exercised the invalid `#servers` replacement rather than the current URL without a fragment.
+  - PASS: T2, M3, AC2, and broader issue completion remain pending; no issue-wide completion criterion was prematurely checked.
+- Findings:
+  - Pending: Manually dispatch or observe a hosted External Link Check containing the C5 URL without a fragment. Record its run URL, revision, counts, C5 absence, representative unrelated failures, and successful report upload before treating C5, M3, T2, or AC2 as complete.
+  - Resolved: No broad suppression, Lychee-policy, or workflow change is present.
+- Completion-review finding: Correctly pending. The issue records neither a retrospective nor a no-retrospective rationale because the issue is still in progress; do not complete the implementation review yet.
+- Issue-spec updates: No checkboxes changed. The C5 progress and baseline entries correctly retain hosted verification, T2/M3/AC2, and broader completion as pending.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Obtain and independently review the hosted verification for the C5 target without a fragment.
+  - Keep issue #2185 open and do not complete its remaining issue-wide verification or completion checkpoints from this diagnostic run.
