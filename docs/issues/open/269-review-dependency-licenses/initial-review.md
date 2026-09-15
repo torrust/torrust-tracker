@@ -5,7 +5,6 @@ scope: complete-resolved-cargo-graph
 input-lockfile: Cargo.lock
 input-lockfile-sha256: 4fc7f17ed1d348a4500ef3772c661cda43799f5ef44fb51514386d7b408156d4
 input-revision: c30fbff4
-initial-review-record-commit: 1daf4e2d9bd117da6a43bf391f27f5b5c1e73ed5
 next-scheduled-review-utc: 2027-02-28
 ---
 
@@ -26,10 +25,9 @@ outcome. This report is technical analysis, not legal advice.
 The review covers all 575 packages resolved by the locked workspace graph,
 including normal, build, development, target-specific, optional, and
 transitive dependencies. Its inventory input is commit `c30fbff4`, the
-lockfile checksum in this document's frontmatter, and the immutable initial
-review record commit `1daf4e2d9bd117da6a43bf391f27f5b5c1e73ed5`. That commit
-adds the `workspace-coupling` license-inheritance change required for the
-retained inventory to reproduce byte-for-byte; see E6.
+lockfile checksum in this document's frontmatter, plus the
+`workspace-coupling` `license.workspace = true` change recorded in E6. That
+change is required for the retained inventory to reproduce byte-for-byte.
 
 The complete declared-license inventory was produced with:
 
