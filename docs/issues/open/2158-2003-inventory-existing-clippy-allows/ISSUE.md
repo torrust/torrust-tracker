@@ -8,7 +8,7 @@ github-issue: 2158
 spec-path: docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-07 11:20
+last-updated-utc: 2026-09-15 14:26
 semantic-links:
   skill-links:
     - create-issue
@@ -55,9 +55,10 @@ retain temporarily with a tracked follow-up.
 - Remove allows that are no longer necessary and fix resulting diagnostics.
 - Update `ClippyFixer` to declare the `edit` tool so it can apply focused remediation and nearby
   rationale comments; continue to delegate commits to `Committer`.
-- For each temporary suppression, create an issue-spec draft in `docs/issues/drafts/` that states
-  the removal condition and links the inventory entry. Request user approval before creating the
-  follow-up GitHub issue, then replace the draft reference with the assigned issue number.
+- For each approved temporary suppression follow-up, create an issue-spec draft in
+  `docs/issues/drafts/` that states the removal condition and links the inventory entry. Request
+  user approval before creating the follow-up GitHub issue, then replace the draft reference with
+  the assigned issue number.
 
 > **Current investigation exception:** numeric-conversion draft material is retained under this
 > issue's `numeric-conversion-follow-up-drafts/` folder at maintainer request while the complete
@@ -84,9 +85,9 @@ retain temporarily with a tracked follow-up.
 | T1  | TODO   | Create the issue-local inventory  | Add `clippy-allow-inventory.md` with source roots, generation method, and a row for every item- and crate-level attribute. |
 | T2  | TODO   | Enable ClippyFixer remediation    | Grant its profile the `edit` tool while retaining Committer ownership of signed commits.                                   |
 | T3  | TODO   | Classify each allow               | Retain, remove, or temporary follow-up with evidence.                                                                      |
-| T4  | TODO   | Draft and create follow-up issues | For each temporary suppression, follow the repository spec-first workflow before creating the linked GitHub issue.         |
-| T5  | TODO   | Remediate in reviewable batches   | Use ClippyFixer for focused fixes; group commits by package or rationale category.                                         |
-| T6  | TODO   | Validate final inventory          | Ensure no allow lacks a recorded disposition and relevant checks pass.                                                     |
+| T4  | TODO   | Approve and create follow-up issues | Re-evaluate issue-local design inputs; promote only approved temporary work through the repository spec-first workflow. |
+| T5  | TODO   | Remediate #2158 decisions in reviewable batches | Use ClippyFixer for focused `Remove` and `Retain` changes; group commits and PRs by package or rationale category. |
+| T6  | TODO   | Validate final inventory          | Regenerate source entries, reconcile the inventory by ID, and ensure no allow lacks a disposition and relevant checks pass. |
 
 ### Classification and Remediation Sequencing
 
@@ -95,6 +96,28 @@ source-specific decision for every row. Then remediate one category and package-
 time. This avoids inconsistent decisions for repeated lint families and keeps source changes,
 rationale comments, tests, and commits reviewable. The issue-local inventory is the authoritative
 record of category order and entry-level classification evidence.
+
+### Execution Sequence After Classification
+
+Merge the completed classification inventory as a documentation-only checkpoint before remediation.
+Then implement the inventory's `Remove` and `Retain` decisions as #2158 work in focused,
+package-scoped branches and PRs from `develop`; do not create a follow-up issue merely to remove a
+stale suppression or add a source-specific rationale. Each batch must update the inventory by ID
+with its implementation and validation evidence. Do not maintain transient source line numbers
+during every batch; regenerate and reconcile the complete source inventory once in T6.
+
+Evaluate temporary entries only after the maintainer re-evaluates the issue-local design inputs.
+Promote approved cross-package numeric conversion work to a dedicated EPIC with focused child
+issues. The wire numeric-conversion follow-up exclusively owns A156 and A171. A distinct UDP
+protocol baseline follow-up owns the remaining twelve crate-level allows, if that work is approved.
+Do not create an EPIC, child issue, or GitHub issue from a design input before approval.
+
+Use `#[expect(...)]` for remediated stable-toolchain lint findings where continued emission is
+intended to be checked. Use `#[allow(..., reason = "...")]` for a toolchain-dependent,
+macro-expansion finding when `expect` would fail on a supported toolchain that does not emit the
+lint. Every retained attribute requires a native, source-specific `reason`; a temporary reason
+must also state a stable removal condition or approved issue reference, consistent with #2157's
+prospective validator.
 
 ## Progress Tracking
 
@@ -128,6 +151,7 @@ record of category order and entry-level classification evidence.
 - 2026-09-15 - GitHub Copilot - Classified non-UDP-protocol documentation and panic-contract allowances: retained one deprecated public API field name and identified two missing panic-documentation suppressions for removal - `clippy-allow-inventory.md`
 - 2026-09-15 - GitHub Copilot - Added an issue-local UDP protocol crate-baseline design input for the thirteen broad inherited allowances; defer GitHub issue or EPIC creation until the complete inventory is re-evaluated - `udp-protocol-clippy-baseline-draft.md`
 - 2026-09-15 - GitHub Copilot - Completed the classification pass: retained explicit configuration, visibility, and error/composition-boundary contracts; identified six direct stale or mechanical removals - `clippy-allow-inventory.md`
+- 2026-09-15 - josecelano - Approved the post-classification execution sequence: #2158 owns direct removals and retained-rationale remediation; only approved temporary design work becomes a follow-up issue or numeric-conversion EPIC - Chat decision
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 
 ## Acceptance Criteria
