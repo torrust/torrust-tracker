@@ -132,7 +132,12 @@ semantic-links:
 
 - Invocation scope: Independent review of the uncommitted C5 follow-up repair for issue #2185 in `docs/containers.md`, `ISSUE.md`, and `external-link-baseline.md`.
 - Inputs: Scoped uncommitted diff and status; `docs/containers.md`; C5 issue and baseline entries; supplied `/tmp/c5-lychee-report/lychee-report.md`; GitHub Actions run 34953081017; and focused/full validation output.
-- Evidence: Run 34953081017 completed with conclusion `failure` on `a1ddcaa01968ee227b3bdf937b9257b420345931`. Its `Check External Links` step visibly failed with exit code 2, while `Upload Lychee Report` succeeded. The official unexpired `lychee-external-link-report` artifact is 1,342 bytes and expires at `2026-09-29T09:39:45Z`. The supplied artifact report records 1,952 total checks, 1,379 unique links, 1,226 successful checks, 25 redirects, 686 exclusions, 38 errors, and 2 timeouts. It contains no retired C5 URL and records `https://caddyserver.com/docs/caddyfile/options#servers` as a missing-fragment error. The repaired Caddy server-options URL without a fragment returns HTTP 200, supports the documented `servers` / `protocols` configuration, and is Caddy's authoritative options page. The diff removes only that fragment and updates issue evidence; it changes no Lychee configuration or workflow. `git diff --check`, `linter all`, and focused local-link validation passed.
+- Evidence:
+  - Run 34953081017 completed with conclusion `failure` on `a1ddcaa01968ee227b3bdf937b9257b420345931`. Its `Check External Links` step visibly failed with exit code 2, while `Upload Lychee Report` succeeded.
+  - The official unexpired `lychee-external-link-report` artifact is 1,342 bytes and expires at `2026-09-29T09:39:45Z`. The supplied artifact report records 1,952 total checks, 1,379 unique links, 1,226 successful checks, 25 redirects, 686 exclusions, 38 errors, and 2 timeouts.
+  - It contains no retired C5 URL and records `https://caddyserver.com/docs/caddyfile/options#servers` as a missing-fragment error.
+  - The repaired Caddy server-options URL without a fragment returns HTTP 200, supports the documented `servers` / `protocols` configuration, and is Caddy's authoritative options page.
+  - The diff removes only that fragment and updates issue evidence; it changes no Lychee configuration or workflow. `git diff --check`, `linter all`, and focused local-link validation passed.
 - Acceptance criteria matrix:
   - PASS: The prior hosted run is accurately recorded as failed diagnostic evidence while retaining a successful report upload.
   - PASS: C5's retired URL is absent from the supplied hosted report, and the prior replacement fragment is accurately identified as missing.
