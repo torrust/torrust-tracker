@@ -1,11 +1,3 @@
----
-name: Review findings
-about: Submit actionable pull-request review findings in a consistent advisory format
-title: "[Review] "
-labels: ""
-assignees: ""
----
-
 <!-- cspell:disable -->
 
 ## Advisory Finding Format
