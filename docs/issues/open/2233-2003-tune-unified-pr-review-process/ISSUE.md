@@ -6,9 +6,9 @@ priority: p2
 epic: 2003
 github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
-branch: "2233-2003-tune-unified-pr-review-process-spec"
-related-pr: null
-last-updated-utc: 2026-09-16 11:25
+branch: "2233-2003-tune-unified-pr-review-process"
+related-pr: 2235
+last-updated-utc: 2026-09-16 12:06
 semantic-links:
   skill-links:
     - create-issue
@@ -137,8 +137,8 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 
 - [x] Folder-style spec drafted in `docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md`
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec reviewed and approved by user/maintainer
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -153,6 +153,8 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 
 - 2026-09-16 08:15 UTC - Copilot - Formalized the already-open GitHub issue #2233 from the
   first-use evidence recorded in `docs/pr-reviews/pr-2232-review.md`.
+- 2026-09-16 12:06 UTC - Copilot - PR #2235 merged the reviewed specification into `develop`;
+  created the reserved implementation branch `2233-2003-tune-unified-pr-review-process`.
 
 ## Acceptance Criteria
 
