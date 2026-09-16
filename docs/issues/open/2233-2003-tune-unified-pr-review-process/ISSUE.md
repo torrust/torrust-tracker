@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2235
-last-updated-utc: 2026-09-16 12:06
+last-updated-utc: 2026-09-16 12:55
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,8 @@ semantic-links:
     - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
     - docs/pr-reviews/pr-2232-review.md
     - docs/templates/REVIEW-FINDINGS.md
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh
@@ -102,7 +104,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Align reviewer-side guidance | Updated the `review-pr` skill and associated advisory template with `[<Severity>][<FindingId>] <summary>`, `Blocker`, `Major`, `Minor`, `Nit`, and `Suggestion`; one-finding-per-thread, re-raise, current-head, and `N/A` conventions validated with Markdown, spelling, link, and review-contract checks. Evidence: `review-finding:pr-2232-f12`. |
-| T2 | TODO | Validate Markdown code-span paths | Add a focused maintained check under `contrib/dev-tools/checks/` and its dependency-free test under `contrib/dev-tools/checks/tests/`; invoke it from the existing pre-commit documentation-test step. It must fail for a missing path and pass real current paths. Keep exceptions in a tracked allowlist next to the checker; each entry names the source document and literal code span, states why it is historical or illustrative, and names a retention/removal owner. Decide between shell and Rust using the repository shell-vs-Rust threshold. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
+| T2 | IN_PROGRESS | Validate Markdown code-span paths | Added issue-local case analysis and a complete TSV inventory before deciding whether to implement a strict checker. The current evidence separates historical records, placeholders, globs, comments, directories, examples, and literal missing paths so each group can receive an appropriate policy. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
 | T3 | TODO | Preserve retirement obligations | Add a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an inventory of every normative rule in the retiring artifact and record whether each is preserved with its destination or deliberately dropped with a reason. Evidence: `review-finding:pr-2232-f6`. |
 | T4 | TODO | Verify rename purity mechanically | Add a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an explicitly selected merge base, old and new repository paths, and reviewed expected added/deleted lines per renamed file. The verifier must fail when the actual changed-line pairs differ from that approved expectation. Evidence: `review-finding:pr-2232-f4`. |
 | T5 | TODO | Design tiered model routing | Write a design note that separates strong-model current-tree triage and bounded solution specification from lower-cost implementation and independent verification. Record the cost, quality, auditability, failure-containment, and portability trade-offs. Do not implement agents. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
@@ -155,6 +157,9 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   first-use evidence recorded in `docs/pr-reviews/pr-2232-review.md`.
 - 2026-09-16 12:06 UTC - Copilot - PR #2235 merged the reviewed specification into `develop`;
   created the reserved implementation branch `2233-2003-tune-unified-pr-review-process`.
+- 2026-09-16 12:55 UTC - Copilot - Added `code-span-path-case-analysis.md` and
+  `code-span-path-case-inventory.tsv` with all observed non-resolving Markdown code-span path
+  cases, grouped for later policy analysis.
 
 ## Acceptance Criteria
 
