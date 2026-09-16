@@ -8,7 +8,7 @@ github-issue: 2234
 spec-path: docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
 branch: "2234-1488-si-2-token-server-lifecycle"
 related-pr: null
-last-updated-utc: 2026-09-16 09:20
+last-updated-utc: 2026-09-16 09:30
 semantic-links:
   skill-links:
     - create-issue
@@ -92,10 +92,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Branch the local server-lib clone | Created `2234-token-aware-shutdown-wait` from `origin/main`. |
 | T2 | DONE | Add token-aware wait primitive | Added `signals::cancellation_signal(CancellationToken)` with direct `tokio-util` `rt` dependency; legacy APIs remain unchanged in `ea333ec`. |
 | T3 | DONE | Add server-lib tests | Added deterministic token-cancellation and legacy `Halted::Normal` tests in `ea333ec`; focused and full suites pass. |
-| T4 | IN_PROGRESS | Merge and release server-lib | Opened [server-lib PR #1](https://github.com/torrust/torrust-server-lib/pull/1); awaiting its required CI before merge, version publication, and release evidence. |
-| T5 | TODO | Adopt released crate in tracker | Update workspace dependency declarations and lockfile to the exact published version. |
-| T6 | TODO | Prove tracker compatibility | Add focused compile/contract coverage that exercises the additive API while legacy tracker consumers retain their existing paths. |
-| T7 | TODO | Review consumer guidance | Document SI-10 through SI-17 ownership and compatibility prerequisites; perform the design review. |
+| T4 | DONE | Merge and release server-lib | Merged [server-lib PR #1](https://github.com/torrust/torrust-server-lib/pull/1) at `2b3f8ec` after CI and Copilot approval; published `torrust-server-lib` `0.3.0` to crates.io. |
+| T5 | DONE | Adopt released crate in tracker | Updated all six workspace server-lib declarations and lockfile to the published `0.3.0` version. |
+| T6 | DONE | Prove tracker compatibility | Added focused `axum-server` API contract test; it compiles and awaits `cancellation_signal` from the published crate while production consumers retain legacy paths. |
+| T7 | DONE | Review consumer guidance | Confirmed SI-10 owns joinable drain-controller implementation; SI-11 through SI-17 own consumer migration and controller joins. |
 
 ## Commit Points
 
@@ -120,16 +120,16 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - [x] GitHub issue #2234 created, attached to EPIC #1488, and added to this spec
 - [x] Spec committed on this implementation branch before server-lib work begins
 - [x] Server-lib branch `2234-token-aware-shutdown-wait` created in the local clone and recorded here
-- [ ] Additive server-lib API implemented and submitted for review; merged and released
-- [ ] Tracker dependency updated to the released server-lib version
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Additive server-lib API implemented, reviewed, merged, and released as `torrust-server-lib` `0.3.0`
+- [x] Tracker dependency updated to the released server-lib version
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -139,20 +139,24 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - 2026-09-16 09:10 UTC - Copilot - Created GitHub issue #2234, attached it to EPIC #1488, renamed this branch to `2234-1488-si-2-token-server-lifecycle`, and promoted the folder specification to `open`.
 - 2026-09-16 09:15 UTC - Copilot - Committed and pushed the approved specification as `1d4ddb10` after the full lint, pre-commit, and pre-push gates passed.
 - 2026-09-16 09:20 UTC - Copilot - Created server-lib branch `2234-token-aware-shutdown-wait`; implemented and tested the additive token-aware waiter in signed commit `ea333ec`; opened server-lib PR #1. The required CI is in progress, so merge and publication remain pending.
+- 2026-09-16 09:30 UTC - Copilot - Server-lib PR #1 merged at `2b3f8ec` after successful CI and a Copilot approval with no threads; published `torrust-server-lib` `0.3.0` to crates.io. Updated tracker pins and added a focused API contract test; `cargo test -p torrust-tracker-axum-server it_should_compile_and_resolve_the_server_lib_cancellation_signal_when_token_is_cancelled` passed.
+- 2026-09-16 09:30 UTC - Copilot - Completed the required prose-first test review for the tracker contract test. Arrange exposes a fresh token and waiting task; Act visibly cancels that token; Assert awaits the external API's completion. The test has one causal condition, does not derive expected behavior from production code, and uses no fixture or OS signal.
+- 2026-09-16 10:22 UTC - Copilot - Validated tracker adoption with `cargo machete --with-metadata`, `linter all`, workspace documentation tests, the complete `axum-server` test suite, and `cargo check --workspace`. Direct-binary verification recorded a clean legacy `SIGINT` exit and two consecutive `SIGTERM` exits using the same isolated loopback configuration; the focused contract test confirmed token-only completion without an OS signal. No material API deviation or retrospective was needed.
+- 2026-09-16 10:50 UTC - Copilot - Ran the mandatory pre-commit gate before signed tracker adoption commit `25f0ab34`; the required pre-push suite then passed nightly formatting, nightly workspace checks, documentation build, and the full test suite. Independent review findings are resolved and recorded in `agent-review-reports.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A published `torrust-server-lib` version provides an additive wait primitive that resolves from an injected `CancellationToken` without subscribing to OS signals.
-- [ ] AC2: Existing `global_shutdown_signal()`, `shutdown_signal()`, `shutdown_signal_with_message()`, and `Halted` remain source- and behavior-compatible in that release.
-- [ ] AC3: The new primitive does not take or expose a shutdown `Halted` channel; `Started` startup signaling remains unaffected.
-- [ ] AC4: The tracker consumes the exact published version, with no unpublished Git dependency.
-- [ ] AC5: Server-lib tests prove token cancellation resolves the primitive and legacy `Halted` waiting is unchanged; tracker contract coverage compiles against the new API.
-- [ ] AC6: Consumer documentation requires later server components to own and join graceful-stop controllers before top-level completion, and names SI-10 as the joinable drain helper.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant server-lib and tracker tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflow changes.
+- [x] AC1: A published `torrust-server-lib` version provides an additive wait primitive that resolves from an injected `CancellationToken` without subscribing to OS signals.
+- [x] AC2: Existing `global_shutdown_signal()`, `shutdown_signal()`, `shutdown_signal_with_message()`, and `Halted` remain source- and behavior-compatible in that release.
+- [x] AC3: The new primitive does not take or expose a shutdown `Halted` channel; `Started` startup signaling remains unaffected.
+- [x] AC4: The tracker consumes the exact published version, with no unpublished Git dependency.
+- [x] AC5: Server-lib tests prove token cancellation resolves the primitive and legacy `Halted` waiting is unchanged; tracker contract coverage compiles against the new API.
+- [x] AC6: Consumer documentation requires later server components to own and join graceful-stop controllers before top-level completion, and names SI-10 as the joinable drain helper.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant server-lib and tracker tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflow changes.
 
 ## Verification Plan
 
@@ -168,9 +172,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Legacy consumer remains usable | Build and run the tracker against the released crate without changing any legacy shutdown call site, then stop it with `SIGINT`. | Existing `Halted`-based shutdown behavior remains available and the tracker exits cleanly. | TODO | `manual-verification-evidence.md` V1 |
-| M2 | Token-aware wait has no signal dependency | Run a minimal example that awaits the new primitive, cancel its injected token from another task, and observe completion without sending `SIGINT` or `SIGTERM`. | The wait resolves through the token alone. | TODO | `manual-verification-evidence.md` V2 |
-| M3 | Tracker process cleanly restarts | Build the release tracker, signal the actual tracker binary with `SIGTERM`, await exit, then restart it immediately. | Shutdown completes and all configured services rebind without address-in-use errors. | TODO | `manual-verification-evidence.md` V3 |
+| M1 | Legacy consumer remains usable | Build and run the tracker against the released crate without changing any legacy shutdown call site, then stop it with `SIGINT`. | Existing `Halted`-based shutdown behavior remains available and the tracker exits cleanly. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | Token-aware wait has no signal dependency | Run a minimal example that awaits the new primitive, cancel its injected token from another task, and observe completion without sending `SIGINT` or `SIGTERM`. | The wait resolves through the token alone. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Tracker process cleanly restarts | Build the release tracker, signal the actual tracker binary with `SIGTERM`, await exit, then restart it immediately. | Shutdown completes and all configured services rebind without address-in-use errors. | DONE | `manual-verification-evidence.md` V3 |
 
 Create `manual-verification-evidence.md` from the repository template when executing scenarios. Record actual commands, output, relevant logs, release version, and outcomes. A failure must be recorded in the progress log before proceeding.
 
@@ -182,12 +186,12 @@ No disposable verification script is planned. Durable lifecycle behavior must be
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Server-lib release and token-wait tests |
-| AC2 | TODO | Server-lib legacy compatibility tests |
-| AC3 | TODO | Server-lib public API signature review |
-| AC4 | TODO | Tracker manifest, lockfile, and build output |
-| AC5 | TODO | Focused server-lib and tracker test output |
-| AC6 | TODO | Updated issue documentation and design-review record |
+| AC1 | DONE | Published `torrust-server-lib` `0.3.0`; server-lib token-wait test and tracker M2 contract test |
+| AC2 | DONE | Server-lib legacy compatibility test, unchanged tracker legacy call sites, and tracker M1 direct-binary verification |
+| AC3 | DONE | Server-lib public `cancellation_signal(CancellationToken)` signature review; no `Halted` parameter or result |
+| AC4 | DONE | Six tracker manifests and `Cargo.lock` resolve registry `torrust-server-lib` `0.3.0`; workspace build passed |
+| AC5 | DONE | Server-lib release validation; focused tracker contract test; complete `axum-server` suite |
+| AC6 | DONE | Scope, design-and-ownership review, and SI-10 through SI-17 guidance in this specification |
 
 ## Risks and Trade-offs
 
@@ -200,7 +204,7 @@ No disposable verification script is planned. Durable lifecycle behavior must be
 
 After implementation, compare the release and tracker adoption with this specification. Record invalidated assumptions, API changes, validation findings, and reusable lessons.
 
-- Retrospective: Not yet assessed.
+- Retrospective: No separate retrospective required. The released API exactly matches the approved additive wait-utility scope; controller ownership remains deferred to SI-10 and consumer migrations to SI-11 through SI-17.
 - Create `implementation-retrospective.md` from the repository template for material server-lib API discoveries or deviations; otherwise record the justified no-retrospective decision in the progress log.
 - An independent reviewer records results in `agent-review-reports.md` after receiving this folder-style specification.
 
