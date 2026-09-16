@@ -24,7 +24,7 @@ The PR author owns this tracked audit record. The Copilot reviewer delivered fin
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2231-f1` | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2231-f2` | Copilot | Suggestion (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | `review-finding:pr-2231-f3` | Copilot | Suggestion (inferred) | formatting | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F3 | `review-finding:pr-2231-f3` | Copilot | Suggestion (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -56,16 +56,17 @@ The PR author owns this tracked audit record. The Copilot reviewer delivered fin
 - Source review ID: 5212249373
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2231#discussion_r4017458780
 - Concern: The T2 status-table cell is long and difficult to scan in rendered Markdown.
-- Solution: Pending: shorten the status wording while preserving the pending hosted-verification state.
-- Current-tree verification: Pending implementation and focused documentation validation.
-- Resolution reference: Pending
-- Reply URL: Pending
+- Solution: Shortened the T2 status-table cell while preserving the C3-C5 hosted-verified state, the Docker ACI pending hosted-verification state, and the remaining C6 pending state.
+- Current-tree verification: The T2 row now reads `C3-C5 hosted-verified; Docker ACI repair pending hosted verification; remaining C6 fragments pending.` Focused Markdown and cspell validation passed.
+- Resolution reference: `docs(issues): improve C6 status readability`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2231#discussion_r4028706694
 
 ## Processing Log
 
 - 2026-09-16 00:00 UTC - Started audit for Copilot review `5212249373`; normalized findings F1-F3 in source order.
 - 2026-09-16 - F1 fixed, replied to, and resolved before processing the next finding.
 - 2026-09-16 - F2 fixed, replied to, and resolved before processing the next finding.
+- 2026-09-16 - F3 fixed, replied to, and resolved; all three initial Copilot findings are now processed.
 
 ## Completion Rules
 
