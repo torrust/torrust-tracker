@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2235
-last-updated-utc: 2026-09-16 12:55
+last-updated-utc: 2026-09-16 13:13
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,7 @@ semantic-links:
     - docs/templates/REVIEW-FINDINGS.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh
@@ -55,9 +56,8 @@ references, the split audit layout, or GraphQL-first sourcing decided and delive
 - Align the reviewer-facing `review-pr` guidance with the unified author-side review contract,
   including finding syntax, severity vocabulary, re-raise semantics, re-pushed-head scoping, and
   an explicit checklist `N/A` convention.
-- Add a maintained structural guardrail that verifies repository-relative paths in Markdown code
-  spans, including an explicit documented allowlist for intentional historical or illustrative
-  paths.
+- Capture and classify repository-relative paths in Markdown code spans, then defer strict
+  path-reference validation to a broader semantic-link and frontmatter convention design.
 - Add a retirement obligation inventory rule to the governing documentation-replacement workflow.
 - Add a mechanical rename-purity verification pattern to the governing migration guidance.
 - Create a design note, without implementing it, for tiered model routing during review
@@ -104,7 +104,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Align reviewer-side guidance | Updated the `review-pr` skill and associated advisory template with `[<Severity>][<FindingId>] <summary>`, `Blocker`, `Major`, `Minor`, `Nit`, and `Suggestion`; one-finding-per-thread, re-raise, current-head, and `N/A` conventions validated with Markdown, spelling, link, and review-contract checks. Evidence: `review-finding:pr-2232-f12`. |
-| T2 | IN_PROGRESS | Validate Markdown code-span paths | Added issue-local case analysis and a complete TSV inventory before deciding whether to implement a strict checker. The current evidence separates historical records, placeholders, globs, comments, directories, examples, and literal missing paths so each group can receive an appropriate policy. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
+| T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to the draft EPIC `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
 | T3 | TODO | Preserve retirement obligations | Add a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an inventory of every normative rule in the retiring artifact and record whether each is preserved with its destination or deliberately dropped with a reason. Evidence: `review-finding:pr-2232-f6`. |
 | T4 | TODO | Verify rename purity mechanically | Add a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an explicitly selected merge base, old and new repository paths, and reviewed expected added/deleted lines per renamed file. The verifier must fail when the actual changed-line pairs differ from that approved expectation. Evidence: `review-finding:pr-2232-f4`. |
 | T5 | TODO | Design tiered model routing | Write a design note that separates strong-model current-tree triage and bounded solution specification from lower-cost implementation and independent verification. Record the cost, quality, auditability, failure-containment, and portability trade-offs. Do not implement agents. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
@@ -160,16 +160,17 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 - 2026-09-16 12:55 UTC - Copilot - Added `code-span-path-case-analysis.md` and
   `code-span-path-case-inventory.tsv` with all observed non-resolving Markdown code-span path
   cases, grouped for later policy analysis.
+- 2026-09-16 13:13 UTC - Copilot - Created draft EPIC
+  `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md` and deferred strict T2 path
+  validation to that broader frontmatter, semantic-link, and path-reference convention design.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Reviewer-facing guidance consistently defines the advisory finding format, severity
   vocabulary, one-finding-per-thread rule, re-raise behavior, round-N+1 scoping after a re-push,
   and checklist `N/A` semantics.
-- [ ] AC2: A maintained pre-commit-invoked code-span repository-path check catches missing
-  `docs/`, `.github/`, `contrib/`, `packages/`, and `src/` paths in dependency-free tests and
-  permits only tracked exceptions identifying their source span, reason, and retention/removal
-  owner.
+- [x] AC2: Markdown code-span repository-path cases are inventoried and classified, with strict
+  validation deferred to a broader semantic-link, frontmatter, and path-reference convention EPIC.
 - [ ] AC3: `process-pr-review/SKILL.md` requires a normative-obligation inventory for retiring or
   replacing review-workflow documents and a failure-propagating rename-purity verification that
   compares each renamed file against its approved changed-line expectation.
