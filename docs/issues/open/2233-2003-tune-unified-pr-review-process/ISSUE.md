@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2235
-last-updated-utc: 2026-09-16 13:13
+last-updated-utc: 2026-09-16 14:28
 semantic-links:
   skill-links:
     - create-issue
@@ -82,8 +82,14 @@ references, the split audit layout, or GraphQL-first sourcing decided and delive
 
 ## Design and Ownership Review
 
-T2 adds repository-maintenance tooling invoked by the pre-commit documentation-test step. Its
-responsibilities and ownership boundaries are:
+T2 originally proposed repository-maintenance tooling invoked by the pre-commit documentation-test
+step. The case inventory showed that strict Markdown code-span path enforcement depends on a
+broader convention decision about semantic links, path references, historical records, examples,
+and typed validation. This issue therefore records the evidence and defers enforcement design to
+`docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`.
+
+If a later issue implements a path-reference checker, its responsibilities and ownership boundaries
+should be:
 
 | Collaborator | Responsibility | Failure and lifetime boundary |
 | ------------ | -------------- | ----------------------------- |
@@ -105,8 +111,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Align reviewer-side guidance | Updated the `review-pr` skill and associated advisory template with `[<Severity>][<FindingId>] <summary>`, `Blocker`, `Major`, `Minor`, `Nit`, and `Suggestion`; one-finding-per-thread, re-raise, current-head, and `N/A` conventions validated with Markdown, spelling, link, and review-contract checks. Evidence: `review-finding:pr-2232-f12`. |
 | T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to the draft EPIC `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
-| T3 | TODO | Preserve retirement obligations | Add a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an inventory of every normative rule in the retiring artifact and record whether each is preserved with its destination or deliberately dropped with a reason. Evidence: `review-finding:pr-2232-f6`. |
-| T4 | TODO | Verify rename purity mechanically | Add a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an explicitly selected merge base, old and new repository paths, and reviewed expected added/deleted lines per renamed file. The verifier must fail when the actual changed-line pairs differ from that approved expectation. Evidence: `review-finding:pr-2232-f4`. |
+| T3 | DONE | Preserve retirement obligations | Added a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring a normative-rule inventory with preserved destinations or deliberate drop reasons. Evidence: `review-finding:pr-2232-f6`. |
+| T4 | DONE | Verify rename purity mechanically | Added a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring an explicit comparison base, old/new paths, reviewed expected zero-context patch, and failure-propagating exact comparison. Evidence: `review-finding:pr-2232-f4`. |
 | T5 | TODO | Design tiered model routing | Write a design note that separates strong-model current-tree triage and bounded solution specification from lower-cost implementation and independent verification. Record the cost, quality, auditability, failure-containment, and portability trade-offs. Do not implement agents. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
 
 Candidate T4 verification contract:
@@ -126,7 +132,7 @@ empty and any unexpected content fails.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | Reviewer guidance and advisory finding template alignment | Commit after focused documentation validation and review. |
-| T2 | Code-span path checker, dependency-free tests, allowlist, and pre-commit invocation wiring | Commit after focused negative/positive checks and required review. |
+| T2 | Code-span path case inventory and deferral to the semantic-link conventions draft EPIC | Commit after focused documentation validation and review. |
 | T3-T4 | Retirement and migration workflow documentation | Commit after focused documentation validation and review. |
 | T5 | Tiered-routing design note | Commit after documentation validation and review. |
 
@@ -163,6 +169,8 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 - 2026-09-16 13:13 UTC - Copilot - Created draft EPIC
   `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md` and deferred strict T2 path
   validation to that broader frontmatter, semantic-link, and path-reference convention design.
+- 2026-09-16 14:28 UTC - Copilot - Added retirement-obligation and rename-purity rules to
+  `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, completing T3 and T4.
 
 ## Acceptance Criteria
 
@@ -171,7 +179,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   and checklist `N/A` semantics.
 - [x] AC2: Markdown code-span repository-path cases are inventoried and classified, with strict
   validation deferred to a broader semantic-link, frontmatter, and path-reference convention EPIC.
-- [ ] AC3: `process-pr-review/SKILL.md` requires a normative-obligation inventory for retiring or
+- [x] AC3: `process-pr-review/SKILL.md` requires a normative-obligation inventory for retiring or
   replacing review-workflow documents and a failure-propagating rename-purity verification that
   compares each renamed file against its approved changed-line expectation.
 - [ ] AC4: A tiered-model routing design note defines agent boundaries and cost, quality,
@@ -192,7 +200,7 @@ Define verification before implementation starts and execute it before closing t
 ### Automatic Checks
 
 - `linter all`.
-- Focused checker test(s) added by T2, including missing-path and allowlisted-path cases.
+- T2 code-span path case inventory and draft conventions EPIC reviewed instead of checker tests.
 - The focused structural review-report contract check when modifying its protected artifacts:
   `contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`.
 - Applicable pre-push checks.
@@ -204,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Review guidance consumption | Follow the updated reviewer guidance while writing a sample re-raised finding for a re-pushed PR head. | The reviewer can state the finding, relationship, and round scope without ambiguity. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Path-check exception review | Review a current path failure and an intentionally historical audit path through the checker and allowlist process. | The invalid current path fails; the historical record remains untouched and is accepted only through an explicit exception. | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Path-reference deferral review | Review the code-span path case analysis and draft conventions EPIC. | The reviewer can distinguish current strict-check candidates from historical records, examples, placeholders, and broader semantic-link/path-reference design work. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Tiered-routing design review | Read the design note as a prospective reviewer and trace one finding from triage through bounded implementation and independent verification. | Ownership boundaries, evidence, and failure handling are explicit before automation is considered. | TODO | `manual-verification-evidence.md` section V3 |
 
 Create `manual-verification-evidence.md` from
@@ -217,8 +225,8 @@ results must identify the toolchain or runtime that produced them.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | TODO | Updated reviewer guidance and manual scenario M1. |
-| AC2 | TODO | Focused checker tests, allowlist review, and manual scenario M2. |
-| AC3 | TODO | Updated `process-pr-review` workflow guidance and focused documentation validation. |
+| AC2 | DONE | `code-span-path-case-analysis.md`, `code-span-path-case-inventory.tsv`, draft semantic-link conventions EPIC, and manual scenario M2. |
+| AC3 | DONE | Updated `process-pr-review` workflow guidance and focused documentation validation. |
 | AC4 | TODO | Tiered-routing design note and manual scenario M3. |
 | AC5 | TODO | Final specification and task evidence review. |
 
