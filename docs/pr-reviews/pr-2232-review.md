@@ -221,7 +221,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Current-tree verification: the file starts with closed YAML frontmatter and
   `grep REVIEW-FINDINGS docs/index.md` matches the catalog row; linters pass.
 - Resolution reference: docs(templates): complete reviewer guidance relocation
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ### F14 - Issue spec still placed the guidance under .github (N2)
 
@@ -235,7 +235,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Current-tree verification: the spec's only remaining `.github/PULL_REQUEST_TEMPLATE` reference
   is the completed T5 row.
 - Resolution reference: docs(issues): update spec to relocated guidance
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ### F15 - Recorded F4 verification command did not discriminate (N3)
 
@@ -248,7 +248,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Current-tree verification: the `-E` command matches 21 occurrences at the pre-fix head `54ae5faa`
   and nothing at this head.
 - Resolution reference: docs(pr-reviews): record approval round
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ### F16 - F10 verification claim was broader than the tree (N4)
 
@@ -260,7 +260,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Solution: narrowed the claim to the rows this PR placed.
 - Current-tree verification: audit F10 entry now states the pre-existing inversion is untouched.
 - Resolution reference: docs(pr-reviews): record approval round
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ### F17 - Two docs/AGENTS.md rows lost column alignment (N5)
 
@@ -272,7 +272,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Solution: removed the extra padding space from both rows.
 - Current-tree verification: every directory-map row measures 199 characters.
 - Resolution reference: docs(agents): restore directory map alignment
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ### F18 - Processing-log entry dated after the commit that wrote it (N6)
 
@@ -284,7 +284,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Solution: corrected the entry to 20:28 UTC, matching its commit author time.
 - Current-tree verification: the corrected stamp is not later than the commit that introduced it.
 - Resolution reference: docs(pr-reviews): record approval round
-- Reply URL: consolidated response (see Processing Log)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5693446035
 
 ## Processing Log
 
