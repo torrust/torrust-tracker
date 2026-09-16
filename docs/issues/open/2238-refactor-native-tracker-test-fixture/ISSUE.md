@@ -7,8 +7,8 @@ epic: null
 github-issue: 2238
 spec-path: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
 branch: "2238-refactor-native-tracker-test-fixture-spec"
-related-pr: null
-last-updated-utc: 2026-09-16 15:40
+related-pr: 2239
+last-updated-utc: 2026-09-16 16:25
 semantic-links:
   skill-links:
     - create-issue
@@ -141,7 +141,7 @@ cover only planning-artifact workflow outside that plan.
 | --- | --- | --- | --- |
 | I1 | DONE | Review and approve planning artifacts | Maintainer approved this issue specification and the linked refactor plan. |
 | I2 | DONE | Create and link the GitHub issue | Created issue #2238, promoted both drafts to their open locations, and replaced placeholders. |
-| I3 | IN_PROGRESS | Publish the planning artifacts | Preparing spec-only branch `2238-refactor-native-tracker-test-fixture-spec`; no fixture code belongs in it. |
+| I3 | IN_PROGRESS | Publish the planning artifacts | Spec-only PR #2239 is open; no fixture code belongs in it. Complete after merge. |
 | I4 | TODO | Close and archive the planning artifacts | After every refactor-plan item and the issue acceptance review are complete, close the GitHub issue and move both artifacts to `closed/`. |
 
 ## Commit Points
@@ -178,6 +178,7 @@ Implementation commit points are defined only in the linked refactor plan.
 - 2026-09-16 15:29 UTC - Maintainer and GitHub Copilot - Removed internal API/path compatibility as a constraint and made the refactor plan the sole implementation-task ledger; issue tasks now cover only planning-artifact workflow outside the plan. - This specification and linked refactor plan
 - 2026-09-16 15:36 UTC - GitHub Copilot - Created GitHub issue #2238 after maintainer approval and promoted the issue specification and refactor plan to their numbered open locations. - https://github.com/torrust/torrust-tracker/issues/2238
 - 2026-09-16 15:40 UTC - GitHub Copilot - Created the dedicated spec-only branch from the latest upstream `develop` and began publishing the approved planning artifacts. - `2238-refactor-native-tracker-test-fixture-spec`
+- 2026-09-16 16:25 UTC - GitHub Copilot - Opened spec-only PR #2239 against upstream `develop`; issue #2238 remains open for implementation. - https://github.com/torrust/torrust-tracker/pull/2239
 
 ## Acceptance Criteria
 
@@ -267,6 +268,7 @@ why no retrospective is needed.
 ## References
 
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
+- Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
 - Related refactor plan: `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
 - Affected fixture: `tests/common/native_tracker.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`
