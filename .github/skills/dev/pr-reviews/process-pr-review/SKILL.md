@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, or address Copilot and maintainer review findings together.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -114,6 +114,41 @@ line `[<Severity>][<FindingId>] <summary>`, with severity limited to `Blocker`, 
 `Nit`, or `Suggestion`. Each independently actionable finding gets its own inline thread. A
 re-raised finding uses the original finding ID and states the re-raise in its body. Review bodies
 contain only the round verdict or summary; do not duplicate detailed inline findings there.
+
+## Retiring or Replacing Review Workflow Documents
+
+When a PR retires, renames, replaces, or supersedes a review-workflow document, do not rely on file
+movement alone as evidence that the workflow contract survived. Before resolving the review finding,
+record an inventory of every normative rule in the retiring artifact. For each rule, record one of:
+
+- `PRESERVED`: the destination document and section that now owns the rule;
+- `DROPPED`: the explicit reason the rule is no longer part of the workflow contract.
+
+Resolve the finding only after the inventory is checked against the current tree and any preserved
+rule is present in its named destination. Keep historical audit records unchanged; the inventory
+guards live workflow behavior, not archival prose.
+
+## Rename Migration Verification
+
+When a review finding concerns a rename-only or move-with-limited-edits migration, verify the rename
+mechanically before accepting the migration as pure. The verification record must name:
+
+- the selected merge base or comparison commit;
+- the old repository path;
+- the new repository path;
+- the reviewed expected zero-context patch for that file.
+
+Compare the actual zero-context patch with the reviewed expectation and fail the verification when
+they differ. The approved patch may be empty only when the actual patch is also empty. Use a
+failure-propagating comparison such as:
+
+```sh
+actual_patch=$(git diff -U0 "<base>:<old-path>" "HEAD:<new-path>")
+test "$actual_patch" = "$(cat "<approved-zero-context-patch>")"
+```
+
+Record the command, base, paths, expected-patch artifact or inline expectation, and result in the
+audit detail before resolving the finding.
 
 ## Completion Checklist
 

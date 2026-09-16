@@ -3,7 +3,7 @@ name: review-pr
 description: Review an existing pull request for the torrust-tracker project. Covers checklist-based PR quality verification, code style standards, test requirements, documentation, and review feedback. Use only when a PR already exists.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Reviewing a Pull Request
@@ -59,11 +59,30 @@ If there is no PR yet and you need to validate task completion on a local branch
 
 ## Providing Feedback
 
-Categorize comments to help the author prioritize:
+Finding formatting is advisory. Do not reject a review because it omits the format; the PR author
+normalizes all feedback under
+`.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`.
 
-- **Blocker** — must fix before merge (correctness, security, breaking changes)
-- **Suggestion** — improvement recommended but not blocking
-- **Nit** — minor style/readability point
+Use one independently actionable finding per inline review thread. When formatting a finding, start
+its first line with:
+
+```text
+[<Severity>][<FindingId>] <summary>
+```
+
+`<Severity>` is one of `Blocker`, `Major`, `Minor`, `Nit`, or `Suggestion`. Use the original
+`<FindingId>` for a re-raised finding and state that it is a re-raise in the thread body. Keep
+review bodies to the round verdict or summary; do not repeat detailed inline findings there. See
+`docs/templates/REVIEW-FINDINGS.md` for the advisory format.
+
+## Re-pushed Heads and Checklists
+
+After a re-push, scope the next review round to the current PR head. Do not re-raise an earlier
+finding unless the current tree still has the concern or the re-push regressed it; retain its
+original finding ID when you do re-raise it.
+
+Mark checklist items `N/A` only after determining that they do not apply to the PR. Leave an item
+unchecked when it was not assessed; do not use `N/A` to represent an unreviewed item.
 
 ## Standards Reference
 
