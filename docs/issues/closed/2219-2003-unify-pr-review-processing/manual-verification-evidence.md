@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
-last-updated-utc: 2026-09-15T16:30:00Z
+issue-spec: docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
+last-updated-utc: 2026-09-16T08:23:40Z
 ---
 
 # Manual Verification Evidence - Unify PR Review Processing

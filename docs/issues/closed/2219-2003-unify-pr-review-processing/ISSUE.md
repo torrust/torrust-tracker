@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p2
 epic: 2003
 github-issue: 2219
-spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
+spec-path: docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-16T06:53:00Z
+last-updated-utc: 2026-09-16T08:23:40Z
 semantic-links:
   skill-links:
     - create-issue
@@ -393,10 +393,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
+- 2026-09-16 08:23 UTC - GitHub Copilot - Confirmed GitHub issue #2219 is closed after PR #2232
+  merged, then archived this completed folder-style specification in `docs/issues/closed/`.
 - 2026-09-14 - GitHub Copilot - Drafted this specification from the pain points recorded while
   processing PR #2174's four maintainer review rounds and six Copilot threads. Evidence:
   `docs/pr-review-feedback/pr-2174-review-feedback.md`.

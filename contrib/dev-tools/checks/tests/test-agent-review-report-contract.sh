@@ -173,7 +173,7 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
     done
 
     require_yaml_frontmatter "${PROCESS_PR_REVIEW}"
-    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md'
+    require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/templates/PR-REVIEW-TEMPLATE.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" 'docs/templates/REVIEW-FINDINGS.md'
     require_yaml_related_artifact "${PROCESS_PR_REVIEW}" '.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md'
