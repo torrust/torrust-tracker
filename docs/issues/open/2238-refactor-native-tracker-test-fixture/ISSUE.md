@@ -16,7 +16,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
-    - docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+    - docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md
     - tests/common/native_tracker.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
@@ -70,7 +70,7 @@ explicitly; and the two binaries use different subsets of the API, so the 21 `#[
 attributes need a deliberate consolidation policy under `-D unused`.
 
 The linked detailed plan is
-[`docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`](../../../refactor-plans/open/2238-refactor-native-tracker-test-fixture.md).
+[`docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md`](../../../refactor-plans/drafts/refactor-native-tracker-test-fixture.md).
 
 ## Scope
 
@@ -119,7 +119,7 @@ invariants:
 | Running tracker child | `NativeTracker` (root module) | Normal shutdown waits for the child; drop-path cleanup kills and reaps it before its workspace is released. |
 | Failed-start child | `NativeTrackerFailedStart` (`failed_start.rs`) | `wait_for_exit` reaps it and restores permissions; `Drop` remains a best-effort fallback that does not panic while unwinding. |
 | Child stdout and stderr readers | `TrackerOutputCapture` (`output.rs`) | Both streams are drained concurrently and joined before contents are treated as final diagnostics. |
-| Temporary workspace and configuration files | `NativeTrackerWorkspace` (`command.rs`) or the failed-start result | Paths remain available for diagnostics until the applicable child cleanup is complete. |
+| Temporary workspace and configuration files | `NativeTrackerWorkspace` (`command.rs`); on failed starts, ownership transfers through `NativeTrackerStartAttempt` and `NativeTrackerFailedStart` to `NativeTrackerFailedStartResult` | Paths remain available for diagnostics until the applicable child cleanup is complete. |
 | Readiness operations | `NativeTracker` readiness loop (root module) | One absolute startup deadline bounds health probing and readiness retries. |
 | Deadline constants | The module that owns the awaited resource | `STARTUP_DEADLINE`, `SHUTDOWN_DEADLINE`, `RETRY_INTERVAL` stay with the root; `FAILURE_DEADLINE` moves with failed start. |
 
@@ -222,8 +222,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Trace a running tracker lifecycle | Starting from a signal test, navigate through its final fixture API into startup, readiness, shutdown, and drop cleanup; record the owner of each child, output reader, and workspace. | The consumer reads clearly, the complete normal lifecycle is understandable without entering failed-start implementation, and every resource has one clear owner. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Trace a failed-start lifecycle | Starting from an invalid-source test, navigate through its final fixture API into source preparation, spawn, diagnostics, permission restoration, wait, and drop fallback; record the owner and deadline at each stage. | The consumer reads clearly, the complete failure lifecycle is understandable without entering normal readiness orchestration, and cleanup responsibilities and deadlines remain explicit. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Exercise and trace a running tracker lifecycle | Run `cargo test --test lifecycle-signals -- --nocapture` to exercise real child startup, readiness, signal shutdown, and drop cleanup. Starting from those scenarios, navigate through the final fixture API and record the owner of each child, output reader, workspace, and deadline together with the command result. | The signal and drop-path child-process scenarios pass; the complete normal lifecycle is understandable without entering failed-start implementation; every resource has one clear owner; the evidence records the command, result, and ownership trace. | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Exercise and trace a failed-start lifecycle | Run `cargo test --test cli-configuration invalid_sources -- --nocapture` to exercise invalid-source child exits and diagnostics. Starting from those scenarios, navigate through source preparation, spawn, diagnostics, permission restoration, wait, and drop fallback; record each owner, transfer, deadline, and the command result. | The invalid-source child-process scenarios pass without starting a service; the complete failure lifecycle is understandable without entering normal readiness orchestration; cleanup responsibilities and deadlines remain explicit; the evidence records the command, result, and ownership trace. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Walk the maintenance task map | For each row of the plan's task map, open only the named primary module and collaborators and confirm the described change could be made there; note any row that would require opening another module. | Every row holds; any exception is recorded and either fixed or justified. | TODO | `manual-verification-evidence.md` section V3 |
 
 ### Acceptance Verification
@@ -269,6 +269,6 @@ why no retrospective is needed.
 
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
 - Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
-- Related refactor plan: `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
+- Related refactor plan: `docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md`
 - Affected fixture: `tests/common/native_tracker.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`

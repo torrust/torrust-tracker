@@ -1,8 +1,8 @@
 ---
 doc-type: refactor-plan
-status: open
+status: draft
 related-issue: 2238
-spec-path: docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+spec-path: docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md
 last-updated-utc: 2026-09-16 15:36
 semantic-links:
   skill-links:
@@ -146,11 +146,11 @@ refactor and is verified by manual scenario M3 in the issue specification.
 
 | Maintenance task | Primary module to open | Collaborators | Focused check |
 | --- | --- | --- | --- |
-| Add an invalid CLI source case | `failed_start.rs` and `tests/configuration/cli_configuration/invalid_sources.rs` | `command.rs` only if a new rendering helper is needed | `cargo test --test cli-configuration` |
+| Add an invalid CLI source case | `failed_start.rs` | `tests/configuration/cli_configuration/invalid_sources.rs`; `command.rs` only if a new rendering helper is needed | `cargo test --test cli-configuration` |
 | Change the rendered fixture TOML or child environment isolation | `command.rs` | none | both binaries |
 | Change what "ready" means (health status, signal-handler log line) | root | `health.rs` for probe or parsing changes | both binaries |
 | Change how child output is captured or joined | `output.rs` | none | both binaries |
-| Change a running-tracker deadline or drop-path policy | root | none | `cargo test --test lifecycle-signals` |
+| Change a running-tracker deadline or drop-path policy | root | none | `cargo test --test lifecycle-signals --test cli-configuration` |
 | Change failed-start reaping, permission restoration, or its drop fallback | `failed_start.rs` | `output.rs` for reader joining | `cargo test --test cli-configuration` |
 
 ## Items
@@ -189,11 +189,15 @@ directory or fail to compile.
 - `tests/common/native_tracker.rs` (moves to `tests/common/native_tracker/mod.rs` under option 1)
 - `tests/lifecycle/signals.rs`
 - `tests/configuration/cli_configuration.rs`
+- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
+- this refactor plan
 
 **Change**: Select the layout that produces the clearest module ownership and consumer imports.
 The recommended option remains a `tests/common/native_tracker/mod.rs` root, but narrower direct
 imports are allowed if they better separate running and failed-start fixtures. Update both
-consumers and run both binaries.
+consumers and every live documentation path or related-artifact entry that names the old root;
+preserve historical progress-log paths that accurately describe the earlier state. Run both
+binaries.
 
 ---
 
@@ -230,7 +234,9 @@ interleaved with process-ownership logic.
 `write_configuration`, `write_configuration_in_directory`, `tracker_command`,
 `configure_tracker_command`, and `tracker_binary`. Re-export `NativeTrackerConfigurationSources`
 from the root. Move the `tracker_command` and `write_configuration` tests. Keep the three item-level
-dead-code allowances on the environment/override builders.
+dead-code allowances on the environment/override builders. Add a `//!` doc stating that the module
+owns workspace/configuration materialization and shared command construction but does not own child
+processes or lifecycle decisions.
 
 ---
 
@@ -269,7 +275,8 @@ should state the ownership model that reviewers and agents rely on.
 
 **Change**: Order the root as: module doc, child `mod` declarations, `pub use` re-exports,
 lifecycle constants, `NativeTracker` struct, `impl NativeTracker`, `impl Drop`. Extend the `//!` doc
-with a short ownership summary matching the responsibility map. No behavior changes.
+with a short ownership summary matching the responsibility map and state that the root must not
+contain failed-start, rendering, or probe implementation. No behavior changes.
 
 ---
 
