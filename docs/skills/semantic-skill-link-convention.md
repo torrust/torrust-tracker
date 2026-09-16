@@ -24,9 +24,10 @@ Current markers:
 | Marker              | Value                  | Meaning                                                                                        |
 | ------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | `skill-link`        | `<skill-name>`         | This artifact affects the linked skill and should trigger a skill review when changed.         |
-| `related-artifacts` | `<repo-relative-path>` | List of artifacts related to this file; linked files should be reviewed when this one changes. |
+| `related-artifacts` | `<repo-relative-path>` or `review-finding:pr-<number>-<id>` | List of artifacts related to this file; linked files should be reviewed when this one changes. |
 | `issue-spec`        | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path.          |
 | `issue`             | `#<number>`            | This artifact is affected by the GitHub issue with the given number.                           |
+| `review-finding`    | `pr-<number>-<id>`     | Repository-controlled identifier for one normalized pull-request review finding.               |
 
 Add new markers only when there is a concrete recurring maintenance problem that the current marker set cannot represent.
 
@@ -48,6 +49,24 @@ issue: #1234
 
 Do not retain the draft file path after the issue is created: issue specs move from
 `drafts/` to `open/` and later to `closed/`, while the issue number remains stable.
+
+### Review-finding references
+
+Use `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` to cite one normalized finding from a
+pull-request audit. The value is a deterministic repository reference: lowercase the finding ID
+when writing the reference, for example `review-finding:pr-2230-f1` for audit finding `F1`.
+It is immutable once assigned, and resolves to the row in
+`docs/pr-reviews/pr-<PR_NUMBER>-review.md`. GitHub thread, comment, review, and URL identifiers
+remain source metadata used to fetch and handle feedback; they are not concept references.
+
+Use the reference in Markdown prose or as a `semantic-links.related-artifacts` value when an ADR,
+issue, or another artifact is materially related to that finding:
+
+```yaml
+semantic-links:
+  related-artifacts:
+    - review-finding:pr-2230-f1
+```
 
 ## Placement Syntax by File Type
 

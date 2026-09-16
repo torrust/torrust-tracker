@@ -18,8 +18,7 @@ semantic-links:
     - docs/adrs/README.md
     - docs/adrs/index.md
     - docs/issues/README.md
-    - docs/copilot-pr-reviews/README.md
-    - docs/pr-review-feedback/README.md
+    - docs/pr-reviews/README.md
     - docs/refactor-plans/closed/README.md
     - docs/refactor-plans/drafts/README.md
     - docs/refactor-plans/open/README.md
@@ -121,21 +120,14 @@ specs (drafts → open → closed).
 | [refactor-plans/open/](refactor-plans/open/)     | Active refactor plan specs                          |
 | [refactor-plans/closed/](refactor-plans/closed/) | Completed refactor plans kept for reference         |
 
-## Copilot PR Reviews
+## Pull-Request Reviews
 
-Records of Copilot pull request suggestion reviews.
+Records of all PR review findings, their independently tracked resolutions, and consolidated
+responses.
 
-| Document                                                     | Description                               |
-| ------------------------------------------------------------ | ----------------------------------------- |
-| [copilot-pr-reviews/README.md](copilot-pr-reviews/README.md) | Overview of the Copilot PR review archive |
-
-## Pull Request Review Feedback
-
-Records of review summaries, their independently tracked findings, and consolidated responses.
-
-| Document                                                     | Description                                |
-| ------------------------------------------------------------ | ------------------------------------------ |
-| [pr-review-feedback/README.md](pr-review-feedback/README.md) | Overview of the PR review feedback archive |
+| Document                                     | Description                                      |
+| -------------------------------------------- | ------------------------------------------------ |
+| [pr-reviews/README.md](pr-reviews/README.md) | Overview of the unified PR review audit archive |
 
 ## Skills and Conventions
 
@@ -163,8 +155,8 @@ that type.
 | [templates/REFACTOR-PLAN.md](templates/REFACTOR-PLAN.md)                               | Template for refactor plan specifications                         |
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
-| [templates/COPILOT-SUGGESTIONS-TEMPLATE.md](templates/COPILOT-SUGGESTIONS-TEMPLATE.md) | Template for recording Copilot PR review suggestions              |
-| [templates/PR-REVIEW-FEEDBACK-TEMPLATE.md](templates/PR-REVIEW-FEEDBACK-TEMPLATE.md)   | Template for tracking PR review findings and responses            |
+| [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
+| [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |
 
 ## Media
 
