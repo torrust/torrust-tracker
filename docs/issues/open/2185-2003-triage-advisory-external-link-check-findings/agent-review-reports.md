@@ -167,3 +167,17 @@ semantic-links:
 - Follow-up actions:
   - Add the C5 run to AC5's evidence row and commit the C5 hosted-verification record.
   - Continue C6-C8 under their independent dispositions; do not close issue #2185.
+
+### 2026-09-15 15:08 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C6 Docker ACI fragment repair in `docs/containers.md`, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Scoped uncommitted diff; the retired Docker ACI URLs; Azure Files volume documentation; and Azure Container Instances troubleshooting documentation.
+- Evidence: Both retired Docker URLs redirect to Docker's retired-page notice. Azure's Azure Files documentation states that mounting a share over a container directory obscures existing files or directories at the mount path while the container runs. Azure's troubleshooting documentation states that ACI does not support Docker-style port mapping. The old URLs remain as historical baseline inventory entries; no Lychee configuration, workflow, testing policy, or broad exclusion changed. Focused `git diff --check`, Markdown, spelling, and local-link validation passed.
+- Findings:
+  - Resolved: The volume-mount and port-mapping wording is limited to claims supported by the authoritative Azure documentation.
+  - Resolved: C6's GitHub issue-comment and Star History fragments remain separate investigations; no broad fragment exclusion is proposed.
+  - Pending: Hosted verification is required before completing the C6 Docker repair, M3, T2, or AC2. Keep the issue-wide completion criteria pending.
+- Verdict: REVIEW WARNED.
+- Follow-up actions:
+  - Commit and merge this isolated repair, then obtain and independently review a hosted External Link Check report.
+  - Continue the remaining C6 fragments independently; do not close issue #2185.
