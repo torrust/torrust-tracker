@@ -7,8 +7,8 @@ epic: 2003
 github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
-related-pr: 2235
-last-updated-utc: 2026-09-16 15:08
+related-pr: 2237
+last-updated-utc: 2026-09-16 15:10
 semantic-links:
   skill-links:
     - create-issue
@@ -187,6 +187,8 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   reviewer validation complete.
 - 2026-09-16 15:08 UTC - Copilot - Re-ran focused checks and the full pre-commit gate; verified
   the issue progress record is ready for the completion evidence commit.
+- 2026-09-16 15:10 UTC - Copilot - Opened implementation PR #2237 targeting `develop` with
+  `Closes #2233`; PR #2235 remains the spec-only merge evidence.
 
 ## Acceptance Criteria
 
