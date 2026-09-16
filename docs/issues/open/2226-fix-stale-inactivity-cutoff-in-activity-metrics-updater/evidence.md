@@ -116,13 +116,13 @@ peer. The observed output instead reports zero inactive peers through 10:11:08.
    admin = "issue-evidence-token"
    ```
 
-2. Started the tracker, capturing its output in `.tmp/issue-evidence/tracker.log`:
+2. Started the tracker in a separate terminal session, capturing its output in `.tmp/issue-evidence/tracker.log`:
 
    ```text
    rm -f .tmp/issue-evidence/activity-metrics-stale-cutoff.sqlite3 && RUST_LOG=debug cargo run --bin torrust-tracker -- --config-toml-path .tmp/issue-evidence/activity-metrics-stale-cutoff.toml > .tmp/issue-evidence/tracker.log 2>&1
    ```
 
-   Relevant startup output:
+   This command keeps the tracker in the foreground, so run it in a separate terminal and keep that session open while the subsequent announce and metrics commands are executed. Relevant startup output:
 
    ```text
    2026-09-15T10:04:50.197334Z  INFO ... HTTP TRACKER: Started on: http://127.0.0.1:17070

@@ -15,7 +15,6 @@ semantic-links:
     - create-issue
     - write-unit-test
   related-artifacts:
-    - .github/skills/add-new-skill/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - .github/agents/implementer.agent.md
@@ -32,6 +31,8 @@ Establish one repository-owned workflow for investigating and fixing confirmed b
 ## Background
 
 The confirmed stale activity-metrics cutoff bug exposed a missing explicit repository workflow. Its investigation used a useful sequence: analyse the defect, reproduce it against the real artifact, choose the smallest regression-test boundary, write a failing test, fix the code, and rerun both the automatic regression test and original manual reproduction.
+
+The repo-global authoring workflow still lives under `.github/skills/add-new-skill/SKILL.md`, but the issue-specific workflow guidance below intentionally points only at the `dev/` paths that govern day-to-day tracking and validation. This keeps the taxonomy explicit without creating a second canonical source for the bug-fix process.
 
 Current guidance is incomplete by design:
 
