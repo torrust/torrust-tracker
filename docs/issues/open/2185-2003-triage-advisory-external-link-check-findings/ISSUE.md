@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status      | Task                                      | Notes / Expected Output                                                                                          |
 | --- | ----------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.            |
-| T2  | IN_PROGRESS | Repair clearly stale references           | C3-C5 are hosted-verified; the two retired Docker ACI fragments are repaired pending hosted verification, while C6's remaining fragments remain under investigation. |
+| T2  | IN_PROGRESS | Repair clearly stale references           | C3-C5 hosted-verified; Docker ACI repair pending hosted verification; remaining C6 fragments pending. |
 | T3  | DONE        | Add justified narrow exclusions           | C1/C9 and C2 online-only rules are verified on merged upstream hosted runs.                                      |
 | T4  | DONE        | Revalidate hosted signal                  | Hosted run 34616458439 excluded C1/C9 and C2 while retaining visible unrelated failures and its report artifact. |
 | T5  | TODO        | Document operations and review completion | Triage procedure, residual risks, acceptance evidence, and independent review are updated from observed results. |
