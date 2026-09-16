@@ -8,7 +8,7 @@ github-issue: 2234
 spec-path: docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
 branch: "2234-1488-si-2-token-server-lifecycle"
 related-pr: null
-last-updated-utc: 2026-09-16 09:10
+last-updated-utc: 2026-09-16 09:20
 semantic-links:
   skill-links:
     - create-issue
@@ -89,10 +89,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Branch the local server-lib clone | Create a focused branch from `origin/main` in the existing `torrust-server-lib` clone; record its name in this spec. |
-| T2 | TODO | Add token-aware wait primitive | Add an additive function in `src/signals.rs` awaiting an injected `CancellationToken` with no `tokio::signal` use; add `tokio-util` dependency; keep legacy APIs unchanged. |
-| T3 | TODO | Add server-lib tests | Deterministic tests: token cancellation resolves the primitive; legacy `Halted` wait still resolves on `Halted::Normal`. |
-| T4 | TODO | Merge and release server-lib | Open the server-lib PR, merge, bump version, publish the crate; record version, PR, commit, and release evidence in `manual-verification-evidence.md`. |
+| T1 | DONE | Branch the local server-lib clone | Created `2234-token-aware-shutdown-wait` from `origin/main`. |
+| T2 | DONE | Add token-aware wait primitive | Added `signals::cancellation_signal(CancellationToken)` with direct `tokio-util` `rt` dependency; legacy APIs remain unchanged in `ea333ec`. |
+| T3 | DONE | Add server-lib tests | Added deterministic token-cancellation and legacy `Halted::Normal` tests in `ea333ec`; focused and full suites pass. |
+| T4 | IN_PROGRESS | Merge and release server-lib | Opened [server-lib PR #1](https://github.com/torrust/torrust-server-lib/pull/1); awaiting its required CI before merge, version publication, and release evidence. |
 | T5 | TODO | Adopt released crate in tracker | Update workspace dependency declarations and lockfile to the exact published version. |
 | T6 | TODO | Prove tracker compatibility | Add focused compile/contract coverage that exercises the additive API while legacy tracker consumers retain their existing paths. |
 | T7 | TODO | Review consumer guidance | Document SI-10 through SI-17 ownership and compatibility prerequisites; perform the design review. |
@@ -119,8 +119,8 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2234 created, attached to EPIC #1488, and added to this spec
 - [x] Spec committed on this implementation branch before server-lib work begins
-- [ ] Server-lib branch created in the local clone and recorded here
-- [ ] Additive server-lib API implemented, reviewed, merged, and released
+- [x] Server-lib branch `2234-token-aware-shutdown-wait` created in the local clone and recorded here
+- [ ] Additive server-lib API implemented and submitted for review; merged and released
 - [ ] Tracker dependency updated to the released server-lib version
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -138,6 +138,7 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - 2026-09-16 09:00 UTC - Copilot - Narrowed server-lib scope to the token-aware wait primitive; controller ownership moved to SI-10; documented direct work in the local server-lib clone instead of an upstream issue handoff.
 - 2026-09-16 09:10 UTC - Copilot - Created GitHub issue #2234, attached it to EPIC #1488, renamed this branch to `2234-1488-si-2-token-server-lifecycle`, and promoted the folder specification to `open`.
 - 2026-09-16 09:15 UTC - Copilot - Committed and pushed the approved specification as `1d4ddb10` after the full lint, pre-commit, and pre-push gates passed.
+- 2026-09-16 09:20 UTC - Copilot - Created server-lib branch `2234-token-aware-shutdown-wait`; implemented and tested the additive token-aware waiter in signed commit `ea333ec`; opened server-lib PR #1. The required CI is in progress, so merge and publication remain pending.
 
 ## Acceptance Criteria
 
