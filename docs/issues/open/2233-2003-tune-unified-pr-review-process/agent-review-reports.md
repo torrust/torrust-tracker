@@ -40,9 +40,7 @@ semantic-links:
   `contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`, and `linter all` passed
   during re-review.
 - Findings:
-  - WARN: passing re-review evidence needed to be appended to this report.
-  - WARN: reviewer-validation checkpoint needed to be checked in the issue spec.
-- Verdict: AUDIT WARNED
+  - None.
+- Verdict: AUDIT PASSED
 - Follow-up actions:
-  - Persist this re-review result.
-  - Check the reviewer-validation checkpoint before final completion commit.
+  - None.

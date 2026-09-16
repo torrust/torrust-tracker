@@ -143,7 +143,7 @@ they differ. The approved patch may be empty only when the actual patch is also 
 failure-propagating comparison such as:
 
 ```sh
-actual_patch=$(git diff -U0 "<base>:<old-path>" "<new-path>")
+actual_patch=$(git diff -U0 "<base>:<old-path>" "HEAD:<new-path>")
 test "$actual_patch" = "$(cat "<approved-zero-context-patch>")"
 ```
 
