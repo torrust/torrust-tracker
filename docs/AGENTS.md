@@ -34,8 +34,8 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `analysis/`                                                                               | In-depth analysis of features, components, or aspects of the app                                        |
 | `research/`                                                                               | External research on technologies, patterns, and best practices                                         |
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                                                   |
-| `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                                           |
-| `pr-reviews/`                                                                             | Unified pull-request review audit records                                                                |
+| `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                                          |
+| `pr-reviews/`                                                                             | Unified pull-request review audit records                                                               |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                                       |
 | `testing/`                                                                                | Durable testing guidance and test-design refactoring pattern catalog                                    |
 | `templates/`                                                                              | Canonical document templates (ADR, agent review reports, EPIC, issue, refactor plan, security analysis) |
