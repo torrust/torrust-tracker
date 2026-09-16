@@ -23,7 +23,7 @@ The PR author owns this tracked audit record. The Copilot reviewer delivered fin
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2231-f1` | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
-| F2 | `review-finding:pr-2231-f2` | Copilot | Suggestion (inferred) | documentation | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F2 | `review-finding:pr-2231-f2` | Copilot | Suggestion (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2231-f3` | Copilot | Suggestion (inferred) | formatting | ORIGINAL | FOLLOW_UP | RESOLVED |
 
 ## Finding Details
@@ -45,10 +45,10 @@ The PR author owns this tracked audit record. The Copilot reviewer delivered fin
 - Source review ID: 5212249373
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2231#discussion_r4017458718
 - Concern: The C6 heading says five occurrences while the disposition says two are repaired, which can obscure that five is the baseline count.
-- Solution: Pending: clarify that the baseline contains five occurrences and two are repaired pending hosted verification.
-- Current-tree verification: Pending implementation and focused documentation validation.
-- Resolution reference: Pending
-- Reply URL: Pending
+- Solution: Clarified the heading as `5 baseline occurrences (2 repaired pending verification)` so the original report count remains explicit while the current repair status is visible.
+- Current-tree verification: The external-link baseline preserves the five-occurrence baseline and identifies two repaired Docker entries; focused Markdown and cspell validation passed.
+- Resolution reference: `docs(links): clarify C6 baseline count`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2231#discussion_r4028668467
 
 ### F3 - Improve T2 table readability
 
@@ -65,6 +65,7 @@ The PR author owns this tracked audit record. The Copilot reviewer delivered fin
 
 - 2026-09-16 00:00 UTC - Started audit for Copilot review `5212249373`; normalized findings F1-F3 in source order.
 - 2026-09-16 - F1 fixed, replied to, and resolved before processing the next finding.
+- 2026-09-16 - F2 fixed, replied to, and resolved before processing the next finding.
 
 ## Completion Rules
 
