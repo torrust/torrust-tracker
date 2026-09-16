@@ -67,7 +67,7 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 - **Evidence:** Hosted [run 34953081017](https://github.com/torrust/torrust-tracker/actions/runs/34953081017) contains no retired C5 URL but reports the prior `#servers` replacement fragment as missing. Follow-up [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) ran on merged revision `bbb58fa8`, contains neither the retired URL nor the replacement without a fragment as an error, retained 37 unrelated errors with no timeouts, and successfully uploaded its report artifact.
 - **Next action:** Complete. Keep the C6-C8 categories under their independent dispositions.
 
-### C6: Other missing fragments — 5 occurrences
+### C6: Other missing fragments — 5 baseline occurrences (2 repaired pending verification)
 
 - **Pattern:** Docker Cloud ACI fragments, GitHub issue-comment fragments, and the Star History fragment returning `Cannot find fragment`.
 - **Disposition:** Two Docker Cloud ACI fragments repaired pending hosted verification; GitHub issue-comment and Star History fragments remain under investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
