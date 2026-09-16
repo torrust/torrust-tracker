@@ -118,7 +118,7 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - [x] Folder-style spec drafted and promoted to `docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2234 created, attached to EPIC #1488, and added to this spec
-- [ ] Spec committed on this implementation branch before server-lib work begins
+- [x] Spec committed on this implementation branch before server-lib work begins
 - [ ] Server-lib branch created in the local clone and recorded here
 - [ ] Additive server-lib API implemented, reviewed, merged, and released
 - [ ] Tracker dependency updated to the released server-lib version
@@ -137,6 +137,7 @@ For every test-producing task, use the `write-unit-test` skill and complete the 
 - 2026-09-15 13:20 UTC - Copilot - Reworked the existing SI-2 draft to define the release-first dependency and current repository verification requirements.
 - 2026-09-16 09:00 UTC - Copilot - Narrowed server-lib scope to the token-aware wait primitive; controller ownership moved to SI-10; documented direct work in the local server-lib clone instead of an upstream issue handoff.
 - 2026-09-16 09:10 UTC - Copilot - Created GitHub issue #2234, attached it to EPIC #1488, renamed this branch to `2234-1488-si-2-token-server-lifecycle`, and promoted the folder specification to `open`.
+- 2026-09-16 09:15 UTC - Copilot - Committed and pushed the approved specification as `1d4ddb10` after the full lint, pre-commit, and pre-push gates passed.
 
 ## Acceptance Criteria
 
