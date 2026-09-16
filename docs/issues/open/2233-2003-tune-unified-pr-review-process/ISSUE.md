@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2235
-last-updated-utc: 2026-09-16 14:28
+last-updated-utc: 2026-09-16 14:48
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,7 @@ semantic-links:
     - docs/templates/REVIEW-FINDINGS.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
     - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
@@ -113,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to the draft EPIC `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
 | T3 | DONE | Preserve retirement obligations | Added a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring a normative-rule inventory with preserved destinations or deliberate drop reasons. Evidence: `review-finding:pr-2232-f6`. |
 | T4 | DONE | Verify rename purity mechanically | Added a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring an explicit comparison base, old/new paths, reviewed expected zero-context patch, and failure-propagating exact comparison. Evidence: `review-finding:pr-2232-f4`. |
-| T5 | TODO | Design tiered model routing | Write a design note that separates strong-model current-tree triage and bounded solution specification from lower-cost implementation and independent verification. Record the cost, quality, auditability, failure-containment, and portability trade-offs. Do not implement agents. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
+| T5 | DONE | Design tiered model routing | Added `tiered-model-routing-design.md`, separating triage, implementation, and independent verification roles while recording cost, quality, auditability, failure-containment, and portability trade-offs. No agent automation was implemented. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
 
 Candidate T4 verification contract:
 
@@ -171,6 +172,8 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   validation to that broader frontmatter, semantic-link, and path-reference convention design.
 - 2026-09-16 14:28 UTC - Copilot - Added retirement-obligation and rename-purity rules to
   `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, completing T3 and T4.
+- 2026-09-16 14:48 UTC - Copilot - Added `tiered-model-routing-design.md`, completing the T5
+  design-only routing analysis without implementing agent automation.
 
 ## Acceptance Criteria
 
@@ -182,7 +185,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 - [x] AC3: `process-pr-review/SKILL.md` requires a normative-obligation inventory for retiring or
   replacing review-workflow documents and a failure-propagating rename-purity verification that
   compares each renamed file against its approved changed-line expectation.
-- [ ] AC4: A tiered-model routing design note defines agent boundaries and cost, quality,
+- [x] AC4: A tiered-model routing design note defines agent boundaries and cost, quality,
   auditability, failure-containment, and portability trade-offs without adding automation.
 - [ ] AC5: Each planned task retains its motivating `review-finding:pr-2232-*` reference or the
   explicitly recorded deferred automation candidate.
@@ -227,7 +230,7 @@ results must identify the toolchain or runtime that produced them.
 | AC1 | TODO | Updated reviewer guidance and manual scenario M1. |
 | AC2 | DONE | `code-span-path-case-analysis.md`, `code-span-path-case-inventory.tsv`, draft semantic-link conventions EPIC, and manual scenario M2. |
 | AC3 | DONE | Updated `process-pr-review` workflow guidance and focused documentation validation. |
-| AC4 | TODO | Tiered-routing design note and manual scenario M3. |
+| AC4 | DONE | `tiered-model-routing-design.md` and manual scenario M3. |
 | AC5 | TODO | Final specification and task evidence review. |
 
 ## Risks and Trade-offs
