@@ -8,7 +8,7 @@ github-issue: 2219
 spec-path: docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
 related-pr: null
-last-updated-utc: 2026-09-15T20:13:00Z
+last-updated-utc: 2026-09-16T06:53:00Z
 semantic-links:
   skill-links:
     - create-issue
@@ -317,9 +317,10 @@ after a repository-wide search finds no `skill-link` or documented invocation of
 
 ### Reviewer-Format Contract
 
-No GitHub-native PR template currently exists. T5 creates
-`.github/PULL_REQUEST_TEMPLATE/review-findings.md` and links the advisory finding guidance in the
-unified skill. The template's required wording states that the format is advisory and no review is
+No GitHub-native PR template currently exists. The advisory finding guidance lives at
+`docs/templates/REVIEW-FINDINGS.md` and is linked from the unified skill (T5 created it under
+`.github/PULL_REQUEST_TEMPLATE/`; PR #2232 review finding `review-finding:pr-2232-f8` relocated it
+to the audience-appropriate templates directory). The template's required wording states that the format is advisory and no review is
 rejected for omitting it; requires one independent finding per inline thread; requires the first
 line `[<Severity>][<FindingId>] <summary>`; permits only `Blocker`, `Major`, `Minor`, `Nit`, and
 `Suggestion`; requires re-raises to use the original finding ID; and asks review bodies to contain
@@ -514,7 +515,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC4: All PR-review audit records are under the canonical `docs/pr-reviews/` parent
   directory; one unified per-PR audit template exists and the migrated documentation directs
   new PRs to it.
-- [x] AC5: The requested reviewer finding format is documented, linked from the PR template, and
+- [x] AC5: The requested reviewer finding format is documented, linked from the unified skill, and
       explicitly advisory.
 - [x] AC6: The unified skill and audit template state that the PR author solely owns the tracked
   record and that reviewers (including repository review agents) have no repository-artifact
@@ -557,7 +558,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC2   | DONE                   | `docs/templates/ISSUE.md` nightly Rust example; `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check` |
 | AC3   | DONE                   | Unified skill; two one-release redirect stubs; required T6 search; strengthened `test-agent-review-report-contract.sh`; ShellCheck; Markdown, CSpell, Lychee, and `git diff --check` |
 | AC4   | DONE                   | `docs/pr-reviews/`; `docs/templates/PR-REVIEW-TEMPLATE.md`; Markdown, CSpell, Lychee, and `git diff --check` |
-| AC5   | DONE                   | `.github/PULL_REQUEST_TEMPLATE/review-findings.md`; `manual-verification-evidence.md` section V3 |
+| AC5   | DONE                   | `docs/templates/REVIEW-FINDINGS.md` (relocated per `review-finding:pr-2232-f8`); `manual-verification-evidence.md` section V3 |
 | AC6   | DONE                   | `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` ownership section; `docs/templates/PR-REVIEW-TEMPLATE.md` ownership section |
 | AC7   | DONE                   | `docs/templates/PR-REVIEW-TEMPLATE.md`; `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`; `test-agent-review-report-contract.sh`; ShellCheck; `linter all`; independent completion review |
 | AC8   | DONE                   | `manual-verification-evidence.md` section V4; semantic-link convention; audit template; unified workflow; `test-agent-review-report-contract.sh`; ShellCheck; `linter all`; independent completion review |
