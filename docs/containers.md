@@ -564,7 +564,7 @@ After a while, you can use the tracker API `http://4.236.213.57:1212/api/v1/stat
 > NOTES:
 >
 > - [An Azure Files mount obscures files or directories already present at its mount path](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-volume-azure-files).
-> - [ACI does not support Docker-style port mapping](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-troubleshooting).
+> - [ACI does not support Docker-style port mapping (see "Container group IP address may not be accessible due to mismatched ports")](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-troubleshooting).
 > - [Azure file share volume mount requires the Linux container run as root](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-volume-azure-files#limitations).
 > - It can take some minutes until the public IP for the ACI container is available.
 > - You can use the Azure web UI to download files from the storage. For example, the SQLite database.
