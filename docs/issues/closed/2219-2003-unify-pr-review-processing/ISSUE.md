@@ -7,8 +7,8 @@ epic: 2003
 github-issue: 2219
 spec-path: docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
 branch: "2219-2003-unify-pr-review-processing"
-related-pr: null
-last-updated-utc: 2026-09-16T08:23:40Z
+related-pr: 2232
+last-updated-utc: 2026-09-16 11:09
 semantic-links:
   skill-links:
     - create-issue

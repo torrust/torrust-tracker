@@ -141,7 +141,7 @@ Required metadata fields for issue specs:
 ```yaml
 doc-type: issue
 issue-type: <task|bug|feature|enhancement>
-status: <draft|planned|in-progress|blocked|in-review|done>
+status: <draft|open|planned|in-progress|blocked|in-review|done>
 priority: <p0|p1|p2|p3>
 github-issue: <number|null>
 spec-path: <repo-relative-path>
@@ -154,7 +154,7 @@ Required metadata fields for EPIC specs:
 
 ```yaml
 doc-type: epic
-status: <draft|planned|in-progress|blocked|in-review|done>
+status: <draft|open|planned|in-progress|blocked|in-review|done>
 github-issue: <number|null>
 spec-path: <repo-relative-path>
 epic-owner: <owner|null>

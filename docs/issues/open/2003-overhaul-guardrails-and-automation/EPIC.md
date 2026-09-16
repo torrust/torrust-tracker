@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-16T08:23:40Z
+last-updated-utc: 2026-09-16 11:09
 semantic-links:
   skill-links:
     - create-issue

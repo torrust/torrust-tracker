@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process-spec"
 related-pr: null
-last-updated-utc: 2026-09-16T08:15:31Z
+last-updated-utc: 2026-09-16 11:25
 semantic-links:
   skill-links:
     - create-issue
@@ -107,11 +107,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | TODO | Verify rename purity mechanically | Add a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`. It must require an explicitly selected merge base, old and new repository paths, and reviewed expected added/deleted lines per renamed file. The verifier must fail when the actual changed-line pairs differ from that approved expectation. Evidence: `review-finding:pr-2232-f4`. |
 | T5 | TODO | Design tiered model routing | Write a design note that separates strong-model current-tree triage and bounded solution specification from lower-cost implementation and independent verification. Record the cost, quality, auditability, failure-containment, and portability trade-offs. Do not implement agents. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
 
-Candidate T4 command fragment, to be wrapped in failure-propagating comparison logic:
+Candidate T4 verification contract:
 
 ```sh
-git diff -U0 "<base>:<old-path>" "<new-path>" | grep -c '^[+-][^+-]'
+actual_patch=$(git diff -U0 "<base>:<old-path>" "<new-path>")
+test "$actual_patch" = "$(cat "<approved-zero-context-patch>")"
 ```
+
+The approved patch is one reviewable fixture per renamed file and includes the expected file
+headers and every permitted added/deleted line. The verifier must use `test` or an equivalent
+failure-propagating comparison so an empty expected/actual patch succeeds only when both are
+empty and any unexpected content fails.
 
 ## Commit Points
 
