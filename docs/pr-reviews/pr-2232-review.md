@@ -10,6 +10,7 @@ semantic-links:
     - review-finding:pr-2232-f5
     - review-finding:pr-2232-f6
     - review-finding:pr-2232-f7
+    - review-finding:pr-2232-f13
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
 ---
 
@@ -38,6 +39,12 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 | F10 | review-finding:pr-2232-f10 | Human | Nit | formatting | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F11 | review-finding:pr-2232-f11 | Human | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F12 | review-finding:pr-2232-f12 | Human | Suggestion (inferred) | documentation | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F13 | review-finding:pr-2232-f13 | Human | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F14 | review-finding:pr-2232-f14 | Human | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F15 | review-finding:pr-2232-f15 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F16 | review-finding:pr-2232-f16 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F17 | review-finding:pr-2232-f17 | Human | Nit | formatting | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F18 | review-finding:pr-2232-f18 | Human | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -91,7 +98,7 @@ https://github.com/torrust/torrust-tracker/pull/2232.
   violating the workflow's own no-backfill rule.
 - Solution: restored all nine files verbatim from the merge base and re-applied only the three
   intentional migration metadata lines (frontmatter skill-link, related artifact, marker).
-- Current-tree verification: `git grep -c 'docs/pr-reviews/pr-[0-9]+-copilot-suggestions\.md'`
+- Current-tree verification: `git grep -c -E 'docs/pr-reviews/pr-[0-9]+-copilot-suggestions\.md'`
   returns no matches; each file's diff against its merge-base original is exactly the three
   metadata line pairs.
 - Resolution reference: fix(pr-reviews): restore historical audit source paths
@@ -171,7 +178,8 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Concern: the consolidated `PR-REVIEW-TEMPLATE.md` row inherited the alphabetical slot of the
   removed row instead of its own.
 - Solution: reordered the table alphabetically while adding the relocated `REVIEW-FINDINGS.md` row.
-- Current-tree verification: table rows read in alphabetical order; Markdown linting passes.
+- Current-tree verification: this PR's template rows sit in their alphabetical slots (a
+  pre-existing inversion elsewhere in the table is untouched); Markdown linting passes.
 - Resolution reference: docs(templates): relocate reviewer finding guidance
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5687518457
 
@@ -201,6 +209,82 @@ https://github.com/torrust/torrust-tracker/pull/2232.
 - Current-tree verification: `git diff` over `review-pr/SKILL.md` in this PR is empty, as reported.
 - Resolution reference: https://github.com/torrust/torrust-tracker/issues/2233
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2232#issuecomment-5687518457
+
+### F13 - Relocated template missed the canonical-template contract (N1)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: `docs/templates/REVIEW-FINDINGS.md` lacked frontmatter and was absent from the
+  `docs/index.md` template catalog, both required by the `create-markdown-template` contract.
+- Solution: added semantic-links frontmatter and the index catalog row.
+- Current-tree verification: the file starts with closed YAML frontmatter and
+  `grep REVIEW-FINDINGS docs/index.md` matches the catalog row; linters pass.
+- Resolution reference: docs(templates): complete reviewer guidance relocation
+- Reply URL: consolidated response (see Processing Log)
+
+### F14 - Issue spec still placed the guidance under .github (N2)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: the #2219 spec's present-tense design statement and AC5 criterion/evidence cited the
+  removed `.github/PULL_REQUEST_TEMPLATE/` path; the completed T5 row is valid history.
+- Solution: updated the design statement, AC5 wording, and AC5 evidence to the relocated path,
+  citing `review-finding:pr-2232-f8`; left the T5 historical record unchanged.
+- Current-tree verification: the spec's only remaining `.github/PULL_REQUEST_TEMPLATE` reference
+  is the completed T5 row.
+- Resolution reference: docs(issues): update spec to relocated guidance
+- Reply URL: consolidated response (see Processing Log)
+
+### F15 - Recorded F4 verification command did not discriminate (N3)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: the audit recorded `git grep -c` without `-E`, a basic-regex form that also returns
+  nothing at the broken head, so it was not evidence.
+- Solution: recorded the `-E` form actually needed to discriminate.
+- Current-tree verification: the `-E` command matches 21 occurrences at the pre-fix head `54ae5faa`
+  and nothing at this head.
+- Resolution reference: docs(pr-reviews): record approval round
+- Reply URL: consolidated response (see Processing Log)
+
+### F16 - F10 verification claim was broader than the tree (N4)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: the audit claimed the templates README table reads alphabetically while a pre-existing
+  inversion this PR never touched remains.
+- Solution: narrowed the claim to the rows this PR placed.
+- Current-tree verification: audit F10 entry now states the pre-existing inversion is untouched.
+- Resolution reference: docs(pr-reviews): record approval round
+- Reply URL: consolidated response (see Processing Log)
+
+### F17 - Two docs/AGENTS.md rows lost column alignment (N5)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: the `refactor-plans/` and `pr-reviews/` rows were 200 characters against the table's
+  uniform 199.
+- Solution: removed the extra padding space from both rows.
+- Current-tree verification: every directory-map row measures 199 characters.
+- Resolution reference: docs(agents): restore directory map alignment
+- Reply URL: consolidated response (see Processing Log)
+
+### F18 - Processing-log entry dated after the commit that wrote it (N6)
+
+- PR number: 2232
+- Source review ID: PRR_kwDOGp2yqc8AAAABNt9h6A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2232#pullrequestreview-5215576552
+- Concern: the entry stamped 20:40 UTC was authored at 20:28:55Z and records an action from
+  20:22:42Z, so the permanent record carried a future timestamp.
+- Solution: corrected the entry to 20:28 UTC, matching its commit author time.
+- Current-tree verification: the corrected stamp is not later than the commit that introduced it.
+- Resolution reference: docs(pr-reviews): record approval round
+- Reply URL: consolidated response (see Processing Log)
 
 ## Processing Log
 
@@ -232,8 +316,17 @@ https://github.com/torrust/torrust-tracker/pull/2232.
   vocabulary, round scoping for re-pushed heads, and the checklist N/A convention in a dedicated
   task. The review body is non-resolvable, so the disposition reply is the consolidated PR
   response whose URL is stored in each detail entry.
-- 2026-09-15 20:40 UTC - Documented the first-use lessons in the #2219 implementation
+- 2026-09-15 20:28 UTC - Documented the first-use lessons in the #2219 implementation
   retrospective and opened follow-up issue #2233 covering F12, the code-span path guardrail
   (F4/F5), the retirement obligation inventory (F6), the rename-purity verification step (F4),
   and the tiered model-routing design. Re-requested Cameron's review on the remediated head;
   awaiting the next round.
+- 2026-09-15 20:47 UTC - Cameron (da2ce7) approved in review `PRR_kwDOGp2yqc8AAAABNt9h6A`,
+  recomputing every round-1 disposition from the bytes: F4-F11 verified FIXED, the F12 deferral
+  accepted because issue #2233 tracks it. The approval body carried six new non-blocking
+  assertions, normalized as F13-F18 in source order.
+- 2026-09-16 06:53 UTC - Fixed F13-F18: completed the canonical-template contract for the
+  relocated guidance, updated the #2219 spec statements and AC5 to the relocated path, corrected
+  the two non-discriminating verification claims (F15, F16), restored the directory-map
+  alignment, and corrected the early log timestamp. Cameron's condition on the F12 deferral -
+  a real tracked task - was already satisfied by issue #2233.
