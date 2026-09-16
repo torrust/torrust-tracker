@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-11
+last-updated-utc: 2026-09-16 11:09
 semantic-links:
   skill-links:
     - create-issue
@@ -245,7 +245,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 5     | #2159 - Adopt folder-style issue specifications      | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md`               | Documentation, templates, and root ADR only; prospective and reversible for new work.                         | None                                             |
 | 6     | #2160 - Persist independent agent review reports     | `docs/issues/closed/2160-2003-persist-independent-agent-review-reports/ISSUE.md`   | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
 | 7     | #2185 - Triage advisory external-link check findings | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
-| 8     | #2219 - Unify PR review-processing workflow          | `docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md`                  | Low-risk, additive, independently verifiable local/CI formatting parity plus skill, template, and review-audit process improvements; selects no shared automation architecture. | Existing pre-commit, pre-push, and PR-review entry points |
+| 8     | #2219 - Unify PR review-processing workflow (DONE)   | `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`                | Low-risk, additive, independently verifiable local/CI formatting parity plus skill, template, and review-audit process improvements; selects no shared automation architecture. | Existing pre-commit, pre-push, and PR-review entry points |
 
 ## Delivery Strategy
 

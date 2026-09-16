@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
-    - docs/issues/open/2219-2003-unify-pr-review-processing/manual-verification-evidence.md
-    - docs/issues/open/2219-2003-unify-pr-review-processing/agent-review-reports.md
+    - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
+    - docs/issues/closed/2219-2003-unify-pr-review-processing/manual-verification-evidence.md
+    - docs/issues/closed/2219-2003-unify-pr-review-processing/agent-review-reports.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
 ---
@@ -103,7 +103,7 @@ checks for their established scope.
 
 ## Evidence
 
-- Issue #2219: `docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md`
+- Issue #2219: `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`
 - Manual scenarios: `manual-verification-evidence.md` sections V1-V4
 - Independent review history: `agent-review-reports.md`
 - First-real-use audit: `docs/pr-reviews/pr-2232-review.md` (findings F1-F12)

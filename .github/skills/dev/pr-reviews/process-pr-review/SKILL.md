@@ -6,7 +6,7 @@ metadata:
   version: "1.0"
   semantic-links:
     related-artifacts:
-      - docs/issues/open/2219-2003-unify-pr-review-processing/ISSUE.md
+      - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
       - docs/templates/PR-REVIEW-TEMPLATE.md
       - docs/templates/REVIEW-FINDINGS.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
