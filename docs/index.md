@@ -156,6 +156,7 @@ that type.
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
 | [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
+| [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |
 
 ## Media
 
