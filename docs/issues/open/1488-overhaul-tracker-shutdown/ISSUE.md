@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-15 11:50
+last-updated-utc: 2026-09-15 14:35
 semantic-links:
   skill-links:
     - create-issue
@@ -154,7 +154,7 @@ deterministic tests, and manual evidence.
 | 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md)                            | Done       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy.               |
 | 3        | SI-4  | [Migrate torrent cleanup](../../closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                    | Done       | One periodic component adopts token cancellation.                                                    |
 | 4        | #2221 | [Migrate activity metrics](../../closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                           | Done       | One periodic component adopts token cancellation.                                                    |
-| 5        | SI-2  | [Add token-aware server lifecycle API](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)                     | Draft      | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
+| 5        | #2234 | [Add token-aware server lifecycle API](../2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md)                         | Open       | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
 | 6        | SI-10 | [Add token-aware, joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)         | Draft      | Additive helper alongside existing API; no consumer breaks.                                          |
 | 7        | SI-11 | [Migrate HTTP tracker to token lifecycle](../../drafts/1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)          | Draft      | One complete HTTP vertical slice.                                                                    |
 | 8        | SI-12 | [Migrate REST API to token lifecycle](../../drafts/1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)                  | Draft      | One complete REST API vertical slice.                                                                |
@@ -211,11 +211,10 @@ use #1419 to verify their interaction with the completed shutdown lifecycle.
   Implemented with `CancellationToken`, which is the foundation for this EPIC.
 - **#1477** (Fix shutdown message and improve it) — ✅ Closed.
   Introduced the `JobManager` type.
-- **#1586** (Evaluate `JoinSet` for `JobManager`) — Open.
-  Roadmap sequence 2; direct supervisor task ownership and outcome handling.
-- **#1588** (Review shutdown process for all tasks/jobs) — Open.
-  Roadmap sequence 0; final implementation-time task inventory and ownership
-  evidence.
+- **#1586** (Evaluate `JoinSet` for `JobManager`) — ✅ Closed.
+  Implemented direct supervisor task ownership and outcome handling.
+- **#1588** (Review shutdown process for all tasks/jobs) — ✅ Closed.
+  Produced the implementation-time task inventory and ownership evidence.
 
 ## Related Documents
 
