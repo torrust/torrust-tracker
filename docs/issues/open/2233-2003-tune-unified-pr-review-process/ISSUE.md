@@ -8,18 +8,21 @@ github-issue: 2233
 spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2235
-last-updated-utc: 2026-09-16 14:48
+last-updated-utc: 2026-09-16 15:08
 semantic-links:
   skill-links:
     - create-issue
     - process-pr-review
   related-artifacts:
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/agent-review-reports.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
     - docs/pr-reviews/pr-2232-review.md
     - docs/templates/REVIEW-FINDINGS.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/implementation-retrospective.md
+    - docs/issues/open/2233-2003-tune-unified-pr-review-process/manual-verification-evidence.md
     - docs/issues/open/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
     - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
@@ -148,14 +151,14 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec reviewed and approved by user/maintainer
 - [x] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -174,10 +177,20 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, completing T3 and T4.
 - 2026-09-16 14:48 UTC - Copilot - Added `tiered-model-routing-design.md`, completing the T5
   design-only routing analysis without implementing agent automation.
+- 2026-09-16 14:54 UTC - Copilot - Executed manual verification scenarios M1-M3 and recorded
+  evidence in `manual-verification-evidence.md`.
+- 2026-09-16 14:56 UTC - Copilot - Ran focused documentation checks, the review-report contract
+  test, and the full pre-commit gate successfully on the completed implementation.
+- 2026-09-16 15:04 UTC - Copilot - Recorded implementation retrospective evidence and the first
+  independent Task Reviewer report; updated AC5 evidence.
+- 2026-09-16 15:04 UTC - Copilot - Recorded the passing Task Reviewer re-review and marked
+  reviewer validation complete.
+- 2026-09-16 15:08 UTC - Copilot - Re-ran focused checks and the full pre-commit gate; verified
+  the issue progress record is ready for the completion evidence commit.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Reviewer-facing guidance consistently defines the advisory finding format, severity
+- [x] AC1: Reviewer-facing guidance consistently defines the advisory finding format, severity
   vocabulary, one-finding-per-thread rule, re-raise behavior, round-N+1 scoping after a re-push,
   and checklist `N/A` semantics.
 - [x] AC2: Markdown code-span repository-path cases are inventoried and classified, with strict
@@ -187,14 +200,14 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   compares each renamed file against its approved changed-line expectation.
 - [x] AC4: A tiered-model routing design note defines agent boundaries and cost, quality,
   auditability, failure-containment, and portability trade-offs without adding automation.
-- [ ] AC5: Each planned task retains its motivating `review-finding:pr-2232-*` reference or the
+- [x] AC5: Each planned task retains its motivating `review-finding:pr-2232-*` reference or the
   explicitly recorded deferred automation candidate.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local
   `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflows change.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflows change.
 
 ## Verification Plan
 
@@ -214,9 +227,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Review guidance consumption | Follow the updated reviewer guidance while writing a sample re-raised finding for a re-pushed PR head. | The reviewer can state the finding, relationship, and round scope without ambiguity. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Path-reference deferral review | Review the code-span path case analysis and draft conventions EPIC. | The reviewer can distinguish current strict-check candidates from historical records, examples, placeholders, and broader semantic-link/path-reference design work. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Tiered-routing design review | Read the design note as a prospective reviewer and trace one finding from triage through bounded implementation and independent verification. | Ownership boundaries, evidence, and failure handling are explicit before automation is considered. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Review guidance consumption | Follow the updated reviewer guidance while writing a sample re-raised finding for a re-pushed PR head. | The reviewer can state the finding, relationship, and round scope without ambiguity. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Path-reference deferral review | Review the code-span path case analysis and draft conventions EPIC. | The reviewer can distinguish current strict-check candidates from historical records, examples, placeholders, and broader semantic-link/path-reference design work. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Tiered-routing design review | Read the design note as a prospective reviewer and trace one finding from triage through bounded implementation and independent verification. | Ownership boundaries, evidence, and failure handling are explicit before automation is considered. | DONE | `manual-verification-evidence.md` section V3 |
 
 Create `manual-verification-evidence.md` from
 `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these scenarios. Record actual
@@ -227,11 +240,11 @@ results must identify the toolchain or runtime that produced them.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Updated reviewer guidance and manual scenario M1. |
+| AC1 | DONE | Updated reviewer guidance and manual scenario M1. |
 | AC2 | DONE | `code-span-path-case-analysis.md`, `code-span-path-case-inventory.tsv`, draft semantic-link conventions EPIC, and manual scenario M2. |
 | AC3 | DONE | Updated `process-pr-review` workflow guidance and focused documentation validation. |
 | AC4 | DONE | `tiered-model-routing-design.md` and manual scenario M3. |
-| AC5 | TODO | Final specification and task evidence review. |
+| AC5 | DONE | Final specification and task evidence review; every planned task retains its motivating finding or deferred automation candidate. |
 
 ## Risks and Trade-offs
 
@@ -251,7 +264,8 @@ results must identify the toolchain or runtime that produced them.
 After implementation, compare the result with this specification. Record invalidated assumptions,
 material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`.
+- Retrospective: `implementation-retrospective.md` records the material T2 scope change and the
+  broader convention-design follow-up.
 - Create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` for material discoveries; otherwise add a
   concise progress-log entry explaining why none was needed.
