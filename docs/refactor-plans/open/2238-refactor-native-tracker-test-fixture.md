@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: draft
+status: open
 related-issue: 2238
-spec-path: docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md
-last-updated-utc: 2026-09-16 15:36
+spec-path: docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+last-updated-utc: 2026-09-17 09:01
 semantic-links:
   skill-links:
     - create-refactor-plan
