@@ -247,7 +247,7 @@ binaries.
 
 ---
 
-### 5. [ ] Extract output capture and health probing [Medium impact / Low effort]
+### 5. [x] Extract output capture and health probing [Medium impact / Low effort]
 
 **Problem**: `TrackerOutputCapture`, `drain_output`, `HealthCheckClient`, the probe enums, and
 `parse_health_check_address` are leaf collaborators with no dependency on the rest of the fixture,
@@ -341,7 +341,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | 2 | [ ] | Extract failed-start and invalid-source behavior | High | Medium |
 | 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
 | 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
-| 5 | [ ] | Extract output capture and health probing | Medium | Low |
+| 5 | [x] | Extract output capture and health probing | Medium | Low |
 | 6 | [ ] | Extract workspace and shared command construction | Medium | Low |
 | 7 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
 | 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |

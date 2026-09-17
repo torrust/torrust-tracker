@@ -5,22 +5,25 @@
 //! discovers the health endpoint from its startup log, and reaps the child
 //! even when graceful shutdown exceeds the scenario deadline.
 
+mod health;
+mod output;
+
 use std::io::Write as _;
 use std::net::SocketAddr;
 use std::os::unix::fs::PermissionsExt as _;
 use std::os::unix::process::ExitStatusExt;
 use std::path::PathBuf;
 use std::process::Stdio;
-use std::sync::Arc;
 use std::time::Duration;
 
 use nix::sys::signal::{Signal, kill};
 use nix::unistd::Pid;
-use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
-use tokio::sync::{Mutex, oneshot};
-use tokio::task::JoinHandle;
-use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+use tokio::sync::oneshot;
+use torrust_tracker_axum_health_check_api_server::resources::Status;
+
+use self::health::{HealthCheckClient, HealthCheckProbe, HealthCheckProbeError, parse_health_check_address};
+use self::output::TrackerOutputCapture;
 
 const STARTUP_DEADLINE: Duration = Duration::from_secs(10);
 const SHUTDOWN_DEADLINE: Duration = Duration::from_secs(30);
@@ -28,8 +31,6 @@ const SHUTDOWN_DEADLINE: Duration = Duration::from_secs(30);
 #[allow(dead_code)]
 const FAILURE_DEADLINE: Duration = Duration::from_secs(10);
 const RETRY_INTERVAL: Duration = Duration::from_millis(50);
-const HEALTH_CHECK_STARTUP_PREFIX: &str = "Started on: http://";
-const HEALTH_CHECK_LOG_TARGET: &str = "HEALTH CHECK API";
 const SIGNAL_HANDLERS_READY_MESSAGE: &str = "Tracker shutdown signal handlers installed.";
 
 const CONFIGURATION: &str = r#"
@@ -422,87 +423,6 @@ impl NativeTrackerWorkspace {
     const fn health_check_api_bind_address_override(&self) -> Option<SocketAddr> {
         self.health_check_api_bind_address_override
     }
-}
-
-/// Concurrently drains and retains a tracker child's output for readiness and diagnostics.
-struct TrackerOutputCapture {
-    output: Arc<Mutex<String>>,
-    readers: Vec<JoinHandle<()>>,
-}
-
-impl TrackerOutputCapture {
-    fn new<R, S>(stdout: R, stderr: S) -> Self
-    where
-        R: AsyncRead + Unpin + Send + 'static,
-        S: AsyncRead + Unpin + Send + 'static,
-    {
-        let output = Arc::new(Mutex::new(String::new()));
-
-        Self {
-            readers: vec![
-                tokio::spawn(drain_output(stdout, Arc::clone(&output))),
-                tokio::spawn(drain_output(stderr, Arc::clone(&output))),
-            ],
-            output,
-        }
-    }
-
-    async fn wait_for_readers(&mut self) {
-        for reader in self.readers.drain(..) {
-            reader.await.expect("output reader task must complete");
-        }
-    }
-
-    async fn contents(&self) -> String {
-        self.output.lock().await.clone()
-    }
-}
-
-/// A deadline-bounded client for the tracker health-check endpoint.
-struct HealthCheckClient {
-    address: SocketAddr,
-    client: reqwest::Client,
-}
-
-impl HealthCheckClient {
-    fn new(address: SocketAddr) -> Self {
-        Self {
-            address,
-            client: reqwest::Client::new(),
-        }
-    }
-
-    async fn probe(&self, deadline: tokio::time::Instant) -> Result<HealthCheckProbe, HealthCheckProbeError> {
-        let health_check_url = format!("http://{}/health_check", self.address); // DevSkim: ignore DS137138
-        let response = match tokio::time::timeout_at(deadline, self.client.get(health_check_url).send()).await {
-            Ok(Ok(response)) => response,
-            Ok(Err(_)) => return Ok(HealthCheckProbe::Unavailable),
-            Err(_) => return Err(HealthCheckProbeError::TimedOut),
-        };
-
-        if !response.status().is_success() {
-            return Err(HealthCheckProbeError::UnexpectedHttpStatus(response.status()));
-        }
-
-        let report = match tokio::time::timeout_at(deadline, response.json::<Report>()).await {
-            Ok(Ok(report)) => report,
-            Ok(Err(error)) => return Err(HealthCheckProbeError::InvalidReport(error.to_string())),
-            Err(_) => return Err(HealthCheckProbeError::TimedOut),
-        };
-
-        Ok(HealthCheckProbe::Report(report))
-    }
-}
-
-enum HealthCheckProbe {
-    Unavailable,
-    Report(Report),
-}
-
-enum HealthCheckProbeError {
-    TimedOut,
-    UnexpectedHttpStatus(reqwest::StatusCode),
-    InvalidReport(String),
 }
 
 impl NativeTracker {
@@ -898,26 +818,6 @@ impl Drop for NativeTracker {
     }
 }
 
-async fn drain_output<R>(stream: R, output: Arc<Mutex<String>>)
-where
-    R: AsyncRead + Unpin,
-{
-    let mut lines = BufReader::new(stream).lines();
-    while let Some(line) = lines.next_line().await.expect("read tracker child output") {
-        let mut output = output.lock().await;
-        output.push_str(&line);
-        output.push('\n');
-    }
-}
-
-fn parse_health_check_address(line: &str) -> Option<SocketAddr> {
-    if !line.contains(HEALTH_CHECK_LOG_TARGET) {
-        return None;
-    }
-    let address = line.split_once(HEALTH_CHECK_STARTUP_PREFIX)?.1;
-    address.parse().ok()
-}
-
 fn write_configuration(workspace: &tempfile::TempDir, name: &str, health_check_port: u16) -> (PathBuf, PathBuf) {
     let storage_path = workspace.path().join(format!("{name}-storage"));
     std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
@@ -1051,7 +951,7 @@ mod tests {
 
     use super::{
         NativeTrackerFailedStart, NativeTrackerInvalidCliSource, NativeTrackerPermissionRestore, NativeTrackerStartAttempt,
-        TrackerOutputCapture, invalid_source_command, parse_health_check_address, tracker_command, write_configuration,
+        TrackerOutputCapture, invalid_source_command, tracker_command, write_configuration,
     };
 
     #[test]
@@ -1166,21 +1066,6 @@ mod tests {
     }
 
     #[test]
-    fn it_should_extract_the_assigned_health_check_address_from_its_startup_log() {
-        // Arrange
-        let line = "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:43210";
-
-        // Act
-        let address = parse_health_check_address(line);
-
-        // Assert
-        assert_eq!(
-            address.expect("health-check address should parse").to_string(),
-            "127.0.0.1:43210"
-        );
-    }
-
-    #[test]
     fn it_should_construct_a_parent_only_relative_source_from_the_child_working_directory() {
         // Arrange
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
@@ -1249,24 +1134,5 @@ mod tests {
             .source_mode()
             .expect("unreadable-file result should retain the original source mode");
         assert_eq!(restored_mode & 0o777, original_mode & 0o777);
-    }
-
-    #[test]
-    fn it_should_reject_non_health_check_startup_logs() {
-        // Arrange
-        let lines = [
-            "2026-09-02T10:20:22Z  INFO HTTP TRACKER: Started on: http://127.0.0.1:43210",
-            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Listening on: http://127.0.0.1:43210",
-            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Started on: http://not-an-address", // DevSkim: ignore DS137138
-        ];
-
-        // Act and Assert
-        for line in lines {
-            assert_eq!(
-                parse_health_check_address(line),
-                None,
-                "line should not provide a health-check address: {line}"
-            );
-        }
     }
 }
