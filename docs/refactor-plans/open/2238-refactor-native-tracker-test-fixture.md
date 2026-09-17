@@ -265,7 +265,7 @@ its responsibility and, for `output.rs`, the reader-joining invariant.
 
 ---
 
-### 6. [ ] Extract workspace and shared command construction [Medium impact / Low effort]
+### 6. [x] Extract workspace and shared command construction [Medium impact / Low effort]
 
 **Problem**: Configuration rendering, temporary storage creation, environment isolation, and
 binary lookup are one construction concern shared by normal and failed starts, currently
@@ -342,7 +342,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
 | 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
 | 5 | [x] | Extract output capture and health probing | Medium | Low |
-| 6 | [ ] | Extract workspace and shared command construction | Medium | Low |
+| 6 | [x] | Extract workspace and shared command construction | Medium | Low |
 | 7 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
 | 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
 | 9 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
