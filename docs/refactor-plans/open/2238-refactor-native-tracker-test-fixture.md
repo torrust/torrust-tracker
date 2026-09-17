@@ -181,7 +181,7 @@ change is intentional and updates its consumers, not to preserve current signatu
 
 ---
 
-### 2. [ ] Extract failed-start and invalid-source behavior [High impact / Medium effort]
+### 2. [x] Extract failed-start and invalid-source behavior [High impact / Medium effort]
 
 **Problem**: Invalid CLI source construction, failed-start results and assertions, Unix mode
 restoration, deadline-bounded reaping, and the no-runtime drop fallback form one distinct fixture
@@ -338,7 +338,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | Order | Status | Item | Impact | Effort |
 | --- | --- | --- | --- | --- |
 | 1 | [x] | Establish ownership, behavior, and consumer baselines | High | Low |
-| 2 | [ ] | Extract failed-start and invalid-source behavior | High | Medium |
+| 2 | [x] | Extract failed-start and invalid-source behavior | High | Medium |
 | 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
 | 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
 | 5 | [x] | Extract output capture and health probing | Medium | Low |
