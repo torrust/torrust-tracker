@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-16 11:09
+last-updated-utc: 2026-09-16 16:33
 semantic-links:
   skill-links:
     - create-issue
@@ -27,6 +27,7 @@ semantic-links:
     - docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -246,6 +247,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 6     | #2160 - Persist independent agent review reports     | `docs/issues/closed/2160-2003-persist-independent-agent-review-reports/ISSUE.md`   | Profile/template documentation and explicit records; does not enforce transitions technically.                | #2155 documentation conventions, if merged first |
 | 7     | #2185 - Triage advisory external-link check findings | `docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
 | 8     | #2219 - Unify PR review-processing workflow (DONE)   | `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`                | Low-risk, additive, independently verifiable local/CI formatting parity plus skill, template, and review-audit process improvements; selects no shared automation architecture. | Existing pre-commit, pre-push, and PR-review entry points |
+| 9     | #2233 - Tune unified PR-review process (DONE)        | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`            | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. | #2219 PR-review workflow evidence |
 
 ## Delivery Strategy
 

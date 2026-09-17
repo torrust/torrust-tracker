@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
+issue-spec: docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
 last-updated-utc: 2026-09-16 14:54
 ---
 

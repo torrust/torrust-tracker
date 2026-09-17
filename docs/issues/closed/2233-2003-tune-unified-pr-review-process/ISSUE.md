@@ -1,29 +1,29 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 epic: 2003
 github-issue: 2233
-spec-path: docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
+spec-path: docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2237
-last-updated-utc: 2026-09-16 15:10
+last-updated-utc: 2026-09-16 16:33
 semantic-links:
   skill-links:
     - create-issue
     - process-pr-review
   related-artifacts:
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/agent-review-reports.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/agent-review-reports.md
     - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
     - docs/pr-reviews/pr-2232-review.md
     - docs/templates/REVIEW-FINDINGS.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/implementation-retrospective.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/manual-verification-evidence.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/implementation-retrospective.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/manual-verification-evidence.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
     - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
@@ -122,7 +122,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Candidate T4 verification contract:
 
 ```sh
-actual_patch=$(git diff -U0 "<base>:<old-path>" "<new-path>")
+actual_patch=$(git diff -U0 "<base>:<old-path>" "HEAD:<new-path>")
 test "$actual_patch" = "$(cat "<approved-zero-context-patch>")"
 ```
 
@@ -147,7 +147,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md`
+- [x] Folder-style spec archived in `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec reviewed and approved by user/maintainer
 - [x] Spec-only PR merged into `develop` before implementation
@@ -159,7 +159,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -189,6 +189,9 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   the issue progress record is ready for the completion evidence commit.
 - 2026-09-16 15:10 UTC - Copilot - Opened implementation PR #2237 targeting `develop` with
   `Closes #2233`; PR #2235 remains the spec-only merge evidence.
+- 2026-09-16 16:33 UTC - Copilot - PR #2237 merged into `develop` as signed merge commit
+  `678aa310ab5da21cf7e63754514692f689f0e2af`; GitHub issue #2233 closed automatically and this
+  spec was archived under `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

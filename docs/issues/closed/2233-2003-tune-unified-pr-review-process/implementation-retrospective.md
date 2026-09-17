@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - process-pr-review
   related-artifacts:
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
     - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
 ---
 
@@ -63,8 +63,8 @@ to become a semantic link.
 
 ## Evidence
 
-- `docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md`
-- `docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md`
-- `docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv`
+- `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`
+- `docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md`
+- `docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv`
 - `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`
-- `docs/issues/open/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md`
+- `docs/issues/closed/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md`

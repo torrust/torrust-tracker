@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #2233

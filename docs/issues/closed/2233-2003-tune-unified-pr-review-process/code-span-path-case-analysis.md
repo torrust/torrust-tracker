@@ -8,7 +8,7 @@ add a checker beyond Lychee, and if so which cases should be strict, ignored by 
 with explicit review evidence.
 
 The complete case list is in
-`docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv`.
+`docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv`.
 
 ## Scan Scope
 

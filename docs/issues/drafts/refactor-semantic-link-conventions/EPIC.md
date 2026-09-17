@@ -4,15 +4,15 @@ status: draft
 github-issue: null
 spec-path: docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-16 13:17
+last-updated-utc: 2026-09-16 16:33
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/ISSUE.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
-    - docs/issues/open/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
+    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
 ---
 
 # EPIC #[To be assigned] - Refactor Semantic Link and Frontmatter Conventions
