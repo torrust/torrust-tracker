@@ -220,27 +220,63 @@ mod tests {
     async fn it_should_keep_a_peer_announced_after_startup_active_before_the_timeout_elapses() {
         // Arrange
         let max_peer_timeout_in_secs = 2;
+        let elapsed_since_startup = Duration::from_secs(1);
         let job = JobWithOnePeerAnnouncedAtStartup::start(max_peer_timeout_in_secs).await;
 
         // Act
-        job.set_domain_time_elapsed_since_startup(Duration::from_secs(1));
+        job.set_domain_time_elapsed_since_startup(elapsed_since_startup);
         job.run_next_update().await;
 
         // Assert
-        assert_eq!(job.inactive_peers_total().await, 0);
+        assert_eq!(
+            job.inactive_peers_total().await,
+            0,
+            "inactive peers gauge: {elapsed_since_startup:?} elapsed is within the {max_peer_timeout_in_secs}s timeout, so the peer must still be active"
+        );
     }
 
     #[tokio::test(start_paused = true)]
     async fn it_should_count_a_peer_announced_after_startup_inactive_after_the_timeout_elapses() {
         // Arrange
         let max_peer_timeout_in_secs = 2;
+        let elapsed_since_startup = Duration::from_secs(3);
         let job = JobWithOnePeerAnnouncedAtStartup::start(max_peer_timeout_in_secs).await;
 
         // Act
-        job.set_domain_time_elapsed_since_startup(Duration::from_secs(3));
+        job.set_domain_time_elapsed_since_startup(elapsed_since_startup);
         job.run_next_update().await;
 
         // Assert
-        assert_eq!(job.inactive_peers_total().await, 1);
+        assert_eq!(
+            job.inactive_peers_total().await,
+            1,
+            "inactive peers gauge: {elapsed_since_startup:?} elapsed exceeds the {max_peer_timeout_in_secs}s timeout, so the peer must be inactive"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_recompute_the_inactivity_cutoff_on_every_update() {
+        // Arrange
+        let max_peer_timeout_in_secs = 2;
+        let job = JobWithOnePeerAnnouncedAtStartup::start(max_peer_timeout_in_secs).await;
+
+        // Act: same job, same peer, two updates on either side of the timeout.
+        job.set_domain_time_elapsed_since_startup(Duration::from_secs(1));
+        job.run_next_update().await;
+        let inactive_peers_before_timeout = job.inactive_peers_total().await;
+
+        job.set_domain_time_elapsed_since_startup(Duration::from_secs(3));
+        job.run_next_update().await;
+        let inactive_peers_after_timeout = job.inactive_peers_total().await;
+
+        // Assert
+        assert_eq!(
+            inactive_peers_before_timeout, 0,
+            "inactive peers gauge after the first update (1s elapsed, {max_peer_timeout_in_secs}s timeout): the peer must still be active"
+        );
+        assert_eq!(
+            inactive_peers_after_timeout, 1,
+            "inactive peers gauge after the second update (3s elapsed, {max_peer_timeout_in_secs}s timeout): a cutoff captured at startup or cached from the first update would leave the peer active"
+        );
     }
 }
