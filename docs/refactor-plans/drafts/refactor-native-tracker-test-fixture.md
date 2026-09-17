@@ -155,10 +155,12 @@ refactor and is verified by manual scenario M3 in the issue specification.
 
 ## Items
 
-Items are ordered dependency-first so every step is a compiling, behavior-preserving move: shared
-leaf collaborators (`output`, `health`, `command`) move before the module that depends on them
-(`failed_start`), and the root is trimmed last. Child modules can access the root's private items,
-so any order compiles; leaf-first keeps each diff a pure move with `pub(super)` visibility.
+Items are ordered by highest impact and then lowest effort, as required by the refactor-plan
+workflow. During implementation, preserve compiling, behavior-preserving commits by establishing
+the module root before extracting child modules, moving shared leaf collaborators (`output`,
+`health`, `command`) before `failed_start`, and trimming the root after those extractions. Child
+modules can access the root's private items, so this dependency guidance does not change item
+priority or require widened visibility.
 
 ### 1. [ ] Establish ownership, behavior, and consumer baselines [High impact / Low effort]
 
@@ -178,69 +180,7 @@ change is intentional and updates its consumers, not to preserve current signatu
 
 ---
 
-### 2. [ ] Establish the module root and resolve the `#[path]` layout decision [Medium impact / Low effort]
-
-**Problem**: The two binaries include the fixture by path, and `#[path]`-loaded files own their
-directory for child resolution. Without an explicit decision, children land in the wrong
-directory or fail to compile.
-
-**Files**:
-
-- `tests/common/native_tracker.rs` (moves to `tests/common/native_tracker/mod.rs` under option 1)
-- `tests/lifecycle/signals.rs`
-- `tests/configuration/cli_configuration.rs`
-- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
-- this refactor plan
-
-**Change**: Select the layout that produces the clearest module ownership and consumer imports.
-The recommended option remains a `tests/common/native_tracker/mod.rs` root, but narrower direct
-imports are allowed if they better separate running and failed-start fixtures. Update both
-consumers and every live documentation path or related-artifact entry that names the old root;
-preserve historical progress-log paths that accurately describe the earlier state. Run both
-binaries.
-
----
-
-### 3. [ ] Extract output capture and health probing [Medium impact / Low effort]
-
-**Problem**: `TrackerOutputCapture`, `drain_output`, `HealthCheckClient`, the probe enums, and
-`parse_health_check_address` are leaf collaborators with no dependency on the rest of the fixture,
-yet they sit between lifecycle and failed-start code.
-
-**Files**:
-
-- `tests/common/native_tracker/output.rs`
-- `tests/common/native_tracker/health.rs`
-- root module
-
-**Change**: Move the items per the responsibility map with `pub(super)` visibility. Move the
-`parse_health_check_address` tests into `health.rs`. Add a `//!` doc to each new module stating
-its responsibility and, for `output.rs`, the reader-joining invariant.
-
----
-
-### 4. [ ] Extract workspace and shared command construction [Medium impact / Low effort]
-
-**Problem**: Configuration rendering, temporary storage creation, environment isolation, and
-binary lookup are one construction concern shared by normal and failed starts, currently
-interleaved with process-ownership logic.
-
-**Files**:
-
-- `tests/common/native_tracker/command.rs`
-- root module
-
-**Change**: Move `CONFIGURATION`, `NativeTrackerConfigurationSources`, `NativeTrackerWorkspace`,
-`write_configuration`, `write_configuration_in_directory`, `tracker_command`,
-`configure_tracker_command`, and `tracker_binary`. Re-export `NativeTrackerConfigurationSources`
-from the root. Move the `tracker_command` and `write_configuration` tests. Keep the three item-level
-dead-code allowances on the environment/override builders. Add a `//!` doc stating that the module
-owns workspace/configuration materialization and shared command construction but does not own child
-processes or lifecycle decisions.
-
----
-
-### 5. [ ] Extract failed-start and invalid-source behavior [High impact / Medium effort]
+### 2. [ ] Extract failed-start and invalid-source behavior [High impact / Medium effort]
 
 **Problem**: Invalid CLI source construction, failed-start results and assertions, Unix mode
 restoration, deadline-bounded reaping, and the no-runtime drop fallback form one distinct fixture
@@ -263,24 +203,7 @@ best-effort (`Drop`) cleanup contract.
 
 ---
 
-### 6. [ ] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
-
-**Problem**: After extraction the root still needs to read as one coherent lifecycle: spawn,
-readiness, shutdown, drop. Constants and re-exports need a deliberate order, and the module doc
-should state the ownership model that reviewers and agents rely on.
-
-**Files**:
-
-- root module
-
-**Change**: Order the root as: module doc, child `mod` declarations, `pub use` re-exports,
-lifecycle constants, `NativeTracker` struct, `impl NativeTracker`, `impl Drop`. Extend the `//!` doc
-with a short ownership summary matching the responsibility map and state that the root must not
-contain failed-start, rendering, or probe implementation. No behavior changes.
-
----
-
-### 7. [ ] Simplify the test-facing API and update consumers [High impact / Medium effort]
+### 3. [ ] Simplify the test-facing API and update consumers [High impact / Medium effort]
 
 **Problem**: A mechanically preserved facade can carry names, re-exports, and methods that made
 sense only when all responsibilities lived in one file. Internal compatibility has no value when
@@ -300,22 +223,86 @@ the tests. Run both binaries after each coherent API change.
 
 ---
 
-### 8. [ ] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
+### 4. [ ] Establish the module root and resolve the `#[path]` layout decision [Medium impact / Low effort]
 
-**Problem**: `write_configuration` and `write_configuration_in_directory` render `CONFIGURATION`
-with identical placeholder replacement. The duplication is only obvious once both sit together in
-`command.rs`.
+**Problem**: The two binaries include the fixture by path, and `#[path]`-loaded files own their
+directory for child resolution. Without an explicit decision, children land in the wrong
+directory or fail to compile.
+
+**Files**:
+
+- `tests/common/native_tracker.rs` (moves to `tests/common/native_tracker/mod.rs` under option 1)
+- `tests/lifecycle/signals.rs`
+- `tests/configuration/cli_configuration.rs`
+- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
+- this refactor plan
+
+**Change**: Select the layout that produces the clearest module ownership and consumer imports.
+The recommended option remains a `tests/common/native_tracker/mod.rs` root, but narrower direct
+imports are allowed if they better separate running and failed-start fixtures. Update both
+consumers and every live documentation path or related-artifact entry that names the old root;
+preserve historical progress-log paths that accurately describe the earlier state. Run both
+binaries.
+
+---
+
+### 5. [ ] Extract output capture and health probing [Medium impact / Low effort]
+
+**Problem**: `TrackerOutputCapture`, `drain_output`, `HealthCheckClient`, the probe enums, and
+`parse_health_check_address` are leaf collaborators with no dependency on the rest of the fixture,
+yet they sit between lifecycle and failed-start code.
+
+**Files**:
+
+- `tests/common/native_tracker/output.rs`
+- `tests/common/native_tracker/health.rs`
+- root module
+
+**Change**: Move the items per the responsibility map with `pub(super)` visibility. Move the
+`parse_health_check_address` tests into `health.rs`. Add a `//!` doc to each new module stating
+its responsibility and, for `output.rs`, the reader-joining invariant.
+
+---
+
+### 6. [ ] Extract workspace and shared command construction [Medium impact / Low effort]
+
+**Problem**: Configuration rendering, temporary storage creation, environment isolation, and
+binary lookup are one construction concern shared by normal and failed starts, currently
+interleaved with process-ownership logic.
 
 **Files**:
 
 - `tests/common/native_tracker/command.rs`
+- root module
 
-**Change**: Have one helper delegate to the other. Do this after the move and API cleanup commits,
-so the move-only diff stays reviewable. Skip if the result is not clearly simpler.
+**Change**: Move `CONFIGURATION`, `NativeTrackerConfigurationSources`, `NativeTrackerWorkspace`,
+`write_configuration`, `write_configuration_in_directory`, `tracker_command`,
+`configure_tracker_command`, and `tracker_binary`. Re-export `NativeTrackerConfigurationSources`
+from the root. Move the `tracker_command` and `write_configuration` tests. Keep the three item-level
+dead-code allowances on the environment/override builders. Add a `//!` doc stating that the module
+owns workspace/configuration materialization and shared command construction but does not own child
+processes or lifecycle decisions.
 
 ---
 
-### 9. [ ] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
+### 7. [ ] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
+
+**Problem**: After extraction the root still needs to read as one coherent lifecycle: spawn,
+readiness, shutdown, drop. Constants and re-exports need a deliberate order, and the module doc
+should state the ownership model that reviewers and agents rely on.
+
+**Files**:
+
+- root module
+
+**Change**: Order the root as: module doc, child `mod` declarations, `pub use` re-exports,
+lifecycle constants, `NativeTracker` struct, `impl NativeTracker`, `impl Drop`. Extend the `//!` doc
+with a short ownership summary matching the responsibility map and state that the root must not
+contain failed-start, rendering, or probe implementation. No behavior changes.
+
+---
+
+### 8. [ ] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
 
 **Problem**: Pure moves can still leave hidden coupling, a widened `pub` item, or a redundant
 allowance that hides real dead code. Any optional cleanup must also receive final validation.
@@ -330,19 +317,34 @@ stand out, and review API cleanup commits separately. Confirm every exposed item
 consumer and the narrowest practical visibility. Walk the maintenance task map. Run both binaries
 and `linter all`. Record evidence in the issue specification.
 
+---
+
+### 9. [ ] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
+
+**Problem**: `write_configuration` and `write_configuration_in_directory` render `CONFIGURATION`
+with identical placeholder replacement. The duplication is only obvious once both sit together in
+`command.rs`.
+
+**Files**:
+
+- `tests/common/native_tracker/command.rs`
+
+**Change**: Have one helper delegate to the other. Do this after the move and API cleanup commits,
+so the move-only diff stays reviewable. Skip if the result is not clearly simpler.
+
 ## Order of Execution
 
 | Order | Status | Item | Impact | Effort |
 | --- | --- | --- | --- | --- |
 | 1 | [ ] | Establish ownership, behavior, and consumer baselines | High | Low |
-| 2 | [ ] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
-| 3 | [ ] | Extract output capture and health probing | Medium | Low |
-| 4 | [ ] | Extract workspace and shared command construction | Medium | Low |
-| 5 | [ ] | Extract failed-start and invalid-source behavior | High | Medium |
-| 6 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
-| 7 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
-| 8 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
-| 9 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
+| 2 | [ ] | Extract failed-start and invalid-source behavior | High | Medium |
+| 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
+| 4 | [ ] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
+| 5 | [ ] | Extract output capture and health probing | Medium | Low |
+| 6 | [ ] | Extract workspace and shared command construction | Medium | Low |
+| 7 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
+| 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
+| 9 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
 
 ## Commit Points
 
@@ -351,11 +353,11 @@ lifecycle commits and does not repeat this table.
 
 | Items | Coherent change set | Commit policy |
 | --- | --- | --- |
-| 1-2 | Baseline plus chosen module layout | Commit after both binaries pass with the chosen imports. |
-| 3 | Output and health extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
-| 4 | Command construction extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
-| 5 | Failed-start extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
-| 6 | Root lifecycle ordering and ownership docs | Commit after both binaries pass. |
-| 7 | Test-facing API cleanup and consumer updates | Commit each coherent API improvement with both affected sides and focused tests. |
-| 8 | Optional rendering deduplication | Separate commit only when the result is clearly simpler. |
-| 9 | Final reconciliation and verification evidence | Commit after the maintenance task map, both binaries, and `linter all` pass. |
+| 1, 4 | Baseline plus chosen module layout | Commit after both binaries pass with the chosen imports. |
+| 5 | Output and health extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
+| 6 | Command construction extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
+| 2 | Failed-start extraction with colocated tests | Keep as a pure move; commit after both binaries pass. |
+| 7 | Root lifecycle ordering and ownership docs | Commit after both binaries pass. |
+| 3 | Test-facing API cleanup and consumer updates | Commit each coherent API improvement with both affected sides and focused tests. |
+| 9 | Optional rendering deduplication | Separate commit only when the result is clearly simpler. |
+| 8 | Final reconciliation and verification evidence | Commit after the maintenance task map, both binaries, and `linter all` pass. |
