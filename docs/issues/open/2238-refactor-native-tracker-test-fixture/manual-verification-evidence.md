@@ -142,7 +142,7 @@ PASS running deadline/drop policy: mod.rs; both consumers exercise shared lifecy
 PASS failed-start reaping/restoration/drop: failed_start.rs; output.rs joining collaborator
 ```
 
-The final module sizes are 327 lines (`mod.rs`), 299 (`command.rs`), 481 (`failed_start.rs`), 104
+The final module sizes are 339 lines (`mod.rs`), 302 (`command.rs`), 481 (`failed_start.rs`), 104
 (`health.rs`), and 55 (`output.rs`). No row required an unlisted implementation collaborator.
 
 #### Conclusion
