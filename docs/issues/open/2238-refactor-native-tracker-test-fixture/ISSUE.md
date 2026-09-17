@@ -39,9 +39,9 @@ the executable behaviors and lifecycle guarantees the tests protect.
 
 ## Background
 
-Before this refactor, [`tests/common/native_tracker/mod.rs`](../../../../tests/common/native_tracker/mod.rs) was a 1,272-line
+Before this refactor, `tests/common/native_tracker.rs` was a 1,272-line
 single-file fixture that
-currently combines normal tracker lifecycle management, temporary-workspace and command creation,
+combined normal tracker lifecycle management, temporary-workspace and command creation,
 concurrent output capture and readiness probing, failed-start fixtures, Unix permission recovery,
 and unit tests. It is compiled independently by the `lifecycle-signals` and `cli-configuration`
 integration-test binaries.
