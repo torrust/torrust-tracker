@@ -212,20 +212,24 @@ fn source_for_validation(workspace_root: &PathBuf, file: &PathBuf, staged: bool)
 fn parse_changed_rust_lines(diff: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usize>>, String> {
     let mut changed_lines = BTreeMap::new();
     let mut current_file = None;
+    let mut deleted_file = false;
 
     for line in diff.lines() {
         if line.starts_with("diff --git ") {
             current_file = None;
+            deleted_file = false;
             continue;
         }
 
         if let Some(file) = line.strip_prefix("+++ b/") {
             current_file = Some(PathBuf::from(file));
+            deleted_file = false;
             continue;
         }
         if let Some(file) = line.strip_prefix("+++ ") {
             if file == "/dev/null" {
                 current_file = None;
+                deleted_file = true;
                 continue;
             }
             return Err(format!("unrecognized Git diff file header `{line}`"));
@@ -235,6 +239,9 @@ fn parse_changed_rust_lines(diff: &str) -> Result<BTreeMap<PathBuf, BTreeSet<usi
             continue;
         };
         let Some(file) = &current_file else {
+            if deleted_file {
+                continue;
+            }
             return Err(format!("Git diff hunk has no recognized Rust file header `{line}`"));
         };
         let Some(range) = hunk.split_whitespace().nth(1) else {
@@ -335,6 +342,15 @@ mod tests {
         let changed_lines = parse_changed_rust_lines(diff).unwrap();
 
         assert_eq!(changed_lines[&PathBuf::from("src/lib.rs")], BTreeSet::from([1, 2, 7]));
+    }
+
+    #[test]
+    fn it_should_ignore_hunks_for_deleted_rust_files() {
+        let diff = "diff --git a/src/old.rs b/src/old.rs\n--- a/src/old.rs\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-old_one\n-old_two\n";
+
+        let changed_lines = parse_changed_rust_lines(diff).unwrap();
+
+        assert!(changed_lines.is_empty());
     }
 
     #[test]
