@@ -7,8 +7,8 @@ epic: null
 github-issue: 2238
 spec-path: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
 branch: "2238-refactor-native-tracker-test-fixture"
-related-pr: 2239
-last-updated-utc: 2026-09-17 11:50
+related-pr: 2249
+last-updated-utc: 2026-09-17 12:05
 semantic-links:
   skill-links:
     - create-issue
@@ -186,6 +186,7 @@ Implementation commit points are defined only in the linked refactor plan.
 - 2026-09-17 - GitHub Copilot - Confirmed the responsibility and consumer baselines, selected the standard `tests/common/native_tracker/mod.rs` layout, and recorded green pre-edit baselines: `cargo test --test lifecycle-signals` (13 passed) and `cargo test --test cli-configuration` (18 passed). - `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
 - 2026-09-17 11:38 UTC - GitHub Copilot - Completed all refactor-plan items, including the final narrow dead-code allowance reconciliation; both fixture consumers, the complexity audit, manual scenarios, and the eight-step pre-commit gate passed. - `manual-verification-evidence.md`, `implementation-retrospective.md`
 - 2026-09-17 11:50 UTC - GitHub Copilot Task Reviewer - Independently verified AC1-AC8, the complete branch scope, manual and completion-review evidence, both fixture consumers, the dev-tool regression test, and focused cognitive-complexity Clippy; no blocking findings remain. - `agent-review-reports.md`
+- 2026-09-17 12:05 UTC - GitHub Copilot - Opened implementation PR #2249 against upstream `develop`; the PR closes issue #2238 when merged. - https://github.com/torrust/torrust-tracker/pull/2249
 - 2026-09-17 - GitHub Copilot Committer - Verified the issue and refactor-plan progress are current for the final evidence commit; close and archive remain pending implementation PR merge. - This specification and linked refactor plan
 
 ## Acceptance Criteria
@@ -279,6 +280,7 @@ Retrospective: `implementation-retrospective.md`.
 
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
 - Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
+- Implementation PR: https://github.com/torrust/torrust-tracker/pull/2249
 - Related refactor plan: `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
 - Affected fixture: `tests/common/native_tracker/mod.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`
