@@ -8,7 +8,7 @@ github-issue: 2226
 spec-path: docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-17 13:10
+last-updated-utc: 2026-09-17 13:50
 semantic-links:
   skill-links:
     - create-issue
@@ -157,7 +157,7 @@ For the test-producing task, use the `write-unit-test` skill. Complete a prose-f
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -169,6 +169,7 @@ For the test-producing task, use the `write-unit-test` skill. Complete a prose-f
 - 2026-09-15 11:00 UTC - josecelano - Approved this independent bug specification for GitHub issue creation - Chat approval.
 - 2026-09-15 11:05 UTC - GitHub Copilot - Created GitHub issue #2226 and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2226
 - 2026-09-17 13:10 UTC - GitHub Copilot - Implemented commit `1b6eaacc`, passed focused regression and pre-push checks, and recorded forensic findings plus a parked timestamp-naming follow-up draft. The original runtime recheck and final acceptance review remain pending.
+- 2026-09-17 13:50 UTC - GitHub Copilot - Classified PR #2252 review findings: restored the missing `Future` import, stabilized the interval-based regression test, recorded the published-API concern as follow-up work, and marked the outdated fallback concern as superseded. Source review fixes are committed in signed commit `017dddc9`; the original runtime recheck remains pending.
 
 ## Acceptance Criteria
 
