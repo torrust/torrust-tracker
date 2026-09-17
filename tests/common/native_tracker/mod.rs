@@ -1,9 +1,8 @@
-//! Native child-process fixture for tracker executable lifecycle scenarios.
+//! Owns the running tracker child from startup through readiness, shutdown, or drop cleanup.
 //!
-//! It owns one isolated tracker workspace, supplies its configuration through
-//! the executable's CLI, drains the child's output while the tracker runs,
-//! discovers the health endpoint from its startup log, and reaps the child
-//! even when graceful shutdown exceeds the scenario deadline.
+//! The root keeps one absolute startup deadline and reaps its child before releasing the
+//! collaborator-owned workspace. It must not implement failed starts, configuration rendering,
+//! output capture, or health probing.
 
 mod command;
 // The lifecycle-signals binary has no failed-start scenarios.

@@ -286,7 +286,7 @@ processes or lifecycle decisions.
 
 ---
 
-### 7. [ ] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
+### 7. [x] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
 
 **Problem**: After extraction the root still needs to read as one coherent lifecycle: spawn,
 readiness, shutdown, drop. Constants and re-exports need a deliberate order, and the module doc
@@ -343,7 +343,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
 | 5 | [x] | Extract output capture and health probing | Medium | Low |
 | 6 | [x] | Extract workspace and shared command construction | Medium | Low |
-| 7 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
+| 7 | [x] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
 | 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
 | 9 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
 
