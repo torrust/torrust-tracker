@@ -194,3 +194,17 @@ semantic-links:
 - Follow-up actions:
   - Record run 35128890381 in the issue and baseline evidence while preserving the remaining C6-C8 work as pending.
   - Do not close issue #2185.
+
+### 2026-09-17 12:08 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C6 dynamic-fragment exclusion slice in `.github/lychee-online.toml`, `ISSUE.md`, and `external-link-baseline.md`.
+- Inputs: Scoped diff, `.github/workflows/external-link-check.yaml`, unchanged `lychee.toml`, the referenced source links, GitHub issue-comment API responses, Star History page behavior, and the focused Lychee boundary fixture.
+- Evidence: The three new fully anchored patterns match only the two exact GitHub issue-comment URLs and the exact Star History project selector. GitHub's issue-comment API returned each referenced comment's exact URL. Star History reads the repository selector from the client-side fragment, while its fragment-free root does not preserve that project view. `lychee --config .github/lychee-online.toml --dump --format json .tmp/c6-dynamic-fragment-boundary.md` emitted only the non-matching GitHub issue and unrelated Star History SVG controls.
+- Findings:
+  - Resolved: The exclusions are online-only and retain all other GitHub URLs, fragments, and Star History targets for checking.
+  - Resolved: The C6 Docker hosted-verification state remains distinct from the three pending dynamic-fragment exclusions.
+  - Pending: A hosted External Link Check must prove that the exact URLs are absent while unrelated failures, the visible Lychee failure, and report upload remain intact.
+- Verdict: REVIEW PASSED.
+- Follow-up actions:
+  - Commit and merge this isolated C6 exclusion slice.
+  - Run and independently review the required hosted boundary verification before restoring T3/T4, AC3/AC5, and M4 to complete.
