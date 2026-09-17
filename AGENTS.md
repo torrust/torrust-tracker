@@ -340,6 +340,19 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 - `develop` → `staging/main` → `main` (release pipeline)
 - PRs must pass all CI status checks before merge
 
+**Commit history and PR scope**:
+
+- Keep intermediate commits. Do not squash, fixup, or rewrite a branch's history to hide steps
+  that were later superseded. The sequence of a mistake and its correction is deliberately
+  preserved as training material for humans and AI agents; only rebase onto `develop` to resolve
+  conflicts. Never propose squashing as a cleanup.
+- Minor process, skill, or documentation improvements learned while doing the work may ride along
+  in the PR that produced them, even when unrelated to the PR's runtime change, as long as each
+  lives in its own commit with the right Conventional Commits type (`docs(...)`, `chore(...)`).
+  Splitting them into separate PRs is unnecessary bureaucracy for changes that will be merged
+  immediately; do not propose it by default. Substantial changes (new agents, ADRs, workflow
+  redesigns) still get their own issue and PR.
+
 **Pull request titles**: the maintainer merge tool (`contrib/dev-tools/git/merge-pull-request.sh`, which runs the vendored `contrib/dev-tools/git/github-merge.py`) copies the PR title verbatim into the merge commit subject, so the title becomes permanent `develop` history:
 
 ```text
