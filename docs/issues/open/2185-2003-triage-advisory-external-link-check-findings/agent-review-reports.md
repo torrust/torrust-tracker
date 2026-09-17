@@ -208,3 +208,17 @@ semantic-links:
 - Follow-up actions:
   - Commit and merge this isolated C6 exclusion slice.
   - Run and independently review the required hosted boundary verification before restoring T3/T4, AC3/AC5, and M4 to complete.
+
+### 2026-09-17 14:50 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the uncommitted C6 dynamic-fragment hosted-verification evidence in `ISSUE.md` and `external-link-baseline.md`, the current C6 online policy, GitHub Actions [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794), and its downloaded report artifact.
+- Inputs: Merged PR #2251 revision `3bad98d1587ae396f87eb0297531e8fa7b4f15f1`, run and job metadata, downloaded `lychee-external-link-report`, `.github/lychee-online.toml`, and the C6 evidence diff.
+- Evidence: Run 35224905794 failed visibly with Lychee exit code 2, while `Upload Lychee Report` succeeded. Its unexpired 1,039-byte artifact, expiring 2026-10-01, contains a 4,347-byte report with 2,172 total checks, 1,391 successes, 26 redirects, 751 exclusions, 30 errors, and no timeouts. The report contains none of the two exact GitHub issue-comment anchors or the Star History project selector, while retaining 23 unrelated GitHub-fragment errors, three `403` responses, and four FSF cached or TLS failures.
+- Findings:
+  - Resolved: The exact C6 online-only exclusions are hosted-verified without suppressing unrelated failures, and the run supports completing T3/T4, AC3/AC5, and M4.
+  - Correction applied: The baseline's stale `C6-C8 remain deferred` summary conflicted with C6's hosted-verified state; it now defers only C7-C8.
+  - Pending: C7 and C8 remain rerun-first categories; T2, T5, AC2, AC6, and issue-wide completion evidence remain pending.
+- Verdict: REVIEW PASSED after the deferred-work correction.
+- Follow-up actions:
+  - Commit and review this evidence-only slice without closing issue #2185.
+  - Continue C7 and C8 independently.
