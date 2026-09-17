@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use chrono::Utc;
 use tokio_util::sync::CancellationToken;
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_name;
@@ -71,8 +72,7 @@ async fn update_activity_metrics(
 
     // Follow-up timestamp naming and API audit: see
     // docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/follow-up-issue-draft.md.
-    let inactivity_cutoff_timestamp =
-        CurrentClock::now_sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
+    let inactivity_cutoff_timestamp = inactivity_cutoff(CurrentClock::now(), max_peer_timeout);
     let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff_timestamp).await;
 
     activity_metadata.log();
@@ -84,6 +84,15 @@ async fn update_activity_metrics(
         "Peers and torrents activity metrics updated in {} ms",
         (Utc::now().time() - start_time).num_milliseconds()
     );
+}
+
+/// Peers last announced at or before this timestamp are inactive.
+///
+/// Falls back to the epoch when `now` is earlier than the timeout, so nothing
+/// is reported inactive instead of the subtraction failing.
+fn inactivity_cutoff(now: DurationSinceUnixEpoch, max_peer_timeout: u32) -> DurationSinceUnixEpoch {
+    now.checked_sub(Duration::from_secs(u64::from(max_peer_timeout)))
+        .unwrap_or_default()
 }
 
 async fn update_inactive_peers_total(stats_repository: &Arc<Repository>, inactive_peers_total: usize) {
@@ -197,5 +206,40 @@ mod tests {
 
         // Assert
         assert_eq!(completion, Completion::Completed);
+    }
+
+    mod inactivity_cutoff {
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::statistics::activity_metrics_updater::inactivity_cutoff;
+
+        #[test]
+        fn it_should_be_the_peer_timeout_before_now() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let max_peer_timeout_in_secs = 120;
+
+            let cutoff = inactivity_cutoff(now, max_peer_timeout_in_secs);
+
+            assert_eq!(cutoff, DurationSinceUnixEpoch::from_secs(880));
+        }
+
+        #[test]
+        fn it_should_be_now_when_the_peer_timeout_is_zero() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+
+            let cutoff = inactivity_cutoff(now, 0);
+
+            assert_eq!(cutoff, now);
+        }
+
+        #[test]
+        fn it_should_fall_back_to_the_epoch_when_now_is_earlier_than_the_peer_timeout() {
+            let now = DurationSinceUnixEpoch::from_secs(10);
+            let max_peer_timeout_in_secs = 120;
+
+            let cutoff = inactivity_cutoff(now, max_peer_timeout_in_secs);
+
+            assert_eq!(cutoff, DurationSinceUnixEpoch::ZERO);
+        }
     }
 }
