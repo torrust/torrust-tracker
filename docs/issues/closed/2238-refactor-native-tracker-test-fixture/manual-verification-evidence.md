@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
+issue-spec: docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md
 last-updated-utc: 2026-09-17 11:16
 ---
 

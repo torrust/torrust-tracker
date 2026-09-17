@@ -1,12 +1,12 @@
 ---
 doc-type: implementation-retrospective
-issue-spec: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
+issue-spec: docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md
 last-updated-utc: 2026-09-17 11:38
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
-    - docs/issues/open/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
-    - docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+   - docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md
+   - docs/issues/closed/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
+   - docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md
 ---
 
 # Implementation Retrospective - Native Tracker Test Fixture Refactor
@@ -70,9 +70,9 @@ consumer-specific compilation, not file size alone.
 
 ## Evidence
 
-- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
-- `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
-- `docs/issues/open/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md`
+- `docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`
+- `docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md`
+- `docs/issues/closed/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md`
 - `cargo test --test lifecycle-signals --test cli-configuration`
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh`
 - Commit subject `fix(dev-tools): handle deleted Rust files in allow check`
