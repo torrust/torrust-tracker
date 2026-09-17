@@ -17,7 +17,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
     - docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
-    - tests/common/native_tracker.rs
+    - tests/common/native_tracker/mod.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
 ---
@@ -37,7 +37,8 @@ the executable behaviors and lifecycle guarantees the tests protect.
 
 ## Background
 
-[`tests/common/native_tracker.rs`](../../../../tests/common/native_tracker.rs) is 1,272 lines and
+Before this refactor, [`tests/common/native_tracker/mod.rs`](../../../../tests/common/native_tracker/mod.rs) was a 1,272-line
+single-file fixture that
 currently combines normal tracker lifecycle management, temporary-workspace and command creation,
 concurrent output capture and readiness probing, failed-start fixtures, Unix permission recovery,
 and unit tests. It is compiled independently by the `lifecycle-signals` and `cli-configuration`
@@ -180,6 +181,7 @@ Implementation commit points are defined only in the linked refactor plan.
 - 2026-09-16 15:40 UTC - GitHub Copilot - Created the dedicated spec-only branch from the latest upstream `develop` and began publishing the approved planning artifacts. - `2238-refactor-native-tracker-test-fixture-spec`
 - 2026-09-16 16:25 UTC - GitHub Copilot - Opened spec-only PR #2239 against upstream `develop`; issue #2238 remains open for implementation. - https://github.com/torrust/torrust-tracker/pull/2239
 - 2026-09-17 09:01 UTC - GitHub Copilot - Confirmed spec-only PR #2239 merged, created implementation branch `2238-refactor-native-tracker-test-fixture` from the merge commit, and promoted the approved refactor plan to its numbered open path. - https://github.com/torrust/torrust-tracker/pull/2239
+- 2026-09-17 - GitHub Copilot - Confirmed the responsibility and consumer baselines, selected the standard `tests/common/native_tracker/mod.rs` layout, and recorded green pre-edit baselines: `cargo test --test lifecycle-signals` (13 passed) and `cargo test --test cli-configuration` (18 passed). - `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
 
 ## Acceptance Criteria
 
@@ -271,5 +273,5 @@ why no retrospective is needed.
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
 - Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
 - Related refactor plan: `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
-- Affected fixture: `tests/common/native_tracker.rs`
+- Affected fixture: `tests/common/native_tracker/mod.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`
