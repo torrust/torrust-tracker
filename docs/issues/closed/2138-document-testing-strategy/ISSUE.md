@@ -20,7 +20,7 @@ semantic-links:
     - tests/AGENTS.md
     - packages/AGENTS.md
     - packages/e2e-tools/README.md
-    - tests/lifecycle/native_tracker.rs
+    - tests/common/native_tracker/mod.rs
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - .github/workflows/testing.yaml
     - .github/workflows/container.yaml
@@ -74,7 +74,7 @@ The guide must present the layers in the taxonomy the maintainers use:
     (`app::start()`); see `tests/AGENTS.md`.
   - **Executable-boundary** — tests that spawn the compiled tracker binary as a
     child process to verify OS-level behavior such as signal handling; see
-    `tests/lifecycle/native_tracker.rs`.
+    `tests/common/native_tracker/mod.rs`.
 - **End-to-end (E2E) tests**, in two forms, both driven by the runners in
   `packages/e2e-tools`:
   - **Container** — the tracker runs in a Docker/Podman image and is exercised
@@ -390,7 +390,7 @@ findings, and reusable lessons.
 - [Root repository instructions](../../../../AGENTS.md)
 - [Package instructions](../../../../packages/AGENTS.md)
 - [Root integration-test instructions](../../../../tests/AGENTS.md)
-- [Executable-boundary lifecycle test](../../../../tests/common/native_tracker.rs)
+- [Executable-boundary lifecycle test](../../../../tests/common/native_tracker/mod.rs)
 - [E2E tools package](../../../../packages/e2e-tools/README.md)
 - [Test-writing skill](../../../../.github/skills/dev/testing/write-unit-test/SKILL.md)
 - [Pre-commit validation skill](../../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md)

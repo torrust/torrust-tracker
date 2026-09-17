@@ -5,7 +5,7 @@
 //! tracker that wrongly started would never exit, so the bounded wait in
 //! `wait_for_exit` is itself the proof that no service was started.
 
-use crate::native_tracker::{NativeTrackerInvalidCliSource, NativeTrackerStartAttempt};
+use crate::native_tracker::failed_start::{NativeTrackerInvalidCliSource, NativeTrackerStartAttempt};
 
 const USAGE_ERROR_MISSING_VALUE: &str = "a value is required";
 const USAGE_ERROR_EMPTY_VALUE: &str = "must not be empty";

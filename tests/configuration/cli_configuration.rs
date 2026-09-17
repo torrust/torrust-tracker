@@ -3,8 +3,7 @@
 #![cfg_attr(not(unix), allow(dead_code, unused_imports))]
 
 #[cfg(unix)]
-#[path = "../common/native_tracker.rs"]
-#[allow(dead_code)]
+#[path = "../common/native_tracker/mod.rs"]
 mod native_tracker;
 
 #[cfg(unix)]

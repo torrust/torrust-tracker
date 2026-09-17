@@ -2,7 +2,8 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use crate::native_tracker::{NativeTracker, NativeTrackerConfigurationSources};
+use crate::native_tracker::NativeTracker;
+use crate::native_tracker::configuration::NativeTrackerConfigurationSources;
 
 #[tokio::test]
 async fn it_should_select_the_health_check_bind_address_override_over_the_cli_configuration() {

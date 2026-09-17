@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - tests/common/workspace.rs
-    - tests/common/native_tracker.rs
+    - tests/common/native_tracker/mod.rs
     - src/app.rs
     - src/main.rs
     - packages/configuration/src/lib.rs
@@ -35,7 +35,7 @@ base source.
 The feature is immediately beneficial for **child-process** tests because a
 child can receive its file through arguments without depending on inherited
 configuration base-source variables. This is already the design of
-`tests/common/native_tracker.rs`.
+`tests/common/native_tracker/mod.rs`.
 
 It is also beneficial for the main-level **in-process** integration fixture:
 `tests/common/workspace.rs` already creates one isolated TOML file per suite,
@@ -89,7 +89,7 @@ current-process `set_var` / `remove_var` calls.
 | `tests/common/workspace.rs`                                                | In-process main-level integration fixture | Mutates test-process `TORRUST_TRACKER_CONFIG_TOML_PATH`; clears/restores `TORRUST_TRACKER_CONFIG_TOML`; calls `app::start()` | No; fixture writes a per-suite file                      | Yes                                       | Highest-value migration candidate. Pass the existing workspace path to `app::start_with_explicit_config_toml_path`; remove `ConfigurationEnvironmentGuard` and `ENVIRONMENT_LOCK` after focused tests prove no base-source mutation remains.   |
 | Seven current functional `TrackerApplicationFixture` consumers             | In-process integration executables        | Indirectly use the shared fixture above                                                                                      | No                                                       | Yes, through shared fixture               | No per-suite migration should be necessary. Consumers: two UDP banning suites, the UDP disabled metrics suite, fixed-port metrics, port-zero metrics, and two UDP-error metrics suites. `scaffold` is the documented example fixture consumer. |
 | `src/bootstrap/config.rs` tests                                            | In-process unit tests                     | Deliberately mutate both base-source variables under a module lock                                                           | Yes, for precedence coverage                             | Partly                                    | Keep environment mutation. These tests verify legacy environment precedence and override compatibility, which an explicit-path call would bypass. They are serialized and are not integration-fixture startup.                                 |
-| `tests/common/native_tracker.rs`                                           | Child process                             | `Command` passes `--config-toml-path`; test-specific environment values are child-only; inherited base sources are removed   | Optional environment TOML exists only to test precedence | Already used                              | No migration needed. This is the preferred executable-boundary pattern.                                                                                                                                                                        |
+| `tests/common/native_tracker/mod.rs`                                       | Child process                             | `Command` passes `--config-toml-path`; test-specific environment values are child-only; inherited base sources are removed   | Optional environment TOML exists only to test precedence | Already used                              | No migration needed. This is the preferred executable-boundary pattern.                                                                                                                                                                        |
 | `tests/configuration/cli_configuration/*` and `tests/lifecycle/signals.rs` | Child process via shared native fixture   | Use the fixture above                                                                                                        | Optional for precedence contract                         | Already used                              | No migration needed.                                                                                                                                                                                                                           |
 | `src/console/ci/e2e/runner.rs`                                             | E2E runner to tracker container           | Runner accepts a file path or complete TOML, reads it, then injects complete TOML into the container environment             | Yes                                                      | Not directly                              | Separate container-runner design. The new main-binary argument is not automatically a container runtime argument; mounted file availability and argument forwarding would need explicit design.                                                |
 | `src/console/profiling.rs`, docs, scripts, and historical evidence         | CLI/manual operational use                | Environment-selected file or content                                                                                         | Some commands use complete TOML                          | Sometimes, but not a test-parallelism fix | Do not migrate as part of test isolation. Review individually if operator-facing CLI examples are being modernized.                                                                                                                            |
@@ -239,7 +239,7 @@ Reviewed on 2026-09-09 against merged #2151 on `develop`:
 
 - issue [#1419](../../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md), especially Problem 3 and current execution model;
 - `tests/common/workspace.rs` and all `TrackerApplicationFixture::start` call sites;
-- `tests/common/native_tracker.rs` and executable-boundary test targets;
+- `tests/common/native_tracker/mod.rs` and executable-boundary test targets;
 - `src/app.rs` explicit-path startup boundary;
 - `src/bootstrap/config.rs` legacy environment-precedence unit tests; and
 - `src/console/ci/e2e/runner.rs` file-path/complete-TOML container runner.

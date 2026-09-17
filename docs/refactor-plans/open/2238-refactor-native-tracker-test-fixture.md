@@ -1,16 +1,16 @@
 ---
 doc-type: refactor-plan
-status: draft
+status: open
 related-issue: 2238
-spec-path: docs/refactor-plans/drafts/refactor-native-tracker-test-fixture.md
-last-updated-utc: 2026-09-16 15:36
+spec-path: docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+last-updated-utc: 2026-09-17 11:38
 semantic-links:
   skill-links:
     - create-refactor-plan
   related-artifacts:
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
     - docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
-    - tests/common/native_tracker.rs
+    - tests/common/native_tracker/mod.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
 ---
@@ -44,7 +44,7 @@ Related artifact:
 
 ## Design Constraints Discovered in the Current Code
 
-These constraints were verified against `tests/common/native_tracker.rs` and its two consumers
+These constraints were verified against the former `tests/common/native_tracker.rs` root and its two consumers
 and must be honored by the implementation.
 
 ### Module resolution under `#[path]`
@@ -57,13 +57,14 @@ mod native_tracker;
 ```
 
 A file loaded through `#[path]` owns its directory for nested module resolution. A bare
-`mod failed_start;` inside `tests/common/native_tracker.rs` therefore resolves to
-`tests/common/failed_start.rs`, not to `tests/common/native_tracker/failed_start.rs`. Choose one:
+`mod failed_start;` inside the former `tests/common/native_tracker.rs` root would therefore resolve
+to `tests/common/failed_start.rs`, not to `tests/common/native_tracker/failed_start.rs`. The
+implementation selected option 1:
 
 1. **Recommended**: move the root to `tests/common/native_tracker/mod.rs` and update the two
    `#[path]` attributes to `"../common/native_tracker/mod.rs"`. Children then use standard bare
    `mod` declarations and live beside their root.
-2. Keep `tests/common/native_tracker.rs` and give every child an explicit
+2. Keep the former `tests/common/native_tracker.rs` and give every child an explicit
    `#[path = "native_tracker/<name>.rs"]` attribute.
 
 Record the choice in the issue progress log. Do not rely on an unverified assumption that children
@@ -162,7 +163,7 @@ the module root before extracting child modules, moving shared leaf collaborator
 modules can access the root's private items, so this dependency guidance does not change item
 priority or require widened visibility.
 
-### 1. [ ] Establish ownership, behavior, and consumer baselines [High impact / Low effort]
+### 1. [x] Establish ownership, behavior, and consumer baselines [High impact / Low effort]
 
 **Problem**: A mechanical module split can compile while obscuring or changing which type owns a
 child, output reader, workspace, permission guard, or cleanup deadline. API changes can also make
@@ -170,7 +171,7 @@ the consumers less expressive when they are not reviewed together with the fixtu
 
 **Files**:
 
-- `tests/common/native_tracker.rs`
+- `tests/common/native_tracker/mod.rs`
 - `tests/lifecycle/signals.rs`
 - `tests/configuration/cli_configuration.rs`
 
@@ -180,7 +181,7 @@ change is intentional and updates its consumers, not to preserve current signatu
 
 ---
 
-### 2. [ ] Extract failed-start and invalid-source behavior [High impact / Medium effort]
+### 2. [x] Extract failed-start and invalid-source behavior [High impact / Medium effort]
 
 **Problem**: Invalid CLI source construction, failed-start results and assertions, Unix mode
 restoration, deadline-bounded reaping, and the no-runtime drop fallback form one distinct fixture
@@ -203,7 +204,7 @@ best-effort (`Drop`) cleanup contract.
 
 ---
 
-### 3. [ ] Simplify the test-facing API and update consumers [High impact / Medium effort]
+### 3. [x] Simplify the test-facing API and update consumers [High impact / Medium effort]
 
 **Problem**: A mechanically preserved facade can carry names, re-exports, and methods that made
 sense only when all responsibilities lived in one file. Internal compatibility has no value when
@@ -223,7 +224,7 @@ the tests. Run both binaries after each coherent API change.
 
 ---
 
-### 4. [ ] Establish the module root and resolve the `#[path]` layout decision [Medium impact / Low effort]
+### 4. [x] Establish the module root and resolve the `#[path]` layout decision [Medium impact / Low effort]
 
 **Problem**: The two binaries include the fixture by path, and `#[path]`-loaded files own their
 directory for child resolution. Without an explicit decision, children land in the wrong
@@ -231,7 +232,7 @@ directory or fail to compile.
 
 **Files**:
 
-- `tests/common/native_tracker.rs` (moves to `tests/common/native_tracker/mod.rs` under option 1)
+- `tests/common/native_tracker/mod.rs`
 - `tests/lifecycle/signals.rs`
 - `tests/configuration/cli_configuration.rs`
 - `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
@@ -246,7 +247,7 @@ binaries.
 
 ---
 
-### 5. [ ] Extract output capture and health probing [Medium impact / Low effort]
+### 5. [x] Extract output capture and health probing [Medium impact / Low effort]
 
 **Problem**: `TrackerOutputCapture`, `drain_output`, `HealthCheckClient`, the probe enums, and
 `parse_health_check_address` are leaf collaborators with no dependency on the rest of the fixture,
@@ -264,7 +265,7 @@ its responsibility and, for `output.rs`, the reader-joining invariant.
 
 ---
 
-### 6. [ ] Extract workspace and shared command construction [Medium impact / Low effort]
+### 6. [x] Extract workspace and shared command construction [Medium impact / Low effort]
 
 **Problem**: Configuration rendering, temporary storage creation, environment isolation, and
 binary lookup are one construction concern shared by normal and failed starts, currently
@@ -285,7 +286,7 @@ processes or lifecycle decisions.
 
 ---
 
-### 7. [ ] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
+### 7. [x] Trim the root to lifecycle orchestration and document ownership [Medium impact / Low effort]
 
 **Problem**: After extraction the root still needs to read as one coherent lifecycle: spawn,
 readiness, shutdown, drop. Constants and re-exports need a deliberate order, and the module doc
@@ -302,7 +303,7 @@ contain failed-start, rendering, or probe implementation. No behavior changes.
 
 ---
 
-### 8. [ ] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
+### 8. [x] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
 
 **Problem**: Pure moves can still leave hidden coupling, a widened `pub` item, or a redundant
 allowance that hides real dead code. Any optional cleanup must also receive final validation.
@@ -319,7 +320,7 @@ and `linter all`. Record evidence in the issue specification.
 
 ---
 
-### 9. [ ] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
+### 9. [x] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
 
 **Problem**: `write_configuration` and `write_configuration_in_directory` render `CONFIGURATION`
 with identical placeholder replacement. The duplication is only obvious once both sit together in
@@ -336,15 +337,15 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 
 | Order | Status | Item | Impact | Effort |
 | --- | --- | --- | --- | --- |
-| 1 | [ ] | Establish ownership, behavior, and consumer baselines | High | Low |
-| 2 | [ ] | Extract failed-start and invalid-source behavior | High | Medium |
-| 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
-| 4 | [ ] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
-| 5 | [ ] | Extract output capture and health probing | Medium | Low |
-| 6 | [ ] | Extract workspace and shared command construction | Medium | Low |
-| 7 | [ ] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
-| 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
-| 9 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
+| 1 | [x] | Establish ownership, behavior, and consumer baselines | High | Low |
+| 2 | [x] | Extract failed-start and invalid-source behavior | High | Medium |
+| 3 | [x] | Simplify the test-facing API and update consumers | High | Medium |
+| 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
+| 5 | [x] | Extract output capture and health probing | Medium | Low |
+| 6 | [x] | Extract workspace and shared command construction | Medium | Low |
+| 7 | [x] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
+| 8 | [x] | Reconcile ownership, tests, and documentation | Medium | Low |
+| 9 | [x] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
 
 ## Commit Points
 
