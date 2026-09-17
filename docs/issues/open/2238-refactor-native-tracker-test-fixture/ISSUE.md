@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: null
 github-issue: 2238
 spec-path: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
 branch: "2238-refactor-native-tracker-test-fixture"
 related-pr: 2239
-last-updated-utc: 2026-09-17 09:01
+last-updated-utc: 2026-09-17 11:50
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,8 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
     - docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
+    - docs/issues/open/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
+    - docs/issues/open/2238-refactor-native-tracker-test-fixture/implementation-retrospective.md
     - tests/common/native_tracker/mod.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
@@ -162,14 +164,14 @@ Implementation commit points are defined only in the linked refactor plan.
 - [x] Spec and refactor plan reviewed and approved by user/maintainer
 - [x] GitHub issue #2238 created and issue number added to this spec
 - [x] Spec-only PR #2239 merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all` and relevant tests)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded in `implementation-retrospective.md`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -182,29 +184,32 @@ Implementation commit points are defined only in the linked refactor plan.
 - 2026-09-16 16:25 UTC - GitHub Copilot - Opened spec-only PR #2239 against upstream `develop`; issue #2238 remains open for implementation. - https://github.com/torrust/torrust-tracker/pull/2239
 - 2026-09-17 09:01 UTC - GitHub Copilot - Confirmed spec-only PR #2239 merged, created implementation branch `2238-refactor-native-tracker-test-fixture` from the merge commit, and promoted the approved refactor plan to its numbered open path. - https://github.com/torrust/torrust-tracker/pull/2239
 - 2026-09-17 - GitHub Copilot - Confirmed the responsibility and consumer baselines, selected the standard `tests/common/native_tracker/mod.rs` layout, and recorded green pre-edit baselines: `cargo test --test lifecycle-signals` (13 passed) and `cargo test --test cli-configuration` (18 passed). - `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
+- 2026-09-17 11:38 UTC - GitHub Copilot - Completed all refactor-plan items, including the final narrow dead-code allowance reconciliation; both fixture consumers, the complexity audit, manual scenarios, and the eight-step pre-commit gate passed. - `manual-verification-evidence.md`, `implementation-retrospective.md`
+- 2026-09-17 11:50 UTC - GitHub Copilot Task Reviewer - Independently verified AC1-AC8, the complete branch scope, manual and completion-review evidence, both fixture consumers, the dev-tool regression test, and focused cognitive-complexity Clippy; no blocking findings remain. - `agent-review-reports.md`
+- 2026-09-17 - GitHub Copilot Committer - Verified the issue and refactor-plan progress are current for the final evidence commit; close and archive remain pending implementation PR merge. - This specification and linked refactor plan
 
 ## Acceptance Criteria
 
-- [ ] AC1: Both integration-test consumers use a narrow, expressive fixture API and module layout;
+- [x] AC1: Both integration-test consumers use a narrow, expressive fixture API and module layout;
   current paths and signatures may change when the result is clearer and more maintainable.
-- [ ] AC2: Normal startup, readiness, graceful shutdown, and drop-path tracker cleanup retain
+- [x] AC2: Normal startup, readiness, graceful shutdown, and drop-path tracker cleanup retain
       their current ownership and deadline guarantees.
-- [ ] AC3: Failed-start invalid-source behavior, output diagnostics, permission restoration, and
+- [x] AC3: Failed-start invalid-source behavior, output diagnostics, permission restoration, and
       fallback cleanup retain their current observable behavior.
-- [ ] AC4: Configuration rendering/command construction and output/health support have clear
+- [x] AC4: Configuration rendering/command construction and output/health support have clear
       internal ownership boundaries, without unnecessary generic abstractions, and no item is more
       visible than it was before.
-- [ ] AC5: Fixture unit tests are colocated with their protected behavior and continue to pass.
-- [ ] AC6: Every module under the fixture root has a `//!` doc stating what it owns and what it
+- [x] AC5: Fixture unit tests are colocated with their protected behavior and continue to pass.
+- [x] AC6: Every module under the fixture root has a `//!` doc stating what it owns and what it
       must not do, consistent with the plan's responsibility map.
-- [ ] AC7: Every row of the plan's maintenance task map holds: the named primary module and
+- [x] AC7: Every row of the plan's maintenance task map holds: the named primary module and
       collaborators are sufficient to make that change.
-- [ ] AC8: `#[allow(dead_code)]` is consolidated to module level only where an entire module is
+- [x] AC8: `#[allow(dead_code)]` is consolidated to module level only where an entire module is
       unused by one binary, and no allowance hides code made dead by the refactor.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -225,22 +230,22 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Exercise and trace a running tracker lifecycle | Run `cargo test --test lifecycle-signals -- --nocapture` to exercise real child startup, readiness, signal shutdown, and drop cleanup. Starting from those scenarios, navigate through the final fixture API and record the owner of each child, output reader, workspace, and deadline together with the command result. | The signal and drop-path child-process scenarios pass; the complete normal lifecycle is understandable without entering failed-start implementation; every resource has one clear owner; the evidence records the command, result, and ownership trace. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Exercise and trace a failed-start lifecycle | Run `cargo test --test cli-configuration invalid_sources -- --nocapture` to exercise invalid-source child exits and diagnostics. Starting from those scenarios, navigate through source preparation, spawn, diagnostics, permission restoration, wait, and drop fallback; record each owner, transfer, deadline, and the command result. | The invalid-source child-process scenarios pass without starting a service; the complete failure lifecycle is understandable without entering normal readiness orchestration; cleanup responsibilities and deadlines remain explicit; the evidence records the command, result, and ownership trace. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Walk the maintenance task map | For each row of the plan's task map, open only the named primary module and collaborators and confirm the described change could be made there; note any row that would require opening another module. | Every row holds; any exception is recorded and either fixed or justified. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Exercise and trace a running tracker lifecycle | Run `cargo test --test lifecycle-signals -- --nocapture` to exercise real child startup, readiness, signal shutdown, and drop cleanup. Starting from those scenarios, navigate through the final fixture API and record the owner of each child, output reader, workspace, and deadline together with the command result. | The signal and drop-path child-process scenarios pass; the complete normal lifecycle is understandable without entering failed-start implementation; every resource has one clear owner; the evidence records the command, result, and ownership trace. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Exercise and trace a failed-start lifecycle | Run `cargo test --test cli-configuration invalid_sources -- --nocapture` to exercise invalid-source child exits and diagnostics. Starting from those scenarios, navigate through source preparation, spawn, diagnostics, permission restoration, wait, and drop fallback; record each owner, transfer, deadline, and the command result. | The invalid-source child-process scenarios pass without starting a service; the complete failure lifecycle is understandable without entering normal readiness orchestration; cleanup responsibilities and deadlines remain explicit; the evidence records the command, result, and ownership trace. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Walk the maintenance task map | For each row of the plan's task map, open only the named primary module and collaborators and confirm the described change could be made there; note any row that would require opening another module. | Every row holds; any exception is recorded and either fixed or justified. | DONE | `manual-verification-evidence.md` section V3 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Pending implementation |
-| AC2 | TODO | Pending implementation |
-| AC3 | TODO | Pending implementation |
-| AC4 | TODO | Pending implementation |
-| AC5 | TODO | Pending implementation |
-| AC6 | TODO | Pending implementation |
-| AC7 | TODO | Pending implementation |
-| AC8 | TODO | Pending implementation |
+| AC1 | DONE | Consumer imports and calls; focused tests; manual evidence V1-V2 |
+| AC2 | DONE | `lifecycle-signals` 13/13; manual evidence V1 |
+| AC3 | DONE | Invalid-source scenarios 7/7; manual evidence V2 |
+| AC4 | DONE | Five-module responsibility review; complexity audit |
+| AC5 | DONE | Colocated module tests in both focused binaries |
+| AC6 | DONE | Module docs in `mod.rs`, `command.rs`, `failed_start.rs`, `health.rs`, and `output.rs` |
+| AC7 | DONE | Manual evidence V3 |
+| AC8 | DONE | Focused compile failure and narrow-allowance fix; both binaries pass |
 
 ## Risks and Trade-offs
 
@@ -267,6 +272,8 @@ After implementation, compare the result with this specification. Record reusabl
 material design changes, and deviations from the approved plan in an issue-local
 `implementation-retrospective.md` when warranted; otherwise add a progress-log entry explaining
 why no retrospective is needed.
+
+Retrospective: `implementation-retrospective.md`.
 
 ## References
 

@@ -3,7 +3,7 @@ doc-type: refactor-plan
 status: open
 related-issue: 2238
 spec-path: docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
-last-updated-utc: 2026-09-17 09:01
+last-updated-utc: 2026-09-17 11:38
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -303,7 +303,7 @@ contain failed-start, rendering, or probe implementation. No behavior changes.
 
 ---
 
-### 8. [ ] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
+### 8. [x] Reconcile ownership, tests, and documentation [Medium impact / Low effort]
 
 **Problem**: Pure moves can still leave hidden coupling, a widened `pub` item, or a redundant
 allowance that hides real dead code. Any optional cleanup must also receive final validation.
@@ -344,7 +344,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | 5 | [x] | Extract output capture and health probing | Medium | Low |
 | 6 | [x] | Extract workspace and shared command construction | Medium | Low |
 | 7 | [x] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
-| 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
+| 8 | [x] | Reconcile ownership, tests, and documentation | Medium | Low |
 | 9 | [x] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
 
 ## Commit Points
