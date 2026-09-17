@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 2238
-spec-path: docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
+spec-path: docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md
 branch: "2238-refactor-native-tracker-test-fixture"
 related-pr: 2249
-last-updated-utc: 2026-09-17 12:05
+last-updated-utc: 2026-09-17 16:05
 semantic-links:
   skill-links:
     - create-issue
@@ -16,9 +16,9 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
-    - docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
-    - docs/issues/open/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
-    - docs/issues/open/2238-refactor-native-tracker-test-fixture/implementation-retrospective.md
+    - docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md
+    - docs/issues/closed/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
+    - docs/issues/closed/2238-refactor-native-tracker-test-fixture/implementation-retrospective.md
     - tests/common/native_tracker/mod.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
@@ -73,7 +73,7 @@ explicitly; and the two binaries use different subsets of the API, so the 21 `#[
 attributes need a deliberate consolidation policy under `-D unused`.
 
 The linked detailed plan is
-[`docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`](../../../refactor-plans/open/2238-refactor-native-tracker-test-fixture.md).
+[`docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md`](../../../refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md).
 
 ## Scope
 
@@ -145,7 +145,7 @@ cover only planning-artifact workflow outside that plan.
 | I1 | DONE | Review and approve planning artifacts | Maintainer approved this issue specification and the linked refactor plan. |
 | I2 | DONE | Create and link the GitHub issue | Created issue #2238, promoted both drafts to their open locations, and replaced placeholders. |
 | I3 | DONE | Publish the planning artifacts | Spec-only PR #2239 merged into `develop`; implementation continues on the dedicated implementation branch. |
-| I4 | TODO | Close and archive the planning artifacts | After every refactor-plan item and the issue acceptance review are complete, close the GitHub issue and move both artifacts to `closed/`. |
+| I4 | DONE | Close and archive the planning artifacts | GitHub issue #2238 is closed as completed; the issue specification and refactor plan are archived under `docs/issues/closed/` and `docs/refactor-plans/closed/`. |
 
 ## Commit Points
 
@@ -172,7 +172,7 @@ Implementation commit points are defined only in the linked refactor plan.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
+- [x] Issue #2238 closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -188,6 +188,7 @@ Implementation commit points are defined only in the linked refactor plan.
 - 2026-09-17 11:50 UTC - GitHub Copilot Task Reviewer - Independently verified AC1-AC8, the complete branch scope, manual and completion-review evidence, both fixture consumers, the dev-tool regression test, and focused cognitive-complexity Clippy; no blocking findings remain. - `agent-review-reports.md`
 - 2026-09-17 12:05 UTC - GitHub Copilot - Opened implementation PR #2249 against upstream `develop`; the PR closes issue #2238 when merged. - https://github.com/torrust/torrust-tracker/pull/2249
 - 2026-09-17 - GitHub Copilot Committer - Verified the issue and refactor-plan progress are current for the final evidence commit; close and archive remain pending implementation PR merge. - This specification and linked refactor plan
+- 2026-09-17 16:05 UTC - GitHub Copilot - Confirmed PR #2249 merged and issue #2238 closed as completed; archived the issue specification and refactor plan and repaired current cross-links. - https://github.com/torrust/torrust-tracker/pull/2249
 
 ## Acceptance Criteria
 
@@ -281,6 +282,6 @@ Retrospective: `implementation-retrospective.md`.
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
 - Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
 - Implementation PR: https://github.com/torrust/torrust-tracker/pull/2249
-- Related refactor plan: `docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md`
+- Related refactor plan: `docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md`
 - Affected fixture: `tests/common/native_tracker/mod.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`

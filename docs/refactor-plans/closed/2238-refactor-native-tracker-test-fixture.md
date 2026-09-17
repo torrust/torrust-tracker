@@ -1,15 +1,15 @@
 ---
 doc-type: refactor-plan
-status: open
+status: closed
 related-issue: 2238
-spec-path: docs/refactor-plans/open/2238-refactor-native-tracker-test-fixture.md
-last-updated-utc: 2026-09-17 11:38
+spec-path: docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md
+last-updated-utc: 2026-09-17 16:05
 semantic-links:
   skill-links:
     - create-refactor-plan
   related-artifacts:
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
-    - docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md
+    - docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md
     - tests/common/native_tracker/mod.rs
     - tests/lifecycle/signals.rs
     - tests/configuration/cli_configuration.rs
@@ -40,7 +40,7 @@ Reducing line count is a consequence, not the success criterion. The split succe
   to protect the same observable behavior.
 
 Related artifact:
-[`docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`](../../issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md)
+[`docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`](../../issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md)
 
 ## Design Constraints Discovered in the Current Code
 
@@ -235,7 +235,7 @@ directory or fail to compile.
 - `tests/common/native_tracker/mod.rs`
 - `tests/lifecycle/signals.rs`
 - `tests/configuration/cli_configuration.rs`
-- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
+- `docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`
 - this refactor plan
 
 **Change**: Select the layout that produces the clearest module ownership and consumer imports.
@@ -311,7 +311,7 @@ allowance that hides real dead code. Any optional cleanup must also receive fina
 **Files**:
 
 - all modules under `tests/common/native_tracker/`
-- `docs/issues/open/2238-refactor-native-tracker-test-fixture/ISSUE.md`
+- `docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`
 
 **Change**: Review extraction commits with `git diff --color-moved=dimmed-zebra` so non-move edits
 stand out, and review API cleanup commits separately. Confirm every exposed item has a current
