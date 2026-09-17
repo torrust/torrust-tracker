@@ -14,7 +14,9 @@ mod output;
 // The lifecycle-signals binary does not configure alternative sources.
 #[allow(unused_imports)]
 pub mod configuration {
-    //! Exposes only the running fixture surface needed by executable configuration scenarios.
+    //! Owns the configuration-source API exposed to executable configuration scenarios.
+    //!
+    //! It must not expose workspace construction or child lifecycle implementation.
 
     pub use super::command::NativeTrackerConfigurationSources;
 }
@@ -46,11 +48,15 @@ pub struct NativeTracker {
     workspace: Option<NativeTrackerWorkspace>,
     health_check_client: Option<HealthCheckClient>,
     drop_cleanup_complete: Option<oneshot::Sender<Result<i32, String>>>,
+    // The configuration binary does not exercise panic-path cleanup observation.
+    #[allow(dead_code)]
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
 }
 
 impl NativeTracker {
     /// Spawns the Cargo-built tracker binary with an isolated CLI configuration and port-zero bindings.
+    // The configuration binary always supplies explicit source settings.
+    #[allow(dead_code)]
     pub fn start() -> Self {
         let workspace = NativeTrackerWorkspace::new();
         Self::start_in_workspace(workspace)
@@ -120,6 +126,8 @@ impl NativeTracker {
     }
 
     /// Returns the CLI-selected configuration path owned by this fixture.
+    // The configuration binary verifies source behavior through bound endpoints.
+    #[allow(dead_code)]
     pub fn configuration_path(&self) -> Result<PathBuf, String> {
         self.workspace
             .as_ref()
@@ -128,6 +136,8 @@ impl NativeTracker {
     }
 
     /// Returns the isolated storage path owned by this fixture.
+    // The configuration binary does not inspect lifecycle fixture storage.
+    #[allow(dead_code)]
     pub fn storage_path(&self) -> Result<PathBuf, String> {
         self.workspace
             .as_ref()
@@ -182,6 +192,8 @@ impl NativeTracker {
     }
 
     /// Returns an observer for the signal that terminated the reaped drop-path child.
+    // The configuration binary uses explicit graceful shutdown only.
+    #[allow(dead_code)]
     pub const fn take_drop_cleanup_observer(&mut self) -> oneshot::Receiver<Result<i32, String>> {
         self.drop_cleanup_observer
             .take()

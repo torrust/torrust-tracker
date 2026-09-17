@@ -4,7 +4,6 @@
 
 #[cfg(unix)]
 #[path = "../common/native_tracker/mod.rs"]
-#[allow(dead_code)]
 mod native_tracker;
 
 #[cfg(unix)]

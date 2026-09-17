@@ -40,9 +40,6 @@ bind_address = "127.0.0.1:{HEALTH_CHECK_PORT}"
 /// because executable configuration tests need no other child-process
 /// configuration surface.
 #[derive(Clone, Copy)]
-// This shared module is compiled by signal-only and configuration test binaries;
-// the former does not use configuration-specific source builders.
-#[allow(dead_code)]
 pub struct NativeTrackerConfigurationSources {
     cli: u16,
     environment_path: Option<u16>,
@@ -90,6 +87,8 @@ impl NativeTrackerConfigurationSources {
 pub(super) struct NativeTrackerWorkspace {
     _workspace: tempfile::TempDir,
     configuration_path: PathBuf,
+    // The configuration binary does not inspect lifecycle fixture storage.
+    #[allow(dead_code)]
     storage_path: PathBuf,
     environment_configuration_path: Option<PathBuf>,
     environment_configuration_toml: Option<String>,
@@ -97,6 +96,8 @@ pub(super) struct NativeTrackerWorkspace {
 }
 
 impl NativeTrackerWorkspace {
+    // The configuration binary always supplies explicit source settings.
+    #[allow(dead_code)]
     pub(super) fn new() -> Self {
         Self::with_configuration_sources(NativeTrackerConfigurationSources::with_cli_health_check_port(0))
     }
@@ -126,6 +127,8 @@ impl NativeTrackerWorkspace {
         &self.configuration_path
     }
 
+    // The configuration binary does not inspect lifecycle fixture storage.
+    #[allow(dead_code)]
     pub(super) fn storage_path(&self) -> &Path {
         &self.storage_path
     }
