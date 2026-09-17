@@ -20,7 +20,7 @@ semantic-links:
     - tests/AGENTS.md
     - packages/AGENTS.md
     - packages/e2e-tools/README.md
-    - tests/lifecycle/native_tracker.rs
+    - tests/common/native_tracker/mod.rs
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - .github/workflows/testing.yaml
     - .github/workflows/container.yaml
@@ -74,7 +74,7 @@ The guide must present the layers in the taxonomy the maintainers use:
     (`app::start()`); see `tests/AGENTS.md`.
   - **Executable-boundary** — tests that spawn the compiled tracker binary as a
     child process to verify OS-level behavior such as signal handling; see
-    `tests/lifecycle/native_tracker.rs`.
+    `tests/common/native_tracker/mod.rs`.
 - **End-to-end (E2E) tests**, in two forms, both driven by the runners in
   `packages/e2e-tools`:
   - **Container** — the tracker runs in a Docker/Podman image and is exercised
