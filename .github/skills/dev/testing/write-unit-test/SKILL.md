@@ -436,8 +436,9 @@ A periodic job under `#[tokio::test(start_paused = true)]` is driven by **two in
 A test of "peer becomes inactive after the timeout" must advance both: the stopped clock so the
 cutoff moves, and Tokio time so the job actually runs. Give each step a named fixture method (for
 example `set_domain_time_elapsed_since_startup(...)` and `run_next_update()`) so the test body
-shows which clock is being moved and why. Because the job runs on the test's current-thread
-runtime, the thread-local stopped clock is visible to it without extra wiring.
+shows which clock is being moved and why. When a spawned job relies on `clock::Stopped::local_set`,
+force `#[tokio::test(flavor = "current_thread")]` (or use `LocalSet` + `spawn_local`) so the
+thread-local stopped clock remains visible to the task without extra wiring.
 
 ## Phase 3: Parameterized Tests with rstest
 

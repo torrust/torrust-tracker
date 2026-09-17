@@ -216,7 +216,7 @@ mod tests {
         }
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test(start_paused = true, flavor = "current_thread")]
     async fn it_should_keep_a_peer_announced_after_startup_active_before_the_timeout_elapses() {
         // Arrange
         let max_peer_timeout_in_secs = 2;
@@ -235,7 +235,7 @@ mod tests {
         );
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test(start_paused = true, flavor = "current_thread")]
     async fn it_should_count_a_peer_announced_after_startup_inactive_after_the_timeout_elapses() {
         // Arrange
         let max_peer_timeout_in_secs = 2;
@@ -254,7 +254,7 @@ mod tests {
         );
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test(start_paused = true, flavor = "current_thread")]
     async fn it_should_recompute_the_inactivity_cutoff_on_every_update() {
         // Arrange
         let max_peer_timeout_in_secs = 2;
