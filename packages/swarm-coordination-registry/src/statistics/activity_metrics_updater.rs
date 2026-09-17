@@ -67,8 +67,11 @@ async fn update_activity_metrics(
         interval_in_secs
     );
 
-    let inactivity_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
-    let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff).await;
+    // Follow-up timestamp naming and API audit: see
+    // docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/follow-up-issue-draft.md.
+    let inactivity_cutoff_timestamp =
+        CurrentClock::now_sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
+    let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff_timestamp).await;
 
     activity_metadata.log();
 
