@@ -47,3 +47,22 @@ pub async fn graceful_shutdown(
         sleep(Duration::from_secs(1)).await;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tokio_util::sync::CancellationToken;
+    use torrust_server_lib::signals::cancellation_signal;
+
+    #[tokio::test]
+    async fn it_should_compile_and_resolve_the_server_lib_cancellation_signal_when_token_is_cancelled() {
+        // Arrange
+        let cancellation_token = CancellationToken::new();
+        let wait_task = tokio::spawn(cancellation_signal(cancellation_token.clone()));
+
+        // Act
+        cancellation_token.cancel();
+
+        // Assert
+        wait_task.await.expect("cancellation signal should resolve");
+    }
+}

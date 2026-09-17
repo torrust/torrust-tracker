@@ -4563,6 +4563,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
+ "futures-util",
  "libc",
  "pin-project-lite",
  "tokio",
@@ -4790,12 +4791,13 @@ dependencies = [
 
 [[package]]
 name = "torrust-server-lib"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5baa16bd7eb33812e7da8bf063f05e104b4749a3f6fe4eb69fbf660e4f1974fe"
+checksum = "e70e4646927899a3a7d03d873ad4efad9552e4e35987d4ae7883e125154bac56"
 dependencies = [
  "derive_more 2.1.1",
  "tokio",
+ "tokio-util",
  "torrust-net-primitives",
  "tower-http 0.7.1",
  "tracing",
@@ -4971,6 +4973,7 @@ dependencies = [
  "pin-project-lite",
  "thiserror 2.0.20",
  "tokio",
+ "tokio-util",
  "torrust-located-error",
  "torrust-server-lib",
  "torrust-tracker-configuration",
