@@ -1,4 +1,5 @@
 //! Job that runs a task on intervals to update peers' activity metrics.
+use std::future::Future;
 use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;

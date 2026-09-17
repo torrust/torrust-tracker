@@ -15,6 +15,8 @@ use super::repository::Repository;
 use crate::statistics::{SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL};
 use crate::{CurrentClock, Registry};
 
+const ACTIVITY_METRICS_UPDATE_INTERVAL_SECS: u64 = 15;
+
 #[must_use]
 #[instrument(skip(swarms, stats_repository))]
 pub fn run_job(
@@ -29,7 +31,7 @@ pub fn run_job(
         drop(swarms);
         drop(stats_repository);
 
-        let interval_in_secs = 15; // todo: make this configurable
+        let interval_in_secs = ACTIVITY_METRICS_UPDATE_INTERVAL_SECS; // todo: make this configurable
         let interval = std::time::Duration::from_secs(interval_in_secs);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await;
@@ -119,11 +121,12 @@ mod tests {
 
     use tokio::time::timeout;
     use tokio_util::sync::CancellationToken;
-    use torrust_clock::clock::stopped::Stopped;
+    use torrust_clock::clock::Stopped as StoppedClock;
+    use torrust_clock::clock::stopped::Stopped as StoppedClockTrait;
     use torrust_clock::{DurationSinceUnixEpoch, clock};
     use torrust_tracker_events::shutdown::Completion;
 
-    use super::run_job;
+    use super::{ACTIVITY_METRICS_UPDATE_INTERVAL_SECS, run_job};
     use crate::Registry;
     use crate::statistics::SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL;
     use crate::statistics::repository::Repository;
@@ -211,9 +214,8 @@ mod tests {
         tokio::task::yield_now().await;
 
         // Act: move the stopped clock forward beyond the timeout window and let the next update tick execute.
-        <torrust_clock::clock::Clock<torrust_clock::clock::stopped::StoppedClock> as Stopped>::local_add(&Duration::from_secs(2))
-            .unwrap();
-        tokio::time::advance(Duration::from_secs(15)).await;
+        <StoppedClock as StoppedClockTrait>::local_add(&Duration::from_secs(2)).unwrap();
+        tokio::time::advance(Duration::from_secs(ACTIVITY_METRICS_UPDATE_INTERVAL_SECS)).await;
         tokio::task::yield_now().await;
 
         let value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
