@@ -1,10 +1,10 @@
 //! Job that runs a task on intervals to update peers' activity metrics.
 use std::future::Future;
 use std::sync::Arc;
+use std::time::Duration;
 
 use chrono::Utc;
 use tokio_util::sync::CancellationToken;
-use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_name;
@@ -20,7 +20,7 @@ use crate::{CurrentClock, Registry};
 pub fn run_job(
     swarms: Arc<Registry>,
     stats_repository: Arc<Repository>,
-    inactivity_cutoff: DurationSinceUnixEpoch,
+    max_peer_timeout: u32,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static {
     async move {
@@ -43,7 +43,7 @@ pub fn run_job(
                 }
                 _ = interval.tick() => {
                     if let (Some(swarms), Some(stats_repository)) = (weak_swarms.upgrade(), weak_stats_repository.upgrade()) {
-                        update_activity_metrics(interval_in_secs, &swarms, &stats_repository, inactivity_cutoff).await;
+                        update_activity_metrics(interval_in_secs, &swarms, &stats_repository, max_peer_timeout).await;
                     } else {
                         tracing::info!("Stopping peers activity metrics update job (can't upgrade weak pointers) ...");
                         return Completion::Completed;
@@ -58,7 +58,7 @@ async fn update_activity_metrics(
     interval_in_secs: u64,
     swarms: &Arc<Registry>,
     stats_repository: &Arc<Repository>,
-    inactivity_cutoff: DurationSinceUnixEpoch,
+    max_peer_timeout: u32,
 ) {
     let start_time = Utc::now().time();
 
@@ -67,6 +67,7 @@ async fn update_activity_metrics(
         interval_in_secs
     );
 
+    let inactivity_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
     let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff).await;
 
     activity_metadata.log();
@@ -115,12 +116,15 @@ mod tests {
 
     use tokio::time::timeout;
     use tokio_util::sync::CancellationToken;
-    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_clock::clock::stopped::Stopped;
+    use torrust_clock::{DurationSinceUnixEpoch, clock};
     use torrust_tracker_events::shutdown::Completion;
 
     use super::run_job;
     use crate::Registry;
+    use crate::statistics::SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL;
     use crate::statistics::repository::Repository;
+    use crate::tests::sample_peer;
 
     #[tokio::test]
     async fn it_should_return_cancelled_when_the_token_is_cancelled() {
@@ -128,12 +132,7 @@ mod tests {
         let swarms = Arc::new(Registry::new(None));
         let stats_repository = Arc::new(Repository::new());
         let cancellation_token = CancellationToken::new();
-        let runner = run_job(
-            swarms,
-            stats_repository,
-            DurationSinceUnixEpoch::default(),
-            cancellation_token.clone(),
-        );
+        let runner = run_job(swarms, stats_repository, 0, cancellation_token.clone());
 
         // Act
         cancellation_token.cancel();
@@ -153,12 +152,7 @@ mod tests {
         let runner = {
             let swarms = Arc::new(Registry::new(None));
 
-            run_job(
-                swarms,
-                stats_repository.clone(),
-                DurationSinceUnixEpoch::default(),
-                CancellationToken::new(),
-            )
+            run_job(swarms, stats_repository.clone(), 0, CancellationToken::new())
         };
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
@@ -179,12 +173,7 @@ mod tests {
         let runner = {
             let stats_repository = Arc::new(Repository::new());
 
-            run_job(
-                swarms.clone(),
-                stats_repository,
-                DurationSinceUnixEpoch::default(),
-                CancellationToken::new(),
-            )
+            run_job(swarms.clone(), stats_repository, 0, CancellationToken::new())
         };
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
@@ -195,5 +184,50 @@ mod tests {
 
         // Assert
         assert_eq!(completion, Completion::Completed);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_recompute_inactivity_cutoff_before_each_update_tick() {
+        // Arrange: a peer updated at the current time should become inactive once the timeout window elapses,
+        // even when the runner has already started. The old bug kept a stale startup cutoff forever.
+        let now = DurationSinceUnixEpoch::new(1_000, 0);
+        clock::Stopped::local_set(&now);
+
+        let swarms = Arc::new(Registry::new(None));
+        let info_hash = crate::tests::sample_info_hash();
+        let mut peer = sample_peer();
+        peer.updated = now;
+        swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+        let stats_repository = Arc::new(Repository::new());
+        let cancellation_token = CancellationToken::new();
+        let swarms_for_runner = swarms.clone();
+        let stats_repository_for_runner = stats_repository.clone();
+        let runner = run_job(swarms_for_runner, stats_repository_for_runner, 1, cancellation_token.clone());
+        let runner = tokio::spawn(runner);
+        tokio::task::yield_now().await;
+
+        // Act: move the stopped clock forward beyond the timeout window and let the next update tick execute.
+        <torrust_clock::clock::Clock<torrust_clock::clock::stopped::StoppedClock> as Stopped>::local_add(&Duration::from_secs(2))
+            .unwrap();
+        tokio::time::advance(Duration::from_secs(15)).await;
+        tokio::task::yield_now().await;
+
+        let value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
+            &torrust_metrics::metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
+            &torrust_metrics::label::LabelSet::default(),
+        );
+
+        cancellation_token.cancel();
+        let completion = runner
+            .await
+            .expect("the runner should be cancellable while the cutoff is refreshed");
+
+        // Assert
+        assert_eq!(completion, Completion::Cancelled);
+        let value = value
+            .expect("the inactive peers gauge should be updated after the timeout expires")
+            .value();
+        assert!((value - 1.0).abs() < f64::EPSILON);
     }
 }
