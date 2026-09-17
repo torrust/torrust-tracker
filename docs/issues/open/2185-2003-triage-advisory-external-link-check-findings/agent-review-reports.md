@@ -181,3 +181,16 @@ semantic-links:
 - Follow-up actions:
   - Commit and merge this isolated repair, then obtain and independently review a hosted External Link Check report.
   - Continue the remaining C6 fragments independently; do not close issue #2185.
+
+### 2026-09-16 17:55 UTC - Task Reviewer
+
+- Invocation scope: Read-only review of the merged C6 Docker ACI hosted-verification evidence in `ISSUE.md`, `external-link-baseline.md`, `agent-review-reports.md`, and `docs/containers.md`.
+- Inputs: PR #2231 merge commit `6e1e9d29b5d88b763e1748ad45afabe5d725d62f`, GitHub Actions [run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381), and its downloaded `lychee-external-link-report` artifact.
+- Evidence: The run completed with the expected advisory failure. `Check External Links` failed visibly while `Upload Lychee Report` succeeded. The retained 1,229-byte artifact expires on 2026-09-30. Its report records 2,117 total checks, 1,483 unique links, 1,343 successful checks, 25 redirects, 737 exclusions, 33 errors, and 4 timeouts. It contains neither retired Docker ACI URL as an error and retains unrelated third-party `403`, FSF, GitHub comment/review fragment, Star History fragment, and timeout failures.
+- Findings:
+  - Resolved: The two Docker ACI repairs are hosted-verified without adding an exclusion or hiding unrelated external-link failures.
+  - Pending: The GitHub issue-comment and Star History fragments remain separate C6 investigations; C7 and C8 remain pending. Keep AC2, AC6, final quality, manual-verification, acceptance-review, implementation-completion-review, and closure checkpoints pending.
+- Verdict: REVIEW PASSED for the C6 Docker sub-slice.
+- Follow-up actions:
+  - Record run 35128890381 in the issue and baseline evidence while preserving the remaining C6-C8 work as pending.
+  - Do not close issue #2185.

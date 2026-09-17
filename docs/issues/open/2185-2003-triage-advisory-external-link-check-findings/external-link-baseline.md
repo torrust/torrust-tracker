@@ -67,12 +67,12 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 - **Evidence:** Hosted [run 34953081017](https://github.com/torrust/torrust-tracker/actions/runs/34953081017) contains no retired C5 URL but reports the prior `#servers` replacement fragment as missing. Follow-up [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) ran on merged revision `bbb58fa8`, contains neither the retired URL nor the replacement without a fragment as an error, retained 37 unrelated errors with no timeouts, and successfully uploaded its report artifact.
 - **Next action:** Complete. Keep the C6-C8 categories under their independent dispositions.
 
-### C6: Other missing fragments — 5 baseline occurrences (2 repaired pending verification)
+### C6: Other missing fragments — 5 baseline occurrences (2 repaired and hosted-verified)
 
 - **Pattern:** Docker Cloud ACI fragments, GitHub issue-comment fragments, and the Star History fragment returning `Cannot find fragment`.
-- **Disposition:** Two Docker Cloud ACI fragments repaired pending hosted verification; GitHub issue-comment and Star History fragments remain under investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
-- **Evidence:** Both Docker Cloud ACI pages now redirect to Docker's retired-page notice. Azure's current Azure Files documentation describes the replacement mount-path behavior, and Azure's troubleshooting documentation confirms that ACI does not support Docker-style port mapping.
-- **Next action:** Run a hosted workflow to verify the two Docker fragment URLs are absent while unrelated failures remain visible. Verify the GitHub issue-comment and Star History fragments independently.
+- **Disposition:** Two Docker Cloud ACI fragments repaired and hosted-verified; GitHub issue-comment and Star History fragments remain under investigation. Unlike C1, these have distinct target-page semantics and must not be hidden by a broad fragment exclusion.
+- **Evidence:** Both Docker Cloud ACI pages redirect to Docker's retired-page notice. Azure's current Azure Files documentation describes the replacement mount-path behavior, and Azure's troubleshooting documentation confirms that ACI does not support Docker-style port mapping. Hosted [run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) on merged revision `6e1e9d29` contains neither retired Docker URL as an error, retains 33 unrelated errors and 4 timeouts, and successfully uploads its report artifact.
+- **Next action:** Complete the Docker ACI sub-slice. Verify the GitHub issue-comment and Star History fragments independently.
 
 ### C7: Third-party access-controlled links — 3 occurrences
 
@@ -167,6 +167,12 @@ The downloaded report records 1,782 total checks, 1,224 unique links, 1,196 succ
 [External Link Check run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) ran after PR #2225 merged on revision `bbb58fa802ff1cd2f330ac9146fee3dc76ce496b`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` records 2,006 total checks, 1,424 unique links, 1,249 successful checks, 25 redirects, 720 exclusions, 37 errors, and no timeouts.
 
 The downloaded report contains neither the retired `https://caddyserver.com/docs/protocol/http3` URL nor the `https://caddyserver.com/docs/caddyfile/options` replacement without a fragment as an error. It retains unrelated Docker missing fragments, Medium and Stack Overflow `403` responses, FSF transport errors, GitHub comment and review fragments, and the Star History fragment. This verifies the C5 repair without adding an exclusion or hiding remaining external-link failures.
+
+### C6 Docker repair verification
+
+[External Link Check run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) ran after PR #2231 merged on revision `6e1e9d29`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 1,229 bytes and expires on 2026-09-30.
+
+The report records 2,117 total checks, 1,483 unique links, 1,343 successful checks, 25 redirects, 737 exclusions, 33 errors, and 4 timeouts. It contains neither `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes` nor `https://docs.docker.com/cloud/aci-integration/#exposing-ports` as an error. It retains unrelated third-party `403` responses, FSF transport errors, GitHub issue-comment and review fragments, the Star History fragment, and timeout failures. This verifies the Docker ACI repair without adding an exclusion or hiding remaining external-link failures.
 
 ## Deferred Work
 
