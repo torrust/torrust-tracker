@@ -21,6 +21,7 @@ the mandatory conventions in the [unit-test skill](../../../.github/skills/dev/t
 | [Scenario fixtures for causal initial state](scenario-fixtures-for-causal-initial-state.md)            | Several setup operations establish the one state that makes the Act behave differently.            | `packages/axum-http-server/src/server.rs`               |
 | [Prose-first Arrange-Act-Assert verification](prose-first-arrange-act-assert-verification.md)          | A correct test is hard to read because its code does not yet express its behavioral intent.        | `packages/udp-server/src/handlers/mod.rs`               |
 | [Named helpers for abstraction-level alignment](named-helpers-for-abstraction-level-alignment.md)       | A coherent setup action is obscured by low-level mechanics or rejected only because it has one caller. | `packages/udp-server/tests/server/contract.rs`        |
+| [Pure decision function for collaborator-observed outcomes](pure-decision-function-for-collaborator-observed-outcomes.md) | A module's own decision is only observable through a collaborator's answer, so its unit tests silently depend on that collaborator. | `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs` |
 
 ## Entry Requirements
 

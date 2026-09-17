@@ -92,6 +92,33 @@ already executes the behavior. Decline a unit test only when it cannot protect t
 appropriate boundary, or when a higher-level contract is demonstrably clearer and more maintainable;
 record that rationale in the issue-local evidence.
 
+### Inventory Behaviors and Choose the Test Level
+
+Before writing or refactoring tests for a module, list what the module itself decides and what it
+only forwards to collaborators. Ask: **what does this module decide?** A test belongs at the lowest
+level that can observe everything it asserts without reading other modules.
+
+1. Write the inventory as a temporary comment at the top of the module's `tests` block: each
+   behaviour, its edge cases, and whether it is covered, uncovered, or deliberately untested.
+2. Classify each behaviour:
+   - **Unit** — the module decides it and the outcome is observable from the module's own API.
+   - **Collaboration** — the outcome depends on a collaborator's semantics (for example, a
+     registry's comparison rule or a repository's set-versus-increment behaviour). Place it one
+     level up, typically a `tests` module in the parent `mod.rs`, and say so in its module comment.
+   - **Collaborator-owned** — the rule lives in another module; test it there.
+3. If a module's decision has no observable seam (it is only visible through a collaborator's
+   answer), treat that as design feedback: extract the decision into a pure function and unit-test
+   it directly. See
+   [Pure decision function for collaborator-observed outcomes](../../../../../docs/testing/refactoring-patterns/pure-decision-function-for-collaborator-observed-outcomes.md).
+4. Implement only the tests in the current issue's scope. Replace the inventory with a short note
+   in each owning module listing the missing tests and the tracking issue (for example, the package
+   coverage EPIC), so the gap stays visible in code rather than in chat or agent memory.
+5. Split the work into a reorganisation commit (move tests, add notes) and a refactor commit (new
+   seams and tests), so reviewers can verify that behaviour did not change in the first step.
+
+A test that passes only because of a collaborator's rule is not a unit test of the module it sits
+in, even when it is deterministic and fast; it fails for reasons the module cannot explain.
+
 ### Lifecycle Fixture Design Review
 
 When a test fixture manages a child process, asynchronous I/O, network
@@ -374,6 +401,21 @@ mod tests {
 > - `Stopped::local_add(&duration)` advances the clock by the given amount.
 > - Import the `Stopped` trait (`use …::stopped::Stopped as _`) to bring its methods into scope.
 
+### Async Jobs Involve Two Clocks
+
+A periodic job under `#[tokio::test(start_paused = true)]` is driven by **two independent clocks**:
+
+- **Tokio's paused time** schedules `tokio::time::interval` ticks. `tokio::time::advance(...)`
+  makes the next tick fire; it does not move `CurrentClock`.
+- **`clock::Stopped`** provides the domain timestamps the job reads through `CurrentClock::now()`.
+  `Stopped::local_set` / `local_add` move it; they do not fire ticks.
+
+A test of "peer becomes inactive after the timeout" must advance both: the stopped clock so the
+cutoff moves, and Tokio time so the job actually runs. Give each step a named fixture method (for
+example `set_domain_time_elapsed_since_startup(...)` and `run_next_update()`) so the test body
+shows which clock is being moved and why. Because the job runs on the test's current-thread
+runtime, the thread-local stopped clock is visible to it without extra wiring.
+
 ## Phase 3: Parameterized Tests with rstest
 
 Use `rstest` for multiple input/output combinations to avoid repetition.
@@ -420,6 +462,7 @@ establishes a reusable pattern for future tests.
 
 - [ ] Test name uses `it_should_` prefix
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
+- [ ] Behaviors were inventoried; each test sits at the lowest level that can observe everything it asserts
 - [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
