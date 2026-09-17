@@ -119,6 +119,8 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    // Tokio's paused time advances the interval scheduler; `clock::Stopped`
+    // independently advances the domain timestamps used for inactivity checks.
     use tokio::time::timeout;
     use tokio_util::sync::CancellationToken;
     use torrust_clock::clock::Stopped as StoppedClock;
