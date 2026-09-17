@@ -196,30 +196,39 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn it_should_keep_a_peer_announced_after_startup_active_before_the_timeout_elapses() {
+        // Scenario: a peer announces at startup with a 2-second inactivity timeout.
+        // Only 1 second passes in the domain clock, so the peer is still inside the
+        // active window and must not be counted as inactive yet.
+
         // Arrange
-        let now = DurationSinceUnixEpoch::new(1_000, 0);
-        clock::Stopped::local_set(&now);
+        let startup_time = DurationSinceUnixEpoch::new(1_000, 0);
+        let peer_timeout = 2_u32;
+        let time_before_timeout = Duration::from_secs(1);
+        clock::Stopped::local_set(&startup_time);
 
         let swarms = Arc::new(Registry::new(None));
         let stats_repository = Arc::new(Repository::new());
         let cancellation_token = CancellationToken::new();
-        let swarms_for_runner = swarms.clone();
-        let stats_repository_for_runner = stats_repository.clone();
-        let runner = run_job(swarms_for_runner, stats_repository_for_runner, 2, cancellation_token.clone());
+        let runner = run_job(
+            swarms.clone(),
+            stats_repository.clone(),
+            peer_timeout,
+            cancellation_token.clone(),
+        );
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
 
         let info_hash = crate::tests::sample_info_hash();
         let mut peer = sample_peer();
-        peer.updated = now;
+        peer.updated = startup_time;
         swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
-        // Act
-        <StoppedClock as StoppedClockTrait>::local_add(&Duration::from_secs(1)).unwrap();
+        // Act: advance the domain clock, but keep Tokio's scheduler paused.
+        <StoppedClock as StoppedClockTrait>::local_add(&time_before_timeout).unwrap();
         tokio::time::advance(Duration::from_secs(ACTIVITY_METRICS_UPDATE_INTERVAL_SECS)).await;
         tokio::task::yield_now().await;
 
-        let value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
+        let inactive_peers_value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
             &torrust_metrics::metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
             &torrust_metrics::label::LabelSet::default(),
         );
@@ -231,38 +240,48 @@ mod tests {
 
         // Assert
         assert_eq!(completion, Completion::Cancelled);
-        let value = value
+        let inactive_peers_value = inactive_peers_value
             .expect("the inactive peers gauge should be updated before the timeout expires")
             .value();
-        assert!((value - 0.0).abs() < f64::EPSILON);
+        assert!((inactive_peers_value - 0.0).abs() < f64::EPSILON);
     }
 
     #[tokio::test(start_paused = true)]
     async fn it_should_count_a_peer_announced_after_startup_inactive_after_the_timeout_elapses() {
+        // Scenario: a peer announces at startup with a 2-second inactivity timeout.
+        // Three seconds pass in the domain clock, so the peer has exceeded the
+        // active window and must be counted as inactive on the next tick.
+
         // Arrange
-        let now = DurationSinceUnixEpoch::new(1_000, 0);
-        clock::Stopped::local_set(&now);
+        let startup_time = DurationSinceUnixEpoch::new(1_000, 0);
+        let peer_timeout = 2_u32;
+        let time_after_timeout = Duration::from_secs(3);
+        clock::Stopped::local_set(&startup_time);
 
         let swarms = Arc::new(Registry::new(None));
         let stats_repository = Arc::new(Repository::new());
         let cancellation_token = CancellationToken::new();
-        let swarms_for_runner = swarms.clone();
-        let stats_repository_for_runner = stats_repository.clone();
-        let runner = run_job(swarms_for_runner, stats_repository_for_runner, 2, cancellation_token.clone());
+        let runner = run_job(
+            swarms.clone(),
+            stats_repository.clone(),
+            peer_timeout,
+            cancellation_token.clone(),
+        );
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
 
         let info_hash = crate::tests::sample_info_hash();
         let mut peer = sample_peer();
-        peer.updated = now;
+        peer.updated = startup_time;
         swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
-        // Act
-        <StoppedClock as StoppedClockTrait>::local_add(&Duration::from_secs(3)).unwrap();
+        // Act: advance the domain clock past the inactivity threshold while keeping
+        // Tokio's scheduler paused until the update tick fires.
+        <StoppedClock as StoppedClockTrait>::local_add(&time_after_timeout).unwrap();
         tokio::time::advance(Duration::from_secs(ACTIVITY_METRICS_UPDATE_INTERVAL_SECS)).await;
         tokio::task::yield_now().await;
 
-        let value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
+        let inactive_peers_value = stats_repository.get_metrics().await.metric_collection.get_gauge_value(
             &torrust_metrics::metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
             &torrust_metrics::label::LabelSet::default(),
         );
@@ -274,9 +293,9 @@ mod tests {
 
         // Assert
         assert_eq!(completion, Completion::Cancelled);
-        let value = value
+        let inactive_peers_value = inactive_peers_value
             .expect("the inactive peers gauge should be updated after the timeout expires")
             .value();
-        assert!((value - 1.0).abs() < f64::EPSILON);
+        assert!((inactive_peers_value - 1.0).abs() < f64::EPSILON);
     }
 }
