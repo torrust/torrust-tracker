@@ -764,6 +764,10 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_count_inactive_peers() {
+                // Missing `get_activity_metadata` tests, tracked by the package
+                // coverage review (#1347):
+                // - an empty registry reports 0 inactive peers and 0 inactive torrents
+                // - a torrent whose peers are all inactive counts as an inactive torrent
                 let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();

@@ -454,6 +454,8 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_count_inactive_peers() {
+        // Missing, tracked by the package coverage review (#1347): a peer
+        // updated exactly at the cutoff counts as inactive (`updated <= cutoff`).
         let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let one_second = DurationSinceUnixEpoch::new(1, 0);
