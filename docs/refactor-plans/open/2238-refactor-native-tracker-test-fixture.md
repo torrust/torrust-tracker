@@ -204,7 +204,7 @@ best-effort (`Drop`) cleanup contract.
 
 ---
 
-### 3. [ ] Simplify the test-facing API and update consumers [High impact / Medium effort]
+### 3. [x] Simplify the test-facing API and update consumers [High impact / Medium effort]
 
 **Problem**: A mechanically preserved facade can carry names, re-exports, and methods that made
 sense only when all responsibilities lived in one file. Internal compatibility has no value when
@@ -339,7 +339,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | --- | --- | --- | --- | --- |
 | 1 | [x] | Establish ownership, behavior, and consumer baselines | High | Low |
 | 2 | [x] | Extract failed-start and invalid-source behavior | High | Medium |
-| 3 | [ ] | Simplify the test-facing API and update consumers | High | Medium |
+| 3 | [x] | Simplify the test-facing API and update consumers | High | Medium |
 | 4 | [x] | Establish the module root and resolve the `#[path]` layout decision | Medium | Low |
 | 5 | [x] | Extract output capture and health probing | Medium | Low |
 | 6 | [x] | Extract workspace and shared command construction | Medium | Low |

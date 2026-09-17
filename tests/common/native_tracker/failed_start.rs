@@ -160,19 +160,11 @@ pub struct NativeTrackerFailedStartResult {
 }
 
 impl NativeTrackerFailedStartResult {
-    pub const fn exit_code(&self) -> i32 {
-        self.exit_code
-    }
-
-    pub fn output(&self) -> &str {
-        &self.output
-    }
-
-    pub fn source_path(&self) -> Option<&std::path::Path> {
+    fn source_path(&self) -> Option<&std::path::Path> {
         self.source_path.as_deref()
     }
 
-    pub const fn source_mode(&self) -> Option<u32> {
+    const fn source_mode(&self) -> Option<u32> {
         self.source_mode
     }
 

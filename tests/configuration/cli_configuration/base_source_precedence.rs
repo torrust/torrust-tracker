@@ -2,7 +2,8 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use crate::native_tracker::{NativeTracker, NativeTrackerConfigurationSources};
+use crate::native_tracker::NativeTracker;
+use crate::native_tracker::configuration::NativeTrackerConfigurationSources;
 
 #[tokio::test]
 async fn it_should_select_the_cli_configuration_when_both_child_environment_base_sources_are_set() {

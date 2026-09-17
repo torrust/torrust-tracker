@@ -11,6 +11,14 @@ pub mod failed_start;
 mod health;
 mod output;
 
+// The lifecycle-signals binary does not configure alternative sources.
+#[allow(unused_imports)]
+pub mod configuration {
+    //! Exposes only the running fixture surface needed by executable configuration scenarios.
+
+    pub use super::command::NativeTrackerConfigurationSources;
+}
+
 use std::net::SocketAddr;
 use std::os::unix::process::ExitStatusExt;
 use std::path::PathBuf;
@@ -22,8 +30,7 @@ use tokio::process::Child;
 use tokio::sync::oneshot;
 use torrust_tracker_axum_health_check_api_server::resources::Status;
 
-pub use self::command::NativeTrackerConfigurationSources;
-use self::command::{NativeTrackerWorkspace, tracker_command};
+use self::command::{NativeTrackerConfigurationSources, NativeTrackerWorkspace, tracker_command};
 use self::health::{HealthCheckClient, HealthCheckProbe, HealthCheckProbeError, parse_health_check_address};
 use self::output::TrackerOutputCapture;
 
