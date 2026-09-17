@@ -170,7 +170,7 @@ The downloaded report contains neither the retired `https://caddyserver.com/docs
 
 ### C6 Docker repair verification
 
-[External Link Check run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) ran after PR #2231 merged on revision `6e1e9d29b5d88b763e1748ad45afabe5d725d62f`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 1,229 bytes and expires on 2026-09-30.
+[External Link Check run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) ran after PR #2231 merged on revision `6e1e9d29`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 1,229 bytes and expires on 2026-09-30.
 
 The report records 2,117 total checks, 1,483 unique links, 1,343 successful checks, 25 redirects, 737 exclusions, 33 errors, and 4 timeouts. It contains neither `https://docs.docker.com/cloud/aci-container-features/#persistent-volumes` nor `https://docs.docker.com/cloud/aci-integration/#exposing-ports` as an error. It retains unrelated third-party `403` responses, FSF transport errors, GitHub issue-comment and review fragments, the Star History fragment, and timeout failures. This verifies the Docker ACI repair without adding an exclusion or hiding remaining external-link failures.
 
