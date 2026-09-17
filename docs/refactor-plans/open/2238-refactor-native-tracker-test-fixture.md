@@ -320,7 +320,7 @@ and `linter all`. Record evidence in the issue specification.
 
 ---
 
-### 9. [ ] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
+### 9. [x] Optional: consolidate duplicated configuration rendering [Low impact / Trivial effort]
 
 **Problem**: `write_configuration` and `write_configuration_in_directory` render `CONFIGURATION`
 with identical placeholder replacement. The duplication is only obvious once both sit together in
@@ -345,7 +345,7 @@ so the move-only diff stays reviewable. Skip if the result is not clearly simple
 | 6 | [x] | Extract workspace and shared command construction | Medium | Low |
 | 7 | [x] | Trim the root to lifecycle orchestration and document ownership | Medium | Low |
 | 8 | [ ] | Reconcile ownership, tests, and documentation | Medium | Low |
-| 9 | [ ] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
+| 9 | [x] | Optional: consolidate duplicated configuration rendering | Low | Trivial |
 
 ## Commit Points
 

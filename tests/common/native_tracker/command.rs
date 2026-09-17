@@ -145,12 +145,8 @@ impl NativeTrackerWorkspace {
 
 pub(super) fn write_configuration(workspace: &tempfile::TempDir, name: &str, health_check_port: u16) -> (PathBuf, PathBuf) {
     let storage_path = workspace.path().join(format!("{name}-storage"));
-    std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
     let config_path = workspace.path().join(format!("{name}-tracker.toml"));
-    let config = CONFIGURATION
-        .replace("{STORAGE_PATH}", &storage_path.to_string_lossy())
-        .replace("{HEALTH_CHECK_PORT}", &health_check_port.to_string());
-    std::fs::write(&config_path, config).expect("write tracker configuration");
+    write_configuration_at(&config_path, &storage_path, health_check_port);
     (config_path, storage_path)
 }
 
@@ -197,13 +193,17 @@ pub(super) fn configure_tracker_command(command: &mut Command) {
 
 pub(super) fn write_configuration_in_directory(directory: &Path, health_check_port: u16) -> (PathBuf, PathBuf) {
     let storage_path = directory.join("storage");
-    std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
     let config_path = directory.join("tracker.toml");
+    write_configuration_at(&config_path, &storage_path, health_check_port);
+    (config_path, storage_path)
+}
+
+fn write_configuration_at(config_path: &Path, storage_path: &Path, health_check_port: u16) {
+    std::fs::create_dir_all(storage_path).expect("create tracker storage directory");
     let config = CONFIGURATION
         .replace("{STORAGE_PATH}", &storage_path.to_string_lossy())
         .replace("{HEALTH_CHECK_PORT}", &health_check_port.to_string());
-    std::fs::write(&config_path, config).expect("write tracker configuration");
-    (config_path, storage_path)
+    std::fs::write(config_path, config).expect("write tracker configuration");
 }
 
 pub(super) fn tracker_binary() -> PathBuf {
