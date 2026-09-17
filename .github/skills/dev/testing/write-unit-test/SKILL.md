@@ -119,6 +119,29 @@ level that can observe everything it asserts without reading other modules.
 A test that passes only because of a collaborator's rule is not a unit test of the module it sits
 in, even when it is deterministic and fast; it fails for reasons the module cannot explain.
 
+### Prove a Regression Test Guards the Bug
+
+A regression test is only evidence if it has been seen to fail against the bug it claims to
+guard. Reasoning that it "would" fail is not enough; the #2226 before/after pair was reasoned to
+be sufficient and a mutation showed it was not.
+
+1. **Mutate, then restore.** With the fix in place, reintroduce the bug in the working tree (do
+   not stage it), run the test, and confirm it fails. Restore the production file with
+   `git checkout -- <file>`. Try the nearest plausible variants too, for example a value cached
+   after first use instead of captured at startup. Record which tests failed for which mutation
+   in the issue-local evidence.
+2. **Stale-state bugs need two iterations of the same instance.** A test that runs one tick,
+   one request, or one call cannot distinguish "computed once at startup" from "computed at
+   first use" from "computed every time". When the defect is a value captured or cached across
+   iterations, the regression test must observe the same job or object before and after the
+   value should have changed.
+3. **Read the failure as a stranger.** Make the test fail on purpose and read the output as if
+   you had never seen the test. `left: 0 / right: 1` forces the reader to open the file. Put the
+   causal facts in the assertion message: what was measured, and the inputs that determine the
+   expectation (for example the gauge name, the elapsed time, and the timeout). When two
+   assertions in one test read the same value, their messages must say which step each belongs
+   to.
+
 ### Lifecycle Fixture Design Review
 
 When a test fixture manages a child process, asynchronous I/O, network
@@ -463,6 +486,8 @@ establishes a reusable pattern for future tests.
 - [ ] Test name uses `it_should_` prefix
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
 - [ ] Behaviors were inventoried; each test sits at the lowest level that can observe everything it asserts
+- [ ] For a bug fix: the regression test was seen to fail against the reintroduced bug and its nearest variants, then the production file was restored
+- [ ] Assertion messages state the causal facts; the failure output was read once without opening the test
 - [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
