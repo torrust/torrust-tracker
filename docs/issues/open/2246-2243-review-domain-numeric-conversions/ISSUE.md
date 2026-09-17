@@ -85,7 +85,7 @@ child processes, asynchronous I/O, network readiness, resource cleanup, or reusa
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/numeric-conversion-domain-review/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
