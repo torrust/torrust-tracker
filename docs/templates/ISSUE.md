@@ -12,7 +12,9 @@ last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:
     - create-issue
+    - fix-bug
   related-artifacts:
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
@@ -67,6 +69,31 @@ resource cleanup, or reusable test fixtures, define before implementation:
 Write `Not applicable` when these concerns do not apply. Do not prescribe
 private types without evidence; the objective is clear responsibility and
 ownership boundaries, not speculative abstraction.
+
+## Bug-Fix Process
+
+For bug work, including work whose metadata or labels do not say `bug`, use
+`.github/skills/dev/debugging/fix-bug/SKILL.md` and summarize the planned or
+completed sequence:
+
+- analysis of the defect and local hypothesis;
+- real-artifact reproduction, or infeasibility with attempted commands;
+- regression-test boundary selection;
+- red regression-test evidence when feasible;
+- production fix;
+- green test evidence and final like-for-like recheck.
+
+Write `Not applicable` only when the work is not substantively a bug.
+
+## Regression Test Strategy
+
+For bug work, identify the smallest deterministic maintained test boundary that
+can fail for the defect and pass for the fix. Prefer a unit test at the causal
+seam. If using an integration, end-to-end, or manual-only boundary, record why
+that boundary is clearer or the only practical option. Link the red/green output
+and final recheck to issue-local `manual-verification-evidence.md`.
+
+Write `Not applicable` only when the work is not substantively a bug.
 
 ## Implementation Plan
 

@@ -33,6 +33,7 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
   when deeper diagnostics are needed.
 - Relevant skills to load when needed:
   - `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` — adding new Rust dependencies safely.
+  - `.github/skills/dev/debugging/fix-bug/SKILL.md` — required for substantively bug-shaped work, even when metadata or labels are wrong.
   - `.github/skills/dev/testing/write-unit-test/SKILL.md` — test naming and Arrange/Act/Assert pattern.
   - `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` — error handling.
   - `.github/skills/dev/git-workflow/commit-changes/SKILL.md` — commit conventions.
@@ -62,8 +63,12 @@ Before writing any code:
 1. Read `AGENTS.md` and any relevant skill files for the area being changed.
 2. Read the issue spec or task description in full.
 3. Identify the scope: what must change and what must not change.
-4. Ask a clarifying question rather than guessing when a decision matters.
-5. If the issue spec is ambiguous, incomplete, or the scope does not match the actual codebase
+4. Decide whether the work is substantively a bug: broken, incorrect, stale, misleading,
+   unexpectedly failing, or regressed behavior. If it is, load and apply
+   `.github/skills/dev/debugging/fix-bug/SKILL.md`, even when the issue metadata or labels are
+   missing or wrong.
+5. Ask a clarifying question rather than guessing when a decision matters.
+6. If the issue spec is ambiguous, incomplete, or the scope does not match the actual codebase
    state, raise the discrepancy with the **Planner** (`@planner`) or the user before proceeding.
 
 ### Step 2 — Decompose into Implementation Steps
@@ -80,7 +85,8 @@ track progress. Each step should:
 
 For each step:
 
-1. **Write a failing test first** (red) — express the expected behaviour in a test.
+1. **Write a failing test first** (red) — express the expected behaviour in a test. For bugs,
+   also record the real-artifact reproduction and regression-test boundary required by `fix-bug`.
 2. **Write minimal production code** to make the test pass (green).
 3. **Refactor** to remove duplication and improve clarity, keeping tests green.
 4. Verify with `cargo test -p <package>` before moving on.
