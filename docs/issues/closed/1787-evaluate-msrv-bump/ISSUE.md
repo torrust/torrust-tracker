@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1787
-spec-path: docs/issues/closed/1787-evaluate-msrv-bump.md
+spec-path: docs/issues/closed/1787-evaluate-msrv-bump/ISSUE.md
 branch: "1787-evaluate-msrv-bump"
 related-pr: 1815
 last-updated-utc: 2026-05-20 18:00

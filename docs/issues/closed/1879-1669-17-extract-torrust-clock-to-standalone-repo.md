@@ -16,8 +16,8 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
-    - docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
+    - docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock/ISSUE.md
+    - docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md
 ---
 
 

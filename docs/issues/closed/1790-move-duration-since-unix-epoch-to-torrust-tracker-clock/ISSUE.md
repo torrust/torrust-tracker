@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1790
-spec-path: docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
+spec-path: docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md
 branch: 1790-move-duration-since-unix-epoch
 related-pr: 1791
 last-updated-utc: 2026-06-05 00:00
@@ -60,7 +60,7 @@ This preserves backward compatibility for external consumers while actively sign
 they should migrate to the `torrust_tracker_clock` import path. Removal of the re-export
 is deferred to a follow-up cleanup subissue of EPIC #1669.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

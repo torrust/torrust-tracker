@@ -52,7 +52,7 @@ to crates.io. Removing `AnnouncePolicy` from `torrust-tracker-configuration` is 
 breaking change for that crate; it will require a major version bump when published. Within
 this workspace, at version `3.0.0-develop`, the change is expected and planned.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

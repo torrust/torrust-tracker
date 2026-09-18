@@ -161,6 +161,6 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## References
 
 - EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
-- HTTP protocol announce request: [packages/http-protocol/src/v1/requests/announce.rs](../../packages/http-protocol/src/v1/requests/announce.rs)
-- HTTP protocol manifest: [packages/http-protocol/Cargo.toml](../../packages/http-protocol/Cargo.toml)
-- Shared announce event type: [packages/primitives/src/announce.rs](../../packages/primitives/src/announce.rs)
+- HTTP protocol announce request: [packages/http-protocol/src/v1/requests/announce.rs](../../../packages/http-protocol/src/v1/requests/announce.rs)
+- HTTP protocol manifest: [packages/http-protocol/Cargo.toml](../../../packages/http-protocol/Cargo.toml)
+- Shared announce event type: [packages/primitives/src/announce.rs](../../../packages/primitives/src/announce.rs)

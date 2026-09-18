@@ -22,7 +22,7 @@ semantic-links:
     - AGENTS.md
     - docs/packages.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
+    - docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md
 ---
 
 

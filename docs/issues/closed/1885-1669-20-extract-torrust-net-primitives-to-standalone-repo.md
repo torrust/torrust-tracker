@@ -26,7 +26,7 @@ semantic-links:
     - AGENTS.md
     - docs/packages.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/closed/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md
+    - docs/issues/closed/1797-1669-05-create-torrust-net-primitives-and-move-service-binding/ISSUE.md
 ---
 
 

@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1786
-spec-path: docs/issues/closed/1786-tighten-lint-config.md
+spec-path: docs/issues/closed/1786-tighten-lint-config/ISSUE.md
 branch: "1786-tighten-lint-config"
 related-pr: 1784
 last-updated-utc: 2026-06-18 18:00

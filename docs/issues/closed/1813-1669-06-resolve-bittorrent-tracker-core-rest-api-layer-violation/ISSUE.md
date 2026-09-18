@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1813
-spec-path: docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md
+spec-path: docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation/ISSUE.md
 branch: 1813-resolve-bittorrent-tracker-core-rest-api-layer-violation
 related-pr: 1804
 last-updated-utc: 2026-05-20 14:00
@@ -42,7 +42,7 @@ from a previous refactor.
 No code movement or extraction is needed. `cargo machete` would also flag this as an unused
 dependency.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

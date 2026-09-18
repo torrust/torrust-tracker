@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1816
-spec-path: docs/issues/closed/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md
+spec-path: docs/issues/closed/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages/ISSUE.md
 branch: 1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages
 related-pr: null
 last-updated-utc: 2026-05-20 00:00

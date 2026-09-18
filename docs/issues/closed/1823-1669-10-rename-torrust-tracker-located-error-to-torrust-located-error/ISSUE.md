@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1823
-spec-path: docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
+spec-path: docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md
 branch: 1823-rename-torrust-tracker-located-error-to-torrust-located-error
 related-pr: 1824
 last-updated-utc: 2026-05-22 08:09
@@ -47,7 +47,7 @@ The current crate name `torrust-tracker-located-error` is **published on crates.
 May 2026). The rename requires publishing the new name `torrust-located-error` and handling
 the old published name (deprecation notice, then yank after downstream migration).
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Pre-Implementation Review: Keep vs. Delete
@@ -91,7 +91,7 @@ Active in **5 packages**, ~20 call sites:
 | `tracker-client` | `src/udp/mod.rs`                                                                                           | uses `DynError` alias          |
 
 The package is also referenced from
-[`.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`](../../../.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md)
+[`.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`](../../../../.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md)
 as the recommended pattern for diagnostics-rich errors.
 
 ### Why keep it

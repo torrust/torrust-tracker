@@ -17,7 +17,7 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
+    - docs/issues/closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics/ISSUE.md
 ---
 
 

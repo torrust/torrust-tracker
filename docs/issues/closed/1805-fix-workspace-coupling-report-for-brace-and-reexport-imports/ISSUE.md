@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1805
-spec-path: docs/issues/closed/1805-fix-workspace-coupling-report-for-brace-and-reexport-imports.md
+spec-path: docs/issues/closed/1805-fix-workspace-coupling-report-for-brace-and-reexport-imports/ISSUE.md
 branch: "1805-fix-workspace-coupling-report-imports"
 related-pr: 1948
 last-updated-utc: 2026-06-26 00:00

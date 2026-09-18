@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1804
-spec-path: docs/issues/closed/1804-use-cargo-machete-with-metadata-and-remove-unused-dev-deps.md
+spec-path: docs/issues/closed/1804-use-cargo-machete-with-metadata-and-remove-unused-dev-deps/ISSUE.md
 branch: "1804-use-cargo-machete-with-metadata"
 related-pr: 1809
 last-updated-utc: 2026-05-20 15:00
@@ -31,7 +31,7 @@ stricter mode reveals across the workspace.
 ## Background
 
 During a coupling analysis review (see
-[workspace-coupling-report.md](../open/1669-overhaul-packages/workspace-coupling-report.md)),
+[workspace-coupling-report.md](../../open/1669-overhaul-packages/workspace-coupling-report.md)),
 four workspace dependencies were found to have zero references in any source file:
 
 - `bittorrent-tracker-core` → `torrust-tracker-rest-api-client` [dev]

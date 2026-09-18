@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1829
-spec-path: docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
+spec-path: docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace/ISSUE.md
 branch: 1829-rename-crates-and-folders
 related-pr: null
 last-updated-utc: 2026-05-27 00:00
@@ -50,7 +50,7 @@ Important constraint from EPIC discussion:
 - The packages touched in this issue are unpublished, so there is no external crates.io
   migration window required.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope
@@ -189,5 +189,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
-- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../open/1669-overhaul-packages/DECISIONS.md)
+- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](../../open/1669-overhaul-packages/EPIC.md)
+- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../../open/1669-overhaul-packages/DECISIONS.md)

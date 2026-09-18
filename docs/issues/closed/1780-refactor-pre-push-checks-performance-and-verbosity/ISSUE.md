@@ -4,7 +4,7 @@ issue-type: enhancement
 status: closed
 priority: p1
 github-issue: 1780
-spec-path: docs/issues/closed/1780-refactor-pre-push-checks-performance-and-verbosity.md
+spec-path: docs/issues/closed/1780-refactor-pre-push-checks-performance-and-verbosity/ISSUE.md
 branch: "1780-refactor-pre-push-checks-performance-and-verbosity"
 related-pr: null
 last-updated-utc: 2026-05-13 21:00

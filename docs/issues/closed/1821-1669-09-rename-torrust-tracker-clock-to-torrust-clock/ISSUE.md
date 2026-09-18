@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p2
 github-issue: 1821
-spec-path: docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
+spec-path: docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock/ISSUE.md
 branch: 1821-rename-torrust-tracker-clock-to-torrust-clock
 related-pr: 1822
 last-updated-utc: 2026-05-21 16:00
@@ -88,7 +88,7 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 - Updating `torrust-index` to use `torrust-clock` — deferred to SI-17; an issue will be
   opened on `torrust/torrust-index` once the crate is published under the new name.
 - Moving the crate to a separate repository — see
-  [1669-extract-torrust-clock-to-standalone-repo.md](../drafts/1669-extract-torrust-clock-to-standalone-repo.md).
+  [1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md).
 - Changes to the crate's API or behaviour.
 
 ## Implementation Plan
