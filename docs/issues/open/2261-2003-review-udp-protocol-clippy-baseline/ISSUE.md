@@ -8,7 +8,7 @@ github-issue: 2261
 spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
 related-pr: null
-last-updated-utc: 2026-09-18 00:00
+last-updated-utc: 2026-09-18 10:05
 semantic-links:
   skill-links:
     - create-issue

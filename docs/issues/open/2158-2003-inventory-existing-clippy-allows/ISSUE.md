@@ -8,7 +8,7 @@ github-issue: 2158
 spec-path: docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-15 14:43
+last-updated-utc: 2026-09-18 10:25
 semantic-links:
   skill-links:
     - create-issue

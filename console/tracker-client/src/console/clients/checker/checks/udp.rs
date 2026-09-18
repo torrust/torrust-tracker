@@ -26,7 +26,8 @@ pub enum Check {
 
 /// # Panics
 ///
-/// Panics if the fixed sample info hash literal is invalid.
+/// Panics if the fixed sample info hash literal is invalid, if URL socket-address
+/// resolution fails, or if a URL resolves to no socket addresses.
 pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
     let mut results = Vec::default();
 
