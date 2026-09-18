@@ -1,4 +1,7 @@
-#![allow(clippy::print_stderr, reason = "deprecated UDP tracker CLI reports command failures on standard error")]
+#![allow(
+    clippy::print_stderr,
+    reason = "deprecated UDP tracker CLI reports command failures on standard error"
+)]
 
 //! Program to make request to UDP trackers.
 use torrust_tracker_console_client::console::clients::udp::app;

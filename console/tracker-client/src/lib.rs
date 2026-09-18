@@ -3,9 +3,9 @@
 // We keep the crate-level allow because the printing lives in library code that the
 // binaries call, not in the binaries themselves.
 #![allow(
-	clippy::print_stdout,
-	clippy::print_stderr,
-	reason = "library modules implement terminal output invoked by the console binary targets"
+    clippy::print_stdout,
+    clippy::print_stderr,
+    reason = "library modules implement terminal output invoked by the console binary targets"
 )]
 
 use std::time::Duration;
