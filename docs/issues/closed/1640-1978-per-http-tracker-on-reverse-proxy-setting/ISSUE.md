@@ -4,7 +4,7 @@ issue-type: enhancement
 status: done
 priority: p2
 github-issue: 1640
-spec-path: docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+spec-path: docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting/ISSUE.md
 branch: "1640-move-network-to-per-instance-config"
 related-pr: null
 last-updated-utc: 2026-07-22 00:00

@@ -4,7 +4,7 @@ issue-type: epic
 status: done
 priority: p1
 github-issue: 1525
-spec-path: docs/issues/closed/1525-overhaul-persistence.md
+spec-path: docs/issues/closed/1525-overhaul-persistence/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: null

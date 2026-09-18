@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - docs/issues/closed/1525-overhaul-persistence.md
+    - docs/issues/closed/1525-overhaul-persistence/ISSUE.md
     - packages/torrent-repository-benchmarking/
     - packages/tracker-core/
 ---

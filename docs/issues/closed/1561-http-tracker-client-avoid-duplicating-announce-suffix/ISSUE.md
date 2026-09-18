@@ -4,7 +4,7 @@ issue-type: bug
 status: done
 priority: p3
 github-issue: 1561
-spec-path: docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix.md
+spec-path: docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix/ISSUE.md
 branch: 1561-http-tracker-client-avoid-duplicating-announce-suffix
 related-pr: null
 last-updated-utc: null

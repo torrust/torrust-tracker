@@ -16,7 +16,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md
-    - docs/issues/closed/1490-1978-decompose-database-configuration.md
+    - docs/issues/closed/1490-1978-decompose-database-configuration/ISSUE.md
     - packages/configuration/docs/migrate-v2-to-v3.md
     - packages/configuration/src/v3_0_0/core.rs
     - packages/configuration/src/v3_0_0/database.rs

@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1697
-spec-path: docs/issues/closed/1697-ai-agent-configuration.md
+spec-path: docs/issues/closed/1697-ai-agent-configuration/ISSUE.md
 branch: 1697-ai-agent-configuration
 related-pr: null
 last-updated-utc: null

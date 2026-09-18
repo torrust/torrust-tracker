@@ -4,7 +4,7 @@ issue-type: feature
 status: done
 priority: p3
 github-issue: 1563
-spec-path: docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json.md
+spec-path: docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json/ISSUE.md
 branch: 1563-udp-tracker-client-add-option-show-response-pretty-json
 related-pr: null
 last-updated-utc: null

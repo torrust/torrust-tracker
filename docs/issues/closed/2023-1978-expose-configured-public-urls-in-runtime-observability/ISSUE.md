@@ -8,7 +8,7 @@ spec-path: docs/issues/closed/2023-1978-expose-configured-public-urls-in-runtime
 branch: 2023-expose-configured-public-urls
 related-pr: null
 depends-on:
-  - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
+  - docs/issues/closed/1417-1978-add-public-service-url-to-configuration/ISSUE.md
   - docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup.md
 last-updated-utc: 2026-09-01 10:27
 semantic-links:

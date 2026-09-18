@@ -5,7 +5,7 @@ status: done
 priority: p2
 epic: null
 github-issue: 1430
-spec-path: docs/issues/closed/1430-fix-tracing-span-log-assertions.md
+spec-path: docs/issues/closed/1430-fix-tracing-span-log-assertions/ISSUE.md
 branch: "1430-fix-tracing-span-log-assertions"
 related-pr: 1429
 last-updated-utc: 2026-09-01 10:27

@@ -119,4 +119,4 @@ method count/responsibility in `TorrentMetricsStore` increases materially.
 
 - Issue spec: [docs/issues/closed/1713-1525-04-split-persistence-traits.md](../issues/closed/1713-1525-04-split-persistence-traits.md)
 - GitHub issue: <https://github.com/torrust/torrust-tracker/issues/1713>
-- EPIC: [docs/issues/closed/1525-overhaul-persistence.md](../issues/closed/1525-overhaul-persistence.md)
+- EPIC: [docs/issues/closed/1525-overhaul-persistence/ISSUE.md](../issues/closed/1525-overhaul-persistence/ISSUE.md)

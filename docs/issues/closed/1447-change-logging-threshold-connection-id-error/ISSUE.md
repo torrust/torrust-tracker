@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1447
-spec-path: docs/issues/closed/1447-change-logging-threshold-connection-id-error.md
+spec-path: docs/issues/closed/1447-change-logging-threshold-connection-id-error/ISSUE.md
 branch: "1447-change-logging-threshold-connection-id-error"
 related-pr: null
 last-updated-utc: 2026-07-15

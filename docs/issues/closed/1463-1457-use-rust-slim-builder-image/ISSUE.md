@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1463
-spec-path: docs/issues/closed/1463-1457-use-rust-slim-builder-image.md
+spec-path: docs/issues/closed/1463-1457-use-rust-slim-builder-image/ISSUE.md
 branch: "1463-1457-use-rust-slim-builder-image"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/2007"
 last-updated-utc: 2026-07-22 00:00

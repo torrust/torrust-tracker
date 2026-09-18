@@ -27,7 +27,7 @@ semantic-links:
     - src/bootstrap/jobs/http_tracker.rs
     - src/bootstrap/jobs/tracker_apis.rs
     - docs/containers.md
-    - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+    - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting/ISSUE.md
 ---
 
 # Issue #1981 - Fix `tsl_config` → `tls_config` typo
@@ -118,7 +118,7 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 | File                                                                        | Change                                    |
 | --------------------------------------------------------------------------- | ----------------------------------------- |
 | `packages/configuration/src/v3_0_0/mod.rs`                                  | Correct v3 schema examples and prose      |
-| `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md` | Correct future v3 field/type references   |
+| `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting/ISSUE.md` | Correct future v3 field/type references   |
 | `docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md`                 | Track progress and compatibility boundary |
 
 ## Progress Tracking

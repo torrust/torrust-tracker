@@ -4,7 +4,7 @@ issue-type: enhancement
 status: done
 priority: p2
 github-issue: 1136
-spec-path: docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
+spec-path: docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy/ISSUE.md
 branch: "1136-connection-id-validation-policy"
 related-pr: 2002
 last-updated-utc: 2026-08-17
@@ -116,7 +116,7 @@ to pollute the shared ban counter that another listener enforces against.
 
 **Design pivot**: earlier versions of this spec placed `connection_id_validation`
 on the per-instance `UdpTracker`. The shared BanService architecture makes this
-unsound. See [ADR-20260727180000](../../adrs/20260727180000_shared_services_across_tracker_instances.md)
+unsound. See [ADR-20260727180000](../../../adrs/20260727180000_shared_services_across_tracker_instances.md)
 for the full rationale.
 
 ### Decision 3: Preserve strict validation by default

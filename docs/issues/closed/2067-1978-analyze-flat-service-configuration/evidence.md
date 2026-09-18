@@ -116,7 +116,7 @@ initialize_http_tracker_instance_containers,initialize_udp_tracker_instance_cont
 - **Method:** Reviewed `packages/configuration/src/lib.rs`, v3 load/default/version checks,
   `src/bootstrap/app.rs`, #2079 at
   `docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md`, #1490 at
-  `docs/issues/closed/1490-1978-decompose-database-configuration.md`, and #1978 at
+  `docs/issues/closed/1490-1978-decompose-database-configuration/ISSUE.md`, and #1978 at
   `docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md`.
 - **Observation:** Current v3 loading accepts a single exact schema version, while production
   consumers remain v2 until #1980. The #2079 secrecy prerequisite precedes #1490, and both

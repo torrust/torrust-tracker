@@ -17,7 +17,7 @@ semantic-links:
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/configuration/src/v2_0_0/tracker_api.rs
     - packages/configuration/src/v3_0_0/tracker_api.rs
-    - docs/issues/closed/1490-1978-decompose-database-configuration.md
+    - docs/issues/closed/1490-1978-decompose-database-configuration/ISSUE.md
 ---
 
 # Issue #2079 - Adopt `secrecy` for sensitive configuration

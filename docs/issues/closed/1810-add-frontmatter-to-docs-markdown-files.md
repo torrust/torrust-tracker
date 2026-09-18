@@ -317,12 +317,12 @@ Per-file progress checklist. Check each file when its frontmatter has been added
 
 ### T6 — `docs/issues/closed/` — 1525–1563 specs (6)
 
-- [x] `docs/issues/closed/1525-overhaul-persistence.md`
-- [x] `docs/issues/closed/1532-http-tracker-client-add-optional-announce-params.md`
-- [x] `docs/issues/closed/1533-udp-tracker-client-add-optional-announce-params.md`
-- [x] `docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix.md`
-- [x] `docs/issues/closed/1562-http-tracker-client-add-option-show-response-pretty-json.md`
-- [x] `docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json.md`
+- [x] `docs/issues/closed/1525-overhaul-persistence/ISSUE.md`
+- [x] `docs/issues/closed/1532-http-tracker-client-add-optional-announce-params/ISSUE.md`
+- [x] `docs/issues/closed/1533-udp-tracker-client-add-optional-announce-params/ISSUE.md`
+- [x] `docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix/ISSUE.md`
+- [x] `docs/issues/closed/1562-http-tracker-client-add-option-show-response-pretty-json/ISSUE.md`
+- [x] `docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json/ISSUE.md`
 
 ### T7 — `docs/issues/closed/` — 1582 group (5)
 
@@ -334,7 +334,7 @@ Per-file progress checklist. Check each file when its frontmatter has been added
 
 ### T8 — `docs/issues/closed/` — 1697–1723 group (10)
 
-- [x] `docs/issues/closed/1697-ai-agent-configuration.md`
+- [x] `docs/issues/closed/1697-ai-agent-configuration/ISSUE.md`
 - [x] `docs/issues/closed/1703-1525-01-persistence-test-coverage.md`
 - [x] `docs/issues/closed/1706-1525-02-qbittorrent-e2e.md`
 - [x] `docs/issues/closed/1710-1525-03-persistence-benchmarking.md`

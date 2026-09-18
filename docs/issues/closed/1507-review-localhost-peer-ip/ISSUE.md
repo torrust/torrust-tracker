@@ -4,7 +4,7 @@ issue-type: bug
 status: done
 priority: p1
 github-issue: 1507
-spec-path: docs/issues/closed/1507-review-localhost-peer-ip.md
+spec-path: docs/issues/closed/1507-review-localhost-peer-ip/ISSUE.md
 branch: "1507-review-localhost-peer-ip"
 related-pr: null
 last-updated-utc: 2026-06-18 18:00
@@ -70,14 +70,14 @@ A thorough codebase investigation confirmed that `external_ip` has a **single pu
 
 | Usage                      | File                                                                                                                        | Purpose                                                                     |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Config field + default** | [`packages/configuration/src/v2_0_0/network.rs`](../../packages/configuration/src/v2_0_0/network.rs)                        | Struct field definition & `default_external_ip()` returning `Some(0.0.0.0)` |
-| **Config getter**          | [`packages/configuration/src/v2_0_0/mod.rs`](../../packages/configuration/src/v2_0_0/mod.rs#L301)                           | `get_ext_ip()` helper                                                       |
-| **Single call site**       | [`packages/tracker-core/src/announce_handler.rs`](../../packages/tracker-core/src/announce_handler.rs#L166)                 | `assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip)`  |
-| **Function definition**    | [`packages/tracker-core/src/announce_handler.rs`](../../packages/tracker-core/src/announce_handler.rs#L265)                 | Loopback → external IP replacement logic                                    |
-| **Test helper**            | [`packages/test-helpers/src/configuration.rs`](../../packages/test-helpers/src/configuration.rs#L145)                       | `ephemeral_with_external_ip()`                                              |
-| **Unit tests**             | [`packages/tracker-core/src/announce_handler.rs`](../../packages/tracker-core/src/announce_handler.rs#L355)                 | 8 tests covering loopback/IPv4/IPv6 combinations                            |
-| **Integration tests**      | [`packages/axum-http-server/tests/server/v1/contract.rs`](../../packages/axum-http-server/tests/server/v1/contract.rs#L902) | HTTP tracker: IPv4 + IPv6 loopback scenarios                                |
-| **Integration tests**      | [`packages/udp-server/src/handlers/announce.rs`](../../packages/udp-server/src/handlers/announce.rs#L491)                   | UDP server: peer IP replaced with external IP                               |
+| **Config field + default** | [`packages/configuration/src/v2_0_0/network.rs`](../../../packages/configuration/src/v2_0_0/network.rs)                        | Struct field definition & `default_external_ip()` returning `Some(0.0.0.0)` |
+| **Config getter**          | [`packages/configuration/src/v2_0_0/mod.rs`](../../../packages/configuration/src/v2_0_0/mod.rs#L301)                           | `get_ext_ip()` helper                                                       |
+| **Single call site**       | [`packages/tracker-core/src/announce_handler.rs`](../../../packages/tracker-core/src/announce_handler.rs#L166)                 | `assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip)`  |
+| **Function definition**    | [`packages/tracker-core/src/announce_handler.rs`](../../../packages/tracker-core/src/announce_handler.rs#L265)                 | Loopback → external IP replacement logic                                    |
+| **Test helper**            | [`packages/test-helpers/src/configuration.rs`](../../../packages/test-helpers/src/configuration.rs#L145)                       | `ephemeral_with_external_ip()`                                              |
+| **Unit tests**             | [`packages/tracker-core/src/announce_handler.rs`](../../../packages/tracker-core/src/announce_handler.rs#L355)                 | 8 tests covering loopback/IPv4/IPv6 combinations                            |
+| **Integration tests**      | [`packages/axum-http-server/tests/server/v1/contract.rs`](../../../packages/axum-http-server/tests/server/v1/contract.rs#L902) | HTTP tracker: IPv4 + IPv6 loopback scenarios                                |
+| **Integration tests**      | [`packages/udp-server/src/handlers/announce.rs`](../../../packages/udp-server/src/handlers/announce.rs#L491)                   | UDP server: peer IP replaced with external IP                               |
 
 No other code path reads `external_ip`. It is not used for server binding, health checks, API responses, scrape responses, or any other runtime behavior. This means changing the default and adding validation is **safe** — there is zero risk of side effects beyond the announce-handler code path.
 

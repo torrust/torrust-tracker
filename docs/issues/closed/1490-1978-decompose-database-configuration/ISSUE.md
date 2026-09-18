@@ -4,7 +4,7 @@ issue-type: enhancement
 status: done
 priority: p2
 github-issue: 1490
-spec-path: docs/issues/closed/1490-1978-decompose-database-configuration.md
+spec-path: docs/issues/closed/1490-1978-decompose-database-configuration/ISSUE.md
 branch: "1490-decompose-database-configuration"
 related-pr: null
 last-updated-utc: 2026-09-01 10:27

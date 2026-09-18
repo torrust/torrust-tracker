@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - docs/issues/closed/1525-overhaul-persistence.md
+    - docs/issues/closed/1525-overhaul-persistence/ISSUE.md
     - packages/tracker-core/
     - docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md
 ---

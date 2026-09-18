@@ -4,7 +4,7 @@ issue-type: enhancement
 status: done
 priority: p3
 github-issue: 1417
-spec-path: docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
+spec-path: docs/issues/closed/1417-1978-add-public-service-url-to-configuration/ISSUE.md
 branch: "1417-add-public-service-url"
 related-pr: null
 last-updated-utc: 2026-07-22 00:00
@@ -86,7 +86,7 @@ No changes are needed in this issue — the field just needs to be present in th
 
 **Where the field lives**: `public_url` is a **flat field** on `HttpTracker`, `UdpTracker`, and `HttpApi` — **not inside the `Network` block** and **not on `HealthCheckApi`**. The `Network` block (established by #1640) groups **network topology** concerns (external IP, proxy awareness, socket behaviour). `public_url` is about **public exposure** (how users reach the service) — a different axis. `HealthCheckApi` is a minimal liveness endpoint; exposing a `public_url` there has no use-case in scope. A tracker instance can independently configure both `net.on_reverse_proxy` and `public_url`.
 
-**URL validation implementation**: Use typed newtypes (`HttpUrl`, `UdpUrl`) defined in `v3_0_0/public_url.rs`. Each newtype wraps a `url::Url` (already a dependency), validates the scheme at construction, and implements `Serialize`/`Deserialize` directly — no `#[serde(deserialize_with = ...)]` attribute is needed on the struct field. The invariant is encoded in the type and never re-checked in consumers. See [ADR 20260721100000](../../adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md) for the full rationale and the `HttpUrl`/`UdpUrl` granularity decision.
+**URL validation implementation**: Use typed newtypes (`HttpUrl`, `UdpUrl`) defined in `v3_0_0/public_url.rs`. Each newtype wraps a `url::Url` (already a dependency), validates the scheme at construction, and implements `Serialize`/`Deserialize` directly — no `#[serde(deserialize_with = ...)]` attribute is needed on the struct field. The invariant is encoded in the type and never re-checked in consumers. See [ADR 20260721100000](../../../adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md) for the full rationale and the `HttpUrl`/`UdpUrl` granularity decision.
 
 **`deny_unknown_fields`**: `HttpApi` and `HealthCheckApi` currently lack `#[serde(deny_unknown_fields)]` which all other v3 config structs have. Add it to both as part of this issue for consistency — we are already touching both structs.
 

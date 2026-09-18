@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1460
-spec-path: docs/issues/closed/1460-1457-add-hadolint-to-container-workflow.md
+spec-path: docs/issues/closed/1460-1457-add-hadolint-to-container-workflow/ISSUE.md
 branch: "1460-add-hadolint-to-container-workflow"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/2028"
 last-updated-utc: 2026-08-21 09:00

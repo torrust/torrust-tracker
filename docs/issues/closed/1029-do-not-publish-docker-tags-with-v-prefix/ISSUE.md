@@ -5,7 +5,7 @@ status: done
 priority: p2
 epic: null
 github-issue: 1029
-spec-path: docs/issues/closed/1029-do-not-publish-docker-tags-with-v-prefix.md
+spec-path: docs/issues/closed/1029-do-not-publish-docker-tags-with-v-prefix/ISSUE.md
 branch: "1029-do-not-publish-docker-tags-with-v-prefix"
 related-pr: 2111
 last-updated-utc: 2026-09-01 10:27

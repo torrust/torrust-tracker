@@ -4,7 +4,7 @@ issue-type: feature
 status: done
 priority: p2
 github-issue: 1532
-spec-path: docs/issues/closed/1532-http-tracker-client-add-optional-announce-params.md
+spec-path: docs/issues/closed/1532-http-tracker-client-add-optional-announce-params/ISSUE.md
 branch: 1532-http-tracker-client-add-optional-announce-params
 related-pr: null
 last-updated-utc: null

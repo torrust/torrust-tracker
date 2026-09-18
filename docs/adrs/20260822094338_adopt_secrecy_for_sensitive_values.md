@@ -102,6 +102,6 @@ a documented compatibility or security reason.
 ## References
 
 - Issue #2079: [Adopt `secrecy` for sensitive configuration](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md)
-- Follow-up issue #1490: [Decompose v3 database configuration](../issues/closed/1490-1978-decompose-database-configuration.md)
+- Follow-up issue #1490: [Decompose v3 database configuration](../issues/closed/1490-1978-decompose-database-configuration/ISSUE.md)
 - [Secrecy crate documentation](https://docs.rs/secrecy/)
 - [Torrust Tracker Deployer secrecy ADR](https://github.com/torrust/torrust-tracker-deployer/blob/main/docs/decisions/secrecy-crate-for-sensitive-data.md)
