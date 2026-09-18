@@ -11,7 +11,10 @@ use crate::authentication::{self, Key};
 // because the generated mock struct is outside our control.
 // `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
 // futures as must-use and reports the macro expansion as redundant.
-#[allow(clippy::double_must_use)]
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait generates must-use futures that Clippy also infers as must-use"
+)]
 #[async_trait]
 #[allow(clippy::struct_field_names, clippy::extra_unused_lifetimes)]
 #[automock]

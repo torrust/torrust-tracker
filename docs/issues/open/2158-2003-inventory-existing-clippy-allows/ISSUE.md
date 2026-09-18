@@ -193,6 +193,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained configuration ownership and serialized feature-switch suppressions - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained configuration Figment test-callback suppressions - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained module-name repetition suppressions that preserve public API and benchmark abstraction names - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained `async_trait` double-must-use suppressions - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
