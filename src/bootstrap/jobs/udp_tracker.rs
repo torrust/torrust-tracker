@@ -41,7 +41,10 @@ pub enum Error {
 /// Panics if its internally created halt channel is unexpectedly closed before
 /// the starter task begins waiting for cancellation or completion.
 ///
-#[allow(clippy::async_yields_async)]
+#[allow(
+    clippy::async_yields_async,
+    reason = "startup awaits listener errors before returning the cancellation-aware UDP runtime future"
+)]
 #[instrument(
     skip(udp_tracker_core_container, udp_tracker_server_container, form, metadata),
     fields(

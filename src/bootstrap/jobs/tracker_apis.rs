@@ -108,7 +108,10 @@ pub async fn start_job(
     }
 }
 
-#[allow(clippy::async_yields_async)]
+#[allow(
+    clippy::async_yields_async,
+    reason = "startup awaits listener errors before returning the cancellation-aware REST API runtime future"
+)]
 #[instrument(
     skip(socket, tls, http_api_container, form, metadata, access_tokens),
     fields(

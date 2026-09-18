@@ -21,7 +21,10 @@ use crate::v1::extractors::scrape_request::ExtractRequest;
 
 /// It handles the `scrape` request when the HTTP tracker is configured
 /// to run in `public` mode.
-#[allow(clippy::unused_async)]
+#[allow(
+    clippy::unused_async,
+    reason = "Axum router handler keeps an asynchronous signature while delegating shared logic"
+)]
 pub async fn handle_without_key(
     State(state): State<(Arc<ScrapeService>, ServiceBinding)>,
     ExtractRequest(scrape_request): ExtractRequest,
@@ -36,7 +39,10 @@ pub async fn handle_without_key(
 /// to run in `private` or `private_listed` mode.
 ///
 /// In this case, the authentication `key` parameter is required.
-#[allow(clippy::unused_async)]
+#[allow(
+    clippy::unused_async,
+    reason = "Axum router handler keeps an asynchronous signature while delegating shared logic"
+)]
 pub async fn handle_with_key(
     State(state): State<(Arc<ScrapeService>, ServiceBinding)>,
     ExtractRequest(scrape_request): ExtractRequest,

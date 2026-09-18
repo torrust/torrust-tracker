@@ -55,7 +55,10 @@ pub enum Error {
 ///
 /// Panics if its internally created halt channel is unexpectedly closed before
 /// the starter returns.
-#[allow(clippy::async_yields_async)]
+#[allow(
+    clippy::async_yields_async,
+    reason = "startup awaits registration errors before returning the cancellation-aware runtime future"
+)]
 #[instrument(skip(config, registar))]
 pub async fn start_job(
     config: &HealthCheckApi,
