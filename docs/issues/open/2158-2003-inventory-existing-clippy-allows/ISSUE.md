@@ -182,6 +182,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Removed HTTP announce parser and encoder suppressions by applying compact-peer chunk parsing and standard `From` conversions - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Removed the fixture `PeerBuilder` manual default suppression by deriving `Default` - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Replaced the swarm registry test DTO `Into` implementation with `From` - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Documented the benchmark info-hash generator panic precondition and removed its suppression - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 

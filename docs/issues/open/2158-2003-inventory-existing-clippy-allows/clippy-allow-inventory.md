@@ -189,6 +189,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A090, A092, A093 | Replaced compact-peer parsing suppressions with fixed-size chunk parsing and replaced announce encoder `Into<Vec<u8>>` implementations with standard `From` implementations. | `cargo clippy -p torrust-tracker-http-protocol --all-targets --all-features -- -D warnings` |
 | A100 | Derived `Default` for the fixture `PeerBuilder` instead of keeping a manual implementation. | `cargo clippy -p torrust-tracker-primitives --all-targets --all-features -- -D warnings` |
 | A115 | Replaced the swarm registry test DTO `Into<TorrentEntryInfo>` implementation with `From<Coordinator> for TorrentEntryInfo`. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
+| A119 | Added the missing benchmark panic documentation for duplicate truncated info-hash values. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
 
 ## Entries
 

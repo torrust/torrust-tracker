@@ -17,7 +17,9 @@ pub const DEFAULT_PEER: Peer = Peer {
 };
 
 #[must_use]
-#[allow(clippy::missing_panics_doc)]
+/// # Panics
+///
+/// Panics if `size` contains duplicate values after truncating to four low-order bytes.
 pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
     let mut result = HashSet::new();
 
