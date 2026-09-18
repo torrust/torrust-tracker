@@ -7,8 +7,8 @@ epic: 2264
 github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
-related-pr: null
-last-updated-utc: 2026-09-18 12:50
+related-pr: 2269
+last-updated-utc: 2026-09-18 15:25
 semantic-links:
   skill-links:
     - create-issue

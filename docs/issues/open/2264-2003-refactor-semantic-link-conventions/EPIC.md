@@ -5,7 +5,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-18 12:50
+last-updated-utc: 2026-09-18 15:25
 semantic-links:
   skill-links:
     - create-issue
@@ -591,6 +591,8 @@ For each completed subissue, the default completion policy is:
   output contract ADR and the `clippy-allow-reasons` precedent
 - 2026-09-18 12:50 UTC - GitHub Operator - Created EPIC #2264 as a native child of #2003 and
   issues #2265 and #2266 as native children of #2264; promoted all three local specifications
+- 2026-09-18 15:25 UTC - GitHub Copilot - Opened spec-only PR #2269 from the validated fork branch;
+  recorded the PR on child specs #2265 and #2266
 
 ## Risks and Trade-offs
 
