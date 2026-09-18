@@ -184,6 +184,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Replaced the swarm registry test DTO `Into` implementation with `From` - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Documented the benchmark info-hash generator panic precondition and removed its suppression - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Removed UDP core seed-reference suppressions by making the test seed a static reference target - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Documented the tracker-client UDP checker sample-hash panic precondition and removed its suppression - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 

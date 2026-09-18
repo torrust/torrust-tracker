@@ -24,7 +24,9 @@ pub enum Check {
     Scrape,
 }
 
-#[allow(clippy::missing_panics_doc)]
+/// # Panics
+///
+/// Panics if the fixed sample info hash literal is invalid.
 pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
     let mut results = Vec::default();
 
