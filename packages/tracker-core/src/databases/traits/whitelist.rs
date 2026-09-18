@@ -13,7 +13,10 @@ use super::super::error::Error;
     reason = "async_trait generates must-use futures that Clippy also infers as must-use"
 )]
 #[async_trait]
-#[allow(clippy::extra_unused_lifetimes)]
+#[allow(
+    clippy::extra_unused_lifetimes,
+    reason = "async_trait generates lifetimes outside workspace control"
+)]
 #[automock]
 pub trait WhitelistStore: Sync + Send {
     /// Loads the whitelisted torrents from the database.

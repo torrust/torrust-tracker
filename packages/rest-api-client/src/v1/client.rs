@@ -223,7 +223,10 @@ impl ApiClient {
 /// Handles connection info, URL building, auth headers, and raw HTTP requests.
 /// Returns [`reqwest::Response`] directly. For a typed high-level API, use
 /// [`ApiClient`].
-#[allow(clippy::struct_field_names)]
+#[allow(
+    clippy::struct_field_names,
+    reason = "fields distinguish connection configuration, API path, and transport client"
+)]
 pub struct ApiHttpClient {
     connection_info: ConnectionInfo,
     base_path: String,

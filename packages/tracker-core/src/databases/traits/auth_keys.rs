@@ -16,7 +16,11 @@ use crate::authentication::{self, Key};
     reason = "async_trait generates must-use futures that Clippy also infers as must-use"
 )]
 #[async_trait]
-#[allow(clippy::struct_field_names, clippy::extra_unused_lifetimes)]
+#[allow(
+    clippy::struct_field_names,
+    clippy::extra_unused_lifetimes,
+    reason = "automock and async_trait generate field names and lifetimes outside workspace control"
+)]
 #[automock]
 pub trait AuthKeyStore: Sync + Send {
     /// Loads all authentication keys from the database.

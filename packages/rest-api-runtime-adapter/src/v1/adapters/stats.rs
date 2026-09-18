@@ -15,7 +15,10 @@ use torrust_tracker_rest_api_application::v1::ports::stats::StatsQueryPort;
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 /// Adapter that queries all tracker-internal data sources and converts
 /// domain types to protocol DTOs.
-#[allow(clippy::struct_field_names)]
+#[allow(
+    clippy::struct_field_names,
+    reason = "fields name distinct tracker statistics repositories aggregated by this adapter"
+)]
 pub struct TrackerStatsAdapter {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     swarms_stats_repository: Arc<torrust_tracker_swarm_coordination_registry::statistics::repository::Repository>,
