@@ -4,8 +4,11 @@ offline = false
 # Preserve maintained-document local-anchor validation during the online check.
 include_fragments = "full"
 
-# Avoid immutable historical issue records with known stale relative links.
-exclude_path = [ "(^|/)docs/issues/closed/" ]
+# Avoid immutable historical records and byte-identical external source snapshots.
+exclude_path = [
+  "(^|/)docs/external-snapshots/.*/(LICENSE|SPEC)\\.md$",
+  "(^|/)docs/issues/closed/",
+]
 
 # GitHub renders PR review and issue-comment anchors dynamically, so Lychee cannot
 # reliably validate them. The Star History project selector is also client-side.
