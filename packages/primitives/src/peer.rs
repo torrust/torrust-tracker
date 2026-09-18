@@ -116,7 +116,10 @@ pub struct Peer {
     pub peer_id: PeerId,
     /// The IP and port this peer is listening on
     pub peer_addr: SocketAddr,
-    /// The last time the the tracker receive an announce request from this peer (timestamp)
+    /// The last time the tracker received an announce request from this peer (timestamp).
+    ///
+    /// Follow-up naming and API audit: see
+    /// `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/follow-up-issue-draft.md`.
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
     /// The total amount of bytes uploaded by this peer so far

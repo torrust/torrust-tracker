@@ -1,6 +1,7 @@
 //! Job that runs a task on intervals to update peers' activity metrics.
 use std::future::Future;
 use std::sync::Arc;
+use std::time::Duration;
 
 use chrono::Utc;
 use tokio_util::sync::CancellationToken;
@@ -15,12 +16,14 @@ use super::repository::Repository;
 use crate::statistics::{SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL};
 use crate::{CurrentClock, Registry};
 
+pub(super) const ACTIVITY_METRICS_UPDATE_INTERVAL_SECS: u64 = 15;
+
 #[must_use]
 #[instrument(skip(swarms, stats_repository))]
 pub fn run_job(
     swarms: Arc<Registry>,
     stats_repository: Arc<Repository>,
-    inactivity_cutoff: DurationSinceUnixEpoch,
+    max_peer_timeout: u32,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static {
     async move {
@@ -29,7 +32,7 @@ pub fn run_job(
         drop(swarms);
         drop(stats_repository);
 
-        let interval_in_secs = 15; // todo: make this configurable
+        let interval_in_secs = ACTIVITY_METRICS_UPDATE_INTERVAL_SECS; // todo: make this configurable
         let interval = std::time::Duration::from_secs(interval_in_secs);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await;
@@ -43,7 +46,7 @@ pub fn run_job(
                 }
                 _ = interval.tick() => {
                     if let (Some(swarms), Some(stats_repository)) = (weak_swarms.upgrade(), weak_stats_repository.upgrade()) {
-                        update_activity_metrics(interval_in_secs, &swarms, &stats_repository, inactivity_cutoff).await;
+                        update_activity_metrics(interval_in_secs, &swarms, &stats_repository, max_peer_timeout).await;
                     } else {
                         tracing::info!("Stopping peers activity metrics update job (can't upgrade weak pointers) ...");
                         return Completion::Completed;
@@ -58,7 +61,7 @@ async fn update_activity_metrics(
     interval_in_secs: u64,
     swarms: &Arc<Registry>,
     stats_repository: &Arc<Repository>,
-    inactivity_cutoff: DurationSinceUnixEpoch,
+    max_peer_timeout: u32,
 ) {
     let start_time = Utc::now().time();
 
@@ -67,7 +70,10 @@ async fn update_activity_metrics(
         interval_in_secs
     );
 
-    let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff).await;
+    // Follow-up timestamp naming and API audit: see
+    // docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/follow-up-issue-draft.md.
+    let inactivity_cutoff_timestamp = inactivity_cutoff(CurrentClock::now(), max_peer_timeout);
+    let activity_metadata = swarms.get_activity_metadata(inactivity_cutoff_timestamp).await;
 
     activity_metadata.log();
 
@@ -78,6 +84,15 @@ async fn update_activity_metrics(
         "Peers and torrents activity metrics updated in {} ms",
         (Utc::now().time() - start_time).num_milliseconds()
     );
+}
+
+/// Peers last announced at or before this timestamp are inactive.
+///
+/// Falls back to the epoch when `now` is earlier than the timeout, so nothing
+/// is reported inactive instead of the subtraction failing.
+fn inactivity_cutoff(now: DurationSinceUnixEpoch, max_peer_timeout: u32) -> DurationSinceUnixEpoch {
+    now.checked_sub(Duration::from_secs(u64::from(max_peer_timeout)))
+        .unwrap_or_default()
 }
 
 async fn update_inactive_peers_total(stats_repository: &Arc<Repository>, inactive_peers_total: usize) {
@@ -110,12 +125,23 @@ async fn update_inactive_torrents_total(stats_repository: &Arc<Repository>, inac
 
 #[cfg(test)]
 mod tests {
+    // Unit tests for this module cover the job lifecycle. The end-to-end
+    // behaviour (job + Registry + Repository) is tested in `statistics::tests`.
+    //
+    // Missing unit tests, tracked by the package coverage review (#1347):
+    // - cancellation wins over a tick that is due at the same time (`biased`)
+    // - the first update runs one interval after start, not immediately
+    // - updates repeat once per `ACTIVITY_METRICS_UPDATE_INTERVAL_SECS`
+    // - `update_inactive_torrents_total` sets the torrents gauge
+    // - gauges are set, not incremented (a lower count lowers the value)
+    // Deliberately untested: tokio missed-tick policy, swallowed repository
+    // errors (needs a failing repository), usize → f64 precision above 2^53.
+
     use std::sync::Arc;
     use std::time::Duration;
 
     use tokio::time::timeout;
     use tokio_util::sync::CancellationToken;
-    use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_events::shutdown::Completion;
 
     use super::run_job;
@@ -128,12 +154,7 @@ mod tests {
         let swarms = Arc::new(Registry::new(None));
         let stats_repository = Arc::new(Repository::new());
         let cancellation_token = CancellationToken::new();
-        let runner = run_job(
-            swarms,
-            stats_repository,
-            DurationSinceUnixEpoch::default(),
-            cancellation_token.clone(),
-        );
+        let runner = run_job(swarms, stats_repository, 0, cancellation_token.clone());
 
         // Act
         cancellation_token.cancel();
@@ -153,12 +174,7 @@ mod tests {
         let runner = {
             let swarms = Arc::new(Registry::new(None));
 
-            run_job(
-                swarms,
-                stats_repository.clone(),
-                DurationSinceUnixEpoch::default(),
-                CancellationToken::new(),
-            )
+            run_job(swarms, stats_repository.clone(), 0, CancellationToken::new())
         };
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
@@ -179,12 +195,7 @@ mod tests {
         let runner = {
             let stats_repository = Arc::new(Repository::new());
 
-            run_job(
-                swarms.clone(),
-                stats_repository,
-                DurationSinceUnixEpoch::default(),
-                CancellationToken::new(),
-            )
+            run_job(swarms.clone(), stats_repository, 0, CancellationToken::new())
         };
         let runner = tokio::spawn(runner);
         tokio::task::yield_now().await;
@@ -195,5 +206,40 @@ mod tests {
 
         // Assert
         assert_eq!(completion, Completion::Completed);
+    }
+
+    mod inactivity_cutoff {
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::statistics::activity_metrics_updater::inactivity_cutoff;
+
+        #[test]
+        fn it_should_be_the_peer_timeout_before_now() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let max_peer_timeout_in_secs = 120;
+
+            let cutoff = inactivity_cutoff(now, max_peer_timeout_in_secs);
+
+            assert_eq!(cutoff, DurationSinceUnixEpoch::from_secs(880));
+        }
+
+        #[test]
+        fn it_should_be_now_when_the_peer_timeout_is_zero() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+
+            let cutoff = inactivity_cutoff(now, 0);
+
+            assert_eq!(cutoff, now);
+        }
+
+        #[test]
+        fn it_should_fall_back_to_the_epoch_when_now_is_earlier_than_the_peer_timeout() {
+            let now = DurationSinceUnixEpoch::from_secs(10);
+            let max_peer_timeout_in_secs = 120;
+
+            let cutoff = inactivity_cutoff(now, max_peer_timeout_in_secs);
+
+            assert_eq!(cutoff, DurationSinceUnixEpoch::ZERO);
+        }
     }
 }
