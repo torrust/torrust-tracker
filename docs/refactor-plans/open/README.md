@@ -11,7 +11,8 @@ semantic-links:
 
 # Open Refactor Plans
 
-This folder contains refactor plans that are actively being worked through.
+This folder contains folder-style refactor plans that are actively being worked through. Each
+record's primary document is `REFACTOR-PLAN.md`.
 
 ## Lifecycle
 

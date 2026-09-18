@@ -49,9 +49,9 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | New root ADR                                   | `docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for repository-wide, multi-package, or inter-package decisions                     |
 | New package-local ADR                          | `packages/<package>/docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for decisions owned only by an extractable package              |
 | New issue spec (before GitHub issue exists)    | `docs/issues/drafts/<short-slug>/ISSUE.md`                                                                                          |
-| New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
-| New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
-| New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                                 |
+| New issue or EPIC spec (after GitHub issue created) | `docs/issues/open/<number>-<short-slug>/ISSUE.md` or `EPIC.md`                                                               |
+| New refactor plan                             | `docs/refactor-plans/<lifecycle>/<short-slug>/REFACTOR-PLAN.md`                                                                   |
+| New PR-review audit                           | `docs/pr-reviews/pr-<number>-<suffix>/PR-REVIEW.md`                                                                               |
 | Durable testing guide or pattern catalog       | `docs/testing/`                                                                                                                     |
 | New document template                          | `docs/templates/`                                                                                                                   |
 | New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |

@@ -31,6 +31,8 @@ semantic-links:
     - docs/templates/REFACTOR-PLAN.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - docs/issues/open/2159-2003-adopt-folder-style-issue-specs/migration-inventory.md
+    - docs/adrs/20260918093757_adopt_folder_style_documentation_artifact_records.md
 ---
 
 # Issue #2159 - Adopt Folder-Style Documentation Artifact Records
@@ -102,18 +104,18 @@ coordinating the move.
 
 ## Architectural Decisions
 
-- Related ADR: `docs/adrs/20260830124000_place_adrs_by_decision_scope.md`
-- ADRs to create: Adopt folder-style durable documentation artifact records and migrate existing
-  records in selected families.
+- Related ADRs: `docs/adrs/20260830124000_place_adrs_by_decision_scope.md` and
+  `docs/adrs/20260918093757_adopt_folder_style_documentation_artifact_records.md`
+- ADRs to create: None.
 
 ## Implementation Plan
 
 | ID  | Status | Task                              | Notes / Expected Output                                                                                                     |
 | --- | ------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Inventory migration candidates    | Identify all legacy records in selected families, their current paths, inbound links, and concurrent work risks.            |
-| T2  | TODO   | Record the ADR                    | Define classification, migration contract, and consequences.                                                                  |
-| T3  | TODO   | Align templates and workflows     | Update issue, refactor-plan, and PR-review documentation, templates, indexes, and creation paths.                           |
-| T4  | TODO   | Migrate durable record archives   | Move all selected legacy records with Git renames and repair live references.                                                 |
+| T1  | DONE   | Inventory migration candidates    | Recorded 112 flat issue/EPIC specs, 3 refactor plans, 91 PR-review audits, link-repair targets, and batch order.            |
+| T2  | DONE   | Record the ADR                    | Added root ADR 20260918093757 defining classification, migration contract, and consequences.                                |
+| T3  | DONE   | Align templates and workflows     | Updated creation paths, templates, navigation, and filename guidance; retained only historical flat-path references.         |
+| T4  | IN_PROGRESS | Migrate durable record archives | Migrated all 3 refactor plans; PR-review and issue/EPIC archives remain.                                                      |
 | T5  | TODO   | Validate folder and link layouts  | Prove new and migrated records use folders, links resolve, and excluded families remain unchanged.                           |
 
 ## Progress Tracking
@@ -135,6 +137,10 @@ coordinating the move.
 - 2026-09-11 - GitHub Copilot - Migrated the three approved inactive open specifications (#1768, #1774, and #1843) into same-named folders containing `ISSUE.md`, preserved their lifecycle state, and repaired current references. The broader folder-only policy, ADR, and workflow/template alignment remain planned work.
 - 2026-09-18 - Maintainer - Expanded the prospective policy from issue and EPIC specifications to durable documentation artifact records, initially including refactor plans and pull-request review audits. The policy must retain family-specific layouts for document classes without lifecycle-specific companion artifacts.
 - 2026-09-18 - Maintainer - Authorized migration of current records that do not follow the selected families' folder-style convention, replacing the earlier no-bulk-migration constraint. Preserve content and history through Git renames, and repair live references.
+- 2026-09-18 - GitHub Copilot - Completed T1. `migration-inventory.md` records 112 flat issue/EPIC specs, 3 refactor plans, and 91 PR-review audits, plus the live convention surfaces and inbound PR-review references that require link repair.
+- 2026-09-18 - GitHub Copilot - Completed T2. Added root ADR `20260918093757_adopt_folder_style_documentation_artifact_records.md` and registered it in the root ADR index.
+- 2026-09-18 - GitHub Copilot - Completed T3. Updated issue, refactor-plan, and PR-review authoring paths, templates, lifecycle navigation, filename guidance, and live semantic-link conventions. Flat PR-review paths remain only in closed historical records.
+- 2026-09-18 - GitHub Copilot - Started T4. Migrated all three closed refactor plans to `REFACTOR-PLAN.md` record folders and repaired the native-fixture plan's live links and `spec-path` metadata. PR-review and issue/EPIC archive migrations remain.
 
 ## Acceptance Criteria
 

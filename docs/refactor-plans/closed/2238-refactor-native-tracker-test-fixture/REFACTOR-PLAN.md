@@ -2,7 +2,7 @@
 doc-type: refactor-plan
 status: closed
 related-issue: 2238
-spec-path: docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md
+spec-path: docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md
 last-updated-utc: 2026-09-17 16:05
 semantic-links:
   skill-links:
@@ -40,7 +40,7 @@ Reducing line count is a consequence, not the success criterion. The split succe
   to protect the same observable behavior.
 
 Related artifact:
-[`docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`](../../issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md)
+[`docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`](../../../issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md)
 
 ## Design Constraints Discovered in the Current Code
 

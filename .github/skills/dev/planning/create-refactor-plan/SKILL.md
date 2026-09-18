@@ -91,14 +91,16 @@ This ensures the most valuable, cheapest improvements are visible and tackled fi
 Plans follow the same `drafts/` → `open/` → `closed/` lifecycle as issue specs.
 
 ```bash
-touch docs/refactor-plans/drafts/{short-description}.md
+mkdir docs/refactor-plans/drafts/{short-description}
+touch docs/refactor-plans/drafts/{short-description}/REFACTOR-PLAN.md
 ```
 
 Use the template at [docs/templates/REFACTOR-PLAN.md](../../../../../docs/templates/REFACTOR-PLAN.md).
 
-Naming convention: `{related-artifact-short-description}.md`
+Name the record directory `{related-artifact-short-description}`. Its primary document is always
+`REFACTOR-PLAN.md`; keep related evidence and reports beside it in the same directory.
 
-Example: `1178-monitor-udp-post-implementation-improvements.md`
+Example: `1178-monitor-udp-post-implementation-improvements/REFACTOR-PLAN.md`
 
 Each item heading uses a checkbox and an impact/effort label:
 
@@ -119,7 +121,8 @@ To mark an item done, flip `[ ]` → `[x]` in **both** the heading and the table
 Move the plan from `drafts/` to `open/` when implementation starts:
 
 ```bash
-git mv docs/refactor-plans/drafts/{filename}.md docs/refactor-plans/open/{filename}.md
+git mv docs/refactor-plans/drafts/{short-description} \
+  docs/refactor-plans/open/{short-description}
 ```
 
 ```bash
@@ -141,7 +144,8 @@ Work through items in order. After completing each item:
 When all items are done, move the plan to `closed/`:
 
 ```bash
-git mv docs/refactor-plans/open/{filename}.md docs/refactor-plans/closed/{filename}.md
+git mv docs/refactor-plans/open/{short-description} \
+  docs/refactor-plans/closed/{short-description}
 git commit -S -m "docs({scope}): close refactor plan for {description}"
 ```
 
@@ -155,15 +159,16 @@ After implementing all items, evaluate:
 
 Update `docs/templates/REFACTOR-PLAN.md` and this skill file if improvements are identified.
 
-## Naming Convention
+## Layout and Lifecycle
 
-File name format: `{related-artifact-short-description}.md`
+Each refactor plan uses a directory named `{related-artifact-short-description}` and primary file
+`REFACTOR-PLAN.md`.
 
-| Lifecycle stage | Folder                        |
-| --------------- | ----------------------------- |
-| Being written   | `docs/refactor-plans/drafts/` |
-| In progress     | `docs/refactor-plans/open/`   |
-| All done        | `docs/refactor-plans/closed/` |
+| Lifecycle stage | Primary-plan path                                                 |
+| --------------- | ----------------------------------------------------------------- |
+| Being written   | `docs/refactor-plans/drafts/<short-description>/REFACTOR-PLAN.md` |
+| In progress     | `docs/refactor-plans/open/<short-description>/REFACTOR-PLAN.md`   |
+| All done        | `docs/refactor-plans/closed/<short-description>/REFACTOR-PLAN.md` |
 
 ## Relationship to Other Artifacts
 

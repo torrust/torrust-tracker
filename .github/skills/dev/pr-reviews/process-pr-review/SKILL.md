@@ -16,10 +16,10 @@ metadata:
 # Processing Pull-Request Reviews
 
 The PR author owns one tracked audit record at
-`docs/pr-reviews/pr-<PR_NUMBER>-review.md`. Reviewers, including repository
-review agents, deliver findings through GitHub only and create no repository
-artifact. Process all authors through this workflow; author classification adds
-context but never changes the audit or resolution requirements.
+`docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`. Reviewers, including
+repository review agents, deliver findings through GitHub only and create no
+repository artifact. Process all authors through this workflow; author
+classification adds context but never changes the audit or resolution requirements.
 
 ## Purpose
 
