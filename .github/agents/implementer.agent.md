@@ -5,6 +5,9 @@ argument-hint: Describe the task or link the issue spec document. Clarify any co
 tools: [execute, read, search, edit, todo, agent]
 user-invocable: true
 disable-model-invocation: false
+semantic-links:
+   skill-links:
+      - fix-bug
 ---
 
 You are the repository's software implementer. Your job is to implement tasks correctly, simply,

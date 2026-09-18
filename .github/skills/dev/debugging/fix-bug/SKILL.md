@@ -10,7 +10,7 @@ metadata:
       - .github/skills/dev/testing/write-unit-test/SKILL.md
       - .github/agents/implementer.agent.md
       - docs/templates/ISSUE.md
-      - docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md
+      - issue #2226
 ---
 
 # Fixing Bugs
@@ -85,9 +85,9 @@ Prefer this order:
    why the code cannot be protected appropriately by a maintained test and what follow-up would make
    it testable.
 
-When writing or changing unit tests, use
-[write-unit-test](../../testing/write-unit-test/SKILL.md). For regression tests, prove the test guards
-the bug by observing it fail against the bug or by recording why that red check cannot be performed.
+When writing or changing unit tests, use `.github/skills/dev/testing/write-unit-test/SKILL.md`.
+For regression tests, prove the test guards the bug by observing it fail against the bug or by
+recording why that red check cannot be performed.
 
 ## Issue-Spec Requirements for Bugs
 
@@ -107,10 +107,8 @@ commands, blocking constraint, and strongest substitute evidence.
 
 Use the stale activity-metrics cutoff bug as a review-only worked example:
 
-- Issue specification:
-  `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md`
-- Evidence:
-  `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/evidence.md`
+- Issue: issue #2226
+- Evidence: the issue-local evidence artifacts attached to issue #2226.
 
 Do not change that issue's implementation scope when updating this workflow.
 
@@ -124,5 +122,4 @@ Review this skill when changing:
   test evidence.
 - `.github/agents/implementer.agent.md` — bug workflow invocation by implementation agents.
 - `docs/templates/ISSUE.md` — bug-only issue sections and manual evidence requirements.
-- `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md` — worked
-  example reference.
+- issue #2226 — worked example reference.

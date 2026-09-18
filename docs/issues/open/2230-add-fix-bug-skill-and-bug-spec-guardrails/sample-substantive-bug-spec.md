@@ -5,7 +5,7 @@ status: draft
 priority: p2
 epic: null
 github-issue: null
-spec-path: docs/issues/drafts/sample-substantive-bug/ISSUE.md
+spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/sample-substantive-bug-spec.md
 branch: "sample-substantive-bug"
 related-pr: null
 last-updated-utc: 2026-09-18 15:40
@@ -26,9 +26,9 @@ Fix a sample stale counter that continues showing an old value after the source 
 
 ## Background
 
-This sample intentionally uses `issue-type: task` to verify that bug handling is semantic rather
-than metadata-only. The described behavior is broken because a visible value remains stale after the
-state it reports has changed.
+This issue-local validation artifact intentionally uses `issue-type: task` to verify that bug
+handling is semantic rather than metadata-only. The described behavior is broken because a visible
+value remains stale after the state it reports has changed.
 
 ## Scope
 
@@ -96,7 +96,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/sample-substantive-bug/ISSUE.md`
+- [ ] Issue-local validation artifact drafted in `sample-substantive-bug-spec.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed

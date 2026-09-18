@@ -12,7 +12,6 @@ last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:
     - create-issue
-    - fix-bug
   related-artifacts:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
