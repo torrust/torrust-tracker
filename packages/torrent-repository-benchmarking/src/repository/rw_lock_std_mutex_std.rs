@@ -37,13 +37,10 @@ where
 
         let maybe_entry = self.get_torrents().get(info_hash).cloned();
 
-        let entry = if let Some(entry) = maybe_entry {
-            entry
-        } else {
+        let entry = maybe_entry.unwrap_or_else(|| {
             let mut db = self.get_torrents_mut();
-            let entry = db.entry(*info_hash).or_insert(Arc::default());
-            entry.clone()
-        };
+            db.entry(*info_hash).or_insert_with(Arc::default).clone()
+        });
 
         entry.upsert_peer(peer)
     }
@@ -76,15 +73,16 @@ where
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
         let db = self.get_torrents();
 
-        match pagination {
-            Some(pagination) => db
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|(a, b)| (*a, b.clone()))
-                .collect(),
-            None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        }
+        pagination.map_or_else(
+            || db.iter().map(|(a, b)| (*a, b.clone())).collect(),
+            |pagination| {
+                db.iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|(a, b)| (*a, b.clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {
@@ -114,8 +112,7 @@ where
     }
 
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        let db = self.get_torrents();
-        let entries = db.values().cloned();
+        let entries: Vec<_> = self.get_torrents().values().cloned().collect();
 
         for entry in entries {
             entry.remove_inactive_peers(current_cutoff);

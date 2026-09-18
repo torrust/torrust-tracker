@@ -48,9 +48,10 @@ where
 
         let mut db = self.get_torrents_mut();
 
-        let entry = db.entry(*info_hash).or_insert(EntrySingle::default());
+        let completed = db.entry(*info_hash).or_default().upsert_peer(peer);
+        drop(db);
 
-        entry.upsert_peer(peer)
+        completed
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -79,15 +80,16 @@ where
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
         let db = self.get_torrents();
 
-        match pagination {
-            Some(pagination) => db
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|(a, b)| (*a, b.clone()))
-                .collect(),
-            None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        }
+        pagination.map_or_else(
+            || db.iter().map(|(a, b)| (*a, b.clone())).collect(),
+            |pagination| {
+                db.iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|(a, b)| (*a, b.clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {
@@ -106,6 +108,8 @@ where
 
             torrents.insert(*info_hash, entry);
         }
+
+        drop(torrents);
     }
 
     fn remove(&self, key: &InfoHash) -> Option<EntrySingle> {
@@ -115,16 +119,18 @@ where
 
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         let mut db = self.get_torrents_mut();
-        let entries = db.values_mut();
 
-        for entry in entries {
+        for entry in db.values_mut() {
             entry.remove_inactive_peers(current_cutoff);
         }
+
+        drop(db);
     }
 
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut();
 
         db.retain(|_, e| e.meets_retaining_policy(policy));
+        drop(db);
     }
 }

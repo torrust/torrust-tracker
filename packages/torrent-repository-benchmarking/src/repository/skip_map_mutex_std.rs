@@ -39,25 +39,24 @@ where
     /// Returns `true` if the number of downloads was increased because the peer
     /// completed the download.
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<NumberOfDownloads>) -> bool {
-        if let Some(existing_entry) = self.torrents.get(info_hash) {
-            existing_entry.value().upsert_peer(peer)
-        } else {
-            let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                EntryMutexStd::new(
-                    EntrySingle {
-                        swarm: PeerList::default(),
-                        downloaded: number_of_downloads,
-                    }
-                    .into(),
-                )
-            } else {
-                EntryMutexStd::default()
-            };
+        self.torrents.get(info_hash).map_or_else(
+            || {
+                let new_entry = opt_persistent_torrent.map_or_else(EntryMutexStd::default, |number_of_downloads| {
+                    EntryMutexStd::new(
+                        EntrySingle {
+                            swarm: PeerList::default(),
+                            downloaded: number_of_downloads,
+                        }
+                        .into(),
+                    )
+                });
 
-            let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
+                let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
 
-            inserted_entry.value().upsert_peer(peer)
-        }
+                inserted_entry.value().upsert_peer(peer)
+            },
+            |existing_entry| existing_entry.value().upsert_peer(peer),
+        )
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -84,20 +83,22 @@ where
     }
 
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
-        match pagination {
-            Some(pagination) => self
-                .torrents
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-            None => self
-                .torrents
-                .iter()
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-        }
+        pagination.map_or_else(
+            || {
+                self.torrents
+                    .iter()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+            |pagination| {
+                self.torrents
+                    .iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {
@@ -177,20 +178,22 @@ where
     }
 
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryRwLockParkingLot)> {
-        match pagination {
-            Some(pagination) => self
-                .torrents
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-            None => self
-                .torrents
-                .iter()
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-        }
+        pagination.map_or_else(
+            || {
+                self.torrents
+                    .iter()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+            |pagination| {
+                self.torrents
+                    .iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {
@@ -270,20 +273,22 @@ where
     }
 
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexParkingLot)> {
-        match pagination {
-            Some(pagination) => self
-                .torrents
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-            None => self
-                .torrents
-                .iter()
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-        }
+        pagination.map_or_else(
+            || {
+                self.torrents
+                    .iter()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+            |pagination| {
+                self.torrents
+                    .iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {

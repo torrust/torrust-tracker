@@ -18,8 +18,8 @@ original 234 rows minus the 15 entries classified as **Remove**. Final source-lo
 reconciliation remains part of #2158's T6 validation pass.
 
 Current-source reconciliation found one additional maintained-source attribute that was not present
-in the recovered 2026-09-15 inventory: A235. Keep it in the inventory until #2158 either removes it,
-retains it with final evidence, or promotes approved follow-up work.
+in the recovered 2026-09-15 inventory: A235. It was removed in #2158 after a focused repair of the
+benchmarking repository style and lock-scope diagnostics it exposed.
 
 This inventory contains all 234 source locations from the initial scan. Classification and
 remediation remain separate work; an entry marked **Pending** is recorded but not yet decided.
@@ -222,7 +222,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A157-A168 | Created follow-up issue #2261 and added native temporary `reason` parameters linking the nonnumeric UDP protocol baseline suppressions to that issue. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
-| A235 | Removal probe exposed active `torrent-repository-benchmarking` diagnostics for the crate-level style baseline; restored the attribute with a native temporary `reason` while #2158 owns final classification. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
+| A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style and lock-scope fixes. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 
 ## Entries
 
@@ -462,4 +462,4 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A232 | `console/tracker-client/src/console/clients/checker/checks/udp.rs:26` | item | `missing_panics_doc` | Missing UDP checker panic documentation | Document the deliberate sample-hash and socket-resolution `unwrap` preconditions and remove the suppression | #2158 | Remove |
 | A233 | `console/tracker-client/src/console/clients/udp/responses/json.rs:5` | item | `module_name_repetitions` | Serialization extension trait | `ToJson` is the serialization extension-trait name in the UDP response JSON module | #2158 | Retain |
 | A234 | `console/tracker-client/src/lib.rs:5` | crate | `print_stdout`, `print_stderr` | Shared console output contract | Library modules implement terminal output invoked by the console binary targets | #2158 | Retain |
-| A235 | `packages/torrent-repository-benchmarking/src/lib.rs:1` | crate | `option_if_let_else`, `or_fun_call`, `significant_drop_tightening`, `iter_with_drain` | Current-source benchmarking style baseline | Removal probe exposed active diagnostics across benchmark repository implementations; #2158 must decide whether to remove/narrow locally or promote a follow-up before closure | #2158 | Temporary |
+| A235 | `packages/torrent-repository-benchmarking/src/lib.rs:1` | crate | `option_if_let_else`, `or_fun_call`, `significant_drop_tightening`, `iter_with_drain` | Current-source benchmarking style baseline | Removed the crate-level baseline by applying Clippy style fixes and tightening lock/drop scopes across benchmark repository implementations | #2158 | Remove |
