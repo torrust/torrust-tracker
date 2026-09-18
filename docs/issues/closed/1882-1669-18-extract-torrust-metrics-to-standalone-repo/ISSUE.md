@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1882
-spec-path: docs/issues/closed/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md
+spec-path: docs/issues/closed/1882-1669-18-extract-torrust-metrics-to-standalone-repo/ISSUE.md
 branch: "1882-extract-torrust-metrics-to-standalone-repo"
 related-pr: 1892
 last-updated-utc: 2026-06-10 00:00
@@ -39,15 +39,15 @@ step of the extraction itself (T1b), following the project policy of deferring p
 as late as possible.
 
 The rename subissue
-([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics/ISSUE.md))
 must be complete before this subissue begins. Publishing `torrust-metrics` on crates.io
 is deferred to this subissue (T1b).
 
 **Prerequisite**: Metrics rename subissue
-([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics/ISSUE.md))
 complete (SI-08 all tasks done).
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

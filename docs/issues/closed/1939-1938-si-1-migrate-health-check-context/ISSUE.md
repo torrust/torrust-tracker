@@ -5,7 +5,7 @@ status: done
 priority: p1
 epic: 1938
 github-issue: 1939
-spec-path: docs/issues/closed/1939-1938-si-1-migrate-health-check-context.md
+spec-path: docs/issues/closed/1939-1938-si-1-migrate-health-check-context/ISSUE.md
 last-updated-utc: 2026-06-25
 updated-reason: Closed — issue implemented
 semantic-links:
@@ -29,7 +29,7 @@ semantic-links:
 
 The `health_check` endpoint is defined in `packages/axum-rest-api-server/src/v1/context/health_check/`. Its DTOs (`Status`, `Report`) and response logic are defined locally in the Axum server package.
 
-Per the contract-first architecture defined in [SI-33](../../open/1930-1669-si-33-rest-api-contract-first-architecture.md), this context should have:
+Per the contract-first architecture defined in [SI-33](../../../open/1930-1669-si-33-rest-api-contract-first-architecture.md), this context should have:
 
 - DTOs in `rest-api-protocol` under the normalized module structure:
   `v1::context::health_check::resources::health_check`

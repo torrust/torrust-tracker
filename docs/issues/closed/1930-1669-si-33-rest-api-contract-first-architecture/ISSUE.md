@@ -5,7 +5,7 @@ status: done
 priority: p1
 epic: 1669
 github-issue: 1930
-spec-path: docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md
+spec-path: docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md
 last-updated-utc: 2026-06-24
 semantic-links:
   skill-links:
@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/packages.md
-    - docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md
+    - docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md
 ---
 
 # Issue #1930 - Define REST API contract-first package architecture for EPIC #1669
@@ -41,7 +41,7 @@ separate from EPIC #1669.
 
 ## Prerequisites
 
-This issue depends on [SI-30 (#1924)](../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md),
+This issue depends on [SI-30 (#1924)](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md),
 which delivers the UDP-side trait abstractions (`BanningStats`,
 `UdpCoreStatsRepository`, `UdpServerStatsRepository`) that the future
 `TrackerStatsAdapter` will implement.
@@ -185,7 +185,7 @@ Main type groups (examples):
   `udp-tracker-core`, and `udp-server`
 
 Note: the underlying UDP traits (`BanningStats`, `UdpCoreStatsRepository`,
-`UdpServerStatsRepository`) are delivered by [SI-30 (#1924)](../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md).
+`UdpServerStatsRepository`) are delivered by [SI-30 (#1924)](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md).
 This issue wires them through the `TrackerStatsAdapter`.
 
 ### `torrust-tracker-axum-rest-api-server` in `axum-rest-api-server` (existing; transport adapter)
@@ -273,7 +273,7 @@ The PoC can use the current torrent detail endpoint
 
 Current handler location:
 
-- [packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs](../../../packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs)
+- [packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs](../../../../packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs)
 
 ### Before (current coupling)
 

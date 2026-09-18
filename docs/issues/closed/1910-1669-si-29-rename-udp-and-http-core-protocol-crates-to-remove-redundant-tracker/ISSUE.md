@@ -5,7 +5,7 @@ status: done
 priority: p2
 epic: 1669
 github-issue: 1910
-spec-path: docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
+spec-path: docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md
 branch: 1910-rename-udp-and-http-core-protocol-crates
 related-pr: 1923
 last-updated-utc: 2026-06-20
@@ -59,7 +59,7 @@ None of these packages are published on crates.io, so this is a **Rule U** renam
 (unpublished crate rename) — only workspace consumers are affected, no external
 migration window needed.
 
-This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

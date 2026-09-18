@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1879
-spec-path: docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md
+spec-path: docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo/ISSUE.md
 branch: 1879-1669-extract-torrust-clock-to-standalone-repo
 related-pr: 1880
 last-updated-utc: 2026-06-05 00:00
@@ -45,14 +45,14 @@ deps (`chrono`, `tracing`) are published crates. Extraction is therefore unblock
 **Prerequisites**:
 
 1. Clock rename subissue
-   ([1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md))
+   ([1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock/ISSUE.md))
    must be complete — in particular T8 (publish `torrust-clock` on crates.io).
 2. `DurationSinceUnixEpoch` move subissue
-   ([1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md](../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md))
+   ([1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md))
    must be complete — in particular T4 (`torrust-tracker-primitives` dep removed from
    `packages/clock/Cargo.toml`).
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

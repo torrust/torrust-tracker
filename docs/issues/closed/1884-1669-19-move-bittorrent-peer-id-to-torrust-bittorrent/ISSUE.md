@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1884
-spec-path: docs/issues/closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md
+spec-path: docs/issues/closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md
 branch: 1884-1669-move-bittorrent-peer-id-to-torrust-bittorrent
 related-pr: 1887
 last-updated-utc: 2026-06-10 00:00

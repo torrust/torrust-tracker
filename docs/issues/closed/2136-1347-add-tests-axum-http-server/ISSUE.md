@@ -182,4 +182,4 @@ All planned work is complete and has independent review evidence recorded above.
 - Package: `packages/axum-http-server/`
 - Test environment: `packages/axum-http-server/src/testing/environment.rs`
 - Protocol/domain boundary ADR: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
-- Historical test-environment work: `docs/issues/closed/1904-1669-si-24-relocate-http-server-test-environment.md`
+- Historical test-environment work: `docs/issues/closed/1904-1669-si-24-relocate-http-server-test-environment/ISSUE.md`

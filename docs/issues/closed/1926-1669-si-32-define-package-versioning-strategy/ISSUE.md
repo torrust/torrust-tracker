@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1926
-spec-path: docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md
+spec-path: docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md
 branch: 1926-1669-si-32-define-package-versioning-strategy
 related-pr: null
 last-updated-utc: 2026-07-15
@@ -33,7 +33,7 @@ the implicit "everything shares one workspace version" rule with independent ver
 for every package — and implement all resulting changes (version migration, release process,
 CI automation).
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 All work happens on a single branch and is merged together into `develop`.
@@ -93,7 +93,7 @@ publishes the root `torrust-tracker` binary crate.
 
 > **Note on `torrust-tracker-client`** (console binary): this package is planned for extraction
 > to a standalone repository (see
-> [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)).
+> [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)).
 > Key points:
 
 1. **All publishable workspace crates are published independently** via `deployment-packages.yaml` whenever a
@@ -209,7 +209,7 @@ The glob `releases/v*` does **not** match `releases/pkg/...` because `*` does no
 
 ### Why This Matters Now
 
-The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
+The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
 is blocked on two unpublished workspace crates:
 
 | Blocker crate                                            | Published? | Can publish after this policy?  |
@@ -228,7 +228,7 @@ With independent versioning, each can be published with a single `cargo publish 
   - "Tracker Application Release" — the existing process, now publishing only `torrust-tracker`.
   - "Publishing a Workspace Package" — the **primary** publishing path for all packages.
     Includes branch/tag conventions, CI trigger, manual fallback, and a
-    [real-world example](../../release_process.md#real-world-example-a-full-release-cycle) showing how package
+    [real-world example](../../../release_process.md#real-world-example-a-full-release-cycle) showing how package
     publishing works over a full release cycle.
 - Remove stale crate entries from the tracker release checklist.
 
@@ -279,7 +279,7 @@ Each phase produces its own commit(s).
    - All packages under `packages/*/Cargo.toml` (24 crates)
    - `console/tracker-client/Cargo.toml` — the console binary crate, planned for
      extraction to a standalone repository (see
-     [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
+     [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
    - `contrib/dev-tools/analysis/workspace-coupling/Cargo.toml` — the workspace
      coupling analysis tool
 2. Set appropriate initial versions for each package:
@@ -459,14 +459,14 @@ Why discarded:
 
 ## References
 
-- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
-- Decisions: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../open/1669-overhaul-packages/DECISIONS.md)
-- ADR: [docs/adrs/20260629000000_adopt_independent_package_versioning.md](../../adrs/20260629000000_adopt_independent_package_versioning.md)
-- Workspace manifest: [Cargo.toml](../../../Cargo.toml)
-- Package catalog: [docs/packages.md](../../packages.md)
-- Tracker release workflow: [.github/workflows/deployment.yaml](../../../.github/workflows/deployment.yaml)
-- Package release workflow: [.github/workflows/deployment-packages.yaml](../../../.github/workflows/deployment-packages.yaml)
-- Release process: [docs/release_process.md](../../release_process.md)
+- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../../open/1669-overhaul-packages/EPIC.md)
+- Decisions: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../../open/1669-overhaul-packages/DECISIONS.md)
+- ADR: [docs/adrs/20260629000000_adopt_independent_package_versioning.md](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
+- Workspace manifest: [Cargo.toml](../../../../Cargo.toml)
+- Package catalog: [docs/packages.md](../../../packages.md)
+- Tracker release workflow: [.github/workflows/deployment.yaml](../../../../.github/workflows/deployment.yaml)
+- Package release workflow: [.github/workflows/deployment-packages.yaml](../../../../.github/workflows/deployment-packages.yaml)
+- Release process: [docs/release_process.md](../../../release_process.md)
 
 ## Appendix A — Version Assignment Table
 

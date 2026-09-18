@@ -103,7 +103,7 @@ The following scope items have been completed across sub-issues SI-1 through SI-
 
 ## Sub-issues
 
-- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../../closed/1939-1938-si-1-migrate-health-check-context.md): Migrate `health_check` context ✅ closed
+- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../../closed/1939-1938-si-1-migrate-health-check-context/ISSUE.md): Migrate `health_check` context ✅ closed
 - [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../../closed/1940-1938-si-2-migrate-whitelist-context.md): Migrate `whitelist` context ✅ closed
 - [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../../closed/1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context ✅ closed
 - [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../../closed/1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context ✅ closed
