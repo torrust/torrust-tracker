@@ -6,7 +6,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
     - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
     - docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
     - console/tracker-client/src/console/clients/checker/checks/udp.rs
 ---

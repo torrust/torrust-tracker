@@ -8,12 +8,12 @@ github-issue: 2244
 spec-path: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
 branch: "2244-2243-review-metric-aggregate-conversions"
 related-pr: null
-last-updated-utc: 2026-09-16 12:20
+last-updated-utc: 2026-09-18 14:40
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
 ---
 
 <!-- skill-link: create-issue -->

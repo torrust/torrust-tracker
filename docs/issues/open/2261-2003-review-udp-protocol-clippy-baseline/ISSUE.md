@@ -8,15 +8,15 @@ github-issue: 2261
 spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
 related-pr: null
-last-updated-utc: 2026-09-18 10:05
+last-updated-utc: 2026-09-18 14:40
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/udp-protocol-clippy-baseline-draft.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/udp-protocol-clippy-baseline-draft.md
     - packages/udp-protocol/src/lib.rs
 ---
 

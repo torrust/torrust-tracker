@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2158
-spec-path: docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
+spec-path: docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
-related-pr: null
-last-updated-utc: 2026-09-18 11:15
+related-pr: 2259
+last-updated-utc: 2026-09-18 14:40
 semantic-links:
   skill-links:
     - create-issue
@@ -207,6 +207,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Completed pre-review #2158 reconciliation: 236 inventory rows, 16 removed entries, 220 active inventory entries, 220 source attributes, and zero Clippy allows without native reasons; `linter all` passed - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Addressed PR review findings and reconciled A237-A239 for benchmark variants that intentionally preserve their outer read-lock span - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Addressed PR review finding and reconciled A240 for the torrent cleanup job `#[expect]` suppression - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Archived the completed issue spec from `docs/issues/open/` to `docs/issues/closed/` after PR #2259 was merged and GitHub issue #2158 was closed - This specification
 
 ## Acceptance Criteria
 
