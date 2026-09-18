@@ -9,7 +9,10 @@ use serde::{Deserialize, Serialize};
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(
+    clippy::redundant_field_names,
+    reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version"
+)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Constructor)]
 pub struct TrackerPolicy {
     // Cleanup job configuration

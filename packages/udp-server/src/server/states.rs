@@ -30,11 +30,17 @@ use crate::server::bound_socket::BoundSocket;
 use crate::server::launcher::Launcher;
 
 /// A UDP server instance controller with no UDP instance running.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the UDP server stopped state"
+)]
 pub type StoppedUdpServer = Server<Stopped>;
 
 /// A UDP server instance controller with a running UDP instance.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the UDP server running state"
+)]
 pub type RunningUdpServer = Server<Running>;
 
 /// A stopped UDP server state.
@@ -48,7 +54,10 @@ pub struct Stopped {
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(
+    clippy::redundant_field_names,
+    reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version"
+)]
 #[derive(Debug, Display, Constructor)]
 #[display("Running (with local address): {local_addr}")]
 pub struct Running {

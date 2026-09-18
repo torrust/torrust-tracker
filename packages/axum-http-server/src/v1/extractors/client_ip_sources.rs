@@ -54,7 +54,10 @@ where
 {
     type Rejection = Response;
 
-    #[allow(clippy::manual_async_fn)]
+    #[allow(
+        clippy::manual_async_fn,
+        reason = "Axum FromRequestParts requires an explicit Send-capable future return type"
+    )]
     fn from_request_parts(parts: &mut Parts, state: &S) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         async move {
             let right_most_x_forwarded_for = RightmostXForwardedFor::from_request_parts(parts, state)

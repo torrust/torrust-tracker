@@ -127,7 +127,7 @@ impl CircularBuffer {
     /// # Errors
     ///
     /// Won't return any error.
-    #[allow(clippy::unnecessary_wraps)]
+    #[allow(clippy::unnecessary_wraps, reason = "standard Write trait requires io::Result from write")]
     pub fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         for &byte in buf {
             if self.buffer.len() == self.max_size {
@@ -143,8 +143,8 @@ impl CircularBuffer {
     /// # Errors
     ///
     /// Won't return any error.
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::unused_self)]
+    #[allow(clippy::unnecessary_wraps, reason = "standard Write trait requires io::Result from flush")]
+    #[allow(clippy::unused_self, reason = "standard Write trait requires a mutable receiver for flush")]
     pub const fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }

@@ -31,7 +31,12 @@ const fn make_peer(ip_last_octet: u8, port: u16, seed: u8) -> Peer {
 // - `i % 10000` is safe for u16: all values fit.
 // - `elapsed.as_nanos()` -> f64 sacrifices precision beyond 2^52 ns (~52 days) but
 //   total run time is ~0.04s, so the mantissa is more than sufficient.
-#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    reason = "benchmark inputs are bounded and elapsed time is far below f64 precision loss thresholds"
+)]
 fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64 {
     use torrust_info_hash::InfoHash;
     let info_hash = InfoHash::default();

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::Driver;
 use url::Url;
 
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Database {
     // Database configuration

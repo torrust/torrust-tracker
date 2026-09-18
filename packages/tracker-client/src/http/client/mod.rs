@@ -24,7 +24,10 @@ pub enum Error {
 }
 
 /// HTTP Tracker Client
-#[allow(clippy::struct_field_names)]
+#[allow(
+    clippy::struct_field_names,
+    reason = "fields distinguish the HTTP transport client and tracker base URL"
+)]
 pub struct Client {
     http_client: reqwest::Client,
     base_url: Url,

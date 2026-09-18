@@ -2,7 +2,10 @@
 
 // Individual struct `pub(crate)` annotations are intentional documentation of
 // visibility intent even though they are technically redundant (private module).
-#![allow(clippy::redundant_pub_crate)]
+#![allow(
+    clippy::redundant_pub_crate,
+    reason = "explicit pub(crate) documents intended visibility during staged migration"
+)]
 //!
 //! During the migration this module re-exports symbols from legacy files so
 //! call sites can switch imports incrementally.

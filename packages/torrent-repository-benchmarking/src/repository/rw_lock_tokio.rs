@@ -15,7 +15,10 @@ pub struct RwLockTokio<T> {
 }
 
 impl<T> RwLockTokio<T> {
-    #[allow(clippy::future_not_send)]
+    #[allow(
+        clippy::future_not_send,
+        reason = "Tokio write future yields a non-Send write guard by design"
+    )]
     pub fn write(
         &self,
     ) -> impl std::future::Future<Output = tokio::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<InfoHash, T>>> {
@@ -55,9 +58,10 @@ where
 
         let mut db = self.get_torrents_mut().await;
 
-        let entry = db.entry(*info_hash).or_insert(EntrySingle::default());
+        let completed = db.entry(*info_hash).or_default().upsert_peer(peer);
+        drop(db);
 
-        entry.upsert_peer(peer)
+        completed
     }
 
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -72,15 +76,16 @@ where
     async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
         let db = self.get_torrents().await;
 
-        match pagination {
-            Some(pagination) => db
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|(a, b)| (*a, b.clone()))
-                .collect(),
-            None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        }
+        pagination.map_or_else(
+            || db.iter().map(|(a, b)| (*a, b.clone())).collect(),
+            |pagination| {
+                db.iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|(a, b)| (*a, b.clone()))
+                    .collect()
+            },
+        )
     }
 
     async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
@@ -122,11 +127,12 @@ where
 
     async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         let mut db = self.get_torrents_mut().await;
-        let entries = db.values_mut();
 
-        for entry in entries {
+        for entry in db.values_mut() {
             entry.remove_inactive_peers(current_cutoff);
         }
+
+        drop(db);
     }
 
     async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {

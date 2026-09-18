@@ -51,7 +51,10 @@ pub enum UdpError {
 /// > **NOTICE**: if the configurations changes after running the server it will
 /// > reset to the initial value after stopping the server. This struct is not
 /// > intended to persist configurations between runs.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "public type is the UDP server module's canonical state controller"
+)]
 #[derive(Debug, Display)]
 pub struct Server<S>
 where

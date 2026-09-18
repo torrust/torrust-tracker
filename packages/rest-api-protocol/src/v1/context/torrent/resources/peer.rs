@@ -19,7 +19,10 @@ pub struct Peer {
     /// Deprecated: despite the `_ago` suffix, this is not a relative duration. Use
     /// [`Self::updated_at_ms`] instead. This field will be removed in API v2.
     #[deprecated(since = "3.0.0", note = "please use `updated_at_ms` instead")]
-    #[allow(clippy::doc_markdown)]
+    #[allow(
+        clippy::doc_markdown,
+        reason = "deprecated public field identifier must be documented verbatim"
+    )]
     pub updated_milliseconds_ago: u128,
     /// The peer's last update time as an absolute Unix timestamp in milliseconds since epoch.
     ///

@@ -31,7 +31,10 @@ impl Sqlite {
     ///
     // Keep the `Result` return for API symmetry with the MySQL driver and
     // forward-compatibility (future option parsing may surface fallible cases).
-    #[allow(clippy::unnecessary_wraps)]
+    #[allow(
+        clippy::unnecessary_wraps,
+        reason = "driver constructor keeps Result symmetry with fallible database drivers"
+    )]
     pub fn new(db_path: &str) -> Result<Self, Error> {
         // Build the connection options directly from the filesystem path so
         // relative paths (e.g. `./storage/...`) are preserved verbatim instead

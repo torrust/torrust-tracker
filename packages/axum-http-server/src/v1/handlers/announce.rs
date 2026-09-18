@@ -21,7 +21,10 @@ use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 
 /// It handles the `announce` request when the HTTP tracker does not require
 /// authentication (no PATH `key` parameter required).
-#[allow(clippy::unused_async)]
+#[allow(
+    clippy::unused_async,
+    reason = "Axum router handler keeps an asynchronous signature while delegating shared logic"
+)]
 pub async fn handle_without_key(
     State(state): State<(Arc<AnnounceService>, ServiceBinding)>,
     ExtractRequest(announce_request): ExtractRequest,
@@ -34,7 +37,10 @@ pub async fn handle_without_key(
 
 /// It handles the `announce` request when the HTTP tracker requires
 /// authentication (PATH `key` parameter required).
-#[allow(clippy::unused_async)]
+#[allow(
+    clippy::unused_async,
+    reason = "Axum router handler keeps an asynchronous signature while delegating shared logic"
+)]
 pub async fn handle_with_key(
     State(state): State<(Arc<AnnounceService>, ServiceBinding)>,
     ExtractRequest(announce_request): ExtractRequest,

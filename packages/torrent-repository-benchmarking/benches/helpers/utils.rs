@@ -16,14 +16,20 @@ pub const DEFAULT_PEER: Peer = Peer {
     event: AnnounceEvent::Started,
 };
 
+/// # Panics
+///
+/// Panics if `size` exceeds `u32::MAX + 1`, because generated info hashes vary only in their four
+/// low-order bytes and would collide.
 #[must_use]
-#[allow(clippy::missing_panics_doc)]
 pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
     let mut result = HashSet::new();
 
     let mut bytes = [0u8; 20];
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "generator intentionally keeps four low-order bytes for test data"
+    )]
     for i in 0..size {
         bytes[0] = (i & 0xFF) as u8;
         bytes[1] = ((i >> 8) & 0xFF) as u8;

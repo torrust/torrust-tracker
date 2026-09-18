@@ -25,15 +25,13 @@ where
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<NumberOfDownloads>) -> bool {
         // todo: load persistent torrent data if provided
 
-        if let Some(entry) = self.torrents.get(info_hash) {
-            entry.upsert_peer(peer)
-        } else {
-            let _unused = self.torrents.insert(*info_hash, Arc::default());
-            match self.torrents.get(info_hash) {
-                Some(entry) => entry.upsert_peer(peer),
-                _ => false,
-            }
-        }
+        self.torrents.get(info_hash).map_or_else(
+            || {
+                let _unused = self.torrents.insert(*info_hash, Arc::default());
+                self.torrents.get(info_hash).is_some_and(|entry| entry.upsert_peer(peer))
+            },
+            |entry| entry.upsert_peer(peer),
+        )
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -60,20 +58,22 @@ where
     }
 
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
-        match pagination {
-            Some(pagination) => self
-                .torrents
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-            None => self
-                .torrents
-                .iter()
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-        }
+        pagination.map_or_else(
+            || {
+                self.torrents
+                    .iter()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+            |pagination| {
+                self.torrents
+                    .iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+        )
     }
 
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) {

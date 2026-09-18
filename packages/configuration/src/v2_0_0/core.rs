@@ -6,7 +6,10 @@ use super::network::Network;
 use crate::v2_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 
-#[allow(clippy::struct_excessive_bools)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "independent public feature switches map directly to the v2 serialized schema"
+)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Core {
     /// Announce policy configuration.

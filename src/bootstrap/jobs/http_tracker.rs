@@ -82,7 +82,10 @@ pub async fn start_job(
     }
 }
 
-#[allow(clippy::async_yields_async)]
+#[allow(
+    clippy::async_yields_async,
+    reason = "startup awaits listener errors before returning the cancellation-aware HTTP runtime future"
+)]
 #[instrument(
     skip(socket, tls, http_tracker_container, form, metadata),
     fields(

@@ -61,7 +61,10 @@ pub enum Error {
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(
+    clippy::redundant_field_names,
+    reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version"
+)]
 #[derive(Constructor, Debug)]
 pub struct Launcher {
     pub bind_to: SocketAddr,
@@ -180,11 +183,17 @@ impl Launcher {
 }
 
 /// A HTTP server instance controller with no HTTP instance running.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the HTTP server stopped state"
+)]
 pub type StoppedHttpServer = HttpServer<Stopped>;
 
 /// A HTTP server instance controller with a running HTTP instance.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the HTTP server running state"
+)]
 pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
@@ -202,7 +211,10 @@ pub type RunningHttpServer = HttpServer<Running>;
 /// > **NOTICE**: if the configurations changes after running the server it will
 /// > reset to the initial value after stopping the server. This struct is not
 /// > intended to persist configurations between runs.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "public type identifies the HTTP server controller among workspace server types"
+)]
 pub struct HttpServer<S> {
     /// The state of the server: `running` or `stopped`.
     pub state: S,

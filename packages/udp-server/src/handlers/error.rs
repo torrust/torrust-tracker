@@ -16,7 +16,10 @@ use zerocopy::byteorder::network_endian::I32;
 use crate::error::Error;
 use crate::event::{Event, UdpRequestKind};
 
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "error dispatch boundary keeps request, server, event, and response inputs explicit"
+)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_error(
     req_kind: Option<UdpRequestKind>,

@@ -110,7 +110,10 @@ async fn wait_for_shutdown_signal() -> &'static str {
     }
 }
 
-#[allow(clippy::print_stderr)]
+#[allow(
+    clippy::print_stderr,
+    reason = "process entry point reports user-facing startup failures on standard error"
+)]
 fn report_startup_failure(error: &app::Error) {
     eprintln!("Tracker startup failed: {error}");
 }

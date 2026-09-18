@@ -72,11 +72,17 @@ pub enum Error {
 }
 
 /// An alias for the `ApiServer` struct with the `Stopped` state.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the REST API server stopped state"
+)]
 pub type StoppedApiServer = ApiServer<Stopped>;
 
 /// An alias for the `ApiServer` struct with the `Running` state.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the REST API server running state"
+)]
 pub type RunningApiServer = ApiServer<Running>;
 
 /// A struct responsible for starting and stopping an API server with a
@@ -84,7 +90,10 @@ pub type RunningApiServer = ApiServer<Running>;
 ///
 /// It's a state machine that can be in one of two
 /// states: `Stopped` or `Running`.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "public type identifies the management REST API server controller"
+)]
 #[derive(Debug, Display)]
 pub struct ApiServer<S>
 where
@@ -237,7 +246,10 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(
+    clippy::redundant_field_names,
+    reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version"
+)]
 #[derive(Constructor, Debug)]
 pub struct Launcher {
     bind_to: SocketAddr,

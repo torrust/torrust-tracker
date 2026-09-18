@@ -8,9 +8,15 @@ use super::super::error::Error;
 /// Trait covering persistence operations for the torrent whitelist.
 // `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
 // futures as must-use and reports the macro expansion as redundant.
-#[allow(clippy::double_must_use)]
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait generates must-use futures that Clippy also infers as must-use"
+)]
 #[async_trait]
-#[allow(clippy::extra_unused_lifetimes)]
+#[allow(
+    clippy::extra_unused_lifetimes,
+    reason = "async_trait generates lifetimes outside workspace control"
+)]
 #[automock]
 pub trait WhitelistStore: Sync + Send {
     /// Loads the whitelisted torrents from the database.

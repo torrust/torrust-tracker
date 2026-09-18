@@ -1,4 +1,8 @@
-#![allow(clippy::print_stderr, clippy::exit)]
+#![allow(
+    clippy::print_stderr,
+    clippy::exit,
+    reason = "tracker checker reports failures and returns explicit process status"
+)]
 
 //! Program to check running trackers.
 use torrust_tracker_console_client::console::clients::checker::app;

@@ -2,7 +2,7 @@
 name: ClippyFixer
 description: Specialized agent for fixing Rust Clippy warnings in the torrust-tracker project. Analyzes clippy output, applies suggested fixes, and creates properly documented commits. Works with the Committer agent to commit fixes.
 argument-hint: Describe the clippy warnings to fix, or provide the output from `linter clippy`.
-tools: [execute, read, search, todo]
+tools: [execute, read, search, edit, todo]
 user-invocable: true
 disable-model-invocation: false
 ---

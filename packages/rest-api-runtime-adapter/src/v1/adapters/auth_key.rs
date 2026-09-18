@@ -84,7 +84,10 @@ fn map_peer_key_error(err: torrust_tracker_core::error::PeerKeyError) -> AuthKey
     }
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "conversion consumes PeerKey fields while building the owned API DTO"
+)]
 #[allow(deprecated)]
 fn peer_key_to_auth_key(peer_key: PeerKey) -> AuthKey {
     match (peer_key.valid_until, peer_key.expiry_time()) {

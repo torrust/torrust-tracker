@@ -105,7 +105,10 @@ pub enum WhitelistError {
 /// This error type covers issues encountered during the handling of peer keys,
 /// including validation of key durations, parsing errors, and database
 /// persistence problems.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "error type identifies the peer-key domain among tracker-core errors"
+)]
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum PeerKeyError {
     /// Returned when the duration specified for the peer key exceeds the

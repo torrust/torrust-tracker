@@ -43,13 +43,13 @@ where
         // todo: load persistent torrent data if provided
 
         let maybe_entry = self.get_torrents().await.get(info_hash).cloned();
+        if let Some(entry) = maybe_entry {
+            return entry.upsert_peer(peer);
+        }
 
-        let entry = if let Some(entry) = maybe_entry {
-            entry
-        } else {
+        let entry = {
             let mut db = self.get_torrents_mut().await;
-            let entry = db.entry(*info_hash).or_insert(Arc::default());
-            entry.clone()
+            db.entry(*info_hash).or_insert_with(Arc::default).clone()
         };
 
         entry.upsert_peer(peer)
@@ -67,15 +67,16 @@ where
     async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
         let db = self.get_torrents().await;
 
-        match pagination {
-            Some(pagination) => db
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|(a, b)| (*a, b.clone()))
-                .collect(),
-            None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        }
+        pagination.map_or_else(
+            || db.iter().map(|(a, b)| (*a, b.clone())).collect(),
+            |pagination| {
+                db.iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|(a, b)| (*a, b.clone()))
+                    .collect()
+            },
+        )
     }
 
     async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
@@ -118,6 +119,10 @@ where
         db.remove(key)
     }
 
+    #[allow(
+        clippy::significant_drop_tightening,
+        reason = "benchmark variant intentionally holds the outer read lock while mutating inner entries"
+    )]
     async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         let db = self.get_torrents().await;
         let entries = db.values().cloned();

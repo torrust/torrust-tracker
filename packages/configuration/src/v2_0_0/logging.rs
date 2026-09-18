@@ -9,7 +9,6 @@ use tracing::level_filters::LevelFilter;
 
 static INIT: Once = Once::new();
 
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Logging {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,

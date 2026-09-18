@@ -12,7 +12,10 @@ use super::metrics::Metrics;
 /// Trait exposing only the UDP core statistics that external consumers need.
 // `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
 // futures as must-use and reports the macro expansion as redundant.
-#[allow(clippy::double_must_use)]
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait generates must-use futures that Clippy also infers as must-use"
+)]
 #[async_trait::async_trait]
 pub trait UdpCoreStatsRepository: Send + Sync {
     async fn get_metrics_collection(&self) -> MetricCollection;

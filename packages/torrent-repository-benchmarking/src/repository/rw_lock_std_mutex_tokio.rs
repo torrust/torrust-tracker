@@ -46,13 +46,10 @@ where
 
         let maybe_entry = self.get_torrents().get(info_hash).cloned();
 
-        let entry = if let Some(entry) = maybe_entry {
-            entry
-        } else {
+        let entry = maybe_entry.unwrap_or_else(|| {
             let mut db = self.get_torrents_mut();
-            let entry = db.entry(*info_hash).or_insert(Arc::default());
-            entry.clone()
-        };
+            db.entry(*info_hash).or_insert_with(Arc::default).clone()
+        });
 
         entry.upsert_peer(peer).await
     }
@@ -73,15 +70,16 @@ where
 
     fn get_paginated(&self, pagination: Option<&Pagination>) -> impl Future<Output = Vec<(InfoHash, EntryMutexTokio)>> + Send {
         let db = self.get_torrents();
-        std::future::ready(match pagination {
-            Some(pagination) => db
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|(a, b)| (*a, b.clone()))
-                .collect(),
-            None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        })
+        std::future::ready(pagination.map_or_else(
+            || db.iter().map(|(a, b)| (*a, b.clone())).collect(),
+            |pagination| {
+                db.iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|(a, b)| (*a, b.clone()))
+                    .collect()
+            },
+        ))
     }
 
     async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
@@ -119,6 +117,8 @@ where
 
             db.insert(*info_hash, entry);
         }
+
+        drop(db);
 
         std::future::ready(())
     }

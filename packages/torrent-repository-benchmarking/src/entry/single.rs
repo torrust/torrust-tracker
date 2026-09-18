@@ -10,7 +10,10 @@ use super::Entry;
 use crate::EntrySingle;
 
 impl Entry for EntrySingle {
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2246 reviews lossless or checked domain conversion boundaries"
+    )]
     fn get_swarm_metadata(&self) -> SwarmMetadata {
         let (seeders, leechers) = self.swarm.seeders_and_leechers();
 

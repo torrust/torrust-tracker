@@ -45,8 +45,14 @@ impl Metrics {
 impl Metrics {
     /// Total number of TCP (HTTP tracker) `announce` requests from IPv4 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn tcp4_announces_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -58,8 +64,14 @@ impl Metrics {
 
     /// Total number of TCP (HTTP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn tcp4_scrapes_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -71,8 +83,14 @@ impl Metrics {
 
     /// Total number of TCP (HTTP tracker) `announce` requests from IPv6 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn tcp6_announces_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -84,8 +102,14 @@ impl Metrics {
 
     /// Total number of TCP (HTTP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn tcp6_scrapes_handled(&self) -> u64 {
         self.metric_collection
             .sum(

@@ -630,7 +630,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_deserialize_an_omitted_database_as_none() {
         figment::Jail::expect_with(|_jail| {
             // Arrange
@@ -670,7 +673,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn configuration_should_deserialize_a_custom_ip_bans_reset_interval() {
         figment::Jail::expect_with(|_jail| {
             let info = Info {
@@ -705,7 +711,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn configuration_should_apply_one_global_connection_id_error_limit_to_multiple_udp_trackers() {
         figment::Jail::expect_with(|_jail| {
             let info = Info {
@@ -745,7 +754,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn configuration_should_reject_a_listener_scoped_connection_id_error_limit() {
         figment::Jail::expect_with(|_jail| {
             let info = Info {
@@ -805,7 +817,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_file() {
         figment::Jail::expect_with(|jail| {
             jail.create_file(
@@ -841,7 +856,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_content() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
@@ -875,7 +893,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
@@ -914,7 +935,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn default_configuration_could_be_overwritten_from_a_toml_config_file() {
         figment::Jail::expect_with(|jail| {
             jail.create_file(
@@ -955,7 +979,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn network_database_configuration_should_not_merge_the_sqlite_default_path() {
         figment::Jail::expect_with(|_jail| {
             for (driver, host, default_port) in [("mysql", "mysql", 3306), ("postgresql", "postgres", 5432)] {
@@ -1006,7 +1033,10 @@ mod tests {
         });
     }
 
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     #[test]
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_an_env_var() {
         figment::Jail::expect_with(|jail| {
@@ -1161,7 +1191,10 @@ mod tests {
         use crate::Info;
         use crate::v3_0_0::Configuration;
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_deserialize_network_settings_from_a_http_tracker_network_block() {
             Jail::expect_with(|jail| {
@@ -1207,7 +1240,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_deserialize_network_settings_from_a_udp_tracker_network_block() {
             Jail::expect_with(|jail| {
@@ -1253,7 +1289,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_use_safe_network_defaults_when_the_network_block_is_omitted() {
             Jail::expect_with(|jail| {
@@ -1297,7 +1336,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_reject_the_removed_core_network_layout() {
             Jail::expect_with(|jail| {
@@ -1332,7 +1374,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_reject_the_removed_flat_tracker_ipv6_v6only_field() {
             Jail::expect_with(|jail| {
@@ -1368,7 +1413,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn it_should_reject_the_removed_flat_udp_tracker_ipv6_v6only_field() {
             Jail::expect_with(|jail| {
@@ -1409,7 +1457,10 @@ mod tests {
         use crate::Info;
         use crate::v3_0_0::Configuration;
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn v3_configuration_should_load_when_schema_version_is_3_0_0() {
             figment::Jail::expect_with(|_jail| {
@@ -1439,7 +1490,10 @@ mod tests {
             });
         }
 
-        #[allow(clippy::result_large_err)]
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
         #[test]
         fn v3_configuration_should_reject_schema_version_2_0_0() {
             figment::Jail::expect_with(|_jail| {

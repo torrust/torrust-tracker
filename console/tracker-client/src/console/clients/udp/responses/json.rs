@@ -3,7 +3,10 @@ use serde::Serialize;
 
 use super::dto::SerializableResponse;
 
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "extension trait names UDP response JSON serialization"
+)]
 pub trait ToJson {
     ///
     /// Returns a string with the JSON serialized version of the response
