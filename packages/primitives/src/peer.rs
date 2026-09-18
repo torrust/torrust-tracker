@@ -499,17 +499,10 @@ pub mod fixture {
     use super::{Id, Peer, PeerId};
     use crate::{AnnounceEvent, NumberOfBytes};
 
-    #[derive(PartialEq, Eq, Debug)]
+    #[derive(PartialEq, Eq, Debug, Default)]
 
     pub struct PeerBuilder {
         peer: Peer,
-    }
-
-    #[allow(clippy::derivable_impls)]
-    impl Default for PeerBuilder {
-        fn default() -> Self {
-            Self { peer: Peer::default() }
-        }
     }
 
     impl PeerBuilder {
