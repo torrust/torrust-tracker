@@ -152,9 +152,9 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - [x] GitHub issue #2158 created and issue number added to this spec
 - [x] Issue-local `clippy-allow-inventory.md` created and completeness checked
 - [x] ClippyFixer has the `edit` tool and its documented commit delegation remains intact
-- [ ] Draft specifications created and approved before every temporary-allow follow-up GitHub issue
-- [ ] Implementation completed and verified
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Draft specifications created and approved before every temporary-allow follow-up GitHub issue
+- [x] Implementation completed and verified
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 
 ### Progress Log
 
@@ -204,20 +204,21 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A235 for the benchmarking crate-level style baseline; removal probe exposed active diagnostics - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Removed A235 by applying behavior-preserving benchmarking repository style and lock-scope fixes - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A236 for a retained swarm statistics collaboration-test gauge conversion - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Completed final #2158 reconciliation: 236 inventory rows, 16 removed entries, 220 active inventory entries, 220 source attributes, and zero Clippy allows without native reasons; `linter all` passed - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
-- [ ] A durable inventory accounts for every Clippy allow in the agreed source roots.
-- [ ] The inventory is stored as `clippy-allow-inventory.md` in this specification folder and
+- [x] A durable inventory accounts for every Clippy allow in the agreed source roots.
+- [x] The inventory is stored as `clippy-allow-inventory.md` in this specification folder and
       identifies its source roots and generation/completeness method.
-- [ ] ClippyFixer declares the `edit` tool and can apply the focused remediation required by an
+- [x] ClippyFixer declares the `edit` tool and can apply the focused remediation required by an
       inventory disposition while Committer retains commit responsibility.
-- [ ] Every retained allow has a nearby specific rationale and a matching inventory decision.
-- [ ] Every temporary allow has a stable removal condition and a linked GitHub follow-up issue
+- [x] Every retained allow has a nearby specific rationale and a matching inventory decision.
+- [x] Every temporary allow has a stable removal condition and a linked GitHub follow-up issue
       created only after its folder-style draft specification was approved.
-- [ ] Every removed allow is accompanied by a focused fix and validation.
-- [ ] The inventory contains no unclassified entries and no blanket exceptions.
-- [ ] `linter all` exits with code `0` and relevant package tests pass.
+- [x] Every removed allow is accompanied by a focused fix and validation.
+- [x] The inventory contains no unclassified entries and no blanket exceptions.
+- [x] `linter all` exits with code `0` and relevant package tests pass.
 
 ## Verification Plan
 
@@ -232,23 +233,23 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 
 | ID  | Scenario                           | Command/Steps                                                                                                           | Expected Result                                                                                            | Status | Evidence               |
 | --- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | ---------------------- |
-| M1  | Compare source and inventory       | Regenerate the source list and compare it with `clippy-allow-inventory.md`.                                             | Every allow has one recorded decision.                                                                     | TODO   | Pending implementation |
-| M2  | Sample retained and removed cases  | Review representative cases from each disposition category.                                                             | Rationale, source, and validation evidence agree.                                                          | TODO   | Pending implementation |
-| M3  | Create a temporary-allow follow-up | Select a temporary entry, draft its folder-style follow-up specification, obtain approval, and create its GitHub issue. | The inventory records the resulting issue number; no GitHub issue is created before its draft is approved. | TODO   | Pending implementation |
-| M4  | Use ClippyFixer for remediation    | Provide a removable or retainable fixture finding to ClippyFixer.                                                       | The agent can edit the focused files, documents the decision, and delegates the commit to Committer.       | TODO   | Pending implementation |
+| M1  | Compare source and inventory       | Regenerate the source list and compare it with `clippy-allow-inventory.md`.                                             | Every allow has one recorded decision.                                                                     | DONE   | Final reconciliation reports 236 inventory rows, 16 removed entries, 220 active entries, and 220 source attributes. |
+| M2  | Sample retained and removed cases  | Review representative cases from each disposition category.                                                             | Rationale, source, and validation evidence agree.                                                          | DONE   | Retained, temporary, and removed evidence tables in `clippy-allow-inventory.md`; `missing_reason 0` scan. |
+| M3  | Create a temporary-allow follow-up | Select a temporary entry, draft its folder-style follow-up specification, obtain approval, and create its GitHub issue. | The inventory records the resulting issue number; no GitHub issue is created before its draft is approved. | DONE   | Numeric follow-ups #2244, #2245, #2246; UDP protocol baseline follow-up #2261. |
+| M4  | Use ClippyFixer for remediation    | Provide a removable or retainable fixture finding to ClippyFixer.                                                       | The agent can edit the focused files, documents the decision, and delegates the commit to Committer.       | DONE   | `.github/agents/clippy-fixer.agent.md` declares `edit`; remediation commits are signed and inventory-tracked. |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence               |
 | ----- | ---------------------- | ---------------------- |
-| AC1   | TODO                   | Pending implementation |
-| AC2   | TODO                   | Pending implementation |
-| AC3   | TODO                   | Pending implementation |
-| AC4   | TODO                   | Pending implementation |
-| AC5   | TODO                   | Pending implementation |
-| AC6   | DONE                   | All 15 direct `Remove` entries are implemented and validated; source allow count reduced from 234 to 219. |
-| AC7   | TODO                   | Pending implementation |
-| AC8   | TODO                   | Pending implementation |
+| AC1   | DONE                   | Final reconciliation reports 236 inventory rows, 16 removed entries, 220 active entries, and 220 source attributes. |
+| AC2   | DONE                   | `clippy-allow-inventory.md` is stored in this issue folder and records scope plus generation/completeness method. |
+| AC3   | DONE                   | `.github/agents/clippy-fixer.agent.md` declares `edit`; signed remediation commits remain separate from agent-profile documentation. |
+| AC4   | DONE                   | Anchored source scan reports `missing_reason 0`; inventory retains matching decisions for all active source attributes. |
+| AC5   | DONE                   | Temporary entries link to approved follow-up issues #2244, #2245, #2246, and #2261. |
+| AC6   | DONE                   | All 16 `Remove` entries are implemented and validated, including current-source reconciliation entry A235. |
+| AC7   | DONE                   | Inventory has 131 `Retain`, 89 `Temporary`, and 16 `Remove` entries; no `Pending` entries remain. |
+| AC8   | DONE                   | `linter all` passed; relevant focused package Clippy/test commands are recorded in `clippy-allow-inventory.md`. |
 
 ## Risks and Trade-offs
 
