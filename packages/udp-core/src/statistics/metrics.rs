@@ -46,8 +46,14 @@ impl Metrics {
 impl Metrics {
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp4_connections_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -59,8 +65,14 @@ impl Metrics {
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp4_announces_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -72,8 +84,14 @@ impl Metrics {
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp4_scrapes_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -85,8 +103,14 @@ impl Metrics {
 
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp6_connections_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -98,8 +122,14 @@ impl Metrics {
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp6_announces_handled(&self) -> u64 {
         self.metric_collection
             .sum(
@@ -111,8 +141,14 @@ impl Metrics {
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_sign_loss,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    )]
     pub fn udp6_scrapes_handled(&self) -> u64 {
         self.metric_collection
             .sum(

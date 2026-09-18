@@ -216,6 +216,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | ------- | --------- | ---------- |
 | A099, A123, A129 | Added native temporary `reason` parameters linking the domain numeric conversion suppressions to #2246. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
+| A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 
 ## Entries
 

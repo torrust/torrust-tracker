@@ -32,7 +32,10 @@ pub async fn handle_event(
     }
 }
 
-#[allow(clippy::cast_precision_loss)]
+#[allow(
+    clippy::cast_precision_loss,
+    reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+)]
 async fn update_metric_for_banned_ips_total(repository: &Repository, ips_banned_total: usize, now: DurationSinceUnixEpoch) {
     match repository
         .set_gauge(

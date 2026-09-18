@@ -331,8 +331,14 @@ mod tests {
         // Verify both labeled metrics
         let stats = repo.get_stats().await;
 
-        #[allow(clippy::cast_sign_loss)]
-        #[allow(clippy::cast_possible_truncation)]
+        #[allow(
+            clippy::cast_sign_loss,
+            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        )]
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        )]
         let udp_avg_connect_processing_time_ns = stats
             .metric_collection
             .sum(
@@ -341,8 +347,14 @@ mod tests {
             )
             .unwrap_or_default() as u64;
 
-        #[allow(clippy::cast_sign_loss)]
-        #[allow(clippy::cast_possible_truncation)]
+        #[allow(
+            clippy::cast_sign_loss,
+            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        )]
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        )]
         let udp_avg_announce_processing_time_ns = stats
             .metric_collection
             .sum(
