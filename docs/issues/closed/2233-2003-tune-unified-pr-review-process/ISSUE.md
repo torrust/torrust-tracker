@@ -17,7 +17,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/agent-review-reports.md
     - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
-    - docs/pr-reviews/pr-2232-review.md
+    - docs/pr-reviews/pr-2232-review/PR-REVIEW.md
     - docs/templates/REVIEW-FINDINGS.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
@@ -48,7 +48,7 @@ Issue #2219 introduced a single author-owned review-processing workflow, immutab
 `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` references, and an audit record for every pull
 request. Its first full use on PR #2232 validated the core design, but produced five durable
 improvements. The motivating findings are recorded in
-`docs/pr-reviews/pr-2232-review.md`; they remain the source evidence for this issue.
+`docs/pr-reviews/pr-2232-review/PR-REVIEW.md`; they remain the source evidence for this issue.
 
 The work is deliberately scoped as a follow-up. It does not revisit deterministic finding
 references, the split audit layout, or GraphQL-first sourcing decided and delivered by #2219.
@@ -117,7 +117,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to the draft EPIC `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
 | T3 | DONE | Preserve retirement obligations | Added a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring a normative-rule inventory with preserved destinations or deliberate drop reasons. Evidence: `review-finding:pr-2232-f6`. |
 | T4 | DONE | Verify rename purity mechanically | Added a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring an explicit comparison base, old/new paths, reviewed expected zero-context patch, and failure-propagating exact comparison. Evidence: `review-finding:pr-2232-f4`. |
-| T5 | DONE | Design tiered model routing | Added `tiered-model-routing-design.md`, separating triage, implementation, and independent verification roles while recording cost, quality, auditability, failure-containment, and portability trade-offs. No agent automation was implemented. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review.md`. |
+| T5 | DONE | Design tiered model routing | Added `tiered-model-routing-design.md`, separating triage, implementation, and independent verification roles while recording cost, quality, auditability, failure-containment, and portability trade-offs. No agent automation was implemented. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review/PR-REVIEW.md`. |
 
 Candidate T4 verification contract:
 
@@ -164,7 +164,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
 ### Progress Log
 
 - 2026-09-16 08:15 UTC - Copilot - Formalized the already-open GitHub issue #2233 from the
-  first-use evidence recorded in `docs/pr-reviews/pr-2232-review.md`.
+  first-use evidence recorded in `docs/pr-reviews/pr-2232-review/PR-REVIEW.md`.
 - 2026-09-16 12:06 UTC - Copilot - PR #2235 merged the reviewed specification into `develop`;
   created the reserved implementation branch `2233-2003-tune-unified-pr-review-process`.
 - 2026-09-16 12:55 UTC - Copilot - Added `code-span-path-case-analysis.md` and
@@ -282,6 +282,6 @@ material design changes, unexpected validation findings, and reusable lessons.
 - Parent EPIC: #2003.
 - Predecessor issue: #2219.
 - Related PR: #2232.
-- First-use audit: `docs/pr-reviews/pr-2232-review.md`.
+- First-use audit: `docs/pr-reviews/pr-2232-review/PR-REVIEW.md`.
 - Motivating findings: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`,
   `review-finding:pr-2232-f6`, and `review-finding:pr-2232-f12`.

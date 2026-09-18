@@ -115,7 +115,7 @@ coordinating the move.
 | T1  | DONE   | Inventory migration candidates    | Recorded 112 flat issue/EPIC specs, 3 refactor plans, 91 PR-review audits, link-repair targets, and batch order.            |
 | T2  | DONE   | Record the ADR                    | Added root ADR 20260918093757 defining classification, migration contract, and consequences.                                |
 | T3  | DONE   | Align templates and workflows     | Updated creation paths, templates, navigation, and filename guidance; retained only historical flat-path references.         |
-| T4  | IN_PROGRESS | Migrate durable record archives | Migrated all 3 refactor plans; PR-review and issue/EPIC archives remain.                                                      |
+| T4  | IN_PROGRESS | Migrate durable record archives | Migrated 3 refactor plans and 91 PR-review audits; issue/EPIC archive migration remains.                                      |
 | T5  | TODO   | Validate folder and link layouts  | Prove new and migrated records use folders, links resolve, and excluded families remain unchanged.                           |
 
 ## Progress Tracking
@@ -141,6 +141,7 @@ coordinating the move.
 - 2026-09-18 - GitHub Copilot - Completed T2. Added root ADR `20260918093757_adopt_folder_style_documentation_artifact_records.md` and registered it in the root ADR index.
 - 2026-09-18 - GitHub Copilot - Completed T3. Updated issue, refactor-plan, and PR-review authoring paths, templates, lifecycle navigation, filename guidance, and live semantic-link conventions. Flat PR-review paths remain only in closed historical records.
 - 2026-09-18 - GitHub Copilot - Started T4. Migrated all three closed refactor plans to `REFACTOR-PLAN.md` record folders and repaired the native-fixture plan's live links and `spec-path` metadata. PR-review and issue/EPIC archive migrations remain.
+- 2026-09-18 - GitHub Copilot - Continued T4. Migrated all 91 PR-review audits to `PR-REVIEW.md` record folders, repaired repository-relative and intra-archive links, and passed the review-audit contract test, Markdown lint, and local-link checks.
 
 ## Acceptance Criteria
 

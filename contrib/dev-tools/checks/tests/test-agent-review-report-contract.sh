@@ -142,7 +142,7 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
     local helper_skill
 
     require_absent_text "${COPILOT_HANDLER}" 'agent-review-reports.md'
-    require_text "${COPILOT_HANDLER}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+    require_text "${COPILOT_HANDLER}" 'docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md'
     require_text "${COPILOT_HANDLER}" 'process-pr-review skill'
     require_wrapped_text "${COPILOT_HANDLER}" 'Do not maintain a parallel Copilot-only audit procedure.'
     require_wrapped_text "${COPILOT_HANDLER}" 'commit-subject citation'
@@ -150,7 +150,7 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
     require_absent_text "${COPILOT_HANDLER}" 'branch SHA'
     require_text "${COPILOT_PROMPT}" 'process PR review skill'
     require_text "${COPILOT_PROMPT}" 'canonical skill exclusively defines audit fields'
-    require_text "${COPILOT_PROMPT}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+    require_text "${COPILOT_PROMPT}" 'docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md'
     require_wrapped_text "${COPILOT_PROMPT}" 'commit-subject citation'
     require_absent_text "${COPILOT_PROMPT}" 'commit SHA'
     require_absent_text "${COPILOT_PROMPT}" 'branch SHA'
@@ -162,7 +162,7 @@ it_should_keep_pr_review_tracking_separate_from_independent_reviews() {
         require_yaml_frontmatter "${compatibility_redirect}"
         require_text "${compatibility_redirect}" 'This compatibility entry point is retained for one release.'
         require_text "${compatibility_redirect}" 'process-pr-review'
-        require_text "${compatibility_redirect}" 'docs/pr-reviews/pr-<PR_NUMBER>-review.md'
+        require_text "${compatibility_redirect}" 'docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md'
         require_absent_text "${compatibility_redirect}" 'docs/copilot-pr-reviews/'
         require_absent_text "${compatibility_redirect}" 'docs/pr-review-feedback/'
     done

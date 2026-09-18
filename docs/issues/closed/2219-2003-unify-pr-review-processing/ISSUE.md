@@ -21,7 +21,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
     - docs/pr-reviews/
     - docs/templates/PR-REVIEW-TEMPLATE.md
-    - docs/pr-reviews/pr-2174-review.md
+    - docs/pr-reviews/pr-2174-review/PR-REVIEW.md
     - contrib/dev-tools/git/hooks/pre-commit.sh
     - docs/skills/semantic-skill-link-convention.md
 ---
@@ -94,7 +94,7 @@ never a precondition: the unified skill must process free-form reviews with the 
 
 Processing the review feedback on PR #2174 (four `CHANGES_REQUESTED` rounds from a maintainer
 plus six Copilot threads) exposed systematic weaknesses. The full experience is recorded in
-`docs/pr-reviews/pr-2174-review.md` and in the consolidated response
+`docs/pr-reviews/pr-2174-review/PR-REVIEW.md` and in the consolidated response
 <https://github.com/torrust/torrust-tracker/pull/2174#issuecomment-5663269593>.
 
 Observed pain points, in decreasing order of cost:
@@ -593,9 +593,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## References
 
 - Motivating PR: <https://github.com/torrust/torrust-tracker/pull/2174>
-- Full pain-point audit: `docs/pr-reviews/pr-2174-review.md`
+- Full pain-point audit: `docs/pr-reviews/pr-2174-review/PR-REVIEW.md`
 - Consolidated review response: <https://github.com/torrust/torrust-tracker/pull/2174#issuecomment-5663269593>
-- Prior mixed-workflow audit: `docs/pr-reviews/pr-2207-review.md`
+- Prior mixed-workflow audit: `docs/pr-reviews/pr-2207-review/PR-REVIEW.md`
 - Current skill: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`
 - Current template: `docs/templates/PR-REVIEW-TEMPLATE.md`
 - Pre-push nightly parity precedent: `contrib/dev-tools/git/hooks/pre-push.sh`

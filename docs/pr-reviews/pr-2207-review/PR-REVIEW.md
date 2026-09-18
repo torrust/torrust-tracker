@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/pr-reviews/pr-2207-copilot-suggestions-legacy.md
+    - docs/pr-reviews/pr-2207-copilot-suggestions-legacy/PR-REVIEW.md
 ---
 
 <!-- cspell:disable -->

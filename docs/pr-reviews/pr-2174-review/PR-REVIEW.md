@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/pr-reviews/pr-2174-copilot-suggestions-legacy.md
+    - docs/pr-reviews/pr-2174-copilot-suggestions-legacy/PR-REVIEW.md
 ---
 
 <!-- cspell:disable -->
@@ -16,7 +16,7 @@ Source: pull-request reviews and inline review comments for <https://github.com/
 ## Purpose
 
 Track Cameron's (`da2ce7`) maintainer reviews independently from the Copilot review-thread audit
-in [pr-2174-copilot-suggestions-legacy.md](pr-2174-copilot-suggestions-legacy.md), which
+in [pr-2174-copilot-suggestions-legacy/PR-REVIEW.md](../pr-2174-copilot-suggestions-legacy/PR-REVIEW.md), which
 completed all six Copilot threads on 2026-09-09. Cameron submitted four `CHANGES_REQUESTED`
 reviews; the recurring formatting blocker and validation-record findings span all four.
 

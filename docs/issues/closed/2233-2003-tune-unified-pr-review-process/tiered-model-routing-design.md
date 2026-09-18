@@ -9,7 +9,7 @@ resolution requirements in `.github/skills/dev/pr-reviews/process-pr-review/SKIL
 ## Source Evidence
 
 The motivating evidence is the deferred automation candidate recorded in
-`docs/pr-reviews/pr-2232-review.md`: use a high-capability model to assess findings against the
+`docs/pr-reviews/pr-2232-review/PR-REVIEW.md`: use a high-capability model to assess findings against the
 current tree, decide disposition, and specify a bounded solution; route that solution to a lower-cost
 implementation model for validation and evidence capture; then independently verify the result
 before resolving the finding.
