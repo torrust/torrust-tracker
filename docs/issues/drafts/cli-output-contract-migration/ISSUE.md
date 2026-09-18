@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/cli-output-contract-migration.md
+spec-path: docs/issues/drafts/cli-output-contract-migration/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-19 20:00
@@ -24,7 +24,7 @@ semantic-links:
 ## Goal
 
 Bring the codebase into compliance with the global CLI output contract defined in
-[ADR 20260519000000](../../adrs/20260519000000_define_global_cli_output_contract.md).
+[ADR 20260519000000](../../../adrs/20260519000000_define_global_cli_output_contract.md).
 Once all non-compliant uses of `print!`, `println!`, `eprint!`, and `eprintln!` are
 resolved, enable `clippy::print_stdout` and `clippy::print_stderr` as workspace-level
 `deny` lints to make the contract a compile-time guarantee.

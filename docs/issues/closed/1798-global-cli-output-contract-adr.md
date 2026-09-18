@@ -295,7 +295,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Decide on shared CLI infrastructure package                                    | Decision: **not an ADR concern** — the ADR references Index `cli-common` as a reference implementation only; start simple; extract common code gradually as project needs arise; no package prescribed by the ADR |
 | T5  | DONE   | Draft the global CLI output contract ADR                                       | File: `docs/adrs/20260519000000_define_global_cli_output_contract.md`; follows ADR template; includes migration policy section; linter passes                                                                     |
 | T6  | DONE   | Mark tracker-client local ADR as superseded; narrow its companion contract doc | Local ADR status changed to `Superseded by 20260519000000`; companion contract doc scope note added                                                                                                               |
-| T7  | DONE   | Define workspace lint guard policy                                             | Decision: defer implementation to follow-up issue `docs/issues/drafts/cli-output-contract-migration.md`; ADR section 8 documents the policy                                                                       |
+| T7  | DONE   | Define workspace lint guard policy                                             | Decision: defer implementation to follow-up issue `docs/issues/drafts/cli-output-contract-migration/ISSUE.md`; ADR section 8 documents the policy                                                                       |
 | T8  | TODO   | Peer-review ADR draft via PR                                                   | Open PR from `1798-global-cli-output-contract-adr` → `develop`; PR review is the acceptance gate; once merged, the ADR is accepted per lifecycle policy (see `docs/adrs/index.md`)                                |
 | T9  | DONE   | Add ADR to `docs/adrs/index.md`                                                | Row added to the index table                                                                                                                                                                                      |
 
@@ -354,7 +354,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   (merged ADRs are implicitly accepted; PR review is the acceptance gate). Added ADR Lifecycle
   section to `docs/adrs/index.md` and `### ADR Status` subsection to `create-adr` skill.
   T7 DONE: workspace lint guard deferred to follow-up draft issue
-  `docs/issues/drafts/cli-output-contract-migration.md` (46 print macro occurrences surveyed;
+  `docs/issues/drafts/cli-output-contract-migration/ISSUE.md` (46 print macro occurrences surveyed;
   9-task migration plan drafted). T8 remains: open PR and get it merged.
 
 ## Acceptance Criteria

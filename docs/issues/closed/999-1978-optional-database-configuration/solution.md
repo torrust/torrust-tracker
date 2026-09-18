@@ -231,7 +231,7 @@ database that fails operationally after startup.
 Issue #2107 implements this disabled-capability response model for the current
 REST API and keeps `http_api` available in persistence-free operation. The
 next-major REST API subissue draft
-`docs/issues/drafts/144-make-rest-api-persistence-aware.md`, under GitHub EPIC
+`docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md`, under GitHub EPIC
 issue #144, retains the completed-metric provenance response-model work.
 
 The same #144 work must make persistence-dependent historical values explicit

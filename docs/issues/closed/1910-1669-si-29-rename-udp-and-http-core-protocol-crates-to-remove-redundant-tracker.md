@@ -188,7 +188,7 @@ Files in `console/tracker-client/src/` — various imports
 | `docs/issues/open/1669-overhaul-packages/EPIC.md`                                 | Many tables, dependency lists, and sections                           |
 | `docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md` | Many section headers referencing crate names                          |
 | `docs/issues/open/1669-overhaul-packages/readme-audit.md`                         | Audit table rows                                                      |
-| `docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`    | References to `torrust-tracker-udp-protocol`                          |
+| `docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`    | References to `torrust-tracker-udp-protocol`                          |
 
 ## Implementation Plan
 

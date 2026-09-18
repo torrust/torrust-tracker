@@ -93,7 +93,7 @@ publishes the root `torrust-tracker` binary crate.
 
 > **Note on `torrust-tracker-client`** (console binary): this package is planned for extraction
 > to a standalone repository (see
-> [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)).
+> [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)).
 > Key points:
 
 1. **All publishable workspace crates are published independently** via `deployment-packages.yaml` whenever a
@@ -209,7 +209,7 @@ The glob `releases/v*` does **not** match `releases/pkg/...` because `*` does no
 
 ### Why This Matters Now
 
-The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
+The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
 is blocked on two unpublished workspace crates:
 
 | Blocker crate                                            | Published? | Can publish after this policy?  |
@@ -279,7 +279,7 @@ Each phase produces its own commit(s).
    - All packages under `packages/*/Cargo.toml` (24 crates)
    - `console/tracker-client/Cargo.toml` — the console binary crate, planned for
      extraction to a standalone repository (see
-     [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
+     [`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
    - `contrib/dev-tools/analysis/workspace-coupling/Cargo.toml` — the workspace
      coupling analysis tool
 2. Set appropriate initial versions for each package:

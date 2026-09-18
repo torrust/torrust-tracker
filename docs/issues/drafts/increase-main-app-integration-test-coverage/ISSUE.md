@@ -4,7 +4,7 @@ issue-type: enhancement
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/increase-main-app-integration-test-coverage.md
+spec-path: docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-07-27 12:00
@@ -200,7 +200,7 @@ Suggested approach:
 ## Related Issues
 
 - [Issue #1419 - Allow multiple integration tests at the main app
-  level](../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure
+  level](../../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure
   foundation
 - [EPIC #1347 - Increase unit testing for workspace
   packages](https://github.com/torrust/torrust-tracker/issues/1347) - Package-level unit test
@@ -210,18 +210,18 @@ Suggested approach:
 
 ### Integration Test Infrastructure
 
-- [tests/AGENTS.md](../../../tests/AGENTS.md) - Guidelines for main-level vs package-level tests
+- [tests/AGENTS.md](../../../../tests/AGENTS.md) - Guidelines for main-level vs package-level tests
 - [tests/scaffold.rs](https://github.com/torrust/torrust-tracker/blob/develop/tests/scaffold.rs) - Preserved global-stats scenario example
 - [tests/metrics/](https://github.com/torrust/torrust-tracker/tree/develop/tests/metrics) - Current focused metrics integration-test targets
 
 ### Testing Strategy Documentation
 
-- [.github/skills/dev/testing/write-unit-test/SKILL.md](../../../.github/skills/dev/testing/write-unit-test/SKILL.md)
+- [.github/skills/dev/testing/write-unit-test/SKILL.md](../../../../.github/skills/dev/testing/write-unit-test/SKILL.md)
   \- Unit testing conventions and Test Desiderata principles
-- [docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md](../../adrs/20260603000000_keep_unit_tests_inside_container_build.md)
+- [docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md](../../../adrs/20260603000000_keep_unit_tests_inside_container_build.md)
   \- ADR documenting the three-layer testing strategy (GHA unit tests, in-container unit tests,
   E2E tests)
-- [packages/e2e-tools/README.md](../../../packages/e2e-tools/README.md) - E2E test runners
+- [packages/e2e-tools/README.md](../../../../packages/e2e-tools/README.md) - E2E test runners
   (`e2e_tests_runner`, `qbittorrent_e2e_runner`)
 
 **Note**: There is currently no comprehensive testing strategy document in `docs/`. Testing

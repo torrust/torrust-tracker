@@ -89,7 +89,7 @@ semantic-links:
 
 ### 2026-09-14 12:10 UTC - Task Reviewer
 
-- Invocation scope: Independent read-only review of the uncommitted C4 repository-controlled stale-link repair slice for issue #2185 in `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`, `docs/issues/drafts/increase-main-app-integration-test-coverage.md`, `ISSUE.md`, and `external-link-baseline.md`.
+- Invocation scope: Independent read-only review of the uncommitted C4 repository-controlled stale-link repair slice for issue #2185 in `docs/adrs/20260620000000_add_ipv6_v6only_config_option.md`, `docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md`, `ISSUE.md`, and `external-link-baseline.md`.
 - Inputs: Scoped uncommitted diff; `torrust/develop` tree; commits `dc449858` and `8151e920`; current `tests/scaffold.rs` and `tests/metrics/` sources; prior issue-local review reports.
 - Evidence: Commit `dc449858` renames the #1671 research document from `docs/issues/open/` to `docs/issues/closed/`; `torrust/develop` contains that archived target. Commit `8151e920` deletes `tests/stats.rs` and `tests/servers/api/contract/stats/mod.rs`; current `torrust/develop` contains `tests/scaffold.rs` and four `tests/metrics/` targets. The repaired ADR and draft contain the three intended replacement destinations. The old URLs remain only as inline-code historical entries in `external-link-baseline.md`, not as active repaired-document links. Exactly the four requested documentation files changed; no online/local Lychee configuration or workflow diff exists, and `git diff --check` passes.
 - Findings:

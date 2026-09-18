@@ -5,7 +5,7 @@ status: draft
 priority: p2
 epic: 144
 github-issue: null
-spec-path: docs/issues/drafts/144-make-rest-api-persistence-aware.md
+spec-path: docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-08-25 00:00

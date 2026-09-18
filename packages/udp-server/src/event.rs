@@ -25,7 +25,7 @@
 //! The existing [`Event::UdpError`] and [`ErrorKind`] predate a general
 //! rejected-request event contract. Do not add ad hoc error variants or reuse
 //! internal error types as new payloads; see the [general error-events
-//! EPIC](../../../docs/issues/drafts/generalize-error-events.md).
+//! EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 use std::fmt;
 use std::time::Duration;
 

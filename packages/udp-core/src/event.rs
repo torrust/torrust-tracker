@@ -11,7 +11,7 @@
 //! for the full rationale, the concrete counter-example, and naming heuristics.
 //!
 //! Error-event coverage is intentionally deferred until the [general
-//! error-events EPIC](../../../docs/issues/drafts/generalize-error-events.md)
+//! error-events EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md)
 //! defines a stable cross-service contract.
 use std::net::{IpAddr, SocketAddr};
 

@@ -21,7 +21,7 @@ use crate::authentication;
 /// This internal composition type is not an event payload: it can expose
 /// implementation details and context that are unsuitable for a stable event
 /// API. See the [general error-events
-/// EPIC](../../../docs/issues/drafts/generalize-error-events.md) before adding
+/// EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md) before adding
 /// error events derived from it.
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum TrackerCoreError {

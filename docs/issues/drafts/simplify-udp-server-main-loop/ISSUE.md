@@ -4,7 +4,7 @@ issue-type: enhancement
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/simplify-udp-server-main-loop.md
+spec-path: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
 branch: "{issue-number}-simplify-udp-server-main-loop"
 related-pr: null
 last-updated-utc: 2026-07-22 00:00

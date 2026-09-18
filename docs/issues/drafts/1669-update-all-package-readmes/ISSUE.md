@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/1669-update-all-package-readmes.md
+spec-path: docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-11
@@ -44,7 +44,7 @@ so that all READMEs are written against the final package names, and **before** 
 subissues (SI-16 through SI-19) so that extracted standalone repositories launch with
 good documentation from day one.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

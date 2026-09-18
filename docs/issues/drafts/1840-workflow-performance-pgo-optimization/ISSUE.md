@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/1840-workflow-performance-pgo-optimization.md
+spec-path: docs/issues/drafts/1840-workflow-performance-pgo-optimization/ISSUE.md
 branch: "{issue-number}-1840-pgo-optimization"
 related-pr: null
 last-updated-utc: 2026-06-03 00:00

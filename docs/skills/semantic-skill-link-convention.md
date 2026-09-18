@@ -37,7 +37,7 @@ Use `issue-spec` only while an issue specification is still a draft. The value m
 the repository-relative path to the draft spec:
 
 ```text
-issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
 ```
 
 When the draft becomes a GitHub issue, replace every corresponding `issue-spec`

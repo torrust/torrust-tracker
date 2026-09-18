@@ -2,7 +2,7 @@
 doc-type: epic
 status: draft
 github-issue: null
-spec-path: docs/issues/drafts/generalize-error-events.md
+spec-path: docs/issues/drafts/generalize-error-events/EPIC.md
 epic-owner: null
 last-updated-utc: 2026-08-19 00:00
 semantic-links:

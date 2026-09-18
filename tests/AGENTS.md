@@ -8,7 +8,7 @@ semantic-links:
       - tests/common/mod.rs
       - src/app.rs
       - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-  issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage.md
+  issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
 ---
 
 # Integration Tests — AI Agent Guidelines
