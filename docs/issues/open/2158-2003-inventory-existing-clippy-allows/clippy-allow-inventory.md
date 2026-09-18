@@ -210,6 +210,12 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
 
+### Temporary Follow-Up Link Evidence
+
+| Entries | Follow-up | Validation |
+| ------- | --------- | ---------- |
+| A099, A123, A129 | Added native temporary `reason` parameters linking the domain numeric conversion suppressions to #2246. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
+
 ## Entries
 
 | ID | Source location | Scope | Lint name(s) | Rationale category | Evidence | Owner | Disposition |
