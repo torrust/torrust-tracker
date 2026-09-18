@@ -5,7 +5,10 @@
 //
 // This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
 // under packages/aquatic-udp-protocol and packages/aquatic-peer-id.
-#![allow(clippy::cast_possible_truncation)]
+#![allow(
+    clippy::cast_possible_truncation,
+    reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
+)]
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::doc_markdown)]
 // `FromBytes` derives for transparent wire types expand to empty helper enums.

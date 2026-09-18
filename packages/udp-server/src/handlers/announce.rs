@@ -129,7 +129,10 @@ fn build_response(
     core_config: &Arc<Core>,
     announce_data: &AnnounceData,
 ) -> Response {
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
+    )]
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {

@@ -198,6 +198,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained benchmark/test-data numeric suppressions - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking domain numeric suppressions to follow-up issue #2246 - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking wire numeric suppressions to follow-up issue #2245 - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
