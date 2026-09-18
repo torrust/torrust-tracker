@@ -866,13 +866,12 @@ mod tests {
                 torrent_guard.clone().into()
             }
 
-            #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for Coordinator {
-                fn into(self) -> TorrentEntryInfo {
-                    TorrentEntryInfo {
-                        swarm_metadata: self.metadata(),
-                        peers: self.peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: self.len(),
+            impl From<Coordinator> for TorrentEntryInfo {
+                fn from(coordinator: Coordinator) -> Self {
+                    Self {
+                        swarm_metadata: coordinator.metadata(),
+                        peers: coordinator.peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: coordinator.len(),
                     }
                 }
             }
