@@ -1,0 +1,3 @@
+# Preserve byte-identical external source snapshots, including upstream whitespace.
+docs/external-snapshots/**/LICENSE.md -whitespace
+docs/external-snapshots/**/SPEC.md -whitespace

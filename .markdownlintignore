@@ -1,1 +1,3 @@
 .tmp/**
+docs/external-snapshots/**/LICENSE.md
+docs/external-snapshots/**/SPEC.md
