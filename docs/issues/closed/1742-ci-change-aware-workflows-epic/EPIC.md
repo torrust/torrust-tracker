@@ -4,7 +4,7 @@ issue-type: epic
 status: done
 priority: p2
 github-issue: 1742
-spec-path: docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+spec-path: docs/issues/closed/1742-ci-change-aware-workflows-epic/EPIC.md
 branch: null
 related-pr: null
 last-updated-utc: null
@@ -42,10 +42,10 @@ The intent is to reduce waste without weakening the safety net for code changes.
 
 The following workflows currently run broadly on `push` and `pull_request` events:
 
-- [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
-- [`.github/workflows/os-compatibility.yaml`](../../../.github/workflows/os-compatibility.yaml)
-- [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
-- [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+- [`.github/workflows/testing.yaml`](../../../../.github/workflows/testing.yaml)
+- [`.github/workflows/os-compatibility.yaml`](../../../../.github/workflows/os-compatibility.yaml)
+- [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
+- [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)
 
 This has two visible effects:
 
@@ -58,7 +58,7 @@ The repository already has adjacent CI optimization work in progress:
 
 - [#1726](https://github.com/torrust/torrust-tracker/issues/1726) is an evidence-driven research
   issue about Rust compilation costs and whether `sccache` should be adopted at all.
-- [#1740](../1740-fix-container-workflow-caching.md) addresses container build cache behavior.
+- [#1740](../../1740-fix-container-workflow-caching.md) addresses container build cache behavior.
 
 That makes this a good time to define a coherent, change-aware CI strategy rather than continuing
 with one-off workflow tweaks.
@@ -79,14 +79,14 @@ Out of scope:
 
 - Rewriting the test matrix.
 - Replacing the current cache strategy wholesale.
-- Container cache optimization already tracked in [#1740](../1740-fix-container-workflow-caching.md).
+- Container cache optimization already tracked in [#1740](../../1740-fix-container-workflow-caching.md).
 
 ## Related Research Track
 
 ### Research `sccache` impact on remaining heavy workflows
 
 - Existing issue: [#1726](https://github.com/torrust/torrust-tracker/issues/1726)
-- Local spec: [docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md](../open/1726-reduce-build-times-sccache/ISSUE.md)
+- Local spec: [docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md](../../open/1726-reduce-build-times-sccache/ISSUE.md)
 - Focus: determine, with benchmarks, whether `sccache` reduces compilation cost for workflows that
   still need to run.
 - Relationship to this EPIC: complementary, but not a blocker. The docs-only fast path and
@@ -180,7 +180,7 @@ integration regressions remain the responsibility of the general testing workflo
 - Related issue: [#1726](https://github.com/torrust/torrust-tracker/issues/1726)
 - Related local spec: [docs/issues/1740-fix-container-workflow-caching.md](./1740-fix-container-workflow-caching.md)
 - Related workflows:
-  - [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
-  - [`.github/workflows/os-compatibility.yaml`](../../../.github/workflows/os-compatibility.yaml)
-  - [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
-  - [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+  - [`.github/workflows/testing.yaml`](../../../../.github/workflows/testing.yaml)
+  - [`.github/workflows/os-compatibility.yaml`](../../../../.github/workflows/os-compatibility.yaml)
+  - [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
+  - [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)

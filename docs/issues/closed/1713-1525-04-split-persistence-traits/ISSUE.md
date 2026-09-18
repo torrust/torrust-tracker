@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1713
-spec-path: docs/issues/closed/1713-1525-04-split-persistence-traits.md
+spec-path: docs/issues/closed/1713-1525-04-split-persistence-traits/ISSUE.md
 branch: 1713-1525-04-split-persistence-traits
 related-pr: null
 last-updated-utc: null

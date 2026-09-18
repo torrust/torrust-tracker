@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1703
-spec-path: docs/issues/closed/1703-1525-01-persistence-test-coverage.md
+spec-path: docs/issues/closed/1703-1525-01-persistence-test-coverage/ISSUE.md
 branch: 1703-1525-01-persistence-test-coverage
 related-pr: null
 last-updated-utc: null

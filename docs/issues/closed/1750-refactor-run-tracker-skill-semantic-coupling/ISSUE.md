@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1750
-spec-path: docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling.md
+spec-path: docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling/ISSUE.md
 branch: 1750-refactor-run-tracker-skill-semantic-coupling
 related-pr: null
 last-updated-utc: null
@@ -20,7 +20,7 @@ semantic-links:
 
 ## Goal
 
-Refactor the skill at [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) to align better with the Agent Skills specification and to reduce documentation drift by introducing explicit, maintainable links between the skill and the repository artifacts it depends on.
+Refactor the skill at [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) to align better with the Agent Skills specification and to reduce documentation drift by introducing explicit, maintainable links between the skill and the repository artifacts it depends on.
 
 ## Motivation
 
@@ -52,10 +52,10 @@ As a consequence:
 
 In scope:
 
-- Refactor [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md).
+- Refactor [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md).
 - Add explicit back-link reminders in artifacts that influence this skill.
 - Define a lightweight semantic-link convention that works across Rust, TOML, and Markdown.
-- Update the meta-skill [`.github/skills/add-new-skill/SKILL.md`](../../../.github/skills/add-new-skill/SKILL.md) so future skills adopt the same pattern.
+- Update the meta-skill [`.github/skills/add-new-skill/SKILL.md`](../../../../.github/skills/add-new-skill/SKILL.md) so future skills adopt the same pattern.
 
 Out of scope:
 
@@ -92,7 +92,7 @@ Agent self-reporting is not sufficient for link integrity or semantic coupling c
 
 ### Task 1: Refactor the target skill structure
 
-- [ ] Restructure [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) to better match Agent Skills best practices:
+- [ ] Restructure [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) to better match Agent Skills best practices:
   - concise core workflow,
   - explicit defaults,
   - gotchas,
@@ -104,10 +104,10 @@ Agent self-reporting is not sufficient for link integrity or semantic coupling c
 
 Add explicit reminder links in artifacts that this skill depends on, using a small structured marker convention (for example: `skill-link: run-tracker-locally`).
 
-- [ ] Add back-link marker in [`src/bootstrap/config.rs`](../../../src/bootstrap/config.rs) near `DEFAULT_PATH_CONFIG`.
-- [ ] Add back-link marker in [`share/default/config/tracker.development.sqlite3.toml`](../../../share/default/config/tracker.development.sqlite3.toml).
-- [ ] Add back-link marker in [`src/lib.rs`](../../../src/lib.rs) where default config behavior is documented.
-- [ ] Add back-link marker in [`README.md`](../../../README.md) where local run/config copy instructions are documented.
+- [ ] Add back-link marker in [`src/bootstrap/config.rs`](../../../../src/bootstrap/config.rs) near `DEFAULT_PATH_CONFIG`.
+- [ ] Add back-link marker in [`share/default/config/tracker.development.sqlite3.toml`](../../../../share/default/config/tracker.development.sqlite3.toml).
+- [ ] Add back-link marker in [`src/lib.rs`](../../../../src/lib.rs) where default config behavior is documented.
+- [ ] Add back-link marker in [`README.md`](../../../../README.md) where local run/config copy instructions are documented.
 
 Notes:
 
@@ -132,7 +132,7 @@ Notes:
 
 ### Task 4: Update the skill-creation meta-skill
 
-- [ ] Update [`.github/skills/add-new-skill/SKILL.md`](../../../.github/skills/add-new-skill/SKILL.md) so new skills include semantic coupling considerations from day one.
+- [ ] Update [`.github/skills/add-new-skill/SKILL.md`](../../../../.github/skills/add-new-skill/SKILL.md) so new skills include semantic coupling considerations from day one.
 - [ ] Add guidance for:
   - declaring critical artifact dependencies,
   - adding backlinks in touched artifacts,
@@ -152,12 +152,12 @@ Notes:
 
 ## Acceptance Criteria
 
-- [ ] [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) is refactored with a concise, maintainable structure.
+- [ ] [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) is refactored with a concise, maintainable structure.
 - [ ] The key dependent artifacts include explicit back-link reminders to `run-tracker-locally`.
 - [ ] A documented minimal semantic-link convention exists and is understandable by contributors.
 - [ ] A canonical document exists for the `skill-link` convention and is referenced from skill-authoring guidance.
 - [ ] A marker catalog exists, starts minimal, and documents how new markers can be added organically.
-- [ ] [`.github/skills/add-new-skill/SKILL.md`](../../../.github/skills/add-new-skill/SKILL.md) includes the new guidance for semantic coupling.
+- [ ] [`.github/skills/add-new-skill/SKILL.md`](../../../../.github/skills/add-new-skill/SKILL.md) includes the new guidance for semantic coupling.
 - [ ] The approach remains lightweight and does not introduce an over-engineered ontology system.
 - [ ] The implementation is submitted as an explicit experimental PR and reviewed by maintainers before any merge decision.
 
@@ -175,5 +175,5 @@ Notes:
 - Optimizing descriptions: <https://agentskills.io/skill-creation/optimizing-descriptions>
 - Evaluating skills: <https://agentskills.io/skill-creation/evaluating-skills>
 - Using scripts: <https://agentskills.io/skill-creation/using-scripts>
-- Target skill: [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md)
-- Meta-skill: [`.github/skills/add-new-skill/SKILL.md`](../../../.github/skills/add-new-skill/SKILL.md)
+- Target skill: [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md)
+- Meta-skill: [`.github/skills/add-new-skill/SKILL.md`](../../../../.github/skills/add-new-skill/SKILL.md)

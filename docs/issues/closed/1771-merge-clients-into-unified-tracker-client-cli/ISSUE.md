@@ -325,7 +325,7 @@ Notes:
 
 - Parent EPIC: <https://github.com/torrust/torrust-tracker/issues/669>
 - GitHub issue: <https://github.com/torrust/torrust-tracker/issues/1771>
-- Spec: [docs/issues/open/669-overhaul-clients.md](../open/669-overhaul-clients.md)
+- Spec: [docs/issues/open/669-overhaul-clients.md](../../open/669-overhaul-clients.md)
 - Original discussion: <https://github.com/torrust/torrust-tracker/discussions/660>
 - HTTP Tracker Client source: `console/tracker-client/src/console/clients/http/`
 - UDP Tracker Client source: `console/tracker-client/src/console/clients/udp/`

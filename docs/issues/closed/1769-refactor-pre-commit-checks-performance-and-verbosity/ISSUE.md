@@ -35,14 +35,14 @@ Improve local commit-time feedback by making pre-commit output concise by defaul
 
 ## Background
 
-Previous pre-commit flow (before this issue) in [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh):
+Previous pre-commit flow (before this issue) in [contrib/dev-tools/git/hooks/pre-commit.sh](../../../../contrib/dev-tools/git/hooks/pre-commit.sh):
 
 1. `cargo machete`
 2. `linter all`
 3. `cargo test --doc --workspace`
 4. `cargo test --tests --benches --examples --workspace --all-targets --all-features`
 
-Current pre-push flow in [contrib/dev-tools/git/hooks/pre-push.sh](../../../contrib/dev-tools/git/hooks/pre-push.sh) already runs comprehensive validation and includes E2E. CI in [.github/workflows/testing.yaml](../../../.github/workflows/testing.yaml) also runs E2E matrix jobs.
+Current pre-push flow in [contrib/dev-tools/git/hooks/pre-push.sh](../../../../contrib/dev-tools/git/hooks/pre-push.sh) already runs comprehensive validation and includes E2E. CI in [.github/workflows/testing.yaml](../../../../.github/workflows/testing.yaml) also runs E2E matrix jobs.
 
 Key finding:
 
@@ -162,7 +162,7 @@ Modes matrix:
 | `text` | `verbose`              | Full streaming command output  |
 | `json` | `concise` or `verbose` | Single JSON document to stdout |
 
-- [x] Add `--format` and `--verbosity` flags to [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh).
+- [x] Add `--format` and `--verbosity` flags to [contrib/dev-tools/git/hooks/pre-commit.sh](../../../../contrib/dev-tools/git/hooks/pre-commit.sh).
 - [x] In concise mode, capture per-step logs and print only:
   - step name, pass/fail, elapsed time
   - log path and a short failure tail when a step fails
@@ -322,8 +322,8 @@ Evaluation note:
 
 ### Task 4: Update workflow docs and skills
 
-- [x] Update [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md) with new behavior and flags.
-- [x] Update references in [AGENTS.md](../../../AGENTS.md) and related skills if command expectations changed.
+- [x] Update [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md) with new behavior and flags.
+- [x] Update references in [AGENTS.md](../../../../AGENTS.md) and related skills if command expectations changed.
 - [x] Add troubleshooting notes for concise vs verbose mode.
 
 ## Implementation Plan
@@ -398,9 +398,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## References
 
-- Pre-commit hook: [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh)
-- Pre-push hook: [contrib/dev-tools/git/hooks/pre-push.sh](../../../contrib/dev-tools/git/hooks/pre-push.sh)
-- CI testing workflow: [.github/workflows/testing.yaml](../../../.github/workflows/testing.yaml)
-- Skill reference: [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md)
+- Pre-commit hook: [contrib/dev-tools/git/hooks/pre-commit.sh](../../../../contrib/dev-tools/git/hooks/pre-commit.sh)
+- Pre-push hook: [contrib/dev-tools/git/hooks/pre-push.sh](../../../../contrib/dev-tools/git/hooks/pre-push.sh)
+- CI testing workflow: [.github/workflows/testing.yaml](../../../../.github/workflows/testing.yaml)
+- Skill reference: [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md)
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1769
-- Related split issue spec: [docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md](../open/1768-refactor-update-dependencies-skill-automation/ISSUE.md)
+- Related split issue spec: [docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md](../../open/1768-refactor-update-dependencies-skill-automation/ISSUE.md)

@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1717
-spec-path: docs/issues/closed/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md
+spec-path: docs/issues/closed/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx/ISSUE.md
 branch: 1525-05-migrate-sqlite-and-mysql-to-sqlx
 related-pr: null
 last-updated-utc: null

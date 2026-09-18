@@ -4,7 +4,7 @@ issue-type: feature
 status: done
 priority: p1
 github-issue: 1723
-spec-path: docs/issues/closed/1723-1525-08-add-postgresql-driver.md
+spec-path: docs/issues/closed/1723-1525-08-add-postgresql-driver/ISSUE.md
 branch: 1525-08-add-postgresql-driver
 related-pr: null
 last-updated-utc: null

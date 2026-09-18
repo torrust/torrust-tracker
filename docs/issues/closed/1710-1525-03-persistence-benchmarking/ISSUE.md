@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1710
-spec-path: docs/issues/closed/1710-1525-03-persistence-benchmarking.md
+spec-path: docs/issues/closed/1710-1525-03-persistence-benchmarking/ISSUE.md
 branch: 1710-1525-03-persistence-benchmarking
 related-pr: null
 last-updated-utc: null

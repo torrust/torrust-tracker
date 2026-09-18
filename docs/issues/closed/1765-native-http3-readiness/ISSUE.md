@@ -56,7 +56,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | TODO   | Test functional correctness                        | Verify announce, scrape, and REST API routes work over HTTP/3.                                |
 | T4  | TODO   | Run performance and resource benchmarks            | Compare direct HTTP/3 vs. proxy-terminated HTTP/3; measure CPU, memory, latency.              |
 | T5  | TODO   | Document results and migration path                | Write findings; identify any code changes or config additions needed.                         |
-| T6  | TODO   | Update deployment docs if native HTTP/3 is enabled | Add native HTTP/3 config examples to [docs/containers.md](../../containers.md) if applicable. |
+| T6  | TODO   | Update deployment docs if native HTTP/3 is enabled | Add native HTTP/3 config examples to [docs/containers.md](../../../containers.md) if applicable. |
 | T7  | TODO   | Run linter and validation checks                   | Ensure all documentation and code changes pass quality gates.                                 |
 
 ## Progress Tracking
@@ -114,4 +114,4 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - Upstream tracking: https://github.com/hyperium/hyper/pull/3925
 - Axum HTTP/3 support: [Axum changelog / roadmap](https://github.com/tokio-rs/axum)
 - Demo HTTP/3 issue: https://github.com/torrust/torrust-tracker-demo/issues/31
-- Related docs: [docs/containers.md](../../containers.md)
+- Related docs: [docs/containers.md](../../../containers.md)

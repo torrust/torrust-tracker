@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1748
-spec-path: docs/issues/closed/1748-remove-redundant-compose-step-from-container-workflow.md
+spec-path: docs/issues/closed/1748-remove-redundant-compose-step-from-container-workflow/ISSUE.md
 branch: 1748-remove-redundant-compose-step-from-container-workflow
 related-pr: null
 last-updated-utc: null
@@ -30,8 +30,8 @@ The `container` workflow still includes a `Compose` step that runs:
 This step no longer provides unique verification value and adds significant CI time.
 
 - GitHub issue: [#1748](https://github.com/torrust/torrust-tracker/issues/1748)
-- Affected workflow: [`.github/workflows/container.yaml`](../../.github/workflows/container.yaml)
-- Related workflow: [`.github/workflows/testing.yaml`](../../.github/workflows/testing.yaml)
+- Affected workflow: [`.github/workflows/container.yaml`](../../../.github/workflows/container.yaml)
+- Related workflow: [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
 
 ## Background
 

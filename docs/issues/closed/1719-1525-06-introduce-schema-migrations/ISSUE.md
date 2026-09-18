@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1719
-spec-path: docs/issues/closed/1719-1525-06-introduce-schema-migrations.md
+spec-path: docs/issues/closed/1719-1525-06-introduce-schema-migrations/ISSUE.md
 branch: 1525-06-introduce-schema-migrations
 related-pr: null
 last-updated-utc: null

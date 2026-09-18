@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1743
-spec-path: docs/issues/closed/1743-docs-only-ci-fast-path.md
+spec-path: docs/issues/closed/1743-docs-only-ci-fast-path/ISSUE.md
 branch: 1743-docs-only-ci-fast-path
 related-pr: null
 last-updated-utc: null
@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+    - docs/issues/closed/1742-ci-change-aware-workflows-epic/EPIC.md
     - .github/workflows/testing.yaml
 ---
 
@@ -27,7 +27,7 @@ requests while still validating documentation quality in CI.
 ## Problem
 
 Documentation changes currently trigger the same expensive workflows as code changes, including
-the `Testing` workflow in [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml).
+the `Testing` workflow in [`.github/workflows/testing.yaml`](../../../../.github/workflows/testing.yaml).
 That workflow runs full-workspace linters, tests, and Docker-based E2E jobs, which is slow and
 unnecessary when a pull request only changes documentation.
 
@@ -118,10 +118,10 @@ prioritize faster workflow execution over preserving the current required-check 
 
 ## References
 
-- Related workflow: [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
-- Related workflow: [`.github/workflows/os-compatibility.yaml`](../../../.github/workflows/os-compatibility.yaml)
-- Related workflow: [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
-- Related workflow: [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+- Related workflow: [`.github/workflows/testing.yaml`](../../../../.github/workflows/testing.yaml)
+- Related workflow: [`.github/workflows/os-compatibility.yaml`](../../../../.github/workflows/os-compatibility.yaml)
+- Related workflow: [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
+- Related workflow: [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)
 - Related EPIC: [docs/issues/1742-ci-change-aware-workflows-epic.md](./1742-ci-change-aware-workflows-epic.md)
 - Related issue: [#1726](https://github.com/torrust/torrust-tracker/issues/1726) (research on
   reducing the cost of workflows that still need to run)

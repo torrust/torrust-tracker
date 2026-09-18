@@ -32,7 +32,7 @@ Additionally, the Rust HTTP ecosystem (Hyper, Axum, Tokio) is still maturing HTT
 
 ### In Scope
 
-- Document in [docs/containers.md](../../containers.md) how to provide HTTP/3 at the proxy edge for tracker HTTP endpoints.
+- Document in [docs/containers.md](../../../containers.md) how to provide HTTP/3 at the proxy edge for tracker HTTP endpoints.
 - Explain protocol boundaries: client → proxy (HTTP/3 optional) vs. proxy → backend (HTTP/1.1/HTTP/2).
 - Include an example Caddy configuration snippet showing UDP 443 (QUIC) enablement.
 - Add operational guidance on monitoring and the optional/reversible nature of HTTP/3 at the edge.
@@ -50,7 +50,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                     | Notes / Expected Output                                             |
 | --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
-| T1  | DONE   | Review current [docs/containers.md](../../containers.md) | Identified placement after socket mapping guidance.                 |
+| T1  | DONE   | Review current [docs/containers.md](../../../containers.md) | Identified placement after socket mapping guidance.                 |
 | T2  | DONE   | Draft HTTP/3 proxy section in containers docs            | Added protocol boundary and reverse proxy deployment pattern.       |
 | T3  | DONE   | Add Caddy example configuration                          | Included Caddy config with `h3` and UDP/TCP 443 publishing example. |
 | T4  | DONE   | Add operational guidance                                 | Added rollout, monitoring, and rollback guidance for edge HTTP/3.   |
@@ -83,7 +83,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [x] AC1: [docs/containers.md](../../containers.md) contains a new section explaining HTTP/3 support via reverse proxy.
+- [x] AC1: [docs/containers.md](../../../containers.md) contains a new section explaining HTTP/3 support via reverse proxy.
 - [x] AC2: Docs clearly explain the protocol boundary between edge (HTTP/3 optional) and backend (HTTP/1.1/HTTP/2).
 - [x] AC3: Example Caddy configuration with UDP 443 (QUIC) is included.
 - [x] AC4: Operational guidance covers monitoring, reversibility, and optional deployment of HTTP/3.

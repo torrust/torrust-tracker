@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p2
 github-issue: 1744
-spec-path: docs/issues/closed/1744-scope-persistence-workflows-by-path.md
+spec-path: docs/issues/closed/1744-scope-persistence-workflows-by-path/ISSUE.md
 branch: 1744-scope-persistence-workflows-by-path
 related-pr: null
 last-updated-utc: null
@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+    - docs/issues/closed/1742-ci-change-aware-workflows-epic/EPIC.md
     - .github/workflows/db-compatibility.yaml
     - .github/workflows/db-benchmarking.yaml
 ---
@@ -29,8 +29,8 @@ database compatibility or persistence benchmarking.
 
 The following workflows currently run broadly on most pull requests:
 
-- [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
-- [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+- [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
+- [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)
 
 Both workflows are persistence-specific. They validate database compatibility and benchmark the
 `bittorrent-tracker-core` persistence layer, but they currently run even when a pull request only
@@ -49,7 +49,7 @@ This issue should intentionally scope the persistence workflows to changes in `t
 because the workflows are validating the persistence implementation directly.
 
 The database compatibility jobs in
-[`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
+[`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
 run `cargo test -p bittorrent-tracker-core ... run_mysql_driver_tests` and
 `run_postgres_driver_tests`. Those tests construct the database drivers and call the persistence
 methods directly against real database instances.
@@ -80,14 +80,14 @@ running persistence workflows for unrelated changes would still be wasteful.
 
 ### Task 2: Restrict the database compatibility workflow
 
-- [ ] Update [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
+- [ ] Update [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
       so it only runs for persistence-relevant changes.
 - [ ] Validate behavior for both MySQL and PostgreSQL jobs.
 - [ ] Confirm that required-check behavior remains mergeable for unrelated pull requests.
 
 ### Task 3: Restrict the persistence benchmarking workflow
 
-- [ ] Update [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+- [ ] Update [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)
       so it only runs for persistence-relevant changes.
 - [ ] Ensure the path policy stays aligned with the compatibility workflow.
 - [ ] Confirm that unrelated pull requests no longer trigger the benchmarking workflow.
@@ -109,8 +109,8 @@ running persistence workflows for unrelated changes would still be wasteful.
 
 ## References
 
-- Related workflow: [`.github/workflows/db-compatibility.yaml`](../../../.github/workflows/db-compatibility.yaml)
-- Related workflow: [`.github/workflows/db-benchmarking.yaml`](../../../.github/workflows/db-benchmarking.yaml)
+- Related workflow: [`.github/workflows/db-compatibility.yaml`](../../../../.github/workflows/db-compatibility.yaml)
+- Related workflow: [`.github/workflows/db-benchmarking.yaml`](../../../../.github/workflows/db-benchmarking.yaml)
 - Related EPIC: [docs/issues/1742-ci-change-aware-workflows-epic.md](./1742-ci-change-aware-workflows-epic.md)
 - Related issue: [#1726](https://github.com/torrust/torrust-tracker/issues/1726) (complementary
   build-time research, not a blocker for this change)

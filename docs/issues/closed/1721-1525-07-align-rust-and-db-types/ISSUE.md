@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1721
-spec-path: docs/issues/closed/1721-1525-07-align-rust-and-db-types.md
+spec-path: docs/issues/closed/1721-1525-07-align-rust-and-db-types/ISSUE.md
 branch: 1721-1525-07-align-rust-and-db-types
 related-pr: null
 last-updated-utc: null

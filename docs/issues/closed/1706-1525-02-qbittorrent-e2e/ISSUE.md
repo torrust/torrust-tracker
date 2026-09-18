@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1706
-spec-path: docs/issues/closed/1706-1525-02-qbittorrent-e2e.md
+spec-path: docs/issues/closed/1706-1525-02-qbittorrent-e2e/ISSUE.md
 branch: 1706-1525-02-qbittorrent-e2e
 related-pr: null
 last-updated-utc: null
