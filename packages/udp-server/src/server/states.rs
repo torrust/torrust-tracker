@@ -30,11 +30,17 @@ use crate::server::bound_socket::BoundSocket;
 use crate::server::launcher::Launcher;
 
 /// A UDP server instance controller with no UDP instance running.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the UDP server stopped state"
+)]
 pub type StoppedUdpServer = Server<Stopped>;
 
 /// A UDP server instance controller with a running UDP instance.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the UDP server running state"
+)]
 pub type RunningUdpServer = Server<Running>;
 
 /// A stopped UDP server state.

@@ -27,7 +27,10 @@ pub trait Repository<T>: Debug + Default + Sized + 'static {
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata>;
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "benchmark trait distinguishes the asynchronous repository abstraction"
+)]
 pub trait RepositoryAsync<T>: Debug + Default + Sized + 'static {
     fn get(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
     fn get_metrics(&self) -> impl std::future::Future<Output = AggregateActiveSwarmMetadata> + Send;

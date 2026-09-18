@@ -183,11 +183,17 @@ impl Launcher {
 }
 
 /// A HTTP server instance controller with no HTTP instance running.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the HTTP server stopped state"
+)]
 pub type StoppedHttpServer = HttpServer<Stopped>;
 
 /// A HTTP server instance controller with a running HTTP instance.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "type alias distinguishes the HTTP server running state"
+)]
 pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
@@ -205,7 +211,10 @@ pub type RunningHttpServer = HttpServer<Running>;
 /// > **NOTICE**: if the configurations changes after running the server it will
 /// > reset to the initial value after stopping the server. This struct is not
 /// > intended to persist configurations between runs.
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "public type identifies the HTTP server controller among workspace server types"
+)]
 pub struct HttpServer<S> {
     /// The state of the server: `running` or `stopped`.
     pub state: S,

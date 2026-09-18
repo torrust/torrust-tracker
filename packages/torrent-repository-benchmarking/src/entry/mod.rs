@@ -50,7 +50,10 @@ pub trait Entry {
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch);
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "benchmark trait distinguishes the synchronous entry abstraction"
+)]
 pub trait EntrySync {
     fn get_swarm_metadata(&self) -> SwarmMetadata;
     fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool;
@@ -62,7 +65,10 @@ pub trait EntrySync {
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch);
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "benchmark trait distinguishes the asynchronous entry abstraction"
+)]
 pub trait EntryAsync {
     fn get_swarm_metadata(&self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
     fn meets_retaining_policy(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
