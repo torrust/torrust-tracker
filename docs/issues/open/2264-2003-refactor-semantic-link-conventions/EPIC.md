@@ -565,7 +565,7 @@ For each completed subissue, the default completion policy is:
   open-state metadata plus live references updated
 - [x] Subissue drafts renamed with EPIC #2264 and their `epic` fields set
 - [x] Planning/evidence PR branch recorded where the document profile supports `branch`
-- [ ] Planning/evidence PR number recorded in issue-spec `related-pr` fields after opening
+- [x] Planning/evidence PR #2269 recorded in issue-spec `related-pr` fields
 - [ ] Planning/evidence PR merged into `develop`
 - [ ] Remaining subissues created and linked in this spec as each phase starts
 - [ ] Subissue statuses kept up to date in the `Progressive Subissues` table

@@ -157,7 +157,7 @@ Commits for each independently reviewed change set.
 - [x] GitHub issue #2265 created and linked as a sub-issue of #2264
 - [x] Specification folder moved to `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
   and open-state metadata plus live references updated
-- [ ] Planning/evidence PR opened and `related-pr` updated
+- [x] Planning/evidence PR #2269 opened and `related-pr` updated
 - [ ] Planning/evidence PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed
@@ -177,6 +177,8 @@ Commits for each independently reviewed change set.
   severity, and contract versioning to the deliverables - This specification
 - 2026-09-18 12:50 UTC - GitHub Operator - Created issue #2265 as a native child of #2264 and
   promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2265
+- 2026-09-18 15:25 UTC - GitHub Copilot - Opened spec-only PR #2269 and recorded it in frontmatter -
+  https://github.com/torrust/torrust-tracker/pull/2269
 
 ## Acceptance Criteria
 
