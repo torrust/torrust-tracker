@@ -13,8 +13,9 @@ match at the line start excludes attribute-shaped fixture text embedded in strin
 Completeness method: rerun the anchored scan and compare its `path:line` keys with the **Source
 location** column below. Each row represents one allow attribute; the **Lint name(s)** column lists
 every Clippy lint named by that attribute. The initial scan found 234 attributes containing 244 lint allowances.
-Direct-removal remediation is being tracked below; final source-location reconciliation remains part
-of #2158's T6 validation pass.
+After direct-removal remediation, the anchored scan finds 219 remaining attributes, matching the
+original 234 rows minus the 15 entries classified as **Remove**. Final source-location
+reconciliation remains part of #2158's T6 validation pass.
 
 This inventory contains all 234 source locations from the initial scan. Classification and
 remediation remain separate work; an entry marked **Pending** is recorded but not yet decided.
