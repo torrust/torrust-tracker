@@ -8,7 +8,7 @@ github-issue: 2233
 spec-path: docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
 branch: "2233-2003-tune-unified-pr-review-process"
 related-pr: 2237
-last-updated-utc: 2026-09-16 16:33
+last-updated-utc: 2026-09-18 12:50
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/implementation-retrospective.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/manual-verification-evidence.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
-    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
+    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh
@@ -90,7 +90,7 @@ T2 originally proposed repository-maintenance tooling invoked by the pre-commit 
 step. The case inventory showed that strict Markdown code-span path enforcement depends on a
 broader convention decision about semantic links, path references, historical records, examples,
 and typed validation. This issue therefore records the evidence and defers enforcement design to
-`docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`.
+`docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`.
 
 If a later issue implements a path-reference checker, its responsibilities and ownership boundaries
 should be:
@@ -114,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Align reviewer-side guidance | Updated the `review-pr` skill and associated advisory template with `[<Severity>][<FindingId>] <summary>`, `Blocker`, `Major`, `Minor`, `Nit`, and `Suggestion`; one-finding-per-thread, re-raise, current-head, and `N/A` conventions validated with Markdown, spelling, link, and review-contract checks. Evidence: `review-finding:pr-2232-f12`. |
-| T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to the draft EPIC `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
+| T2 | DONE | Analyze Markdown code-span path cases | Added issue-local case analysis and a complete TSV inventory. Strict validation is deferred to EPIC #2264 at `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`, because path-reference syntax and semantic-link conventions need a broader design before enforcement. Evidence: `review-finding:pr-2232-f4`, `review-finding:pr-2232-f5`. |
 | T3 | DONE | Preserve retirement obligations | Added a `Retiring or Replacing Review Workflow Documents` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring a normative-rule inventory with preserved destinations or deliberate drop reasons. Evidence: `review-finding:pr-2232-f6`. |
 | T4 | DONE | Verify rename purity mechanically | Added a `Rename Migration Verification` section to `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` requiring an explicit comparison base, old/new paths, reviewed expected zero-context patch, and failure-propagating exact comparison. Evidence: `review-finding:pr-2232-f4`. |
 | T5 | DONE | Design tiered model routing | Added `tiered-model-routing-design.md`, separating triage, implementation, and independent verification roles while recording cost, quality, auditability, failure-containment, and portability trade-offs. No agent automation was implemented. Evidence: deferred automation candidate in `docs/pr-reviews/pr-2232-review/PR-REVIEW.md`. |
@@ -171,7 +171,7 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   `code-span-path-case-inventory.tsv` with all observed non-resolving Markdown code-span path
   cases, grouped for later policy analysis.
 - 2026-09-16 13:13 UTC - Copilot - Created draft EPIC
-  `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md` and deferred strict T2 path
+  `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` and deferred strict T2 path
   validation to that broader frontmatter, semantic-link, and path-reference convention design.
 - 2026-09-16 14:28 UTC - Copilot - Added retirement-obligation and rename-purity rules to
   `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, completing T3 and T4.

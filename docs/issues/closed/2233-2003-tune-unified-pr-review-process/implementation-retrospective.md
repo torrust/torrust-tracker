@@ -6,7 +6,7 @@ semantic-links:
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
+    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 ---
 
 # Implementation Retrospective - Issue #2233
