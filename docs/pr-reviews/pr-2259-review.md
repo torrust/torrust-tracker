@@ -317,7 +317,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added A240 for the torrent cleanup job `#[expect]`, widened the inventory method and acceptance text to cover `allow` and `expect`, and refreshed final counts.
 - Current-tree verification: `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings`, `linter markdown`, `linter cspell`, and the allow/expect reconciliation script passed.
 - Resolution reference: `docs(clippy): reconcile expect suppression inventory`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046680658>
 
 ## Processing Log
 
@@ -340,6 +340,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-18 12:11 UTC - `check-thread-reply-status.sh` reported 5 total unresolved threads, 5 with replies, and 0 without replies.
 - 2026-09-18 12:11 UTC - Resolved all five replied Cameron review threads.
 - 2026-09-18 12:16 UTC - Fetched Cameron re-raise F8 for the missing `#[expect]` inventory row and updated the inventory with A240.
+- 2026-09-18 12:23 UTC - Replied to and resolved Cameron re-raise F8 after `docs(clippy): reconcile expect suppression inventory`.
 
 ## Completion Rules
 
