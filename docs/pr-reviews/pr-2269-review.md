@@ -5,9 +5,9 @@ semantic-links:
   related-artifacts:
     - .gitattributes
     - docs/external-snapshots/README.md
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
-    - docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
-    - docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
+    - issue #2264
+    - issue #2265
+    - issue #2266
 ---
 
 # PR #2269 Review Audit
@@ -38,6 +38,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | `review-finding:pr-2269-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | NO_ACTION | RESOLVED |
 | F2 | `review-finding:pr-2269-f2` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2269-f3` | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F4 | `review-finding:pr-2269-f4` | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2269-f7` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2269-f8` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2269-f9` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2269-f10` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2269-f11` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -89,6 +95,87 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: This audit's documented `NO_ACTION` disposition.
 - Reply URL: N/A; submitted-review warning has no resolvable thread.
 
+### F4 - Exclude snapshots from hosted link checks
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610567>
+- Concern: The scheduled online Lychee workflow uses `.github/lychee-online.toml`, so the local-only
+  snapshot exclusion did not prevent hosted checks from scanning immutable upstream files.
+- Solution: Added the same `LICENSE.md`/`SPEC.md` snapshot path exclusion to the online Lychee
+  configuration.
+- Current-tree verification: `linter toml` passes. Directly running `lychee --config
+  .github/lychee-online.toml` with both snapshot paths reports zero input files, zero links, and no
+  errors.
+- Resolution reference: `fix(docs): exclude snapshots from online link checks`
+- Reply URL: Pending
+
+### F7 - Use stable issue references from the child EPIC
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610834>
+- Concern: EPIC #2264 linked the movable #2185 and #2233 issue-spec paths from long-lived
+  frontmatter.
+- Solution: Replaced those two issue-spec paths with `issue #2185` and `issue #2233`; retained the
+  concrete evidence-file paths.
+- Current-tree verification: EPIC #2264 frontmatter contains the two stable issue references and
+  still contains the #2185/#2233 evidence paths.
+- Resolution reference: `fix(docs): use stable issue references in metadata`
+- Reply URL: Pending
+
+### F8 - Use stable issue references from #2233 records
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610694>
+- Concern: Closed issue #2233 linked EPIC #2264 through its movable open-spec path.
+- Solution: Replaced the EPIC path with `issue #2264` in the issue frontmatter and in the matching
+  implementation-retrospective frontmatter. Body navigation remains a concrete current path.
+- Current-tree verification: Both #2233 frontmatter blocks contain `issue #2264`; neither contains
+  the EPIC's open-spec path.
+- Resolution reference: `fix(docs): use stable issue references in metadata`
+- Reply URL: Pending
+
+### F9 - Use stable issue references from #2185 records
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610635>
+- Concern: Closed issue #2185 linked EPIC #2264 through its movable open-spec path.
+- Solution: Replaced the EPIC path with `issue #2264` in the issue frontmatter and the matching
+  agent-review-report frontmatter. The issue-local residual-evidence path remains concrete.
+- Current-tree verification: Both #2185 frontmatter blocks contain `issue #2264`; neither contains
+  the EPIC's open-spec path.
+- Resolution reference: `fix(docs): use stable issue references in metadata`
+- Reply URL: Pending
+
+### F10 - Use a stable child reference from EPIC #2003
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610772>
+- Concern: Parent EPIC #2003 linked child EPIC #2264 through its movable open-spec path.
+- Solution: Replaced the frontmatter path with `issue #2264`. Applied the same invariant to the
+  child specs: #2265 references parent `issue #2264`, and #2266 references `issue #2264` and
+  predecessor `issue #2265`. Body tables retain navigable current paths.
+- Current-tree verification: The affected frontmatter blocks contain stable issue references and
+  no lifecycle-sensitive #2264/#2265 spec paths.
+- Resolution reference: `fix(docs): use stable issue references in metadata`
+- Reply URL: Pending
+
+### F11 - Use stable issue references from the audit
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048610900>
+- Concern: This long-lived audit linked #2264–#2266 through movable open-spec paths.
+- Solution: Replaced all three paths with `issue #2264`, `issue #2265`, and `issue #2266`.
+- Current-tree verification: This audit's `related-artifacts` contains all three stable issue
+  references and no #2264–#2266 spec path.
+- Resolution reference: This audit update.
+- Reply URL: Pending
+
 ## Processing Log
 
 - 2026-09-18 15:38 UTC - Copilot submitted review 5249647686 with one inline
@@ -100,6 +187,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-18 16:00 UTC - Pushed `fix(docs): preserve snapshot line endings`, replied to the inline
   thread, verified reply presence, and resolved thread `PRRT_kwDOGp2yqc6jzFXj`.
 - 2026-09-18 16:01 UTC - Recorded all findings and dispositions in this audit.
+- 2026-09-18 16:27 UTC - Copilot submitted review 5250123822 with six inline findings.
+- 2026-09-18 16:55 UTC - Rebased onto `torrust/develop` at `fde6833c`; the folder-style artifact
+  migration replayed without conflicts.
+- 2026-09-18 17:05 UTC - Added the hosted snapshot exclusion and replaced lifecycle-sensitive
+  issue-spec paths in current frontmatter with stable issue references.
 
 ## Completion Rules
 
