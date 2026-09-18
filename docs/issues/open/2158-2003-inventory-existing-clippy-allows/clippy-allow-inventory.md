@@ -17,9 +17,11 @@ After direct-removal remediation, the anchored scan finds 219 remaining attribut
 original 234 rows minus the 15 entries classified as **Remove**. Final source-location
 reconciliation remains part of #2158's T6 validation pass.
 
-Current-source reconciliation found one additional maintained-source attribute that was not present
-in the recovered 2026-09-15 inventory: A235. It was removed in #2158 after a focused repair of the
-benchmarking repository style and lock-scope diagnostics it exposed.
+Current-source reconciliation found two additional maintained-source attributes that were not
+present in the recovered 2026-09-15 inventory: A235 and A236. A235 was removed in #2158 after a
+focused repair of the benchmarking repository style and lock-scope diagnostics it exposed. A236 is
+retained with an existing native reason because it converts a small non-negative collaboration-test
+gauge value back to `usize` for assertions.
 
 This inventory contains all 234 source locations from the initial scan. Classification and
 remediation remain separate work; an entry marked **Pending** is recorded but not yet decided.
@@ -213,6 +215,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A107, A110, A126, A132, A134, A136, A138 | Added native `reason` parameters for retained compatibility and API-shape suppressions. | `cargo clippy -p torrust-tracker-rest-api-client -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-client-lib -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
+| A236 | Reconciled a current-source collaboration-test gauge conversion already carrying a native retained reason. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
 
 ### Temporary Follow-Up Link Evidence
 
@@ -463,3 +466,4 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A233 | `console/tracker-client/src/console/clients/udp/responses/json.rs:5` | item | `module_name_repetitions` | Serialization extension trait | `ToJson` is the serialization extension-trait name in the UDP response JSON module | #2158 | Retain |
 | A234 | `console/tracker-client/src/lib.rs:5` | crate | `print_stdout`, `print_stderr` | Shared console output contract | Library modules implement terminal output invoked by the console binary targets | #2158 | Retain |
 | A235 | `packages/torrent-repository-benchmarking/src/lib.rs:1` | crate | `option_if_let_else`, `or_fun_call`, `significant_drop_tightening`, `iter_with_drain` | Current-source benchmarking style baseline | Removed the crate-level baseline by applying Clippy style fixes and tightening lock/drop scopes across benchmark repository implementations | #2158 | Remove |
+| A236 | `packages/swarm-coordination-registry/src/statistics/mod.rs:207` | item | `cast_possible_truncation`, `cast_sign_loss` | Collaboration-test gauge assertion | Existing native reason: the gauge is set from a small non-negative peer count | #2158 | Retain |
