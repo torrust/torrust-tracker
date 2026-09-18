@@ -29,7 +29,7 @@ use crate::v1::responses::announce::data::{AnnounceData, Peer};
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(clippy::redundant_field_names, reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version")]
 #[derive(Debug, AsRef, PartialEq, Eq, Constructor)]
 pub struct Announce<E>
 where

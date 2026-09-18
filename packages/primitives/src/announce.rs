@@ -12,7 +12,7 @@ use crate::swarm_metadata::SwarmMetadata;
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(clippy::redundant_field_names, reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version")]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor)]
 pub struct AnnouncePolicy {
     /// Interval in seconds that the client should wait between sending regular
@@ -84,7 +84,7 @@ impl AnnouncePolicy {
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
-#[allow(clippy::redundant_field_names)]
+#[allow(clippy::redundant_field_names, reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version")]
 #[derive(Clone, Debug, PartialEq, Eq, Constructor, Default)]
 pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
