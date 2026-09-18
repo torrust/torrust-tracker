@@ -108,7 +108,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   .github/lychee-online.toml` with both snapshot paths reports zero input files, zero links, and no
   errors.
 - Resolution reference: `fix(docs): exclude snapshots from online link checks`
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022278>
 
 ### F7 - Use stable issue references from the child EPIC
 
@@ -122,7 +122,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: EPIC #2264 frontmatter contains the two stable issue references and
   still contains the #2185/#2233 evidence paths.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022540>
 
 ### F8 - Use stable issue references from #2233 records
 
@@ -135,7 +135,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both #2233 frontmatter blocks contain `issue #2264`; neither contains
   the EPIC's open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022961>
 
 ### F9 - Use stable issue references from #2185 records
 
@@ -148,7 +148,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both #2185 frontmatter blocks contain `issue #2264`; neither contains
   the EPIC's open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023403>
 
 ### F10 - Use a stable child reference from EPIC #2003
 
@@ -162,7 +162,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The affected frontmatter blocks contain stable issue references and
   no lifecycle-sensitive #2264/#2265 spec paths.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023662>
 
 ### F11 - Use stable issue references from the audit
 
@@ -174,7 +174,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: This audit's `related-artifacts` contains all three stable issue
   references and no #2264–#2266 spec path.
 - Resolution reference: This audit update.
-- Reply URL: Pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023879>
 
 ## Processing Log
 
@@ -192,6 +192,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   migration replayed without conflicts.
 - 2026-09-18 17:05 UTC - Added the hosted snapshot exclusion and replaced lifecycle-sensitive
   issue-spec paths in current frontmatter with stable issue references.
+- 2026-09-18 17:15 UTC - Pushed the review fixes, replied to all six threads, verified reply
+  presence, and resolved every second-round thread.
 
 ## Completion Rules
 
