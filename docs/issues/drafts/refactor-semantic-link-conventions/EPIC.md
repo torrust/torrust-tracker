@@ -4,12 +4,13 @@ status: draft
 github-issue: null
 spec-path: docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-18 08:05
+last-updated-utc: 2026-09-18 08:45
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
+    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
@@ -107,6 +108,9 @@ noise without improving understanding.
 - Decide how typed semantic links differ from ordinary path references in prose.
 - Decide whether path references need their own explicit syntax and validator separate from semantic
   links.
+- Coordinate validator implementation boundaries with EPIC #2003 before choosing whether
+  frontmatter, semantic-link, or path-reference validators live in standalone scripts, dedicated
+  Rust binaries, or a future unified AI-harness application.
 - Define progressive migration and validation subissues.
 - Preserve compatibility rules for existing documents during migration.
 
@@ -117,6 +121,8 @@ noise without improving understanding.
 - Rewriting historical records only to satisfy new syntax.
 - Replacing Lychee as the validator for normal Markdown links.
 - Requiring every prose path mention to become a semantic link.
+- Selecting the long-term AI-harness architecture, command surface, cache model, or division between
+  guardrail checks and repository-mutating actions; those decisions belong to EPIC #2003.
 
 ## Proposed Convention Split
 
@@ -126,7 +132,7 @@ The EPIC should decide final names and locations, but this starting split separa
 | ---- | ----------------------- | ---------------- |
 | Frontmatter metadata | Document types, required fields, lifecycle statuses, version fields, schemas, and validation expectations. | `docs/conventions/frontmatter-metadata.md` |
 | Semantic links | Typed relationships between project concepts, with relation names, target types, and graph semantics. | `docs/conventions/semantic-links.md` |
-| Typed model and validators | Rust types or another schema source of truth for document metadata, semantic-link targets, relations, parsing, diagnostics, and staged enforcement. | `contrib/dev-tools/checks/` or a dedicated package, to be decided |
+| Typed model and validators | Rust types or another schema source of truth for document metadata, semantic-link targets, relations, parsing, diagnostics, and staged enforcement. Validator placement must remain compatible with EPIC #2003's automation design. | `contrib/dev-tools/checks/`, a dedicated package, or a future AI-harness component, to be decided |
 | Path references | Syntax and validation rules for machine-checkable repository paths in prose, distinct from ordinary Markdown links. | `docs/conventions/path-references.md` |
 | Marker placement | Language-specific syntax for comments, frontmatter, and inline markers outside Markdown. | `docs/conventions/reference-placement.md` |
 | Migration policy | Versioning, compatibility windows, staged validation, and historical-document handling. | `docs/conventions/convention-migrations.md` |
@@ -206,6 +212,23 @@ rust-module:torrust_tracker_udp_core::services::banning
 The EPIC should not adopt this syntax without comparing it against existing repository conventions
 and parser complexity.
 
+## Relationship to EPIC #2003
+
+This EPIC may produce deterministic validators for Markdown frontmatter, semantic links, and typed
+path references. Those validators are checks in the terminology of
+[EPIC #2003](../../open/2003-overhaul-guardrails-and-automation/EPIC.md): they should be read-only by
+default, return stable diagnostics, and be callable from local hooks, CI, and agent workflows.
+
+Their implementation may eventually belong in the same Rust application or shared libraries as the
+AI harness proposed by #2003, but this EPIC should not decide that architecture by accident. The
+convention work should specify the data model, validation semantics, rollout stages, and diagnostics
+well enough that #2003 can later choose the execution surface.
+
+The boundary matters because #2003 also covers repository actions such as dependency updates and
+completed-issue cleanup. Frontmatter and semantic-link validation may share parsing, repository
+discovery, JSONL/NDJSON reporting, and configuration loading with those actions, but it must remain
+clear which commands are read-only checks and which commands mutate the repository.
+
 ## Progressive Subissues
 
 | ID | Draft subissue | Expected output |
@@ -223,6 +246,7 @@ and parser complexity.
 | S11 | Review `docs/skills/` ownership | Decide whether convention documents should move from `docs/skills/` to a broader folder such as `docs/conventions/`. |
 | S12 | Plan staged migration | Define ordering, branch strategy, compatibility windows, and no-rewrite rules for historical records. |
 | S13 | Classify external-link importance and checker limitations | Using the #2185 handoff below, decide how the advisory online check should treat license boilerplate, background reading, bot-protected hosts, TLS-incompatible hosts, and critical unstable references whose important contents may need an in-repository copy or distilled context for agents and maintainers. Decide whether link importance belongs in the typed model. |
+| S14 | Coordinate validator placement with EPIC #2003 | Decide which outputs from S5, S8, and S10 are convention-owned validation semantics and which implementation choices must be deferred to EPIC #2003's automation and AI-harness architecture decision. |
 
 ## Relationship to Issue #2233
 
@@ -321,6 +345,14 @@ annotation, or a different checker configuration; the EPIC does not presume whic
 - Which OKF principles should be copied directly, adapted, or rejected for a repository whose
   knowledge graph includes code, issues, review findings, ADRs, commits, and Markdown sections?
 - Which references preserve design theory and intent, and which are only local navigation aids?
+- Should frontmatter, semantic-link, and path-reference validators be standalone scripts, dedicated
+  Rust binaries, library code consumed by a future AI harness, or subcommands of a unified
+  repository automation application?
+- If a unified AI harness is built, should it contain only read-only sensors and guardrail checks
+  used by pre-commit, pre-push, CI, and agent review, or should it also expose repository actions
+  such as dependency updates and completed-issue cleanup?
+- Which validation semantics must be decided here, and which execution, caching, output, and
+  migration choices should be deferred to EPIC #2003?
 - Should link importance (owned dependency, citation, background reading, license boilerplate) be
   expressed in the typed model, in prose policy, or only in checker configuration?
 - When an external source is important but unstable, should the repository preserve a vetted copy,
@@ -344,6 +376,8 @@ annotation, or a different checker configuration; the EPIC does not presume whic
 - [ ] The EPIC decides whether machine-checkable path references are semantic links, a separate
       reference type, or intentionally out of scope.
 - [ ] Progressive implementation subissues are created for validation and migration work.
+- [ ] The final plan states how frontmatter, semantic-link, and path-reference validators relate to
+  EPIC #2003 without preselecting the AI-harness architecture.
 - [ ] Historical records have an explicit no-rewrite or migration policy.
 - [ ] The final plan states which existing validators, including Lychee, remain responsible for
       ordinary Markdown links.
