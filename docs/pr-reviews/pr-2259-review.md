@@ -58,6 +58,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F19 | `review-finding:pr-2259-f19` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2259-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | `review-finding:pr-2259-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2259-f22` | Human | Minor | documentation | RE_RAISE_OF:F18 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -266,7 +267,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461177>
 - Concern: The #2261 evidence row claimed A157-A168 all had temporary #2261 source reasons, but A159 now carries a source-specific `FromBytes` rationale and no longer links to #2261 in source.
 - Solution: Reclassified A159 as retained, narrowed the #2261 temporary evidence row to A157-A158 and A160-A168, and updated #2158 disposition counts.
-- Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script reporting 239 rows, 135 retained, 88 temporary, 16 removed, 223 active source attributes, and zero missing reasons passed.
+- Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script reporting 240 rows, 136 retained, 88 temporary, 16 removed, 224 active source attributes, and zero missing reasons passed.
 - Resolution reference: `docs(pr-reviews): address Cameron review findings`
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046591720>
 
@@ -306,6 +307,18 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: `docs(pr-reviews): address Cameron audit findings`
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046592389>
 
+### F22 - Expect Suppression Missing From Inventory Reconciliation
+
+- PR number: 2259
+- Reviewer finding ID: F8
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046617735>
+- Concern: The inventory reconciliation covered active `allow(clippy::...)` attributes but missed one active `expect(clippy::...)` suppression in `src/bootstrap/jobs/torrent_cleanup.rs`.
+- Solution: Added A240 for the torrent cleanup job `#[expect]`, widened the inventory method and acceptance text to cover `allow` and `expect`, and refreshed final counts.
+- Current-tree verification: `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings`, `linter markdown`, `linter cspell`, and the allow/expect reconciliation script passed.
+- Resolution reference: `docs(clippy): reconcile expect suppression inventory`
+- Reply URL: Pending reply.
+
 ## Processing Log
 
 - 2026-09-18 10:55 UTC - Fetched active PR review data and repository GraphQL thread data.
@@ -326,6 +339,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-18 12:10 UTC - Replied to all five Cameron review threads.
 - 2026-09-18 12:11 UTC - `check-thread-reply-status.sh` reported 5 total unresolved threads, 5 with replies, and 0 without replies.
 - 2026-09-18 12:11 UTC - Resolved all five replied Cameron review threads.
+- 2026-09-18 12:16 UTC - Fetched Cameron re-raise F8 for the missing `#[expect]` inventory row and updated the inventory with A240.
 
 ## Completion Rules
 

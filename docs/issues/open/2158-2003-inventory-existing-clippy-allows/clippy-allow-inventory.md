@@ -11,18 +11,18 @@ Generated on 2026-09-15 by recursively scanning each source root for source-line
 attributes containing 244 lint allowances.
 
 Completeness method after remediation: use a multi-line-aware scan that anchors at source-line
-attribute starts, bracket-matches each attribute body, excludes attribute-shaped fixture text inside
-strings, and compares active inventory rows to source by file path and lint name rather than by
-stale `path:line` keys. The **Source location** column preserves the original audit anchor; final
-line numbers are intentionally not maintained during remediation batches.
+`allow` or `expect` attribute starts, bracket-matches each attribute body, excludes attribute-shaped
+fixture text inside strings, and compares active inventory rows to source by file path and lint name
+rather than by stale `path:line` keys. The **Source location** column preserves the original audit
+anchor; final line numbers are intentionally not maintained during remediation batches.
 
-Current-source reconciliation found five additional maintained-source attributes that were not
-present in the recovered 2026-09-15 inventory: A235-A239. A235 was removed in #2158 after a focused
+Current-source reconciliation found six additional maintained-source attributes that were not
+present in the recovered 2026-09-15 inventory: A235-A240. A235 was removed in #2158 after a focused
 repair of the benchmarking repository style diagnostics and source-specific lock-span rationale it
-exposed. A236-A239 are retained with native reasons.
+exposed. A236-A240 are retained with native reasons.
 
 This inventory contains all 234 source locations from the initial scan plus current-source
-reconciliation entries A235-A239. Classification and remediation are complete for #2158; any
+reconciliation entries A235-A240. Classification and remediation are complete for #2158; any
 remaining temporary entries are owned by their linked follow-up issues.
 
 ## Classification Vocabulary
@@ -211,6 +211,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
 | A159 | Reclassified the `empty_enums` allowance as retained after its native reason was strengthened with the source-specific `FromBytes` macro-expansion rationale. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A236 | Reconciled a current-source collaboration-test gauge conversion already carrying a native retained reason. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
+| A240 | Reconciled a current-source torrent-cleanup job `#[expect]` already carrying a native retained reason. | `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings` |
 
 ### Temporary Follow-Up Link Evidence
 
@@ -465,3 +466,4 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A237 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_std_mutex_std.rs:114` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |
 | A238 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_tokio_mutex_std.rs:122` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |
 | A239 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_tokio_mutex_tokio.rs:123` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |
+| A240 | `src/bootstrap/jobs/torrent_cleanup.rs:26` | item | `manual_async_fn`, `needless_pass_by_value` | Torrent cleanup job supervision boundary | Native reason: the public constructor must return an unspawned `impl Future` for direct `JobManager` supervision | #2158 | Retain |
