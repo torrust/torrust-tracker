@@ -14,8 +14,8 @@ semantic-links:
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
-    - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
+    - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
+    - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/lychee-online.toml
     - .github/workflows/external-link-check.yaml
