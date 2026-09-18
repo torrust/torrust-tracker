@@ -16,7 +16,7 @@ pub struct ConnectionCookie(pub ConnectionId);
 ///
 /// This internal type carries implementation details and must not be used as a
 /// new event payload without the stable reason classification required by the
-/// [general error-events EPIC](../../../docs/issues/drafts/generalize-error-events.md).
+/// [general error-events EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 #[derive(Error, Debug, Clone)]
 pub enum Error {
     /// Error returned when the request is invalid.

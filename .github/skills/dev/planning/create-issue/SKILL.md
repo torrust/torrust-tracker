@@ -328,11 +328,12 @@ Use one of these layouts:
 | Folder      | Required for all new specifications                                                     | `{number}-{short-description}/ISSUE.md` |
 | Single file | Legacy only; migrate when materially updating it or when adding an issue-local artifact | `{number}-{short-description}.md`       |
 
-### Migrating a Legacy Specification
+### Migrating Legacy Specifications
 
-Migrate a legacy single-file specification before adding an issue-local artifact
-or when materially updating its planning or completion-review content. Do not
-migrate unrelated legacy specifications opportunistically.
+All legacy single-file issue and EPIC specifications are being migrated in the
+planned archive batches tracked by issue #2159. Do not create new single-file
+specifications or migrate an actively edited record without coordinating its
+move.
 
 1. Move the existing primary document into a folder with its current issue
    prefix and the allowed uppercase primary filename: `ISSUE.md` or `EPIC.md`.

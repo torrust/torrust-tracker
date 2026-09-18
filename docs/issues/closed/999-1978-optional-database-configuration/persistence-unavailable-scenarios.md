@@ -10,7 +10,7 @@ semantic-links:
     - docs/issues/closed/999-1978-optional-database-configuration/solution.md
     - docs/issues/closed/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
       - docs/issues/closed/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
-      - docs/issues/drafts/144-make-rest-api-persistence-aware.md
+      - docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md
 ---
 
 # Persistence-unavailable scenario catalog
@@ -59,7 +59,7 @@ semantic-links:
 3. If it is a persistence-required capability, also add it to the centralized
    bootstrap requirement matrix and focused tests.
 4. If it changes a public REST contract, coordinate it with
-   `docs/issues/drafts/144-make-rest-api-persistence-aware.md` and GitHub
+   `docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md` and GitHub
    issue #144.
 5. Never reuse an operational database error for an intentionally disabled
    capability.

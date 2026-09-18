@@ -23,7 +23,7 @@ pub struct Scrape {
 ///
 /// Some variants retain raw query values, so this type must not be reused as an
 /// event payload. See the [general error-events
-/// EPIC](../../../../../docs/issues/drafts/generalize-error-events.md) before
+/// EPIC](../../../../../docs/issues/drafts/generalize-error-events/EPIC.md) before
 /// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
 pub enum ParseScrapeQueryError {

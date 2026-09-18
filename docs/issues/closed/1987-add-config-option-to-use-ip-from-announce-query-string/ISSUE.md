@@ -9,7 +9,7 @@ branch: "1987-add-config-option-to-use-ip-from-announce-query-string"
 related-pr: null
 depends-on:
   - docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
-  - docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup.md
+  - docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup/ISSUE.md
 blocks: null
 last-updated-utc: 2026-09-01 10:27
 semantic-links:
@@ -24,7 +24,7 @@ semantic-links:
     - evidence-opentracker-no-dns-support.md
     - evidence-chihaya-no-dns-support.md
     - error-event-observability-analysis.md
-    - docs/issues/drafts/generalize-error-events.md
+    - docs/issues/drafts/generalize-error-events/EPIC.md
 ---
 
 # Issue #1987 - Add per-HTTP-tracker config option to use peer IP from `ip` GET parameter (sub-issue of #1978)
@@ -207,7 +207,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC4: The default configuration file (`share/default/`) has `use_ip_from_query_string` set to `false` (or omitted, defaulting to `false`). Evidence: v3 schema field defaults to `false`; all shipped templates are now v3 and omit the field.
 - [x] AC5: The configuration schema documentation clearly states the security implications of enabling this option.
 - [x] AC6: Focused unit tests cover every `ip` parameter validation and address-selection case; minimum contract/integration tests verify HTTP failure responses and configuration wiring where unit tests cannot.
-- [x] AC6a: The #1987-specific rejection event and counter are absent; strict rejection behavior remains. Any future error observability must follow the deferred general error-events contract. Evidence: `error-event-observability-analysis.md` and `docs/issues/drafts/generalize-error-events.md`.
+- [x] AC6a: The #1987-specific rejection event and counter are absent; strict rejection behavior remains. Any future error observability must follow the deferred general error-events contract. Evidence: `error-event-observability-analysis.md` and `docs/issues/drafts/generalize-error-events/EPIC.md`.
 - [x] AC7: `linter all` exits with code `0`. Evidence: pre-commit gate passed on 2026-08-18.
 - [x] AC8: Relevant tests pass with no regressions. Evidence: `cargo +1.88.0 test --workspace` passed on 2026-08-19.
 - [x] AC9: Baseline manual verification runs a local tracker and local tracker client before implementation; reproducible commands, output, expected/actual results, and environment details are recorded in `manual-verification.md` in this issue directory.
@@ -277,7 +277,7 @@ Run the same applicable request matrix against a local tracker in three phases: 
 | AC4   | DONE                   | V3 schema default is `false`; shipped v3 templates omit the field                        |
 | AC5   | DONE                   | v3 `HttpTracker` field documentation                                                     |
 | AC6   | DONE                   | Focused protocol, service, and Axum HTTP contract tests                                  |
-| AC6a  | DONE                   | `error-event-observability-analysis.md`; `docs/issues/drafts/generalize-error-events.md` |
+| AC6a  | DONE                   | `error-event-observability-analysis.md`; `docs/issues/drafts/generalize-error-events/EPIC.md` |
 | AC7   | DONE                   | Pre-commit gate passed 2026-08-18                                                        |
 | AC8   | DONE                   | `cargo +1.88.0 test --workspace` passed 2026-08-19                                       |
 | AC9   | DONE                   | `manual-verification.md` Phase 1                                                         |

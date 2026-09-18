@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+    - docs/issues/closed/1742-ci-change-aware-workflows-epic/EPIC.md
     - .github/workflows/
 ---
 

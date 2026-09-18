@@ -37,7 +37,7 @@ Use `issue-spec` only while an issue specification is still a draft. The value m
 the repository-relative path to the draft spec:
 
 ```text
-issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
 ```
 
 When the draft becomes a GitHub issue, replace every corresponding `issue-spec`
@@ -56,7 +56,7 @@ Use `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` to cite one normalized finding 
 pull-request audit. The value is a deterministic repository reference: lowercase the finding ID
 when writing the reference, for example `review-finding:pr-2230-f1` for audit finding `F1`.
 It is immutable once assigned, and resolves to the row in
-`docs/pr-reviews/pr-<PR_NUMBER>-review.md`. GitHub thread, comment, review, and URL identifiers
+`docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`. GitHub thread, comment, review, and URL identifiers
 remain source metadata used to fetch and handle feedback; they are not concept references.
 
 Use the reference in Markdown prose or as a `semantic-links.related-artifacts` value when an ADR,

@@ -124,7 +124,7 @@ impl Launcher {
         ServiceHealthCheckJob::new(info, job)
     }
 
-    // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+    // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]
     async fn run_udp_server_main(
         mut receiver: Receiver,

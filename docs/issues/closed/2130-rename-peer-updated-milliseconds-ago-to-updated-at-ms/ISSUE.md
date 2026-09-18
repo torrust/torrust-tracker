@@ -17,7 +17,7 @@ semantic-links:
     - packages/rest-api-runtime-adapter/src/v1/conversion.rs
     - packages/axum-rest-api-server/src/v1/context/torrent/mod.rs
     - packages/rest-api-client/src/v1/client.rs
-    - docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md
+    - docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md
 ---
 
 # Issue #2130 - Add `peer.updated_at_ms` to v1 REST API
@@ -53,7 +53,7 @@ Where `peer.updated` is of type `DurationSinceUnixEpoch` — an absolute Unix ti
 
 The original intent was **hypothesis #2**: to add the unit "milliseconds" to the field name so clients know the value is in ms rather than seconds. The `_ago` suffix is a misnomer.
 
-The historic analysis appears in the Follow-up Tasks section of `docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md`. That closed issue proposed a breaking rename to `updated_milliseconds` plus removal of `updated`. This specification supersedes that proposal with an additive, migration-safe v1 change. API v2, planned separately in EPIC #144, will use only the corrected `updated_at_ms` name.
+The historic analysis appears in the Follow-up Tasks section of `docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md`. That closed issue proposed a breaking rename to `updated_milliseconds` plus removal of `updated`. This specification supersedes that proposal with an additive, migration-safe v1 change. API v2, planned separately in EPIC #144, will use only the corrected `updated_at_ms` name.
 
 ## Scope
 

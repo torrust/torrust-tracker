@@ -12,7 +12,7 @@ semantic-links:
     - docs/issues/closed/999-1978-optional-database-configuration/analysis.md
     - docs/issues/closed/999-1978-optional-database-configuration/solution.md
     - docs/issues/closed/999-1978-optional-database-configuration/adr-draft.md
-    - docs/issues/drafts/144-make-rest-api-persistence-aware.md
+    - docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md
 ---
 
 # Draft EPIC - Progressively make tracker capabilities persistence-aware
@@ -51,7 +51,7 @@ has broader historical coupling:
 
 Those concerns require staged API, model, test, and operational changes. The
 next-major REST API compatibility work is drafted in
-`docs/issues/drafts/144-make-rest-api-persistence-aware.md` under GitHub issue 144. This EPIC must coordinate with it and must not delay the
+`docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md` under GitHub issue 144. This EPIC must coordinate with it and must not delay the
 configuration-overhaul EPIC once #999 and its activation follow-up supply a
 safe persistence-free UDP/HTTP-tracker baseline.
 

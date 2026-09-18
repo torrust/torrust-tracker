@@ -15,4 +15,4 @@ When no PR number is supplied, identify the active pull request. This entry poin
 Copilot-authored findings only; the canonical skill exclusively defines audit fields, finding
 normalization, dispositions, current-tree verification, commit-subject citation, replies,
 resolution order, and completion checks. Record this work in
-`docs/pr-reviews/pr-<PR_NUMBER>-review.md`.
+`docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`.

@@ -173,7 +173,7 @@ pub struct Announce {
 /// binary data. The `info_hash` is a 20-byte SHA1 hash and the `peer_id` is a
 /// 20-byte array. This parser error includes raw query values and is not a
 /// suitable event payload. See the [general error-events
-/// EPIC](../../../../../docs/issues/drafts/generalize-error-events.md) before
+/// EPIC](../../../../../docs/issues/drafts/generalize-error-events/EPIC.md) before
 /// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {

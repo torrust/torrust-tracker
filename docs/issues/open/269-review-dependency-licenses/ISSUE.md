@@ -16,7 +16,7 @@ semantic-links:
     - deny.toml
     - .github/workflows/testing.yaml
     - contrib/dev-tools/git/hooks/pre-commit.sh
-    - docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
+    - docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md
     - docs/issues/open/269-review-dependency-licenses/evidence.md
     - docs/issues/open/269-review-dependency-licenses/initial-review.md
     - docs/issues/open/269-review-dependency-licenses/locked-license-inventory.json
@@ -245,7 +245,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - GitHub issue: #269
 - Preliminary evidence: [`preliminary-assessment.md`](preliminary-assessment.md)
 - Issue comment: [Snyk license-compliance suggestion](https://github.com/torrust/torrust-tracker/issues/269#issuecomment-1749443211)
-- Existing Cargo-deny bans spec: `docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md`
+- Existing Cargo-deny bans spec: `docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md`
 - Current configuration: `deny.toml`
 - Cargo-deny license-check documentation: <https://embarkstudios.github.io/cargo-deny/checks/licenses/index.html>
 - Cargo-deny license configuration: <https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html>

@@ -16,7 +16,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
-    - docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md
+    - docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md
     - docs/issues/closed/2238-refactor-native-tracker-test-fixture/manual-verification-evidence.md
     - docs/issues/closed/2238-refactor-native-tracker-test-fixture/implementation-retrospective.md
     - tests/common/native_tracker/mod.rs
@@ -73,7 +73,7 @@ explicitly; and the two binaries use different subsets of the API, so the 21 `#[
 attributes need a deliberate consolidation policy under `-D unused`.
 
 The linked detailed plan is
-[`docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md`](../../../refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md).
+[`docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md`](../../../refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md).
 
 ## Scope
 
@@ -282,6 +282,6 @@ Retrospective: `implementation-retrospective.md`.
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/2238
 - Spec-only PR: https://github.com/torrust/torrust-tracker/pull/2239
 - Implementation PR: https://github.com/torrust/torrust-tracker/pull/2249
-- Related refactor plan: `docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture.md`
+- Related refactor plan: `docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md`
 - Affected fixture: `tests/common/native_tracker/mod.rs`
 - Affected test binaries: `lifecycle-signals`, `cli-configuration`

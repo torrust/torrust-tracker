@@ -2,7 +2,7 @@
 doc-type: refactor-plan
 status: draft
 related-issue: null
-spec-path: docs/refactor-plans/drafts/{short-description}.md
+spec-path: docs/refactor-plans/drafts/{short-description}/REFACTOR-PLAN.md
 last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:
@@ -12,6 +12,8 @@ semantic-links:
 ---
 
 <!-- skill-link: create-refactor-plan -->
+
+<!-- Store completed plans at docs/refactor-plans/<lifecycle>/<short-description>/REFACTOR-PLAN.md. -->
 
 # Refactor Plan — {Title}
 

@@ -225,7 +225,7 @@ TORRUST_TRACKER_CONFIG_TOML_PATH=b.toml \
 - Replacing environment configuration in existing in-process tests.
 - Migrating `torrust-tracker` to full compliance with the global CLI output
   contract (tracked separately in
-  `docs/issues/drafts/cli-output-contract-migration.md`).
+  `docs/issues/drafts/cli-output-contract-migration/ISSUE.md`).
 
 ## Architectural Decisions
 
@@ -499,7 +499,7 @@ and reusable lessons.
   note its `env` binding is **not** to be copied)
 - `docs/adrs/20260519000000_define_global_cli_output_contract.md` (exit codes
   and output channels for `torrust-tracker`)
-- `docs/issues/drafts/cli-output-contract-migration.md` (deferred output-contract work)
+- `docs/issues/drafts/cli-output-contract-migration/ISSUE.md` (deferred output-contract work)
 - Closed EPIC [#1978](https://github.com/torrust/torrust-tracker/issues/1978)
   (`docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md`; related
   configuration-schema context, not a parent)

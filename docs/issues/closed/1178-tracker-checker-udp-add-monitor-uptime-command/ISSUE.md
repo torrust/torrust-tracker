@@ -1,0 +1,334 @@
+---
+doc-type: issue
+issue-type: feature
+status: planned
+priority: p2
+github-issue: 1178
+spec-path: docs/issues/closed/1178-tracker-checker-udp-add-monitor-uptime-command/ISSUE.md
+branch: 1178-tracker-checker-udp-add-monitor-uptime-command
+related-pr: null
+last-updated-utc: 2026-05-12 16:55
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+---
+
+# Issue #1178 — Tracker Checker (UDP): Add Command to Monitor Uptime
+
+## Overview
+
+Add a new `monitor` subcommand (or standalone binary) to the Tracker Checker that periodically
+sends UDP `announce` requests to a tracker and prints live statistics. The goal is to reproduce
+locally what <https://newtrackon.com/> does, so maintainers can investigate intermittent uptime
+drops without relying on a third-party service.
+
+- GitHub issue: <https://github.com/torrust/torrust-tracker/issues/1178>
+- Parent EPIC: <https://github.com/torrust/torrust-tracker/issues/669>
+- Related: <https://github.com/torrust/torrust-demo/issues/26>
+
+## Background
+
+[newtrackon.com](https://newtrackon.com/) reported 93% uptime for the Torrust demo UDP tracker.
+The host `netstat -su` output shows no packet loss at the network level, and the measured
+announce processing time inside the tracker is well under 10 ms. Yet newtrackon reports ~222 ms
+response time and occasional timeouts.
+
+To reproduce and diagnose the problem, a local monitoring loop is needed that does the same as
+newtrackon: sends an announce request at a fixed interval and accumulates response-time
+statistics.
+
+The relevant newtrackon checking interval is every 5 minutes; the tool should default to the
+same interval, but the interval should be configurable.
+
+## Goals
+
+- [x] Add a UDP uptime-monitor command to the tracker-client toolbox
+- [x] The command accepts a UDP tracker URL and optional configuration (interval, timeout, info-hash)
+- [x] On every probe the command prints one JSON object per line to stderr (NDJSON)
+- [x] At the end of execution, the command prints final statistics to stdout in JSON format
+- [x] Final statistics include:
+  - Total probe count
+  - Timeout count (and percentage)
+  - Minimum response time
+  - Maximum response time
+  - Average response time
+  - Last response time
+- [x] The command accepts a duration argument and exits automatically after that duration
+- [x] `Ctrl+C` is supported to stop monitoring early and still print final JSON results
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] Existing tests pass
+
+## Proposed CLI
+
+```text
+cargo run -p torrust-tracker-client --bin tracker_checker -- monitor udp \
+    --url     udp://127.0.0.1:6969 \
+    --interval 300 \
+  --timeout  10 \
+  --duration 86400
+```
+
+Or as part of a possible future unified `tracker-client` CLI:
+
+```text
+cargo run --bin torrust-tracker-client -- \
+    checker monitor udp \
+    --url     udp://127.0.0.1:6969 \
+    --interval 300 \
+    --timeout  10
+```
+
+Note: this feature is intentionally added as a `tracker_checker` subcommand for now. A future
+CLI consolidation effort may merge binaries into a single entry point (see
+<https://github.com/torrust/torrust-tracker/discussions/660>).
+
+### Options
+
+| Option        | Default                                    | Description                                   |
+| ------------- | ------------------------------------------ | --------------------------------------------- |
+| `--url`       | —                                          | UDP tracker URL (required)                    |
+| `--interval`  | `300`                                      | Seconds between probes                        |
+| `--timeout`   | `10`                                       | Seconds to wait for a response before timeout |
+| `--duration`  | `86400`                                    | Total monitor runtime in seconds              |
+| `--info-hash` | `9c38422213e30bff212b30c360d26f9a02136422` | Info-hash used in announce requests           |
+
+### Sample Output
+
+```text
+stderr:
+{"event":"probe","sequence":1,"url":"udp://127.0.0.1:6969","status":"ok","elapsed_ms":122}
+{"event":"probe","sequence":2,"url":"udp://127.0.0.1:6969","status":"ok","elapsed_ms":98}
+{"event":"probe","sequence":3,"url":"udp://127.0.0.1:6969","status":"timeout","elapsed_ms":null}
+
+stdout:
+{"udp_trackers":[{"url":"udp://127.0.0.1:6969","status":{"code":"ok","message":"monitor completed","stats":{"total":3,"timeouts":1,"timeout_percent":33,"min_ms":98,"max_ms":122,"average_ms":110,"last_ms":null}}}]}
+```
+
+## Implementation Plan
+
+### Task 1: Add `monitor udp` subcommand to `tracker_checker`
+
+In `console/tracker-client/src/console/clients/checker/app.rs`, add a new CLI subcommand
+`monitor` (or extend the existing args structure) that accepts:
+
+- `--url` (required): UDP tracker URL
+- `--interval` (optional, default 300): probe interval in seconds
+- `--timeout` (optional, default 10): per-probe timeout in seconds
+- `--duration` (optional, default 86400): total monitor runtime in seconds
+
+### Task 2: Implement probe loop
+
+Create a new module, e.g.
+`console/tracker-client/src/console/clients/checker/monitor/udp.rs`, containing:
+
+- A `run_monitor` async function that loops forever (until Ctrl+C signal)
+- Each iteration sends a UDP `announce` request using the existing `UdpTrackerClient`
+- Records `start` / `end` timestamps and computes elapsed milliseconds as integer `u64`
+  (truncating sub-millisecond precision)
+- Treats no response within `--timeout` as a timeout event
+
+### Task 3: Track statistics
+
+Maintain an in-memory stats struct across iterations:
+
+```rust
+struct Stats {
+    total: u64,
+    timeouts: u64,
+    min_ms: Option<u64>,
+    max_ms: Option<u64>,
+    sum_ms: u64,
+    last_ms: Option<u64>,
+}
+```
+
+Implement `average_ms` as `sum_ms / (total - timeouts)` (guard against divide-by-zero).
+
+### Task 4: Print status and stats after each probe
+
+After each probe, print to stderr:
+
+1. A one-line JSON probe event (NDJSON) including sequence number, status, and elapsed time
+2. Optionally, a compact running summary (still on stderr)
+
+At the end of monitoring (timeout reached or Ctrl+C), print final aggregate stats to stdout as JSON.
+The JSON shape should align with the existing checker output structure.
+
+### Task 5: Add duration-based stop condition and Ctrl+C support
+
+Stop automatically when `--duration` elapses.
+
+Register a `tokio::signal::ctrl_c` handler (or `signal_hook`) that breaks the loop cleanly and
+still prints final JSON stats before exiting.
+
+When monitoring completes (including timeout-heavy runs), return exit code `0` if the tool itself
+ran successfully.
+
+### Task 6: Wire the new subcommand into the binary entry point
+
+Update `console/tracker-client/src/console/clients/checker/app.rs` to dispatch to the new monitor loop
+when the `monitor` subcommand is selected.
+
+## Key Files
+
+| File                                                        | Role                              |
+| ----------------------------------------------------------- | --------------------------------- |
+| `console/tracker-client/src/console/clients/checker/app.rs` | CLI argument parsing, entry point |
+| `console/tracker-client/src/console/clients/checker/`       | Checker module root               |
+| `packages/tracker-client/src/udp/`                          | Existing UDP tracker client       |
+| `console/tracker-client/src/bin/tracker_checker.rs`         | Binary entry point                |
+
+## Acceptance Criteria
+
+- [x] AC1: `monitor udp --url udp://127.0.0.1:6969` starts a probe loop and prints a status
+      JSON line after each probe to stderr (NDJSON)
+- [x] AC2: When monitoring ends, final aggregate statistics are printed to stdout as valid JSON
+- [x] AC3: When a probe does not receive a response within the timeout, it is recorded as
+      `TIMEOUT` and excluded from response-time averages. Additionally, `last_ms` is set to
+      `null` when the most recent probe times out.
+- [x] AC4: `--duration` controls total runtime and the command exits normally when elapsed
+- [x] AC5: `Ctrl+C` stops monitoring early and still emits final JSON stats
+- [x] AC6: The `--interval` option controls the delay between probes
+- [x] AC7: `--duration` defaults to `86400` seconds when omitted
+- [x] AC8: If all probes timeout but execution is otherwise successful, exit code is `0`
+- [x] AC9: `linter all` exits with code `0`
+- [x] AC10: `cargo machete` reports no unused dependencies
+- [x] AC11: Existing tests pass
+
+### Acceptance Verification
+
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                                                       |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Manual run on 2026-05-12: stderr emitted one NDJSON `probe` JSON line per probe                                                                                                                                                                |
+| AC2   | DONE                   | Manual run on 2026-05-12: stdout emitted final JSON summary                                                                                                                                                                                    |
+| AC3   | DONE                   | Integration behavior validated by monitor implementation/tests: timeout probes are tracked as `timeout` and excluded from average (`average_ms` derives from successful probes only); `last_ms` is `null` when the most recent probe timed out |
+| AC4   | DONE                   | Manual run with `--duration 60` exited after one minute                                                                                                                                                                                        |
+| AC5   | DONE                   | Ctrl+C support implemented via `tokio::signal::ctrl_c`; verified in code path and covered by acceptance-level implementation checks                                                                                                            |
+| AC6   | DONE                   | Manual run with `--interval 10` produced 6 probes across 60 seconds                                                                                                                                                                            |
+| AC7   | DONE                   | CLI parser default for `--duration` is `86400`                                                                                                                                                                                                 |
+| AC8   | DONE                   | Exit-code contract verified: monitor completes with process exit code `0` when app execution is successful                                                                                                                                     |
+| AC9   | DONE                   | `linter all` passed on 2026-05-12                                                                                                                                                                                                              |
+| AC10  | DONE                   | `cargo machete` passed on 2026-05-12                                                                                                                                                                                                           |
+| AC11  | DONE                   | `cargo test -p torrust-tracker-client --test tracker_checker` and `cargo test -p torrust-tracker-client monitor::udp` passed on 2026-05-12                                                                                                     |
+
+### Manual Verification (Official Demo Tracker — Up)
+
+Executed on 2026-05-12 from workspace root against `udp://udp1.torrust-tracker-demo.com:6969/announce` (live):
+
+```text
+cargo run -p torrust-tracker-client --bin tracker_checker -- monitor udp \
+  --url udp://udp1.torrust-tracker-demo.com:6969/announce \
+  --interval 10 \
+  --timeout 10 \
+  --duration 60
+```
+
+Observed output:
+
+```text
+{"event":"probe","sequence":1,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":208}
+{"event":"probe","sequence":2,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":140}
+{"event":"probe","sequence":3,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":138}
+{"event":"probe","sequence":4,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":131}
+{"event":"probe","sequence":5,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":145}
+{"event":"probe","sequence":6,"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":"ok","elapsed_ms":141}
+{"udp_trackers":[{"url":"udp://udp1.torrust-tracker-demo.com:6969/announce","status":{"code":"ok","message":"monitor completed","stats":{"total":6,"timeouts":0,"timeout_percent":0,"min_ms":131,"max_ms":208,"average_ms":150,"last_ms":141}}}]}
+```
+
+Notes:
+
+- Initial attempt without package selection from workspace root (`cargo run --bin tracker_checker -- ...`) failed because the binary belongs to package `torrust-tracker-client`.
+- Corrected command above resolves that issue.
+
+### Manual Verification (Old Demo Tracker — Down)
+
+Executed on 2026-05-12 from workspace root against `udp://tracker.torrust-demo.com:6969/announce`
+(confirmed down by [newtrackon](https://newtrackon.com)):
+
+```text
+cargo run -p torrust-tracker-client --bin tracker_checker -- monitor udp \
+  --url udp://tracker.torrust-demo.com:6969/announce \
+  --interval 10 \
+  --timeout 10 \
+  --duration 60
+```
+
+Observed output:
+
+```text
+{"event":"probe","sequence":1,"url":"udp://tracker.torrust-demo.com:6969/announce","status":"timeout","elapsed_ms":null}
+{"event":"probe","sequence":2,"url":"udp://tracker.torrust-demo.com:6969/announce","status":"timeout","elapsed_ms":null}
+{"event":"probe","sequence":3,"url":"udp://tracker.torrust-demo.com:6969/announce","status":"timeout","elapsed_ms":null}
+{"udp_trackers":[{"url":"udp://tracker.torrust-demo.com:6969/announce","status":{"code":"ok","message":"monitor completed","stats":{"total":3,"timeouts":3,"timeout_percent":100,"min_ms":null,"max_ms":null,"average_ms":null,"last_ms":null}}}]}
+```
+
+Notes:
+
+- All 3 probes timed out within the 60-second window (each probe consumed its full 10 s timeout,
+  so only 3 probes fit in 60 s), confirming the tracker is unreachable.
+- Latency fields (`min_ms`, `max_ms`, `average_ms`, `last_ms`) are all `null` when every probe
+  times out, matching the agreed design decision.
+- `timeout_percent` is `100` (integer), and `status.code` remains `"ok"` because the monitor
+  itself ran to completion — timeout-heavy runs do not set a non-zero exit code.
+
+## Risks and Trade-offs
+
+- **Scope**: A continuously running loop binary is heavier than a one-shot check. The feature is
+  explicitly for developer/admin use, so this is acceptable.
+- **Signal handling**: Cross-platform `Ctrl+C` handling in async Tokio requires `tokio::signal`.
+  Windows support is nice-to-have but not a hard requirement for the initial implementation.
+- **UDP announcement contents**: The monitor sends a real announce request. The info-hash and
+  peer fields will be test values (re-using the existing `QueryBuilder::with_default_values`
+  defaults unless overridden). This is acceptable for monitoring purposes.
+- **`timeout_percent` denominator includes error probes**: `timeout_percent` is computed as
+  `timeouts × 100 / total`, where `total = successes + timeouts + errors`. A probe that fails
+  with a non-timeout error (e.g., a DNS failure or connection refused) counts toward `total`
+  without being counted as a timeout. This reduces `timeout_percent` without the probe being a
+  success, which can be surprising. The name `timeout_percent` is intentionally scoped to
+  timeouts; errors are a separate failure mode tracked only implicitly through `total`.
+- **`elapsed_ms` excludes DNS resolution time**: Probe timing starts after `resolve_socket_addr`
+  succeeds, so `elapsed_ms` measures UDP connect + announce network work only. DNS lookup
+  failures are reported as probe errors with `elapsed_ms: null`.
+- **Success-path integration test deferral**: A full mock-UDP-tracker success-path integration
+  test is intentionally deferred until the tracker-client is moved into its own repository.
+  Implementing that heavier harness now in the monorepo would likely be duplicated effort; it is
+  planned as follow-up work in the new tracker-client repository.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Spec drafted in `docs/issues/open/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] Implementation completed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-05-11 20:00 UTC - Agent - Spec created from GitHub issue #1178 content
+- 2026-05-12 00:00 UTC - Agent - Incorporated maintainer decisions: monitor in tracker_checker, seconds unit, UDP-only scope, duration-controlled run, stderr live output plus final JSON on stdout
+- 2026-05-12 08:00 UTC - Agent - Incorporated answered follow-ups: default duration `86400`, align final JSON with checker shape, keep exit code `0` for timeout-heavy but successful runs
+- 2026-05-12 09:30 UTC - Maintainer + Agent - Confirmed command remains a `tracker_checker` subcommand, documented future binary consolidation context, and confirmed `null` latency fields when all probes timeout
+- 2026-05-12 10:00 UTC - Maintainer + Agent - Finalized elapsed-time precision: `elapsed_ms` uses integer milliseconds (`u64`) with truncation
+- 2026-05-12 16:55 UTC - Agent - Performed 60-second manual verification against `udp://udp1.torrust-tracker-demo.com:6969/announce`, captured command/output in spec, and corrected workspace-root command invocation to include `-p torrust-tracker-client`
+- 2026-05-12 17:10 UTC - Agent - Performed 60-second manual verification against `udp://tracker.torrust-demo.com:6969/announce` (confirmed down); all 3 probes timed out, null latency fields and `timeout_percent: 100` observed as designed
+- 2026-05-12 17:40 UTC - Agent - Updated probe timing to start after address resolution so `elapsed_ms` excludes DNS lookup time; documented behavior in Risks and Trade-offs
+- 2026-05-12 17:45 UTC - Maintainer + Agent - Deferred success-path mock UDP integration test until planned tracker-client repository split to avoid duplicate harness work
+
+## Open Questions
+
+No open questions at this time.
+
+## References
+
+- Parent EPIC: <https://github.com/torrust/torrust-tracker/issues/669>
+- newtrackon uptime discussion: <https://github.com/torrust/torrust-demo/issues/26>
+- Existing UDP checker: `console/tracker-client/src/console/clients/udp/checker.rs`
+- UDP tracker client: `packages/tracker-client/src/udp/`
+- Tracker CLI I/O contract: `console/tracker-client/docs/contracts/tracker-cli-io-contract.md`
+- Tracker CLI ADR: `console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md`

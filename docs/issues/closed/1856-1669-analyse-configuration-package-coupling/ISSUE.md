@@ -4,7 +4,7 @@ issue-type: task
 status: resolved
 priority: p2
 github-issue: 1856
-spec-path: docs/issues/open/1856-1669-analyse-configuration-package-coupling/ISSUE.md
+spec-path: docs/issues/closed/1856-1669-analyse-configuration-package-coupling/ISSUE.md
 branch: 1856-analyse-configuration-package-coupling
 related-pr: null
 last-updated-utc: 2026-06-04 00:00

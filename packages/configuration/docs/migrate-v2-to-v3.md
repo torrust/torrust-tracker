@@ -458,6 +458,6 @@ Use this checklist to verify your configuration is ready for v3:
 ## References
 
 - [EPIC #1978 — Configuration Overhaul](../../../docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md)
-- [Issue #1980 — Runtime activation and final cleanup](../../../docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup.md)
+- [Issue #1980 — Runtime activation and final cleanup](../../../docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup/ISSUE.md)
 - [Issue #1987 — HTTP announce query-IP policy](../../../docs/issues/closed/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md)
 - [ADRs](../../../docs/adrs/README.md)

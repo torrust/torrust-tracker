@@ -149,7 +149,7 @@ impl ScrapeService {
 ///
 /// This internal error type is not an event payload. A future rejected-request
 /// event must use the stable, bounded, consumer-safe reason types defined by
-/// the [general error-events EPIC](../../../../docs/issues/drafts/generalize-error-events.md).
+/// the [general error-events EPIC](../../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum HttpScrapeError {
     #[error("Error resolving peer IP: {source}")]

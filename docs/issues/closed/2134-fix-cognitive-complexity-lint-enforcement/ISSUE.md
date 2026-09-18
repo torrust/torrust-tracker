@@ -300,4 +300,4 @@ Notes:
 - `src/console/profiling.rs`
 - `packages/e2e-tools/src/bin/profiling.rs`
 - `docs/adrs/20260727000000_events_are_objective_facts.md`
-- `docs/issues/closed/1786-tighten-lint-config.md`
+- `docs/issues/closed/1786-tighten-lint-config/ISSUE.md`

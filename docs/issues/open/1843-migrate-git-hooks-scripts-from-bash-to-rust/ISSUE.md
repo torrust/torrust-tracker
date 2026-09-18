@@ -402,6 +402,6 @@ Notes:
 - Dispatcher scripts: [`.githooks/pre-commit`](../../../../.githooks/pre-commit), [`.githooks/pre-push`](../../../../.githooks/pre-push)
 - CI: [`.github/workflows/copilot-setup-steps.yml`](../../../../.github/workflows/copilot-setup-steps.yml)
 - Engineering policy: `AGENTS.md` § Engineering Policies, rule #3
-- Related closed issue: `docs/issues/closed/1780-refactor-pre-push-checks-performance-and-verbosity.md`
-- Related closed issue: `docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity.md`
+- Related closed issue: `docs/issues/closed/1780-refactor-pre-push-checks-performance-and-verbosity/ISSUE.md`
+- Related closed issue: `docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity/ISSUE.md`
 - Global CLI output contract ADR: [`docs/adrs/20260519000000_define_global_cli_output_contract.md`](../../../adrs/20260519000000_define_global_cli_output_contract.md)

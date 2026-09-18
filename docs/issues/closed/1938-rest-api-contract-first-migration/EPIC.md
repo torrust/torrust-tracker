@@ -103,14 +103,14 @@ The following scope items have been completed across sub-issues SI-1 through SI-
 
 ## Sub-issues
 
-- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../../closed/1939-1938-si-1-migrate-health-check-context.md): Migrate `health_check` context ✅ closed
-- [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../../closed/1940-1938-si-2-migrate-whitelist-context.md): Migrate `whitelist` context ✅ closed
-- [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../../closed/1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context ✅ closed
-- [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../../closed/1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context ✅ closed
-- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../../closed/1943-1938-si-5-deprecate-rest-api-core.md): Deprecate `rest-api-core` and remove from workspace ✅ closed
-- [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../../closed/1944-1938-si-6-align-rest-api-client.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs ✅ closed
-- [#1959](https://github.com/torrust/torrust-tracker/issues/1959) — [SI-7](../../closed/1959-1938-si-7-review-tests-align-v1-namespace.md): Review tests and align v1 namespace across REST API packages ✅ closed
-- [#1969](https://github.com/torrust/torrust-tracker/issues/1969) — [SI-8](../../closed/1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md): Eliminate all unwraps from the REST API client package ✅ closed
+- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../../closed/1939-1938-si-1-migrate-health-check-context/ISSUE.md): Migrate `health_check` context ✅ closed
+- [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../../closed/1940-1938-si-2-migrate-whitelist-context/ISSUE.md): Migrate `whitelist` context ✅ closed
+- [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../../closed/1941-1938-si-3-migrate-auth-key-context/ISSUE.md): Migrate `auth_key` context ✅ closed
+- [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../../closed/1942-1938-si-4-migrate-stats-context/ISSUE.md): Migrate `stats` context ✅ closed
+- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../../closed/1943-1938-si-5-deprecate-rest-api-core/ISSUE.md): Deprecate `rest-api-core` and remove from workspace ✅ closed
+- [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../../closed/1944-1938-si-6-align-rest-api-client/ISSUE.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs ✅ closed
+- [#1959](https://github.com/torrust/torrust-tracker/issues/1959) — [SI-7](../../closed/1959-1938-si-7-review-tests-align-v1-namespace/ISSUE.md): Review tests and align v1 namespace across REST API packages ✅ closed
+- [#1969](https://github.com/torrust/torrust-tracker/issues/1969) — [SI-8](../../closed/1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md): Eliminate all unwraps from the REST API client package ✅ closed
 
 ## Contract Evolution Governance
 

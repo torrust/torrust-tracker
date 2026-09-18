@@ -8,6 +8,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- Store completed audits at docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md. -->
+
 # PR #<PR_NUMBER> Review Audit
 
 Source: pull-request reviews and inline review threads for <PR_URL>.

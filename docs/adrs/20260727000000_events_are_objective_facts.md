@@ -2,12 +2,12 @@
 semantic-links:
   related-artifacts:
     - docs/adrs/index.md
-    - docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
+    - docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy/ISSUE.md
     - packages/udp-core/src/event.rs
     - packages/udp-server/src/event.rs
     - packages/http-core/src/event.rs
     - packages/swarm-coordination-registry/src/event.rs
-    - docs/issues/drafts/generalize-error-events.md
+    - docs/issues/drafts/generalize-error-events/EPIC.md
     - docs/issues/closed/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md
 ---
 

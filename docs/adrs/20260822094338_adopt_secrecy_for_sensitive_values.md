@@ -6,7 +6,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/rust-code-quality/handle-secrets/SKILL.md
     - packages/configuration/src/lib.rs
-    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
 ---
 
 # Adopt `secrecy` for Sensitive Values
@@ -92,7 +92,7 @@ a documented compatibility or security reason.
   configuration credential type.
 - The [secret-handling skill](../../.github/skills/dev/rust-code-quality/handle-secrets/SKILL.md)
   provides implementation and review guidance.
-- [Issue #2079](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md)
+- [Issue #2079](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md)
   applies this decision first to API tokens.
 
 ## Date
@@ -101,7 +101,7 @@ a documented compatibility or security reason.
 
 ## References
 
-- Issue #2079: [Adopt `secrecy` for sensitive configuration](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md)
-- Follow-up issue #1490: [Decompose v3 database configuration](../issues/closed/1490-1978-decompose-database-configuration.md)
+- Issue #2079: [Adopt `secrecy` for sensitive configuration](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md)
+- Follow-up issue #1490: [Decompose v3 database configuration](../issues/closed/1490-1978-decompose-database-configuration/ISSUE.md)
 - [Secrecy crate documentation](https://docs.rs/secrecy/)
 - [Torrust Tracker Deployer secrecy ADR](https://github.com/torrust/torrust-tracker-deployer/blob/main/docs/decisions/secrecy-crate-for-sensitive-data.md)

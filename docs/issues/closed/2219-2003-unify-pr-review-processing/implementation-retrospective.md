@@ -106,5 +106,5 @@ checks for their established scope.
 - Issue #2219: `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`
 - Manual scenarios: `manual-verification-evidence.md` sections V1-V4
 - Independent review history: `agent-review-reports.md`
-- First-real-use audit: `docs/pr-reviews/pr-2232-review.md` (findings F1-F12)
+- First-real-use audit: `docs/pr-reviews/pr-2232-review/PR-REVIEW.md` (findings F1-F12)
 - T1-T6 commits: `41178d4e`, `06ad5d30`, `8c4bfaf2`, `04c9d42a`, `0427067b`, and `402c5033`

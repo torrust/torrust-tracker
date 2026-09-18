@@ -12,12 +12,12 @@ semantic-links:
 
 # Draft Refactor Plans
 
-This folder contains refactor plan drafts that are being written or awaiting review before
-implementation begins.
+This folder contains folder-style refactor plan drafts that are being written or awaiting review
+before implementation begins. Each record's primary document is `REFACTOR-PLAN.md`.
 
 ## Lifecycle
 
-1. Create a new plan file here using the template at
+1. Create a new plan directory here using the template at
    [`docs/templates/REFACTOR-PLAN.md`](../../templates/REFACTOR-PLAN.md).
 2. Review the plan.
 3. When implementation is ready to start, move the plan to `docs/refactor-plans/open/`.
