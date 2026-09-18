@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2003
 github-issue: 2158
 spec-path: docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
 related-pr: null
-last-updated-utc: 2026-09-18 10:25
+last-updated-utc: 2026-09-18 11:15
 semantic-links:
   skill-links:
     - create-issue
@@ -204,7 +204,8 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A235 for the benchmarking crate-level style baseline; removal probe exposed active diagnostics - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Removed A235 by applying behavior-preserving benchmarking repository style and lock-scope fixes - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A236 for a retained swarm statistics collaboration-test gauge conversion - `clippy-allow-inventory.md`
-- 2026-09-18 - GitHub Copilot - Completed final #2158 reconciliation: 236 inventory rows, 16 removed entries, 220 active inventory entries, 220 source attributes, and zero Clippy allows without native reasons; `linter all` passed - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Completed pre-review #2158 reconciliation: 236 inventory rows, 16 removed entries, 220 active inventory entries, 220 source attributes, and zero Clippy allows without native reasons; `linter all` passed - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Addressed PR review findings and reconciled A237-A239 for benchmark variants that intentionally preserve their outer read-lock span - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
@@ -233,7 +234,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 
 | ID  | Scenario                           | Command/Steps                                                                                                           | Expected Result                                                                                            | Status | Evidence               |
 | --- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | ---------------------- |
-| M1  | Compare source and inventory       | Regenerate the source list and compare it with `clippy-allow-inventory.md`.                                             | Every allow has one recorded decision.                                                                     | DONE   | Final reconciliation reports 236 inventory rows, 16 removed entries, 220 active entries, and 220 source attributes. |
+| M1  | Compare source and inventory       | Regenerate the source list and compare it with `clippy-allow-inventory.md`.                                             | Every allow has one recorded decision.                                                                     | DONE   | Review-adjusted reconciliation reports 239 inventory rows, 16 removed entries, 223 active entries, and 223 source attributes. |
 | M2  | Sample retained and removed cases  | Review representative cases from each disposition category.                                                             | Rationale, source, and validation evidence agree.                                                          | DONE   | Retained, temporary, and removed evidence tables in `clippy-allow-inventory.md`; `missing_reason 0` scan. |
 | M3  | Create a temporary-allow follow-up | Select a temporary entry, draft its folder-style follow-up specification, obtain approval, and create its GitHub issue. | The inventory records the resulting issue number; no GitHub issue is created before its draft is approved. | DONE   | Numeric follow-ups #2244, #2245, #2246; UDP protocol baseline follow-up #2261. |
 | M4  | Use ClippyFixer for remediation    | Provide a removable or retainable fixture finding to ClippyFixer.                                                       | The agent can edit the focused files, documents the decision, and delegates the commit to Committer.       | DONE   | `.github/agents/clippy-fixer.agent.md` declares `edit`; remediation commits are signed and inventory-tracked. |
@@ -242,13 +243,13 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence               |
 | ----- | ---------------------- | ---------------------- |
-| AC1   | DONE                   | Final reconciliation reports 236 inventory rows, 16 removed entries, 220 active entries, and 220 source attributes. |
+| AC1   | DONE                   | Review-adjusted reconciliation reports 239 inventory rows, 16 removed entries, 223 active entries, and 223 source attributes. |
 | AC2   | DONE                   | `clippy-allow-inventory.md` is stored in this issue folder and records scope plus generation/completeness method. |
 | AC3   | DONE                   | `.github/agents/clippy-fixer.agent.md` declares `edit`; signed remediation commits remain separate from agent-profile documentation. |
 | AC4   | DONE                   | Anchored source scan reports `missing_reason 0`; inventory retains matching decisions for all active source attributes. |
 | AC5   | DONE                   | Temporary entries link to approved follow-up issues #2244, #2245, #2246, and #2261. |
 | AC6   | DONE                   | All 16 `Remove` entries are implemented and validated, including current-source reconciliation entry A235. |
-| AC7   | DONE                   | Inventory has 131 `Retain`, 89 `Temporary`, and 16 `Remove` entries; no `Pending` entries remain. |
+| AC7   | DONE                   | Inventory has 134 `Retain`, 89 `Temporary`, and 16 `Remove` entries; no `Pending` entries remain. |
 | AC8   | DONE                   | `linter all` passed; relevant focused package Clippy/test commands are recorded in `clippy-allow-inventory.md`. |
 
 ## Risks and Trade-offs

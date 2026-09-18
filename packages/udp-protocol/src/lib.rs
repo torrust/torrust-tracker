@@ -22,7 +22,7 @@
 // themselves are inhabited and cannot use the suggested replacement.
 #![allow(
     clippy::empty_enums,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
+    reason = "FromBytes derives expand to empty helper enums for inhabited transparent wire types"
 )]
 #![allow(
     clippy::explicit_iter_loop,

@@ -2,8 +2,7 @@
 
 ## Status
 
-Design input retained in #2158; do not create a GitHub issue from this document until the maintainer
-re-evaluates the complete numeric-conversion inventory.
+Design input retained in #2158. This draft was promoted into approved follow-up issue #2245.
 
 ## Problem
 

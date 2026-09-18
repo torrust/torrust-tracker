@@ -1,22 +1,18 @@
 # Numeric Conversion Follow-up Drafts
 
-These issue-local drafts are design inputs for the numeric conversion classification in #2158.
-They are not standalone issue specifications and have no GitHub issue numbers. Retain them here
-until #2158 has classified the full existing Clippy-allow baseline and the maintainer re-evaluates
-whether each concern should become a separate issue, be resolved directly, or be organized under a
-new numeric-conversion EPIC.
+These issue-local drafts are the design inputs that produced approved numeric-conversion EPIC #2243
+and child issues #2244, #2245, and #2246. They are retained here as #2158 classification evidence,
+not as pending issue specifications.
 
 The drafts deliberately separate conversion concerns by invariant and ownership boundary rather
-than creating one issue for every Clippy lint occurrence. Each linked inventory entry remains
-**Temporary** only while its removal condition is unresolved. Entries with an already-proven,
-well-documented local invariant may instead be reclassified as **Retain** or **Remove** during the
-remaining inventory review.
+than creating one issue for every Clippy lint occurrence. Their linked temporary entries now point
+to the approved GitHub issues that own the remaining review and remediation work.
 
-| Draft | Candidate inventory entries | Re-evaluation question |
-| ----- | --------------------------- | ---------------------- |
-| `metric-aggregate-conversion-safety.md` | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Should metrics expose checked, typed conversion APIs instead of each consumer casting `f64` to `u64`? |
-| `wire-numeric-conversion-validation.md` | A156, A171 | Do wire-format values already have sufficient type/range invariants, or should parsing and response construction make those bounds explicit? |
-| `domain-numeric-conversion-contracts.md` | A099, A123, A129 | Are local domain bounds already proven, or should conversions use checked APIs and focused tests? |
+| Draft | Approved issue | Inventory entries |
+| ----- | -------------- | ----------------- |
+| `metric-aggregate-conversion-safety.md` | #2244 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 |
+| `wire-numeric-conversion-validation.md` | #2245 | A156, A171 |
+| `domain-numeric-conversion-contracts.md` | #2246 | A099, A123, A129 |
 
 Benchmark/example conversions A112 and A120 are intentionally excluded. Their bounded inputs and
 precision requirements are local and should be classified directly in #2158.

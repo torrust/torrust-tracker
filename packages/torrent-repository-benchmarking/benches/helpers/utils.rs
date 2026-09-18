@@ -16,10 +16,11 @@ pub const DEFAULT_PEER: Peer = Peer {
     event: AnnounceEvent::Started,
 };
 
-#[must_use]
 /// # Panics
 ///
-/// Panics if `size` contains duplicate values after truncating to four low-order bytes.
+/// Panics if `size` exceeds `u32::MAX + 1`, because generated info hashes vary only in their four
+/// low-order bytes and would collide.
+#[must_use]
 pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
     let mut result = HashSet::new();
 

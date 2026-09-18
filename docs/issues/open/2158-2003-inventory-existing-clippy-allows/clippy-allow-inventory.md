@@ -6,25 +6,24 @@ This inventory covers actual Rust attributes in maintained source roots: `src/`,
 `console/`, `tests/`, and `contrib/`. It excludes generated and runtime roots (`target/`, `storage/`).
 The inventory is an issue-local human audit record for #2158, not the prospective enforcement baseline.
 
-Generated on 2026-09-15 by recursively scanning each source root for an attribute that begins at
-a source line and has the form `#![allow(clippy::...)]` or `#[allow(clippy::...)]`. Anchoring the
-match at the line start excludes attribute-shaped fixture text embedded in string literals.
+Generated on 2026-09-15 by recursively scanning each source root for source-line anchored
+`#![allow(clippy::...)]` and `#[allow(clippy::...)]` attributes. That initial scan found 234
+attributes containing 244 lint allowances.
 
-Completeness method: rerun the anchored scan and compare its `path:line` keys with the **Source
-location** column below. Each row represents one allow attribute; the **Lint name(s)** column lists
-every Clippy lint named by that attribute. The initial scan found 234 attributes containing 244 lint allowances.
-After direct-removal remediation, the anchored scan finds 219 remaining attributes, matching the
-original 234 rows minus the 15 entries classified as **Remove**. Final source-location
-reconciliation remains part of #2158's T6 validation pass.
+Completeness method after remediation: use a multi-line-aware scan that anchors at source-line
+attribute starts, bracket-matches each attribute body, excludes attribute-shaped fixture text inside
+strings, and compares active inventory rows to source by file path and lint name rather than by
+stale `path:line` keys. The **Source location** column preserves the original audit anchor; final
+line numbers are intentionally not maintained during remediation batches.
 
-Current-source reconciliation found two additional maintained-source attributes that were not
-present in the recovered 2026-09-15 inventory: A235 and A236. A235 was removed in #2158 after a
-focused repair of the benchmarking repository style and lock-scope diagnostics it exposed. A236 is
-retained with an existing native reason because it converts a small non-negative collaboration-test
-gauge value back to `usize` for assertions.
+Current-source reconciliation found five additional maintained-source attributes that were not
+present in the recovered 2026-09-15 inventory: A235-A239. A235 was removed in #2158 after a focused
+repair of the benchmarking repository style diagnostics and source-specific lock-span rationale it
+exposed. A236-A239 are retained with native reasons.
 
-This inventory contains all 234 source locations from the initial scan. Classification and
-remediation remain separate work; an entry marked **Pending** is recorded but not yet decided.
+This inventory contains all 234 source locations from the initial scan plus current-source
+reconciliation entries A235-A239. Classification and remediation are complete for #2158; any
+remaining temporary entries are owned by their linked follow-up issues.
 
 ## Classification Vocabulary
 
@@ -225,7 +224,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A157-A168 | Created follow-up issue #2261 and added native temporary `reason` parameters linking the nonnumeric UDP protocol baseline suppressions to that issue. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
-| A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style and lock-scope fixes. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
+| A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 
 ## Entries
 
@@ -465,5 +464,8 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A232 | `console/tracker-client/src/console/clients/checker/checks/udp.rs:26` | item | `missing_panics_doc` | Missing UDP checker panic documentation | Document the deliberate sample-hash and socket-resolution `unwrap` preconditions and remove the suppression | #2158 | Remove |
 | A233 | `console/tracker-client/src/console/clients/udp/responses/json.rs:5` | item | `module_name_repetitions` | Serialization extension trait | `ToJson` is the serialization extension-trait name in the UDP response JSON module | #2158 | Retain |
 | A234 | `console/tracker-client/src/lib.rs:5` | crate | `print_stdout`, `print_stderr` | Shared console output contract | Library modules implement terminal output invoked by the console binary targets | #2158 | Retain |
-| A235 | `packages/torrent-repository-benchmarking/src/lib.rs:1` | crate | `option_if_let_else`, `or_fun_call`, `significant_drop_tightening`, `iter_with_drain` | Current-source benchmarking style baseline | Removed the crate-level baseline by applying Clippy style fixes and tightening lock/drop scopes across benchmark repository implementations | #2158 | Remove |
+| A235 | `packages/torrent-repository-benchmarking/src/lib.rs:1` | crate | `option_if_let_else`, `or_fun_call`, `significant_drop_tightening`, `iter_with_drain` | Current-source benchmarking style baseline | Removed the crate-level baseline by applying Clippy style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged | #2158 | Remove |
 | A236 | `packages/swarm-coordination-registry/src/statistics/mod.rs:207` | item | `cast_possible_truncation`, `cast_sign_loss` | Collaboration-test gauge assertion | Existing native reason: the gauge is set from a small non-negative peer count | #2158 | Retain |
+| A237 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_std_mutex_std.rs:114` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |
+| A238 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_tokio_mutex_std.rs:122` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |
+| A239 | `packages/torrent-repository-benchmarking/src/repository/rw_lock_tokio_mutex_tokio.rs:123` | item | `significant_drop_tightening` | Benchmark lock-span preservation | Native reason: benchmark variant intentionally holds the outer read lock while mutating inner entries | #2158 | Retain |

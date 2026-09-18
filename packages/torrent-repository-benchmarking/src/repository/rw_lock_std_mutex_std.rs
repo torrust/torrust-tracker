@@ -111,8 +111,13 @@ where
         db.remove(key)
     }
 
+    #[allow(
+        clippy::significant_drop_tightening,
+        reason = "benchmark variant intentionally holds the outer read lock while mutating inner entries"
+    )]
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        let entries: Vec<_> = self.get_torrents().values().cloned().collect();
+        let db = self.get_torrents();
+        let entries = db.values().cloned();
 
         for entry in entries {
             entry.remove_inactive_peers(current_cutoff);
