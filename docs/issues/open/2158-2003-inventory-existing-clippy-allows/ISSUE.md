@@ -201,6 +201,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking wire numeric suppressions to follow-up issue #2245 - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking metric aggregate suppressions to follow-up issue #2244 - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Created follow-up issue #2261 for the nonnumeric UDP protocol baseline and added native temporary `reason` parameters for A157-A168 - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Reconciled current source entry A235 for the benchmarking crate-level style baseline; removal probe exposed active diagnostics, so #2158 still owns its final disposition - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
