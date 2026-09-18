@@ -179,6 +179,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-15 - josecelano - Approved a durable handoff plan: use a local ignored coordination board while the tracked #2158 artifacts remain authoritative; create the approved numeric EPIC and child specifications in one documentation-only branch and PR - Chat decision
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
 - 2026-09-18 - GitHub Copilot - Started direct `Remove` remediation with the configuration stale-suppression batch - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Removed HTTP announce parser and encoder suppressions by applying compact-peer chunk parsing and standard `From` conversions - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 

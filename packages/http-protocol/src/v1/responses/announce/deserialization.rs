@@ -78,12 +78,11 @@ impl CompactPeerList {
 
 impl From<DeserializedCompact> for DeserializedCompactParsed {
     fn from(compact_announce: DeserializedCompact) -> Self {
-        let mut peers = vec![];
-
-        #[allow(clippy::chunks_exact_to_as_chunks, clippy::explicit_iter_loop)]
-        for peer_bytes in compact_announce.peers.chunks_exact(6) {
-            peers.push(CompactPeer::new_from_bytes(peer_bytes));
-        }
+        let (peer_chunks, _) = compact_announce.peers.as_chunks::<6>();
+        let peers = peer_chunks
+            .iter()
+            .map(|peer_bytes| CompactPeer::new_from_bytes(peer_bytes))
+            .collect();
 
         Self {
             complete: compact_announce.complete,

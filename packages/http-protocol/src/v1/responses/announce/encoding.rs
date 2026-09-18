@@ -66,24 +66,29 @@ impl From<AnnounceData> for Normal {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<Vec<u8>> for Normal {
-    fn into(self) -> Vec<u8> {
-        let mut peers_list = ben_list!();
-        let peers_list_mut = peers_list.list_mut().unwrap();
-        for peer in &self.peers {
-            peers_list_mut.push(peer.into());
-        }
+impl From<Normal> for Vec<u8> {
+    fn from(normal: Normal) -> Self {
+        let peers_list = encode_normal_peers(&normal.peers);
 
         (ben_map! {
-            "complete" => ben_int!(self.complete),
-            "incomplete" => ben_int!(self.incomplete),
-            "interval" => ben_int!(self.interval),
-            "min interval" => ben_int!(self.min_interval),
+            "complete" => ben_int!(normal.complete),
+            "incomplete" => ben_int!(normal.incomplete),
+            "interval" => ben_int!(normal.interval),
+            "min interval" => ben_int!(normal.min_interval),
             "peers" => peers_list.clone()
         })
         .encode()
     }
+}
+
+fn encode_normal_peers(peers: &[NormalPeer]) -> BencodeMut<'_> {
+    let mut peers_list = ben_list!();
+    let peers_list_mut = peers_list.list_mut().unwrap();
+    for peer in peers {
+        peers_list_mut.push(peer.into());
+    }
+
+    peers_list
 }
 
 /// Format of the [`Compact`] Encoding
@@ -115,16 +120,15 @@ impl From<AnnounceData> for Compact {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<Vec<u8>> for Compact {
-    fn into(self) -> Vec<u8> {
+impl From<Compact> for Vec<u8> {
+    fn from(compact: Compact) -> Self {
         (ben_map! {
-            "complete" => ben_int!(self.complete),
-            "incomplete" => ben_int!(self.incomplete),
-            "interval" => ben_int!(self.interval),
-            "min interval" => ben_int!(self.min_interval),
-            "peers" => ben_bytes!(self.peers),
-            "peers6" => ben_bytes!(self.peers6)
+            "complete" => ben_int!(compact.complete),
+            "incomplete" => ben_int!(compact.incomplete),
+            "interval" => ben_int!(compact.interval),
+            "min interval" => ben_int!(compact.min_interval),
+            "peers" => ben_bytes!(compact.peers),
+            "peers6" => ben_bytes!(compact.peers6)
         })
         .encode()
     }
