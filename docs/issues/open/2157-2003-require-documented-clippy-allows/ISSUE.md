@@ -220,4 +220,4 @@ why no retrospective is needed.
 - Parent EPIC: #2003
 - GitHub issue: #2157
 - Follow-up remediation: #2158 - Inventory Existing Clippy Allows
-  (`docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md`)
+  (`docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md`)

@@ -8,12 +8,12 @@ github-issue: 2246
 spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
 related-pr: null
-last-updated-utc: 2026-09-16 12:20
+last-updated-utc: 2026-09-18 14:40
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
 ---
 
 <!-- skill-link: create-issue -->

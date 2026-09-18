@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
+last-updated-utc: 2026-09-18 14:40
+semantic-links:
+	related-artifacts:
+		- docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
+---
+
 # Clippy Allow Inventory
 
 ## Scope and Generation
