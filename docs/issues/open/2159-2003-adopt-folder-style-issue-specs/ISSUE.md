@@ -149,6 +149,7 @@ coordinating the move.
 - 2026-09-18 - GitHub Copilot - Final validation passed: `cargo test --doc --workspace` completed successfully. Recorded the migration's relative-link repair lesson in `implementation-retrospective.md`.
 - 2026-09-18 - GitHub Copilot - Remediated independent-review findings: corrected all stale primary-record `spec-path` metadata, recorded direct representative archive inspection, and replaced the tracked shell audit-contract test with a Rust workspace check.
 - 2026-09-18 12:56 UTC - Task Reviewer - Final strict re-review passed: the Rust contract checker preserves every retired shell assertion, including newline-only wrapped text and frontmatter-scoped related-artifact parsing; the retrospective maps all eight scenarios concretely.
+- 2026-09-18 - GitHub Copilot - Fixed the PR container-image build failure by adding the new `agent-review-report-contract` workspace member to the `Containerfile` cargo-chef manifest/stub wiring, `.dockerignore` exceptions, and nextest archive exclusions. Verified the failing `recipe` stage with `docker build --target recipe --file Containerfile .`.
 
 ## Acceptance Criteria
 
