@@ -7,8 +7,8 @@ epic: null
 github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
-related-pr: null
-last-updated-utc: 2026-09-18 15:45
+related-pr: 2270
+last-updated-utc: 2026-09-18 17:05
 semantic-links:
   skill-links:
     - add-new-skill
@@ -21,7 +21,7 @@ semantic-links:
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - .github/agents/implementer.agent.md
     - docs/templates/ISSUE.md
-    - docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md
+    - issue #2226
 ---
 
 # Issue #2230 - Add a `fix-bug` Skill and Bug-Spec Guardrails
@@ -119,6 +119,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-18 15:45 UTC - GitHub Copilot - Implemented the `fix-bug` skill, linked the issue template, `create-issue`, and Implementer agent, corrected the stale #2226 worked-example path, and recorded manual verification in `manual-verification-evidence.md`.
 - 2026-09-18 15:45 UTC - GitHub Copilot - Completion review: no separate retrospective needed because implementation followed the approved workflow design without material design changes; the only discovery was a stale worked-example path and relative-link correction, both recorded in this issue and validation evidence.
 - 2026-09-18 15:45 UTC - GitHub Copilot Task Reviewer - Independently verified all acceptance criteria, reran `linter all`, checked skill-link resolution, and recorded the review in `agent-review-reports.md`.
+- 2026-09-18 17:05 UTC - GitHub Copilot - Addressed Copilot PR review feedback by correcting sibling skill links, using stable issue #2226 references, removing the generic template `fix-bug` skill-link, adding reciprocal long-lived skill markers, and fixing the sample validation artifact path.
 
 ## Acceptance Criteria
 
@@ -162,7 +163,7 @@ None planned. Documentation and workflow behavior can be validated by direct rev
 | AC3 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Regression-Test Boundary Rules require the smallest deterministic maintained test and rationale for integration/end-to-end/manual boundaries; `sample-substantive-bug-spec.md` applies the unit-first rule. |
 | AC4 | DONE | `.github/skills/dev/planning/create-issue/SKILL.md` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections linking to `fix-bug` without duplicating the full workflow. |
 | AC5 | DONE | `.github/agents/implementer.agent.md` requires semantic bug detection and loading `fix-bug` even when metadata or labels are wrong, while retaining TDD, complexity audit, independent Task Reviewer review, and signed Committer workflow. |
-| AC6 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` cites issue #2226 as a review-only worked example and says not to change that issue's implementation scope; current diff leaves the #2226 issue unchanged. |
+| AC6 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` cites issue #2226 as a review-only worked example using the stable issue reference and says not to change that issue's implementation scope; current diff leaves the #2226 issue unchanged. |
 | LINT | DONE | `linter all` rerun by Task Reviewer on 2026-09-18 and exited `0`. |
 | SKILL-LINKS | DONE | Read-only skill-link check found frontmatter names for `add-new-skill`, `create-issue`, `fix-bug`, `write-unit-test`, and `add-rust-dependency`; changed references resolve. |
 | MANUAL | DONE | `manual-verification-evidence.md` records manual scenarios V1 and V2 with actual steps, observed output, and conclusions; no issue #2230 reproduction-infeasible scenario was applicable beyond the recorded unsupported focused-linter command and substitute supported linter runs. |
@@ -180,7 +181,7 @@ After implementation, compare the delivered guidance with this specification. Re
 ## References
 
 - GitHub issue: #2230
-- Worked example: `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md`
+- Worked example: issue #2226
 - Worked-example issue: #2226
-- Related evidence: `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/evidence.md`
+- Related evidence: issue #2226 evidence artifacts
 - Repository skill authority: `AGENTS.md`

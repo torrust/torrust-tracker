@@ -1,6 +1,9 @@
 ---
 name: create-issue
 description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
+semantic-links:
+  skill-links:
+    - fix-bug
 metadata:
   author: torrust
   version: "1.1"
@@ -26,9 +29,8 @@ metadata:
 
 Bug handling is semantic, not metadata-only. If the requested work describes broken, incorrect,
 stale, misleading, unexpectedly failing, or regressed behavior, treat it as a bug even when the
-issue type or GitHub labels say something else. Load
-[fix-bug](../../debugging/fix-bug/SKILL.md) and include the bug-only specification sections it
-requires.
+issue type or GitHub labels say something else. Load `.github/skills/dev/debugging/fix-bug/SKILL.md`
+and include the bug-only specification sections it requires.
 
 ## Workflow Overview
 
@@ -168,8 +170,8 @@ cannot be protected appropriately by a unit test or why the higher-level boundar
 clearer and more maintainable.
 
 For bug work, even when the metadata is wrong or missing, the draft must include `Bug-Fix Process`
-and `Regression Test Strategy` sections that link to
-[fix-bug](../../debugging/fix-bug/SKILL.md). The verification plan must require issue-local
+and `Regression Test Strategy` sections that refer to `.github/skills/dev/debugging/fix-bug/SKILL.md`.
+The verification plan must require issue-local
 `manual-verification-evidence.md` for the initial real-artifact reproduction and final like-for-like
 recheck. If reproduction is infeasible, the evidence file must record the attempted commands,
 blocking constraint, and strongest substitute evidence.
