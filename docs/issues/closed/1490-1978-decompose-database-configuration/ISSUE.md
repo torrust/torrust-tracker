@@ -15,7 +15,7 @@ semantic-links:
     - packages/configuration/src/v3_0_0/
     - packages/configuration/src/v3_0_0/database.rs
     - packages/configuration/src/lib.rs
-    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
 ---
 
 # Issue #1490 - Decompose v3 database configuration

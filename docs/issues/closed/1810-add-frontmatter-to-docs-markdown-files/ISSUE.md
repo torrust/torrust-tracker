@@ -310,10 +310,10 @@ Per-file progress checklist. Check each file when its frontmatter has been added
 
 ### T5 — `docs/issues/closed/` — very old specs ≤ 672 (4)
 
-- [x] `docs/issues/closed/523-internal-linting-tool.md`
-- [x] `docs/issues/closed/669-overhaul-clients.md`
-- [x] `docs/issues/closed/671-udp-tracker-client-print-unrecognized-responses.md`
-- [x] `docs/issues/closed/672-http-tracker-client-print-unrecognized-responses.md`
+- [x] `docs/issues/closed/523-internal-linting-tool/ISSUE.md`
+- [x] `docs/issues/closed/669-overhaul-clients/ISSUE.md`
+- [x] `docs/issues/closed/671-udp-tracker-client-print-unrecognized-responses/ISSUE.md`
+- [x] `docs/issues/closed/672-http-tracker-client-print-unrecognized-responses/ISSUE.md`
 
 ### T6 — `docs/issues/closed/` — 1525–1563 specs (6)
 

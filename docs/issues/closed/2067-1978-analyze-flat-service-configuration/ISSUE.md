@@ -18,7 +18,7 @@ semantic-links:
     - docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md
     - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/closed/1490-1978-decompose-database-configuration/ISSUE.md
-    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
     - docs/issues/closed/2067-1978-analyze-flat-service-configuration/analysis.md
     - docs/issues/closed/2067-1978-analyze-flat-service-configuration/evidence.md
     - docs/issues/closed/2067-1978-analyze-flat-service-configuration/max-connection-id-errors-per-ip-bug.md

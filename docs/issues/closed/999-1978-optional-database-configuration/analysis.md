@@ -3,7 +3,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/closed/999-1978-optional-database-configuration/ISSUE.md
     - docs/issues/closed/999-1978-optional-database-configuration/baseline-e2e-verification.md
-    - docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup.md
+    - docs/issues/closed/1980-1978-configuration-overhaul-final-cleanup/ISSUE.md
     - packages/tracker-core/
     - packages/configuration/src/v2_0_0/
     - packages/configuration/src/v3_0_0/
