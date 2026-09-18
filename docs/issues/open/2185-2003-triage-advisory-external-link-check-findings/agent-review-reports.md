@@ -3,6 +3,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
     - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
+    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
+    - docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/lychee-online.toml
     - .github/workflows/external-link-check.yaml
 ---
@@ -222,3 +224,17 @@ semantic-links:
 - Follow-up actions:
   - Commit and review this evidence-only slice without closing issue #2185.
   - Continue C7 and C8 independently.
+
+### 2026-09-18 08:20 UTC - Task Reviewer
+
+- Invocation scope: Independent review of the #2185 closure and semantic-link EPIC handoff documentation in `ISSUE.md`, `external-link-baseline.md`, `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md`, `docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`, and `project-words.txt`.
+- Inputs: Current uncommitted diff, hosted External Link Check runs 35224905794, 35238419294, and 35315382956, the closing residual-failures artifact, and local validation output from `linter markdown`, `linter cspell`, `linter lychee`, and `git diff --check`.
+- Evidence: The final hosted run 35315382956 contains no GitHub URL with any fragment as an error, retains the residual Medium, Stack Overflow, FSF, and GNU license findings, and uploaded the retained `lychee-external-link-report` artifact. The EPIC states that these residual cases are input for S13 and that no policy solution is chosen there. The EPIC also records the maintainer's proposed policy option for critical unstable URLs: preserve a vetted copy, excerpt, or distilled in-repository context for maintainers and AI agents when legal and maintainable, and treat the original URL as provenance, background reading, or an online-check exception.
+- Findings:
+  - Resolved: The substantive #2185 closure is supported by recorded evidence: stale references are repaired or found non-stale, exact online-only exclusions are hosted-verified, and residual cases are handed to the semantic-link EPIC instead of decided in this task.
+  - Resolved: The EPIC handoff preserves the residual report and policy questions without selecting a checker or semantic-link policy prematurely.
+  - Resolved: The issue completion-review placeholder was replaced with the EPIC-handoff conclusion, and this final independent review is recorded in the issue-local report.
+- Verdict: REVIEW PASSED.
+- Follow-up actions:
+  - Commit the closure documentation and residual report.
+  - Open the closing PR for issue #2185; after merge, close the GitHub issue and move the spec from `docs/issues/open/` to `docs/issues/closed/` in the normal completed-issue cleanup flow.

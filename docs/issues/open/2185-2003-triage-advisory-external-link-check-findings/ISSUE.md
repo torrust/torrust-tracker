@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: 2003
 github-issue: 2185
 spec-path: docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: null
-last-updated-utc: 2026-09-15 10:12
+last-updated-utc: 2026-09-18 07:10
 semantic-links:
   skill-links:
     - create-issue
@@ -18,8 +18,11 @@ semantic-links:
     - docs/issues/closed/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
     - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/open/2185-2003-triage-advisory-external-link-check-findings/agent-review-reports.md
+    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
+    - docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/workflows/external-link-check.yaml
     - .github/lychee-online.toml
+    - docs/testing.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -87,10 +90,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status      | Task                                      | Notes / Expected Output                                                                                          |
 | --- | ----------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.            |
-| T2  | IN_PROGRESS | Repair clearly stale references           | C3-C5 and C6 are hosted-verified; C7-C8 remain pending. |
-| T3  | DONE        | Add justified narrow exclusions           | C1/C9, C2, and C6 exact online-only rules are hosted-verified.                                                     |
-| T4  | DONE        | Revalidate hosted signal                  | Hosted C1/C9, C2, and C6 runs retain unrelated failures and their report artifacts.                                |
-| T5  | TODO        | Document operations and review completion | Triage procedure, residual risks, acceptance evidence, and independent review are updated from observed results. |
+| T2  | DONE        | Repair clearly stale references           | C3-C5 and the C6 Docker repairs are hosted-verified. C7-C8 were rerun and probed: none is a stale reference, so no repair applies. |
+| T3  | DONE        | Add justified narrow exclusions           | C1/C9, C2, C6, and C10 exact online-only rules are hosted-verified.                                              |
+| T4  | DONE        | Revalidate hosted signal                  | Hosted C1/C9, C2, C6, and C10 runs retain unrelated failures and their report artifacts.                         |
+| T5  | DONE        | Document operations and review completion | `docs/testing.md` keeps the rerun-then-repair-or-narrow-exclusion policy; residual cases and insights are handed to the semantic-link EPIC draft. |
 
 ## Commit Points
 
@@ -112,14 +115,14 @@ A category that needs no repository change is recorded in issue-local evidence w
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Baseline classification independently reviewed
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -144,20 +147,24 @@ A category that needs no repository change is recorded in issue-local evidence w
 - 2026-09-16 17:33 UTC - Copilot - After PR #2231 merged, [run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) ran on merged revision `6e1e9d29`: it visibly failed with 33 errors and 4 timeouts, uploaded a 1,229-byte `lychee-external-link-report` artifact through 2026-09-30, and contained no errors for either retired Docker ACI URL. Unrelated third-party `403`, FSF, GitHub comment/review fragment, Star History fragment, and timeout failures remained visible. This hosted-verifies the C6 Docker repair without adding an exclusion.
 - 2026-09-17 12:00 UTC - Copilot - Verified that the two remaining GitHub issue-comment fragments resolve to their intended comments through GitHub's issue-comment API, while the Star History fragment selects the repository through client-side routing and its page-level URL does not preserve that view. Added three exact online-only exclusions; hosted boundary verification remains pending.
 - 2026-09-17 13:13 UTC - Copilot - After PR #2251 merged, [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794) ran on merged revision `3bad98d1`: it visibly failed with 30 errors and no timeouts, uploaded a retained 1,039-byte `lychee-external-link-report` artifact through 2026-10-01, and contained none of the two C6 GitHub issue-comment anchors or the Star History project selector. Unrelated GitHub fragments, third-party `403` responses, and FSF transport failures remained visible. This hosted-verifies the C6 dynamic-fragment exclusions.
+- 2026-09-17 15:18 UTC - Copilot - Rerun-first check for C7-C8: [run 35238419294](https://github.com/torrust/torrust-tracker/actions/runs/35238419294) on merged revision `37c0bea5` failed visibly with 30 errors and 2 timeouts and retained its report. Every C7 `403` and C8 FSF failure persisted from run 35224905794, so neither category is transient; the two `martinfowler.com` timeouts were new and are the transient case the policy expects. Direct probes established the causes: Medium returns `403` to a browser user agent as well; the Stack Overflow short permalink redirects to the full question URL, which also returns `403` while the answer still exists; `www.fsf.org` returns HTTP 200 through `curl` and `openssl` but offers only finite-field `DHE` cipher suites, which rustls-based Lychee cannot negotiate. None of C7-C8 is a stale reference. The remaining 23 GitHub errors were `#issuecomment-<id>` and `#pullrequestreview-<id>` anchors on pull-request URLs in `docs/pr-reviews/`, a dynamic-anchor class (C10) added to the checked set after the baseline.
+- 2026-09-17 16:44 UTC - Copilot - Added two exact online-only C10 patterns for pull-request `#issuecomment-<id>` and `#pullrequestreview-<id>` anchors to `.github/lychee-online.toml`. A five-link boundary test excluded the three dynamic pull-request anchor forms and the exact C6 issue-comment anchor while retaining `https://github.com/torrust/torrust-tracker/pull/123/files`. Merged as [PR #2255](https://github.com/torrust/torrust-tracker/pull/2255).
+- 2026-09-18 06:43 UTC - Copilot - After PR #2255 merged, [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956) ran on merged revision `e6dd8918`: it visibly failed with 7 errors and 4 timeouts, excluded 886 links, and retained a 782-byte `lychee-external-link-report` artifact through 2026-10-02. The report contains no GitHub fragment error of any kind. The residual failures are two Medium `403` responses, one Stack Overflow `403`, four FSF transport failures, and four first-time `https://www.gnu.org/licenses/` timeouts. This hosted-verifies C10 and confirms C7-C8 as persistent, non-stale cases.
+- 2026-09-18 07:10 UTC - Copilot - Closure decision with the maintainer: the residual C7-C8 cases and the new GNU timeouts are license boilerplate or background reading that cannot be repaired, and every candidate treatment (replacing citations, excluding hosts, relaxing TLS) is a policy choice outside this task's scope. The verbatim closing report is preserved in `docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`, and the triage insights are recorded in that EPIC draft's "Handoff from Issue #2185" section. No issue-local retrospective is needed because the EPIC handoff is the retrospective. The issue closes when this PR merges.
 
 ## Acceptance Criteria
 
 - [x] AC1: An issue-local baseline records the exact hosted run, revision, summary counts, and a disposition for every distinct failing URL or recurring failure pattern.
-- [ ] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct. C3 and C4 target and hosted verification are recorded; remaining repair slices must be verified before AC2 can be completed.
+- [x] AC2: Each repair changes only a verified stale reference and records why its replacement target is correct. C3, C4, C5, and C6 Docker repairs are target-verified and hosted-verified; C7-C8 were probed and are not stale, so no further repair applies.
 - [x] AC3: Each added exclusion is online-only, narrowly scoped to a documented durable false-positive category, and does not suppress unrelated external-link failures.
 - [x] AC4: The advisory workflow remains scheduled/manual, visibly fails for remaining external-link failures, and continues to upload its Markdown report on failure.
 - [x] AC5: At least one hosted rerun after each remediation slice records the resulting counts and explains material differences from the prior run.
-- [ ] AC6: Documentation explains any permanent exclusion rationale and preserves the existing rerun-then-repair-or-narrow-exclusion triage policy.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass or their documented non-applicability is reviewed.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflow changes.
+- [x] AC6: Documentation explains any permanent exclusion rationale and preserves the existing rerun-then-repair-or-narrow-exclusion triage policy. Each exclusion group in `.github/lychee-online.toml` carries its rationale comment, and `docs/testing.md` keeps the rerun-first policy unchanged.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass or their documented non-applicability is reviewed. The changes are Markdown and Lychee configuration only; no Rust test applies.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflow changes.
 
 ## Verification Plan
 
@@ -176,20 +183,37 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | M1  | Reproduce baseline             | Manually dispatch `external-link-check.yaml` on `develop`; download `lychee-external-link-report`.            | Report is available even when Lychee fails; baseline counts and categories can be reviewed.                                                     | DONE   | [Run 34347690674](https://github.com/torrust/torrust-tracker/actions/runs/34347690674), revision `7abc30b2`, 461 errors, 0 timeouts.                                                                                                                                                                                                                                 |
 | M2  | Classify durable failures      | Review all report entries and group by URL/pattern, response type, owning document, and proposed disposition. | Every baseline failure has a traceable disposition; no broad host-level suppression is proposed.                                                | DONE   | `external-link-baseline.md`; independent reconciliation passed on 2026-09-10.                                                                                                                                                                                                                                                                                        |
-| M3  | Verify reference repairs       | Check each changed target using the appropriate authoritative source, then run local validation.              | Replacement reference is correct and offline local-link validation remains clean.                                                               | IN_PROGRESS | C3: Cargo metadata and docs.rs confirmed the shared target; [run 34829466145](https://github.com/torrust/torrust-tracker/actions/runs/34829466145) contains none of the 14 replaced URLs. C4: [run 34843399874](https://github.com/torrust/torrust-tracker/actions/runs/34843399874) contains none of the three replaced URLs. C5: [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) contains neither the retired URL nor the replacement without a fragment as an error. C6 Docker: [run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) contains neither retired Docker ACI URL as an error. All completed slices retain unrelated errors. |
-| M4  | Verify exclusion boundaries    | Dispatch the hosted workflow after adding a proposed exclusion.                                               | The intended durable false-positive category is absent, while representative unrelated external failures remain visible and the report uploads. | DONE | C1/C9: [run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) on `427b0c93` excluded 476 links and retained its report. C2: [run 34616458439](https://github.com/torrust/torrust-tracker/actions/runs/34616458439) on `f6df96bf` excluded 495 links, left 44 errors, retained a 1,533-byte artifact, and contained no loopback URLs. C6: [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794) on `3bad98d1` excluded 751 links, retained 30 unrelated errors, and uploaded a 1,039-byte artifact. |
-| M5  | Distinguish transient failures | Re-run a newly observed timeout, 403, or other potentially transient result once.                             | The record distinguishes a persistent failure from a transient response before an exclusion or repair decision.                                 | TODO   | Pair of hosted-run URLs and comparison.                                                                                                                                                                                                                                                                                                                              |
+| M3  | Verify reference repairs       | Check each changed target using the appropriate authoritative source, then run local validation.              | Replacement reference is correct and offline local-link validation remains clean.                                                               | DONE   | C3: Cargo metadata and docs.rs confirmed the shared target; [run 34829466145](https://github.com/torrust/torrust-tracker/actions/runs/34829466145) contains none of the 14 replaced URLs. C4: [run 34843399874](https://github.com/torrust/torrust-tracker/actions/runs/34843399874) contains none of the three replaced URLs. C5: [run 34971438822](https://github.com/torrust/torrust-tracker/actions/runs/34971438822) contains neither the retired URL nor the replacement without a fragment as an error. C6 Docker: [run 35128890381](https://github.com/torrust/torrust-tracker/actions/runs/35128890381) contains neither retired Docker ACI URL as an error. All completed slices retain unrelated errors. C7-C8 probes found no stale reference to repair. |
+| M4  | Verify exclusion boundaries    | Dispatch the hosted workflow after adding a proposed exclusion.                                               | The intended durable false-positive category is absent, while representative unrelated external failures remain visible and the report uploads. | DONE | C1/C9: [run 34578523069](https://github.com/torrust/torrust-tracker/actions/runs/34578523069) on `427b0c93` excluded 476 links and retained its report. C2: [run 34616458439](https://github.com/torrust/torrust-tracker/actions/runs/34616458439) on `f6df96bf` excluded 495 links, left 44 errors, retained a 1,533-byte artifact, and contained no loopback URLs. C6: [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794) on `3bad98d1` excluded 751 links, retained 30 unrelated errors, and uploaded a 1,039-byte artifact. C10: [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956) on `e6dd8918` excluded 886 links, left no GitHub fragment error, retained 7 unrelated errors and 4 timeouts, and uploaded a 782-byte artifact. |
+| M5  | Distinguish transient failures | Re-run a newly observed timeout, 403, or other potentially transient result once.                             | The record distinguishes a persistent failure from a transient response before an exclusion or repair decision.                                 | DONE   | Persistent: every C7 `403` and C8 FSF failure appears in [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794), [run 35238419294](https://github.com/torrust/torrust-tracker/actions/runs/35238419294), and [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956). Transient: the `martinfowler.com` timeouts in run 35238419294 are absent from run 35315382956. The GNU licenses timeouts first appear in run 35315382956 and are handed to the EPIC as a rerun-first candidate. |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                           |
 | ----- | ---------------------- | ------------------------------------------------------------------ |
 | AC1   | DONE                   | `external-link-baseline.md` from run 34347690674.                  |
-| AC2   | TODO                   | C3-C5 and C6 Docker target and hosted verification are recorded; remaining repair slices must be verified. |
-| AC3   | DONE                   | C1/C9, C2, and C6 hosted runs show each exact exclusion remains narrow. |
+| AC2   | DONE                   | C3-C5 and C6 Docker target and hosted verification are recorded; C7-C8 probes show no stale reference remains. |
+| AC3   | DONE                   | C1/C9, C2, C6, and C10 hosted runs show each exact exclusion remains narrow. |
 | AC4   | DONE                   | Run 34578523069 failed visibly and uploaded its report artifact.   |
-| AC5   | DONE                   | Runs 34578523069, 34616458439, 34829466145, 34843399874, 34971438822, 35128890381, and 35224905794 record each completed remediation slice. |
-| AC6   | TODO                   | Updated documentation and reviewer confirmation.                   |
+| AC5   | DONE                   | Runs 34578523069, 34616458439, 34829466145, 34843399874, 34971438822, 35128890381, 35224905794, 35238419294, and 35315382956 record each remediation slice and the C7-C8 rerun. |
+| AC6   | DONE                   | `.github/lychee-online.toml` comments state each exclusion rationale; `docs/testing.md` keeps the rerun-first policy; residual cases are documented in the semantic-link EPIC draft. |
+
+## Closure Decision
+
+The task scope was to clean broken links. The triage showed that most reported failures were not
+broken links, that the genuinely stale references were few and are repaired, and that the residual
+failures depend on a policy the repository does not have yet: how much a link matters, who owns its
+target, and what the checker can physically reach. Deciding that here would exceed this task and
+EPIC #2003's current decision stage.
+
+The issue therefore closes with:
+
+- all repository-owned stale references repaired and hosted-verified;
+- exact, commented, online-only exclusions in `.github/lychee-online.toml` for dynamic GitHub
+  anchors, loopback examples, and the Star History selector;
+- the advisory workflow unchanged and still failing visibly on the residual cases;
+- the closing report preserved in the semantic-link EPIC draft folder together with the insights
+  from this triage, so the follow-up can start from evidence rather than re-deriving it.
 
 ## Risks and Trade-offs
 
@@ -202,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 After implementation, compare the result with this specification. Record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `The semantic-link EPIC handoff is the durable completion review for this task. Issue #2185 found no additional code or workflow behavior to change after the final hosted validation; its reusable lessons are the S13 policy questions and residual-failures artifact now recorded in the EPIC draft.`
 - If needed, create `implementation-retrospective.md` from the repository template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no material discovery.
 - When an independent reviewer receives this folder-style specification, it records its result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.

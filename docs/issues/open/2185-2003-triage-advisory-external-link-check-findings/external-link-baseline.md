@@ -33,7 +33,7 @@ Lychee reported 421 `Cannot find fragment` diagnostics, 18 `404` responses, 13 c
 
 ## Failure Dispositions
 
-The following nine categories cover all 461 report errors. C1 and C9 share one proposed URL-pattern boundary but remain separate to preserve their distinct observed diagnostics.
+The baseline errors fall into nine categories (C1-C9) covering all 461 report errors. C1 and C9 share one proposed URL-pattern boundary but remain separate to preserve their distinct observed diagnostics. C10 records a post-baseline class that entered the checked document set later and is listed after C9 for completeness.
 
 ### C1: GitHub review-comment missing fragments — 416 occurrences
 
@@ -77,20 +77,26 @@ The following nine categories cover all 461 report errors. C1 and C9 share one p
 ### C7: Third-party access-controlled links — 3 occurrences
 
 - **Pattern:** Medium and Stack Overflow URLs returning `403`.
-- **Disposition:** Transient/access-controlled candidate. A `403` does not prove the referenced content is stale.
-- **Next action:** Rerun once before deciding between retaining the signal, replacing the citation, or documenting a narrowly scoped exception.
+- **Disposition:** Persistent and not stale; handed off. The `403` responses persisted across hosted [run 35224905794](https://github.com/torrust/torrust-tracker/actions/runs/35224905794), [run 35238419294](https://github.com/torrust/torrust-tracker/actions/runs/35238419294), and [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956). Medium returns `403` to a browser user agent as well as to Lychee. The Stack Overflow short permalink redirects to the full question URL, which also returns `403` to automated clients, while the answer still exists. Replacing the citations or excluding the hosts is a policy choice, so the cases are recorded in the semantic-link EPIC draft instead.
+- **Next action:** None in this issue. See `docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`.
 
 ### C8: FSF transport failures — 4 occurrences
 
 - **Pattern:** `https://www.fsf.org/` cached errors and one TLS handshake failure.
-- **Disposition:** Transient/network candidate. The same target has multiple diagnostics across documents.
-- **Next action:** Rerun once and compare results before any configuration decision.
+- **Disposition:** Persistent checker limitation; handed off. The failure persisted across the same three hosted runs as C7. `curl` and `openssl` reach `www.fsf.org` with HTTP 200 and a valid certificate, but the server offers only finite-field `DHE` cipher suites; rustls, which Lychee uses, negotiates `ECDHE` only, so the handshake can never complete from the checker. All four occurrences are the AGPL license footer repeated in `README.md`, `console/tracker-client/README.md`, `packages/rest-api-client/README.md`, and `packages/tracker-client/README.md`.
+- **Next action:** None in this issue. Recorded with C7 in the EPIC handoff artifact.
 
 ### C9: Cached GitHub review-comment-anchor errors — 8 occurrences
 
 - **Pattern:** `https://github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached-error diagnostics, including two references from open issue specs.
 - **Disposition:** Covered by C1's exact URL pattern, but retained separately because the report cached a different diagnostic.
 - **Next action:** Complete offline. `lychee --dump` with the configured online policy found zero matching pull-request review-comment anchors and retained both GitHub issue-comment anchors. A hosted rerun remains required only to verify the aggregate report, artifact upload, and unrelated failures.
+
+### C10: Pull-request comment and review anchors — 23 occurrences (post-baseline)
+
+- **Pattern:** `https://github.com/torrust/torrust-tracker/pull/<number>#issuecomment-<id>` and `https://github.com/torrust/torrust-tracker/pull/<number>#pullrequestreview-<id>` with `Cannot find fragment` or cached errors, all in `docs/pr-reviews/`.
+- **Disposition:** Resolved with two exact online-only patterns. These records were added to the checked set after the baseline, so the class is not part of the 461-error total. GitHub renders the anchors client-side, exactly as for C1/C9, and the unified PR review process keeps generating them.
+- **Next action:** Complete. A five-link boundary test excluded the three dynamic pull-request anchor forms and the exact C6 issue-comment anchor while retaining `https://github.com/torrust/torrust-tracker/pull/123/files`. Hosted [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956) contains no GitHub fragment error.
 
 ## Affected Reference Inventory
 
@@ -133,10 +139,10 @@ All 14 links now use `https://docs.rs/crate/torrust-tracker/latest`. Cargo metad
 
 | URL or URL pattern                                                                    | Diagnostic                            | Current disposition |
 | ------------------------------------------------------------------------------------- | ------------------------------------- | ------------------- |
-| `medium.com/@kentbeck_7670/*`                                                         | `403`                                 | C7                  |
-| `stackoverflow.com/a/56768087/3012842`                                                | `403`                                 | C7                  |
-| `https://www.fsf.org/`                                                                | Cached error or TLS handshake failure | C8                  |
-| `github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached error | Cached error                          | C9                  |
+| `medium.com/@kentbeck_7670/*`                                                         | `403`                                 | C7: persistent bot protection, handed off |
+| `stackoverflow.com/a/56768087/3012842`                                                | `403`                                 | C7: persistent bot protection, handed off |
+| `https://www.fsf.org/`                                                                | Cached error or TLS handshake failure | C8: rustls cannot negotiate the server's `DHE`-only suites, handed off |
+| `github.com/torrust/torrust-tracker/pull/<number>#discussion_r<id>` with cached error | Cached error                          | C9: exact online-only exclusion hosted-verified |
 
 ## First Remediation Slice
 
@@ -180,6 +186,18 @@ The report records 2,117 total checks, 1,483 unique links, 1,343 successful chec
 
 The report records 2,172 total checks, 1,391 successful checks, 26 redirects, 751 exclusions, 30 errors, and no timeouts. It contains neither `https://github.com/torrust/torrust-tracker/issues/1669#issuecomment-4010991467`, `https://github.com/torrust/torrust-tracker/issues/269#issuecomment-1749443211`, nor `https://star-history.dera.page/#torrust/torrust-tracker` as an error. It retains unrelated GitHub issue-comment and review fragments, Medium and Stack Overflow `403` responses, and FSF cached and TLS handshake failures. This verifies the exact C6 exclusions without suppressing unrelated failures.
 
-## Deferred Work
+### C7-C8 rerun-first verification
 
-C7-C8 remain deferred until each category's transient behavior is verified individually. This keeps future repairs and any potential exclusions narrowly scoped and prevents mixing access-controlled and transient findings in one change.
+[External Link Check run 35238419294](https://github.com/torrust/torrust-tracker/actions/runs/35238419294) was dispatched on merged revision `37c0bea5` with no configuration change, as the single rerun the policy in `docs/testing.md` requires before treating a `403` or transport failure as persistent. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded.
+
+The report records 2,177 total checks, 1,509 unique links, 1,394 successful checks, 26 redirects, 751 exclusions, 30 errors, and 2 timeouts. All three C7 `403` responses and all four C8 FSF failures are present with the same diagnostics as in run 35224905794, so both categories are persistent. The two timeouts are `https://martinfowler.com/bliki/BeckDesignRules.html`, which had not failed before and did not fail in the next run; that is the transient case the rerun-first policy is designed to catch. The 23 remaining errors are the C10 pull-request comment and review anchors.
+
+### C10 exclusion verification and closing run
+
+[External Link Check run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956) ran after PR #2255 merged on revision `e6dd8918bf6964794882f60486f2da3e296cbb13`. The `Check External Links` step failed visibly and `Upload Lychee Report` succeeded. The retained `lychee-external-link-report` artifact is 782 bytes, contains a 1,782-byte report, and expires on 2026-10-02.
+
+The report records 2,224 total checks, 1,537 unique links, 1,327 successful checks, 27 redirects, 886 exclusions, 7 errors, and 4 timeouts. It contains no GitHub URL with any fragment as an error. The seven errors are the two Medium `403` responses, the Stack Overflow `403`, and four FSF failures (one TLS `HandshakeFailure` and three cached). The four timeouts are `https://www.gnu.org/licenses/` in the same four license footers as the FSF links; this is the first run in which that URL failed. This verifies the C10 exclusions without suppressing unrelated failures and is the last report produced under this issue. It is preserved verbatim in `docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`.
+
+## Handoff
+
+C7 and C8 were rerun and probed to their root causes and are not stale references: one is bot protection on hosts that still serve the content, the other is a TLS cipher-suite mismatch between the server and Lychee's rustls stack. The GNU licenses timeouts are a first observation and remain a rerun-first candidate. Deciding whether such links should be replaced, excluded by host, or treated as a lower-importance class is a policy question, so these cases are handed to the semantic-link EPIC draft with the closing report and the insights from this triage. `.github/lychee-online.toml` keeps only the exact exclusions verified above.

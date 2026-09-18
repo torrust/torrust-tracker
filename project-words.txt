@@ -283,6 +283,7 @@ inlines
 intervali
 io_uring
 isready
+issuecomment
 iterationsadd
 jdbe
 josecelano
@@ -309,6 +310,7 @@ llist
 lscr
 lycheeignore
 lycheeverse
+martinfowler
 matchit
 matchmakes
 memcmp
@@ -386,6 +388,7 @@ prioritise
 programatik
 proot
 proto
+pullrequestreview
 pushmirrors
 pythondontwritebytecode
 qbittorrent
