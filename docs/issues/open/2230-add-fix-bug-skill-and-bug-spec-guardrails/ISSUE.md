@@ -34,11 +34,13 @@ The confirmed stale activity-metrics cutoff bug exposed a missing explicit repos
 
 The repo-global authoring workflow still lives under `.github/skills/add-new-skill/SKILL.md`, but the issue-specific workflow guidance below intentionally points only at the `dev/` paths that govern day-to-day tracking and validation. This keeps the taxonomy explicit without creating a second canonical source for the bug-fix process.
 
-Current guidance is incomplete by design:
+Current guidance is incomplete by design. Bug status is determined by the substance of the
+reported work, not only by the `issue-type` metadata or GitHub labels; a misclassified issue that
+describes broken behavior must still follow the bug-fix workflow.
 
 - `create-issue` governs drafting and publishing all issue types, but has no bug-specific process requirement.
 - `write-unit-test` governs test design and deterministic time, but does not prescribe when a bug needs unit, integration, end-to-end, or manual validation.
-- Implementer requires TDD where practical, but does not require a confirmed-bug reproduction or a like-for-like final recheck.
+- Implementer requires TDD where practical, but does not require a bug reproduction or a like-for-like final recheck.
 - `docs/templates/ISSUE.md` has no explicit bug-only sections for investigation and regression strategy.
 
 A new canonical skill is preferable to duplicating operational procedure in an agent, generic template, and issue-creation skill. The related stale-cutoff bug specification is the worked example and remains out of scope for this documentation/process change.
@@ -76,10 +78,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Define the canonical bug-fix workflow | Create `fix-bug` using the repository's `add-new-skill` guidance. Require the sequence: analyse, reproduce, select tests, red test, fix, and recheck. |
-| T2 | TODO | Define test-selection and evidence rules | Prefer a deterministic unit test at the causal seam; require a written reason when a higher-level boundary is selected. Distinguish maintained tests from real manual reproduction evidence. |
+| T1 | TODO | Define the canonical bug-fix workflow | Create `fix-bug` using the repository's `add-new-skill` guidance. For any work that is substantively a bug, regardless of metadata or labels, require the sequence: analyse, reproduce, select tests, red test, fix, and recheck. |
+| T2 | TODO | Define test-selection and evidence rules | Prefer a deterministic unit test at the causal seam; require a written reason when a higher-level boundary is selected. Distinguish maintained tests from real manual reproduction evidence, and require an explicit infeasibility record when reproduction cannot be performed. |
 | T3 | TODO | Link issue authoring guidance and template | Make `create-issue` require `Bug-Fix Process` and `Regression Test Strategy` sections for `issue-type: bug`; add clearly marked bug-only template blocks that link to the canonical skill. |
-| T4 | TODO | Link the Implementer agent workflow | Require Implementer to read and apply `fix-bug` for a confirmed bug, preserve its existing TDD and independent-review rules, and record the red/green/recheck evidence in the issue folder. |
+| T4 | TODO | Link the Implementer agent workflow | Require Implementer to read and apply `fix-bug` for any substantively identified bug, preserve its existing TDD and independent-review rules, and record the red/green/recheck evidence in the issue folder. |
 | T5 | TODO | Validate the workflow end-to-end | Use the stale-cutoff draft as a review-only worked example; validate Markdown, spelling, skill links, and a new minimal bug draft against the required sections. |
 
 ## Commit Points
@@ -116,21 +118,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## Acceptance Criteria
 
 - [ ] AC1: `.github/skills/dev/debugging/fix-bug/SKILL.md` defines the required sequence: analyse, reproduce, select regression test type, write a failing test, fix, and recheck.
-- [ ] AC2: The skill requires real-artifact reproduction evidence with actual commands and output when reproduction is feasible, and distinguishes it from maintained automated tests.
+- [ ] AC2: The skill requires real-artifact reproduction evidence with actual commands and output when reproduction is feasible, requires the reason and attempted evidence to be recorded when it is infeasible, and distinguishes it from maintained automated tests.
 - [ ] AC3: The skill requires selection of the smallest deterministic regression-test boundary, with a documented rationale for integration or end-to-end tests.
 - [ ] AC4: `create-issue` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections that link to the canonical skill instead of duplicating it.
-- [ ] AC5: The Implementer agent loads `fix-bug` for confirmed bug specs and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
+- [ ] AC5: The Implementer agent loads `fix-bug` for substantively identified bug specs, even when metadata or labels are incorrect, and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
 - [ ] AC6: The stale activity-metrics draft is cited as a worked example without changing that issue's implementation scope.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant skill-link validation passes.
-- [ ] Manual review scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [ ] Manual review scenarios are executed and documented in issue-local `manual-verification-evidence.md`; when reproduction is infeasible, the file records the constraint, attempted commands, and the strongest available substitute evidence.
 
 ## Verification Plan
 
 ### Automatic Checks
 
-- `bash ./scripts/validate-skill-links.sh`
 - `linter all`
+- Review every changed `skill-link:` value against the linked skill's frontmatter `name`; no `./scripts/validate-skill-links.sh` exists in this repository.
 - Any repository validation command supplied by `add-new-skill`
 
 ### Manual Verification Scenarios
@@ -139,8 +141,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Plan a confirmed bug | Read the new skill and prepare a small sample `issue-type: bug` spec using the template. | The sample visibly records all six steps, selects a regression-test boundary, and links evidence. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Start bug implementation | Give Implementer the sample confirmed-bug spec. | It loads `fix-bug`, records analysis/reproduction/test-selection evidence before code, and does not treat a passing test alone as final proof. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Plan a bug regardless of metadata | Read the new skill and prepare a small sample whose substance is a bug while its metadata is not `issue-type: bug`. | The sample visibly records all six steps, selects a regression-test boundary, and links evidence. | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Start bug implementation | Give Implementer the sample bug spec, including a reproduction constraint if applicable. | It loads `fix-bug`, records analysis/reproduction-or-infeasibility/test-selection evidence before code, and does not treat a passing test alone as final proof. | TODO | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
