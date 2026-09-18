@@ -256,7 +256,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Updated the numeric and UDP classification sections to describe the issue-local drafts as design inputs that produced the approved follow-up issues.
 - Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script passed.
 - Resolution reference: `docs(pr-reviews): address Cameron review findings`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046591428>
 
 ### F18 - A159 Disposition And Source Reason Mismatch
 
@@ -268,7 +268,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Reclassified A159 as retained, narrowed the #2261 temporary evidence row to A157-A158 and A160-A168, and updated #2158 disposition counts.
 - Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script reporting 239 rows, 135 retained, 88 temporary, 16 removed, 223 active source attributes, and zero missing reasons passed.
 - Resolution reference: `docs(pr-reviews): address Cameron review findings`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046591720>
 
 ### F19 - Fixed Findings Marked As No Action
 
@@ -280,7 +280,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Corrected F8 and F11-F15 to `FIXED` and `RESOLVED`, left duplicate site findings F9-F10 as re-raises, and updated the `process-pr-review` skill so fixed outdated threads are recorded as fixed rather than no-action.
 - Current-tree verification: Current audit tracking rows and `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` were inspected; `linter markdown` and `linter cspell` passed.
 - Resolution reference: `docs(pr-reviews): address Cameron audit findings`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046591902>
 
 ### F20 - Reviewer Finding IDs Missing From Audit Details
 
@@ -292,7 +292,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added `Reviewer finding ID` fields to F8-F16 and updated the `process-pr-review` skill to specify how to handle reviewer-provided ID collisions.
 - Current-tree verification: Current audit detail entries and `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` were inspected; `linter markdown` and `linter cspell` passed.
 - Resolution reference: `docs(pr-reviews): address Cameron audit findings`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046592149>
 
 ### F21 - Stale Current-Tree Verification In Earlier Audit Entries
 
@@ -304,7 +304,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Refreshed F3-F5 current-tree verification text to `2026-09-18 11:15`.
 - Current-tree verification: Current audit detail entries and #2158 front matter were inspected; `linter markdown` and `linter cspell` passed.
 - Resolution reference: `docs(pr-reviews): address Cameron audit findings`
-- Reply URL: Pending reply.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046592389>
 
 ## Processing Log
 
@@ -320,6 +320,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-18 11:22 UTC - `check-thread-reply-status.sh` reported 9 total unresolved threads, 9 with replies, and 0 without replies.
 - 2026-09-18 11:22 UTC - Resolved all nine replied second-round review threads.
 - 2026-09-18 11:23 UTC - Final GraphQL fetch reported zero unresolved threads.
+- 2026-09-18 12:03 UTC - Rebasing onto `torrust/develop` completed cleanly; fetched Cameron review 5247463337 with five unresolved threads.
+- 2026-09-18 12:06 UTC - Implemented and validated Cameron review fixes in `docs(pr-reviews): address Cameron review findings`.
+- 2026-09-18 12:07 UTC - Implemented and validated Cameron audit fixes in `docs(pr-reviews): address Cameron audit findings`.
+- 2026-09-18 12:10 UTC - Replied to all five Cameron review threads.
+- 2026-09-18 12:11 UTC - `check-thread-reply-status.sh` reported 5 total unresolved threads, 5 with replies, and 0 without replies.
+- 2026-09-18 12:11 UTC - Resolved all five replied Cameron review threads.
 
 ## Completion Rules
 
