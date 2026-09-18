@@ -208,6 +208,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A103, A104, A105, A106, A131, A133, A135, A137, A155, A223 | Added native `reason` parameters for retained `async_trait` double-must-use suppressions. | `cargo clippy -p torrust-tracker-rest-api-application -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A107, A110, A126, A132, A134, A136, A138 | Added native `reason` parameters for retained compatibility and API-shape suppressions. | `cargo clippy -p torrust-tracker-rest-api-client -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-client-lib -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
+| A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
 
 ## Entries
 

@@ -25,7 +25,10 @@ pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
 
     let mut bytes = [0u8; 20];
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "generator intentionally keeps four low-order bytes for test data"
+    )]
     for i in 0..size {
         bytes[0] = (i & 0xFF) as u8;
         bytes[1] = ((i >> 8) & 0xFF) as u8;
