@@ -1,4 +1,8 @@
-#![allow(clippy::print_stdout, clippy::print_stderr)]
+#![allow(
+    clippy::print_stdout,
+    clippy::print_stderr,
+    reason = "profiling console command reports status and failures to the terminal"
+)]
 
 //! This binary is used for profiling with [valgrind](https://valgrind.org/)
 //! and [kcachegrind](https://kcachegrind.github.io/).

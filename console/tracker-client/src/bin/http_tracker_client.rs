@@ -1,4 +1,4 @@
-#![allow(clippy::print_stderr)]
+#![allow(clippy::print_stderr, reason = "deprecated HTTP tracker CLI reports command failures on standard error")]
 
 //! Program to make request to HTTP trackers.
 use torrust_tracker_console_client::console::clients::http::app;

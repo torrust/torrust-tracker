@@ -1,4 +1,8 @@
-#![allow(clippy::print_stderr, clippy::exit)]
+#![allow(
+    clippy::print_stderr,
+    clippy::exit,
+    reason = "unified tracker client reports failures and returns explicit process status"
+)]
 
 //! Unified tracker client binary.
 use torrust_tracker_console_client::console::clients::unified::app;

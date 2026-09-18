@@ -1,4 +1,9 @@
-#![allow(clippy::print_stdout, clippy::print_stderr, clippy::exit)]
+#![allow(
+    clippy::print_stdout,
+    clippy::print_stderr,
+    clippy::exit,
+    reason = "container health-check binary reports probe outcomes and exit status to its caller"
+)]
 
 //! Minimal `curl` or `wget` to be used for container health checks.
 //!

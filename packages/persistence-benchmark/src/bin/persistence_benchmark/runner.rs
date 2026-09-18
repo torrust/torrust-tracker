@@ -1,4 +1,7 @@
-#![allow(clippy::print_stdout)]
+#![allow(
+    clippy::print_stdout,
+    reason = "persistence benchmark runner emits progress and result output"
+)]
 
 use std::time::Instant;
 

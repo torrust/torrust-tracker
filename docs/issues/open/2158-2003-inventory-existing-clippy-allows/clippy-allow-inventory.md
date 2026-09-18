@@ -194,6 +194,12 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A141, A142 | Removed seed-reference suppressions by making the zeroed test seed a `static`, matching the production `LazyLock` reference shape. | `cargo clippy -p torrust-tracker-udp-core --all-targets --all-features -- -D warnings` |
 | A232 | Added the missing UDP checker panic documentation for the fixed sample info-hash literal. | `cargo clippy -p torrust-tracker-client --all-targets --all-features -- -D warnings` |
 
+### Retained Rationale Implementation Evidence
+
+| Entries | Remediation | Validation |
+| ------- | ----------- | ---------- |
+| A001, A009, A010, A094, A169, A228, A229, A230, A231, A234 | Added native `reason` parameters for retained CLI and executable-output suppressions. | `cargo clippy -p torrust-tracker -p torrust-tracker-persistence-benchmark -p torrust-tracker-udp-server -p torrust-tracker-client --all-targets --all-features -- -D warnings` |
+
 ## Entries
 
 | ID | Source location | Scope | Lint name(s) | Rationale category | Evidence | Owner | Disposition |

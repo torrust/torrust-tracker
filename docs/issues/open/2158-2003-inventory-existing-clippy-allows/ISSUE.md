@@ -186,6 +186,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Removed UDP core seed-reference suppressions by making the test seed a static reference target - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Documented the tracker-client UDP checker sample-hash panic precondition and removed its suppression - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Completed direct `Remove` remediation; the anchored allow scan now finds 219 remaining attributes, matching the original 234 rows minus 15 removals - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Added native `reason` parameters for retained CLI and executable-output suppressions - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
