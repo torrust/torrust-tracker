@@ -9,7 +9,10 @@ use torrust_tracker_primitives::{PrivateMode, TrackerPolicy};
 use crate::v3_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 
-#[allow(clippy::struct_excessive_bools)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "independent public feature switches map directly to the v3 serialized schema"
+)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Core {

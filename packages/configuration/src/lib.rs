@@ -161,7 +161,10 @@ impl Info {
     ///
     /// Will return `Err` if unable to obtain a configuration.
     ///
-    #[allow(clippy::needless_pass_by_value)]
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "owned default path is forwarded into the selected configuration source"
+    )]
     pub fn new(default_config_toml_path: String) -> Result<Self, Error> {
         Self::new_with_explicit_config_toml_path(default_config_toml_path, None)
     }
@@ -176,7 +179,10 @@ impl Info {
     ///
     /// Returns [`Error::UnableToLoadExplicitConfigFile`] if the explicit path cannot be read as a
     /// regular file.
-    #[allow(clippy::needless_pass_by_value)]
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "owned default and explicit paths are forwarded into configuration-source construction"
+    )]
     pub fn new_with_explicit_config_toml_path(
         default_config_toml_path: String,
         explicit_config_toml_path: Option<PathBuf>,
