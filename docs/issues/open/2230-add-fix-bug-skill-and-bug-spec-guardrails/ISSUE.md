@@ -6,20 +6,22 @@ priority: p2
 epic: null
 github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
-branch: null
+branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: null
-last-updated-utc: 2026-09-15 15:05
+last-updated-utc: 2026-09-18 15:45
 semantic-links:
   skill-links:
     - add-new-skill
     - create-issue
+    - fix-bug
     - write-unit-test
   related-artifacts:
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - .github/agents/implementer.agent.md
     - docs/templates/ISSUE.md
-    - docs/issues/drafts/fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md
+    - docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md
 ---
 
 # Issue #2230 - Add a `fix-bug` Skill and Bug-Spec Guardrails
@@ -54,7 +56,7 @@ A new canonical skill is preferable to duplicating operational procedure in an a
 - Update the Implementer agent to load and apply `fix-bug` for `issue-type: bug` specifications.
 - Define evidence standards for source analysis, real-artifact reproduction, failing-test output, fixed-test output, and final recheck.
 - Define a decision framework for selecting unit, integration, end-to-end, and manual regression verification.
-- Add a worked-example reference to the stale activity-metrics cutoff draft.
+- Add a worked-example reference to the stale activity-metrics cutoff issue.
 
 ### Out of Scope
 
@@ -78,11 +80,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Define the canonical bug-fix workflow | Create `fix-bug` using the repository's `add-new-skill` guidance. For any work that is substantively a bug, regardless of metadata or labels, require the sequence: analyse, reproduce, select tests, red test, fix, and recheck. |
-| T2 | TODO | Define test-selection and evidence rules | Prefer a deterministic unit test at the causal seam; require a written reason when a higher-level boundary is selected. Distinguish maintained tests from real manual reproduction evidence, and require an explicit infeasibility record when reproduction cannot be performed. |
-| T3 | TODO | Link issue authoring guidance and template | Make `create-issue` require `Bug-Fix Process` and `Regression Test Strategy` sections for `issue-type: bug`; add clearly marked bug-only template blocks that link to the canonical skill. |
-| T4 | TODO | Link the Implementer agent workflow | Require Implementer to read and apply `fix-bug` for any substantively identified bug, preserve its existing TDD and independent-review rules, and record the red/green/recheck evidence in the issue folder. |
-| T5 | TODO | Validate the workflow end-to-end | Use the stale-cutoff draft as a review-only worked example; validate Markdown, spelling, skill links, and a new minimal bug draft against the required sections. |
+| T1 | DONE | Define the canonical bug-fix workflow | Created `.github/skills/dev/debugging/fix-bug/SKILL.md` using the repository's `add-new-skill` guidance. For any work that is substantively a bug, regardless of metadata or labels, it requires the sequence: analyse, reproduce, select tests, red test, fix, and recheck. |
+| T2 | DONE | Define test-selection and evidence rules | The skill prefers a deterministic unit test at the causal seam, requires a written reason when a higher-level boundary is selected, distinguishes maintained tests from real manual reproduction evidence, and requires an explicit infeasibility record when reproduction cannot be performed. |
+| T3 | DONE | Link issue authoring guidance and template | Updated `create-issue` and `docs/templates/ISSUE.md` with bug-only `Bug-Fix Process` and `Regression Test Strategy` requirements that link to the canonical skill. |
+| T4 | DONE | Link the Implementer agent workflow | Updated Implementer to read and apply `fix-bug` for any substantively identified bug, preserve existing TDD and review rules, and require red/green/recheck evidence in the issue folder. |
+| T5 | DONE | Validate the workflow end-to-end | Used issue #2226 as the worked example reference; validated Markdown, spelling, skill links, and the issue-local sample bug draft against the required sections. |
 
 ## Commit Points
 
@@ -100,12 +102,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted and promoted to `docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2230 created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, skill-link validation, and relevant checks)
-- [ ] Manual review scenarios executed and evidence recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, skill-link validation, and relevant checks)
+- [x] Manual review scenarios executed and evidence recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -114,18 +116,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-15 11:10 UTC - GitHub Copilot - Promoted the draft after GitHub issue #2226 was created; it is ready for maintainer review.
 - 2026-09-15 15:00 UTC - josecelano - Approved this workflow-specification draft for GitHub issue creation - Chat approval.
 - 2026-09-15 15:05 UTC - GitHub Copilot - Created GitHub issue #2230 and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2230
+- 2026-09-18 15:45 UTC - GitHub Copilot - Implemented the `fix-bug` skill, linked the issue template, `create-issue`, and Implementer agent, corrected the stale #2226 worked-example path, and recorded manual verification in `manual-verification-evidence.md`.
+- 2026-09-18 15:45 UTC - GitHub Copilot - Completion review: no separate retrospective needed because implementation followed the approved workflow design without material design changes; the only discovery was a stale worked-example path and relative-link correction, both recorded in this issue and validation evidence.
+- 2026-09-18 15:45 UTC - GitHub Copilot Task Reviewer - Independently verified all acceptance criteria, reran `linter all`, checked skill-link resolution, and recorded the review in `agent-review-reports.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `.github/skills/dev/debugging/fix-bug/SKILL.md` defines the required sequence: analyse, reproduce, select regression test type, write a failing test, fix, and recheck.
-- [ ] AC2: The skill requires real-artifact reproduction evidence with actual commands and output when reproduction is feasible, requires the reason and attempted evidence to be recorded when it is infeasible, and distinguishes it from maintained automated tests.
-- [ ] AC3: The skill requires selection of the smallest deterministic regression-test boundary, with a documented rationale for integration or end-to-end tests.
-- [ ] AC4: `create-issue` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections that link to the canonical skill instead of duplicating it.
-- [ ] AC5: The Implementer agent loads `fix-bug` for substantively identified bug specs, even when metadata or labels are incorrect, and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
-- [ ] AC6: The stale activity-metrics draft is cited as a worked example without changing that issue's implementation scope.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant skill-link validation passes.
-- [ ] Manual review scenarios are executed and documented in issue-local `manual-verification-evidence.md`; when reproduction is infeasible, the file records the constraint, attempted commands, and the strongest available substitute evidence.
+- [x] AC1: `.github/skills/dev/debugging/fix-bug/SKILL.md` defines the required sequence: analyse, reproduce, select regression test type, write a failing test, fix, and recheck.
+- [x] AC2: The skill requires real-artifact reproduction evidence with actual commands and output when reproduction is feasible, requires the reason and attempted evidence to be recorded when it is infeasible, and distinguishes it from maintained automated tests.
+- [x] AC3: The skill requires selection of the smallest deterministic regression-test boundary, with a documented rationale for integration or end-to-end tests.
+- [x] AC4: `create-issue` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections that link to the canonical skill instead of duplicating it.
+- [x] AC5: The Implementer agent loads `fix-bug` for substantively identified bug specs, even when metadata or labels are incorrect, and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
+- [x] AC6: The stale activity-metrics draft is cited as a worked example without changing that issue's implementation scope.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant skill-link validation passes.
+- [x] Manual review scenarios are executed and documented in issue-local `manual-verification-evidence.md`; when reproduction is infeasible, the file records the constraint, attempted commands, and the strongest available substitute evidence.
 
 ## Verification Plan
 
@@ -141,8 +146,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Plan a bug regardless of metadata | Read the new skill and prepare a small sample whose substance is a bug while its metadata is not `issue-type: bug`. | The sample visibly records all six steps, selects a regression-test boundary, and links evidence. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Start bug implementation | Give Implementer the sample bug spec, including a reproduction constraint if applicable. | It loads `fix-bug`, records analysis/reproduction-or-infeasibility/test-selection evidence before code, and does not treat a passing test alone as final proof. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Plan a bug regardless of metadata | Read the new skill and prepare a small sample whose substance is a bug while its metadata is not `issue-type: bug`. | The sample visibly records all six steps, selects a regression-test boundary, and links evidence. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Start bug implementation | Give Implementer the sample bug spec, including a reproduction constraint if applicable. | It loads `fix-bug`, records analysis/reproduction-or-infeasibility/test-selection evidence before code, and does not treat a passing test alone as final proof. | DONE | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
@@ -152,12 +157,15 @@ None planned. Documentation and workflow behavior can be validated by direct rev
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | |
-| AC2 | TODO | |
-| AC3 | TODO | |
-| AC4 | TODO | |
-| AC5 | TODO | |
-| AC6 | TODO | |
+| AC1 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Required Sequence lists analyse, reproduce, select regression-test boundary, write red test, fix, and green/recheck steps. |
+| AC2 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Evidence Requirements require real-artifact commands/output/logs, infeasibility constraints and attempted commands, and state automated tests are not a substitute for final artifact recheck. |
+| AC3 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Regression-Test Boundary Rules require the smallest deterministic maintained test and rationale for integration/end-to-end/manual boundaries; `sample-substantive-bug-spec.md` applies the unit-first rule. |
+| AC4 | DONE | `.github/skills/dev/planning/create-issue/SKILL.md` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections linking to `fix-bug` without duplicating the full workflow. |
+| AC5 | DONE | `.github/agents/implementer.agent.md` requires semantic bug detection and loading `fix-bug` even when metadata or labels are wrong, while retaining TDD, complexity audit, independent Task Reviewer review, and signed Committer workflow. |
+| AC6 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` cites issue #2226 as a review-only worked example and says not to change that issue's implementation scope; current diff leaves the #2226 issue unchanged. |
+| LINT | DONE | `linter all` rerun by Task Reviewer on 2026-09-18 and exited `0`. |
+| SKILL-LINKS | DONE | Read-only skill-link check found frontmatter names for `add-new-skill`, `create-issue`, `fix-bug`, `write-unit-test`, and `add-rust-dependency`; changed references resolve. |
+| MANUAL | DONE | `manual-verification-evidence.md` records manual scenarios V1 and V2 with actual steps, observed output, and conclusions; no issue #2230 reproduction-infeasible scenario was applicable beyond the recorded unsupported focused-linter command and substitute supported linter runs. |
 
 ## Risks and Trade-offs
 
@@ -172,7 +180,7 @@ After implementation, compare the delivered guidance with this specification. Re
 ## References
 
 - GitHub issue: #2230
-- Worked example: `docs/issues/drafts/fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md`
+- Worked example: `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/ISSUE.md`
 - Worked-example issue: #2226
 - Related evidence: `docs/issues/open/2226-fix-stale-inactivity-cutoff-in-activity-metrics-updater/evidence.md`
 - Repository skill authority: `AGENTS.md`
