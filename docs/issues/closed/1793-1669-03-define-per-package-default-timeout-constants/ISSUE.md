@@ -4,7 +4,7 @@ issue-type: task
 status: open
 priority: p2
 github-issue: 1793
-spec-path: docs/issues/open/1793-1669-03-define-per-package-default-timeout-constants.md
+spec-path: docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md
 branch: 1793-1669-03-define-per-package-default-timeout-constants
 related-pr: null
 last-updated-utc: 2026-05-19 00:00

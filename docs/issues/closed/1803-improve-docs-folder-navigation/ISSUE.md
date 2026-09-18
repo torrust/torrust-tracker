@@ -4,7 +4,7 @@ issue-type: task
 status: in-progress
 priority: p2
 github-issue: 1803
-spec-path: docs/issues/open/1803-improve-docs-folder-navigation.md
+spec-path: docs/issues/closed/1803-improve-docs-folder-navigation/ISSUE.md
 branch: "1803-improve-docs-folder-navigation"
 related-pr: null
 last-updated-utc: 2026-05-20 12:00

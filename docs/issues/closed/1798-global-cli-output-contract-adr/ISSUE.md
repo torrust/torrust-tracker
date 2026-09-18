@@ -4,7 +4,7 @@ issue-type: task
 status: planned
 priority: p2
 github-issue: 1798
-spec-path: docs/issues/open/1798-global-cli-output-contract-adr.md
+spec-path: docs/issues/closed/1798-global-cli-output-contract-adr/ISSUE.md
 branch: 1798-global-cli-output-contract-adr
 related-pr: null
 last-updated-utc: 2026-05-19 20:30

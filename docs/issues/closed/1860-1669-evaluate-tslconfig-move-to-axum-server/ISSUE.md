@@ -4,7 +4,7 @@ issue-type: task
 status: resolved
 priority: p3
 github-issue: 1860
-spec-path: docs/issues/open/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md
+spec-path: docs/issues/closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-03 00:00

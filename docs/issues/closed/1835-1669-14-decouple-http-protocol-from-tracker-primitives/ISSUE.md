@@ -4,7 +4,7 @@ issue-type: task
 status: in_progress
 priority: p1
 github-issue: 1835
-spec-path: docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md
+spec-path: docs/issues/closed/1835-1669-14-decouple-http-protocol-from-tracker-primitives/ISSUE.md
 branch: 1835-1669-14-decouple-http-protocol-from-tracker-primitives
 related-pr: null
 last-updated-utc: 2026-05-27 18:00

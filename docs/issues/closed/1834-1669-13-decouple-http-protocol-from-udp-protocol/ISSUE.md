@@ -4,7 +4,7 @@ issue-type: task
 status: planned
 priority: p1
 github-issue: 1834
-spec-path: docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md
+spec-path: docs/issues/closed/1834-1669-13-decouple-http-protocol-from-udp-protocol/ISSUE.md
 branch: 1834-decouple-http-protocol-from-udp-protocol
 related-pr: null
 last-updated-utc: 2026-05-27 00:00

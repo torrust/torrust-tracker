@@ -4,7 +4,7 @@ issue-type: enhancement
 status: in-review
 priority: p3
 github-issue: 1564
-spec-path: docs/issues/open/1564-tracker-client-change-default-peer-id.md
+spec-path: docs/issues/closed/1564-tracker-client-change-default-peer-id/ISSUE.md
 branch: 1564-change-default-peer-id
 related-pr: null
 last-updated-utc: 2026-05-12 10:25

@@ -4,7 +4,7 @@ issue-type: feature
 status: done
 priority: p2
 github-issue: 1771
-spec-path: docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md
+spec-path: docs/issues/closed/1771-merge-clients-into-unified-tracker-client-cli/ISSUE.md
 branch: "1771-merge-clients-into-unified-tracker-client-cli"
 related-pr: 1772
 last-updated-utc: 2026-05-13 15:00

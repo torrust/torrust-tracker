@@ -4,7 +4,7 @@ issue-type: task
 status: closed
 priority: p3
 github-issue: 1861
-spec-path: docs/issues/open/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md
+spec-path: docs/issues/closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md
 branch: 1861-1669-narrow-envcontainer-initialize-config-slices
 related-pr: null
 last-updated-utc: 2026-06-05 00:00

@@ -4,7 +4,7 @@ issue-type: task
 status: blocked
 priority: p2
 github-issue: 1765
-spec-path: docs/issues/open/1765-native-http3-readiness.md
+spec-path: docs/issues/closed/1765-native-http3-readiness/ISSUE.md
 branch: 1765-native-http3-readiness
 related-pr: null
 last-updated-utc: 2026-05-12 15:35

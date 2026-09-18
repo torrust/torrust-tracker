@@ -52,25 +52,26 @@ families, satisfying manual scenario M1.
 
 #### Steps Performed
 
-1. Counted flat and folder-style primary records with `find` for each selected record family.
-2. Ran `linter lychee` to validate local Markdown links and fragments after the migrations.
+1. Opened representative draft, open, and closed issue/EPIC records; closed refactor plans; and
+  PR-review audit records in their lifecycle directories.
+2. Inspected each directory and its primary record to confirm that the primary filename and
+  companion artifacts are colocated.
 
 #### Observed Result
 
 ```text
-flat issue/EPIC records: 0
-issue primary files: 226
-flat refactor plans: 0
-refactor primary files: 3
-flat PR-review audits: 0
-PR-review primary files: 91
-lychee: All local Markdown links passed checking!
+docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
+docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md
+docs/issues/closed/1029-do-not-publish-docker-tags-with-v-prefix/ISSUE.md
+docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md
+docs/pr-reviews/pr-2252-review/PR-REVIEW.md
 ```
 
 #### Conclusion
 
-Every selected existing record uses its canonical folder-style primary file and repaired local
-Markdown links resolve, satisfying manual scenario M2.
+The inspected records use their canonical folder-style primary file, and their companion artifacts
+are colocated with the primary record. Automated count and link validation are recorded separately
+in the issue progress log and acceptance evidence. This satisfies manual scenario M2.
 
 ### V3 - Review Excluded Document Families
 

@@ -4,7 +4,7 @@ issue-type: task
 status: open
 priority: p2
 github-issue: 1795
-spec-path: docs/issues/open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md
+spec-path: docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md
 branch: 1669-04-move-announce-policy-to-torrust-tracker-primitives
 related-pr: 1796
 last-updated-utc: 2026-05-18 00:00

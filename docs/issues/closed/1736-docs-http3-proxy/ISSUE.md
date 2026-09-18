@@ -4,7 +4,7 @@ issue-type: task
 status: in-progress
 priority: p1
 github-issue: 1736
-spec-path: docs/issues/open/1736-docs-http3-proxy.md
+spec-path: docs/issues/closed/1736-docs-http3-proxy/ISSUE.md
 branch: 1736-docs-http3-proxy-follow-up
 related-pr: null
 last-updated-utc: 2026-05-12 16:24

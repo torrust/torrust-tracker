@@ -1,4 +1,6 @@
 ---
+doc-type: refactor-plan
+spec-path: docs/refactor-plans/closed/agent-docs-refactor-plan/REFACTOR-PLAN.md
 semantic-links:
   skill-links:
     - create-refactor-plan

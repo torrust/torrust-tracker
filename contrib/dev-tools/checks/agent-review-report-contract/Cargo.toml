@@ -1,0 +1,12 @@
+[package]
+description = "Validation for independent agent-review report documentation contracts."
+name = "agent-review-report-contract"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true

@@ -4,7 +4,7 @@ issue-type: enhancement
 status: planned
 priority: p1
 github-issue: 1769
-spec-path: docs/issues/open/1769-refactor-pre-commit-checks-performance-and-verbosity.md
+spec-path: docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity/ISSUE.md
 branch: "1769-refactor-pre-commit-checks-performance-and-verbosity"
 related-pr: null
 last-updated-utc: 2026-05-13 11:20

@@ -1,4 +1,6 @@
 ---
+doc-type: refactor-plan
+spec-path: docs/refactor-plans/closed/1178-monitor-udp-post-implementation-improvements/REFACTOR-PLAN.md
 semantic-links:
   skill-links:
     - create-refactor-plan

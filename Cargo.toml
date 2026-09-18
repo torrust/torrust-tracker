@@ -126,6 +126,7 @@ nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 members = [
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
+  "contrib/dev-tools/checks/agent-review-report-contract",
   "contrib/dev-tools/checks/clippy-allow-reasons",
   "packages/e2e-tools",
   "packages/persistence-benchmark",

@@ -117,7 +117,7 @@ coordinating the move.
 | T2  | DONE   | Record the ADR                    | Added root ADR 20260918093757 defining classification, migration contract, and consequences.                                |
 | T3  | DONE   | Align templates and workflows     | Updated creation paths, templates, navigation, and filename guidance; retained only historical flat-path references.         |
 | T4  | DONE   | Migrate durable record archives   | Migrated 226 issue/EPIC specs, 3 refactor plans, and 91 PR-review audits with Git-preserving record moves.                  |
-| T5  | DONE   | Validate folder and link layouts  | Zero flat selected records; folder counts, audit-contract test, and `linter all` pass.                                      |
+| T5  | DONE   | Validate folder and link layouts  | Zero flat selected records; manual archive inspection, Rust audit-contract check, and `linter all` pass.                    |
 
 ## Progress Tracking
 
@@ -145,8 +145,10 @@ coordinating the move.
 - 2026-09-18 - GitHub Copilot - Continued T4. Migrated all 91 PR-review audits to `PR-REVIEW.md` record folders, repaired repository-relative and intra-archive links, and passed the review-audit contract test, Markdown lint, and local-link checks.
 - 2026-09-18 - GitHub Copilot - Continued T4. Migrated all 9 flat draft issue and EPIC specifications to `ISSUE.md` or `EPIC.md` record folders, repaired inbound and relative links, and passed Markdown and local-link checks. The 103 flat closed issue/EPIC records remain.
 - 2026-09-18 - GitHub Copilot - Completed T4. Migrated all 103 remaining closed issue and EPIC records in four Git-preserving batches, repaired live Markdown links, and verified zero flat records remain in the selected families: 226 issue/EPIC specs, 3 refactor plans, and 91 PR-review audits.
-- 2026-09-18 - GitHub Copilot - Completed T5. `linter all` passed after the migration, including Markdown, Lychee local links, cspell, Clippy, rustfmt, and ShellCheck. The dedicated PR-review audit-contract test also passed.
+- 2026-09-18 - GitHub Copilot - Completed T5. `linter all` passed after the migration, including Markdown, Lychee local links, cspell, Clippy, rustfmt, and ShellCheck. The dedicated Rust PR-review audit-contract check also passed.
 - 2026-09-18 - GitHub Copilot - Final validation passed: `cargo test --doc --workspace` completed successfully. Recorded the migration's relative-link repair lesson in `implementation-retrospective.md`.
+- 2026-09-18 - GitHub Copilot - Remediated independent-review findings: corrected all stale primary-record `spec-path` metadata, recorded direct representative archive inspection, and replaced the tracked shell audit-contract test with a Rust workspace check.
+- 2026-09-18 12:56 UTC - Task Reviewer - Final strict re-review passed: the Rust contract checker preserves every retired shell assertion, including newline-only wrapped text and frontmatter-scoped related-artifact parsing; the retrospective maps all eight scenarios concretely.
 
 ## Acceptance Criteria
 
@@ -182,7 +184,7 @@ coordinating the move.
 | ----- | ---------------------- | ---------------------- |
 | AC1   | DONE                   | `20260918093757_adopt_folder_style_documentation_artifact_records.md` defines scope, classification, and migration. |
 | AC2   | DONE                   | Issue, refactor-plan, and PR-review workflows, templates, indexes, and navigation name folder-style paths. |
-| AC3   | DONE                   | Verified zero flat records; all selected archive records moved with `git mv` in dedicated batches. |
+| AC3   | DONE                   | All primary-record `spec-path` values resolve to their current canonical paths; Git renames and zero flat selected records are verified. |
 | AC4   | DONE                   | Canonical primary filenames and colocation are documented in the ADR and templates. |
 | AC5   | DONE                   | ADR explicitly excludes document families without durable primary-record companion artifacts. |
 | AC6   | DONE                   | `linter all` and `cargo test --doc --workspace` passed on 2026-09-18. |

@@ -4,7 +4,7 @@ issue-type: task
 status: done
 priority: p3
 github-issue: 1810
-spec-path: docs/issues/open/1810-add-frontmatter-to-docs-markdown-files.md
+spec-path: docs/issues/closed/1810-add-frontmatter-to-docs-markdown-files/ISSUE.md
 branch: "1810-add-frontmatter-to-docs-markdown-files"
 related-pr: null
 last-updated-utc: 2026-05-20 15:45

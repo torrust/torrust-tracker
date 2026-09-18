@@ -4,7 +4,7 @@ issue-type: feature
 status: planned
 priority: p2
 github-issue: 1178
-spec-path: docs/issues/open/1178-tracker-checker-udp-add-monitor-uptime-command.md
+spec-path: docs/issues/closed/1178-tracker-checker-udp-add-monitor-uptime-command/ISSUE.md
 branch: 1178-tracker-checker-udp-add-monitor-uptime-command
 related-pr: null
 last-updated-utc: 2026-05-12 16:55

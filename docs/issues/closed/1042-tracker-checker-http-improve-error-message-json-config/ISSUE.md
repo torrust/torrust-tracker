@@ -4,7 +4,7 @@ issue-type: bug
 status: in-progress
 priority: p3
 github-issue: 1042
-spec-path: docs/issues/open/1042-tracker-checker-http-improve-error-message-json-config.md
+spec-path: docs/issues/closed/1042-tracker-checker-http-improve-error-message-json-config/ISSUE.md
 branch: 1042-tracker-checker-improve-error-message-json-config
 related-pr: 1764
 last-updated-utc: 2026-05-12 13:15
