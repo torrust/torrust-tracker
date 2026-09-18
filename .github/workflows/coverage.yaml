@@ -48,7 +48,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.12
+        uses: taiki-e/install-action@v2.87.14
         with:
           tool: grcov,cargo-llvm-cov
 
@@ -60,7 +60,7 @@ jobs:
 
       - id: upload
         name: Upload Coverage Report
-        uses: codecov/codecov-action@v7.0.0
+        uses: codecov/codecov-action@v7.1.1
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
