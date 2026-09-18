@@ -11,7 +11,10 @@ use torrust_tracker_udp_core::services::connect::ConnectService;
 
 use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
 
-#[allow(clippy::unused_async)]
+#[allow(
+    clippy::unused_async,
+    reason = "benchmark helper remains awaitable to match asynchronous benchmark paths"
+)]
 pub async fn connect_once(samples: u64) -> Duration {
     let client_socket_addr = sample_ipv4_remote_addr();
     let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);

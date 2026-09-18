@@ -31,7 +31,10 @@ pub struct TrackerStatsAdapter {
 
 impl TrackerStatsAdapter {
     /// Creates a new adapter wrapping all tracker repositories and services.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "route composition boundary explicitly wires distinct repositories and policy"
+    )]
     #[must_use]
     pub fn new(
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
