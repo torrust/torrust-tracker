@@ -8,13 +8,13 @@ github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
 related-pr: 2269
-last-updated-utc: 2026-09-18 15:25
+last-updated-utc: 2026-09-18 17:05
 semantic-links:
   skill-links:
     - create-issue
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
+    - issue #2264
     - docs/skills/semantic-skill-link-convention.md
     - docs/templates/ISSUE.md
     - docs/templates/EPIC.md

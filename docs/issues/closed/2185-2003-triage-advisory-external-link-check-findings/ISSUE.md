@@ -18,7 +18,7 @@ semantic-links:
     - docs/issues/closed/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/agent-review-reports.md
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
+    - issue #2264
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/workflows/external-link-check.yaml
     - .github/lychee-online.toml

@@ -5,17 +5,17 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-18 15:25
+last-updated-utc: 2026-09-18 17:05
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - issue #2233
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
+    - issue #2185
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - docs/external-snapshots/open-knowledge-format/0.2/SPEC.md

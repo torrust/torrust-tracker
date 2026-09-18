@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: 2026-09-18 17:05
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
+    - issue #2264
 ---
 
 <!-- skill-link: create-issue -->

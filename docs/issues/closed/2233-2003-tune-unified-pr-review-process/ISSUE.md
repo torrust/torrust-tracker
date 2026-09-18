@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/implementation-retrospective.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/manual-verification-evidence.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
+    - issue #2264
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh
