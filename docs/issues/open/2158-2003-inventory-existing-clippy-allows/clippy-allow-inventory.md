@@ -190,6 +190,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A100 | Derived `Default` for the fixture `PeerBuilder` instead of keeping a manual implementation. | `cargo clippy -p torrust-tracker-primitives --all-targets --all-features -- -D warnings` |
 | A115 | Replaced the swarm registry test DTO `Into<TorrentEntryInfo>` implementation with `From<Coordinator> for TorrentEntryInfo`. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
 | A119 | Added the missing benchmark panic documentation for duplicate truncated info-hash values. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
+| A141, A142 | Removed seed-reference suppressions by making the zeroed test seed a `static`, matching the production `LazyLock` reference shape. | `cargo clippy -p torrust-tracker-udp-core --all-targets --all-features -- -D warnings` |
 
 ## Entries
 

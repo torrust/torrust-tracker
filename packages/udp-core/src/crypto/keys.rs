@@ -48,7 +48,6 @@ impl Keeper for Current {
     type Seed = Seed;
     type Cipher = CipherBlowfish;
 
-    #[allow(clippy::needless_borrow)]
     fn get_seed() -> &'static Self::Seed {
         &CURRENT_SEED
     }
@@ -71,7 +70,6 @@ mod tests {
         type Seed = Seed;
         type Cipher = CipherBlowfish;
 
-        #[allow(clippy::needless_borrow)]
         fn get_seed() -> &'static Self::Seed {
             &ZEROED_TEST_SEED
         }
@@ -96,7 +94,7 @@ mod detail_seed {
     use crate::crypto::ephemeral_instance_keys::Seed;
 
     #[allow(dead_code)]
-    pub const ZEROED_TEST_SEED: Seed = [0u8; 32];
+    pub static ZEROED_TEST_SEED: Seed = [0u8; 32];
 
     #[cfg(test)]
     pub use ZEROED_TEST_SEED as CURRENT_SEED;
