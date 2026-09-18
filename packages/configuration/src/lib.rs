@@ -334,7 +334,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_complete_toml_when_complete_toml_and_path_environment_sources_are_set() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -355,7 +358,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_complete_toml_when_only_complete_toml_environment_source_is_set() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -373,7 +379,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_the_path_file_when_only_path_environment_source_is_set() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -393,7 +402,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_the_given_default_file_when_no_environment_base_source_is_set() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -412,7 +424,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_apply_an_environment_override_to_a_path_environment_source() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -436,7 +451,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_report_the_first_mandatory_option_when_the_path_environment_file_is_missing() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -457,7 +475,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_search_parent_directories_for_a_relative_path_environment_source() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -479,7 +500,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_an_explicit_file_without_merging_complete_toml_or_path_environment_sources() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -521,7 +545,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_select_an_explicit_file_when_no_environment_base_source_is_set() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -540,7 +567,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_apply_an_environment_override_to_an_explicit_file() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -563,7 +593,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_require_each_mandatory_option_when_loading_an_explicit_file() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -597,7 +630,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_apply_existing_defaults_when_only_mandatory_options_are_provided_by_an_explicit_file() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -619,7 +655,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_return_a_path_specific_error_when_an_explicit_file_is_missing() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -643,7 +682,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_return_a_path_specific_error_when_an_explicit_path_is_a_directory() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -668,7 +710,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_not_search_parent_directories_for_a_relative_explicit_path() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -689,7 +734,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_include_the_explicit_path_but_not_contents_when_explicit_toml_is_malformed() {
         Jail::expect_with(|jail| {
             // Arrange
@@ -712,7 +760,10 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_preserve_a_non_utf8_explicit_path_when_explicit_toml_is_malformed() {
         use std::os::unix::ffi::OsStringExt;
 
@@ -737,7 +788,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::result_large_err)]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
     fn it_should_load_the_content_read_when_the_explicit_file_changes_after_info_is_created() {
         Jail::expect_with(|jail| {
             // Arrange

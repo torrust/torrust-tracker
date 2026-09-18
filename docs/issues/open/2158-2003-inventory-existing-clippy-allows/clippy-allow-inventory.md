@@ -203,6 +203,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A002, A003, A004, A005, A015, A016, A017, A018, A019, A020, A021 | Added native `reason` parameters for retained async lifecycle, Axum extractor, and Axum handler suppressions. | `cargo clippy -p torrust-tracker -p torrust-tracker-axum-http-server --all-targets --all-features -- -D warnings` |
 | A006, A007, A008 | Added native `reason` parameters for retained qBittorrent E2E staged-visibility suppressions. | `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings` |
 | A026, A027, A048, A060 | Added native `reason` parameters for retained configuration ownership and serialized feature-switch suppressions. | `cargo clippy -p torrust-tracker-configuration --all-targets --all-features -- -D warnings` |
+| A028-A045, A051-A058, A062-A079 | Added native `reason` parameters for retained configuration Figment test-callback suppressions. | `cargo clippy -p torrust-tracker-configuration --all-targets --all-features -- -D warnings` |
 
 ## Entries
 
