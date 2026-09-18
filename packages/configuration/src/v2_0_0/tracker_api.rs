@@ -48,7 +48,6 @@ impl HttpApi {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1212)
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     const fn default_tsl_config() -> Option<TslConfig> {
         None
     }

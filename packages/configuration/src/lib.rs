@@ -841,12 +841,10 @@ pub struct TslConfig {
 }
 
 impl TslConfig {
-    #[allow(clippy::unnecessary_wraps)]
     fn default_ssl_cert_path() -> Utf8PathBuf {
         Utf8PathBuf::new()
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn default_ssl_key_path() -> Utf8PathBuf {
         Utf8PathBuf::new()
     }

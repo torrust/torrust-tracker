@@ -178,6 +178,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-15 - josecelano - Approved the post-classification execution sequence: #2158 owns direct removals and retained-rationale remediation; only approved temporary design work becomes a follow-up issue or numeric-conversion EPIC - Chat decision
 - 2026-09-15 - josecelano - Approved a durable handoff plan: use a local ignored coordination board while the tracked #2158 artifacts remain authoritative; create the approved numeric EPIC and child specifications in one documentation-only branch and PR - Chat decision
 - 2026-09-15 - GitHub Copilot - Granted ClippyFixer the `edit` tool while retaining its required delegation of signed commits to Committer - `.github/agents/clippy-fixer.agent.md`
+- 2026-09-18 - GitHub Copilot - Started direct `Remove` remediation with the configuration stale-suppression batch - `clippy-allow-inventory.md`
 
 ## Acceptance Criteria
 
@@ -220,7 +221,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 | AC3   | TODO                   | Pending implementation |
 | AC4   | TODO                   | Pending implementation |
 | AC5   | TODO                   | Pending implementation |
-| AC6   | TODO                   | Pending implementation |
+| AC6   | TODO                   | Direct-removal remediation in progress; see `clippy-allow-inventory.md`. |
 | AC7   | TODO                   | Pending implementation |
 | AC8   | TODO                   | Pending implementation |
 
