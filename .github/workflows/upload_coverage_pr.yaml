@@ -142,7 +142,7 @@ jobs:
           echo "override_commit=$commit_sha" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7.0.0
+        uses: codecov/codecov-action@v7.1.1
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
