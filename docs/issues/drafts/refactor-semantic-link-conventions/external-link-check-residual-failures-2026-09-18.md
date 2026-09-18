@@ -2,7 +2,7 @@
 source-run: https://github.com/torrust/torrust-tracker/actions/runs/35315382956
 source-revision: e6dd8918bf6964794882f60486f2da3e296cbb13
 online-config: .github/lychee-online.toml
-collected-utc: 2026-09-18
+collected-at-utc: 2026-09-18 06:43
 ---
 
 # External Link Check Residual Failures

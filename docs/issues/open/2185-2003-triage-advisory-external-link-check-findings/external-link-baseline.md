@@ -33,7 +33,7 @@ Lychee reported 421 `Cannot find fragment` diagnostics, 18 `404` responses, 13 c
 
 ## Failure Dispositions
 
-The following nine categories cover all 461 report errors. C1 and C9 share one proposed URL-pattern boundary but remain separate to preserve their distinct observed diagnostics. C10 records a class that entered the checked document set after the baseline and is listed after C9 for completeness.
+The baseline errors fall into nine categories (C1-C9) covering all 461 report errors. C1 and C9 share one proposed URL-pattern boundary but remain separate to preserve their distinct observed diagnostics. C10 records a post-baseline class that entered the checked document set later and is listed after C9 for completeness.
 
 ### C1: GitHub review-comment missing fragments — 416 occurrences
 

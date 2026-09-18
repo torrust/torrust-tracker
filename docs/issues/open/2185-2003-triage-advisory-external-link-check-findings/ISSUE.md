@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status      | Task                                      | Notes / Expected Output                                                                                          |
 | --- | ----------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Preserve and classify the baseline        | `external-link-baseline.md` maps all 461 report errors to nine recurring categories and dispositions.            |
-| T2  | DONE        | Repair clearly stale references           | C3-C5 and C6 Docker are hosted-verified. C7-C8 were rerun and probed: none is a stale reference, so no repair applies. |
+| T2  | DONE        | Repair clearly stale references           | C3-C5 and the C6 Docker repairs are hosted-verified. C7-C8 were rerun and probed: none is a stale reference, so no repair applies. |
 | T3  | DONE        | Add justified narrow exclusions           | C1/C9, C2, C6, and C10 exact online-only rules are hosted-verified.                                              |
 | T4  | DONE        | Revalidate hosted signal                  | Hosted C1/C9, C2, C6, and C10 runs retain unrelated failures and their report artifacts.                         |
 | T5  | DONE        | Document operations and review completion | `docs/testing.md` keeps the rerun-then-repair-or-narrow-exclusion policy; residual cases and insights are handed to the semantic-link EPIC draft. |
