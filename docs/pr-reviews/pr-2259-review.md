@@ -44,15 +44,20 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | `review-finding:pr-2259-f5` | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | F6 | `review-finding:pr-2259-f6` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2259-f7` | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F6 | NO_ACTION | SUPERSEDED |
-| F8 | `review-finding:pr-2259-f8` | Human | Major | correctness | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | `review-finding:pr-2259-f8` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2259-f9` | Human | Major | correctness | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
 | F10 | `review-finding:pr-2259-f10` | Human | Major | correctness | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
-| F11 | `review-finding:pr-2259-f11` | Human | Major | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F12 | `review-finding:pr-2259-f12` | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F13 | `review-finding:pr-2259-f13` | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F14 | `review-finding:pr-2259-f14` | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F15 | `review-finding:pr-2259-f15` | Human | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | `review-finding:pr-2259-f11` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2259-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2259-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2259-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2259-f15` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2259-f16` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2259-f17` | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2259-f18` | Human | Minor | documentation | RE_RAISE_OF:F16 | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2259-f19` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2259-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2259-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -85,7 +90,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046027946>
 - Concern: Duplicate request to update #2158 `last-updated-utc` metadata.
 - Solution: No additional code change; F2 fixed the same current-tree issue.
-- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 10:25`; `linter markdown` and `linter cspell` passed.
+- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 11:15`; `linter markdown` and `linter cspell` passed.
 - Resolution reference: Superseded by F2 reply
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046126432>
 
@@ -96,7 +101,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046027987>
 - Concern: Duplicate request to update #2158 `last-updated-utc` metadata.
 - Solution: No additional code change; F2 fixed the same current-tree issue.
-- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 10:25`; `linter markdown` and `linter cspell` passed.
+- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 11:15`; `linter markdown` and `linter cspell` passed.
 - Resolution reference: Superseded by F2 reply
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046126587>
 
@@ -107,7 +112,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046028019>
 - Concern: Duplicate request to update #2158 `last-updated-utc` metadata.
 - Solution: No additional code change; F2 fixed the same current-tree issue.
-- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 10:25`; `linter markdown` and `linter cspell` passed.
+- Current-tree verification: Current #2158 front matter contains `last-updated-utc: 2026-09-18 11:15`; `linter markdown` and `linter cspell` passed.
 - Resolution reference: Superseded by F2 reply
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046126734>
 
@@ -136,6 +141,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F8 - Benchmark Lock-Span Preservation
 
 - PR number: 2259
+- Reviewer finding ID: F1
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156861>
 - Concern: The A235 cleanup changed the measured critical section in `RwLockStdMutexStd::remove_inactive_peers` by dropping the outer read lock before mutating inner entries.
@@ -147,6 +153,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F9 - Duplicate Benchmark Lock-Span Preservation Thread
 
 - PR number: 2259
+- Reviewer finding ID: F1
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156873>
 - Concern: Same lock-scope change as F8 in `RwLockTokioMutexStd::remove_inactive_peers`.
@@ -158,6 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F10 - Duplicate Benchmark Lock-Span Preservation Thread
 
 - PR number: 2259
+- Reviewer finding ID: F1
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156883>
 - Concern: Same lock-scope change as F8 in `RwLockTokioMutexTokio::remove_inactive_peers`.
@@ -169,6 +177,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F11 - Stale Numeric Follow-Up Draft Status
 
 - PR number: 2259
+- Reviewer finding ID: F2
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156892>
 - Concern: The issue-local numeric conversion draft README and related draft status text still described issue creation as pending even though #2243, #2244, #2245, #2246, and #2261 now exist.
@@ -180,6 +189,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F12 - Inventory Completeness Method Drift
 
 - PR number: 2259
+- Reviewer finding ID: F3
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156902>
 - Concern: The inventory completeness method still described a single-line `path:line` scan that no longer reproduces the source count after multi-line reason annotations.
@@ -191,6 +201,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F13 - Inventory Remaining-Count Drift
 
 - PR number: 2259
+- Reviewer finding ID: F4
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156911>
 - Concern: The inventory still stated 219 remaining attributes, contradicting the current row set and source count.
@@ -202,6 +213,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F14 - Benchmark Info-Hash Panic Documentation
 
 - PR number: 2259
+- Reviewer finding ID: F5
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156920>
 - Concern: The benchmark info-hash generator `# Panics` section described `size` as containing duplicates rather than identifying the collision precondition, and the doc comment sat below `#[must_use]`.
@@ -213,6 +225,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F15 - #2158 Status Metadata
 
 - PR number: 2259
+- Reviewer finding ID: F6
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156928>
 - Concern: #2158 front matter still had `status: planned` even though implementation and acceptance evidence were marked done.
@@ -224,6 +237,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F16 - UDP Protocol Empty-Enums Reason Specificity
 
 - PR number: 2259
+- Reviewer finding ID: F7
 - Source review ID: 5247094267
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046156947>
 - Concern: The `empty_enums` reason in `udp-protocol` repeated the generic #2261 temporary baseline text even though the adjacent comment had a specific `FromBytes` macro rationale.
@@ -231,6 +245,66 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `cargo clippy -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` passed.
 - Resolution reference: `fix(docs): address second review suggestions`
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046245697>
+
+### F17 - Classification Text Still Treated Numeric And UDP Follow-Ups As Pending
+
+- PR number: 2259
+- Reviewer finding ID: F2
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461169>
+- Concern: The inventory classification prose still described numeric and UDP follow-up decisions as pending even though #2243, #2244, #2245, #2246, and #2261 now exist.
+- Solution: Updated the numeric and UDP classification sections to describe the issue-local drafts as design inputs that produced the approved follow-up issues.
+- Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script passed.
+- Resolution reference: `docs(pr-reviews): address Cameron review findings`
+- Reply URL: Pending reply.
+
+### F18 - A159 Disposition And Source Reason Mismatch
+
+- PR number: 2259
+- Reviewer finding ID: F13
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461177>
+- Concern: The #2261 evidence row claimed A157-A168 all had temporary #2261 source reasons, but A159 now carries a source-specific `FromBytes` rationale and no longer links to #2261 in source.
+- Solution: Reclassified A159 as retained, narrowed the #2261 temporary evidence row to A157-A158 and A160-A168, and updated #2158 disposition counts.
+- Current-tree verification: `linter markdown`, `linter cspell`, and the inventory reconciliation script reporting 239 rows, 135 retained, 88 temporary, 16 removed, 223 active source attributes, and zero missing reasons passed.
+- Resolution reference: `docs(pr-reviews): address Cameron review findings`
+- Reply URL: Pending reply.
+
+### F19 - Fixed Findings Marked As No Action
+
+- PR number: 2259
+- Reviewer finding ID: F12
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461185>
+- Concern: The audit marked fixed second-round findings F8 and F11-F15 as `NO_ACTION` and `SUPERSEDED` because their GitHub threads became outdated after the fix.
+- Solution: Corrected F8 and F11-F15 to `FIXED` and `RESOLVED`, left duplicate site findings F9-F10 as re-raises, and updated the `process-pr-review` skill so fixed outdated threads are recorded as fixed rather than no-action.
+- Current-tree verification: Current audit tracking rows and `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` were inspected; `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(pr-reviews): address Cameron audit findings`
+- Reply URL: Pending reply.
+
+### F20 - Reviewer Finding IDs Missing From Audit Details
+
+- PR number: 2259
+- Reviewer finding ID: F14
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461197>
+- Concern: The audit assigned unique repository-local finding IDs F8-F16 to the maintainer review, but did not record the reviewer's original finding IDs, making thread replies harder to cross-reference.
+- Solution: Added `Reviewer finding ID` fields to F8-F16 and updated the `process-pr-review` skill to specify how to handle reviewer-provided ID collisions.
+- Current-tree verification: Current audit detail entries and `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` were inspected; `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(pr-reviews): address Cameron audit findings`
+- Reply URL: Pending reply.
+
+### F21 - Stale Current-Tree Verification In Earlier Audit Entries
+
+- PR number: 2259
+- Reviewer finding ID: F15
+- Source review ID: 5247463337
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2259#discussion_r4046461208>
+- Concern: F3-F5 still said current #2158 front matter contained `last-updated-utc: 2026-09-18 10:25`, but the current tree had moved it to `2026-09-18 11:15`.
+- Solution: Refreshed F3-F5 current-tree verification text to `2026-09-18 11:15`.
+- Current-tree verification: Current audit detail entries and #2158 front matter were inspected; `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(pr-reviews): address Cameron audit findings`
+- Reply URL: Pending reply.
 
 ## Processing Log
 
