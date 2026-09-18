@@ -200,7 +200,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking domain numeric suppressions to follow-up issue #2246 - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking wire numeric suppressions to follow-up issue #2245 - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Added native temporary `reason` parameters linking metric aggregate suppressions to follow-up issue #2244 - `clippy-allow-inventory.md`
-- 2026-09-18 - GitHub Copilot - Created follow-up issue #2261 for the nonnumeric UDP protocol baseline and added native temporary `reason` parameters for A157-A168 - `clippy-allow-inventory.md`
+- 2026-09-18 - GitHub Copilot - Created follow-up issue #2261 for the nonnumeric UDP protocol baseline and added native temporary `reason` parameters for A157-A158 and A160-A168 - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A235 for the benchmarking crate-level style baseline; removal probe exposed active diagnostics - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Removed A235 by applying behavior-preserving benchmarking repository style and lock-scope fixes - `clippy-allow-inventory.md`
 - 2026-09-18 - GitHub Copilot - Reconciled current source entry A236 for a retained swarm statistics collaboration-test gauge conversion - `clippy-allow-inventory.md`
@@ -249,7 +249,7 @@ remediation, the UDP baseline specification, or temporary source artifacts.
 | AC4   | DONE                   | Anchored source scan reports `missing_reason 0`; inventory retains matching decisions for all active source attributes. |
 | AC5   | DONE                   | Temporary entries link to approved follow-up issues #2244, #2245, #2246, and #2261. |
 | AC6   | DONE                   | All 16 `Remove` entries are implemented and validated, including current-source reconciliation entry A235. |
-| AC7   | DONE                   | Inventory has 134 `Retain`, 89 `Temporary`, and 16 `Remove` entries; no `Pending` entries remain. |
+| AC7   | DONE                   | Inventory has 135 `Retain`, 88 `Temporary`, and 16 `Remove` entries; no `Pending` entries remain. |
 | AC8   | DONE                   | `linter all` passed; relevant focused package Clippy/test commands are recorded in `clippy-allow-inventory.md`. |
 
 ## Risks and Trade-offs

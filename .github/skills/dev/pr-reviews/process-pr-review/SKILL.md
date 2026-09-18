@@ -50,8 +50,11 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    one row per independently actionable assertion; do not make a row for a summary
    or verdict that contains no request. Preserve the source review ID and URL.
 3. **Assign and deduplicate findings.** Use a reviewer-provided finding ID when
-   present. Otherwise assign `F<ordinal>` in source-review and source-order
-   order. Assign the immutable repository reference
+   present and it does not collide with an existing audit finding ID. When a
+   later review reuses an existing ID for a different finding, assign the next
+   audit-local `F<ordinal>` and record the reviewer's original ID in the detail
+   entry. Otherwise assign `F<ordinal>` in source-review and source-order order.
+   Assign the immutable repository reference
    `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, lowercasing the finding ID in
    the reference. Before action, compare a new item with all earlier findings
    against the current tree. A later item requesting the same current-tree
@@ -72,9 +75,12 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    subject, not a branch SHA, because the branch can be rebased.
 7. **Reply before resolving.** For each resolvable inline thread, reply with the
    disposition, current-tree verification, and resolution reference, then use
-   `resolve-review-threads` to resolve it. For an outdated or superseded thread,
-   reply exactly `Superseded by <FindingId>: <reason>.`, record
-   `Disposition=NO_ACTION` and `Thread state=SUPERSEDED`, then resolve it.
+   `resolve-review-threads` to resolve it. If a code or documentation change fixed
+   the concern, record `Disposition=FIXED` and `Thread state=RESOLVED` even when
+   GitHub marks the original thread outdated after the push. For a duplicate,
+   superseded, or no-change thread, reply exactly `Superseded by <FindingId>:
+<reason>.`, record `Disposition=NO_ACTION` and `Thread state=SUPERSEDED`, then
+   resolve it.
 8. **Consolidate review bodies.** A PR conversation response may cover multiple
    review rounds only when it names every review ID and every finding ID with its
    disposition and resolution reference. Store its durable URL in each related

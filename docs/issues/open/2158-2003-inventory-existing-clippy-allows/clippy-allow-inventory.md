@@ -104,32 +104,27 @@ where absent.
 
 ### Numeric-Domain Conversions
 
-Numeric conversion work is provisionally grouped by invariant in the issue-local drafts below.
-They are review inputs, not approved GitHub issue specifications. The maintainer will decide after
-the complete inventory classification whether to resolve entries locally, promote a draft into a
-standalone issue specification, or create a numeric-conversion EPIC that owns the cross-package
-work.
+Numeric conversion work is grouped by invariant in the issue-local design inputs below. Those inputs
+produced the approved numeric-conversion EPIC #2243 and child issues #2244, #2245, and #2246, which
+now own the remaining review and remediation work for their linked temporary entries.
 
-| Candidate entries | Provisional disposition | Evidence and removal condition |
-| ----------------- | ----------------------- | ------------------------------ |
-| A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Temporary | [`metric-aggregate-conversion-safety.md`](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md): establish typed or checked metric boundaries for negative, non-finite, fractional, and out-of-range `f64` values, then remove direct casts and allows. |
-| A171 | Temporary | [`wire-numeric-conversion-validation.md`](numeric-conversion-follow-up-drafts/wire-numeric-conversion-validation.md): prove protocol-width bounds through types or checked conversions, then remove/narrow the allow. |
-| A099, A123, A129 | Temporary | [`domain-numeric-conversion-contracts.md`](numeric-conversion-follow-up-drafts/domain-numeric-conversion-contracts.md): prove that each conversion is lossless or use deterministic checked conversions with boundary tests, then remove the allows. |
+| Candidate entries | Follow-up owner | Evidence and removal condition |
+| ----------------- | --------------- | ------------------------------ |
+| A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | #2244 | [`metric-aggregate-conversion-safety.md`](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md): establish typed or checked metric boundaries for negative, non-finite, fractional, and out-of-range `f64` values, then remove direct casts and allows. |
+| A156, A171 | #2245 | [`wire-numeric-conversion-validation.md`](numeric-conversion-follow-up-drafts/wire-numeric-conversion-validation.md): prove protocol-width bounds through types or checked conversions, then remove/narrow the allow. |
+| A099, A123, A129 | #2246 | [`domain-numeric-conversion-contracts.md`](numeric-conversion-follow-up-drafts/domain-numeric-conversion-contracts.md): prove that each conversion is lossless or use deterministic checked conversions with boundary tests, then remove the allows. |
 | A112, A120 | Retain | Benchmark-only bounds and precision needs are documented locally: generated peer values fit their target widths, and a short benchmark duration is well within the `f64` exact-integer range; the info-hash generator intentionally retains only four low-order bytes. Add native reasons in the remediation pass. |
 
-The remaining numeric entries listed in the first three rows are intentionally not individually
-marked final until the maintainer re-evaluates these drafts. They have concrete removal conditions,
-but no follow-up GitHub issue will be created from them without explicit approval.
+The remaining numeric entries listed in the first three rows are temporary because their approved
+follow-up issues now own the final checked-boundary decisions.
 
 ### UDP Protocol Crate Baseline
 
-The UDP protocol crate has thirteen broad allowances inherited with its vendored foundation. They
-cover separate concerns and cannot receive a shared retained rationale. Keep them temporary under
-the issue-local [`udp-protocol-clippy-baseline-draft.md`](udp-protocol-clippy-baseline-draft.md)
-until the maintainer re-evaluates the complete inventory. The follow-up must either remove each
-allow or relocate it to the narrowest source scope with a native `reason` and concrete evidence.
-The existing `empty_enums` comment is a preliminary source-specific constraint for macro-generated
-wire-type helpers; it is not evidence for the other twelve lints.
+The UDP protocol crate has broad allowances inherited with its vendored foundation. A156 is owned by
+wire numeric conversion follow-up #2245. A157-A158 and A160-A168 remain temporary under approved
+follow-up issue #2261, which must either remove each allow or relocate it to the narrowest source
+scope with a native `reason` and concrete evidence. A159 is retained in #2158 because its native
+reason documents the source-specific `FromBytes` macro expansion constraint.
 
 ### Type, Callable, Visibility, and Import Contracts
 
@@ -214,6 +209,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A107, A110, A126, A132, A134, A136, A138 | Added native `reason` parameters for retained compatibility and API-shape suppressions. | `cargo clippy -p torrust-tracker-rest-api-client -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-client-lib -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
+| A159 | Reclassified the `empty_enums` allowance as retained after its native reason was strengthened with the source-specific `FromBytes` macro-expansion rationale. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A236 | Reconciled a current-source collaboration-test gauge conversion already carrying a native retained reason. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
 
 ### Temporary Follow-Up Link Evidence
@@ -223,7 +219,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A099, A123, A129 | Added native temporary `reason` parameters linking the domain numeric conversion suppressions to #2246. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
-| A157-A168 | Created follow-up issue #2261 and added native temporary `reason` parameters linking the nonnumeric UDP protocol baseline suppressions to that issue. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
+| A157-A158, A160-A168 | Created follow-up issue #2261 and added native temporary `reason` parameters linking the nonnumeric UDP protocol baseline suppressions to that issue. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 
 ## Entries
@@ -388,7 +384,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A156 | `packages/udp-protocol/src/lib.rs:8` | crate | `cast_possible_truncation` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): replace with checked wire conversion or a narrow documented exception | #2158 | Temporary |
 | A157 | `packages/udp-protocol/src/lib.rs:9` | crate | `default_trait_access` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): remove or narrow with source-specific evidence | #2158 | Temporary |
 | A158 | `packages/udp-protocol/src/lib.rs:10` | crate | `doc_markdown` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): remove or narrow with source-specific evidence | #2158 | Temporary |
-| A159 | `packages/udp-protocol/src/lib.rs:14` | crate | `empty_enums` | UDP protocol crate baseline | Existing comment identifies `FromBytes` macro-generated empty helper enums; [baseline draft](udp-protocol-clippy-baseline-draft.md) requires the narrowest supported scope | #2158 | Temporary |
+| A159 | `packages/udp-protocol/src/lib.rs:14` | crate | `empty_enums` | UDP protocol macro expansion | Native reason identifies `FromBytes` macro-generated empty helper enums for inhabited transparent wire types | #2158 | Retain |
 | A160 | `packages/udp-protocol/src/lib.rs:15` | crate | `explicit_iter_loop` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): remove or narrow with source-specific evidence | #2158 | Temporary |
 | A161 | `packages/udp-protocol/src/lib.rs:16` | crate | `legacy_numeric_constants` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): remove or narrow with source-specific evidence | #2158 | Temporary |
 | A162 | `packages/udp-protocol/src/lib.rs:17` | crate | `match_same_arms` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): remove or narrow with source-specific evidence | #2158 | Temporary |
