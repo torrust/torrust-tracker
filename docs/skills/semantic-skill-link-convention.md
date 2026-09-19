@@ -208,7 +208,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - issue #1726                    # Use issue number, not file path
+    - "issue #1726"                  # Quote YAML values containing #.
     - .github/workflows/testing.yaml # Workflow files are stable paths
     - contrib/dev-tools/experiments/ # Canonical experiment directory
 ---
@@ -216,7 +216,8 @@ semantic-links:
 
 Guidelines:
 
-- Use `issue #NNNN` for issue specs (paths can change when moved to `closed/`).
+- Use `issue #NNNN` for issue specs (paths can change when moved to `closed/`). Quote the complete
+  value in YAML so `#` is not parsed as the start of a comment.
 - Use repository-relative paths for files that do not move (workflows, config files,
   experiment directories).
 - Do **not** duplicate the `related-artifacts` in a body section like `## References` —
