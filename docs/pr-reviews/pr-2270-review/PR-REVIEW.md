@@ -306,7 +306,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-19 08:25 UTC - Normalized Copilot review 5250020892 as F1-F8 and human review 5255047473 as F9-F19; no re-raises found.
 - 2026-09-19 08:30 UTC - Recorded the pre-action current-tree decisions; F9-F19 remain open pending independent fixes.
 - 2026-09-19 13:59 UTC - Re-derived F9-F19 against the current tree, normalized review 5255823584 as F20, F21, and F22 (`RE_RAISE_OF:F12`), and recorded stable fix subjects; replies and final thread states remain pending.
-- 2026-09-19 16:15 UTC - Posted finding-specific replies for every inline thread, posted consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 for reviews 5250020892, 5255047473, and 5255823584, resolved all current threads, and refreshed GraphQL state with zero unresolved threads.
+- 2026-09-19 16:30 UTC - Posted finding-specific replies for every inline thread; updated consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 to cover submitted reviews 5250020892, 5255047473, 5255075569, 5255823584, and 5255889360; recorded the rebase-only and F11-only revalidation rounds as introducing no independently actionable finding; resolved all current threads; and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
 
