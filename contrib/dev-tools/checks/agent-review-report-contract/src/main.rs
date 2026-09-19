@@ -703,6 +703,7 @@ fn require_frontmatter(workspace_root: &Path, path: &str, failures: &mut Vec<Str
 }
 
 fn normalize_whitespace(value: &str) -> String {
+    // Normalize wrapping without treating paragraph breaks as semantic content.
     value.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
@@ -762,4 +763,19 @@ fn has_edit_tool(workspace_root: &Path, relative_path: &str, failures: &mut Vec<
 
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().into_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_whitespace;
+
+    #[test]
+    fn normalize_whitespace_accepts_indented_wrapping() {
+        assert_eq!(normalize_whitespace("one\n   two"), "one two");
+    }
+
+    #[test]
+    fn normalize_whitespace_accepts_paragraph_breaks() {
+        assert_eq!(normalize_whitespace("one\n\ntwo"), "one two");
+    }
 }
