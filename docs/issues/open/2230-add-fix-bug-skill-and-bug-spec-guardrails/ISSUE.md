@@ -8,7 +8,7 @@ github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: 2270
-last-updated-utc: 2026-09-19 08:35
+last-updated-utc: 2026-09-19 11:37
 semantic-links:
   skill-links:
     - add-new-skill
@@ -53,7 +53,8 @@ A new canonical skill is preferable to duplicating operational procedure in an a
 
 - Create `.github/skills/dev/debugging/fix-bug/SKILL.md` as the canonical bug-fix workflow.
 - Add bug-conditional specification requirements to `create-issue` and `docs/templates/ISSUE.md` as thin references to `fix-bug`.
-- Update the Implementer agent to load and apply `fix-bug` for `issue-type: bug` specifications.
+- Update the Implementer agent to load and apply `fix-bug` for any substantively identified bug,
+  even when issue metadata or labels are missing or incorrect.
 - Define evidence standards for source analysis, real-artifact reproduction, failing-test output, fixed-test output, and final recheck.
 - Define a decision framework for selecting unit, integration, end-to-end, and manual regression verification.
 - Add a worked-example reference to the stale activity-metrics cutoff issue.
@@ -116,6 +117,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-15 11:10 UTC - GitHub Copilot - Promoted the draft after GitHub issue #2226 was created; it is ready for maintainer review.
 - 2026-09-15 15:00 UTC - josecelano - Approved this workflow-specification draft for GitHub issue creation - Chat approval.
 - 2026-09-15 15:05 UTC - GitHub Copilot - Created GitHub issue #2230 and promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2230
+- 2026-09-18 15:00 UTC - josecelano - Clarified that the workflow applies to any substantively identified bug regardless of metadata or labels, and that infeasible reproduction still requires traceable evidence - Chat feedback recorded in `docs(issues): refine bug-fix workflow requirements`.
 - 2026-09-18 15:45 UTC - GitHub Copilot - Implemented the `fix-bug` skill, linked the issue template, `create-issue`, and Implementer agent, corrected the stale #2226 worked-example path, and recorded manual verification in `manual-verification-evidence.md`.
 - 2026-09-18 15:45 UTC - GitHub Copilot - Completion review: no separate retrospective needed because implementation followed the approved workflow design without material design changes; the only discovery was a stale worked-example path and relative-link correction, both recorded in this issue and validation evidence.
 - 2026-09-18 15:45 UTC - GitHub Copilot Task Reviewer - Independently verified all acceptance criteria, reran `linter all`, checked skill-link resolution, and recorded the review in `agent-review-reports.md`.
