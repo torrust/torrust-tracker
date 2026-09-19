@@ -4,16 +4,15 @@ description: Guide for creating GitHub issues in the torrust-tracker project. Co
 semantic-links:
   skill-links:
     - fix-bug
+  related-artifacts:
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
+    - docs/templates/ISSUE.md
+    - docs/templates/EPIC.md
+    - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
+    - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 metadata:
   author: torrust
   version: "1.1"
-  semantic-links:
-    related-artifacts:
-      - .github/skills/dev/debugging/fix-bug/SKILL.md
-      - docs/templates/ISSUE.md
-      - docs/templates/EPIC.md
-      - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-      - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 ---
 
 # Creating Issues
