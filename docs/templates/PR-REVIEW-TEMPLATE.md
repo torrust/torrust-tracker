@@ -24,6 +24,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
 - Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
+- Compatibility: `OPEN` applies prospectively to audits created or updated for approved follow-up
+  work after this template revision. Historical audits that list only the earlier states remain
+  valid and are not bulk-migrated.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`

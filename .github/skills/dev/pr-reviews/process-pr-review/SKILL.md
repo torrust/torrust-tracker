@@ -103,7 +103,7 @@ When a review body, inline thread, or comment arrives after the pull request mer
    edit, branch, commit, push, reply, or resolve yet.
 2. **Ask the maintainer.** Report the post-merge workflow gap and propose explicit dispositions: no
    action, audit-only recording, an existing issue/branch handoff, or a new follow-up branch and
-   pull request. Obtain approval before choosing one. A request to process the still-open PR does
+   pull request. Obtain approval before choosing one. A pre-merge review-processing request does
    not authorize post-merge remediation.
 3. **Preserve the original audit.** Normalize every late finding into the merged PR's existing
    audit, including independently actionable review-body assertions. Use collision-safe audit IDs

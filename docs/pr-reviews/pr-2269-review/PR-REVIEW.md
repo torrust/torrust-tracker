@@ -39,17 +39,17 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | `review-finding:pr-2269-f2` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2269-f3` | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F4 | `review-finding:pr-2269-f4` | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F7 | `review-finding:pr-2269-f7` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2269-f8` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2269-f9` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2269-f10` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2269-f11` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F13 | `review-finding:pr-2269-f13` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F12 | `review-finding:pr-2269-f12` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F13 | `review-finding:pr-2269-f13` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2269-f14` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F15 | `review-finding:pr-2269-f15` | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
-| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F16 | `review-finding:pr-2269-f16` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F17 | `review-finding:pr-2269-f17` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F18 | `review-finding:pr-2269-f18` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
@@ -131,6 +131,28 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: `fix(docs): exclude snapshots from online link checks`
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022278>
 
+### F5 - Use promoted subissue terminology
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
+- Concern: The EPIC table retained the heading `Draft subissue` after #2265 and #2266 were created.
+- Solution: Renamed the column to `Subissue`.
+- Current-tree verification: The table heading now reads `Subissue`.
+- Resolution reference: `fix(docs): address late PR #2269 findings`
+- Reply URL: N/A; suppressed body finding had no thread.
+
+### F6 - Refer to the promoted parent EPIC
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
+- Concern: Issue #2265 still instructed implementers to update the `draft EPIC`.
+- Solution: Changed the term to `parent EPIC`.
+- Current-tree verification: The scope names the parent EPIC without a retired lifecycle state.
+- Resolution reference: `fix(docs): address late PR #2269 findings`
+- Reply URL: N/A; suppressed body finding had no thread.
+
 ### F7 - Use stable issue references from the child EPIC
 
 - PR number: 2269
@@ -197,18 +219,6 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: This audit update.
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023879>
 
-### F13 - Use a stable EPIC reference from the #2185 review report
-
-- PR number: 2269
-- Source review ID: 5250123822
-- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
-- Concern: Copilot body finding F13 requested `issue #2264` in the durable #2185 review report.
-- Solution: Replaced the movable EPIC path with `issue #2264`.
-- Current-tree verification: The #2185 report frontmatter contains `issue #2264` and no #2264
-  open-spec path.
-- Resolution reference: `fix(docs): use stable issue references in metadata`
-- Reply URL: N/A; suppressed body finding had no thread.
-
 ### F12 - Use a stable EPIC reference from the #2233 retrospective
 
 - PR number: 2269
@@ -218,6 +228,18 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The durable #2233 retrospective used EPIC #2264's movable path.
 - Solution: Replaced the path with `issue #2264`.
 - Current-tree verification: The retrospective frontmatter contains `issue #2264`.
+- Resolution reference: `fix(docs): use stable issue references in metadata`
+- Reply URL: N/A; suppressed body finding had no thread.
+
+### F13 - Use a stable EPIC reference from the #2185 review report
+
+- PR number: 2269
+- Source review ID: 5250123822
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
+- Concern: Copilot body finding F13 requested `issue #2264` in the durable #2185 review report.
+- Solution: Replaced the movable EPIC path with `issue #2264`.
+- Current-tree verification: The #2185 report frontmatter contains `issue #2264` and no #2264
+  open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
 - Reply URL: N/A; suppressed body finding had no thread.
 
@@ -233,17 +255,6 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
 - Reply URL: N/A; suppressed body finding had no thread.
 
-### F5 - Use promoted subissue terminology
-
-- PR number: 2269
-- Source review ID: 5250123822
-- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
-- Concern: The EPIC table retained the heading `Draft subissue` after #2265 and #2266 were created.
-- Solution: Renamed the column to `Subissue`.
-- Current-tree verification: The table heading now reads `Subissue`.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: N/A; suppressed body finding had no thread.
-
 ### F15 - Keep first-observed GNU timeouts provisional
 
 - PR number: 2269
@@ -253,17 +264,6 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The EPIC described four first-observed GNU timeouts as permanently unremovable.
 - Solution: Distinguished seven persistent errors from four timeouts that still require rerun.
 - Current-tree verification: The handoff uses the preserved report's rerun-first classification.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: N/A; suppressed body finding had no thread.
-
-### F6 - Refer to the promoted parent EPIC
-
-- PR number: 2269
-- Source review ID: 5250123822
-- Source URL: <https://github.com/torrust/torrust-tracker/pull/2269#pullrequestreview-5250123822>
-- Concern: Issue #2265 still instructed implementers to update the `draft EPIC`.
-- Solution: Changed the term to `parent EPIC`.
-- Current-tree verification: The scope names the parent EPIC without a retired lifecycle state.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Reply URL: N/A; suppressed body finding had no thread.
 
