@@ -24,7 +24,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
-- Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
@@ -47,24 +47,24 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F13 | `review-finding:pr-2269-f13` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F12 | `review-finding:pr-2269-f12` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2269-f14` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F15 | `review-finding:pr-2269-f15` | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F16 | `review-finding:pr-2269-f16` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F15 | `review-finding:pr-2269-f15` | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F16 | `review-finding:pr-2269-f16` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F17 | `review-finding:pr-2269-f17` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F18 | `review-finding:pr-2269-f18` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F18 | `review-finding:pr-2269-f18` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F19 | `review-finding:pr-2269-f19` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F20 | `review-finding:pr-2269-f20` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F21 | `review-finding:pr-2269-f21` | Copilot | Major | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F22 | `review-finding:pr-2269-f22` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
-| F23 | `review-finding:pr-2269-f23` | Human | Minor | metadata | RE_RAISE_OF:F18 | FIXED | RESOLVED |
-| F24 | `review-finding:pr-2269-f24` | Human | Minor | metadata | RE_RAISE_OF:F20 | FIXED | RESOLVED |
-| F25 | `review-finding:pr-2269-f25` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F26 | `review-finding:pr-2269-f26` | Human | Minor | correctness | RE_RAISE_OF:F15 | FIXED | RESOLVED |
-| F27 | `review-finding:pr-2269-f27` | Human | Minor | metadata | RE_RAISE_OF:F6 | FIXED | RESOLVED |
-| F28 | `review-finding:pr-2269-f28` | Human | Minor | metadata | RE_RAISE_OF:F16 | FIXED | RESOLVED |
-| F29 | `review-finding:pr-2269-f29` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
-| F30 | `review-finding:pr-2269-f30` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2269-f20` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F21 | `review-finding:pr-2269-f21` | Copilot | Major | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F22 | `review-finding:pr-2269-f22` | Human | Major | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F23 | `review-finding:pr-2269-f23` | Human | Minor | metadata | RE_RAISE_OF:F18 | FOLLOW_UP | OPEN |
+| F24 | `review-finding:pr-2269-f24` | Human | Minor | metadata | RE_RAISE_OF:F20 | FOLLOW_UP | OPEN |
+| F25 | `review-finding:pr-2269-f25` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
+| F26 | `review-finding:pr-2269-f26` | Human | Minor | correctness | RE_RAISE_OF:F15 | FOLLOW_UP | OPEN |
+| F27 | `review-finding:pr-2269-f27` | Human | Minor | metadata | RE_RAISE_OF:F6 | FOLLOW_UP | OPEN |
+| F28 | `review-finding:pr-2269-f28` | Human | Minor | metadata | RE_RAISE_OF:F16 | FOLLOW_UP | OPEN |
+| F29 | `review-finding:pr-2269-f29` | Human | Suggestion | metadata | ORIGINAL | FOLLOW_UP | OPEN |
+| F30 | `review-finding:pr-2269-f30` | Human | Suggestion | metadata | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -471,8 +471,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
   presence, and resolved every second-round thread.
 - 2026-09-19 07:59 UTC - Human review 5255050603 arrived after PR #2269 merged with one Major,
   five Minor, and two Suggestion threads; normalized its F17 thread into two independent findings.
-- 2026-09-19 08:05 UTC - Added the twelve omitted Copilot body findings and nine late-human
-  findings; live corrections continue in the post-merge follow-up branch.
+- 2026-09-19 09:06 UTC - Maintainer explicitly approved post-merge remediation and required the
+  previously undocumented process to be added to repository instructions, skills, agents, and
+  orchestration guidance.
+- 2026-09-19 09:06 UTC - Added the twelve omitted Copilot body findings and nine late-human
+  findings; all unmerged corrections remain `FOLLOW_UP` until the follow-up PR merges.
 
 ## Completion Rules
 
