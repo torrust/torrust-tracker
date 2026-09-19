@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md
-last-updated-utc: 2026-09-19 16:14
+issue: 2179
+last-updated-utc: 2026-09-19 21:40
 ---
 
 # Manual Verification Evidence - Docker E2E Package Selection

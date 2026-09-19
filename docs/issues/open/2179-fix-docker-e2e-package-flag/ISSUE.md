@@ -8,7 +8,7 @@ github-issue: 2179
 spec-path: docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md
 branch: 2179-fix-docker-e2e-package-flag
 related-pr: 2272
-last-updated-utc: 2026-09-19 16:14
+last-updated-utc: 2026-09-19 21:40
 semantic-links:
   skill-links:
     - create-issue
@@ -81,6 +81,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Specification | Add the approved local issue specification | Commit before implementation. |
 | T2-T4 | Fix the workflow and record verification evidence | Commit after focused validation and review. |
 
+Issue #2179 proposed a spec-only PR followed by the fix. The `create-issue` skill makes that
+sequence optional for narrow work, so this four-command workflow correction combines both while
+preserving the required spec-first commit order.
+
 No automated test code is planned because the defect is GitHub Actions configuration and the
 feature-branch workflow run is the behavior-level regression check.
 
@@ -96,6 +100,7 @@ feature-branch workflow run is the behavior-level regression check.
 - [x] Manual verification scenarios executed and recorded in issue-local evidence
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
 - [x] Pull request opened against `develop`
@@ -103,9 +108,9 @@ feature-branch workflow run is the behavior-level regression check.
 
 ### Progress Log
 
-- 2026-09-19 00:00 UTC - GitHub Copilot - Reviewed issue #2179; no clarification was required because
+- 2026-09-19 11:59 UTC - GitHub Copilot - Reviewed issue #2179; no clarification was required because
   the exact change, exclusions, and verification requirements are specified.
-- 2026-09-19 00:00 UTC - GitHub Copilot - Reproduced the root-level Cargo target resolution failure:
+- 2026-09-19 11:59 UTC - GitHub Copilot - Reproduced the root-level Cargo target resolution failure:
   Cargo identified `torrust-tracker-e2e-tools` as the package containing `e2e_tests_runner`.
 - 2026-09-19 12:01 UTC - GitHub Copilot - Added explicit package selection to all four commands;
   YAML lint, both package-qualified help commands, and `linter all` pass. Feature-branch CI remains.
@@ -118,6 +123,8 @@ feature-branch workflow run is the behavior-level regression check.
   pattern exactly and revealed no reusable design lesson or deviation.
 - 2026-09-19 16:14 UTC - GitHub Copilot - Opened PR #2272 targeting `develop`; its `Testing` run
   skipped `Docker E2E` under the unchanged guard, completing M2.
+- 2026-09-19 21:40 UTC - GitHub Copilot - Addressed Cameron's three spec-record findings and
+  Copilot's two stable semantic-reference findings from PR #2272.
 
 ## Acceptance Criteria
 
