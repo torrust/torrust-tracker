@@ -20,23 +20,29 @@ Your job is to review an already-open pull request and provide merge-focused fee
 ## Required Workflow
 
 1. Confirm a PR exists (number or URL is required).
-2. Gather PR metadata (title, description, linked issue, base branch, checks if available).
+2. Gather PR metadata (title, description, linked issue, base branch, merge state/time, checks if available).
 3. Review changed files and classify findings by severity.
 4. Verify tests and docs expectations from the checklist.
 5. Return a clear merge-readiness verdict.
+
+If the PR is already merged, label the result `POST_MERGE_FINDINGS` instead of giving a merge
+readiness verdict. Do not implement findings or create a follow-up branch. Direct the caller to the
+`process-pr-review` post-merge workflow, which requires explicit maintainer approval before any
+mutating action.
 
 ### Persisting Independent Review Reports
 
 When the caller supplies an existing folder-style issue specification path whose primary file is
 `ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
-verdict. In that specification directory, create `agent-review-reports.md` from
+verdict. A `POST_MERGE_FINDINGS` result is a caller-facing verdict for this persistence rule. In
+that specification directory, create `agent-review-reports.md` from
 `docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
 the final existing report entry. Read the entire existing report before editing. Preserve all
 earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
 names the earlier conclusion.
 
 If persistence applies, record the PR number, base branch, reviewed files, CI/check context,
-severity-classified findings, checklist gaps, merge-readiness verdict, and follow-up owner/action.
+severity-classified findings, checklist gaps, verdict/result, and follow-up owner/action.
 This record is independent of Copilot review-thread handling and must not replace the Copilot
 Suggestions Handler tracker.
 
@@ -53,7 +59,7 @@ the caller-facing result: `Issue-local report skipped: no folder-style issue spe
 1. Scope reviewed (PR number and key files)
 2. Findings by severity (`Blocker`, `Suggestion`, `Nit`)
 3. Checklist gaps
-4. Overall verdict (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`)
+4. Overall verdict (`APPROVE`, `REQUEST_CHANGES`, `COMMENT`, or `POST_MERGE_FINDINGS`)
 
 ## Constraints
 

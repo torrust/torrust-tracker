@@ -5,13 +5,13 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-18 17:05
+last-updated-utc: 2026-09-19 08:03
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
-    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - issue #2003
     - issue #2233
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
@@ -334,7 +334,7 @@ clear which commands are read-only checks and which commands mutate the reposito
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Phase | Draft subissue | Expected output | Status |
+| Order | Phase | Subissue | Expected output | Status |
 | ----- | ----- | -------------- | --------------- | ------ |
 | 1 | Frontmatter | [#2265 - Inventory and resolve Markdown frontmatter contracts](../2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md) | Map current prose, templates, skills, fields, scalar forms, document classes, and provisional reference values; classify each variation and approve the v1 contract. | TODO |
 | 2 | Frontmatter | [#2266 - Implement the Rust frontmatter model and initial validator](../2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md) | Implement the canonical universal envelope and strict issue/EPIC profiles, generated schema, provisional reference union, fixtures, stable diagnostics, and replaceable progressive validator. | BLOCKED |
@@ -363,7 +363,8 @@ links reported by the advisory
 [External Link Check workflow](../../../../.github/workflows/external-link-check.yaml). It started
 from 461 errors, repaired every genuinely stale reference it found, and added only exact,
 commented exclusions to [`.github/lychee-online.toml`](../../../../.github/lychee-online.toml). It
-closed with seven errors and four timeouts that no cleanup step can remove. Those cases are
+closed with seven persistent errors that no cleanup step can remove and four first-observed
+timeouts that still require a confirming rerun. Those cases are
 preserved verbatim in
 [`external-link-check-residual-failures-2026-09-18.md`](external-link-check-residual-failures-2026-09-18.md)
 and are input for the external-link classification subissue. No solution is chosen here.
@@ -566,7 +567,7 @@ For each completed subissue, the default completion policy is:
 - [x] Subissue drafts renamed with EPIC #2264 and their `epic` fields set
 - [x] Planning/evidence PR branch recorded where the document profile supports `branch`
 - [x] Planning/evidence PR #2269 recorded in issue-spec `related-pr` fields
-- [ ] Planning/evidence PR merged into `develop`
+- [x] Planning/evidence PR #2269 merged into `develop`
 - [ ] Remaining subissues created and linked in this spec as each phase starts
 - [ ] Subissue statuses kept up to date in the `Progressive Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
@@ -593,6 +594,9 @@ For each completed subissue, the default completion policy is:
   issues #2265 and #2266 as native children of #2264; promoted all three local specifications
 - 2026-09-18 15:25 UTC - GitHub Copilot - Opened spec-only PR #2269 from the validated fork branch;
   recorded the PR on child specs #2265 and #2266
+- 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop`
+- 2026-09-19 08:03 UTC - GitHub Copilot - Started post-merge follow-up for late review findings;
+  recorded the merged planning PR and corrected live lifecycle and evidence inconsistencies
 
 ## Risks and Trade-offs
 

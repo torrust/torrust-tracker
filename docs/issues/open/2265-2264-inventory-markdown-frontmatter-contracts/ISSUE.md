@@ -8,7 +8,7 @@ github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
 related-pr: 2269
-last-updated-utc: 2026-09-18 17:05
+last-updated-utc: 2026-09-19 08:03
 semantic-links:
   skill-links:
     - create-issue
@@ -78,6 +78,8 @@ are owned by external specifications; the inventory records only the repository-
   contract knows which fields are load-bearing and which are informational.
 - Inventory every value form currently used in `semantic-links.skill-links` and
   `semantic-links.related-artifacts`.
+- Record `epic:` on EPIC profiles as a known variation to resolve: EPIC #2264 uses it for its
+  parent, while closed EPIC #1938 uses a self-reference and the documented EPIC profile omits it.
 - Classify each observed variation as canonical, accepted legacy, invalid, or unresolved.
 - Define the universal envelope shared by Markdown documents with frontmatter.
 - Define strict prospective profiles for issue and EPIC specifications.
@@ -98,7 +100,7 @@ are owned by external specifications; the inventory records only the repository-
 - Compare the resulting contract with OKF v0.2 and recommend one explicit disposition: an OKF
   profile, an OKF-compatible projection, selective field adoption without conformance, or a
   separate Torrust format.
-- Update the draft EPIC when inventory findings alter its subissue boundaries or dependencies.
+- Update the parent EPIC when inventory findings alter its subissue boundaries or dependencies.
 
 ### Out of Scope
 
@@ -158,7 +160,7 @@ Commits for each independently reviewed change set.
 - [x] Specification folder moved to `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
   and open-state metadata plus live references updated
 - [x] Planning/evidence PR #2269 opened and `related-pr` updated
-- [ ] Planning/evidence PR merged into `develop` before implementation
+- [x] Planning/evidence PR #2269 merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed
 - [ ] Manual verification scenarios executed and recorded
@@ -179,6 +181,8 @@ Commits for each independently reviewed change set.
   promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2265
 - 2026-09-18 15:25 UTC - GitHub Copilot - Opened spec-only PR #2269 and recorded it in frontmatter -
   https://github.com/torrust/torrust-tracker/pull/2269
+- 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop` -
+  https://github.com/torrust/torrust-tracker/pull/2269
 
 ## Acceptance Criteria
 
@@ -197,7 +201,7 @@ Commits for each independently reviewed change set.
       skill names in `skill-links`, without introducing new reference forms.
 - [ ] AC7: Accepted and rejected fixtures define expected diagnostic categories for the successor
       Rust-model issue.
-- [ ] AC8: The parent EPIC and successor draft are reconciled with the approved findings.
+- [ ] AC8: The parent EPIC and successor specification are reconciled with the approved findings.
 - [ ] AC9: The OKF v0.2 comparison records whether Torrust adopts a profile, exposes a compatible
   projection, selectively adopts fields without conformance, or remains separate, with material
   differences and migration consequences documented.
@@ -237,7 +241,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC1-AC3 | TODO | `frontmatter-inventory.md` and classification sections |
 | AC4-AC6 | TODO | `frontmatter-v1-contract.md` |
 | AC7 | TODO | `frontmatter-fixtures/` and expectation manifest |
-| AC8 | TODO | Updated parent EPIC and successor draft |
+| AC8 | TODO | Updated parent EPIC and successor specification |
 | AC9 | TODO | OKF v0.2 compatibility matrix and recommendation |
 | AC10 | TODO | Enforcement-mode, severity, and versioning sections of the v1 contract |
 
@@ -263,9 +267,9 @@ progress-log entry explaining why a separate retrospective is unnecessary.
 
 ## References
 
-- Parent EPIC: `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`
+- Parent EPIC: #2264
 - Parent automation EPIC: #2003
-- Successor specification: `docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md`
+- Successor specification: #2266
 - Pinned external design input: [Open Knowledge Format v0.2 specification](../../../external-snapshots/open-knowledge-format/0.2/SPEC.md)
 - Snapshot provenance and update policy: [OKF 0.2 provenance](../../../external-snapshots/open-knowledge-format/0.2/PROVENANCE.md)
 - Current upstream source: <https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md>
