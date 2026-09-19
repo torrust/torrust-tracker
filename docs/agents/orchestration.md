@@ -53,6 +53,9 @@ flowchart TD
     pr_review_audit[Pull-request review audit]
     merge_ready[Ready for merge]
     merged[Merged]
+    late_review[Review submitted after merge]
+    post_merge_approval{Maintainer approves follow-up?}
+    follow_up_pr[Follow-up pull request]
   end
 
   user_request -. request .-> planner
@@ -78,6 +81,11 @@ flowchart TD
   suggestions_handler -. action fixes .-> committer
   suggestions_handler -. all threads resolved .-> merge_ready
   merge_ready -. merged by repository workflow .-> merged
+  merged -. late review arrives .-> late_review
+  late_review -->|read-only triage| post_merge_approval
+  post_merge_approval -. no action or audit-only .-> pr_review_audit
+  post_merge_approval -. approved remediation .-> follow_up_pr
+  follow_up_pr -. merged fix and audit closure .-> pr_review_audit
 
   researcher[Researcher] -. external evidence when needed .-> planner
   researcher -. external evidence when needed .-> implementer
@@ -122,9 +130,10 @@ flowchart TD
 ## Pull-Request Feedback Workflow
 
 This view shows conditional paths after a pull request exists. No profile defines a universal PR
-entry, merge transition, remediation owner for a PR Reviewer finding, or mandatory re-review after
-a fix; those paths are therefore dashed. Copilot-specific entry points delegate their review
-processing and audit semantics to `process-pr-review`.
+entry, remediation owner for a PR Reviewer finding, or mandatory re-review after a fix; those paths
+are therefore dashed. Copilot-specific entry points delegate their review processing and audit
+semantics to `process-pr-review`. Feedback submitted after merge has a documented read-only triage
+path, but no mutating follow-up begins until the maintainer approves its disposition.
 
 ```mermaid
 flowchart TD
@@ -141,6 +150,10 @@ flowchart TD
   refetch_threads[Fetch unresolved Copilot threads again]
   merge_ready_detail[Ready for merge]
   merged_detail[Merged]
+  late_review_detail[Review submitted after merge]
+  maintainer_approval_detail{Explicit maintainer approval?}
+  follow_up_branch[Branch from current target branch]
+  follow_up_pr_detail[Follow-up pull request]
 
   existing_pr -. review when requested .-> pr_reviewer_detail
   pr_reviewer_detail -. findings and verdict .-> pr_verdict
@@ -158,6 +171,13 @@ flowchart TD
   action_decision -. no action: reply and resolve .-> pr_review_audit_detail
   copilot_handler_detail -. all threads resolved .-> merge_ready_detail
   merge_ready_detail -. merged by repository workflow .-> merged_detail
+  merged_detail -. late review .-> late_review_detail
+  late_review_detail -->|read-only triage only| maintainer_approval_detail
+  maintainer_approval_detail -. declined or audit-only .-> pr_review_audit_detail
+  maintainer_approval_detail -. approved remediation .-> follow_up_branch
+  follow_up_branch --> committer_detail
+  push_update --> follow_up_pr_detail
+  follow_up_pr_detail -. merged .-> pr_review_audit_detail
 ```
 
 ## Required Delivery Path
@@ -186,7 +206,9 @@ These paths support the delivery path but are not universal prerequisites.
 | Task Reviewer               | A failed review with a persisted report whose durable history is needed. | The caller may request a focused documentation commit through Committer.        | This preserves the failed review as evidence; it does not authorize implementation work before remediation.                                                           |
 | ClippyFixer                 | Concrete Clippy warnings from the user or `linter clippy`.               | Focused remediation and documented exceptions; Committer creates commits.       | The profile currently declares no `edit` tool although it describes source modifications. Issue #2158 tracks this capability mismatch.                                |
 | PR Reviewer                 | An existing PR and its actual diff/check context.                        | Findings and `APPROVE`, `REQUEST_CHANGES`, or `COMMENT`.                        | The profile does not define a remediation owner, thread-publication step, or required re-review after fixes.                                                          |
-| Copilot Suggestions Handler | Unresolved Copilot review threads on an existing PR.                     | Per-thread decision, reply, resolution, and the unified `docs/pr-reviews/` audit. | It handles Copilot threads only, replies before resolving, and fetches the threads again after each push. An action fix is validated and committed through Committer. |
+| PR Reviewer                 | A review request for an already merged PR.                               | `POST_MERGE_FINDINGS` and a handoff to `process-pr-review`.                     | Review is read-only. It does not authorize remediation or a follow-up branch.                                                                                          |
+| Copilot Suggestions Handler | Unresolved Copilot review threads on an open PR.                          | Per-thread decision, reply, resolution, and the unified `docs/pr-reviews/` audit. | It handles Copilot threads only, replies before resolving, and fetches the threads again after each push. An action fix is validated and committed through Committer. |
+| Copilot Suggestions Handler | Copilot feedback submitted after the PR merged.                           | Read-only triage followed by an explicit maintainer approval request; approved follow-up evidence returns to the original audit. | It must not branch, edit, commit, push, reply, or resolve before approval. Approved fixes branch from the current target branch, not the merged PR head. |
 
 ## Artifact Ownership
 

@@ -1,9 +1,9 @@
 ---
 name: process-pr-review
-description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, or address Copilot and maintainer review findings together.
+description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, or triage review feedback submitted after merge.
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -53,8 +53,7 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    present and it does not collide with an existing audit finding ID. When a
    later review reuses an existing ID for a different finding, assign the next
    audit-local `F<ordinal>` and record the reviewer's original ID in the detail
-   entry. Otherwise assign `F<ordinal>` in source-review and source-order order.
-   Assign the immutable repository reference
+   entry. Otherwise assign `F<ordinal>` in source-review and source-order order. Assign the immutable repository reference
    `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, lowercasing the finding ID in
    the reference. Before action, compare a new item with all earlier findings
    against the current tree. A later item requesting the same current-tree
@@ -88,6 +87,38 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 9. **Verify completion.** Refresh GraphQL thread data and show no unresolved
    actionable thread. Update the audit progressively and commit it separately
    from product fixes.
+
+## Reviews Submitted After Merge
+
+A merged pull request is immutable delivery history. Review feedback submitted after merge is not
+authorization to create a branch, modify `develop`, or open a follow-up pull request.
+
+When a review body, inline thread, or comment arrives after the pull request merged:
+
+1. **Stop after read-only triage.** Verify the merge time, review submission time, current target
+   branch, thread state, and whether each finding remains live on the current target branch. Do not
+   edit, branch, commit, push, reply, or resolve yet.
+2. **Ask the maintainer.** Report the post-merge workflow gap and propose explicit dispositions: no
+   action, audit-only recording, an existing issue/branch handoff, or a new follow-up branch and
+   pull request. Obtain approval before choosing one. A request to process the still-open PR does
+   not authorize post-merge remediation.
+3. **Preserve the original audit.** Normalize every late finding into the merged PR's existing
+   audit, including independently actionable review-body assertions. Use collision-safe audit IDs
+   and retain reviewer-provided IDs in detail entries when reassigned.
+4. **Implement only the approved follow-up.** Branch from the latest target branch, not from the
+   merged PR head. Keep independent fixes and audit updates in coherent signed commits. Link the
+   follow-up PR to the merged PR and to the issue that owns the remaining work; use issue-closing
+   keywords only when the follow-up fully resolves that issue.
+5. **Reply with follow-up evidence.** Reply on the merged PR's resolvable threads with the approved
+   disposition and follow-up PR or merged-commit reference. Do not claim `FIXED` on the target
+   branch before the follow-up merges; record `Disposition=FOLLOW_UP` and `Thread state=OPEN` while
+   it remains open. A review-body finding without a thread remains `NON_RESOLVABLE`.
+6. **Close the loop after merge.** After the follow-up merges, update the original audit with the
+   durable merge reference, change completed dispositions to `FIXED`, reply if needed, then resolve
+   addressed threads. Refresh GraphQL and record zero unresolved actionable threads.
+
+If the maintainer declines follow-up work, record `NO_ACTION` with the reason only when the
+maintainer approved that audit update. Do not silently turn a late review into a new project.
 
 ## Required Audit Fields
 
@@ -167,3 +198,5 @@ audit detail before resolving the finding.
 - [ ] Consolidated responses name every covered review and finding
 - [ ] Final GraphQL fetch reports no unresolved actionable thread
 - [ ] Audit committed separately from product fixes
+- [ ] For feedback submitted after merge: maintainer approval recorded before any mutating action
+- [ ] For an approved post-merge follow-up: branch based on the current target branch and original audit updated through follow-up merge

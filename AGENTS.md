@@ -233,6 +233,14 @@ When acting as an assistant in this repository:
 - Push back when a request, diff, or proposed commit looks wrong.
 - Flag unclear but important points before they become problems.
 - Ask a clarifying question instead of making a random choice when the decision matters.
+- Before starting a task or process that has no documented repository workflow and no verified
+   repository precedent, stop after read-only investigation, identify the gap, and ask the
+   maintainer for explicit approval of the proposed process. Do not create a branch, edit files,
+   commit, push, open or modify GitHub artifacts, reply to reviews, or resolve threads before that
+   approval. A request for an outcome is not approval to invent an undocumented process unless the
+   maintainer explicitly acknowledges the gap and authorizes the proposed workflow. When the new
+   process proves reusable, document it in the owning skill and update affected adapters in the same
+   work or an explicitly approved follow-up.
 - Call out likely misses: naming inconsistencies, accidental generated files,
   staged-versus-unstaged mismatches, missing docs updates, or suspicious commit scope.
 

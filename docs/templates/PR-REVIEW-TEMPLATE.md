@@ -23,7 +23,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
-- Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
