@@ -6,9 +6,9 @@ priority: p1
 epic: 2264
 github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
-branch: "2264-2003-refactor-semantic-link-conventions-spec"
+branch: "2265-inventory-markdown-frontmatter-contracts"
 related-pr: 2269
-last-updated-utc: 2026-09-19 08:03
+last-updated-utc: 2026-09-19 08:05
 semantic-links:
   skill-links:
     - create-issue
@@ -183,6 +183,9 @@ Commits for each independently reviewed change set.
   https://github.com/torrust/torrust-tracker/pull/2269
 - 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop` -
   https://github.com/torrust/torrust-tracker/pull/2269
+- 2026-09-19 08:05 UTC - Jose Celano - Confirmed planning/evidence PR #2269 merged; directed the
+  inventory to determine contract versioning and historical-document enforcement from evidence -
+  This specification
 
 ## Acceptance Criteria
 
