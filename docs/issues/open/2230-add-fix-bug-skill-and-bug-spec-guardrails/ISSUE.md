@@ -8,7 +8,7 @@ github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: 2270
-last-updated-utc: 2026-09-19 16:30
+last-updated-utc: 2026-09-19 17:20
 semantic-links:
   skill-links:
     - add-new-skill
@@ -85,7 +85,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Define test-selection and evidence rules | Review finding F13 is resolved: regression red proof follows the `write-unit-test` mutate-then-restore rule. |
 | T3 | DONE | Link issue authoring guidance and template | Review findings F9, F12, F16, F18, and F19 are resolved by parseable frontmatter, canonical references, and validated links. |
 | T4 | DONE | Link the Implementer agent workflow | Review finding F14 is resolved: Implementer preserves the ordered workflow and requires the final like-for-like recheck. |
-| T5 | DONE | Validate the workflow end-to-end | Current-head checks and AC1-AC6 pass; V3 verifies the corrected Implementer workflow; the retrospective records material discoveries; the canonical PR audit records F1-F22, durable replies, and zero unresolved threads. |
+| T5 | IN_PROGRESS | Validate the workflow end-to-end | Review 5256684050 raised F23-F24 about stale audit wording and historical reply ordering; implementation checks remain green while review-processing evidence is corrected. |
 
 ## Commit Points
 
@@ -126,6 +126,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-19 11:50 UTC - GitHub Copilot Task Reviewer - Revalidated AC1-AC6 and automatic checks at current HEAD after F9, F12-F16, F18, and F19 fixes. Readiness remains blocked until the post-F14 Implementer scenario is rerun and the completion review assesses the material follow-up corrections; GitHub thread replies and resolution were not assessed.
 - 2026-09-19 11:58 UTC - GitHub Copilot - Reran manual scenario M2 against the corrected Implementer and bug-fix skills, recorded current-head evidence in `manual-verification-evidence.md` V3, and created `implementation-retrospective.md` for the material validation, workflow, and review-process discoveries.
 - 2026-09-19 16:30 UTC - GitHub Copilot - Completed the canonical PR-review workflow for submitted reviews 5250020892, 5255047473, 5255075569, 5255823584, and 5255889360: audit F1-F22 updated; body-only revalidation rounds recorded with no new actionable findings; every inline thread received a reply before resolution; consolidated response posted at https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140; and final GraphQL refresh reported zero unresolved threads.
+- 2026-09-19 17:20 UTC - GitHub Copilot - Reopened T5 after review 5256684050 raised F23-F24 about two stale current-state audit sentences and an overstatement of historical reply-before-resolution ordering.
 
 ## Acceptance Criteria
 
