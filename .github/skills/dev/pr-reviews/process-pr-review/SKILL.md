@@ -53,7 +53,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    present and it does not collide with an existing audit finding ID. When a
    later review reuses an existing ID for a different finding, assign the next
    audit-local `F<ordinal>` and record the reviewer's original ID in the detail
-   entry. Otherwise assign `F<ordinal>` in source-review and source-order order. Assign the immutable repository reference
+   entry. Otherwise assign `F<ordinal>` in source-review and source-order order.
+   Assign the immutable repository reference
    `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, lowercasing the finding ID in
    the reference. Before action, compare a new item with all earlier findings
    against the current tree. A later item requesting the same current-tree
@@ -201,4 +202,5 @@ audit detail before resolving the finding.
 - [ ] Final GraphQL fetch reports no unresolved actionable thread
 - [ ] Audit committed separately from product fixes
 - [ ] For feedback submitted after merge: maintainer approval recorded before any mutating action
-- [ ] For an approved post-merge follow-up: branch based on the current target branch and original audit updated through follow-up merge
+- [ ] For an approved post-merge follow-up: branch based on the current target branch and original
+      audit updated through follow-up merge
