@@ -8,7 +8,7 @@ github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: 2270
-last-updated-utc: 2026-09-18 17:05
+last-updated-utc: 2026-09-19 08:35
 semantic-links:
   skill-links:
     - add-new-skill
@@ -81,10 +81,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Define the canonical bug-fix workflow | Created `.github/skills/dev/debugging/fix-bug/SKILL.md` using the repository's `add-new-skill` guidance. For any work that is substantively a bug, regardless of metadata or labels, it requires the sequence: analyse, reproduce, select tests, red test, fix, and recheck. |
-| T2 | DONE | Define test-selection and evidence rules | The skill prefers a deterministic unit test at the causal seam, requires a written reason when a higher-level boundary is selected, distinguishes maintained tests from real manual reproduction evidence, and requires an explicit infeasibility record when reproduction cannot be performed. |
-| T3 | DONE | Link issue authoring guidance and template | Updated `create-issue` and `docs/templates/ISSUE.md` with bug-only `Bug-Fix Process` and `Regression Test Strategy` requirements that link to the canonical skill. |
-| T4 | DONE | Link the Implementer agent workflow | Updated Implementer to read and apply `fix-bug` for any substantively identified bug, preserve existing TDD and review rules, and require red/green/recheck evidence in the issue folder. |
-| T5 | DONE | Validate the workflow end-to-end | Used issue #2226 as the worked example reference; validated Markdown, spelling, skill links, and the issue-local sample bug draft against the required sections. |
+| T2 | IN_PROGRESS | Define test-selection and evidence rules | Review finding F13 requires aligning red-test evidence with the existing mutate-then-restore rule. |
+| T3 | IN_PROGRESS | Link issue authoring guidance and template | Review findings F9, F12, F16, F18, and F19 require parseable, canonical, and validated semantic links. |
+| T4 | IN_PROGRESS | Link the Implementer agent workflow | Review finding F14 requires preserving the ordered workflow and naming the final like-for-like recheck. |
+| T5 | IN_PROGRESS | Validate the workflow end-to-end | Review findings F10 and F11 require the canonical PR audit, replies, thread resolution, and a fresh independent review of the final tree. |
 
 ## Commit Points
 
@@ -102,12 +102,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted and promoted to `docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2230 created and issue number added to this spec
-- [x] Implementation completed
-- [x] Automatic verification completed (`linter all`, skill-link validation, and relevant checks)
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, skill-link validation, and relevant checks)
 - [x] Manual review scenarios executed and evidence recorded
-- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -120,6 +120,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-18 15:45 UTC - GitHub Copilot - Completion review: no separate retrospective needed because implementation followed the approved workflow design without material design changes; the only discovery was a stale worked-example path and relative-link correction, both recorded in this issue and validation evidence.
 - 2026-09-18 15:45 UTC - GitHub Copilot Task Reviewer - Independently verified all acceptance criteria, reran `linter all`, checked skill-link resolution, and recorded the review in `agent-review-reports.md`.
 - 2026-09-18 17:05 UTC - GitHub Copilot - Addressed Copilot PR review feedback by correcting sibling skill links, using stable issue #2226 references, removing the generic template `fix-bug` skill-link, adding reciprocal long-lived skill markers, and fixing the sample validation artifact path.
+- 2026-09-19 08:35 UTC - GitHub Copilot - Reopened T2-T5 and affected completion checkpoints after review 5255047473 found invalid semantic-link frontmatter, workflow-order gaps, and missing canonical PR-review audit/replies; normalized findings F1-F19 in `docs/pr-reviews/pr-2270-review/PR-REVIEW.md` before fixes.
 
 ## Acceptance Criteria
 
@@ -127,10 +128,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC2: The skill requires real-artifact reproduction evidence with actual commands and output when reproduction is feasible, requires the reason and attempted evidence to be recorded when it is infeasible, and distinguishes it from maintained automated tests.
 - [x] AC3: The skill requires selection of the smallest deterministic regression-test boundary, with a documented rationale for integration or end-to-end tests.
 - [x] AC4: `create-issue` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections that link to the canonical skill instead of duplicating it.
-- [x] AC5: The Implementer agent loads `fix-bug` for substantively identified bug specs, even when metadata or labels are incorrect, and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
+- [ ] AC5: The Implementer agent loads `fix-bug` for substantively identified bug specs, even when metadata or labels are incorrect, and preserves the existing test-design, complexity-review, independent-review, and signing workflow.
 - [x] AC6: The stale activity-metrics draft is cited as a worked example without changing that issue's implementation scope.
 - [x] `linter all` exits with code `0`.
-- [x] Relevant skill-link validation passes.
+- [ ] Relevant skill-link validation passes.
 - [x] Manual review scenarios are executed and documented in issue-local `manual-verification-evidence.md`; when reproduction is infeasible, the file records the constraint, attempted commands, and the strongest available substitute evidence.
 
 ## Verification Plan
@@ -162,10 +163,10 @@ None planned. Documentation and workflow behavior can be validated by direct rev
 | AC2 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Evidence Requirements require real-artifact commands/output/logs, infeasibility constraints and attempted commands, and state automated tests are not a substitute for final artifact recheck. |
 | AC3 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` Regression-Test Boundary Rules require the smallest deterministic maintained test and rationale for integration/end-to-end/manual boundaries; `sample-substantive-bug-spec.md` applies the unit-first rule. |
 | AC4 | DONE | `.github/skills/dev/planning/create-issue/SKILL.md` and `docs/templates/ISSUE.md` require bug-only `Bug-Fix Process` and `Regression Test Strategy` sections linking to `fix-bug` without duplicating the full workflow. |
-| AC5 | DONE | `.github/agents/implementer.agent.md` requires semantic bug detection and loading `fix-bug` even when metadata or labels are wrong, while retaining TDD, complexity audit, independent Task Reviewer review, and signed Committer workflow. |
+| AC5 | TODO | Review finding F14 requires explicit ordered reproduction/boundary selection and final like-for-like recheck evidence in `.github/agents/implementer.agent.md`. |
 | AC6 | DONE | `.github/skills/dev/debugging/fix-bug/SKILL.md` cites issue #2226 as a review-only worked example using the stable issue reference and says not to change that issue's implementation scope; current diff leaves the #2226 issue unchanged. |
 | LINT | DONE | `linter all` rerun by Task Reviewer on 2026-09-18 and exited `0`. |
-| SKILL-LINKS | DONE | Read-only skill-link check found frontmatter names for `add-new-skill`, `create-issue`, `fix-bug`, `write-unit-test`, and `add-rust-dependency`; changed references resolve. |
+| SKILL-LINKS | TODO | Review findings F9, F12, F16, F18, and F19 require corrected frontmatter and link validation. |
 | MANUAL | DONE | `manual-verification-evidence.md` records manual scenarios V1 and V2 with actual steps, observed output, and conclusions; no issue #2230 reproduction-infeasible scenario was applicable beyond the recorded unsupported focused-linter command and substitute supported linter runs. |
 
 ## Risks and Trade-offs
