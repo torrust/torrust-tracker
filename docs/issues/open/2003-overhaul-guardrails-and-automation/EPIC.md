@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: 2026-09-18 17:05
 semantic-links:
   skill-links:
     - create-issue
@@ -28,6 +28,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - issue #2264
 ---
 
 <!-- skill-link: create-issue -->
@@ -173,6 +174,16 @@ build actions needed by its checks.
   broad consumer migration. These exceptions must document their current integration point and
   remain replaceable by the later design. The initial approved candidates are the six proposed
   AI-agent, repository-guardrail, and documentation process subissues listed below.
+- Coordinate the child EPIC to refactor semantic-link and frontmatter conventions. That child owns
+  document metadata and reference semantics, typed profiles, accepted and rejected examples,
+  compatibility policy, and validation behavior. This EPIC retains ownership of shared automation
+  architecture, final binary and package placement, command and event contracts, policy composition,
+  caching, and local/CI/agent integration.
+- Permit the child EPIC's small, read-only frontmatter validator to proceed before the architecture
+  decision with pre-commit as its single integration tier, direct path inputs for focused use, and a
+  whole-tree mode for manual validation. It must remain independently testable and replaceable and
+  must not introduce CI integration, a shared runner, cache, policy engine, or orchestration
+  framework before this EPIC selects them.
 - Re-evaluate #1843, #1774, and #1768 against the resulting evidence and recommend whether each
   should proceed unchanged, be re-scoped, be split, or be superseded.
 - Present the evidence and options for maintainer review before selecting a full design.
@@ -248,6 +259,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 7     | #2185 - Triage advisory external-link check findings (DONE) | `docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md` | Evidence-driven refinement of an existing advisory workflow; does not redesign the linter or workflow runner. | #2162 external-link workflow                     |
 | 8     | #2219 - Unify PR review-processing workflow (DONE)   | `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`                | Low-risk, additive, independently verifiable local/CI formatting parity plus skill, template, and review-audit process improvements; selects no shared automation architecture. | Existing pre-commit, pre-push, and PR-review entry points |
 | 9     | #2233 - Tune unified PR-review process (DONE)        | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`            | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. | #2219 PR-review workflow evidence |
+| 10    | #2264 - Refactor semantic-link and frontmatter conventions | `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` | Defines document metadata and reference semantics. Its initial read-only frontmatter validator may use pre-commit as its single integration tier but must remain replaceable by the architecture selected here. | Current Markdown conventions and templates |
 
 ## Delivery Strategy
 

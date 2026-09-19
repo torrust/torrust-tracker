@@ -19,6 +19,7 @@ CALLSITE
 CDLA
 Celano
 Cinstrument
+Cockburn
 Condvar
 Containerfile
 Cyberneering
@@ -66,6 +67,7 @@ Mebibytes
 NOASSERTION
 NOSYSTEM
 Naim
+Naur
 Norberg
 Oaep
 PGID

@@ -3,8 +3,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
-    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
-    - docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
+    - issue #2264
+    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/lychee-online.toml
     - .github/workflows/external-link-check.yaml
 ---

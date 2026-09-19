@@ -8,7 +8,7 @@ github-issue: 2185
 spec-path: docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/ISSUE.md
 branch: "2185-2003-triage-advisory-external-link-check-findings"
 related-pr: 2258
-last-updated-utc: 2026-09-18 09:05
+last-updated-utc: 2026-09-18 12:50
 semantic-links:
   skill-links:
     - create-issue
@@ -18,8 +18,8 @@ semantic-links:
     - docs/issues/closed/2162-enforce-lychee-and-schedule-external-link-checks/ISSUE.md
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/agent-review-reports.md
-    - docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md
-    - docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
+    - issue #2264
+    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - .github/workflows/external-link-check.yaml
     - .github/lychee-online.toml
     - docs/testing.md
@@ -150,7 +150,7 @@ A category that needs no repository change is recorded in issue-local evidence w
 - 2026-09-17 15:18 UTC - Copilot - Rerun-first check for C7-C8: [run 35238419294](https://github.com/torrust/torrust-tracker/actions/runs/35238419294) on merged revision `37c0bea5` failed visibly with 30 errors and 2 timeouts and retained its report. Every C7 `403` and C8 FSF failure persisted from run 35224905794, so neither category is transient; the two `martinfowler.com` timeouts were new and are the transient case the policy expects. Direct probes established the causes: Medium returns `403` to a browser user agent as well; the Stack Overflow short permalink redirects to the full question URL, which also returns `403` while the answer still exists; `www.fsf.org` returns HTTP 200 through `curl` and `openssl` but offers only finite-field `DHE` cipher suites, which rustls-based Lychee cannot negotiate. None of C7-C8 is a stale reference. The remaining 23 GitHub errors were `#issuecomment-<id>` and `#pullrequestreview-<id>` anchors on pull-request URLs in `docs/pr-reviews/`, a dynamic-anchor class (C10) added to the checked set after the baseline.
 - 2026-09-17 16:44 UTC - Copilot - Added two exact online-only C10 patterns for pull-request `#issuecomment-<id>` and `#pullrequestreview-<id>` anchors to `.github/lychee-online.toml`. A five-link boundary test excluded the three dynamic pull-request anchor forms and the exact C6 issue-comment anchor while retaining `https://github.com/torrust/torrust-tracker/pull/123/files`. Merged as [PR #2255](https://github.com/torrust/torrust-tracker/pull/2255).
 - 2026-09-18 06:43 UTC - Copilot - After PR #2255 merged, [run 35315382956](https://github.com/torrust/torrust-tracker/actions/runs/35315382956) ran on merged revision `e6dd8918`: it visibly failed with 7 errors and 4 timeouts, excluded 886 links, and retained a 782-byte `lychee-external-link-report` artifact through 2026-10-02. The report contains no GitHub fragment error of any kind. The residual failures are two Medium `403` responses, one Stack Overflow `403`, four FSF transport failures, and four first-time `https://www.gnu.org/licenses/` timeouts. This hosted-verifies C10 and confirms C7-C8 as persistent, non-stale cases.
-- 2026-09-18 07:10 UTC - Copilot - Closure decision with the maintainer: the residual C7-C8 cases and the new GNU timeouts are license boilerplate or background reading that cannot be repaired, and every candidate treatment (replacing citations, excluding hosts, relaxing TLS) is a policy choice outside this task's scope. The verbatim closing report is preserved in `docs/issues/drafts/refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`, and the triage insights are recorded in that EPIC draft's "Handoff from Issue #2185" section. No issue-local retrospective is needed because the EPIC handoff is the retrospective. The issue closes when this PR merges.
+- 2026-09-18 07:10 UTC - Copilot - Closure decision with the maintainer: the residual C7-C8 cases and the new GNU timeouts are license boilerplate or background reading that cannot be repaired, and every candidate treatment (replacing citations, excluding hosts, relaxing TLS) is a policy choice outside this task's scope. The verbatim closing report is preserved in `docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`, and the triage insights are recorded in EPIC #2264's "Handoff from Issue #2185" section. No issue-local retrospective is needed because the EPIC handoff is the retrospective. The issue closes when this PR merges.
 - 2026-09-18 09:05 UTC - Copilot - PR [#2258](https://github.com/torrust/torrust-tracker/pull/2258) merged into `develop` and closed GitHub issue [#2185](https://github.com/torrust/torrust-tracker/issues/2185) as completed. Moved this issue specification from `docs/issues/open/` to `docs/issues/closed/`.
 
 ## Acceptance Criteria

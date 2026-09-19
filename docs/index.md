@@ -97,6 +97,16 @@ project. Research looks outward — at how other projects solve similar problems
 | [research/AGENTS.md](research/AGENTS.md)                                                     | Overview of the research folder and its conventions            |
 | [research/20260716-console-shutdown-patterns/](research/20260716-console-shutdown-patterns/) | How console apps handle SIGINT, SIGTERM, and graceful shutdown |
 
+## External Source Snapshots
+
+Immutable, licensed copies of selected internet sources used for reproducible research and offline
+agent/human review. These snapshots are evidence, not Torrust policy.
+
+| Location | Description |
+| -------- | ----------- |
+| [external-snapshots/README.md](external-snapshots/README.md) | Admission, provenance, integrity, trust, and update policy |
+| [Open Knowledge Format 0.2](external-snapshots/open-knowledge-format/0.2/PROVENANCE.md) | Pinned OKF specification, Apache-2.0 license, and source metadata |
+
 ## Issue Specifications
 
 Structured specification documents linked to GitHub issues. Used for planning and tracking

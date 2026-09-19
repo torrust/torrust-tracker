@@ -33,6 +33,8 @@
         "docs/issues/open/269-review-dependency-licenses/runtime-license-inventory.json",
         "docs/issues/**/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py",
         "contrib/dev-tools/git/github-merge.py",
-        "docs/issues/**/evidence/*.html"
+        "docs/issues/**/evidence/*.html",
+        "docs/external-snapshots/**/LICENSE.md",
+        "docs/external-snapshots/**/SPEC.md"
     ]
 }

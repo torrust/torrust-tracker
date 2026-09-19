@@ -4,4 +4,7 @@ offline = true
 # Verify both Markdown heading anchors and text fragments in local links.
 include_fragments = "full"
 
-exclude_path = [ "(^|/)docs/issues/closed/" ] # Immutable historical records with known stale relative links.
+exclude_path = [
+  "(^|/)docs/external-snapshots/.*/(LICENSE|SPEC)\\.md$", # Upstream files use upstream link semantics.
+  "(^|/)docs/issues/closed/",                             # Immutable historical records with known stale relative links.
+]
