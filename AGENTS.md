@@ -294,20 +294,21 @@ Implementation workflow references:
    commit manually or have the agent rerun the same signed command while they enter the
    passphrase directly in the terminal prompt. Never retry automatically, request or handle the
    passphrase in chat, bypass GPG signing with `--no-gpg-sign`, or skip the signing step under
-   any circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
+   any circumstances. This rule is absolute.
+3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
    artifacts. They are git-ignored; never force-add them.
-3. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
+4. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
    dependencies immediately.
-4. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
+5. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
    internal crate). Prefer short imported names over fully-qualified paths.
-5. **Continuous self-review**: Review your own work against project quality standards. Apply
+6. **Continuous self-review**: Review your own work against project quality standards. Apply
    self-review at three levels:
    - **Mandatory** — before opening a pull request
    - **Strongly recommended** — before each commit
    - **Recommended** — after completing each small, independent, deployable change
-6. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
+7. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
    email to `info@nautilus-cyberneering.de` instead. See [SECURITY.md](SECURITY.md).
-7. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
+8. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
    also review and update the linked skill instructions in `.github/skills/` so behavior,
    commands, and references remain aligned. If the linked skill has a validation script, run it
    before finishing.

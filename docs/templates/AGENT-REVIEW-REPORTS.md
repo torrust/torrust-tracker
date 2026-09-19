@@ -21,6 +21,6 @@ semantic-links:
 - Evidence: {Commands, relevant paths, CI state, or observable results. Do not include raw logs, secrets, or tokens.}
 - Findings:
   - {Finding with severity, or `None`.}
-- Verdict: {AUDIT PASSED|AUDIT WARNED|AUDIT FAILED|REVIEW PASSED|REVIEW FAILED|APPROVE|REQUEST_CHANGES|COMMENT}
+- Verdict: {AUDIT PASSED|AUDIT WARNED|AUDIT FAILED|REVIEW PASSED|REVIEW FAILED|APPROVE|REQUEST_CHANGES|COMMENT|POST_MERGE_FINDINGS}
 - Follow-up actions:
   - {Required owner/action, or `None`.}
