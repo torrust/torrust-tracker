@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
-last-updated-utc: 2026-09-18 15:45
+last-updated-utc: 2026-09-19 11:55
 ---
 
 # Manual Verification Evidence
@@ -92,6 +92,47 @@ like-for-like recheck evidence.
 
 The Implementer agent recognizes the semantic bug trigger and preserves the required evidence model.
 This satisfies manual scenario M2.
+
+### V3 - Recheck Bug Implementation Workflow After Review Fixes
+
+- Goal: Rerun M2 against the finished Implementer and `fix-bug` artifacts after F13 and F14 changed
+  red-test proof, workflow ordering, and final-recheck requirements.
+- Initial state: The sample retained `issue-type: task` while describing a stale counter bug; the
+  current Implementer loaded the corrected `fix-bug` workflow.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Asked the `Implementer` agent to perform a review-only inspection of the current sample,
+   Implementer agent, `fix-bug` skill, and `write-unit-test` skill.
+2. Instructed the agent not to edit files, run commands, invoke other agents, or commit.
+3. Asked it to report the semantic trigger, required order before the red test, mutation-based red
+   proof, issue-local evidence requirements, and whether an automated test alone is final proof.
+
+#### Observed Result
+
+```text
+The sample is substantively a bug despite issue-type: task, so Implementer loads fix-bug.
+
+Required order: analyze the defect and form a local hypothesis; reproduce it against the real
+artifact; select the smallest deterministic maintained regression boundary; then write and run the
+red test.
+
+When the fix already exists, use mutate-then-restore: reintroduce the bug unstaged, observe the
+maintained test fail, try nearby stale/cache variants, then restore production code. Explaining that
+the red check was skipped is not acceptable when a maintained regression test is practical.
+
+Before independent verification, manual-verification-evidence.md must record the initial symptom
+and hypothesis; exact real-artifact reproduction and environment; selected boundary and rationale;
+red and green test output; and the final like-for-like artifact recheck proving the original symptom
+is gone. A passing automated test alone is not sufficient final proof.
+```
+
+#### Conclusion
+
+The finished Implementer artifact preserves the semantic trigger and the six-step order, requires
+mutation-based red proof, and requires final like-for-like artifact evidence. This rerun satisfies
+manual scenario M2 after F13 and F14.
 
 ## Failures and Follow-up
 
