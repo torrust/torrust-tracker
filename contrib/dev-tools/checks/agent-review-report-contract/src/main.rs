@@ -652,10 +652,10 @@ fn verify_portable_references(workspace_root: &Path, failures: &mut Vec<String>)
         "This convention applies to new audits only. Historical audit records remain unchanged",
         failures,
     );
-    require(
+    require_wrapped(
         workspace_root,
         workflow,
-        "order. Assign the immutable repository reference",
+        "source-review and source-order order. Assign the immutable repository reference",
         failures,
     );
     require(
@@ -703,7 +703,7 @@ fn require_frontmatter(workspace_root: &Path, path: &str, failures: &mut Vec<Str
 }
 
 fn normalize_whitespace(value: &str) -> String {
-    value.replace('\n', " ")
+    value.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn has_frontmatter(workspace_root: &Path, relative_path: &str, failures: &mut Vec<String>) -> bool {
