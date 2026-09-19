@@ -37,9 +37,12 @@ what was attempted, and the strongest substitute evidence before moving on.
    can fail for the defect and pass for the fix. Prefer a unit test at the causal seam. Use an
    integration or end-to-end test only when it is the clearer or only practical boundary, and record
    the rationale.
-4. **Write the red regression test.** Add the maintained automatic test before changing production
-   behavior when practical. Run it against the broken implementation and record the failing command
-   and output.
+4. **Prove the regression test is red.** Add the maintained automatic test before changing
+   production behavior when practical, run it against the broken implementation, and record the
+   failing command and output. If the fix already exists, use the `write-unit-test` skill's
+   mutate-then-restore method: reintroduce the bug without staging it, observe the test fail, and
+   restore the production file. Try the nearest plausible bug variants when stale or cached state
+   could make a weaker test pass.
 5. **Fix the code.** Make the smallest production change that addresses the root cause. Keep the
    change scoped to the behavior under investigation.
 6. **Verify green and recheck like-for-like.** Rerun the regression test and any focused affected
@@ -62,11 +65,11 @@ For every bug, create or update `manual-verification-evidence.md` from
 - the toolchain, runtime, configuration, database backend, container image, service URL, or other
   environment details that can affect behavior;
 - the regression-test boundary selected and why it is the smallest deterministic maintained test;
-- red regression-test output when a maintained test is feasible;
+- red regression-test output for every maintained regression test;
 - green regression-test output after the fix;
 - the final like-for-like manual recheck output; and
-- when reproduction or a maintained regression test is infeasible, the attempted commands,
-  blocking constraint, and strongest substitute evidence.
+- when real-artifact reproduction is infeasible, or no maintained regression test is practical,
+  the attempted commands, blocking constraint, and strongest substitute evidence.
 
 Use issue-local notes, not memory, as the source of truth. Traceability and accountability are part
 of the project quality bar.
@@ -87,8 +90,9 @@ Prefer this order:
 
 When writing or changing unit tests, use
 [write-unit-test](../../testing/write-unit-test/SKILL.md). For regression tests, prove the test
-guards the bug by observing it fail against the bug or by recording why that red check cannot be
-performed.
+guards the bug by observing it fail against the bug. Use mutate-then-restore when the fix is already
+present. Record infeasibility only when no maintained automatic regression test is practical, not as
+a substitute for proving an existing test fails against the bug.
 
 ## Issue-Spec Requirements for Bugs
 
