@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: planned
+status: blocked
 priority: p1
 epic: 2264
 github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
 related-pr: 2269
-last-updated-utc: 2026-09-18 17:05
+last-updated-utc: 2026-09-19 08:03
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - docs/templates/ISSUE.md
     - docs/templates/EPIC.md
     - docs/AGENTS.md
-    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - issue #2003
 ---
 
 # Issue #2266 - Implement the Rust Frontmatter Model and Initial Validator
@@ -153,7 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | BLOCKED | Confirm predecessor contract | Replace this blocker with links to approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, `frontmatter-fixtures/`, and the maintained compatibility baseline. |
 | T2 | TODO | Select the replaceable integration point | Evaluate the `clippy-allow-reasons` precedent first; record package/location, invocation, and staged/whole-tree modes without selecting #2003's long-term architecture. |
-| T3 | TODO | Implement extraction and universal envelope | Parse present frontmatter and report absent delimiters, malformed YAML, invalid envelope fields, and scalar errors. |
+| T3 | TODO | Implement extraction and universal envelope | Parse present frontmatter and report malformed delimiters or YAML, invalid envelope fields, and scalar errors. Missing frontmatter is an error only for a strict profile that requires it. |
 | T4 | TODO | Implement strict issue and EPIC profiles | Encode required fields, enums, nullability, cross-field invariants, and prospective versus legacy behavior. |
 | T5 | TODO | Implement provisional references | Parse skill names, repository-relative paths, `issue #<number>`, and `review-finding:` references; keep target-existence checks in the repository-aware layer. |
 | T6 | TODO | Generate the external schema | Generate the predecessor-selected format and dialect from Rust types to a documented tracked path, record unsupported Rust invariants, and add deterministic offline drift verification. |
@@ -186,7 +186,7 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] Specification folder moved to `docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/`
   and open-state metadata plus live references updated
 - [x] Planning/evidence PR #2269 opened and `related-pr` updated
-- [ ] Planning/evidence PR merged into `develop` before implementation
+- [x] Planning/evidence PR #2269 merged into `develop` before implementation
 - [ ] First issue-profile vertical slice completed and design boundaries reviewed
 - [ ] Implementation completed
 - [ ] Automatic verification completed
@@ -208,6 +208,8 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   promoted this specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2266
 - 2026-09-18 15:25 UTC - GitHub Copilot - Opened spec-only PR #2269 and recorded it in frontmatter -
   https://github.com/torrust/torrust-tracker/pull/2269
+- 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop`; this issue remains
+  blocked by #2265 - https://github.com/torrust/torrust-tracker/pull/2269
 
 ## Acceptance Criteria
 
@@ -299,9 +301,9 @@ from the specification. Otherwise record why the implementation confirmed the pl
 
 ## References
 
-- Parent EPIC: `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`
+- Parent EPIC: #2264
 - Parent automation EPIC: #2003
-- Predecessor specification: `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md`
+- Predecessor specification: #2265
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`
 - Integration precedent: `contrib/dev-tools/checks/clippy-allow-reasons/` (approved early work
   under EPIC #2003 via #2157)
