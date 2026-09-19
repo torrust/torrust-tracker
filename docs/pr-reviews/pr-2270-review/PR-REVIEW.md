@@ -40,20 +40,20 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | review-finding:pr-2270-f6 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2270-f7 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2270-f8 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F9 | review-finding:pr-2270-f9 | Human | Major | metadata | ORIGINAL | FIXED | UNRESOLVED |
-| F10 | review-finding:pr-2270-f10 | Human | Major | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
-| F11 | review-finding:pr-2270-f11 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F12 | review-finding:pr-2270-f12 | Human | Minor | metadata | ORIGINAL | FIXED | UNRESOLVED |
-| F13 | review-finding:pr-2270-f13 | Human | Minor | testing | ORIGINAL | FIXED | UNRESOLVED |
-| F14 | review-finding:pr-2270-f14 | Human | Minor | correctness | ORIGINAL | FIXED | UNRESOLVED |
-| F15 | review-finding:pr-2270-f15 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F16 | review-finding:pr-2270-f16 | Human | Minor | metadata | ORIGINAL | FIXED | UNRESOLVED |
-| F17 | review-finding:pr-2270-f17 | Human | Nit | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F18 | review-finding:pr-2270-f18 | Human | Suggestion | link-integrity | ORIGINAL | FIXED | UNRESOLVED |
-| F19 | review-finding:pr-2270-f19 | Human | Nit | metadata | ORIGINAL | FIXED | UNRESOLVED |
-| F20 | review-finding:pr-2270-f20 | Human | Major | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F21 | review-finding:pr-2270-f21 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F22 | review-finding:pr-2270-f22 | Human | Minor | metadata | RE_RAISE_OF:F12 | FIXED | UNRESOLVED |
+| F9 | review-finding:pr-2270-f9 | Human | Major | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2270-f10 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2270-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2270-f12 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2270-f13 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2270-f14 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2270-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2270-f16 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2270-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2270-f18 | Human | Suggestion | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2270-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2270-f20 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2270-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2270-f22 | Human | Minor | metadata | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,7 +66,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced the broken relative link with the correct repository-relative skill path.
 - Current-tree verification: The current file names `.github/skills/dev/debugging/fix-bug/SKILL.md`, which exists.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753360
 
 ### F2 - Correct the duplicate `create-issue` workflow link
 
@@ -77,7 +77,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced the duplicate broken link with the correct repository-relative skill path.
 - Current-tree verification: Both `create-issue` references name the existing `fix-bug` skill path.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; this was a review-body-only finding.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140
 
 ### F3 - Correct the `write-unit-test` workflow link
 
@@ -88,7 +88,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced the broken relative link with the correct repository-relative skill path.
 - Current-tree verification: The current path names `.github/skills/dev/testing/write-unit-test/SKILL.md`, which exists.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753481
 
 ### F4 - Use a lifecycle-stable worked-example reference
 
@@ -99,7 +99,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced lifecycle paths with the stable issue #2226 reference.
 - Current-tree verification: No issue #2226 `open/` path remains in the skill.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753573
 
 ### F5 - Avoid applying `fix-bug` metadata to every issue template use
 
@@ -110,7 +110,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Removed the unconditional skill link while retaining bug-conditional sections and the related artifact.
 - Current-tree verification: The template's `skill-links` list contains only `create-issue`.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753732
 
 ### F6 - Correct the sample artifact path
 
@@ -121,7 +121,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Pointed metadata and the checkpoint at the actual issue-local validation artifact.
 - Current-tree verification: `spec-path` matches the tracked sample file path.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753838
 
 ### F7 - Use a stable cross-issue relation in issue #2230
 
@@ -132,7 +132,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced the path with the stable issue #2226 relation.
 - Current-tree verification: No issue #2226 `open/` path remains in issue #2230 artifacts.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053753934
 
 ### F8 - Add reciprocal `fix-bug` markers
 
@@ -143,7 +143,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added reciprocal `fix-bug` frontmatter markers to the owning long-lived artifacts.
 - Current-tree verification: PyYAML parses the reciprocal markers in `write-unit-test`, Implementer, and `create-issue`; each resolves to `fix-bug`.
 - Resolution reference: `docs(skills): address bug workflow review`
-- Reply URL: N/A; the thread was resolved before the required reply was posted.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754034
 
 ### F9 - Restore valid `write-unit-test` frontmatter
 
@@ -154,7 +154,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Aligned the semantic-link children and parsed every Agent Skill frontmatter with PyYAML.
 - Current-tree verification: All Agent Skill frontmatter blocks parse and expose required `name` and `description` values.
 - Resolution reference: `fix(skills): restore unit-test skill frontmatter`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754132
 
 ### F10 - Restore the required review audit and replies
 
@@ -165,7 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Created this canonical audit before fixes and progressively updated it; replies and final thread verification remain pending.
 - Current-tree verification: This audit contains F1-F22 with source review IDs, URLs, categories, dispositions, verification, and stable resolution subjects.
 - Resolution reference: `docs(pr-reviews): start PR 2270 audit`; `docs(pr-reviews): update PR 2270 audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754210
 
 ### F11 - Preserve append-only independent review history
 
@@ -176,7 +176,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored the original 15:45 entry exactly and appended failed and passing re-reviews for later heads.
 - Current-tree verification: The original evidence text matches its pre-follow-up version; the 11:50 and 11:57 entries remain append-only.
 - Resolution reference: `docs(issues): restore original review evidence`; `docs(issues): record final bug workflow evidence`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754308
 
 ### F12 - Preserve issue numbers in YAML values
 
@@ -187,7 +187,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Updated the canonical convention to require quoting and quoted both new `issue #2226` values.
 - Current-tree verification: PyYAML preserves `issue #2226` in both touched frontmatter blocks.
 - Resolution reference: `fix(docs): preserve issue references in YAML`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754466
 
 ### F13 - Require mutation-based red-test proof
 
@@ -198,7 +198,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Required mutate-then-restore red proof whenever a maintained regression test is practical.
 - Current-tree verification: `fix-bug` limits infeasibility to cases with no practical maintained test and names mutate-then-restore.
 - Resolution reference: `fix(skills): require regression red proof`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053756399
 
 ### F14 - Preserve bug-workflow ordering in Implementer
 
@@ -209,7 +209,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Required reproduction and boundary selection before red, and final like-for-like evidence before independent review.
 - Current-tree verification: Implementer names both the pre-red order and the final artifact recheck; V3 verifies the current behavior.
 - Resolution reference: `fix(agents): preserve bug workflow order`; `docs(issues): record final bug workflow evidence`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754687
 
 ### F15 - Align issue scope with the semantic bug trigger
 
@@ -220,7 +220,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Aligned In Scope with AC5 and recorded the preserved pre-implementation maintainer clarification.
 - Current-tree verification: Scope and AC5 both require substantive bug detection regardless of metadata or labels.
 - Resolution reference: `docs(issues): align bug workflow scope`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754814
 
 ### F16 - Restore parseable Implementer frontmatter
 
@@ -231,7 +231,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Quoted the colon-containing description and normalized semantic-link indentation.
 - Current-tree verification: PyYAML parses Implementer and exposes `semantic-links.skill-links = [fix-bug]`.
 - Resolution reference: `fix(agents): restore Implementer frontmatter`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754926
 
 ### F17 - Correct the PR description
 
@@ -242,7 +242,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Updated the PR body to describe the stable issue #2226 reference.
 - Current-tree verification: The PR body and skill both describe issue #2226 without a lifecycle path.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2270
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755038
 
 ### F18 - Keep cross-skill links under lychee validation
 
@@ -253,7 +253,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored three cross-skill references as Markdown links with correct folder-relative targets.
 - Current-tree verification: `linter all` passes, including lychee local Markdown links and fragments.
 - Resolution reference: `fix(skills): validate cross-skill links`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755195
 
 ### F19 - Consolidate `create-issue` semantic links
 
@@ -264,7 +264,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Consolidated skill links and related artifacts into one top-level semantic-links block.
 - Current-tree verification: PyYAML exposes one top-level block and no nested `metadata.semantic-links`.
 - Resolution reference: `fix(skills): consolidate issue skill links`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755287
 
 ### F20 - Bring the audit forward to the current tree
 
@@ -275,7 +275,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Re-derived F9-F19 against the current tree, recorded fix subjects, and added the latest review round.
 - Current-tree verification: Rows and details now match the pushed fixes; only reply URLs and final thread states remain pending.
 - Resolution reference: `docs(pr-reviews): update PR 2270 audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755408
 
 ### F21 - Disclose review-follow-up scope in the PR body
 
@@ -286,7 +286,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added a Changes bullet naming all three artifacts.
 - Current-tree verification: The current PR body discloses the convention correction, canonical audit, and retrospective.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2270
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755575
 
 ### F22 - Quote the audit's issue relation
 
@@ -298,7 +298,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Quoted the audit's issue relation in accordance with the corrected convention.
 - Current-tree verification: PyYAML preserves the audit related artifact as `issue #2230`.
 - Resolution reference: `docs(pr-reviews): update PR 2270 audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755478
 
 ## Processing Log
 
@@ -306,6 +306,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-19 08:25 UTC - Normalized Copilot review 5250020892 as F1-F8 and human review 5255047473 as F9-F19; no re-raises found.
 - 2026-09-19 08:30 UTC - Recorded the pre-action current-tree decisions; F9-F19 remain open pending independent fixes.
 - 2026-09-19 13:59 UTC - Re-derived F9-F19 against the current tree, normalized review 5255823584 as F20, F21, and F22 (`RE_RAISE_OF:F12`), and recorded stable fix subjects; replies and final thread states remain pending.
+- 2026-09-19 16:15 UTC - Posted finding-specific replies for every inline thread, posted consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 for reviews 5250020892, 5255047473, and 5255823584, resolved all current threads, and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
 
