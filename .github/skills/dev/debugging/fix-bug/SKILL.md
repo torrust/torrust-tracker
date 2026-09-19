@@ -85,9 +85,10 @@ Prefer this order:
    why the code cannot be protected appropriately by a maintained test and what follow-up would make
    it testable.
 
-When writing or changing unit tests, use `.github/skills/dev/testing/write-unit-test/SKILL.md`.
-For regression tests, prove the test guards the bug by observing it fail against the bug or by
-recording why that red check cannot be performed.
+When writing or changing unit tests, use
+[write-unit-test](../../testing/write-unit-test/SKILL.md). For regression tests, prove the test
+guards the bug by observing it fail against the bug or by recording why that red check cannot be
+performed.
 
 ## Issue-Spec Requirements for Bugs
 
