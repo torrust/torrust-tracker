@@ -351,8 +351,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added F5, F6, and F12-F21 with collision-safe IDs, full details, and dispositions.
 - Current-tree verification: Every suppressed review-body assertion has one tracking row and one
   matching detail entry.
-- Resolution reference: This audit completion.
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053066935>
 
 ### F23 - Align #2266 status with its blocker
 
@@ -363,8 +363,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: `status: planned` contradicted #2266's explicit blocked state.
 - Solution: Changed status to `blocked`.
 - Current-tree verification: Frontmatter and all three in-body blocker signals agree.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053066989>
 
 ### F24 - Complete stable #2003 references
 
@@ -375,8 +375,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: EPIC #2264 and issue #2266 retained lifecycle-sensitive paths to EPIC #2003.
 - Solution: Replaced both with `issue #2003`.
 - Current-tree verification: Neither frontmatter block contains the #2003 open-spec path.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067048>
 
 ### F25 - Restore the historical draft path
 
@@ -387,8 +387,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: A dated #2233 progress entry was rewritten to a path that did not exist on that date.
 - Solution: Restored the original draft path and added the stable note `now EPIC #2264`.
 - Current-tree verification: The 2026-09-16 entry names the path created on that date.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067116>
 
 ### F26 - Correct the GNU timeout evidence
 
@@ -399,8 +399,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The handoff treated first-observed GNU timeouts as permanently unremovable.
 - Solution: Distinguished persistent errors from timeouts awaiting a confirming rerun.
 - Current-tree verification: The EPIC now agrees with its preserved residual report.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067174>
 
 ### F27 - Retire `draft EPIC` terminology
 
@@ -411,8 +411,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: #2265 still referred to promoted EPIC #2264 as a draft.
 - Solution: Changed the scope item to `parent EPIC`.
 - Current-tree verification: The retired lifecycle term is absent from the scope item.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067227>
 
 ### F28 - Retire `successor draft` terminology
 
@@ -423,8 +423,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: #2265 AC8 called created issue #2266 a successor draft.
 - Solution: Changed AC8 and its evidence row to `successor specification`.
 - Current-tree verification: Both locations use the promoted lifecycle term.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067227>
 
 ### F29 - Use stable issue identities in References
 
@@ -435,8 +435,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: #2265 and #2266 References used non-linking `open/` paths for cross-issue identities.
 - Solution: Replaced parent, predecessor, and successor paths with #2264, #2265, and #2266.
 - Current-tree verification: Cross-issue References use stable issue numbers.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067256>
 
 ### F30 - Inventory `epic:` on EPIC profiles
 
@@ -448,8 +448,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added the #2264 parent value and #1938 self-reference as an explicit variation for
   issue #2265 to resolve.
 - Current-tree verification: #2265 scope names both examples and the missing documented field.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
-- Reply URL: Pending post-merge follow-up PR.
+- Resolution reference: PR #2271 (open follow-up).
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067285>
 
 ## Processing Log
 
@@ -476,6 +476,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   orchestration guidance.
 - 2026-09-19 09:06 UTC - Added the twelve omitted Copilot body findings and nine late-human
   findings; all unmerged corrections remain `FOLLOW_UP` until the follow-up PR merges.
+- 2026-09-19 09:12 UTC - Opened follow-up PR #2271, replied to all eight late threads with their
+  `FOLLOW_UP` disposition, and left them open pending merge.
 
 ## Completion Rules
 
