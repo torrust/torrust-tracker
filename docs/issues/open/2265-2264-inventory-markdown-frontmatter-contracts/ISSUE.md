@@ -131,9 +131,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Inventory producers and normative rules | Map every frontmatter rule in current conventions, templates, skills, and instructions to its source and consumers. |
-| T2 | TODO | Inventory repository usage | Produce `frontmatter-inventory.md` with fields, scalar types, values, document classes, reference forms, baseline counts, and the reproducible command. The command must use tools already required by the repository toolchain. |
-| T3 | TODO | Classify conflicts | Record canonical, accepted-legacy, invalid, and unresolved variants with representative paths and rationale. |
+| T1 | DONE | Inventory producers and normative rules | Mapped producers, normative sources, and consumers in `frontmatter-inventory.md`. |
+| T2 | DONE | Inventory repository usage | Recorded corpus baseline, fields, scalar shapes, document classes, reference forms, and reproducible commands in `frontmatter-inventory.md`. |
+| T3 | DONE | Classify conflicts | Classified prospective, legacy, invalid, and unresolved variants in `frontmatter-inventory.md`. |
 | T4 | TODO | Evaluate OKF v0.2 compatibility | Compare type fields, lifecycle, identity, reserved filenames, frontmatter presence, links, provenance, trust, freshness, versioning, and extension behavior; recommend a concrete disposition. |
 | T5 | TODO | Specify the v1 contract | Create `frontmatter-v1-contract.md` defining the universal envelope, strict issue/EPIC profiles, provisional reference union, unknown-field policy, lifecycle rules, per-location enforcement mode, diagnostic severities, contract versioning, generated schema format/dialect and consumers, and the maintained compatibility baseline. |
 | T6 | TODO | Define implementation fixtures | Create `frontmatter-fixtures/` with accepted and rejected Markdown/YAML examples plus a manifest of expected diagnostic categories for the successor issue. |
@@ -186,6 +186,9 @@ Commits for each independently reviewed change set.
 - 2026-09-19 08:05 UTC - Jose Celano - Confirmed planning/evidence PR #2269 merged; directed the
   inventory to determine contract versioning and historical-document enforcement from evidence -
   This specification
+- 2026-09-19 12:10 UTC - GitHub Copilot - Completed the producer, usage, and conflict inventory;
+  retained schema versioning and historical enforcement as contract decisions because current
+  evidence establishes no compatible existing choice - `frontmatter-inventory.md`
 
 ## Acceptance Criteria
 
@@ -241,7 +244,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1-AC3 | TODO | `frontmatter-inventory.md` and classification sections |
+| AC1-AC3 | DONE | `frontmatter-inventory.md` and classification sections |
 | AC4-AC6 | TODO | `frontmatter-v1-contract.md` |
 | AC7 | TODO | `frontmatter-fixtures/` and expectation manifest |
 | AC8 | TODO | Updated parent EPIC and successor specification |
