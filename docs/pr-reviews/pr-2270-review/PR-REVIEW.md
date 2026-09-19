@@ -54,6 +54,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F20 | review-finding:pr-2270-f20 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2270-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2270-f22 | Human | Minor | metadata | RE_RAISE_OF:F12 | FIXED | RESOLVED |
+| F23 | review-finding:pr-2270-f23 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
+| F24 | review-finding:pr-2270-f24 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
 
 ## Finding Details
 
@@ -300,6 +302,28 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: `docs(pr-reviews): update PR 2270 audit`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755478
 
+### F23 - Remove stale pending claims from the closed audit
+
+- PR number: 2270
+- Source review ID: 5256684050
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053975320
+- Concern: F10 and F20 details still say replies or thread verification are pending despite their fixed/resolved rows and durable reply URLs.
+- Solution: Pending correction of the two current-state sentences while preserving historical processing-log entries.
+- Current-tree verification: F10 Solution and F20 Current-tree verification currently contradict their structured rows.
+- Resolution reference: Pending.
+- Reply URL: Pending.
+
+### F24 - State historical reply ordering accurately
+
+- PR number: 2270
+- Source review ID: 5256684050
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053975324
+- Concern: The issue progress log says every inline thread received a reply before resolution, but seven Copilot threads were resolved before their later replies.
+- Solution: Pending wording that records every thread now has a finding-specific reply and none remains unresolved.
+- Current-tree verification: The current progress line overstates ordering for the historical Copilot threads.
+- Resolution reference: Pending.
+- Reply URL: Pending.
+
 ## Processing Log
 
 - 2026-09-19 08:20 UTC - Fetched all GraphQL threads with repository scripts and fetched submitted reviews plus review-specific comments by review ID.
@@ -307,6 +331,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-19 08:30 UTC - Recorded the pre-action current-tree decisions; F9-F19 remain open pending independent fixes.
 - 2026-09-19 13:59 UTC - Re-derived F9-F19 against the current tree, normalized review 5255823584 as F20, F21, and F22 (`RE_RAISE_OF:F12`), and recorded stable fix subjects; replies and final thread states remain pending.
 - 2026-09-19 16:30 UTC - Posted finding-specific replies for every inline thread; updated consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 to cover submitted reviews 5250020892, 5255047473, 5255075569, 5255823584, and 5255889360; recorded the rebase-only and F11-only revalidation rounds as introducing no independently actionable finding; resolved all current threads; and refreshed GraphQL state with zero unresolved threads.
+- 2026-09-19 17:20 UTC - Normalized review 5256684050 as F23-F24 and reopened review-processing status before fixes.
 
 ## Completion Rules
 
