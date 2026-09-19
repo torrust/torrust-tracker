@@ -164,7 +164,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source review ID: 5255047473
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4052605095
 - Concern: Earlier Copilot findings were resolved without replies or the canonical PR audit.
-- Solution: Created this canonical audit before fixes and progressively updated it; replies and final thread verification remain pending.
+- Solution: Created this canonical audit before fixes, progressively updated it, posted all required replies, and completed final thread verification.
 - Current-tree verification: This audit contains F1-F22 with source review IDs, URLs, categories, dispositions, verification, and stable resolution subjects.
 - Resolution reference: `docs(pr-reviews): start PR 2270 audit`; `docs(pr-reviews): update PR 2270 audit`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053754210
@@ -275,7 +275,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053264314
 - Concern: The pre-action audit was not updated after the fixes, so current-tree claims and dispositions were stale.
 - Solution: Re-derived F9-F19 against the current tree, recorded fix subjects, and added the latest review round.
-- Current-tree verification: Rows and details now match the pushed fixes; only reply URLs and final thread states remain pending.
+- Current-tree verification: Rows and details match the pushed fixes; every reply URL is recorded and every thread state is resolved.
 - Resolution reference: `docs(pr-reviews): update PR 2270 audit`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053755408
 
