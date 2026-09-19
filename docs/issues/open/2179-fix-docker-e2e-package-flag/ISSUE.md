@@ -71,8 +71,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce target resolution failure | Root command fails and identifies the owning package. |
 | T2 | DONE | Correct four E2E runner invocations | All commands explicitly select `torrust-tracker-e2e-tools`. |
-| T3 | IN_PROGRESS | Validate locally and on feature-branch CI | Local checks pass; feature-branch CI is pending. |
-| T4 | TODO | Review acceptance and completion evidence | Spec records observed results and any deviations. |
+| T3 | IN_PROGRESS | Validate locally and on feature-branch CI | Local checks and feature-branch CI pass; PR guard check remains. |
+| T4 | DONE | Review acceptance and completion evidence | AC1-AC4 pass; no implementation deviation occurred. |
 
 ## Commit Points
 
@@ -94,9 +94,9 @@ feature-branch workflow run is the behavior-level regression check.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all` and focused command checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local evidence
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Pull request opened against `develop`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
@@ -109,16 +109,23 @@ feature-branch workflow run is the behavior-level regression check.
   Cargo identified `torrust-tracker-e2e-tools` as the package containing `e2e_tests_runner`.
 - 2026-09-19 12:01 UTC - GitHub Copilot - Added explicit package selection to all four commands;
   YAML lint, both package-qualified help commands, and `linter all` pass. Feature-branch CI remains.
+- 2026-09-19 13:17 UTC - GitHub Copilot - Feature-branch `Testing` run 35443663968 passed;
+  `Docker E2E` ran successfully, including all four E2E runner steps.
+- 2026-09-19 13:20 UTC - Task Reviewer - AC1-AC4 pass without scope creep; requested completion
+  bookkeeping before re-review.
+- 2026-09-19 13:21 UTC - GitHub Copilot - Re-reviewed AC1-AC4 against the workflow diff and CI
+  evidence. No retrospective is needed because implementation matched the specified established
+  pattern exactly and revealed no reusable design lesson or deviation.
 
 ## Acceptance Criteria
 
 - [x] AC1: All four `cargo run` invocations in `docker-e2e` select
   `torrust-tracker-e2e-tools`, with every other argument unchanged.
-- [ ] AC2: A feature-branch push runs `Docker E2E`; all four runner steps resolve and the job passes.
+- [x] AC2: A feature-branch push runs `Docker E2E`; all four runner steps resolve and the job passes.
 - [x] AC3: `.github/workflows/container.yaml` is unchanged.
 - [x] AC4: The `docker-e2e` comment explains why the package selector is required.
 - [x] `linter all` exits with code `0`.
-- [ ] Acceptance criteria are re-reviewed against observed behavior.
+- [x] Acceptance criteria are re-reviewed against observed behavior.
 
 ## Verification Plan
 
@@ -136,7 +143,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Feature-branch Docker E2E | Push this branch and inspect the `testing.yaml` workflow run. | `Docker E2E` runs and passes all four runner steps. | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Feature-branch Docker E2E | Push this branch and inspect the `testing.yaml` workflow run. | `Docker E2E` runs and passes all four runner steps. | DONE | `manual-verification-evidence.md` section V1 |
 | M2 | Pull request to `develop` | Open the PR and inspect its `testing.yaml` jobs. | `Docker E2E` remains skipped by the existing guard. | TODO | `manual-verification-evidence.md` section V2 |
 
 Create `manual-verification-evidence.md` from the repository template when executing these
@@ -151,7 +158,7 @@ None planned.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
 | AC1 | DONE | Workflow diff and both package-qualified runner help commands |
-| AC2 | TODO | Feature-branch GitHub Actions run URL |
+| AC2 | DONE | <https://github.com/josecelano/torrust-tracker/actions/runs/35443663968> |
 | AC3 | DONE | `git diff --exit-code -- .github/workflows/container.yaml` |
 | AC4 | DONE | Workflow diff and `linter yaml` |
 
@@ -163,10 +170,9 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: Not yet assessed.
-- Create `implementation-retrospective.md` only if implementation reveals a reusable lesson,
-  material design change, or deviation; otherwise record why none is needed in the progress log.
-- Record the independent Task Reviewer result in `agent-review-reports.md`.
+- Retrospective: Not required. The implementation matched the issue's established
+  `container.yaml` pattern exactly, with no material discovery, design change, or deviation.
+- Independent review results are recorded in `agent-review-reports.md`.
 
 ## References
 
