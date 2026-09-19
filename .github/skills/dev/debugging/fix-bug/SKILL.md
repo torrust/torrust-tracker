@@ -10,7 +10,7 @@ metadata:
       - .github/skills/dev/testing/write-unit-test/SKILL.md
       - .github/agents/implementer.agent.md
       - docs/templates/ISSUE.md
-      - issue #2226
+      - "issue #2226"
 ---
 
 # Fixing Bugs
