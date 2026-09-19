@@ -7,8 +7,8 @@ epic: null
 github-issue: 2179
 spec-path: docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md
 branch: 2179-fix-docker-e2e-package-flag
-related-pr: null
-last-updated-utc: 2026-09-19 00:00
+related-pr: 2272
+last-updated-utc: 2026-09-19 16:14
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce target resolution failure | Root command fails and identifies the owning package. |
 | T2 | DONE | Correct four E2E runner invocations | All commands explicitly select `torrust-tracker-e2e-tools`. |
-| T3 | IN_PROGRESS | Validate locally and on feature-branch CI | Local checks and feature-branch CI pass; PR guard check remains. |
+| T3 | DONE | Validate locally and on feature-branch CI | Local checks, feature-branch CI, and PR guard check pass. |
 | T4 | DONE | Review acceptance and completion evidence | AC1-AC4 pass; no implementation deviation occurred. |
 
 ## Commit Points
@@ -93,12 +93,12 @@ feature-branch workflow run is the behavior-level regression check.
 - [x] GitHub issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all` and focused command checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local evidence
+- [x] Manual verification scenarios executed and recorded in issue-local evidence
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Pull request opened against `develop`
+- [x] Pull request opened against `develop`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -116,6 +116,8 @@ feature-branch workflow run is the behavior-level regression check.
 - 2026-09-19 13:21 UTC - GitHub Copilot - Re-reviewed AC1-AC4 against the workflow diff and CI
   evidence. No retrospective is needed because implementation matched the specified established
   pattern exactly and revealed no reusable design lesson or deviation.
+- 2026-09-19 16:14 UTC - GitHub Copilot - Opened PR #2272 targeting `develop`; its `Testing` run
+  skipped `Docker E2E` under the unchanged guard, completing M2.
 
 ## Acceptance Criteria
 
@@ -144,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Feature-branch Docker E2E | Push this branch and inspect the `testing.yaml` workflow run. | `Docker E2E` runs and passes all four runner steps. | DONE | `manual-verification-evidence.md` section V1 |
-| M2 | Pull request to `develop` | Open the PR and inspect its `testing.yaml` jobs. | `Docker E2E` remains skipped by the existing guard. | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Pull request to `develop` | Open the PR and inspect its `testing.yaml` jobs. | `Docker E2E` remains skipped by the existing guard. | DONE | `manual-verification-evidence.md` section V2 |
 
 Create `manual-verification-evidence.md` from the repository template when executing these
 scenarios. Record the workflow URL, triggering ref, relevant step outcomes, and observed result.

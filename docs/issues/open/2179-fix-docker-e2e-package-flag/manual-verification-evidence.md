@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md
-last-updated-utc: 2026-09-19 13:17
+last-updated-utc: 2026-09-19 16:14
 ---
 
 # Manual Verification Evidence - Docker E2E Package Selection
@@ -53,23 +53,30 @@ The feature-branch push executed all four E2E runners and completed successfully
 
 - Goal: Confirm a pull request targeting `develop` continues to skip the duplicate `Docker E2E`
   job under the unchanged guard.
-- Initial state: No pull request has been opened yet.
-- Status: `TODO`
+- Initial state: PR #2272 targets `develop` from the feature branch at commit `d2d21050`.
+- Status: `DONE`
 
 #### Steps Performed
 
-Pending pull request creation.
+1. Opened <https://github.com/torrust/torrust-tracker/pull/2272> targeting `develop`.
+2. Inspected the PR status checks and the `Testing` workflow run.
 
 #### Observed Result
 
+PR: <https://github.com/torrust/torrust-tracker/pull/2272>
+
+Testing run: <https://github.com/torrust/torrust-tracker/actions/runs/35454320489>
+
 ```text
-Pending
+Docker E2E: skipped
+Container / Test (Docker) (release): in progress
 ```
 
 #### Conclusion
 
-Pending.
+The pull request context continues to skip the duplicate `Docker E2E` job under the unchanged
+guard, satisfying M2. The separate `Container` workflow owns Docker E2E coverage for this event.
 
 ## Failures and Follow-up
 
-No failures observed. Complete V2 after opening the pull request.
+No failures observed.
