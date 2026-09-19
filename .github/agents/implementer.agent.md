@@ -69,7 +69,8 @@ Before writing any code:
 4. Decide whether the work is substantively a bug: broken, incorrect, stale, misleading,
    unexpectedly failing, or regressed behavior. If it is, load and apply
    `.github/skills/dev/debugging/fix-bug/SKILL.md`, even when the issue metadata or labels are
-   missing or wrong.
+   missing or wrong. Follow its sequence in order: analyze and reproduce the defect against the
+   real artifact, then select the regression-test boundary before writing the red test.
 5. Ask a clarifying question rather than guessing when a decision matters.
 6. If the issue spec is ambiguous, incomplete, or the scope does not match the actual codebase
    state, raise the discrepancy with the **Planner** (`@planner`) or the user before proceeding.
@@ -88,8 +89,7 @@ track progress. Each step should:
 
 For each step:
 
-1. **Write a failing test first** (red) — express the expected behaviour in a test. For bugs,
-   also record the real-artifact reproduction and regression-test boundary required by `fix-bug`.
+1. **Write a failing test first** (red) — express the expected behaviour in a test.
 2. **Write minimal production code** to make the test pass (green).
 3. **Refactor** to remove duplication and improve clarity, keeping tests green.
 4. Verify with `cargo test -p <package>` before moving on.
@@ -151,8 +151,10 @@ between passive infrastructure and domain interpretation.
 
 Before independent verification, perform the issue's manual scenarios against
 the finished artifact and record actual commands, output, relevant logs, and
-conclusions in issue-local `manual-verification-evidence.md`. Automated test
-output is not a substitute for this evidence.
+conclusions in issue-local `manual-verification-evidence.md`. For bugs, this
+evidence must include the initial reproduction and the final like-for-like
+recheck showing that the original artifact-level symptom is gone. Automated
+test output is not a substitute for this evidence.
 
 ### Step 6 — Request Independent Verification
 
