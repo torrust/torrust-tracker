@@ -34,14 +34,15 @@ mutating action.
 
 When the caller supplies an existing folder-style issue specification path whose primary file is
 `ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
-verdict. In that specification directory, create `agent-review-reports.md` from
+verdict. A `POST_MERGE_FINDINGS` result is a caller-facing verdict for this persistence rule. In
+that specification directory, create `agent-review-reports.md` from
 `docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
 the final existing report entry. Read the entire existing report before editing. Preserve all
 earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
 names the earlier conclusion.
 
 If persistence applies, record the PR number, base branch, reviewed files, CI/check context,
-severity-classified findings, checklist gaps, merge-readiness verdict, and follow-up owner/action.
+severity-classified findings, checklist gaps, verdict/result, and follow-up owner/action.
 This record is independent of Copilot review-thread handling and must not replace the Copilot
 Suggestions Handler tracker.
 

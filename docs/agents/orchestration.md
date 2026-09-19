@@ -175,8 +175,7 @@ flowchart TD
   late_review_detail -->|read-only triage only| maintainer_approval_detail
   maintainer_approval_detail -. declined or audit-only .-> pr_review_audit_detail
   maintainer_approval_detail -. approved remediation .-> follow_up_branch
-  follow_up_branch --> committer_detail
-  push_update --> follow_up_pr_detail
+  follow_up_branch -. commit and push .-> follow_up_pr_detail
   follow_up_pr_detail -. merged .-> pr_review_audit_detail
 ```
 
