@@ -20,10 +20,15 @@ Your job is to review an already-open pull request and provide merge-focused fee
 ## Required Workflow
 
 1. Confirm a PR exists (number or URL is required).
-2. Gather PR metadata (title, description, linked issue, base branch, checks if available).
+2. Gather PR metadata (title, description, linked issue, base branch, merge state/time, checks if available).
 3. Review changed files and classify findings by severity.
 4. Verify tests and docs expectations from the checklist.
 5. Return a clear merge-readiness verdict.
+
+If the PR is already merged, label the result `POST_MERGE_FINDINGS` instead of giving a merge
+readiness verdict. Do not implement findings or create a follow-up branch. Direct the caller to the
+`process-pr-review` post-merge workflow, which requires explicit maintainer approval before any
+mutating action.
 
 ### Persisting Independent Review Reports
 
@@ -53,7 +58,7 @@ the caller-facing result: `Issue-local report skipped: no folder-style issue spe
 1. Scope reviewed (PR number and key files)
 2. Findings by severity (`Blocker`, `Suggestion`, `Nit`)
 3. Checklist gaps
-4. Overall verdict (`APPROVE`, `REQUEST_CHANGES`, or `COMMENT`)
+4. Overall verdict (`APPROVE`, `REQUEST_CHANGES`, `COMMENT`, or `POST_MERGE_FINDINGS`)
 
 ## Constraints
 
