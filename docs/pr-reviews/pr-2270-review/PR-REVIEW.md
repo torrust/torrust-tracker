@@ -64,12 +64,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F30 | review-finding:pr-2270-f30 | Human | Minor | documentation | RE_RAISE_OF:F24 | FIXED | RESOLVED |
 | F31 | review-finding:pr-2270-f31 | Human | Major | documentation | RE_RAISE_OF:F25 | FIXED | RESOLVED |
 | F32 | review-finding:pr-2270-f32 | Human | Minor | documentation | RE_RAISE_OF:F26 | FIXED | RESOLVED |
-| F33 | review-finding:pr-2270-f33 | Human | Minor | documentation | RE_RAISE_OF:F25 | FIXED | UNRESOLVED |
-| F34 | review-finding:pr-2270-f34 | Human | Minor | documentation | RE_RAISE_OF:F26 | FIXED | UNRESOLVED |
-| F35 | review-finding:pr-2270-f35 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | UNRESOLVED |
-| F36 | review-finding:pr-2270-f36 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F37 | review-finding:pr-2270-f37 | Human | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F38 | review-finding:pr-2270-f38 | Human | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F33 | review-finding:pr-2270-f33 | Human | Minor | documentation | RE_RAISE_OF:F25 | FIXED | RESOLVED |
+| F34 | review-finding:pr-2270-f34 | Human | Minor | documentation | RE_RAISE_OF:F26 | FIXED | RESOLVED |
+| F35 | review-finding:pr-2270-f35 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | RESOLVED |
+| F36 | review-finding:pr-2270-f36 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2270-f37 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2270-f38 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -439,7 +439,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added this `RE_RAISE_OF:F25` row with its own source and reply URL.
 - Current-tree verification: F25 keeps its original source/reply pair, F31 records the 5260280755 re-raise, and this row records the 5260373182 re-raise.
 - Resolution reference: `docs(pr-reviews): correct latest Cameron audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057950852
 
 ### F34 - Add audit row for the latest F26 re-raise
 
@@ -451,7 +451,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added this `RE_RAISE_OF:F26` row with its own source and reply URL.
 - Current-tree verification: F26 keeps its original source/reply pair, F32 records the 5260280755 re-raise, and this row records the 5260373182 re-raise.
 - Resolution reference: `docs(pr-reviews): correct latest Cameron audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057952923
 
 ### F35 - Add audit row for the latest F28 re-raise
 
@@ -463,7 +463,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added this `RE_RAISE_OF:F28` row with its own source and reply URL.
 - Current-tree verification: F28 keeps its original source/reply pair and this row records the later re-raise.
 - Resolution reference: `docs(pr-reviews): correct latest Cameron audit`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057950944
 
 ### F36 - Add audit row for review 5260373182 row coverage
 
@@ -474,32 +474,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: Review 5260373182 found that re-raise threads for F25 and F26 lacked their own audit rows and that reply URLs had been moved onto the wrong rows.
 - Solution: Added F33-F35 for the latest re-raise threads and restored original-row reply URLs.
 - Current-tree verification: Every review 5260373182 inline thread is represented by its own audit row.
-- Resolution reference: `docs(pr-reviews): correct latest Cameron audit`
-- Reply URL: Pending.
+- Resolution reference: `docs(pr-reviews): close latest Cameron comments`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057951003
 
 ### F37 - Match re-raise severity to its source bracket
 
 - PR number: 2270
 - Source review ID: 5260373182
-- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#pullrequestreview-5260373182
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056925257
 - Reviewer finding ID: F33
 - Concern: F31 recorded `Minor` severity while its source comment starts with `[Major][F25]`.
 - Solution: Updated F31 severity to `Major`.
 - Current-tree verification: F31 severity now matches the source comment bracket.
-- Resolution reference: `docs(pr-reviews): correct latest Cameron audit`
-- Reply URL: Pending.
+- Resolution reference: `docs(pr-reviews): close latest Cameron comments`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057951095
 
 ### F38 - Correct issue progress finding list for review 5260373182
 
 - PR number: 2270
 - Source review ID: 5260373182
-- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#pullrequestreview-5260373182
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056925258
 - Reviewer finding ID: F34
 - Concern: The issue progress log said review 5260373182 raised F32, but that review raised F25, F26, F28, and F31.
 - Solution: Corrected the issue progress text to name F25, F26, F28, and F31.
 - Current-tree verification: The issue progress log no longer attributes F32 to review 5260373182.
-- Resolution reference: `docs(issues): correct latest Cameron progress`
-- Reply URL: Pending.
+- Resolution reference: `docs(pr-reviews): close latest Cameron comments`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4057951171
 
 ## Processing Log
 
@@ -515,6 +515,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 10:06 UTC - Posted finding-specific replies for F25, F26, F28, F29, and F30, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 10:37 UTC - Corrected the audit source mapping for review 5260280755 by adding F31-F32 as `RE_RAISE_OF:F25` and `RE_RAISE_OF:F26`, restoring F25/F26's original reply URLs, and replacing the non-existent `correct newest` resolution reference with this audit correction.
 - 2026-09-20 12:24 UTC - Normalized review 5260373182 as F33-F38, corrected F31 severity, restored original reply mappings for F25/F26/F28, and removed false zero-unresolved claims from F26 current-state verification.
+- 2026-09-20 20:06 UTC - Posted finding-specific replies for F26, F28, F31, F33, and F34, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 11:41 UTC - Posted finding-specific replies for F25, F26, F28, and F31, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 09:20 UTC - Posted finding-specific replies for F23-F27, including the re-raised F24 thread, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 
