@@ -38,8 +38,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | `review-finding:pr-2272-f1` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2272-f2` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2272-f3` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F4 | `review-finding:pr-2272-f4` | Human | Minor | metadata | ORIGINAL | FIXED | UNRESOLVED |
-| F5 | `review-finding:pr-2272-f5` | Human | Minor | maintainability | ORIGINAL | FIXED | UNRESOLVED |
+| F4 | `review-finding:pr-2272-f4` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2272-f5` | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -123,7 +123,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The exact reviewer-proposed quoted scalar is present; Markdown, cspell,
   local-link, and all pre-commit checks pass. No general YAML data parser is installed locally.
 - Resolution reference: `fix(docs): quote stable issue reference`
-- Reply URL: Pending push and thread response.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056668351>
 
 ### F5 - Add the canonical PR review audit
 
@@ -137,7 +137,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: This file records DOC-1, DOC-2, and F1-F5 with source metadata,
   dispositions, verification, resolution references, replies, and thread states.
 - Resolution reference: `docs(pr-reviews): record PR #2272 review findings`
-- Reply URL: Pending push and thread response.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056668345>
 
 ## Processing Log
 
@@ -148,7 +148,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 07:13 UTC - Cameron submitted review 5259868953, confirmed F1-F3 fixed, and raised
   F4-F5.
 - 2026-09-20 09:36 UTC - Applied and validated F4 in `fix(docs): quote stable issue reference` and
-  created this canonical audit for F5. F4-F5 remain open pending push and thread replies.
+  created this canonical audit for F5.
+- 2026-09-20 09:45 UTC - Pushed the F4 fix and initial audit, replied to F4-F5, verified both
+  replies in refreshed thread data, and resolved both threads. The final GraphQL-equivalent review
+  thread fetch reported zero unresolved threads.
 
 ## Completion Rules
 
