@@ -84,6 +84,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   both files; `git help gitattributes` documents that unset state as disabling all whitespace-error
   notices.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048407746>
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048407746>
 
 ### F2 - Prevent line-ending conversion
@@ -100,6 +101,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   IDs `c06e3eede0c910d0ecf12524c34204156f8795ac` and
   `6b0b1270ff0ca8f03867efcd09ba6ddb6392b1e1`.
 - Resolution reference: `fix(docs): preserve snapshot line endings`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4048407746>
 
 ### F3 - Do not add Copilot runner configuration in this PR
@@ -116,6 +118,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   comment. This PR adds no Copilot runner policy, and its scope is specifications plus pinned
   evidence.
 - Resolution reference: This audit's documented `NO_ACTION` disposition.
+- Follow-up PR URL: N/A
 - Reply URL: N/A; submitted-review warning has no resolvable thread.
 
 ### F4 - Exclude snapshots from hosted link checks
@@ -131,6 +134,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   .github/lychee-online.toml` with both snapshot paths reports zero input files, zero links, and no
   errors.
 - Resolution reference: `fix(docs): exclude snapshots from online link checks`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022278>
 
 ### F5 - Use promoted subissue terminology
@@ -142,6 +146,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Renamed the column to `Subissue`.
 - Current-tree verification: The table heading now reads `Subissue`.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F6 - Refer to the promoted parent EPIC
@@ -153,6 +158,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Changed the term to `parent EPIC`.
 - Current-tree verification: The scope names the parent EPIC without a retired lifecycle state.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F7 - Use stable issue references from the child EPIC
@@ -167,6 +173,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: EPIC #2264 frontmatter contains the two stable issue references and
   still contains the #2185/#2233 evidence paths.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022540>
 
 ### F8 - Use stable issue references from #2233 records
@@ -180,6 +187,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both #2233 frontmatter blocks contain `issue #2264`; neither contains
   the EPIC's open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050022961>
 
 ### F9 - Use stable issue references from #2185 records
@@ -193,6 +201,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both #2185 frontmatter blocks contain `issue #2264`; neither contains
   the EPIC's open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023403>
 
 ### F10 - Use a stable child reference from EPIC #2003
@@ -207,6 +216,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The affected frontmatter blocks contain stable issue references and
   no lifecycle-sensitive #2264/#2265 spec paths.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023662>
 
 ### F11 - Use stable issue references from the audit
@@ -219,6 +229,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: This audit's `related-artifacts` contains all three stable issue
   references and no #2264–#2266 spec path.
 - Resolution reference: This audit update.
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4050023879>
 
 ### F12 - Use a stable EPIC reference from the #2233 retrospective
@@ -231,6 +242,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced the path with `issue #2264`.
 - Current-tree verification: The retrospective frontmatter contains `issue #2264`.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F13 - Use a stable EPIC reference from the #2185 review report
@@ -243,6 +255,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The #2185 report frontmatter contains `issue #2264` and no #2264
   open-spec path.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F14 - Refresh parent EPIC metadata
@@ -255,6 +268,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Refreshed `last-updated-utc` while synchronizing the #2264 boundary.
 - Current-tree verification: EPIC #2003 records a timestamp after the added child content.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F15 - Keep first-observed GNU timeouts provisional
@@ -267,6 +281,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Distinguished seven persistent errors from four timeouts that still require rerun.
 - Current-tree verification: The handoff uses the preserved report's rerun-first classification.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F16 - Refer to the promoted successor specification
@@ -279,6 +294,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Changed both references to `successor specification`.
 - Current-tree verification: AC8 and its evidence row use the promoted lifecycle term.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F17 - Use a stable parent reference from #2265
@@ -291,6 +307,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced it with `issue #2264`.
 - Current-tree verification: #2265 frontmatter contains the stable issue reference.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F18 - Mark #2266 blocked
@@ -303,6 +320,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Changed frontmatter status to `blocked`.
 - Current-tree verification: Frontmatter, blocker prose, T1, and the parent table all agree.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F19 - Use stable parent and predecessor references from #2266
@@ -315,6 +333,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced them with `issue #2264` and `issue #2265`.
 - Current-tree verification: #2266 frontmatter contains both stable issue references.
 - Resolution reference: `fix(docs): use stable issue references in metadata`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F20 - Use a stable #2003 reference from #2266
@@ -327,6 +346,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced it with `issue #2003`.
 - Current-tree verification: #2266 frontmatter contains the stable parent-automation reference.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F21 - Do not reject absent frontmatter universally
@@ -341,6 +361,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: T3 now distinguishes malformed present blocks from absent optional
   frontmatter.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
+- Follow-up PR URL: N/A
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F22 - Complete the audit for review 5250123822
