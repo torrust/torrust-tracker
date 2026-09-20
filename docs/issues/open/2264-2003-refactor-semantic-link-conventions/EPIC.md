@@ -568,6 +568,7 @@ For each completed subissue, the default completion policy is:
 - [x] Planning/evidence PR branch recorded where the document profile supports `branch`
 - [x] Planning/evidence PR #2269 recorded in issue-spec `related-pr` fields
 - [x] Planning/evidence PR #2269 merged into `develop`
+- [x] Approved post-merge review follow-up PR #2271 opened and linked to this EPIC
 - [ ] Remaining subissues created and linked in this spec as each phase starts
 - [ ] Subissue statuses kept up to date in the `Progressive Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
@@ -597,6 +598,8 @@ For each completed subissue, the default completion policy is:
 - 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop`
 - 2026-09-19 08:03 UTC - GitHub Copilot - Started post-merge follow-up for late review findings;
   recorded the merged planning PR and corrected live lifecycle and evidence inconsistencies
+- 2026-09-19 11:26 UTC - GitHub Copilot - Opened approved post-merge follow-up PR #2271 and began
+  resolving the late review audit with signed commits and maintainer approval evidence
 
 ## Risks and Trade-offs
 
