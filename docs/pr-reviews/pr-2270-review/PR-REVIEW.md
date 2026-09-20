@@ -59,6 +59,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F25 | review-finding:pr-2270-f25 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2270-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2270-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2270-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2270-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2270-f30 | Human | Minor | documentation | RE_RAISE_OF:F24 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -321,45 +324,78 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - PR number: 2270
 - Source review ID: 5256684050
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4053975324
-- Re-raised source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056372380
 - Concern: The issue progress log says every inline thread received a reply before resolution, but seven Copilot threads were resolved before their later replies.
 - Solution: Restored the original 16:20 entry, appended a corrected 17:21 entry, and recorded the final state without claiming the historical Copilot replies preceded resolution.
-- Current-tree verification: The current progress log says every inline thread carries a finding-specific reply and no unresolved threads remained; it does not claim all replies preceded resolution.
+- Current-tree verification: No current-state field claims all replies preceded resolution; the historical 16:20 entry retains its original wording, and later entries record the final reply/no-unresolved state.
 - Resolution reference: `docs(issues): correct review reply history`; `docs(issues): record all PR 2270 review rounds`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056482533
 
-### F25 - Add audit rows for review 5256684050
+### F25 - Add audit rows for review 5259859338
 
 - PR number: 2270
-- Source review ID: 5256684050
+- Source review ID: 5259859338
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056372376
-- Concern: Review 5256684050 was not represented in the audit while its F23 and F24 threads were open.
-- Solution: Added F23-F27 rows/details for review 5256684050 and recorded this review round in the audit log.
-- Current-tree verification: This audit now contains source metadata and status rows for every independently actionable finding from review 5256684050.
+- Concern: Review 5259859338 was not represented in the audit while its F23 and F24 threads were open.
+- Solution: Added F25-F27 rows/details for review 5259859338 and recorded this review round in the audit log.
+- Current-tree verification: This audit now contains source metadata and status rows for every independently actionable finding from review 5259859338.
 - Resolution reference: `docs(pr-reviews): record latest PR 2270 findings`; `docs(pr-reviews): record newest PR 2270 findings`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588529
 
 ### F26 - Use truthful timestamps for review-processing log entries
 
 - PR number: 2270
-- Source review ID: 5256684050
+- Source review ID: 5259859338
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056372383
 - Concern: Newly added progress-log entries used `16:30 UTC`, earlier than the events and commits they described.
 - Solution: Restored the original historical entry and appended later entries at the times the follow-up processing occurred.
-- Current-tree verification: The issue and audit logs now record 17:21/17:20 reopen events and this 2026-09-20 follow-up rather than dating later work as 16:30.
-- Resolution reference: `docs(issues): reopen latest PR 2270 review`; `docs(issues): record all PR 2270 review rounds`; `docs(pr-reviews): record all PR 2270 rounds`
+- Current-tree verification: The issue and audit logs now preserve the original 16:20/16:15 entries and append later entries at the times the follow-up processing occurred.
+- Resolution reference: `docs(issues): preserve review progress history`; `docs(pr-reviews): record newest PR 2270 findings`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588561
 
 ### F27 - Preserve append-only progress history
 
 - PR number: 2270
-- Source review ID: 5256684050
+- Source review ID: 5259859338
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056372388
 - Concern: The 16:20 issue progress-log entry was edited in place instead of being preserved with an appended correction.
 - Solution: Restored the 16:20 entry and appended later corrections that name the changed conclusions.
 - Current-tree verification: The issue progress log now contains the original 16:20 entry plus later 17:20, 17:21, and 2026-09-20 entries.
-- Resolution reference: `docs(issues): record all PR 2270 review rounds`; `docs(issues): correct review reply history`
+- Resolution reference: `docs(issues): preserve review progress history`
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588598
+
+### F28 - Reference the commits that fixed timestamp history
+
+- PR number: 2270
+- Source review ID: 5260280755
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056648404
+- Concern: F24, F26, and F27 resolution references named commits that introduced or retained the defects instead of the commits that fixed them.
+- Solution: Updated F24, F26, and F27 resolution references to cite the correcting commits.
+- Current-tree verification: F24, F26, and F27 details now point at the commits that restored/appended the progress history and corrected reply-order wording.
+- Resolution reference: `docs(pr-reviews): correct newest PR 2270 audit`
+- Reply URL: Pending.
+
+### F29 - Scope F24 current-tree verification to current-state fields
+
+- PR number: 2270
+- Source review ID: 5260280755
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056648406
+- Concern: F24 said the progress log did not claim replies preceded resolution, while the restored historical 16:20 entry still says that.
+- Solution: Scoped F24 current-tree verification to current-state fields and explicitly preserved the historical entry's original wording.
+- Current-tree verification: F24 now distinguishes historical wording from current-state claims.
+- Resolution reference: `docs(pr-reviews): correct newest PR 2270 audit`
+- Reply URL: Pending.
+
+### F30 - Add audit row for the F24 re-raise
+
+- PR number: 2270
+- Source review ID: 5259859338
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056372380
+- Reviewer finding ID: F24
+- Concern: The F24 concern was re-raised on the moved issue progress line and needed its own audit row.
+- Solution: Added this `RE_RAISE_OF:F24` row with its own source and reply URL.
+- Current-tree verification: The audit now records both the original F24 and the re-raised F24 source threads.
+- Resolution reference: `docs(pr-reviews): correct newest PR 2270 audit`
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056590210
 
 ## Processing Log
 
@@ -367,10 +403,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-19 08:25 UTC - Normalized Copilot review 5250020892 as F1-F8 and human review 5255047473 as F9-F19; no re-raises found.
 - 2026-09-19 08:30 UTC - Recorded the pre-action current-tree decisions; F9-F19 remain open pending independent fixes.
 - 2026-09-19 13:59 UTC - Re-derived F9-F19 against the current tree, normalized review 5255823584 as F20, F21, and F22 (`RE_RAISE_OF:F12`), and recorded stable fix subjects; replies and final thread states remain pending.
-- 2026-09-19 16:30 UTC - Posted finding-specific replies for every inline thread, posted consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 for reviews 5250020892, 5255047473, and 5255823584, resolved all current threads, and refreshed GraphQL state with zero unresolved threads.
+- 2026-09-19 16:15 UTC - Posted finding-specific replies for every inline thread, posted consolidated response https://github.com/torrust/torrust-tracker/pull/2270#issuecomment-5743396140 for reviews 5250020892, 5255047473, and 5255823584, resolved all current threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-19 17:20 UTC - Normalized review 5256684050 as F23-F24 and reopened review-processing status before fixes.
 - 2026-09-19 17:21 UTC - Updated consolidated response to cover submitted reviews 5250020892, 5255047473, 5255075569, 5255823584, and 5255889360; recorded the rebase-only and F11-only revalidation rounds as introducing no independently actionable finding; and refreshed GraphQL state with zero unresolved threads.
-- 2026-09-20 08:10 UTC - Normalized the remaining review 5256684050 concerns as F25-F27 and corrected the issue progress log to restore the 16:20 entry, append later corrections, and avoid impossible timestamps.
+- 2026-09-20 08:10 UTC - Normalized review 5259859338 concerns as F25-F27, added F30 as `RE_RAISE_OF:F24`, and corrected the issue progress log to restore the 16:20 entry, append later corrections, and avoid impossible timestamps.
+- 2026-09-20 09:30 UTC - Normalized review 5260280755 as F28-F29 and corrected F24, F26, and F27 audit fields to cite the true fixing commits and distinguish historical wording from current-state claims.
 - 2026-09-20 09:20 UTC - Posted finding-specific replies for F23-F27, including the re-raised F24 thread, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
