@@ -133,7 +133,7 @@ maintainer approved that audit update. Do not silently turn a late review into a
 Every new normalized finding records PR number, source review ID, source URL,
 author class, finding ID, review finding reference, severity, category, summary,
 relationship, disposition, current-tree verification, resolution reference, reply
-URL, optional reviewer finding ID when reassigned, follow-up PR URL when applicable, and thread state. Record each finding as one compact tracking row (finding
+URL, optional reviewer finding ID when reassigned, follow-up PR URL when applicable, post-merge approval URL when applicable, and thread state. Record each finding as one compact tracking row (finding
 ID, review finding reference, author class, severity, category, relationship,
 disposition, thread state) plus one matching detail entry carrying the remaining
 narrative and source-metadata fields, as laid out in the audit template. The

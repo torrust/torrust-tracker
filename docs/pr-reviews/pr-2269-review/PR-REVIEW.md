@@ -141,7 +141,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The EPIC table retained the heading `Draft subissue` after #2265 and #2266 were created.
 - Solution: Renamed the column to `Subissue`.
 - Current-tree verification: The table heading now reads `Subissue`.
-- Resolution reference: `fix(docs): address late PR #2269 findings`
+- Resolution reference: `docs(pr-reviews): complete PR #2269 late review audit`
 - Reply URL: N/A; suppressed body finding had no thread.
 
 ### F6 - Refer to the promoted parent EPIC
