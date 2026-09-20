@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - issue #2179
+    - "issue #2179"
 ---
 
 # Agent Review Reports - Fix Docker E2E Package Selection
