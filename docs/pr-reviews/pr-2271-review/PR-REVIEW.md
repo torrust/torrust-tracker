@@ -78,6 +78,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F38 | `review-finding:pr-2271-f38` | Human | Minor | metadata | RE_RAISE_OF:F28 | FIXED | RESOLVED |
 | F39 | `review-finding:pr-2271-f39` | Human | Minor | metadata | RE_RAISE_OF:F31 | FIXED | RESOLVED |
 | F40 | `review-finding:pr-2271-f40` | Human | Minor | metadata | RE_RAISE_OF:F32 | FIXED | RESOLVED |
+| F41 | `review-finding:pr-2271-f41` | Human | Major | correctness | RE_RAISE_OF:F37 | FIXED | OPEN |
+| F42 | `review-finding:pr-2271-f42` | Human | Major | metadata | RE_RAISE_OF:F26 | FIXED | OPEN |
+| F43 | `review-finding:pr-2271-f43` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | OPEN |
+| F44 | `review-finding:pr-2271-f44` | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | OPEN |
+| F45 | `review-finding:pr-2271-f45` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -193,8 +198,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053271001>
 - Concern: Open follow-up labels replaced the allowed commit-subject resolution reference.
 - Solution: Restored commit subjects and added a separate durable follow-up PR URL allowance.
-- Current-tree verification: All nine affected audit entries contain a commit subject and PR URL; however,
-  the skill at lines 147-148 still permits "durable follow-up PR URLs", half of this concern remains unresolved.
+- Current-tree verification: PR #2269 F22-F30 carry a commit subject and a separate Follow-up PR URL; the
+  skill's remaining follow-up-URL allowance was removed later under F33.
 - Resolution reference: `fix(docs): address PR #2271 second review`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053769803>
@@ -233,8 +238,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053271009>
 - Concern: The new global rule used inconsistent continuation indentation.
 - Solution: Matched the surrounding two-space style.
-- Current-tree verification: The continuation lines use the surrounding two-space indentation.
-- Resolution reference: `fix(docs): address PR #2271 review contract findings`
+- Current-tree verification: AGENTS.md lines 237-243 now indent two spaces, matching the adjacent bullets.
+- Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053770081>
 
@@ -246,7 +251,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053271011>
 - Concern: The PR body omitted a later commit.
 - Solution: Refresh the PR description after all review and audit commits are known.
-- Current-tree verification: The PR description lists all 17 branch commits through the round-five audit commit.
+- Current-tree verification: The PR description's Commit Structure is refreshed after every push to equal
+  `git log develop..HEAD --format=%s`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053770152>
@@ -338,7 +344,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023777>
 - Concern: The template's Follow-up PR URL field was not required by the skill or used by the record.
 - Solution: Required the field in every detail entry and populated it with `N/A` where no follow-up applies.
-- Current-tree verification: This audit has 24 Follow-up PR URL fields, one per detail entry.
+- Current-tree verification: Every detail entry in this audit and in the PR #2269 audit carries a Follow-up PR URL line.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744975>
@@ -391,7 +397,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023798>
 - Concern: The PR description omitted later review-fix commits and stale validation wording.
 - Solution: Refreshed the description after the final commit and audit set was known.
-- Current-tree verification: The PR description lists all 17 branch commits through the round-five audit commit.
+- Current-tree verification: The PR description's Commit Structure is refreshed after every push to equal
+  `git log develop..HEAD --format=%s`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
@@ -417,7 +424,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056680527>
 - Concern: F17-F22 cited a commit that did not contain their described changes.
 - Solution: Cited the commit containing each described change, or recorded the unresolved case honestly.
-- Current-tree verification: F17-F19 cite `docs(pr-reviews): record PR #2271 findings`; F20-F21 cite `docs(pr-reviews): extend post-merge audit contract`.
+- Current-tree verification: F17-F18 cite `docs(pr-reviews): record PR #2271 findings`; F19-F21 cite the later
+  `fix(docs): address PR #2271 review contract findings` that completed their contract changes.
 - Resolution reference: `docs(pr-reviews): fix PR #2271 audit defects from fourth review`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883011>
@@ -429,8 +437,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F19
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056680531>
 - Concern: F12, F13, F19, and F22 contained claims contradicted by the current tree.
-- Solution: Corrected AGENTS indentation, separated the PR-description follow-up, and aligned the skill and audit contract.
-- Current-tree verification: The AGENTS continuation lines use two spaces, the skill has a separate Follow-up PR URL rule, and its roster is wrapped.
+- Solution: Separated the PR-description follow-up and aligned the skill and audit contract; the AGENTS
+  indentation was corrected separately under F12.
+- Current-tree verification: The skill has a separate Follow-up PR URL rule and a wrapped roster; the AGENTS
+  indentation was fixed afterwards under F12.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883008>
@@ -547,7 +557,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056794587>
 - Concern: F17-F24 declared FOLLOW_UP and OPEN despite resolved threads and committed fixes.
 - Solution: Recorded FIXED and RESOLVED for fixed concerns; retained FOLLOW_UP only for F24's pending PR-description refresh.
-- Current-tree verification: F17-F23 are FIXED/RESOLVED and F24 is FOLLOW_UP/RESOLVED.
+- Current-tree verification: F17-F24 are FIXED/RESOLVED; F24 became FIXED once the PR description was refreshed.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883013>
@@ -560,7 +570,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056794589>
 - Concern: Several settled rows retained false current-tree claims.
 - Solution: Re-derived the claims and replaced them with current, scoped verification.
-- Current-tree verification: F12, F13, F19, F20, and F22 each name their current source and state.
+- Current-tree verification: Every Current-tree verification line was re-derived at the round-six head.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883018>
@@ -604,17 +614,92 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883014>
 
+### F41 - Re-derive every verification at the shipping head
+
+- PR number: 2271
+- Source review ID: 5260561839
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934606>
+- Concern: Nine Current-tree verification lines were false at the round-five head; two replaced true text.
+- Solution: Re-derived each of the nine lines from the tree and rewrote them to state only what the bytes show.
+- Current-tree verification: F9, F12, F13, F20, F24, F26, F27, F36, and F37 verifications match the tree at this head.
+- Resolution reference: `docs(pr-reviews): address PR #2271 review round six`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
+### F42 - Cite the commit that changed AGENTS
+
+- PR number: 2271
+- Source review ID: 5260561839
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934612>
+- Concern: F12 and F27 cited a commit that did not touch AGENTS.md for the indentation fix.
+- Solution: Made the AGENTS change in its own commit and cited that commit from F12; F27 no longer claims it.
+- Current-tree verification: `git show --stat` of the F12 reference lists AGENTS.md.
+- Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
+### F43 - Indent the AGENTS bullet two spaces
+
+- PR number: 2271
+- Source review ID: 5260561839
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934615>
+- Concern: AGENTS.md lines 237-243 still indented three spaces while the audit claimed two.
+- Solution: Changed the continuation lines to a two-space indent.
+- Current-tree verification: `sed -n '237,243p' AGENTS.md` shows two leading spaces on every line.
+- Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
+### F44 - Log every branch commit
+
+- PR number: 2271
+- Source review ID: 5260561839
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934616>
+- Concern: The log omitted seven branch commits, including the one nine entries cite, and one stamp was rounded up.
+- Solution: Added every branch commit at its committer time truncated to the minute and corrected the reply stamp.
+- Current-tree verification: Each subject in `git log develop..HEAD --format=%s` appears once in the Processing Log.
+- Resolution reference: `docs(pr-reviews): address PR #2271 review round six`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
+### F45 - Apply the field roster to the PR #2269 audit
+
+- PR number: 2271
+- Source review ID: 5260561839
+- Reviewer finding ID: F27
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934621>
+- Concern: PR #2269 audit F1-F21 lacked the now-mandatory Follow-up PR URL line.
+- Solution: Added `Follow-up PR URL: N/A` to F1-F21, keeping the nine real URLs on F22-F30.
+- Current-tree verification: `grep -c '^- Follow-up PR URL:'` over the PR #2269 audit returns 30 for 30 entries.
+- Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
 ## Processing Log
 
+- 2026-09-19 08:09 UTC - Committed `fix(docs): address late PR #2269 findings`.
+- 2026-09-19 08:55 UTC - Committed `docs(pr-reviews): complete PR #2269 late review audit`.
+- 2026-09-19 11:23 UTC - Committed `docs(agents): define post-merge review workflow`.
+- 2026-09-19 11:24 UTC - Committed `docs(pr-reviews): record approved post-merge follow-up`.
+- 2026-09-19 11:35 UTC - Committed `docs(pr-reviews): link PR #2269 follow-up`.
 - 2026-09-19 11:45 UTC - Copilot review 5255633262 submitted findings F1-F4.
 - 2026-09-19 12:42 UTC - Pushed `fix(docs): address PR #2271 Copilot findings`.
 - 2026-09-19 13:07 UTC - Human review 5255829901 submitted findings F5-F13.
 - 2026-09-19 13:59 UTC - Replied to findings F1-F4.
 - 2026-09-19 14:11 UTC - Human review 5255975253 submitted findings F14-F16.
+- 2026-09-19 16:10 UTC - Pushed `fix(docs): address PR #2271 second review`.
 - 2026-09-19 16:15 UTC - Replied to findings F5-F13.
 - 2026-09-19 16:24 UTC - Pushed `fix(docs): address PR #2271 third review`.
 - 2026-09-19 17:04 UTC - Replied to findings F14-F16 and resolved the first 16 threads.
 - 2026-09-19 17:33 UTC - Human review 5256752506 submitted findings F17-F24.
+- 2026-09-19 21:45 UTC - Committed `fix(checks): keep review contract tests after helpers`.
+- 2026-09-20 08:09 UTC - Committed `docs(pr-reviews): extend post-merge audit contract`.
+- 2026-09-20 09:06 UTC - Committed `docs(pr-reviews): record PR #2271 findings`.
+- 2026-09-20 09:10 UTC - Committed `fix(docs): complete post-merge audit contract`.
 - 2026-09-20 09:13 UTC - Replied to and resolved findings F17-F24.
 - 2026-09-20 09:27 UTC - Pushed `docs(pr-reviews): complete PR #2271 review audit`.
 - 2026-09-20 10:00 UTC - Human review 5260313082 submitted findings F25-F34.
@@ -622,8 +707,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 10:38 UTC - Replied to findings F17-F24 after correcting their audit entries.
 - 2026-09-20 10:47 UTC - Pushed `docs(pr-reviews): update PR #2271 audit reply URLs after posting`.
 - 2026-09-20 11:06 UTC - Human review 5260426384 submitted findings F35-F40.
-- 2026-09-20 11:44 UTC - Pushed `fix(docs): address PR #2271 review contract findings`.
-- 2026-09-20 11:58 UTC - Replied to and resolved findings F25-F40 after GraphQL verified zero unresolved reviewer threads.
+- 2026-09-20 11:44 UTC - Committed `fix(docs): address PR #2271 review contract findings`.
+- 2026-09-20 11:56 UTC - Committed `docs(pr-reviews): address PR #2271 review round five`.
+- 2026-09-20 11:57 UTC - Replied to and resolved findings F25-F40.
+- 2026-09-20 11:59 UTC - Committed `docs(pr-reviews): record PR #2271 review replies`.
+- 2026-09-20 12:27 UTC - Human review 5260561839 submitted findings F41-F45.
+- 2026-09-20 19:31 UTC - Committed `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`.
 
 ## Completion Rules
 
