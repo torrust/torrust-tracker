@@ -40,6 +40,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F3 | `review-finding:pr-2272-f3` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2272-f4` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2272-f5` | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2272-f6` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2272-f7` | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2272-f8` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -139,6 +142,47 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: `docs(pr-reviews): record PR #2272 review findings`
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056668345>
 
+### F6 - Correct the round-two processing timestamp
+
+- PR number: 2272
+- Source review ID: 5260350349
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056718626>
+- Concern: The `09:45 UTC` processing entry preceded the commit, push, replies, and resolution events
+  it claimed to record.
+- Solution: Changed the entry to `09:55 UTC`, after the 09:51 commit and 09:53 push and replies.
+- Current-tree verification: The entry is stamped `09:55 UTC`; its recorded events occurred no later
+  than 09:53 UTC. Markdown and cspell checks pass.
+- Resolution reference: `fix(pr-reviews): correct PR #2272 event time`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056854060>
+
+### F7 - Restore canonical audit rules and correct the Copilot response
+
+- PR number: 2272
+- Source review ID: 5260350349
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056718631>
+- Concern: The copied status vocabulary and completion rules diverged from the canonical template,
+  while the consolidated DOC-1/DOC-2 response omitted the review and finding IDs and cited a SHA.
+- Solution: Restored exact template parity and rewrote the existing response to name review
+  `5256471352`, DOC-1/DOC-2 dispositions, and unique Conventional Commit subjects.
+- Current-tree verification: Direct `diff` comparisons for both copied sections produce no output;
+  issue comment 5745525390 contains the required review ID, finding IDs, dispositions, and subjects.
+- Resolution reference: `fix(pr-reviews): restore PR #2272 audit rules`,
+  <https://github.com/torrust/torrust-tracker/pull/2272#issuecomment-5745525390>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056854064>
+
+### F8 - Name the canonical audit in the PR description
+
+- PR number: 2272
+- Source review ID: 5260350349
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056718636>
+- Concern: The PR summary named the issue-local independent review record but not the newly tracked
+  canonical PR review audit.
+- Solution: Added the distinct summary bullet `record the canonical PR review audit for #2272`.
+- Current-tree verification: The live PR body contains the new audit bullet while retaining the
+  separate independent-review-record bullet.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056854069>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2272#discussion_r4056854069>
+
 ## Processing Log
 
 - 2026-09-19 16:33 UTC - Copilot submitted review 5256471352 with two non-threaded metadata findings.
@@ -152,6 +196,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 09:55 UTC - Pushed the F4 fix and initial audit, replied to F4-F5, verified both
   replies in refreshed thread data, and resolved both threads. The final GraphQL-equivalent review
   thread fetch reported zero unresolved threads.
+- 2026-09-20 10:22 UTC - Cameron submitted review 5260350349, confirmed F4-F5 fixed, and raised
+  F6-F8.
+- 2026-09-20 11:45 UTC - Pushed the separate F6/F7 fixes, corrected the existing Copilot response
+  and PR body, replied to F6-F8, verified each reply, and resolved all three threads. The final
+  GraphQL fetch reported zero unresolved threads.
 
 ## Completion Rules
 
