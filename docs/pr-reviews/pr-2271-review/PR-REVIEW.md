@@ -61,23 +61,23 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F21 | `review-finding:pr-2271-f21` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F22 | `review-finding:pr-2271-f22` | Human | Nit | formatting | RE_RAISE_OF:F16 | FIXED | RESOLVED |
 | F23 | `review-finding:pr-2271-f23` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
-| F24 | `review-finding:pr-2271-f24` | Human | Nit | documentation | RE_RAISE_OF:F13 | FOLLOW_UP | RESOLVED |
-| F25 | `review-finding:pr-2271-f25` | Human | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F26 | `review-finding:pr-2271-f26` | Human | Major | metadata | ORIGINAL | FIXED | OPEN |
-| F27 | `review-finding:pr-2271-f27` | Human | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F28 | `review-finding:pr-2271-f28` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F29 | `review-finding:pr-2271-f29` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F30 | `review-finding:pr-2271-f30` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F31 | `review-finding:pr-2271-f31` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F32 | `review-finding:pr-2271-f32` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F33 | `review-finding:pr-2271-f33` | Human | Minor | documentation | RE_RAISE_OF:F19 | FIXED | OPEN |
-| F34 | `review-finding:pr-2271-f34` | Human | Nit | formatting | RE_RAISE_OF:F22 | FIXED | OPEN |
-| F35 | `review-finding:pr-2271-f35` | Human | Major | correctness | RE_RAISE_OF:F28 | FIXED | OPEN |
-| F36 | `review-finding:pr-2271-f36` | Human | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F37 | `review-finding:pr-2271-f37` | Human | Major | correctness | RE_RAISE_OF:F27 | FIXED | OPEN |
-| F38 | `review-finding:pr-2271-f38` | Human | Minor | metadata | RE_RAISE_OF:F28 | FIXED | OPEN |
-| F39 | `review-finding:pr-2271-f39` | Human | Minor | metadata | RE_RAISE_OF:F31 | FIXED | OPEN |
-| F40 | `review-finding:pr-2271-f40` | Human | Minor | metadata | RE_RAISE_OF:F32 | FIXED | OPEN |
+| F24 | `review-finding:pr-2271-f24` | Human | Nit | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F25 | `review-finding:pr-2271-f25` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F26 | `review-finding:pr-2271-f26` | Human | Major | metadata | ORIGINAL | FIXED | RESOLVED |
+| F27 | `review-finding:pr-2271-f27` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | `review-finding:pr-2271-f28` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F29 | `review-finding:pr-2271-f29` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F30 | `review-finding:pr-2271-f30` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F31 | `review-finding:pr-2271-f31` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F32 | `review-finding:pr-2271-f32` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F33 | `review-finding:pr-2271-f33` | Human | Minor | documentation | RE_RAISE_OF:F19 | FIXED | RESOLVED |
+| F34 | `review-finding:pr-2271-f34` | Human | Nit | formatting | RE_RAISE_OF:F22 | FIXED | RESOLVED |
+| F35 | `review-finding:pr-2271-f35` | Human | Major | correctness | RE_RAISE_OF:F28 | FIXED | RESOLVED |
+| F36 | `review-finding:pr-2271-f36` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F37 | `review-finding:pr-2271-f37` | Human | Major | correctness | RE_RAISE_OF:F27 | FIXED | RESOLVED |
+| F38 | `review-finding:pr-2271-f38` | Human | Minor | metadata | RE_RAISE_OF:F28 | FIXED | RESOLVED |
+| F39 | `review-finding:pr-2271-f39` | Human | Minor | metadata | RE_RAISE_OF:F31 | FIXED | RESOLVED |
+| F40 | `review-finding:pr-2271-f40` | Human | Minor | metadata | RE_RAISE_OF:F32 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -246,7 +246,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053271011>
 - Concern: The PR body omitted a later commit.
 - Solution: Refresh the PR description after all review and audit commits are known.
-- Current-tree verification: The PR description will be refreshed after the final audit commit and replies.
+- Current-tree verification: The PR description lists all 17 branch commits through the round-five audit commit.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4053770152>
@@ -391,7 +391,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023798>
 - Concern: The PR description omitted later review-fix commits and stale validation wording.
 - Solution: Refreshed the description after the final commit and audit set was known.
-- Current-tree verification: The description is pending a final refresh after the current audit and replies.
+- Current-tree verification: The PR description lists all 17 branch commits through the round-five audit commit.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
@@ -407,7 +407,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F18, F19, F22, and F24 target F6, F9, F16, and F13; F17, F20, F21, and F23 are ORIGINAL.
 - Resolution reference: `docs(pr-reviews): fix PR #2271 audit defects from fourth review`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883009>
 
 ### F26 - Cite commits that contain the documented fix
 
@@ -420,7 +420,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F17-F19 cite `docs(pr-reviews): record PR #2271 findings`; F20-F21 cite `docs(pr-reviews): extend post-merge audit contract`.
 - Resolution reference: `docs(pr-reviews): fix PR #2271 audit defects from fourth review`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883011>
 
 ### F27 - Re-derive audit claims from the current tree
 
@@ -433,7 +433,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The AGENTS continuation lines use two spaces, the skill has a separate Follow-up PR URL rule, and its roster is wrapped.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883008>
 
 ### F28 - Record fourth-round audit activity chronologically
 
@@ -446,7 +446,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Processing Log includes review 5256752506 at 17:33 UTC and its 09:13 UTC replies and resolution.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883019>
 
 ### F29 - Preserve the PR #2269 EPIC fix reference
 
@@ -459,7 +459,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: PR #2269 F5 cites `fix(docs): address late PR #2269 findings`.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883007>
 
 ### F30 - Keep post-merge approval at audit scope
 
@@ -472,7 +472,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The template and Required Audit Fields describe one audit-level approval URL.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883023>
 
 ### F31 - Correct processing-log timestamps
 
@@ -485,7 +485,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The log records the first, second, and third reply batches at 13:59, 16:15, and 17:04 UTC.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883006>
 
 ### F32 - Make follow-up URL field explicit
 
@@ -498,7 +498,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: This audit has 40 Follow-up PR URL fields, one for each detail entry.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883022>
 
 ### F33 - Exclude follow-up URLs from resolution references
 
@@ -511,7 +511,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Required Audit Fields directs follow-up PR links to the separate Follow-up PR URL field.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883010>
 
 ### F34 - Wrap Required Audit Fields prose
 
@@ -524,7 +524,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The only skill line longer than 130 characters is the single-line YAML description.
 - Resolution reference: `fix(docs): address PR #2271 review contract findings`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883012>
 
 ### F35 - Keep audit sections unique and ordered
 
@@ -537,7 +537,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The audit has one Finding Details, Processing Log, and Completion Rules heading; F1-F40 are ordered.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883017>
 
 ### F36 - Match resolved threads with audit state
 
@@ -550,7 +550,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F17-F23 are FIXED/RESOLVED and F24 is FOLLOW_UP/RESOLVED.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883013>
 
 ### F37 - Keep resolved-row claims current
 
@@ -563,7 +563,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F12, F13, F19, F20, and F22 each name their current source and state.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883018>
 
 ### F38 - Record commits and answered review
 
@@ -576,7 +576,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The log contains review 5260313082 and the 09:27, 10:33, and 10:47 UTC audit pushes.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883016>
 
 ### F39 - Name the correct rework review
 
@@ -589,7 +589,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The 10:00 UTC log entry names review 5260313082.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883015>
 
 ### F40 - Apply optional-field rules consistently
 
@@ -602,7 +602,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Every detail entry has a Follow-up PR URL, and F13/F24 Resolution references are durable reply URLs.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883014>
 
 ## Processing Log
 
@@ -623,6 +623,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 10:47 UTC - Pushed `docs(pr-reviews): update PR #2271 audit reply URLs after posting`.
 - 2026-09-20 11:06 UTC - Human review 5260426384 submitted findings F35-F40.
 - 2026-09-20 11:44 UTC - Pushed `fix(docs): address PR #2271 review contract findings`.
+- 2026-09-20 11:58 UTC - Replied to and resolved findings F25-F40 after GraphQL verified zero unresolved reviewer threads.
 
 ## Completion Rules
 
