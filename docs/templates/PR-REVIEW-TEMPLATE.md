@@ -79,6 +79,7 @@ readable as prose; this section carries the source metadata and verification evi
 - Current-tree verification: <COMMAND_OR_INSPECTION_AND_RESULT>
 - Resolution reference: <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL>
 - Follow-up PR URL: <DURABLE_FOLLOW_UP_PR_URL_OR_NA>
+- Post-merge approval URL: <DURABLE_APPROVAL_COMMENT_URL_OR_NA>
 - Reply URL: <REPLY_URL_OR_NA>
 
 ## Processing Log

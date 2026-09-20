@@ -107,7 +107,9 @@ When a review body, inline thread, or comment arrives after the pull request mer
    pull request. Obtain approval before choosing one. A pre-merge review-processing request does
    not authorize post-merge remediation. Record approval as a durable GitHub issue or pull-request
    comment URL in the original audit before any mutating action; chat-only approval is insufficient
-   as the long-term evidence for this gate.
+   as the long-term evidence for this gate. When this rule is introduced after an approved action
+   has already started, a retrospective approval record may be used only if it states the original
+   approval time and the durable comment's creation time.
 3. **Preserve the original audit.** Normalize every late finding into the merged PR's existing
    audit, including independently actionable review-body assertions. Use collision-safe audit IDs
    and retain reviewer-provided IDs in detail entries when reassigned.
@@ -131,7 +133,7 @@ maintainer approved that audit update. Do not silently turn a late review into a
 Every new normalized finding records PR number, source review ID, source URL,
 author class, finding ID, review finding reference, severity, category, summary,
 relationship, disposition, current-tree verification, resolution reference, reply
-URL, optional reviewer finding ID when reassigned, and thread state. Record each finding as one compact tracking row (finding
+URL, optional reviewer finding ID when reassigned, follow-up PR URL when applicable, and thread state. Record each finding as one compact tracking row (finding
 ID, review finding reference, author class, severity, category, relationship,
 disposition, thread state) plus one matching detail entry carrying the remaining
 narrative and source-metadata fields, as laid out in the audit template. The
