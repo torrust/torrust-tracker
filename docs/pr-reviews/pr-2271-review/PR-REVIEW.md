@@ -78,11 +78,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F38 | `review-finding:pr-2271-f38` | Human | Minor | metadata | RE_RAISE_OF:F28 | FIXED | RESOLVED |
 | F39 | `review-finding:pr-2271-f39` | Human | Minor | metadata | RE_RAISE_OF:F31 | FIXED | RESOLVED |
 | F40 | `review-finding:pr-2271-f40` | Human | Minor | metadata | RE_RAISE_OF:F32 | FIXED | RESOLVED |
-| F41 | `review-finding:pr-2271-f41` | Human | Major | correctness | RE_RAISE_OF:F37 | FIXED | OPEN |
-| F42 | `review-finding:pr-2271-f42` | Human | Major | metadata | RE_RAISE_OF:F26 | FIXED | OPEN |
-| F43 | `review-finding:pr-2271-f43` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | OPEN |
-| F44 | `review-finding:pr-2271-f44` | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | OPEN |
-| F45 | `review-finding:pr-2271-f45` | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
+| F41 | `review-finding:pr-2271-f41` | Human | Major | correctness | RE_RAISE_OF:F37 | FIXED | RESOLVED |
+| F42 | `review-finding:pr-2271-f42` | Human | Major | metadata | RE_RAISE_OF:F26 | FIXED | RESOLVED |
+| F43 | `review-finding:pr-2271-f43` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | RESOLVED |
+| F44 | `review-finding:pr-2271-f44` | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | RESOLVED |
+| F45 | `review-finding:pr-2271-f45` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -625,7 +625,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F9, F12, F13, F20, F24, F26, F27, F36, and F37 verifications match the tree at this head.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round six`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950896>
 
 ### F42 - Cite the commit that changed AGENTS
 
@@ -638,7 +638,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `git show --stat` of the F12 reference lists AGENTS.md.
 - Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950900>
 
 ### F43 - Indent the AGENTS bullet two spaces
 
@@ -651,7 +651,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `sed -n '237,243p' AGENTS.md` shows two leading spaces on every line.
 - Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950895>
 
 ### F44 - Log every branch commit
 
@@ -664,7 +664,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Each subject in `git log develop..HEAD --format=%s` appears once in the Processing Log.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round six`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950902>
 
 ### F45 - Apply the field roster to the PR #2269 audit
 
@@ -677,7 +677,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -c '^- Follow-up PR URL:'` over the PR #2269 audit returns 30 for 30 entries.
 - Resolution reference: `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950898>
 
 ## Processing Log
 
@@ -713,6 +713,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 11:59 UTC - Committed `docs(pr-reviews): record PR #2271 review replies`.
 - 2026-09-20 12:27 UTC - Human review 5260561839 submitted findings F41-F45.
 - 2026-09-20 19:31 UTC - Committed `fix(docs): normalize AGENTS indentation and PR #2269 audit fields`.
+- 2026-09-20 20:04 UTC - Pushed `docs(pr-reviews): address PR #2271 review round six`.
+- 2026-09-20 20:06 UTC - Replied to and resolved findings F41-F45.
+- 2026-09-20 20:10 UTC - Committed `docs(pr-reviews): record PR #2271 round six replies`.
 
 ## Completion Rules
 
