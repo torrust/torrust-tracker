@@ -133,11 +133,13 @@ maintainer approved that audit update. Do not silently turn a late review into a
 Every new normalized finding records PR number, source review ID, source URL,
 author class, finding ID, review finding reference, severity, category, summary,
 relationship, disposition, current-tree verification, resolution reference, reply
-URL, optional reviewer finding ID when reassigned, follow-up PR URL when applicable, post-merge approval URL when applicable, and thread state. Record each finding as one compact tracking row (finding
-ID, review finding reference, author class, severity, category, relationship,
-disposition, thread state) plus one matching detail entry carrying the remaining
-narrative and source-metadata fields, as laid out in the audit template. The
-immutable repository reference is
+URL, optional reviewer finding ID when reassigned, follow-up PR URL, and thread
+state. Record a post-merge approval URL once in the audit's Ownership section,
+rather than repeating it in each detail entry. Record each finding as one compact
+tracking row (finding ID, review finding reference, author class, severity,
+category, relationship, disposition, thread state) plus one matching detail entry
+carrying the remaining narrative and source-metadata fields, as laid out in the
+audit template. The immutable repository reference is
 `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with a lowercase finding ID; use it
 when another repository artifact needs to cite the finding. GitHub identifiers
 remain source metadata, not the canonical finding reference. Never change the
@@ -147,9 +149,10 @@ Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
 `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
 `maintainability`, `security`, or `other`. Severity is `Blocker`, `Major`,
 `Minor`, `Nit`, or `Suggestion`; mark a severity inferred from free prose as
-inferred. Resolution references are unique Conventional Commit subjects, durable reply URLs,
-and/or durable follow-up PR URLs, never branch SHAs. Historical records remain valid without
-the analysis fields.
+inferred. Resolution references are unique Conventional Commit subjects or
+durable reply URLs, never branch SHAs. Record a follow-up pull request in the
+separate Follow-up PR URL field, using `N/A` when it does not apply. Historical
+records remain valid without the analysis fields.
 
 ## Validation Script
 
