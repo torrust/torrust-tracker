@@ -54,11 +54,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F20 | review-finding:pr-2270-f20 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2270-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2270-f22 | Human | Minor | metadata | RE_RAISE_OF:F12 | FIXED | RESOLVED |
-| F23 | review-finding:pr-2270-f23 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F24 | review-finding:pr-2270-f24 | Human | Minor | documentation | ORIGINAL | FIXED | UNRESOLVED |
-| F25 | review-finding:pr-2270-f25 | Human | Major | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
-| F26 | review-finding:pr-2270-f26 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
-| F27 | review-finding:pr-2270-f27 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | UNRESOLVED |
+| F23 | review-finding:pr-2270-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2270-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2270-f25 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2270-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2270-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -337,7 +337,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added F23-F27 rows/details for review 5256684050 and recorded this review round in the audit log.
 - Current-tree verification: This audit now contains source metadata and status rows for every independently actionable finding from review 5256684050.
 - Resolution reference: `docs(pr-reviews): record latest PR 2270 findings`; `docs(pr-reviews): record newest PR 2270 findings`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588529
 
 ### F26 - Use truthful timestamps for review-processing log entries
 
@@ -348,7 +348,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored the original historical entry and appended later entries at the times the follow-up processing occurred.
 - Current-tree verification: The issue and audit logs now record 17:21/17:20 reopen events and this 2026-09-20 follow-up rather than dating later work as 16:30.
 - Resolution reference: `docs(issues): reopen latest PR 2270 review`; `docs(issues): record all PR 2270 review rounds`; `docs(pr-reviews): record all PR 2270 rounds`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588561
 
 ### F27 - Preserve append-only progress history
 
@@ -359,7 +359,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored the 16:20 entry and appended later corrections that name the changed conclusions.
 - Current-tree verification: The issue progress log now contains the original 16:20 entry plus later 17:20, 17:21, and 2026-09-20 entries.
 - Resolution reference: `docs(issues): record all PR 2270 review rounds`; `docs(issues): correct review reply history`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588598
 
 ## Processing Log
 
@@ -371,6 +371,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-19 17:20 UTC - Normalized review 5256684050 as F23-F24 and reopened review-processing status before fixes.
 - 2026-09-19 17:21 UTC - Updated consolidated response to cover submitted reviews 5250020892, 5255047473, 5255075569, 5255823584, and 5255889360; recorded the rebase-only and F11-only revalidation rounds as introducing no independently actionable finding; and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 08:10 UTC - Normalized the remaining review 5256684050 concerns as F25-F27 and corrected the issue progress log to restore the 16:20 entry, append later corrections, and avoid impossible timestamps.
+- 2026-09-20 09:20 UTC - Posted finding-specific replies for F23-F27, including the re-raised F24 thread, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
 
