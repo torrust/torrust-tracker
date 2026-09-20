@@ -22,7 +22,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
-- Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`, `UNRESOLVED`
+- Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
@@ -155,7 +155,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Completion Rules
 
-- Re-derive every reply claim against the current tree before replying or resolving a thread.
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
 - Reply on every resolvable thread before resolving it.
+- For an outdated or superseded thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
-- Commit this audit separately from the review fix.
