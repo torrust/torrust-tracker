@@ -8,7 +8,7 @@ github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: 2270
-last-updated-utc: 2026-09-20 10:55
+last-updated-utc: 2026-09-20 12:24
 semantic-links:
   skill-links:
     - add-new-skill
@@ -85,7 +85,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Define test-selection and evidence rules | Review finding F13 is resolved: regression red proof follows the `write-unit-test` mutate-then-restore rule. |
 | T3 | DONE | Link issue authoring guidance and template | Review findings F9, F12, F16, F18, and F19 are resolved by parseable frontmatter, canonical references, and validated links. |
 | T4 | DONE | Link the Implementer agent workflow | Review finding F14 is resolved: Implementer preserves the ordered workflow and requires the final like-for-like recheck. |
-| T5 | DONE | Validate the workflow end-to-end | Review 5260373182 findings F25, F26, F28, F31, and F32 are resolved; every review thread carries a finding-specific reply, all current threads are resolved, and final GraphQL refresh reports zero unresolved threads. |
+| T5 | IN_PROGRESS | Validate the workflow end-to-end | Review 5260373182 raised F33-F34 plus follow-up corrections for F25, F26, F28, and F31; implementation checks remain green while review-processing evidence is corrected. |
 
 ## Commit Points
 
@@ -132,8 +132,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-20 09:20 UTC - GitHub Copilot - Completed review 5259859338 follow-up: replied to F23-F27 plus the F24 re-raise, resolved all remaining threads, recorded F1-F27 in `docs/pr-reviews/pr-2270-review/PR-REVIEW.md`, and final GraphQL refresh reported zero unresolved threads.
 - 2026-09-20 09:30 UTC - GitHub Copilot - Reopened T5 after review 5260280755 raised F28-F29 about incorrect audit resolution references and a current-tree verification sentence that failed to distinguish historical wording from current-state claims.
 - 2026-09-20 09:55 UTC - GitHub Copilot - Completed review 5260280755 follow-up: replied to F25, F26, F28, F29, and the F24 re-raise recorded as F30; resolved all remaining threads; recorded F1-F30 in `docs/pr-reviews/pr-2270-review/PR-REVIEW.md`; and final GraphQL refresh reported zero unresolved threads.
-- 2026-09-20 10:20 UTC - GitHub Copilot - Reopened T5 after review 5260373182 raised F31-F32 for the F25/F26 re-raise threads and follow-up corrections for F25 prose, F26 timestamps, and F28 resolution references.
+- 2026-09-20 10:20 UTC - GitHub Copilot - Reopened T5 after review 5260373182 raised F25, F26, F28, and F31 for the latest re-raise threads and follow-up corrections for F25 prose, F26 timestamps, and F28 resolution references.
 - 2026-09-20 10:55 UTC - GitHub Copilot - Completed review 5260373182 follow-up: replied to F25, F26, F28, and F31, resolved all remaining threads, recorded F1-F32 in `docs/pr-reviews/pr-2270-review/PR-REVIEW.md`, and final GraphQL refresh reported zero unresolved threads.
+- 2026-09-20 12:24 UTC - GitHub Copilot - Reopened T5 after review 5260373182 raised F33-F34 and remaining audit corrections for F25, F26, F28, and F31.
 
 ## Acceptance Criteria
 
