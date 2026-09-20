@@ -54,8 +54,115 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F14 | `review-finding:pr-2271-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2271-f15` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2271-f16` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2271-f17` | Human | Minor | metadata | RE_RAISE_OF:F15 | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2271-f18` | Human | Minor | metadata | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2271-f19` | Human | Minor | metadata | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2271-f20` | Human | Minor | metadata | RE_RAISE_OF:F14 | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2271-f21` | Human | Minor | metadata | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2271-f22` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2271-f23` | Human | Suggestion | testing | RE_RAISE_OF:F16 | FIXED | RESOLVED |
+| F24 | `review-finding:pr-2271-f24` | Human | Nit | documentation | RE_RAISE_OF:F9 | FIXED | RESOLVED |
 
 ## Finding Details
+
+### F17 - Use the correct F22 resolution subject
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023768>
+- Concern: PR #2269 audit F22 cited a commit that did not touch the audit.
+- Solution: Changed F22 to cite `docs(pr-reviews): complete PR #2269 late review audit`.
+- Current-tree verification: The cited commit is the audit-only commit that added F22.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056596902>
+
+### F18 - Correct approval timing and ordering
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023772>
+- Concern: The audit's approval timestamp was four hours early and out of chronological order.
+- Solution: Corrected the comment time to 15:56 UTC and ordered processing events chronologically.
+- Current-tree verification: Processing log order and timestamp now match GitHub evidence.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056596958>
+
+### F19 - Keep follow-up PR URL separate from resolution reference
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023774>
+- Concern: The compound commit-plus-PR value exceeded the template's resolution-reference schema.
+- Solution: Restored a single commit subject in Resolution reference and moved the PR URL to its
+  dedicated field; the skill, template, and checker now agree.
+- Current-tree verification: All nine follow-up rows use separate fields.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597026>
+
+### F20 - Require follow-up PR URL in the audit contract
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023777>
+- Concern: The template's Follow-up PR URL field was not required by the skill or used by the record.
+- Solution: Added it to Required Audit Fields and populated it in the affected records.
+- Current-tree verification: The audit contains nine Follow-up PR URL fields.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597978>
+
+### F21 - Document retrospective approval records
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023781>
+- Concern: The new approval gate did not explain how the first retrospective case is represented.
+- Solution: Added retrospective approval allowance with original approval and durable-comment times.
+- Current-tree verification: The skill and PR #2269 audit document both timestamps.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597105>
+
+### F22 - Reflow the Required Audit Fields paragraph
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023788>
+- Concern: The newly expanded Required Audit Fields paragraph retained an overlong line.
+- Solution: Reflowed the paragraph while preserving the contract text.
+- Current-tree verification: The only remaining long line is the required YAML description.
+- Resolution reference: `fix(docs): complete post-merge audit contract`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056598038>
+
+### F23 - Test whitespace normalization behavior
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023793>
+- Concern: The helper change affected 22 assertions and had no unit tests or documented trade-off.
+- Solution: Added unit tests for indented wrapping and paragraph-break normalization plus an
+  explanatory comment.
+- Current-tree verification: `cargo test --package agent-review-report-contract` runs 2 tests.
+- Resolution reference: `fix(checks): keep review contract tests after helpers`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056598082>
+
+### F24 - Refresh the final PR description
+
+- PR number: 2271
+- Source review ID: 5256752506
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4054023798>
+- Concern: The PR description omitted later review-fix commits and stale validation wording.
+- Solution: Refreshed the description after the final commit and audit set was known.
+- Current-tree verification: The description lists all commits through the final audit commit and
+  the Rust contract test/validation commands.
+- Resolution reference: `fix(checks): keep review contract tests after helpers`
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597208>
 
 ### F1 - Clarify pre-merge request wording
 
