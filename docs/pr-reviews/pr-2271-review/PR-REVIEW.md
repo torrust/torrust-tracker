@@ -288,7 +288,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Changed F22 to cite `docs(pr-reviews): complete PR #2269 late review audit`.
 - Current-tree verification: The cited commit is the audit-only commit that added F22.
 - Resolution reference: `docs(pr-reviews): record PR #2271 findings`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056596902>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056745109>
 
 ### F18 - Correct approval timing and ordering
 
@@ -300,7 +300,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Corrected the comment time to 15:56 UTC and ordered processing events chronologically.
 - Current-tree verification: Processing log order and timestamp now match GitHub evidence.
 - Resolution reference: `docs(pr-reviews): record PR #2271 findings`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056596958>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056745047>
 
 ### F19 - Keep follow-up PR URL separate from resolution reference
 
@@ -313,7 +313,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   dedicated field; the skill, template, and checker now agree.
 - Current-tree verification: All nine follow-up rows use separate fields.
 - Resolution reference: `docs(pr-reviews): record PR #2271 findings`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597026>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056745014>
 
 ### F20 - Require follow-up PR URL in the audit contract
 
@@ -325,7 +325,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added it to Required Audit Fields and populated it in the affected records.
 - Current-tree verification: The audit contains nine Follow-up PR URL fields.
 - Resolution reference: `docs(pr-reviews): extend post-merge audit contract`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597978>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744975>
 
 ### F21 - Document retrospective approval records
 
@@ -337,7 +337,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added retrospective approval allowance with original approval and durable-comment times.
 - Current-tree verification: The skill and PR #2269 audit document both timestamps.
 - Resolution reference: `docs(pr-reviews): extend post-merge audit contract`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597105>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056745073>
 
 ### F22 - Reflow the Required Audit Fields paragraph
 
@@ -350,7 +350,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   and no reflow commit exists in this branch.
 - Current-tree verification: Two lines exceed 100 characters: `:3` (323 chars) and `:133` (200 chars).
 - Resolution reference: N/A; no repository change corrects this; awaiting explicit design review.
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056598038>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744948>
 
 ### F23 - Test whitespace normalization behavior
 
@@ -363,7 +363,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   explanatory comment.
 - Current-tree verification: `cargo test --package agent-review-report-contract` runs 2 tests.
 - Resolution reference: `fix(checks): keep review contract tests after helpers`
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056598082>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056745117>
 
 ### F24 - Refresh the final PR description
 
@@ -376,7 +376,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The description lists all commits through the audit commit, including
   both second-review and third-review validation commands.
 - Resolution reference: N/A; durable follow-up record is maintained via Reply URL.
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056597208>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056744910>
 
 ## Processing Log
 
