@@ -341,7 +341,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added F23-F24 rows/details for review 5256684050 and recorded the later review 5259859338 follow-up.
 - Current-tree verification: This audit now contains source metadata and status rows for every independently actionable finding from review 5256684050 and its later re-raises.
 - Resolution reference: `docs(pr-reviews): record latest PR 2270 findings`; `docs(pr-reviews): record newest PR 2270 findings`
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588529
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588529; re-raise reply https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056852893
 
 ### F26 - Use truthful timestamps for review-processing log entries
 
@@ -352,7 +352,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored the original historical entry and appended later entries at the times the follow-up processing occurred.
 - Current-tree verification: The issue and audit logs preserve the original 16:20/16:15 entries, and correction entries record the true follow-up order without claiming zero unresolved before the replies were posted.
 - Resolution reference: `docs(issues): preserve review progress history`; `docs(pr-reviews): record newest PR 2270 review`; `docs(pr-reviews): correct Cameron review audit`
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588561
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056588561; re-raise reply https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056852923
 
 ### F27 - Preserve append-only progress history
 
@@ -374,7 +374,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Updated F24, F26, and F27 resolution references to cite the correcting commits.
 - Current-tree verification: F24, F26, and F27 details now point at the commits that restored/appended the progress history and corrected reply-order wording.
 - Resolution reference: `docs(pr-reviews): correct Cameron review audit`
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056689465
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056852956
 
 ### F29 - Scope F24 current-tree verification to current-state fields
 
@@ -421,7 +421,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Added this `RE_RAISE_OF:F26` row with its own source and reply URL.
 - Current-tree verification: F26 keeps its original source/reply pair, and this row records the later re-raise thread.
 - Resolution reference: `docs(pr-reviews): correct Cameron review audit`
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056689426
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4056853030
 
 ## Processing Log
 
@@ -436,6 +436,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 09:30 UTC - Normalized review 5260280755 as F28-F29 and corrected F24, F26, and F27 audit fields to cite the true fixing commits and distinguish historical wording from current-state claims.
 - 2026-09-20 09:55 UTC - Posted finding-specific replies for F25, F26, F28, F29, and F30, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 10:20 UTC - Corrected the audit source mapping for review 5260280755 by adding F31-F32 as `RE_RAISE_OF:F25` and `RE_RAISE_OF:F26`, restoring F25/F26's original reply URLs, and replacing the non-existent `correct newest` resolution reference with this audit correction.
+- 2026-09-20 10:55 UTC - Posted finding-specific replies for F25, F26, F28, and F31, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-20 09:20 UTC - Posted finding-specific replies for F23-F27, including the re-raised F24 thread, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
