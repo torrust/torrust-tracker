@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-16 16:40
+last-updated-utc: 2026-09-21 15:38
 semantic-links:
   skill-links:
     - create-issue
@@ -155,7 +155,7 @@ deterministic tests, and manual evidence.
 | 3        | SI-4  | [Migrate torrent cleanup](../../closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                    | Done       | One periodic component adopts token cancellation.                                                    |
 | 4        | #2221 | [Migrate activity metrics](../../closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                           | Done       | One periodic component adopts token cancellation.                                                    |
 | 5        | #2234 | [Add token-aware server lifecycle API](../2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md)                         | Open       | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
-| 6        | SI-10 | [Add token-aware, joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)         | Draft      | Additive helper alongside existing API; no consumer breaks.                                          |
+| 6        | #2274 | [Add token-aware, joinable Axum drain helper](../2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)               | Open       | Additive helper alongside existing API; no consumer breaks.                                          |
 | 7        | SI-11 | [Migrate HTTP tracker to token lifecycle](../../drafts/1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)          | Draft      | One complete HTTP vertical slice.                                                                    |
 | 8        | SI-12 | [Migrate REST API to token lifecycle](../../drafts/1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)                  | Draft      | One complete REST API vertical slice.                                                                |
 | 9        | SI-13 | [Migrate health-check API to token lifecycle](../../drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)  | Draft      | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
