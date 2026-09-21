@@ -110,11 +110,30 @@ fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
 
 fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic> {
     let metadata_key = Value::String(String::from("metadata"));
-    if let Some(metadata) = values.get(&metadata_key).and_then(Value::as_mapping) {
-        return semantic_links_from(metadata, "metadata.semantic-links");
+    if is_externally_governed_document(values) {
+        return values.get(&metadata_key).and_then(Value::as_mapping).map_or_else(
+            || Ok(None),
+            |metadata| semantic_links_from(metadata, "metadata.semantic-links"),
+        );
     }
 
     semantic_links_from(values, "semantic-links")
+}
+
+fn is_externally_governed_document(values: &Mapping) -> bool {
+    let metadata_key = Value::String(String::from("metadata"));
+    let has_name = has_string_field(values, "name");
+    let is_agent_skill = has_name && values.get(&metadata_key).is_some_and(Value::is_mapping);
+    let is_agent_profile = has_name
+        && has_string_field(values, "description")
+        && (values.contains_key(Value::String(String::from("tools")))
+            || values.contains_key(Value::String(String::from("argument-hint"))));
+
+    is_agent_skill || is_agent_profile
+}
+
+fn has_string_field(values: &Mapping, field: &str) -> bool {
+    values.get(Value::String(String::from(field))).is_some_and(Value::is_string)
 }
 
 fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<SemanticLinks>, Diagnostic> {
@@ -262,7 +281,7 @@ mod tests {
     #[test]
     fn it_should_ignore_top_level_semantic_links_when_external_metadata_exists() {
         // Arrange: an external document carries conflicting top-level and nested extensions.
-        let markdown = "---\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
+        let markdown = "---\nname: write-markdown-docs\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
 
         // Act: extract the external-document envelope.
         let frontmatter = extract(markdown).unwrap().unwrap();
@@ -275,6 +294,18 @@ mod tests {
                 related_artifacts: Some(vec![String::from("docs/AGENTS.md")]),
             })
         );
+    }
+
+    #[test]
+    fn it_should_ignore_top_level_semantic_links_for_an_agent_profile_without_metadata() {
+        // Arrange: an externally governed agent profile has only a legacy top-level extension.
+        let markdown = "---\nname: Implementer\ndescription: Implements repository changes.\ntools: [execute, read]\nsemantic-links: invalid\n---\n# Agent\n";
+
+        // Act: extract the agent-profile envelope.
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Assert: external top-level metadata remains outside the v1 validator's ownership.
+        assert_eq!(frontmatter.semantic_links, None);
     }
 
     #[test]

@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 19:55"
+last-updated-utc: "2026-09-21 20:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,6 +269,14 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   --package frontmatter-validator` (25 tests), nightly Rust `cargo +nightly fmt --all -- --check`,
   and `cargo clippy --package frontmatter-validator -- -D warnings` -
   `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 20:15 UTC - GitHub Copilot - Corrected the follow-up review's external-document
+  dispatch: only observed Agent Skill/agent-profile shapes are externally governed. Agent Skills
+  use `name` plus a `metadata` mapping; agent profiles use `name`, `description`, and `tools` or
+  `argument-hint`. Those shapes ignore top-level `semantic-links` and validate only nested
+  `metadata.semantic-links`; ordinary unknown documents keep universal top-level semantics. Focused
+  validation passed: `cargo test --package frontmatter-validator` (26 tests), nightly Rust `cargo
+  +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D warnings`
+  - `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
 

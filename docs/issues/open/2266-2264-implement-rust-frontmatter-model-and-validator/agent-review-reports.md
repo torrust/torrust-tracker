@@ -81,3 +81,16 @@ semantic-links:
   they intentionally have no local issue-spec folders yet. Their GitHub bodies own the split schema
   and command/integration acceptance criteria respectively. This issue remains open until its
   in-scope structural work and the deferred follow-ups are completed and reviewed.
+
+### 2026-09-21 20:15 UTC - GitHub Copilot - Follow-up Correction
+
+- Response to the re-review finding: external dispatch no longer treats any `metadata` mapping as
+  sufficient. It recognizes the observed Agent Skill (`name` plus mapping `metadata`) and agent
+  profile (`name`, `description`, and `tools` or `argument-hint`) shapes. Those documents ignore
+  top-level `semantic-links`, whether or not nested metadata links exist; ordinary unknown records
+  still parse the universal top-level extension.
+- Regression coverage: added a deterministic agent-profile-without-metadata case alongside the
+  nested Agent Skill and conflicting-extension cases.
+- Verification: `cargo test --package frontmatter-validator` passed 26 tests; nightly Rust
+  `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
+  warnings` passed.
