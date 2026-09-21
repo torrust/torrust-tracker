@@ -15,16 +15,15 @@ semantic-links:
     - create-issue
     - process-pr-review
   related-artifacts:
-    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
-    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
+    - "issue #2003"
+    - "issue #2219"
+    - "issue #2233"
     - docs/pr-reviews/pr-2270-review/review-retrospective.md
     - docs/pr-reviews/pr-2271-review/review-retrospective.md
     - docs/pr-reviews/pr-2272-review/review-retrospective.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
     - docs/templates/PR-REVIEW-TEMPLATE.md
-    - docs/issues/closed/2233-2003-tune-unified-pr-review-process/tiered-model-routing-design.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs
 ---
 
@@ -183,7 +182,7 @@ Use a Conventional Commit subject with the narrow affected scope and sign every 
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -213,7 +212,7 @@ Define verification before implementation starts and execute it before closing t
 
 - Focused validator/helper fixture tests, including accepted and rejected audit relationships.
 - The existing review-report contract test when its protected artifacts change:
-  `contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`.
+  `cargo run --quiet --package agent-review-report-contract`.
 - `linter all`.
 - Applicable pre-push checks.
 
