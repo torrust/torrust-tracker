@@ -83,6 +83,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F43 | `review-finding:pr-2271-f43` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 | F44 | `review-finding:pr-2271-f44` | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | RESOLVED |
 | F45 | `review-finding:pr-2271-f45` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F46 | `review-finding:pr-2271-f46` | Human | Major | correctness | RE_RAISE_OF:F41 | FIXED | OPEN |
 
 ## Finding Details
 
@@ -505,7 +506,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056680543>
 - Concern: Detail entries omitted the fields needed to distinguish an inapplicable follow-up URL from a missing one.
 - Solution: Required a Follow-up PR URL line in every detail entry and used `N/A` where it does not apply.
-- Current-tree verification: This audit has 40 Follow-up PR URL fields, one for each detail entry.
+- Current-tree verification: `grep -c '^- Follow-up PR URL:'` equals `grep -c '^### F'` over this audit.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883022>
@@ -570,7 +571,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056794589>
 - Concern: Several settled rows retained false current-tree claims.
 - Solution: Re-derived the claims and replaced them with current, scoped verification.
-- Current-tree verification: Every Current-tree verification line was re-derived at the round-six head.
+- Current-tree verification: The F12, F13, F19, F20, and F22 lines named in the concern were re-derived at the
+  round-five head; F41 and F46 cover later re-derivations.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round five`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056883018>
@@ -622,7 +624,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4056934606>
 - Concern: Nine Current-tree verification lines were false at the round-five head; two replaced true text.
 - Solution: Re-derived each of the nine lines from the tree and rewrote them to state only what the bytes show.
-- Current-tree verification: F9, F12, F13, F20, F24, F26, F27, F36, and F37 verifications match the tree at this head.
+- Current-tree verification: F9, F12, F13, F20, F24, F26, F27, and F36 verifications match the tree; F37 was
+  narrowed under F46.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round six`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950896>
@@ -679,6 +682,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4057950898>
 
+### F46 - Keep self-referential claims count-independent
+
+- PR number: 2271
+- Source review ID: 5263382878
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4059543419>
+- Concern: F32 stated a stale entry count and F37/F41 stated universals that the stale count falsified.
+- Solution: Replaced the count with an equality check and narrowed both universals to the entries actually checked.
+- Current-tree verification: F32 names a check that holds at any row count; F37 and F41 name only entries verified here.
+- Resolution reference: `docs(pr-reviews): address PR #2271 review round seven`
+- Follow-up PR URL: N/A
+- Reply URL: N/A; reply pending.
+
 ## Processing Log
 
 - 2026-09-19 08:09 UTC - Committed `fix(docs): address late PR #2269 findings`.
@@ -716,6 +732,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 20:04 UTC - Pushed `docs(pr-reviews): address PR #2271 review round six`.
 - 2026-09-20 20:06 UTC - Replied to and resolved findings F41-F45.
 - 2026-09-20 20:10 UTC - Committed `docs(pr-reviews): record PR #2271 round six replies`.
+- 2026-09-21 05:47 UTC - Human review 5263382878 submitted finding F46.
+- 2026-09-21 08:00 UTC - Committed `docs(pr-reviews): address PR #2271 review round seven`.
 
 ## Completion Rules
 
