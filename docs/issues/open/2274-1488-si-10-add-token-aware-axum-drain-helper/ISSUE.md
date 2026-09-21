@@ -6,9 +6,9 @@ priority: p1
 epic: 1488
 github-issue: 2274
 spec-path: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
-branch: "2274-1488-si-10-add-token-aware-axum-drain-helper-spec"
+branch: "2274-1488-si-10-add-token-aware-axum-drain-helper"
 related-pr: 2275
-last-updated-utc: 2026-09-21 16:17
+last-updated-utc: 2026-09-21 16:34
 semantic-links:
   skill-links:
     - create-issue
@@ -154,7 +154,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - [x] Folder-style specification drafted in `docs/issues/drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md`
 - [x] Specification reviewed and approved by user/maintainer
 - [x] GitHub issue #2274 created and issue number added to this specification
-- [ ] Recommended spec-only PR merged into `develop` before implementation
+- [x] Recommended spec-only PR #2275 merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -173,6 +173,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 15:45 UTC - Committer - Verified branch-to-spec mapping and intended documentation-only commit scope; pre-commit hook is installed and will run during the signed commit.
 - 2026-09-21 15:51 UTC - GitHub Copilot - Opened spec-only PR [#2275](https://github.com/torrust/torrust-tracker/pull/2275) targeting `develop` from this branch with `Related to #2274`; awaiting review and merge before implementation.
 - 2026-09-21 16:17 UTC - GitHub Copilot - Addressed Copilot review findings in PR #2275: defined `drain_timeout` as a post-cancellation budget and repaired all discovered stable shutdown-issue references; recorded the review report before replying and resolving threads.
+- 2026-09-21 16:34 UTC - GitHub Copilot - Confirmed spec-only PR #2275 merged as `a720aef8`; created the reserved implementation branch `2274-1488-si-10-add-token-aware-axum-drain-helper` from merged `develop`. Prerequisite #2234 is closed, so T1 is unblocked.
 
 ## Acceptance Criteria
 
