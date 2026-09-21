@@ -109,13 +109,22 @@ fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
 }
 
 fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic> {
+    let metadata_key = Value::String(String::from("metadata"));
+    if let Some(metadata) = values.get(&metadata_key).and_then(Value::as_mapping) {
+        return semantic_links_from(metadata, "metadata.semantic-links");
+    }
+
+    semantic_links_from(values, "semantic-links")
+}
+
+fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<SemanticLinks>, Diagnostic> {
     let key = Value::String(String::from("semantic-links"));
     let Some(value) = values.get(&key) else {
         return Ok(None);
     };
     let semantic_links = serde_yaml::from_value::<SemanticLinks>(value.clone()).map_err(|error| Diagnostic {
         category: DiagnosticCategory::InvalidSemanticLinks,
-        message: format!("`semantic-links` must be a mapping with string sequences: {error}"),
+        message: format!("`{field_path}` must be a mapping with string sequences: {error}"),
     })?;
 
     Ok(Some(semantic_links))
@@ -233,6 +242,42 @@ mod tests {
     }
 
     #[test]
+    fn it_should_read_semantic_links_from_external_metadata() {
+        // Arrange: an externally governed document provides semantic links under metadata.
+        let markdown = "---\nname: write-markdown-docs\nmetadata:\n  semantic-links:\n    skill-links:\n      - write-markdown-docs\n---\n# Skill\n";
+
+        // Act: extract the external-document envelope.
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Assert: the nested extension is parsed without interpreting external top-level fields.
+        assert_eq!(
+            frontmatter.semantic_links,
+            Some(SemanticLinks {
+                skill_links: Some(vec![String::from("write-markdown-docs")]),
+                related_artifacts: None,
+            })
+        );
+    }
+
+    #[test]
+    fn it_should_ignore_top_level_semantic_links_when_external_metadata_exists() {
+        // Arrange: an external document carries conflicting top-level and nested extensions.
+        let markdown = "---\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
+
+        // Act: extract the external-document envelope.
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Assert: only the nested externally owned extension determines v1 semantics.
+        assert_eq!(
+            frontmatter.semantic_links,
+            Some(SemanticLinks {
+                skill_links: None,
+                related_artifacts: Some(vec![String::from("docs/AGENTS.md")]),
+            })
+        );
+    }
+
+    #[test]
     fn it_should_classify_the_accepted_issue_fixture_as_a_strict_issue_profile() {
         // Arrange: the predecessor's accepted issue fixture declares schema version one.
         let markdown = include_str!(
@@ -347,6 +392,32 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_an_impossible_strict_timestamp() {
+        // Arrange: a v1 EPIC record has syntactically shaped but impossible calendar and clock values.
+        let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-99-99 99:99\"\nsemantic-links: {}\n---\n# EPIC\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict EPIC profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic rejects out-of-range date and time components.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
+    fn it_should_reject_a_traversal_strict_specification_path() {
+        // Arrange: a v1 issue record uses a parent-directory traversal as its specification path.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: ../outside/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict issue profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic requires a repository-relative specification path.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
     fn it_should_reject_a_non_string_document_type_for_a_v1_record() {
         // Arrange: a v1 record supplies an integer instead of a document-type string.
         let markdown = "---\nschema-version: 1\ndoc-type: 2266\n---\n# Invalid record\n";
@@ -397,6 +468,19 @@ mod tests {
         let error = super::profile::validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic reserves typed forms for the approved v1 union.
+        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+    }
+
+    #[test]
+    fn it_should_reject_an_invalid_skill_name() {
+        // Arrange: a strict issue uses uppercase letters in a frozen skill-name reference.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - Write-Markdown-Docs\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the frozen skill-name syntax violation.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
     }
 }

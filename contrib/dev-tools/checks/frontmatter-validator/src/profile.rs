@@ -287,6 +287,8 @@ fn is_repository_relative_path(value: &str) -> bool {
     !value.is_empty()
         && !value.starts_with('/')
         && !value.contains(':')
+        && !value.contains('#')
+        && !value.chars().any(char::is_whitespace)
         && !value.split('/').any(|component| matches!(component, "" | "." | ".."))
 }
 
@@ -322,7 +324,7 @@ fn validate_issue_invariants(issue: &Issue) -> Result<(), Diagnostic> {
     validate_optional_positive_integer("epic", issue.epic)?;
     validate_optional_positive_integer("github-issue", issue.github_issue)?;
     validate_optional_positive_integer("related-pr", issue.related_pr)?;
-    validate_non_empty_string("spec-path", &issue.spec_path)?;
+    validate_repository_relative_path("spec-path", &issue.spec_path)?;
     validate_non_empty_string("branch", &issue.branch)?;
     validate_utc_minute_string(&issue.last_updated_utc)
 }
@@ -330,7 +332,7 @@ fn validate_issue_invariants(issue: &Issue) -> Result<(), Diagnostic> {
 fn validate_epic_invariants(epic: &Epic) -> Result<(), Diagnostic> {
     validate_optional_positive_integer("epic", epic.epic)?;
     validate_optional_positive_integer("github-issue", epic.github_issue)?;
-    validate_non_empty_string("spec-path", &epic.spec_path)?;
+    validate_repository_relative_path("spec-path", &epic.spec_path)?;
     if let Some(owner) = &epic.epic_owner {
         validate_non_empty_string("epic-owner", owner)?;
     }
@@ -353,6 +355,14 @@ fn validate_non_empty_string(field: &str, value: &str) -> Result<(), Diagnostic>
     Ok(())
 }
 
+fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Diagnostic> {
+    if !is_repository_relative_path(value) {
+        return Err(invalid_field_value(format!("`{field}` must be a repository-relative path.")));
+    }
+
+    Ok(())
+}
+
 fn validate_utc_minute_string(value: &str) -> Result<(), Diagnostic> {
     let bytes = value.as_bytes();
     let has_expected_separators = bytes.get(4) == Some(&b'-')
@@ -364,13 +374,34 @@ fn validate_utc_minute_string(value: &str) -> Result<(), Diagnostic> {
         .enumerate()
         .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
         .all(|(_, byte)| byte.is_ascii_digit());
-    if bytes.len() != 16 || !has_expected_separators || !has_ascii_digits {
+    if bytes.len() != 16 || !has_expected_separators || !has_ascii_digits || !is_valid_utc_minute(value) {
         return Err(invalid_field_value(String::from(
             "`last-updated-utc` must use the YYYY-MM-DD HH:MM UTC-minute format.",
         )));
     }
 
     Ok(())
+}
+
+fn is_valid_utc_minute(value: &str) -> bool {
+    let year = value[0..4].parse::<u16>().expect("timestamp digits were checked first");
+    let month = value[5..7].parse::<u8>().expect("timestamp digits were checked first");
+    let day = value[8..10].parse::<u8>().expect("timestamp digits were checked first");
+    let hour = value[11..13].parse::<u8>().expect("timestamp digits were checked first");
+    let minute = value[14..16].parse::<u8>().expect("timestamp digits were checked first");
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => return false,
+    };
+
+    (1..=days_in_month).contains(&day) && hour < 24 && minute < 60
+}
+
+const fn is_leap_year(year: u16) -> bool {
+    year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400))
 }
 
 const fn invalid_field_value(message: String) -> Diagnostic {

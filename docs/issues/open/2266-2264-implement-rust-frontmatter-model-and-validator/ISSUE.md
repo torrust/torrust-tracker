@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 18:50"
+last-updated-utc: "2026-09-21 19:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -258,6 +258,16 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   one profile or category. Focused validation passed: `cargo test --package frontmatter-validator`,
   nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
   frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 19:55 UTC - GitHub Copilot - Repaired the independent task review findings: strict
+  timestamps now validate calendar and clock ranges; strict `spec-path` values must be
+  repository-relative without traversal; Agent Skill/agent-profile metadata reads only nested
+  `metadata.semantic-links` and ignores a top-level extension when both exist. Added direct
+  regression cases for these boundaries and invalid skill-name syntax. The prose-first AAA review
+  found each regression isolates its causal frontmatter value, invokes extraction/profile validation
+  directly, and asserts one category or parsed envelope. Focused validation passed: `cargo test
+  --package frontmatter-validator` (25 tests), nightly Rust `cargo +nightly fmt --all -- --check`,
+  and `cargo clippy --package frontmatter-validator -- -D warnings` -
   `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
