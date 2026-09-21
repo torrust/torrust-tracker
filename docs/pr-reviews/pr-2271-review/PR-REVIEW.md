@@ -736,6 +736,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-21 08:00 UTC - Committed `docs(pr-reviews): address PR #2271 review round seven`.
 - 2026-09-21 08:01 UTC - Replied to and resolved finding F46.
 - 2026-09-21 08:03 UTC - Committed `docs(pr-reviews): record PR #2271 round seven reply`.
+- 2026-09-21 12:38 UTC - Committed `docs(templates): add PR review retrospective template`.
+- 2026-09-21 12:39 UTC - Committed `docs(pr-reviews): add PR #2271 review retrospective`.
+- 2026-09-21 12:41 UTC - Committed `docs(pr-reviews): log PR #2271 retrospective commits`.
 
 ## Completion Rules
 
