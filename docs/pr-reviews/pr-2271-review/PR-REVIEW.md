@@ -83,7 +83,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F43 | `review-finding:pr-2271-f43` | Human | Nit | formatting | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 | F44 | `review-finding:pr-2271-f44` | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | RESOLVED |
 | F45 | `review-finding:pr-2271-f45` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F46 | `review-finding:pr-2271-f46` | Human | Major | correctness | RE_RAISE_OF:F41 | FIXED | OPEN |
+| F46 | `review-finding:pr-2271-f46` | Human | Major | correctness | RE_RAISE_OF:F41 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -693,7 +693,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: F32 names a check that holds at any row count; F37 and F41 name only entries verified here.
 - Resolution reference: `docs(pr-reviews): address PR #2271 review round seven`
 - Follow-up PR URL: N/A
-- Reply URL: N/A; reply pending.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2271#discussion_r4060233585>
 
 ## Processing Log
 
@@ -734,6 +734,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 20:10 UTC - Committed `docs(pr-reviews): record PR #2271 round six replies`.
 - 2026-09-21 05:47 UTC - Human review 5263382878 submitted finding F46.
 - 2026-09-21 08:00 UTC - Committed `docs(pr-reviews): address PR #2271 review round seven`.
+- 2026-09-21 08:01 UTC - Replied to and resolved finding F46.
+- 2026-09-21 08:03 UTC - Committed `docs(pr-reviews): record PR #2271 round seven reply`.
 
 ## Completion Rules
 
