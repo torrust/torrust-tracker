@@ -8,7 +8,7 @@ github-issue: 2274
 spec-path: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
 branch: "2274-1488-si-10-add-token-aware-axum-drain-helper-spec"
 related-pr: 2275
-last-updated-utc: 2026-09-21 15:51
+last-updated-utc: 2026-09-21 16:17
 semantic-links:
   skill-links:
     - create-issue
@@ -62,7 +62,7 @@ server task reports completion.
 
 - Add a token-aware helper beside the existing helper.
 - Accept an injected `CancellationToken`, Axum `Handle`, address, message, and
-  a deadline/budget input suitable for later Q4 configuration.
+  a post-cancellation drain-timeout budget suitable for later Q4 configuration.
 - Have the helper await token cancellation, request Axum graceful shutdown, and
   return a typed result that distinguishes drained versus deadline-reached.
 - Make the helper usable as a future that a server task can await or spawn and
@@ -92,10 +92,10 @@ server task reports completion.
 | --- | --- |
 | Application and `JobManager` | Own root cancellation and top-level component futures. They never receive the helper's nested task handle. |
 | Migrating server component (SI-11 through SI-13) | Own the helper future or its retained `JoinHandle`, coordinate it with the server future, and await it before reporting component completion. |
-| Token-aware drain helper | Wait for the injected token, request `Handle::graceful_shutdown`, wait until connections drain or the supplied absolute deadline expires, then return the typed outcome. It spawns no task. |
+| Token-aware drain helper | Wait for the injected token, request `Handle::graceful_shutdown`, then start the supplied post-cancellation drain timeout and wait until connections drain or that timeout expires. Return the typed outcome without spawning a task. |
 | Axum `Handle` | Performs graceful connection draining after the helper requests it. |
 
-Normal path invariant: a component awaits its drain future after cancellation and does not complete while it still owns that future. Failure and drop-path invariant: a component joins or deliberately aborts and records its retained child before returning; it never leaks a detached drain controller. The supplied deadline must bound the helper's post-cancellation drain wait. The first passing vertical slice requires a design review confirming this API and ownership map remain accurate.
+Normal path invariant: a component awaits its drain future after cancellation and does not complete while it still owns that future. Failure and drop-path invariant: a component joins or deliberately aborts and records its retained child before returning; it never leaks a detached drain controller. `drain_timeout` bounds only the wait after cancellation is observed and `Handle::graceful_shutdown` is requested. The first passing vertical slice requires a design review confirming this API and ownership map remain accurate.
 
 ## Bug-Fix Process
 
@@ -116,7 +116,7 @@ pub async fn graceful_shutdown_on_cancellation(
     cancellation_token: CancellationToken,
     message: String,
     address: SocketAddr,
-    deadline: Duration,
+    drain_timeout: Duration,
 ) -> GracefulShutdownOutcome
 ```
 
@@ -132,8 +132,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Establish helper contract | Inspect existing helper and Axum handle behavior; finalize public input and typed outcome without changing the legacy API. |
-| T2 | TODO | Implement token-aware drain helper | Add the awaitable helper with an injected token and supplied deadline; do not spawn an unowned task. |
-| T3 | TODO | Add deterministic helper tests | Cover no drain before cancellation, successful drain, and deadline outcome without OS signals; apply the `write-unit-test` workflow and record the test-design review. |
+| T2 | TODO | Implement token-aware drain helper | Add the awaitable helper with an injected token and supplied post-cancellation drain timeout; do not spawn an unowned task. |
+| T3 | TODO | Add deterministic helper tests | Cover no drain before cancellation, successful drain, and post-cancellation timeout outcome without OS signals; apply the `write-unit-test` workflow and record the test-design review. |
 | T4 | TODO | Verify legacy compatibility | Run unchanged focused tests for Axum HTTP, REST API, and health-check consumers; confirm their call sites remain unchanged. |
 | T5 | TODO | Perform completion review | Complete automated and manual verification, re-review acceptance criteria, and record implementation-retrospective decision. |
 
@@ -161,7 +161,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers receive this folder-style specification
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers receive this folder-style specification
 - [x] Committer verified specification progress is up to date before commit
 - [ ] Issue closed and specification moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -172,6 +172,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 15:44 UTC - GitHub Copilot - Created the documentation-only branch `2274-1488-si-10-add-token-aware-axum-drain-helper-spec`; preparing the required pre-commit gate and spec-only pull request.
 - 2026-09-21 15:45 UTC - Committer - Verified branch-to-spec mapping and intended documentation-only commit scope; pre-commit hook is installed and will run during the signed commit.
 - 2026-09-21 15:51 UTC - GitHub Copilot - Opened spec-only PR [#2275](https://github.com/torrust/torrust-tracker/pull/2275) targeting `develop` from this branch with `Related to #2274`; awaiting review and merge before implementation.
+- 2026-09-21 16:17 UTC - GitHub Copilot - Addressed Copilot review findings in PR #2275: defined `drain_timeout` as a post-cancellation budget and repaired all discovered stable shutdown-issue references; recorded the review report before replying and resolving threads.
 
 ## Acceptance Criteria
 
@@ -181,11 +182,11 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - [ ] The helper starts `Handle::graceful_shutdown` only after token
       cancellation.
 - [ ] The helper returns an outcome that distinguishes all connections drained
-      from the drain deadline reached.
+  from the post-cancellation drain timeout reached.
 - [ ] The helper does not create an unowned task. Its caller can await it or
       retain its join handle.
 - [ ] Deterministic tests cancel an injected token and cover both drained and
-      deadline outcomes without OS signals.
+  post-cancellation timeout outcomes without OS signals.
 - [ ] Existing HTTP tracker, REST API, and health-check server tests still pass
       unchanged against the legacy helper.
 - [ ] `linter all` passes.
@@ -207,9 +208,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Inspect helper ownership | Review the implemented helper and its caller-side use; confirm it takes `CancellationToken`, has a deadline input, returns a typed outcome, and contains no detached `tokio::spawn`. | The component can await or retain every drain task it owns. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Exercise graceful drain | Start a representative Axum server using the new helper, establish an in-flight connection, cancel its token, then observe the connection finish before the supplied deadline. | New connections stop, the in-flight connection drains, and the helper returns the drained outcome. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Exercise deadline outcome | Repeat M2 with a connection that remains active past a deliberately small supplied deadline. | The helper returns the deadline-reached outcome without an OS signal. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Inspect helper ownership | Review the implemented helper and its caller-side use; confirm it takes `CancellationToken` and `drain_timeout`, returns a typed outcome, and contains no detached `tokio::spawn`. | The component can await or retain every drain task it owns, and the timeout starts only after cancellation. | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Exercise graceful drain | Start a representative Axum server using the new helper, establish an in-flight connection, cancel its token, then observe the connection finish before `drain_timeout` elapses. | New connections stop, the in-flight connection drains, and the helper returns the drained outcome. | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Exercise timeout outcome | Repeat M2 with a connection that remains active past a deliberately small `drain_timeout`. | The helper returns the timeout outcome without an OS signal. | TODO | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory. Create `manual-verification-evidence.md` from the repository template when executing these scenarios and record actual commands, toolchain/runtime, output, relevant logs, and results. Record any failed scenario and diagnosis in the progress log before proceeding.
 
@@ -224,14 +225,14 @@ None planned. The behaviors belong in maintained Rust tests; manual scenarios us
 | Existing legacy helper unchanged | TODO | Focused consumer tests and source review |
 | Token-aware injected cancellation | TODO | `axum-server` unit tests and V1 |
 | Graceful drain begins on cancellation | TODO | `axum-server` unit tests and V2 |
-| Distinct drained and deadline outcomes | TODO | `axum-server` unit tests and V2-V3 |
+| Distinct drained and timeout outcomes | TODO | `axum-server` unit tests and V2-V3 |
 | No unowned helper task | TODO | Source review and V1 |
 | Linter passes | TODO | `linter all` output |
 
 ## Risks and Trade-offs
 
 - Axum `Handle` behavior may make fully deterministic drain tests difficult. Mitigation: isolate the outcome policy in a testable helper boundary and use local server tests only for the real handle interaction.
-- Prematurely selecting production timeout values would couple this helper to SI-20 policy work. Mitigation: accept a caller-provided budget and defer configuration defaults.
+- Prematurely selecting production timeout values would couple this helper to SI-20 policy work. Mitigation: accept a caller-provided post-cancellation timeout and defer configuration defaults.
 - A convenience API that spawns internally would obscure lifecycle ownership. Mitigation: expose an awaitable future and make retained handle ownership explicit in the later consumer migrations.
 
 ## Implementation Completion Review
