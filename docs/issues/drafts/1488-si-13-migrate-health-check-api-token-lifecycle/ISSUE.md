@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-21 16:18
 semantic-links:
   skill-links:
     - create-issue
@@ -20,8 +20,8 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md
-      - docs/issues/drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
+    - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
+    - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

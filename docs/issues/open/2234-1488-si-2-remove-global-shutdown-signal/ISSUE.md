@@ -8,7 +8,7 @@ github-issue: 2234
 spec-path: docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
 branch: "2234-1488-si-2-token-server-lifecycle"
 related-pr: null
-last-updated-utc: 2026-09-16 09:30
+last-updated-utc: 2026-09-21 15:38
 semantic-links:
   skill-links:
     - create-issue
@@ -213,4 +213,4 @@ After implementation, compare the release and tracker adoption with this specifi
 - Parent EPIC: [#1488](https://github.com/torrust/torrust-tracker/issues/1488)
 - Closed foundations: [#1586](https://github.com/torrust/torrust-tracker/issues/1586), [#1588](https://github.com/torrust/torrust-tracker/issues/1588), [#2169](https://github.com/torrust/torrust-tracker/issues/2169), and [#2221](https://github.com/torrust/torrust-tracker/issues/2221)
 - Server-lib repository: [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib) (local clone: `../torrust-server-lib` relative to this workspace's parent directory)
-- Next roadmap item consuming this API: SI-10, [joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)
+- Next roadmap item consuming this API: [#2274](https://github.com/torrust/torrust-tracker/issues/2274), [joinable Axum drain helper](../2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)
