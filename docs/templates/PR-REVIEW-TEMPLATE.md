@@ -19,11 +19,15 @@ Source: pull-request reviews and inline review threads for <PR_URL>.
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
+- Post-merge workflow approval: <DURABLE_GITHUB_COMMENT_URL_OR_NA>
+
 ## Status Values
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
-- Thread state: `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
@@ -68,11 +72,13 @@ readable as prose; this section carries the source metadata and verification evi
 
 - PR number: <PR_NUMBER>
 - Source review ID: <REVIEW_ID>
+- Reviewer finding ID: <OPTIONAL_ORIGINAL_FINDING_ID_WHEN_REASSIGNED>
 - Source URL: <SOURCE_URL>
 - Concern: <WHAT_THE_REVIEWER_REPORTED>
 - Solution: <WHAT_WAS_DONE_AND_WHY_OR_WHY_NOT>
 - Current-tree verification: <COMMAND_OR_INSPECTION_AND_RESULT>
 - Resolution reference: <UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL>
+- Follow-up PR URL: <DURABLE_FOLLOW_UP_PR_URL_OR_NA>
 - Reply URL: <REPLY_URL_OR_NA>
 
 ## Processing Log

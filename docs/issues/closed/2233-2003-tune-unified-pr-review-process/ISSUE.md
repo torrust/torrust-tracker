@@ -171,8 +171,9 @@ commit with GPG and use a Conventional Commit subject with the narrow affected s
   `code-span-path-case-inventory.tsv` with all observed non-resolving Markdown code-span path
   cases, grouped for later policy analysis.
 - 2026-09-16 13:13 UTC - Copilot - Created draft EPIC
-  `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` and deferred strict T2 path
-  validation to that broader frontmatter, semantic-link, and path-reference convention design.
+  `docs/issues/drafts/refactor-semantic-link-conventions/EPIC.md` (now EPIC #2264) and deferred
+  strict T2 path validation to that broader frontmatter, semantic-link, and path-reference
+  convention design.
 - 2026-09-16 14:28 UTC - Copilot - Added retirement-obligation and rename-purity rules to
   `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, completing T3 and T4.
 - 2026-09-16 14:48 UTC - Copilot - Added `tiered-model-routing-design.md`, completing the T5

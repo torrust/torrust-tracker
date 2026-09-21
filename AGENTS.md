@@ -233,6 +233,14 @@ When acting as an assistant in this repository:
 - Push back when a request, diff, or proposed commit looks wrong.
 - Flag unclear but important points before they become problems.
 - Ask a clarifying question instead of making a random choice when the decision matters.
+- Before starting a task or process that has no documented repository workflow and no verified
+  repository precedent, stop after read-only investigation, identify the gap, and ask the
+  maintainer for explicit approval of the proposed process. Do not create a branch, edit files,
+  commit, push, open or modify GitHub artifacts, reply to reviews, or resolve threads before that
+  approval. A request for an outcome is not approval to invent an undocumented process unless the
+  maintainer explicitly acknowledges the gap and authorizes the proposed workflow. When the new
+  process proves reusable, document it in the owning skill and update affected adapters in the same
+  work or an explicitly approved follow-up.
 - Call out likely misses: naming inconsistencies, accidental generated files,
   staged-versus-unstaged mismatches, missing docs updates, or suspicious commit scope.
 
@@ -286,20 +294,21 @@ Implementation workflow references:
    commit manually or have the agent rerun the same signed command while they enter the
    passphrase directly in the terminal prompt. Never retry automatically, request or handle the
    passphrase in chat, bypass GPG signing with `--no-gpg-sign`, or skip the signing step under
-   any circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
+   any circumstances. This rule is absolute.
+3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
    artifacts. They are git-ignored; never force-add them.
-3. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
+4. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
    dependencies immediately.
-4. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
+5. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
    internal crate). Prefer short imported names over fully-qualified paths.
-5. **Continuous self-review**: Review your own work against project quality standards. Apply
+6. **Continuous self-review**: Review your own work against project quality standards. Apply
    self-review at three levels:
    - **Mandatory** — before opening a pull request
    - **Strongly recommended** — before each commit
    - **Recommended** — after completing each small, independent, deployable change
-6. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
+7. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
    email to `info@nautilus-cyberneering.de` instead. See [SECURITY.md](SECURITY.md).
-7. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
+8. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
    also review and update the linked skill instructions in `.github/skills/` so behavior,
    commands, and references remain aligned. If the linked skill has a validation script, run it
    before finishing.
