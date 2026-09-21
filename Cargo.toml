@@ -128,6 +128,7 @@ members = [
   "contrib/dev-tools/analysis/workspace-coupling",
   "contrib/dev-tools/checks/agent-review-report-contract",
   "contrib/dev-tools/checks/clippy-allow-reasons",
+  "contrib/dev-tools/checks/frontmatter-validator",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
   "packages/rest-api-application",

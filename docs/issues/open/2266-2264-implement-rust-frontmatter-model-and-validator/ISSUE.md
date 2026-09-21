@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 17:40"
+last-updated-utc: "2026-09-21 18:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,7 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Confirm predecessor contract | Use the approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, and `frontmatter-fixtures/` from issue #2265 as the implementation input and compatibility baseline. |
 | T2 | DONE | Select the replaceable integration point | Maintainer approved a non-published `contrib/dev-tools/checks/frontmatter-validator` crate, invoked through `cargo run --package` like `clippy-allow-reasons`; it owns explicit-path, `--staged`, and whole-tree modes and remains replaceable under #2003. Use current compatible `serde_yaml` and `schemars` versions after verifying the workspace lockfile and dependency policy. |
-| T3 | TODO | Implement extraction and universal envelope | Parse present frontmatter and report malformed delimiters or YAML, invalid envelope fields, and scalar errors. Missing frontmatter is an error only for a strict profile that requires it. |
+| T3 | DONE | Implement extraction and universal envelope | `frontmatter-validator` parses present mapping frontmatter, validates the closed `semantic-links` mapping shape, and reports stable categories for malformed delimiters, YAML, mapping roots, and envelope fields/scalars. Missing frontmatter remains accepted until a strict profile requires it. |
 | T4 | TODO | Implement strict issue and EPIC profiles | Encode required fields, enums, nullability, cross-field invariants, and prospective versus legacy behavior. |
 | T5 | TODO | Implement provisional references | Parse skill names, repository-relative paths, `issue #<number>`, and `review-finding:` references; keep target-existence checks in the repository-aware layer. |
 | T6 | TODO | Generate the external schema | Generate the predecessor-selected format and dialect from Rust types to a documented tracked path, record unsupported Rust invariants, and add deterministic offline drift verification. |
@@ -223,6 +223,16 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   as the non-published, replaceable implementation crate; it follows the `clippy-allow-reasons`
   `cargo run --package` integration pattern, with current compatible `serde_yaml` and `schemars`
   versions selected under the dependency policy - This specification
+- 2026-09-21 18:05 UTC - GitHub Copilot - Completed T3 in the new non-published crate. The
+  canonical extraction API accepts absent frontmatter, parses present YAML mappings, and rejects
+  unclosed delimiters, malformed YAML, non-mapping roots, and invalid `semantic-links` mapping,
+  sequence, or scalar shapes. `serde_yaml` 0.9.34 is the current compatible crates.io release and
+  supplies exact YAML scalar parsing; the currently locked `schemars` 1.2.2 is deferred until T6,
+  where schema generation is introduced. The prose-first AAA review found each unit test exposes
+  one causal Markdown input, calls the public extraction API directly, and asserts one observable
+  category. Focused validation passed: `cargo test --package frontmatter-validator`, nightly Rust
+  `cargo +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D
+  warnings` - `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
 
