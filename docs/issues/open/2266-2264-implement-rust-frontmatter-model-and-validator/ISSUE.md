@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
 related-pr: 2269
-last-updated-utc: 2026-09-21 16:01
+last-updated-utc: "2026-09-21 16:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
 
 **Parent EPIC:** #2264 - Refactor Semantic Link and Frontmatter Conventions
 
-**Blocked by:** #2265 - Inventory and Resolve Markdown Frontmatter Contracts
+**Predecessor:** [#2265 - Inventory and Resolve Markdown Frontmatter Contracts](../../closed/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md)
 
 ## Goal
 
