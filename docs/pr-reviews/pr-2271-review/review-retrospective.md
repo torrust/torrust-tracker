@@ -113,6 +113,9 @@ Two further costs were structural rather than repeated:
 
 ## Improvements for Future Reviews
 
+Issues for the proposed items will be decided together with other PR review retrospectives,
+not per PR.
+
 1. Add a self-audit pass to `process-pr-review` before requesting re-review: for every row,
    re-run the verification command, confirm the cited commit touches the described path, confirm
    `RE_RAISE_OF` targets exist, and confirm row/detail parity and order —
@@ -120,7 +123,7 @@ Two further costs were structural rather than repeated:
 2. Make `agent-review-report-contract` (or a sibling check) validate audit records: one heading
    each for the fixed sections, `### F<k>` order equal to table order, ten fields per entry,
    audit-local `RE_RAISE_OF` targets, cited commit subjects present on the branch —
-   `contrib/dev-tools/checks/agent-review-report-contract/` — `FOLLOW_UP_ISSUE`.
+   `contrib/dev-tools/checks/agent-review-report-contract/` — `PROPOSED`.
 3. Add a rule to the audit template that `Current-tree verification` names a command or
    inspection whose result is independent of row count — `docs/templates/PR-REVIEW-TEMPLATE.md`
    — `PROPOSED`.

@@ -739,6 +739,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-21 12:38 UTC - Committed `docs(templates): add PR review retrospective template`.
 - 2026-09-21 12:39 UTC - Committed `docs(pr-reviews): add PR #2271 review retrospective`.
 - 2026-09-21 12:41 UTC - Committed `docs(pr-reviews): log PR #2271 retrospective commits`.
+- 2026-09-21 12:50 UTC - Committed `docs(pr-reviews): defer PR #2271 retrospective issues`.
 
 ## Completion Rules
 
