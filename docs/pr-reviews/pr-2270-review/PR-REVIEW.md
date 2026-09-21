@@ -70,11 +70,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F36 | review-finding:pr-2270-f36 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F37 | review-finding:pr-2270-f37 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F38 | review-finding:pr-2270-f38 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F39 | review-finding:pr-2270-f39 | Human | Minor | documentation | RE_RAISE_OF:F26 | FIXED | UNRESOLVED |
-| F40 | review-finding:pr-2270-f40 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | UNRESOLVED |
-| F41 | review-finding:pr-2270-f41 | Human | Minor | documentation | RE_RAISE_OF:F36 | FIXED | UNRESOLVED |
-| F42 | review-finding:pr-2270-f42 | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | UNRESOLVED |
-| F43 | review-finding:pr-2270-f43 | Human | Minor | documentation | RE_RAISE_OF:F27 | FIXED | UNRESOLVED |
+| F39 | review-finding:pr-2270-f39 | Human | Minor | documentation | RE_RAISE_OF:F26 | FIXED | RESOLVED |
+| F40 | review-finding:pr-2270-f40 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | RESOLVED |
+| F41 | review-finding:pr-2270-f41 | Human | Minor | documentation | RE_RAISE_OF:F36 | FIXED | RESOLVED |
+| F42 | review-finding:pr-2270-f42 | Human | Minor | metadata | RE_RAISE_OF:F38 | FIXED | RESOLVED |
+| F43 | review-finding:pr-2270-f43 | Human | Minor | documentation | RE_RAISE_OF:F27 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -516,7 +516,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restamped the audit processing-log entries to the commit that carried each one, corrected the review attribution, and appended this round's entries in order.
 - Current-tree verification: No audit processing-log stamp precedes its carrying commit, and the entries read in chronological order.
 - Resolution reference: `docs(pr-reviews): correct audit log stamps`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4060458951
 
 ### F40 - Add audit row for the round-10 F28 re-raise
 
@@ -528,7 +528,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Replaced every resolution reference with the subject of the commit that introduced the row or fix, verified against `git log develop..HEAD`.
 - Current-tree verification: Every resolution reference subject in this audit exists in `git log develop..HEAD`.
 - Resolution reference: `docs(pr-reviews): correct audit log stamps`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4060459148
 
 ### F41 - Add audit row for the round-10 F31 re-raise
 
@@ -540,7 +540,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored each row's own-thread reply URL, reduced F25/F26 to one URL each, and added F39-F43 for review 5263390710's threads.
 - Current-tree verification: Every discussion-anchored row cites exactly one reply whose `in_reply_to_id` is that row's source comment.
 - Resolution reference: `docs(pr-reviews): correct audit log stamps`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4060459318
 
 ### F42 - Add audit row for the round-10 F34 re-raise
 
@@ -552,7 +552,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Set F37/F38 to review 5260552763 and appended an issue progress correction naming the misattributed entries.
 - Current-tree verification: Every row's `Source review ID` matches the `pull_request_review_id` of its `Source URL`.
 - Resolution reference: `docs(pr-reviews): correct audit log stamps`; `docs(issues): restore progress log history`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4060459515
 
 ### F43 - Add audit row for the round-10 F27 re-raise
 
@@ -564,7 +564,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: Restored the five entries verbatim and appended a dated correction that names each inaccurate stamp and claim.
 - Current-tree verification: The issue progress log matches its pre-rewrite text for every earlier entry and ends with appended correction entries.
 - Resolution reference: `docs(issues): restore progress log history`
-- Reply URL: Pending.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2270#discussion_r4060459702
 
 ## Processing Log
 
@@ -585,6 +585,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-20 19:31 UTC - Normalized review 5260373182 as F33-F36 and review 5260552763 as F37-F38, corrected F31 severity to `Major`, and restored original reply mappings for F25/F26/F28.
 - 2026-09-20 20:06 UTC - Posted finding-specific replies for F26, F28, F31, F33, and F34, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 - 2026-09-21 08:05 UTC - Normalized review 5263390710 as F39-F43 (`RE_RAISE_OF` F26, F28, F36, F38, F27); replaced non-existent resolution references with the subjects that introduced each row or fix; restored own-thread reply URLs; set F37/F38 to review 5260552763; restamped this log to the commit that carried each entry and reordered it chronologically.
+- 2026-09-21 08:38 UTC - Posted finding-specific replies for F39-F43 on their own threads, resolved all remaining threads, and refreshed GraphQL state with zero unresolved threads.
 
 ## Completion Rules
 

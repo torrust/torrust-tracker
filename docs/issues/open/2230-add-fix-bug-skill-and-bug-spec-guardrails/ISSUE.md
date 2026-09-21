@@ -8,7 +8,7 @@ github-issue: 2230
 spec-path: docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/ISSUE.md
 branch: 2230-add-fix-bug-skill-and-bug-spec-guardrails
 related-pr: 2270
-last-updated-utc: 2026-09-21 08:05
+last-updated-utc: 2026-09-21 08:38
 semantic-links:
   skill-links:
     - add-new-skill
@@ -85,7 +85,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Define test-selection and evidence rules | Review finding F13 is resolved: regression red proof follows the `write-unit-test` mutate-then-restore rule. |
 | T3 | DONE | Link issue authoring guidance and template | Review findings F9, F12, F16, F18, and F19 are resolved by parseable frontmatter, canonical references, and validated links. |
 | T4 | DONE | Link the Implementer agent workflow | Review finding F14 is resolved: Implementer preserves the ordered workflow and requires the final like-for-like recheck. |
-| T5 | IN_PROGRESS | Validate the workflow end-to-end | Review 5263390710 re-raised F26, F27, F28, F31, and F34; audit reply mappings, resolution references, source attribution, log stamps, and append-only progress history are being corrected. |
+| T5 | DONE | Validate the workflow end-to-end | Review 5263390710 re-raises F26, F27, F28, F31, and F34 are resolved as audit rows F39-F43; every review thread carries a finding-specific reply on its own thread, all current threads are resolved, and final GraphQL refresh reports zero unresolved threads. |
 
 ## Commit Points
 
@@ -138,6 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-20 20:07 UTC - GitHub Copilot - Completed latest review 5260373182 follow-up: replied to F26, F28, F31, F33, and F34; resolved all remaining threads; recorded F1-F38 in `docs/pr-reviews/pr-2270-review/PR-REVIEW.md`; and final GraphQL refresh reported zero unresolved threads.
 - 2026-09-21 08:05 UTC - GitHub Copilot - Correction naming earlier entries, which are preserved verbatim: the 17:21 entry's zero-unresolved claim was inaccurate because the two review 5256684050 threads opened at 17:19 UTC stayed unresolved until 2026-09-20 08:09 UTC, and the consolidated response was updated at 17:03 UTC; the 09:30, 09:55, 10:20, and 10:55 stamps preceded their events, which occurred at 09:43 (review 5260280755 submitted), 10:06 (replies posted), 10:37 (review 5260373182 submitted), and 11:41 (replies posted); the 10:20 entry's `F31-F32` should read F25, F26, F28, and F31; and the 12:24 and 20:07 entries attribute F33-F34 to review 5260373182, but review 5260552763 raised them.
 - 2026-09-21 08:05 UTC - GitHub Copilot - Reopened T5 after review 5263390710 re-raised F26, F27, F28, F31, and F34 about audit log stamps preceding their commits, in-place progress-log rewrites, non-existent resolution references, off-thread reply URLs, and misattributed source review IDs.
+- 2026-09-21 08:38 UTC - GitHub Copilot - Completed review 5263390710 follow-up: recorded its five threads as audit rows F39-F43, replied on each thread, resolved all remaining threads, and final GraphQL refresh reported zero unresolved threads.
 
 ## Acceptance Criteria
 
