@@ -20,5 +20,10 @@ Create new records from [PR-REVIEW-TEMPLATE.md](../templates/PR-REVIEW-TEMPLATE.
 directory. Process all findings through the
 [`process-pr-review` skill](../../.github/skills/dev/pr-reviews/process-pr-review/SKILL.md).
 
+When the review process itself produced reusable lessons (many rounds, many re-raises, or findings
+about the audit record rather than the change), add a `review-retrospective.md` beside the audit
+from [PR-REVIEW-RETROSPECTIVE.md](../templates/PR-REVIEW-RETROSPECTIVE.md). It is optional and
+not expected for routine reviews.
+
 Historical duplicate source audits for a PR use the `-copilot-suggestions-legacy` directory suffix.
 They preserve completed evidence from before the unified workflow and are not templates for new records.
