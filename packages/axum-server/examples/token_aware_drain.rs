@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
@@ -89,7 +90,7 @@ async fn start_server_with_in_flight_request() -> StartedServer {
 
 async fn start_server<F, Fut>(release_request: Arc<Notify>, handler: F) -> StartedServer
 where
-    F: FnOnce(Arc<Notify>) -> Fut + Clone + Send + Sync + 'static,
+    F: Fn(Arc<Notify>) -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ()> + Send + 'static,
 {
     let handle = Handle::new();
