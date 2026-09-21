@@ -151,7 +151,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | BLOCKED | Confirm predecessor contract | Replace this blocker with links to approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, `frontmatter-fixtures/`, and the maintained compatibility baseline. |
+| T1 | DONE | Confirm predecessor contract | Use the approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, and `frontmatter-fixtures/` from issue #2265 as the implementation input and compatibility baseline. |
 | T2 | TODO | Select the replaceable integration point | Evaluate the `clippy-allow-reasons` precedent first; record package/location, invocation, and staged/whole-tree modes without selecting #2003's long-term architecture. |
 | T3 | TODO | Implement extraction and universal envelope | Parse present frontmatter and report malformed delimiters or YAML, invalid envelope fields, and scalar errors. Missing frontmatter is an error only for a strict profile that requires it. |
 | T4 | TODO | Implement strict issue and EPIC profiles | Encode required fields, enums, nullability, cross-field invariants, and prospective versus legacy behavior. |
@@ -180,7 +180,7 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] Folder-style spec drafted in
       `docs/issues/drafts/implement-rust-frontmatter-model-and-validator/ISSUE.md`
 - [x] Parent EPIC received GitHub issue #2264 and this specification received `epic: 2264`
-- [ ] Predecessor inventory and v1 contract approved
+- [x] Predecessor inventory and v1 contract approved
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2266 created and linked as a sub-issue of #2264
 - [x] Specification folder moved to `docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/`
@@ -210,6 +210,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   https://github.com/torrust/torrust-tracker/pull/2269
 - 2026-09-19 07:58 UTC - GitHub - Merged spec-only PR #2269 into `develop`; this issue remains
   blocked by #2265 - https://github.com/torrust/torrust-tracker/pull/2269
+- 2026-09-19 14:05 UTC - GitHub Copilot - Issue #2265 proposed the inventory, v1 contract, and
+  fixtures; this issue remained blocked pending maintainer approval -
+  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
+- 2026-09-21 14:33 UTC - Jose Celano - Maintainer approved the predecessor inventory, v1 contract,
+  and fixtures; T1 is complete and implementation is unblocked -
+  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
 
 ## Acceptance Criteria
 

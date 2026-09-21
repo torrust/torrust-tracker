@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p1
 epic: 2264
 github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
 branch: "2265-inventory-markdown-frontmatter-contracts"
 related-pr: 2269
-last-updated-utc: 2026-09-19 08:05
+last-updated-utc: 2026-09-21 14:33
 semantic-links:
   skill-links:
     - create-issue
@@ -134,10 +134,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Inventory producers and normative rules | Mapped producers, normative sources, and consumers in `frontmatter-inventory.md`. |
 | T2 | DONE | Inventory repository usage | Recorded corpus baseline, fields, scalar shapes, document classes, reference forms, and reproducible commands in `frontmatter-inventory.md`. |
 | T3 | DONE | Classify conflicts | Classified prospective, legacy, invalid, and unresolved variants in `frontmatter-inventory.md`. |
-| T4 | TODO | Evaluate OKF v0.2 compatibility | Compare type fields, lifecycle, identity, reserved filenames, frontmatter presence, links, provenance, trust, freshness, versioning, and extension behavior; recommend a concrete disposition. |
-| T5 | TODO | Specify the v1 contract | Create `frontmatter-v1-contract.md` defining the universal envelope, strict issue/EPIC profiles, provisional reference union, unknown-field policy, lifecycle rules, per-location enforcement mode, diagnostic severities, contract versioning, generated schema format/dialect and consumers, and the maintained compatibility baseline. |
-| T6 | TODO | Define implementation fixtures | Create `frontmatter-fixtures/` with accepted and rejected Markdown/YAML examples plus a manifest of expected diagnostic categories for the successor issue. |
-| T7 | TODO | Review handoff | Reconcile the resulting contract with the parent EPIC and obtain maintainer approval before Rust implementation begins. |
+| T4 | DONE | Evaluate OKF v0.2 compatibility | Selected selective field adoption without claiming OKF conformance in `frontmatter-v1-contract.md`. |
+| T5 | DONE | Specify the v1 contract | Defined the universal envelope, strict profiles, compatibility policy, diagnostic severities, versioning, and generated-schema boundary in `frontmatter-v1-contract.md`. |
+| T6 | DONE | Define implementation fixtures | Added accepted and rejected Markdown fixtures plus expected diagnostic categories in `frontmatter-fixtures/`. |
+| T7 | DONE | Review handoff | Reconciled the contract with the parent EPIC; maintainer approved the v1 contract and fixtures on 2026-09-21. |
 
 ## Commit Points
 
@@ -189,6 +189,13 @@ Commits for each independently reviewed change set.
 - 2026-09-19 12:10 UTC - GitHub Copilot - Completed the producer, usage, and conflict inventory;
   retained schema versioning and historical enforcement as contract decisions because current
   evidence establishes no compatible existing choice - `frontmatter-inventory.md`
+- 2026-09-19 14:05 UTC - GitHub Copilot - Proposed explicit v1 opt-in, strict prospective
+  issue/EPIC profiles, advisory historical handling, JSON Schema Draft 2020-12 projection, and
+  selective rather than conformant OKF adoption; added implementation fixtures; maintainer
+  approval pending (T7) - `frontmatter-v1-contract.md`, `frontmatter-fixtures/`
+- 2026-09-21 14:33 UTC - Jose Celano - Approved the v1 contract, document-type coverage, fixtures,
+  selective OKF adoption, and compatibility policy; completed T7 and unblocked issue #2266 -
+  `frontmatter-v1-contract.md`, `frontmatter-fixtures/`
 
 ## Acceptance Criteria
 
@@ -198,20 +205,20 @@ Commits for each independently reviewed change set.
       `related-artifacts` value form is represented in the inventory.
 - [ ] AC3: Observed variations are classified as canonical, accepted legacy, invalid, or unresolved
       with evidence and rationale.
-- [ ] AC4: The approved v1 contract defines the universal envelope and strict prospective issue and
+- [x] AC4: The approved v1 contract defines the universal envelope and strict prospective issue and
       EPIC profiles, including field presence, scalar types, nullability, and allowed values.
-- [ ] AC5: The approved contract defines lifecycle, timestamp, unknown-field, experimental-field,
+- [x] AC5: The approved contract defines lifecycle, timestamp, unknown-field, experimental-field,
       YAML coercion, and historical-document compatibility policies.
-- [ ] AC6: The provisional reference model accepts repository-relative file and directory paths,
+- [x] AC6: The provisional reference model accepts repository-relative file and directory paths,
       `issue #<number>` references, and `review-finding:` references in `related-artifacts`, and
       skill names in `skill-links`, without introducing new reference forms.
-- [ ] AC7: Accepted and rejected fixtures define expected diagnostic categories for the successor
+- [x] AC7: Accepted and rejected fixtures define expected diagnostic categories for the successor
       Rust-model issue.
-- [ ] AC8: The parent EPIC and successor specification are reconciled with the approved findings.
-- [ ] AC9: The OKF v0.2 comparison records whether Torrust adopts a profile, exposes a compatible
+- [x] AC8: The parent EPIC and successor draft are reconciled with the approved findings.
+- [x] AC9: The OKF v0.2 comparison records whether Torrust adopts a profile, exposes a compatible
   projection, selectively adopts fields without conformance, or remains separate, with material
   differences and migration consequences documented.
-- [ ] AC10: The contract states the enforcement mode per document location, the initial severity
+- [x] AC10: The contract states the enforcement mode per document location, the initial severity
   of each diagnostic category, how the contract is versioned, and the generated schema format,
   dialect/version, intended consumers, and expressiveness boundary.
 - [ ] `linter all` exits with code `0`.
@@ -245,11 +252,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1-AC3 | DONE | `frontmatter-inventory.md` and classification sections |
-| AC4-AC6 | TODO | `frontmatter-v1-contract.md` |
-| AC7 | TODO | `frontmatter-fixtures/` and expectation manifest |
-| AC8 | TODO | Updated parent EPIC and successor specification |
-| AC9 | TODO | OKF v0.2 compatibility matrix and recommendation |
-| AC10 | TODO | Enforcement-mode, severity, and versioning sections of the v1 contract |
+| AC4-AC6 | DONE | `frontmatter-v1-contract.md` |
+| AC7 | DONE | `frontmatter-fixtures/` and expectation manifest |
+| AC8 | DONE | Updated parent EPIC and successor draft; maintainer approval recorded in the progress log |
+| AC9 | DONE | OKF v0.2 compatibility matrix and recommendation in `frontmatter-v1-contract.md` |
+| AC10 | DONE | Enforcement-mode, severity, versioning, and schema sections of `frontmatter-v1-contract.md` |
 
 ## Risks and Trade-offs
 
