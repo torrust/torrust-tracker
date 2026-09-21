@@ -3,7 +3,7 @@ doc-type: frontmatter-contract
 status: approved
 github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md
-last-updated-utc: 2026-09-21 14:33
+last-updated-utc: "2026-09-21 14:33"
 semantic-links:
   skill-links:
     - write-markdown-docs
@@ -50,9 +50,12 @@ When present, `skill-links` and `related-artifacts` are sequences of strings. Th
 omitted independently. Other top-level fields are interpreted only by a recognized profile or an
 externally owned schema.
 
-Agent Skill and agent-profile frontmatter remains governed by its external schema. The v1 validator
-may inspect only `metadata.semantic-links` on those files; it must neither require nor reject their
-other top-level keys.
+For repository-owned profiles such as issue and EPIC documents, `semantic-links` is read only from
+the top level. For Agent Skill and agent-profile frontmatter, the external schema remains
+authoritative and the v1 validator reads only `metadata.semantic-links`; it must neither require nor
+reject other top-level keys. If an external document contains both top-level `semantic-links` and
+`metadata.semantic-links`, the validator validates only the nested value, ignores the top-level value
+for v1 semantics, and emits no conflict diagnostic.
 
 ## Scalar Policy
 

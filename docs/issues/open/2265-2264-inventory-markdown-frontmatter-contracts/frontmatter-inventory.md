@@ -3,7 +3,7 @@ doc-type: frontmatter-inventory
 status: completed
 github-issue: 2265
 spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-inventory.md
-last-updated-utc: 2026-09-19 12:10
+last-updated-utc: "2026-09-19 12:10"
 semantic-links:
   skill-links:
     - write-markdown-docs
