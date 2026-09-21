@@ -8,7 +8,7 @@ github-issue: 2274
 spec-path: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
 branch: "2274-1488-si-10-add-token-aware-axum-drain-helper"
 related-pr: 2275
-last-updated-utc: 2026-09-21 16:34
+last-updated-utc: 2026-09-21 17:46
 semantic-links:
   skill-links:
     - create-issue
@@ -84,6 +84,7 @@ server task reports completion.
 - Related ADR: [Supervised cancellation tree](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
 - The new API is additive. The legacy `Halted` helper and its callers remain behaviorally and source compatible until the migration and deprecation subissues are complete.
 - The helper waits for injected cancellation and reports drain completion; it does not subscribe to operating-system signals or create detached tasks.
+- The helper calls `Handle::graceful_shutdown(None)` to start Axum draining. Its `drain_timeout` owns the typed `Drained` versus `TimedOut` outcome, avoiding a race between two equal deadlines; a later component migration owns escalation after `TimedOut`.
 - ADRs to create: None known. Create one if implementation exposes a consequential public lifecycle API or ownership decision not covered by the existing ADR.
 
 ## Design and Ownership Review
@@ -131,9 +132,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Establish helper contract | Inspect existing helper and Axum handle behavior; finalize public input and typed outcome without changing the legacy API. |
-| T2 | TODO | Implement token-aware drain helper | Add the awaitable helper with an injected token and supplied post-cancellation drain timeout; do not spawn an unowned task. |
-| T3 | TODO | Add deterministic helper tests | Cover no drain before cancellation, successful drain, and post-cancellation timeout outcome without OS signals; apply the `write-unit-test` workflow and record the test-design review. |
+| T1 | DONE | Establish helper contract | Added `GracefulShutdownOutcome::{Drained, TimedOut}` and an awaitable injected-token API; the helper owns deadline reporting while Axum drains without its own competing timeout. |
+| T2 | DONE | Implement token-aware drain helper | Added the awaitable helper with an injected token and post-cancellation deadline; it starts graceful drain without spawning a task. |
+| T3 | DONE | Add deterministic helper tests | Added cancellation-to-drained and active-connection timeout tests without OS signals; completed the prose-first test-design review below. |
 | T4 | TODO | Verify legacy compatibility | Run unchanged focused tests for Axum HTTP, REST API, and health-check consumers; confirm their call sites remain unchanged. |
 | T5 | TODO | Perform completion review | Complete automated and manual verification, re-review acceptance criteria, and record implementation-retrospective decision. |
 
@@ -174,6 +175,8 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 15:51 UTC - GitHub Copilot - Opened spec-only PR [#2275](https://github.com/torrust/torrust-tracker/pull/2275) targeting `develop` from this branch with `Related to #2274`; awaiting review and merge before implementation.
 - 2026-09-21 16:17 UTC - GitHub Copilot - Addressed Copilot review findings in PR #2275: defined `drain_timeout` as a post-cancellation budget and repaired all discovered stable shutdown-issue references; recorded the review report before replying and resolving threads.
 - 2026-09-21 16:34 UTC - GitHub Copilot - Confirmed spec-only PR #2275 merged as `a720aef8`; created the reserved implementation branch `2274-1488-si-10-add-token-aware-axum-drain-helper` from merged `develop`. Prerequisite #2234 is closed, so T1 is unblocked.
+- 2026-09-21 17:46 UTC - GitHub Copilot - Completed T1-T3. The additive helper waits for injected cancellation, starts `Handle::graceful_shutdown(None)`, and returns `Drained` or deadline-accurate `TimedOut` without spawning. Promoted existing `tokio-util` 0.7 to runtime dependencies for `CancellationToken`; added existing workspace-resolved `axum` 0.8.9 and Tokio `test-util` only for deterministic collaboration tests. Focused package tests, strict Clippy, rustfmt, and cargo machete passed; complexity audit passed.
+- 2026-09-21 17:46 UTC - GitHub Copilot - T3 prose-first review: the drained test arranges an unbound handle with no active connections and an uncancelled token, cancels the visible token, and asserts the typed drained outcome. The timeout test arranges a named fixture with one in-flight request, cancels the visible token, advances the visible 500 ms timeout, and asserts the task finishes before the one-second status tick with the typed timeout outcome. The fixture hides only listener, router, and client transport mechanics; the causal connection state, Act, and expected outcome remain visible.
 
 ## Acceptance Criteria
 

@@ -4968,6 +4968,7 @@ dependencies = [
 name = "torrust-tracker-axum-server"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "axum-server",
  "camino",
  "futures-util",
