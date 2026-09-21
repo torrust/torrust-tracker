@@ -7,8 +7,8 @@ epic: 1488
 github-issue: 2274
 spec-path: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
 branch: "2274-1488-si-10-add-token-aware-axum-drain-helper-spec"
-related-pr: null
-last-updated-utc: 2026-09-21 15:45
+related-pr: 2275
+last-updated-utc: 2026-09-21 15:51
 semantic-links:
   skill-links:
     - create-issue
@@ -171,6 +171,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 15:37 UTC - GitHub Copilot - Created GitHub issue [#2274](https://github.com/torrust/torrust-tracker/issues/2274) with the `task` label and verified its GitHub sub-issue relationship to EPIC #1488; moved this specification to `open/`.
 - 2026-09-21 15:44 UTC - GitHub Copilot - Created the documentation-only branch `2274-1488-si-10-add-token-aware-axum-drain-helper-spec`; preparing the required pre-commit gate and spec-only pull request.
 - 2026-09-21 15:45 UTC - Committer - Verified branch-to-spec mapping and intended documentation-only commit scope; pre-commit hook is installed and will run during the signed commit.
+- 2026-09-21 15:51 UTC - GitHub Copilot - Opened spec-only PR [#2275](https://github.com/torrust/torrust-tracker/pull/2275) targeting `develop` from this branch with `Related to #2274`; awaiting review and merge before implementation.
 
 ## Acceptance Criteria
 
