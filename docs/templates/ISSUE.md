@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: <task|bug|feature|enhancement>
 status: draft
@@ -8,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/{short-description}/ISSUE.md
 branch: "{issue-number}-{short-description}"
 related-pr: null
-last-updated-utc: YYYY-MM-DD HH:MM
+last-updated-utc: "YYYY-MM-DD HH:MM"
 semantic-links:
   skill-links:
     - create-issue

@@ -1,10 +1,12 @@
 ---
+schema-version: 1
 doc-type: epic
 status: draft
+epic: null
 github-issue: null
 spec-path: docs/issues/drafts/{short-description}/EPIC.md
 epic-owner: null
-last-updated-utc: YYYY-MM-DD HH:MM
+last-updated-utc: "YYYY-MM-DD HH:MM"
 semantic-links:
   skill-links:
     - create-issue

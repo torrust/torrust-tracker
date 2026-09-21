@@ -600,6 +600,12 @@ For each completed subissue, the default completion policy is:
   recorded the merged planning PR and corrected live lifecycle and evidence inconsistencies
 - 2026-09-19 11:26 UTC - GitHub Copilot - Opened approved post-merge follow-up PR #2271 and began
   resolving the late review audit with signed commits and maintainer approval evidence
+- 2026-09-19 14:05 UTC - GitHub Copilot - Issue #2265 proposed the v1 frontmatter contract,
+  fixtures, and selective OKF adoption; issue #2266 stays blocked until the maintainer approves -
+  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md`
+- 2026-09-21 14:33 UTC - Jose Celano - Approved issue #2265's v1 frontmatter contract and fixtures;
+  issue #2266 is unblocked for implementation -
+  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md`
 
 ## Risks and Trade-offs
 
