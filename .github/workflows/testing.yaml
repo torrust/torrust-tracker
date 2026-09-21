@@ -155,6 +155,7 @@ jobs:
     # develop/main/releases and on PRs targeting develop/main.
     # For feature branch pushes and PRs targeting other branches, container.yaml does not
     # run, so this job provides the only E2E coverage. See issue #1854.
+    # The package flag is required because the E2E runner binaries are not in the root package.
     name: Docker E2E
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -210,16 +211,19 @@ jobs:
 
       - id: run-tracker-e2e-tests
         name: Run E2E Tests
-        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml" --tracker-image "torrust-tracker:e2e-local" --skip-build
+        run: >-
+          cargo run -p torrust-tracker-e2e-tools --bin e2e_tests_runner
+          -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
+          --tracker-image "torrust-tracker:e2e-local" --skip-build
 
       - id: run-qbittorrent-e2e-test-sqlite3
         name: Run qBittorrent E2E Test (SQLite)
-        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver sqlite3 --timeout-seconds 600
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver sqlite3 --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-mysql
         name: Run qBittorrent E2E Test (MySQL)
-        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver mysql --timeout-seconds 600
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver mysql --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-postgresql
         name: Run qBittorrent E2E Test (PostgreSQL)
-        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver postgresql --timeout-seconds 600
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver postgresql --timeout-seconds 600
