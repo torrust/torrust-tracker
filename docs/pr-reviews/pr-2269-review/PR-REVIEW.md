@@ -41,8 +41,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | `review-finding:pr-2269-f2` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2269-f3` | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F4 | `review-finding:pr-2269-f4` | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
-| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
-| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F5 | `review-finding:pr-2269-f5` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F6 | `review-finding:pr-2269-f6` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F7 | `review-finding:pr-2269-f7` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2269-f8` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2269-f9` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
@@ -51,22 +51,22 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F12 | `review-finding:pr-2269-f12` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F13 | `review-finding:pr-2269-f13` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2269-f14` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F15 | `review-finding:pr-2269-f15` | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
-| F16 | `review-finding:pr-2269-f16` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F15 | `review-finding:pr-2269-f15` | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F16 | `review-finding:pr-2269-f16` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F17 | `review-finding:pr-2269-f17` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F18 | `review-finding:pr-2269-f18` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| F18 | `review-finding:pr-2269-f18` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F19 | `review-finding:pr-2269-f19` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F20 | `review-finding:pr-2269-f20` | Copilot | Minor | metadata | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
-| F21 | `review-finding:pr-2269-f21` | Copilot | Major | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
-| F22 | `review-finding:pr-2269-f22` | Human | Major | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F23 | `review-finding:pr-2269-f23` | Human | Minor | metadata | RE_RAISE_OF:F18 | FOLLOW_UP | OPEN |
-| F24 | `review-finding:pr-2269-f24` | Human | Minor | metadata | RE_RAISE_OF:F20 | FOLLOW_UP | OPEN |
-| F25 | `review-finding:pr-2269-f25` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F26 | `review-finding:pr-2269-f26` | Human | Minor | correctness | RE_RAISE_OF:F15 | FOLLOW_UP | OPEN |
-| F27 | `review-finding:pr-2269-f27` | Human | Minor | metadata | RE_RAISE_OF:F6 | FOLLOW_UP | OPEN |
-| F28 | `review-finding:pr-2269-f28` | Human | Minor | metadata | RE_RAISE_OF:F16 | FOLLOW_UP | OPEN |
-| F29 | `review-finding:pr-2269-f29` | Human | Suggestion | metadata | ORIGINAL | FOLLOW_UP | OPEN |
-| F30 | `review-finding:pr-2269-f30` | Human | Suggestion | metadata | ORIGINAL | FOLLOW_UP | OPEN |
+| F20 | `review-finding:pr-2269-f20` | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F21 | `review-finding:pr-2269-f21` | Copilot | Major | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F22 | `review-finding:pr-2269-f22` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2269-f23` | Human | Minor | metadata | RE_RAISE_OF:F18 | FIXED | RESOLVED |
+| F24 | `review-finding:pr-2269-f24` | Human | Minor | metadata | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F25 | `review-finding:pr-2269-f25` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F26 | `review-finding:pr-2269-f26` | Human | Minor | correctness | RE_RAISE_OF:F15 | FIXED | RESOLVED |
+| F27 | `review-finding:pr-2269-f27` | Human | Minor | metadata | RE_RAISE_OF:F6 | FIXED | RESOLVED |
+| F28 | `review-finding:pr-2269-f28` | Human | Minor | metadata | RE_RAISE_OF:F16 | FIXED | RESOLVED |
+| F29 | `review-finding:pr-2269-f29` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
+| F30 | `review-finding:pr-2269-f30` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -376,7 +376,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   matching detail entry.
 - Resolution reference: `docs(pr-reviews): complete PR #2269 late review audit`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053066935>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852028>
 
 ### F23 - Align #2266 status with its blocker
 
@@ -389,7 +389,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Frontmatter and all three in-body blocker signals agree.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053066989>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852038>
 
 ### F24 - Complete stable #2003 references
 
@@ -402,7 +402,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Neither frontmatter block contains the #2003 open-spec path.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067048>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852020>
 
 ### F25 - Restore the historical draft path
 
@@ -415,7 +415,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The 2026-09-16 entry names the path created on that date.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067116>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852018>
 
 ### F26 - Correct the GNU timeout evidence
 
@@ -428,7 +428,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The EPIC now agrees with its preserved residual report.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067174>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852035>
 
 ### F27 - Retire `draft EPIC` terminology
 
@@ -441,7 +441,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The retired lifecycle term is absent from the scope item.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067227>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852037>
 
 ### F28 - Retire `successor draft` terminology
 
@@ -454,7 +454,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both locations use the promoted lifecycle term.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067227>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852037>
 
 ### F29 - Use stable issue identities in References
 
@@ -467,7 +467,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Cross-issue References use stable issue numbers.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067256>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852024>
 
 ### F30 - Inventory `epic:` on EPIC profiles
 
@@ -481,7 +481,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: #2265 scope names both examples and the missing documented field.
 - Resolution reference: `fix(docs): address late PR #2269 findings`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2271>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4053067285>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2269#discussion_r4063852027>
 
 ## Processing Log
 
@@ -513,6 +513,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
   left them open pending merge.
 - 2026-09-19 15:56 UTC - Recorded durable maintainer approval at
   https://github.com/torrust/torrust-tracker/issues/2264#issuecomment-5743268485.
+  - 2026-09-21 15:49 UTC - Follow-up PR #2271 merged into `develop` at commit `9fb7bb9f`. Changed
+    the seven non-thread findings F5, F6, F15, F16, F18, F20, and F21 to `FIXED`. Changed the nine
+    threaded findings F22-F30 to `FIXED`; they share eight threads because F27 and F28 share one.
+    Replied to and resolved those eight threads, changing their thread state to `RESOLVED`. GraphQL
+    confirms zero unresolved threads on PR #2269.
 
 ## Completion Rules
 
