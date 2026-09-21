@@ -513,10 +513,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
   left them open pending merge.
 - 2026-09-19 15:56 UTC - Recorded durable maintainer approval at
   https://github.com/torrust/torrust-tracker/issues/2264#issuecomment-5743268485.
-- 2026-09-21 15:49 UTC - Follow-up PR #2271 merged into `develop` at commit `9fb7bb9f`. Changed
-  F5, F6, F15, F16, F18, F20, and F21 to `FIXED` (no thread to resolve; suppressed body findings).
-  Replied to and resolved the eight remaining open threads (F22-F30), changing their disposition
-  to `FIXED` and thread state to `RESOLVED`. GraphQL confirms zero unresolved threads on PR #2269.
+  - 2026-09-21 15:49 UTC - Follow-up PR #2271 merged into `develop` at commit `9fb7bb9f`. Changed
+    the seven non-thread findings F5, F6, F15, F16, F18, F20, and F21 to `FIXED`. Changed the nine
+    threaded findings F22-F30 to `FIXED`; they share eight threads because F27 and F28 share one.
+    Replied to and resolved those eight threads, changing their thread state to `RESOLVED`. GraphQL
+    confirms zero unresolved threads on PR #2269.
 
 ## Completion Rules
 
