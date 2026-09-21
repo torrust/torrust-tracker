@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: planned
+status: in-progress
 priority: p1
 epic: 2264
 github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
-branch: "2264-2003-refactor-semantic-link-conventions-spec"
+branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 16:01"
+last-updated-utc: "2026-09-21 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Confirm predecessor contract | Use the approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, and `frontmatter-fixtures/` from issue #2265 as the implementation input and compatibility baseline. |
-| T2 | TODO | Select the replaceable integration point | Evaluate the `clippy-allow-reasons` precedent first; record package/location, invocation, and staged/whole-tree modes without selecting #2003's long-term architecture. |
+| T2 | DONE | Select the replaceable integration point | Maintainer approved a non-published `contrib/dev-tools/checks/frontmatter-validator` crate, invoked through `cargo run --package` like `clippy-allow-reasons`; it owns explicit-path, `--staged`, and whole-tree modes and remains replaceable under #2003. Use current compatible `serde_yaml` and `schemars` versions after verifying the workspace lockfile and dependency policy. |
 | T3 | TODO | Implement extraction and universal envelope | Parse present frontmatter and report malformed delimiters or YAML, invalid envelope fields, and scalar errors. Missing frontmatter is an error only for a strict profile that requires it. |
 | T4 | TODO | Implement strict issue and EPIC profiles | Encode required fields, enums, nullability, cross-field invariants, and prospective versus legacy behavior. |
 | T5 | TODO | Implement provisional references | Parse skill names, repository-relative paths, `issue #<number>`, and `review-finding:` references; keep target-existence checks in the repository-aware layer. |
@@ -219,6 +219,10 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - 2026-09-21 16:01 UTC - GitHub Copilot - Archived completed predecessor issue #2265; this issue
   remains planned with the archived inventory, contract, and fixtures as its input -
   `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
+- 2026-09-21 17:40 UTC - Jose Celano - Approved `contrib/dev-tools/checks/frontmatter-validator`
+  as the non-published, replaceable implementation crate; it follows the `clippy-allow-reasons`
+  `cargo run --package` integration pattern, with current compatible `serde_yaml` and `schemars`
+  versions selected under the dependency policy - This specification
 
 ## Acceptance Criteria
 
