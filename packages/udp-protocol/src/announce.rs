@@ -11,7 +11,9 @@ use byteorder::{NetworkEndian, WriteBytesExt};
 use zerocopy::byteorder::network_endian::I32;
 use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes};
 
-use super::common::*;
+use super::common::{
+    ConnectionId, InfoHash, Ip, Ipv4AddrBytes, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, ResponsePeer, TransactionId,
+};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(C, packed)]
@@ -32,6 +34,9 @@ pub struct AnnounceRequest {
 }
 
 impl AnnounceRequest {
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_all(self.as_bytes())
     }
@@ -75,6 +80,7 @@ pub enum AnnounceEvent {
 pub struct AnnounceInterval(pub I32);
 
 impl AnnounceInterval {
+    #[must_use]
     pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
@@ -98,14 +104,18 @@ pub struct AnnounceResponse<I: Ip> {
 }
 
 impl<I: Ip> AnnounceResponse<I> {
+    #[must_use]
     pub fn empty() -> Self {
         Self {
             fixed: FromZeros::new_zeroed(),
-            peers: Default::default(),
+            peers: Vec::default(),
         }
     }
 
     #[inline]
+    /// # Errors
+    ///
+    /// Returns an error if the response cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_i32::<NetworkEndian>(1)?;
         bytes.write_all(self.fixed.as_bytes())?;

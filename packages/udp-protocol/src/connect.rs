@@ -20,6 +20,9 @@ pub struct ConnectRequest {
 }
 
 impl ConnectRequest {
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_i64::<NetworkEndian>(PROTOCOL_IDENTIFIER)?;
         bytes.write_i32::<NetworkEndian>(0)?;
@@ -38,6 +41,9 @@ pub struct ConnectResponse {
 
 impl ConnectResponse {
     #[inline]
+    /// # Errors
+    ///
+    /// Returns an error if the response cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_i32::<NetworkEndian>(0)?;
         bytes.write_all(self.as_bytes())?;

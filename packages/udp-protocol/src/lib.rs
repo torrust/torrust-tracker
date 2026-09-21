@@ -9,57 +9,6 @@
     clippy::cast_possible_truncation,
     reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
 )]
-#![allow(
-    clippy::default_trait_access,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::doc_markdown,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-// `FromBytes` derives for transparent wire types expand to empty helper enums.
-// Nightly Clippy reports those generated enums as `empty_enums`; the wire types
-// themselves are inhabited and cannot use the suggested replacement.
-#![allow(
-    clippy::empty_enums,
-    reason = "FromBytes derives expand to empty helper enums for inhabited transparent wire types"
-)]
-#![allow(
-    clippy::explicit_iter_loop,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::legacy_numeric_constants,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::match_same_arms,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::missing_errors_doc,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::missing_panics_doc,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::must_use_candidate,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::needless_pass_by_value,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::semicolon_if_nothing_returned,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
-#![allow(
-    clippy::wildcard_imports,
-    reason = "temporary: #2261 reviews the nonnumeric UDP protocol Clippy baseline"
-)]
 
 pub mod announce;
 pub mod common;

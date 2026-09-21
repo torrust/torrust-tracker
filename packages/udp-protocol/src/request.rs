@@ -13,7 +13,7 @@ use zerocopy::FromBytes;
 use zerocopy::byteorder::network_endian::I32;
 
 use super::announce::AnnounceRequest;
-use super::common::*;
+use super::common::{ConnectionId, InfoHash, TransactionId, read_i32_ne, read_i64_ne};
 use super::connect::{ConnectRequest, PROTOCOL_IDENTIFIER};
 pub use super::scrape::ScrapeRequest;
 
@@ -25,6 +25,9 @@ pub enum Request {
 }
 
 impl Request {
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         match self {
             Self::Connect(r) => r.write_bytes(bytes),
@@ -33,11 +36,18 @@ impl Request {
         }
     }
 
+    /// # Errors
+    ///
+    /// Returns an error if `bytes` does not contain a valid UDP tracker request.
     pub fn parse_bytes(bytes: &[u8], max_scrape_torrents: u8) -> Result<Self, RequestParseError> {
-        let action = bytes
+        let action_bytes = bytes
             .get(8..12)
-            .map(|bytes| I32::from_bytes(bytes.try_into().unwrap()))
             .ok_or_else(|| RequestParseError::unsendable_text("Couldn't parse action"))?;
+        let action = I32::from_bytes(
+            action_bytes
+                .try_into()
+                .map_err(|_| RequestParseError::unsendable_text("Couldn't parse action"))?,
+        );
 
         match action.get() {
             0 => {
@@ -158,6 +168,7 @@ pub enum RequestParseError {
 }
 
 impl RequestParseError {
+    #[must_use]
     pub const fn sendable_text(text: &'static str, connection_id: ConnectionId, transaction_id: TransactionId) -> Self {
         Self::Sendable {
             connection_id,
@@ -165,9 +176,11 @@ impl RequestParseError {
             err: text,
         }
     }
+    #[must_use]
     pub const fn unsendable_io(err: io::Error) -> Self {
         Self::Unsendable { err: Either::Left(err) }
     }
+    #[must_use]
     pub const fn unsendable_text(text: &'static str) -> Self {
         Self::Unsendable {
             err: Either::Right(text),
@@ -183,12 +196,12 @@ mod tests {
 
     use super::*;
     use crate::announce::{AnnounceActionPlaceholder, AnnounceEvent};
+    use crate::common::{Ipv4AddrBytes, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port};
 
     impl quickcheck::Arbitrary for AnnounceEvent {
         fn arbitrary(g: &mut quickcheck::Gen) -> Self {
             match (bool::arbitrary(g), bool::arbitrary(g)) {
-                (false, false) => Self::Started,
-                (true, false) => Self::Started,
+                (_, false) => Self::Started,
                 (false, true) => Self::Completed,
                 (true, true) => Self::None,
             }
@@ -241,16 +254,16 @@ mod tests {
         }
     }
 
-    fn same_after_conversion(request: Request) -> bool {
+    fn same_after_conversion(request: &Request) -> bool {
         let mut buf = Vec::new();
 
         request.write_bytes(&mut buf).unwrap();
         let r2 = Request::parse_bytes(&buf[..], u8::MAX).unwrap();
 
-        let success = request == r2;
+        let success = request == &r2;
 
         if !success {
-            ::pretty_assertions::assert_eq!(request, r2);
+            ::pretty_assertions::assert_eq!(request, &r2);
         }
 
         success
@@ -258,12 +271,12 @@ mod tests {
 
     #[quickcheck]
     fn test_connect_request_convert_identity(request: ConnectRequest) -> bool {
-        same_after_conversion(request.into())
+        same_after_conversion(&request.into())
     }
 
     #[quickcheck]
     fn test_announce_request_convert_identity(request: AnnounceRequest) -> bool {
-        same_after_conversion(request.into())
+        same_after_conversion(&request.into())
     }
 
     #[quickcheck]
@@ -272,7 +285,7 @@ mod tests {
             return TestResult::discard();
         }
 
-        TestResult::from_bool(same_after_conversion(request.into()))
+        TestResult::from_bool(same_after_conversion(&request.into()))
     }
 
     #[test]
@@ -283,7 +296,7 @@ mod tests {
                     let mut request_bytes = ::std::iter::repeat_n(0, num_bytes).collect::<Vec<_>>();
 
                     if let Some(action_bytes) = request_bytes.get_mut(8..12) {
-                        action_bytes.copy_from_slice(&action.to_be_bytes())
+                        action_bytes.copy_from_slice(&action.to_be_bytes());
                     }
 
                     drop(Request::parse_bytes(&request_bytes, max_scrape_torrents));
