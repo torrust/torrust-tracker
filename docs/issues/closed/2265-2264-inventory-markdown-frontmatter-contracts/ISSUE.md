@@ -5,10 +5,10 @@ status: done
 priority: p1
 epic: 2264
 github-issue: 2265
-spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
+spec-path: docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md
 branch: "2265-inventory-markdown-frontmatter-contracts"
-related-pr: 2269
-last-updated-utc: 2026-09-21 14:33
+related-pr: 2273
+last-updated-utc: 2026-09-21 16:01
 semantic-links:
   skill-links:
     - create-issue
@@ -161,13 +161,13 @@ Commits for each independently reviewed change set.
   and open-state metadata plus live references updated
 - [x] Planning/evidence PR #2269 opened and `related-pr` updated
 - [x] Planning/evidence PR #2269 merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed
+- [x] Implementation completed
+- [x] Automatic verification completed
 - [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -196,14 +196,18 @@ Commits for each independently reviewed change set.
 - 2026-09-21 14:33 UTC - Jose Celano - Approved the v1 contract, document-type coverage, fixtures,
   selective OKF adoption, and compatibility policy; completed T7 and unblocked issue #2266 -
   `frontmatter-v1-contract.md`, `frontmatter-fixtures/`
+- 2026-09-21 15:55 UTC - GitHub - Merged implementation PR #2273 into `develop` and automatically
+  closed issue #2265 as completed - https://github.com/torrust/torrust-tracker/pull/2273
+- 2026-09-21 16:01 UTC - GitHub Copilot - Archived this completed specification in
+  `docs/issues/closed/`; manual verification remains unrecorded - This specification
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every current frontmatter producer and normative source is included in a reviewed
+- [x] AC1: Every current frontmatter producer and normative source is included in a reviewed
       responsibility inventory.
-- [ ] AC2: Every tracked Markdown frontmatter field and every current `skill-links` and
+- [x] AC2: Every tracked Markdown frontmatter field and every current `skill-links` and
       `related-artifacts` value form is represented in the inventory.
-- [ ] AC3: Observed variations are classified as canonical, accepted legacy, invalid, or unresolved
+- [x] AC3: Observed variations are classified as canonical, accepted legacy, invalid, or unresolved
       with evidence and rationale.
 - [x] AC4: The approved v1 contract defines the universal envelope and strict prospective issue and
       EPIC profiles, including field presence, scalar types, nullability, and allowed values.
@@ -221,7 +225,7 @@ Commits for each independently reviewed change set.
 - [x] AC10: The contract states the enforcement mode per document location, the initial severity
   of each diagnostic category, how the contract is versioned, and the generated schema format,
   dialect/version, intended consumers, and expressiveness boundary.
-- [ ] `linter all` exits with code `0`.
+- [x] `linter all` exits with code `0`.
 - [ ] Manual verification scenarios are executed and documented in issue-local
       `manual-verification-evidence.md`.
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual results.
