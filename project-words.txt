@@ -206,6 +206,7 @@ debuginfo
 defence
 depgraph
 dfsg
+dispositioned
 distroless
 distros
 dler
@@ -402,10 +403,12 @@ reannounce
 recaches
 recognised
 recompiles
+reconstructable
 recvfrom
 recvspace
 referer
 reflog
+relitigating
 reorganisation
 reorganising
 repomix
