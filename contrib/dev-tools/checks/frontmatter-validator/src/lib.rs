@@ -1,6 +1,7 @@
 //! Markdown frontmatter extraction and universal-envelope validation.
 
-use serde::Deserialize;
+use serde::de::Error as _;
+use serde::{Deserialize, Deserializer};
 use serde_yaml::{Mapping, Value};
 
 pub mod profile;
@@ -20,9 +21,25 @@ pub struct Frontmatter {
 #[serde(rename_all = "kebab-case")]
 pub struct SemanticLinks {
     /// Optional names of repository skills related to this document.
+    #[serde(default, deserialize_with = "deserialize_optional_string_sequence")]
     pub skill_links: Option<Vec<String>>,
     /// Optional typed or repository-relative artifacts related to this document.
+    #[serde(default, deserialize_with = "deserialize_optional_string_sequence")]
     pub related_artifacts: Option<Vec<String>>,
+}
+
+fn deserialize_optional_string_sequence<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Value::deserialize(deserializer)?;
+    let Value::Sequence(_) = value else {
+        return Err(D::Error::custom("expected a sequence of strings"));
+    };
+
+    serde_yaml::from_value::<Vec<String>>(value)
+        .map(Some)
+        .map_err(D::Error::custom)
 }
 
 /// A category for frontmatter extraction or universal-envelope failures.
@@ -122,14 +139,13 @@ fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic>
 
 fn is_externally_governed_document(values: &Mapping) -> bool {
     let metadata_key = Value::String(String::from("metadata"));
-    let has_name = has_string_field(values, "name");
-    let is_agent_skill = has_name && values.get(&metadata_key).is_some_and(Value::is_mapping);
-    let is_agent_profile = has_name
-        && has_string_field(values, "description")
+    let is_external_schema = has_string_field(values, "name") && has_string_field(values, "description");
+    let is_agent_skill = is_external_schema && values.get(&metadata_key).is_some_and(Value::is_mapping);
+    let is_agent_profile = is_external_schema
         && (values.contains_key(Value::String(String::from("tools")))
             || values.contains_key(Value::String(String::from("argument-hint"))));
 
-    is_agent_skill || is_agent_profile
+    is_external_schema || is_agent_skill || is_agent_profile
 }
 
 fn has_string_field(values: &Mapping, field: &str) -> bool {
@@ -237,6 +253,18 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_a_null_semantic_link_sequence() {
+        // Arrange: a universal extension explicitly sets a link sequence to YAML null.
+        let markdown = "---\nsemantic-links:\n  skill-links: null\n---\n# Document\n";
+
+        // Act: attempt to extract the frontmatter.
+        let error = extract(markdown).unwrap_err();
+
+        // Assert: present universal link fields must be string sequences, not nulls.
+        assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
+    }
+
+    #[test]
     fn it_should_reject_a_scalar_semantic_links_value() {
         // Arrange: the universal extension is a scalar instead of its required mapping.
         let markdown = "---\nsemantic-links: write-markdown-docs\n---\n# Document\n";
@@ -263,7 +291,7 @@ mod tests {
     #[test]
     fn it_should_read_semantic_links_from_external_metadata() {
         // Arrange: an externally governed document provides semantic links under metadata.
-        let markdown = "---\nname: write-markdown-docs\nmetadata:\n  semantic-links:\n    skill-links:\n      - write-markdown-docs\n---\n# Skill\n";
+        let markdown = "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nmetadata:\n  semantic-links:\n    skill-links:\n      - write-markdown-docs\n---\n# Skill\n";
 
         // Act: extract the external-document envelope.
         let frontmatter = extract(markdown).unwrap().unwrap();
@@ -281,7 +309,7 @@ mod tests {
     #[test]
     fn it_should_ignore_top_level_semantic_links_when_external_metadata_exists() {
         // Arrange: an external document carries conflicting top-level and nested extensions.
-        let markdown = "---\nname: write-markdown-docs\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
+        let markdown = "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
 
         // Act: extract the external-document envelope.
         let frontmatter = extract(markdown).unwrap().unwrap();
@@ -305,6 +333,19 @@ mod tests {
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Assert: external top-level metadata remains outside the v1 validator's ownership.
+        assert_eq!(frontmatter.semantic_links, None);
+    }
+
+    #[test]
+    fn it_should_ignore_top_level_semantic_links_for_an_agent_skill_without_metadata() {
+        // Arrange: an externally governed Agent Skill has no nested metadata extension.
+        let markdown =
+            "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nsemantic-links: invalid\n---\n# Skill\n";
+
+        // Act: extract the Agent Skill envelope.
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Assert: its external top-level extension remains outside v1 validation ownership.
         assert_eq!(frontmatter.semantic_links, None);
     }
 

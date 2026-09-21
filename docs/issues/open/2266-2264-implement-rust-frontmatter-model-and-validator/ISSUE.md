@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 20:15"
+last-updated-utc: "2026-09-21 20:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -277,6 +277,14 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   validation passed: `cargo test --package frontmatter-validator` (26 tests), nightly Rust `cargo
   +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D warnings`
   - `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 20:35 UTC - GitHub Copilot - Corrected the final structural review findings: present
+  `skill-links` and `related-artifacts` must be YAML string sequences, so explicit `null` is now
+  rejected; documents with the shared external `name` and `description` shape ignore top-level
+  `semantic-links` whether or not nested metadata exists. Added direct regressions for both
+  boundaries. Focused validation passed: `cargo test --package frontmatter-validator` (28 tests),
+  nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
+  frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
 

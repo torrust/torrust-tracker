@@ -94,3 +94,15 @@ semantic-links:
 - Verification: `cargo test --package frontmatter-validator` passed 26 tests; nightly Rust
   `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
   warnings` passed.
+
+### 2026-09-21 20:35 UTC - GitHub Copilot - Final Structural Correction
+
+- Response to the final review findings: present semantic-link fields now first deserialize to a
+  YAML value and must be sequences of strings, preventing `serde_yaml` from coercing `null` to an
+  empty sequence. External documents with `name` and `description` are dispatched to the
+  externally governed compatibility path whether or not `metadata` exists.
+- Regression coverage: added isolated tests for `skill-links: null` and an Agent Skill without
+  nested metadata whose invalid top-level extension must be ignored.
+- Verification: `cargo test --package frontmatter-validator` passed 28 tests; nightly Rust
+  `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
+  warnings` passed.
