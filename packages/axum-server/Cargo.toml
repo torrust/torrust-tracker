@@ -35,4 +35,4 @@ tracing = "0"
 
 [dev-dependencies]
 axum = "0.8.9"
-tokio = { version = "1", features = [ "test-util" ] }
+tokio = { version = "1", features = [ "io-util", "test-util" ] }
