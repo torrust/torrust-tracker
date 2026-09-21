@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 18:05"
+last-updated-utc: "2026-09-21 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -154,11 +154,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Confirm predecessor contract | Use the approved `frontmatter-inventory.md`, `frontmatter-v1-contract.md`, and `frontmatter-fixtures/` from issue #2265 as the implementation input and compatibility baseline. |
 | T2 | DONE | Select the replaceable integration point | Maintainer approved a non-published `contrib/dev-tools/checks/frontmatter-validator` crate, invoked through `cargo run --package` like `clippy-allow-reasons`; it owns explicit-path, `--staged`, and whole-tree modes and remains replaceable under #2003. Use current compatible `serde_yaml` and `schemars` versions after verifying the workspace lockfile and dependency policy. |
 | T3 | DONE | Implement extraction and universal envelope | `frontmatter-validator` parses present mapping frontmatter, validates the closed `semantic-links` mapping shape, and reports stable categories for malformed delimiters, YAML, mapping roots, and envelope fields/scalars. Missing frontmatter remains accepted until a strict profile requires it. |
-| T4 | TODO | Implement strict issue and EPIC profiles | Encode required fields, enums, nullability, cross-field invariants, and prospective versus legacy behavior. |
-| T5 | TODO | Implement provisional references | Parse skill names, repository-relative paths, `issue #<number>`, and `review-finding:` references; keep target-existence checks in the repository-aware layer. |
-| T6 | TODO | Generate the external schema | Generate the predecessor-selected format and dialect from Rust types to a documented tracked path, record unsupported Rust invariants, and add deterministic offline drift verification. |
-| T7 | TODO | Add validator diagnostics and rollout | Add explicit-path, `--staged`, and manual whole-tree invocation; integrate only with pre-commit; preserve unknown-class compatibility as approved. |
-| T8 | TODO | Prove failures and portability | Exercise fixture and mutation cases, run manual agent/human scenarios, and document relocation into a future #2003 architecture. |
+| T4 | DONE | Implement strict issue and EPIC profiles | Canonical issue and EPIC models enforce required fields, exact scalar types, allowed values, nullability, positive identifiers, non-empty strings, timestamp shape, unknown-field rejection, and permissive legacy dispatch. Location/lifecycle and `x-` warning diagnostics belong to command/repository layers moved to #2281. |
+| T5 | DONE | Implement provisional references | Strict profiles parse validated skill names plus repository-relative paths, `issue #<number>`, and `review-finding:pr-<number>-<lowercase-id>` references; target-existence checks remain outside deserialization. |
+| T6 | DONE | Generate the external schema | Split at the mandatory boundary review into #2280, which owns generated schema, documentation, and deterministic offline drift verification. |
+| T7 | DONE | Add validator diagnostics and rollout | Split at the mandatory boundary review into #2281, which owns command modes, diagnostics, and pre-commit integration. |
+| T8 | DONE | Prove failures and portability | Split at the mandatory boundary review into #2281, which owns fixture/mutation/manual proof and relocation documentation for the command surface. |
 
 ## Commit Points
 
@@ -187,7 +187,7 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   and open-state metadata plus live references updated
 - [x] Planning/evidence PR #2269 opened and `related-pr` updated
 - [x] Planning/evidence PR #2269 merged into `develop` before implementation
-- [ ] First issue-profile vertical slice completed and design boundaries reviewed
+- [x] First issue-profile vertical slice completed and design boundaries reviewed
 - [ ] Implementation completed
 - [ ] Automatic verification completed
 - [ ] Manual verification scenarios executed and recorded
@@ -233,6 +233,32 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   category. Focused validation passed: `cargo test --package frontmatter-validator`, nightly Rust
   `cargo +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D
   warnings` - `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 18:30 UTC - GitHub Copilot - Completed the first T4 strict-profile vertical slice:
+  canonical Serde models validate the accepted issue and EPIC fixtures and report the predecessor's
+  wrong-scalar, unknown-field, and invalid-status categories. The slice additionally tests
+  prospective positive-ID and UTC-minute invariants and confirms legacy records remain permissive.
+  The prose-first AAA review found fixture tests expose the input document, call the public
+  extraction/profile APIs, and assert one profile or category; invariant tests construct one
+  causal field difference at a time. Focused validation passed: `cargo test --package
+  frontmatter-validator`, nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy
+  --package frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 18:30 UTC - GitHub Copilot - Performed the mandatory first-vertical-slice boundary
+  review. T6 schema generation/drift verification and T7-T8 command, pre-commit, and operational
+  proof are independently reviewable and would materially broaden this structural-model PR. Keep
+  this issue focused on canonical models, strict structural profiles, and provisional references;
+  created follow-up #2280 for schema generation/drift and #2281 for command/integration under
+  #2264. Do not introduce their implementation here - This specification
+- 2026-09-21 18:50 UTC - GitHub Copilot - Completed T4 and T5. Canonical strict issue and EPIC
+  models accept the predecessor's accepted fixtures; they reject its wrong-scalar, unknown-field,
+  invalid-status, and invalid-reference fixtures with their specified categories. They also
+  preserve legacy issue compatibility and validate the frozen skill-name and related-artifact
+  syntax without repository lookups. The prose-first AAA review found each fixture/invariant test
+  exposes one causal document difference, calls extraction/profile validation directly, and asserts
+  one profile or category. Focused validation passed: `cargo test --package frontmatter-validator`,
+  nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
+  frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
 

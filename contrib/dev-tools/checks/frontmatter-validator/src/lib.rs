@@ -3,6 +3,8 @@
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
 
+pub mod profile;
+
 /// A parsed Markdown frontmatter block.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Frontmatter {
@@ -34,6 +36,18 @@ pub enum DiagnosticCategory {
     NonMappingRoot,
     /// The universal `semantic-links` extension had an invalid shape.
     InvalidSemanticLinks,
+    /// A strict profile contains an unprefixed field outside its contract.
+    UnknownField,
+    /// A strict profile omits a required field.
+    MissingRequiredField,
+    /// A strict profile field does not have its required YAML scalar type.
+    WrongScalarType,
+    /// A strict profile field has a scalar value outside its allowed set.
+    InvalidAllowedValue,
+    /// A strict profile field violates a non-enumerated value invariant.
+    InvalidFieldValue,
+    /// A strict profile reference does not use an approved provisional syntax.
+    InvalidReferenceSyntax,
 }
 
 /// A deterministic failure found while extracting frontmatter.
@@ -109,11 +123,12 @@ fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic>
 
 #[cfg(test)]
 mod tests {
+    use super::profile::Profile;
     use super::{DiagnosticCategory, SemanticLinks, extract};
 
     // Extraction owns delimiter, YAML, mapping-root, and universal-envelope shape decisions.
-    // Strict profiles, reference syntax, external metadata, and repository-aware checks are
-    // deliberately deferred to issue #2266 tasks T4-T7.
+    // Strict profile parsing owns the v1 structural and reference-syntax decisions. External
+    // metadata and repository-aware checks remain deferred to issue #2266 tasks T4-T7.
 
     #[test]
     fn it_should_accept_a_document_without_frontmatter() {
@@ -215,5 +230,173 @@ mod tests {
 
         // Assert: the diagnostic identifies the unsupported universal field.
         assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
+    }
+
+    #[test]
+    fn it_should_classify_the_accepted_issue_fixture_as_a_strict_issue_profile() {
+        // Arrange: the predecessor's accepted issue fixture declares schema version one.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/accepted/issue.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify and structurally validate the parsed frontmatter.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: the canonical model recognizes the strict issue contract.
+        assert!(matches!(profile, Profile::Issue(_)));
+    }
+
+    #[test]
+    fn it_should_classify_the_accepted_epic_fixture_as_a_strict_epic_profile() {
+        // Arrange: the predecessor's accepted EPIC fixture declares schema version one.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/accepted/epic.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify and structurally validate the parsed frontmatter.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: the canonical model recognizes the strict EPIC contract.
+        assert!(matches!(profile, Profile::Epic(_)));
+    }
+
+    #[test]
+    fn it_should_reject_the_wrong_scalar_fixture() {
+        // Arrange: the predecessor fixture quotes a positive-integer issue identifier.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-wrong-scalar.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the parsed strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic distinguishes the exact scalar-type violation.
+        assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
+    }
+
+    #[test]
+    fn it_should_reject_the_unknown_field_fixture() {
+        // Arrange: the predecessor fixture introduces an unprefixed strict-profile field.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-unknown-field.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the parsed strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the unsupported field.
+        assert_eq!(error.category, DiagnosticCategory::UnknownField);
+    }
+
+    #[test]
+    fn it_should_reject_the_invalid_status_fixture() {
+        // Arrange: the predecessor fixture uses a status outside the issue lifecycle enum.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-invalid-status.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the parsed strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the disallowed lifecycle value.
+        assert_eq!(error.category, DiagnosticCategory::InvalidAllowedValue);
+    }
+
+    #[test]
+    fn it_should_keep_a_legacy_issue_record_permissive() {
+        // Arrange: an issue record has no v1 schema version and an otherwise incomplete shape.
+        let markdown = "---\ndoc-type: issue\nstatus: planned\n---\n# Legacy issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify and validate the legacy record.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: v1 strict requirements do not rewrite historical compatibility behavior.
+        assert_eq!(profile, Profile::Permissive);
+    }
+
+    #[test]
+    fn it_should_reject_a_non_positive_strict_issue_identifier() {
+        // Arrange: a v1 issue record supplies zero for a positive-only GitHub issue identifier.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 0\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:05\"\nsemantic-links: {}\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict issue profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the positive-integer invariant.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
+    fn it_should_reject_an_invalid_strict_timestamp_shape() {
+        // Arrange: a v1 EPIC record has a timestamp outside the UTC-minute format.
+        let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026/09/21\"\nsemantic-links: {}\n---\n# EPIC\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict EPIC profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the required UTC-minute string format.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
+    fn it_should_reject_a_non_string_document_type_for_a_v1_record() {
+        // Arrange: a v1 record supplies an integer instead of a document-type string.
+        let markdown = "---\nschema-version: 1\ndoc-type: 2266\n---\n# Invalid record\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify and validate the frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the strict-profile dispatcher identifies the scalar-type violation.
+        assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
+    }
+
+    #[test]
+    fn it_should_reject_the_invalid_reference_fixture() {
+        // Arrange: the predecessor fixture uses an absolute URL as a related artifact.
+        let markdown = include_str!(
+            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-invalid-reference.md"
+        );
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the parsed strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic identifies the provisional reference syntax violation.
+        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+    }
+
+    #[test]
+    fn it_should_accept_all_provisional_related_artifact_forms() {
+        // Arrange: a strict issue uses a repository path, issue reference, and review finding.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - write-markdown-docs\n  related-artifacts:\n    - Cargo.toml\n    - issue #2264\n    - review-finding:pr-2230-f1\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: every approved provisional reference form remains accepted.
+        assert!(matches!(profile, Profile::Issue(_)));
+    }
+
+    #[test]
+    fn it_should_reject_an_unapproved_tagged_related_artifact() {
+        // Arrange: a strict issue uses a tagged artifact form outside the frozen v1 union.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  related-artifacts:\n    - adr:frontmatter\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the diagnostic reserves typed forms for the approved v1 union.
+        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
     }
 }
