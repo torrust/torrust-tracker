@@ -50,7 +50,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2279#discussion_r4064358733>
 - Concern: Lifecycle-dependent issue-spec paths would become stale when the referenced records move.
 - Solution: Replaced the #2003, #2219, and #2233 issue-spec paths with stable quoted issue references.
-- Current-tree verification: `git show --format= -- docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md` for `07b595c4` shows only the three quoted stable issue references for the affected lifecycle-managed artifacts.
+- Current-tree verification: `git diff --check torrust/develop...HEAD -- docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md` and inspection of the current tree show the three quoted stable issue references for the affected lifecycle-managed artifacts.
 - Resolution reference: `docs(issues): stabilize issue 2278 review references`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2279#discussion_r4064792821>
@@ -63,7 +63,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2279#discussion_r4064358781>
 - Concern: The verification plan named a retired shell checker that is absent from the current tree.
 - Solution: Replaced the retired shell checker with the maintained Rust command `cargo run --quiet --package agent-review-report-contract`.
-- Current-tree verification: `test ! -e contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh` and `cargo run --quiet --package agent-review-report-contract` both succeed at `07b595c4`.
+- Current-tree verification: `test ! -e contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh` and `cargo run --quiet --package agent-review-report-contract` both succeed against the current tree.
 - Resolution reference: `docs(issues): stabilize issue 2278 review references`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2279#discussion_r4064792982>
@@ -72,6 +72,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - 2026-09-21 17:36 UTC - Fetched review 5269357103 and normalized its two actionable Copilot findings.
 - 2026-09-21 17:36 UTC - Replied to F1 and F2 with their verified resolution references.
+- 2026-09-21 17:44 UTC - Re-derived F1 and F2 verification references after rebasing onto `torrust/develop`.
 
 ## Completion Rules
 
