@@ -1,15 +1,18 @@
 ---
 name: create-issue
 description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
+semantic-links:
+  skill-links:
+    - fix-bug
+  related-artifacts:
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
+    - docs/templates/ISSUE.md
+    - docs/templates/EPIC.md
+    - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
+    - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 metadata:
   author: torrust
   version: "1.1"
-  semantic-links:
-    related-artifacts:
-      - docs/templates/ISSUE.md
-      - docs/templates/EPIC.md
-      - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-      - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
 ---
 
 # Creating Issues
@@ -22,6 +25,12 @@ metadata:
 | **Bug**     | `bug`     | Something broken that needs fixing           |
 | **Feature** | `feature` | New capability or enhancement                |
 | **Epic**    | `epic`    | Major feature area containing multiple tasks |
+
+Bug handling is semantic, not metadata-only. If the requested work describes broken, incorrect,
+stale, misleading, unexpectedly failing, or regressed behavior, treat it as a bug even when the
+issue type or GitHub labels say something else. Load
+[fix-bug](../../debugging/fix-bug/SKILL.md) and include the bug-only specification sections it
+requires.
 
 ## Workflow Overview
 
@@ -159,6 +168,13 @@ a distinct contract, but must not be used to decline a package-owned unit test t
 and readable at the unit boundary. A documented no-unit-test decision must state why the behavior
 cannot be protected appropriately by a unit test or why the higher-level boundary is demonstrably
 clearer and more maintainable.
+
+For bug work, even when the metadata is wrong or missing, the draft must include `Bug-Fix Process`
+and `Regression Test Strategy` sections that link to
+[fix-bug](../../debugging/fix-bug/SKILL.md). The verification plan must require issue-local
+`manual-verification-evidence.md` for the initial real-artifact reproduction and final like-for-like
+recheck. If reproduction is infeasible, the evidence file must record the attempted commands,
+blocking constraint, and strongest substitute evidence.
 
 When the plan adds or changes tests, include a progressive test-development loop: use the
 `write-unit-test` skill; make the smallest behavior-focused increment; and, after it passes focused

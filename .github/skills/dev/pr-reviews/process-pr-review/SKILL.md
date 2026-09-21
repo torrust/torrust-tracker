@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, or address Copilot and maintainer review findings together.
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -11,6 +11,7 @@ metadata:
       - docs/templates/REVIEW-FINDINGS.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
+      - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
 ---
 
 # Processing Pull-Request Reviews
@@ -85,7 +86,9 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    review rounds only when it names every review ID and every finding ID with its
    disposition and resolution reference. Store its durable URL in each related
    row.
-9. **Verify completion.** Refresh GraphQL thread data and show no unresolved
+9. **Verify completion.** Run `scripts/validate-audit-record.py` (see
+   [Validation Script](#validation-script)) and fix every reported failure. Refresh GraphQL
+   thread data and show no unresolved
    actionable thread. Update the audit progressively and commit it separately
    from product fixes.
 
@@ -111,6 +114,35 @@ Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
 inferred. Resolution references are unique Conventional Commit subjects and/or
 durable reply URLs, never branch SHAs. Historical records remain valid without
 the analysis fields.
+
+## Validation Script
+
+`scripts/validate-audit-record.py` mechanically checks the audit record against GitHub review
+comments and branch history. Run it before every audit commit and before replying to or
+resolving any thread:
+
+```bash
+python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py \
+  --pr-number <PR_NUMBER>
+```
+
+It fetches review comments with `gh` unless `--comments-file` is given, and compares commit
+subjects against `<base>..HEAD` (`--base` defaults to `develop`). It fails when:
+
+- a tracking row has no detail entry, or a detail entry has no tracking row;
+- a row's `Source review ID` does not match the review that owns its `Source URL`;
+- a discussion-anchored row cites zero or several reply URLs, cites a reply that does not exist,
+  or cites a reply posted on a different thread than its source comment;
+- a `Resolution reference` names a commit subject that is not on the branch;
+- a row's `Severity` differs from the `[Severity]` bracket of its source comment; or
+- Processing Log entries are not in chronological order.
+
+Every failure is a claim in the merged record that the bytes contradict, so treat a non-zero exit
+as blocking. The script does not verify prose claims such as `Current-tree verification`
+sentences, nor that a log stamp is later than the commit that carries it; check those by hand.
+
+The script is a Python prototype. Like the other Python developer tools in this repository, it is
+intended to be migrated to Rust; keep its behaviour as the reference when doing so.
 
 ## Advisory Reviewer Finding Format
 
@@ -162,6 +194,7 @@ audit detail before resolving the finding.
 - [ ] Review bodies split into independent findings
 - [ ] Re-raises mapped to their original finding before action
 - [ ] Every action verified against the current tree, validated, and committed
+- [ ] `scripts/validate-audit-record.py` exits `0` against the committed audit
 - [ ] Every resolvable thread replied to before resolution
 - [ ] Every superseded thread has the prescribed reply and audit state
 - [ ] Consolidated responses name every covered review and finding
