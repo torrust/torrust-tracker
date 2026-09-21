@@ -2,14 +2,14 @@
 doc-type: frontmatter-contract
 status: approved
 github-issue: 2265
-spec-path: docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md
+spec-path: docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md
 last-updated-utc: "2026-09-21 14:33"
 semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
     - issue #2265
-    - docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-inventory.md
+    - docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-inventory.md
     - docs/skills/semantic-skill-link-convention.md
     - docs/templates/ISSUE.md
     - docs/templates/EPIC.md

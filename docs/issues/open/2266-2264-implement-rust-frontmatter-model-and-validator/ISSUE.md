@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: blocked
+status: planned
 priority: p1
 epic: 2264
 github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2264-2003-refactor-semantic-link-conventions-spec"
 related-pr: 2269
-last-updated-utc: 2026-09-19 08:03
+last-updated-utc: 2026-09-21 16:01
 semantic-links:
   skill-links:
     - create-issue
@@ -212,10 +212,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   blocked by #2265 - https://github.com/torrust/torrust-tracker/pull/2269
 - 2026-09-19 14:05 UTC - GitHub Copilot - Issue #2265 proposed the inventory, v1 contract, and
   fixtures; this issue remained blocked pending maintainer approval -
-  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
+  `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
 - 2026-09-21 14:33 UTC - Jose Celano - Maintainer approved the predecessor inventory, v1 contract,
   and fixtures; T1 is complete and implementation is unblocked -
-  `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/`
+  `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
+- 2026-09-21 16:01 UTC - GitHub Copilot - Archived completed predecessor issue #2265; this issue
+  remains planned with the archived inventory, contract, and fixtures as its input -
+  `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
 
 ## Acceptance Criteria
 

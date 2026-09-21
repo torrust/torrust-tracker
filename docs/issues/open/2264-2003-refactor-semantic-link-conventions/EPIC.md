@@ -5,7 +5,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: 2026-09-19 08:03
+last-updated-utc: 2026-09-21 16:01
 semantic-links:
   skill-links:
     - create-issue
@@ -336,8 +336,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Phase | Subissue | Expected output | Status |
 | ----- | ----- | -------------- | --------------- | ------ |
-| 1 | Frontmatter | [#2265 - Inventory and resolve Markdown frontmatter contracts](../2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md) | Map current prose, templates, skills, fields, scalar forms, document classes, and provisional reference values; classify each variation and approve the v1 contract. | TODO |
-| 2 | Frontmatter | [#2266 - Implement the Rust frontmatter model and initial validator](../2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md) | Implement the canonical universal envelope and strict issue/EPIC profiles, generated schema, provisional reference union, fixtures, stable diagnostics, and replaceable progressive validator. | BLOCKED |
+| 1 | Frontmatter | [#2265 - Inventory and resolve Markdown frontmatter contracts](../../closed/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md) | Map current prose, templates, skills, fields, scalar forms, document classes, and provisional reference values; classify each variation and approve the v1 contract. | DONE |
+| 2 | Frontmatter | [#2266 - Implement the Rust frontmatter model and initial validator](../2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md) | Implement the canonical universal envelope and strict issue/EPIC profiles, generated schema, provisional reference union, fixtures, stable diagnostics, and replaceable progressive validator. | TODO |
 | 3 | Frontmatter | Extend strict profiles and author guidance | Add approved profiles for ADRs, skills, agents, evidence records, and other known classes; keep prose and editor/agent discovery derived from the canonical Rust model. | TODO |
 | 4 | Conventions | Split convention ownership and migration policy | Move mixed normative content to clearly owned convention documents without a repository-wide document migration. | TODO |
 | 5 | Semantic links | Normalize the semantic-link model | Canonical relation and target types, graph semantics, accepted/rejected fixtures, and compatibility rules represented by the shared Rust model. | TODO |
@@ -606,6 +606,9 @@ For each completed subissue, the default completion policy is:
 - 2026-09-21 14:33 UTC - Jose Celano - Approved issue #2265's v1 frontmatter contract and fixtures;
   issue #2266 is unblocked for implementation -
   `docs/issues/open/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md`
+- 2026-09-21 16:01 UTC - GitHub Copilot - Archived completed issue #2265 after PR #2273 merged;
+  updated the successor and this EPIC's progressive-subissue state -
+  `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
 
 ## Risks and Trade-offs
 
