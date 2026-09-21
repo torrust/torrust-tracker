@@ -8,7 +8,7 @@ github-issue: 2261
 spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
 related-pr: null
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: 2026-09-21 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
     - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md
+    - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-exception-decision-framework.md
     - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/udp-protocol-clippy-baseline-draft.md
     - packages/udp-protocol/src/lib.rs
 ---
@@ -96,6 +97,16 @@ Ownership boundary:
 - #2158 remains the historical inventory and handoff record; this issue owns the implementation
   outcome for A157-A168.
 
+## Maintainer Decisions
+
+- The first commit records maintainer feedback before diagnostics and classification work begins.
+- The upcoming 4.0.0 major release permits breaking UDP protocol API changes when they produce a
+  clearer design; preserving the current API is not a reason to retain an allowance.
+- Apply the shared [Clippy exception decision framework](../../closed/2158-2003-inventory-existing-clippy-allows/clippy-exception-decision-framework.md).
+  A permanent, evidence-backed exception may remain indefinitely. A temporary exception requires
+  a concrete refactor or external-change condition and must not persist because the refactor was
+  forgotten.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -141,6 +152,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
   baseline design input; awaiting maintainer review before GitHub issue creation - This specification
 - 2026-09-18 10:05 UTC - josecelano - Approved the draft specification and confirmed it should remain a narrow #2003 child task - Chat decision
 - 2026-09-18 10:05 UTC - GitHub Copilot - Created GitHub issue #2261 and promoted the specification to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2261
+- 2026-09-21 00:00 UTC - josecelano - Approved the implementation branch and defined the shared
+  Clippy exception decision policy: prefer fixes or clearer 4.0.0 API changes; retain only
+  evidence-backed permanent exceptions; require a concrete tracked refactor or removal condition
+  for temporary exceptions - Chat decision
 
 ## Acceptance Criteria
 

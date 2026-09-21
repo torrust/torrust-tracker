@@ -46,6 +46,8 @@ counter, a gauge, or an average, what its bounds are, and what the cast does at 
   UDP server, and swarm coordination registry as required by the owned entries.
 - For each owned entry: retain with a native `reason`, replace with a clearer conversion, or fix a
   demonstrated defect.
+- Apply the shared [Clippy exception decision framework](../../closed/2158-2003-inventory-existing-clippy-allows/clippy-exception-decision-framework.md)
+  when deciding whether a retained conversion exception is permanent or temporary.
 
 ### Out of Scope
 
