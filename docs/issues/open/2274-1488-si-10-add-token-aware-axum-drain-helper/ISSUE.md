@@ -137,7 +137,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Implement token-aware drain helper | Added the awaitable helper with an injected token and post-cancellation deadline; it starts graceful drain without spawning a task. |
 | T3 | DONE | Add deterministic helper tests | Added cancellation-to-drained and active-connection timeout tests without OS signals; completed the prose-first test-design review below. |
 | T4 | DONE | Verify legacy compatibility | Confirmed existing call sites remain unchanged; focused HTTP tracker, REST API, and health-check API package suites passed against the legacy helper. |
-| T5 | DONE | Perform completion review | Recorded M1-M3, focused evidence, a material-finding retrospective, and a passing final independent review. Full automatic verification remains pending the pre-push hook. |
+| T5 | DONE | Perform completion review | Recorded M1-M3, focused evidence, a material-finding retrospective, a passing final independent review, and passing pre-push verification. |
 
 ## Commit Points
 
@@ -158,7 +158,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - [x] GitHub issue #2274 created and issue number added to this specification
 - [x] Recommended spec-only PR #2275 merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
@@ -181,6 +181,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 17:49 UTC - GitHub Copilot - Completed T4: `cargo test` for the Axum HTTP tracker, REST API, and health-check API server packages passed without changing their legacy helper call sites.
 - 2026-09-21 18:12 UTC - GitHub Copilot - Added a retained `token_aware_drain` real-server example after the independent completion review found manual scenarios mandatory. It owns and awaits both the helper and server tasks, verifies a released `Connection: close` request drains, and verifies a held request reports `TimedOut`. The first manual run showed that releasing the handler alone leaves an unread connection active; the example now reads the response before asserting `Drained`. Manual evidence and focused verification output are recorded in this folder.
 - 2026-09-21 18:16 UTC - Task Reviewer - Final independent review passed. The retained example now also verifies that a real new loopback connection is refused after cancellation and before releasing the original request. All acceptance criteria and T5 are complete; automatic verification remains pending the installed pre-push hook on push.
+- 2026-09-21 18:23 UTC - GitHub Copilot - Pushed the rebased implementation branch to the `josecelano` fork. The installed pre-push hook passed nightly formatting, nightly workspace checks, nightly documentation build, and the full test suite; automatic verification is complete.
 
 ## Acceptance Criteria
 

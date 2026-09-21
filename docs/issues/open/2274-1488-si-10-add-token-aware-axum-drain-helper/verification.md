@@ -1,7 +1,7 @@
 # Verification Evidence - Token-Aware, Joinable Axum Drain Helper
 
-> **Status**: Focused helper and compatibility verification completed. Final
-> completion review and full quality gate are pending.
+> **Status**: Complete. Focused helper and compatibility verification, manual
+> scenarios, completion review, and the full pre-push quality gate passed.
 
 ## Environment
 
