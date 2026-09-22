@@ -120,6 +120,7 @@ file completes.
 | Source module | Unit-only lines before | Unit-only lines after | Tests refactored | Tests added | Integration selected |
 | --- | ---: | ---: | ---: | ---: | --- |
 | `error.rs` | 52 / 62 (83.87%) | 86 / 86 (100.00%) | 2 | 2 | No |
+| `lib.rs` | 28 / 29 (96.55%) | 28 / 29 (96.55%) | 0 | 0 | No; crate-root declarations and test-support helper have no real UDP boundary |
 
 ## Relationship To Issue #2149
 

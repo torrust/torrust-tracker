@@ -248,7 +248,7 @@ inventory and every plan.
 | Order | Source module | T1 hypothesis | State | Plan |
 | ---: | --- | --- | --- | --- |
 | 1 | `error.rs` | Test candidate | DONE | [error-tests.md](test-refactor-plans/error-tests.md) |
-| 2 | `lib.rs` | Probably no change | PENDING | — |
+| 2 | `lib.rs` | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | 3 | `container.rs` | Probably no change | PENDING | — |
 | 4 | `event.rs` | Probably no change | PENDING | — |
 | 5 | `handlers/mod.rs` | Probably no change | PENDING | — |
@@ -364,6 +364,14 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 11:00 UTC - GitHub Copilot - Reopened T4 as `IN_PROGRESS`, rewrote the per-file
   workflow with explicit approval gates and commit points, and reset the ledger to 36 `PENDING`
   files in processing order. `lib.rs` is next.
+- 2026-09-22 11:15 UTC - GitHub Copilot - Started `lib.rs` as the only `IN_PROGRESS` file and
+  created [lib-tests.md](test-refactor-plans/lib-tests.md). The plan records the 28 / 29 unit-only
+  baseline, test-support-helper review scope, unit/integration classifications, and approval gate.
+  No tests or production code changed.
+- 2026-09-22 12:45 UTC - User/maintainer - Approved the `lib.rs` completed-file review.
+- 2026-09-22 12:45 UTC - GitHub Copilot - Completed the `lib.rs` plan as a no-change result:
+  crate-root declarations and test-support helpers have no package-owned runtime decision, while
+  the helper caller is owned by the future `handlers/announce.rs` plan.
 
 ## Acceptance Criteria
 
