@@ -62,3 +62,27 @@ so a failing assertion no longer leaks the file.
 The previous helper derived its name from the process id, which every test in the binary shares, so
 a second filesystem test would have raced with it under parallel execution. The `TempDir` is
 collaborator mechanics and is kept out of the test narrative; the artifact name stays visible.
+
+## Refactor Plan Item 2 - Successful Generation and Clean Check
+
+### Arrange
+
+Generation: the artifact path lies under directories that do not exist. Clean check: the artifact
+was produced by the generator and not modified afterwards.
+
+### Act
+
+Generation: write the artifact. Clean check: check the freshly generated artifact.
+
+### Assert
+
+Generation: the file content equals the canonical bytes, which also proves the parent directories
+were created. Clean check: the result is `Ok(())`.
+
+### Review
+
+The expected bytes are derived from the same encoding function the production Act uses, so an
+unrelated formatting change cannot fail the test with stale literal data; byte-level identity of
+the encoding itself is pinned separately by the determinism test. The clean-check Arrange calls
+`write_schema` because "produced by the generator" is the causal state; a hand-written copy would
+re-encode the expectation.

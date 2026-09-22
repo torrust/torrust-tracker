@@ -73,7 +73,7 @@ each test; the directory is unique and removed on drop, including on panic. Dele
 
 ---
 
-### 2. [ ] Cover successful generation and clean check [HIGH impact / LOW effort]
+### 2. [x] Cover successful generation and clean check [HIGH impact / LOW effort]
 
 **Problem**: `write_schema` and the success branch of `check_schema` are the command's primary
 purpose but are only exercised by manual evidence.
@@ -258,7 +258,7 @@ per form.
 | Order | Status | Item                                                              | Impact | Effort  |
 | ----- | ------ | ----------------------------------------------------------------- | ------ | ------- |
 | 1     | [x]    | Replace the PID-based temporary path with `tempfile::TempDir`     | High   | Trivial |
-| 2     | [ ]    | Cover successful generation and clean check                       | High   | Low     |
+| 2     | [x]    | Cover successful generation and clean check                       | High   | Low     |
 | 3     | [ ]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
 | 4     | [ ]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
 | 5     | [ ]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |

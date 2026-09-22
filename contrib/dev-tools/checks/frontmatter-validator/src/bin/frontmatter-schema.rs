@@ -86,7 +86,34 @@ mod tests {
 
     use tempfile::TempDir;
 
-    use super::{artifact_path, check_schema, schema_json};
+    use super::{artifact_path, check_schema, schema_json, write_schema};
+
+    #[test]
+    fn it_should_write_the_canonical_schema_bytes_creating_missing_parent_directories() {
+        // Arrange: the artifact path lies under directories that do not exist yet.
+        let directory = TempDir::new().unwrap();
+        let artifact = directory.path().join("nested").join("dir").join("frontmatter-v1.schema.json");
+
+        // Act: generate the artifact.
+        write_schema(&artifact).unwrap();
+
+        // Assert: the file holds exactly the canonical schema bytes.
+        assert_eq!(fs::read_to_string(&artifact).unwrap(), schema_json().unwrap());
+    }
+
+    #[test]
+    fn it_should_accept_an_artifact_that_matches_the_canonical_schema() {
+        // Arrange: the artifact was produced by the generator and not modified since.
+        let directory = TempDir::new().unwrap();
+        let artifact = directory.path().join("frontmatter-v1.schema.json");
+        write_schema(&artifact).unwrap();
+
+        // Act: check the artifact against the canonical schema output.
+        let result = check_schema(&artifact);
+
+        // Assert: no drift is reported.
+        assert_eq!(result, Ok(()));
+    }
 
     #[test]
     fn it_should_use_an_explicit_artifact_path_when_requested() {
