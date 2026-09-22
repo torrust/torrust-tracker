@@ -9,7 +9,7 @@ github-issue: 2295
 spec-path: docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
 branch: "2295-2278-single-source-audit-roster-spec"
 related-pr: null
-last-updated-utc: "2026-09-22 09:40"
+last-updated-utc: "2026-09-22 10:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,9 +170,9 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC4: Every top-level section of `PR-REVIEW-TEMPLATE.md` is preceded by a plain HTML comment stating whether it is copied verbatim into an audit record or is guidance omitted from the record, and the copied set matches the sections present in the most recent audit records (M3).
 - [ ] AC5: `agent-review-report-contract` exits `0` and none of its pins names text that no longer exists (M2).
 - [ ] AC6: No file under `docs/pr-reviews/` changes.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] AC7: `linter all` exits with code `0`.
+- [ ] AC8: Manual verification scenarios M1-M4 are executed and documented in issue-local `manual-verification-evidence.md`.
+- [ ] AC9: Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -216,6 +216,9 @@ evidence file is sufficient. Subissue 7 of #2278 is the owner of any maintained 
 | AC4 | TODO | M3 |
 | AC5 | TODO | M2 |
 | AC6 | TODO | M4 |
+| AC7 | TODO | `linter all` output recorded in `manual-verification-evidence.md` |
+| AC8 | TODO | `manual-verification-evidence.md` sections V1-V4 |
+| AC9 | TODO | Post-implementation review entry in the progress log |
 
 ## Risks and Trade-offs
 
