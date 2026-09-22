@@ -9,7 +9,7 @@ github-issue: 2295
 spec-path: docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
 branch: "2295-2278-single-source-audit-roster"
 related-pr: null
-last-updated-utc: "2026-09-22 13:19"
+last-updated-utc: "2026-09-22 14:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,8 +152,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: no retrospective needed; rationale recorded in the progress log
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
