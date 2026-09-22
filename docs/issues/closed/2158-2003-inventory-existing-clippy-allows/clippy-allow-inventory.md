@@ -128,11 +128,9 @@ follow-up issues now own the final checked-boundary decisions.
 
 ### UDP Protocol Crate Baseline
 
-The UDP protocol crate has broad allowances inherited with its vendored foundation. A156 is owned by
-wire numeric conversion follow-up #2245. A157-A158 and A160-A168 remain temporary under approved
-follow-up issue #2261, which must either remove each allow or relocate it to the narrowest source
-scope with a native `reason` and concrete evidence. A159 is retained in #2158 because its native
-reason documents the source-specific `FromBytes` macro expansion constraint.
+The UDP protocol crate inherited broad allowances with its vendored foundation. A156 remains owned
+by wire numeric conversion follow-up #2245. Follow-up #2261 removed A157-A168 after recording
+each diagnostic outcome and focused validation in its specification and the entry table below.
 
 ### Type, Callable, Visibility, and Import Contracts
 
@@ -217,7 +215,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A107, A110, A126, A132, A134, A136, A138 | Added native `reason` parameters for retained compatibility and API-shape suppressions. | `cargo clippy -p torrust-tracker-rest-api-client -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-client-lib -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
-| A159 | Reclassified the `empty_enums` allowance as retained after its native reason was strengthened with the source-specific `FromBytes` macro-expansion rationale. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
+| A159 | Superseded by #2261: removed the `empty_enums` allowance after stable and nightly Clippy no longer emitted the generated-code diagnostic. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A236 | Reconciled a current-source collaboration-test gauge conversion already carrying a native retained reason. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
 | A240 | Reconciled a current-source torrent-cleanup job `#[expect]` already carrying a native retained reason. | `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings` |
 
@@ -228,7 +226,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A099, A123, A129 | Added native temporary `reason` parameters linking the domain numeric conversion suppressions to #2246. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
-| A157-A158, A160-A168 | Created follow-up issue #2261 and added native temporary `reason` parameters linking the nonnumeric UDP protocol baseline suppressions to that issue. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
+| A157-A158, A160-A168 | Superseded by #2261: removed every nonnumeric UDP protocol baseline allowance after focused source fixes or confirmation that no current diagnostic emitted. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 
 ## Entries

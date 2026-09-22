@@ -8,7 +8,7 @@ github-issue: 2261
 spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
 related-pr: null
-last-updated-utc: 2026-09-21 00:00
+last-updated-utc: 2026-09-22 06:23
 semantic-links:
   skill-links:
     - create-issue
@@ -163,10 +163,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Spec moved to `docs/issues/open/` with the assigned issue number
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -182,16 +182,25 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-09-21 00:00 UTC - GitHub Copilot - Removed all A157-A168 crate-level controls and
   applied their focused source fixes; stable Clippy and all UDP protocol tests pass - Pending
   repository-wide validation
+- 2026-09-22 06:23 UTC - GitHub Copilot - Completed M1 reconciliation: A157-A168 are absent
+  from source and recorded as removed, while A156 remains assigned to #2245; `linter all` passed
+  - `manual-verification-evidence.md`
+- 2026-09-22 06:23 UTC - GitHub Copilot - Independent task review found missing M1, completion,
+  full-linter, and prose-first test evidence. Added the evidence and refactored the modified
+  round-trip tests to expose Arrange, Act, and Assert - Pending refreshed independent review
+- 2026-09-22 06:43 UTC - GitHub Copilot - Reconciled superseded #2158 evidence, made parser
+  boundary tests behavior-focused with visible assertions, and passed the final independent task
+  review; `linter all` passed - Ready for PR
 
 ## Acceptance Criteria
 
-- [ ] Every #2158 entry A157-A168 has a recorded diagnostic, outcome, and validation result.
-- [ ] Every owned crate-level UDP protocol allowance is removed, narrowed to a source-specific
+- [x] Every #2158 entry A157-A168 has a recorded diagnostic, outcome, and validation result.
+- [x] Every owned crate-level UDP protocol allowance is removed, narrowed to a source-specific
       allowance with a native `reason`, or retained temporarily with a stable removal condition.
-- [ ] A156 remains owned by #2245 and is not broadened by this issue.
-- [ ] Changed UDP protocol parsing or serialization behavior is covered by focused tests.
-- [ ] #2158's inventory records the final outcome for A157-A168.
-- [ ] `linter all` exits with code `0` and relevant UDP protocol tests pass.
+- [x] A156 remains owned by #2245 and is not broadened by this issue.
+- [x] Changed UDP protocol parsing or serialization behavior is covered by focused tests.
+- [x] #2158's inventory records the final outcome for A157-A168.
+- [x] `linter all` exits with code `0` and relevant UDP protocol tests pass.
 
 ## Verification Plan
 
@@ -205,7 +214,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Review #2158 reconciliation | Compare A157-A168 in #2158's inventory against the final UDP protocol source and this issue's evidence. | Every entry has a final outcome and no owner ambiguity remains. | TODO | `manual-verification-evidence.md` section M1 |
+| M1 | Review #2158 reconciliation | Compare A157-A168 in #2158's inventory against the final UDP protocol source and this issue's evidence. | Every entry has a final outcome and no owner ambiguity remains. | DONE | `manual-verification-evidence.md` section M1 |
 
 ### Disposable Verification Scripts
 
@@ -233,10 +242,22 @@ No disposable verification script is planned. Prefer focused Rust tests and repo
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
-  in this folder if the work invalidates an assumption, changes design materially, or yields a
-  reusable lesson; otherwise add a progress-log entry stating why none is needed.
+- Retrospective: `implementation-retrospective.md` records the reusable decision-framework and
+  test-review lessons.
+
+### Prose-First Test Evidence
+
+The seven modified request and response round-trip property tests now state their behavior in
+their names. Arrange converts the generated wire value into its request or response enum and
+creates an output buffer; Act writes the value and parses the resulting bytes; Assert compares the
+independently parsed value with the original. The scrape-request property first discards the
+invalid empty-info-hash state, then follows the same flow. The final code retains only the
+Arrange-Act-Assert markers because the temporary prose adds no irreducible context.
+
+The request parser boundary tests use the same review: Arrange creates each supported action at
+each packet length or a scrape request without info hashes; Act calls `Request::parse_bytes`; Assert
+checks that parsing does not panic or returns an error, respectively. Their names state those
+observable contracts.
 
 ## References
 
