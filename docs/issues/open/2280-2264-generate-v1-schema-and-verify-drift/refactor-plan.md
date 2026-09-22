@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: draft
+status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/refactor-plan.md
-last-updated-utc: "2026-09-22 17:05"
+last-updated-utc: "2026-09-22 17:40"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -237,7 +237,7 @@ invariant, and typed outcomes. No traits, inheritance, or interfaces are introdu
 
 ---
 
-### 9. [ ] Make the drift hint match the documented command [LOW impact / TRIVIAL effort]
+### 9. [x] Make the drift hint match the documented command [LOW impact / TRIVIAL effort]
 
 **Problem**: The drift error always suggests `generate --artifact <absolute path>`, even when the
 default artifact was checked. `docs/schemas/README.md` documents the default command without
@@ -265,7 +265,7 @@ per form.
 | 6     | [x]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
 | 7     | [x]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [x]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
-| 9     | [ ]    | Make the drift hint match the documented command                  | Low    | Trivial |
+| 9     | [x]    | Make the drift hint match the documented command                  | Low    | Trivial |
 
 Item 4 is placed before item 5 despite its lower impact because it completes the test baseline
 that item 5 changes behavior against. Item 7 is placed after item 6 because it changes the same
@@ -292,6 +292,6 @@ call sites that item 6 restructures; landing it first would be rewritten immedia
 
 ## Review Decision
 
-Implementation is blocked pending maintainer review. Items 1–4 add only tests and a dev-dependency
-and could land in the #2280 pull request as separate commits before it is opened; items 5–9 change
-production code and the maintainer should decide whether they belong in the same PR or a follow-up.
+The maintainer approved the plan on 2026-09-22 and chose to implement every item inside the #2280
+branch, one signed commit per item, before opening the pull request. All items are complete; each
+commit carries its prose-first design review in `test-design-review.md`.

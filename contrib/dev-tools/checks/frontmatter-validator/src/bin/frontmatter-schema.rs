@@ -24,12 +24,8 @@ enum Error {
     Write { artifact: PathBuf, source: io::Error },
     #[error("could not read {}: {source}", artifact.display())]
     Read { artifact: PathBuf, source: io::Error },
-    #[error(
-        "{} differs from the deterministic v1 schema output; run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact {}`",
-        artifact.display(),
-        artifact.display()
-    )]
-    Drift { artifact: PathBuf },
+    #[error("{} differs from the deterministic v1 schema output; run `{regenerate_command}`", artifact.display())]
+    Drift { artifact: PathBuf, regenerate_command: String },
 }
 
 impl Error {
@@ -85,6 +81,8 @@ impl Command {
 #[derive(Debug, Eq, PartialEq)]
 struct SchemaArtifact {
     path: PathBuf,
+    /// Whether the caller named the path with `--artifact`, as opposed to the tracked default.
+    explicit: bool,
 }
 
 impl SchemaArtifact {
@@ -101,12 +99,26 @@ impl SchemaArtifact {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .ancestors()
             .nth(4)
-            .map(|root| Self::at(root.join(ARTIFACT_PATH)))
+            .map(|root| Self {
+                path: root.join(ARTIFACT_PATH),
+                explicit: false,
+            })
             .ok_or(Error::RepositoryRoot)
     }
 
+    /// An artifact at a caller-chosen path.
     const fn at(path: PathBuf) -> Self {
-        Self { path }
+        Self { path, explicit: true }
+    }
+
+    /// The documented command that regenerates this artifact.
+    fn regenerate_command(&self) -> String {
+        let command = "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate";
+        if self.explicit {
+            format!("{command} --artifact {}", self.path.display())
+        } else {
+            String::from(command)
+        }
     }
 
     /// Writes the canonical bytes, creating missing parent directories.
@@ -135,6 +147,7 @@ impl SchemaArtifact {
         } else {
             Err(Error::Drift {
                 artifact: self.path.clone(),
+                regenerate_command: self.regenerate_command(),
             })
         }
     }
@@ -172,6 +185,7 @@ mod tests {
         // Arrange: the command failed while doing its work.
         let error = Error::Drift {
             artifact: PathBuf::from("schema.json"),
+            regenerate_command: String::new(),
         };
 
         // Act: map the error to a process exit code.
@@ -348,10 +362,45 @@ mod tests {
         // Act: check the artifact against the canonical schema output.
         let error = SchemaArtifact::at(path.clone()).verify_current().unwrap_err();
 
-        // Assert: drift is reported for that artifact and the message names offline regeneration.
-        assert!(matches!(&error, Error::Drift { artifact } if *artifact == path), "{error:?}");
+        // Assert: drift is reported for that artifact with the hint for regenerating that same copy.
+        assert!(
+            matches!(&error, Error::Drift { artifact, .. } if *artifact == path),
+            "{error:?}"
+        );
         let message = error.to_string();
-        assert!(message.contains("--offline"), "{message}");
-        assert!(message.contains("--artifact"), "{message}");
+        assert!(
+            message.ends_with(&format!("-- generate --artifact {}`", path.display())),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn it_should_suggest_the_documented_default_command_for_the_tracked_artifact() {
+        // Arrange: the artifact is the tracked default, selected without `--artifact`.
+        let artifact = SchemaArtifact::tracked().unwrap();
+
+        // Act: render the regeneration hint.
+        let command = artifact.regenerate_command();
+
+        // Assert: the hint is exactly the command documented in docs/schemas/README.md.
+        assert_eq!(
+            command,
+            "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate"
+        );
+    }
+
+    #[test]
+    fn it_should_suggest_regenerating_the_same_copy_for_an_explicit_artifact() {
+        // Arrange: the caller named a disposable copy with `--artifact`.
+        let artifact = SchemaArtifact::at(PathBuf::from(".tmp/copy.json"));
+
+        // Act: render the regeneration hint.
+        let command = artifact.regenerate_command();
+
+        // Assert: the hint targets that copy, not the tracked artifact.
+        assert_eq!(
+            command,
+            "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact .tmp/copy.json"
+        );
     }
 }

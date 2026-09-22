@@ -236,3 +236,29 @@ tests, while the path carried in each variant still ties the failure to its caus
 `is_ok()` with the `Debug` output in the message. `SchemaArtifact::at` is a plain constructor used
 by tests to build disposable artifacts, and `tracked()` is the only place that knows the repository
 layout. The tracked-artifact check still passes, so the restructuring did not change behavior.
+
+## Refactor Plan Item 9 - Regeneration Hint Matches the Documented Command
+
+### Arrange
+
+Tracked default: `SchemaArtifact::tracked()`. Explicit copy: `SchemaArtifact::at(".tmp/copy.json")`.
+The drift test keeps its disposable copy with non-canonical content.
+
+### Act
+
+Render `regenerate_command()`; for the drift test, `verify_current()`.
+
+### Assert
+
+Default: the hint equals the README's `-- generate` command verbatim. Explicit: the hint ends with
+`-- generate --artifact .tmp/copy.json`. Drift: the message ends with the explicit hint for the same
+path that was checked.
+
+### Review
+
+The hint is now derived from how the artifact was selected (`explicit`) instead of always echoing
+the path, so the common default case prints the documented command. The two hint tests assert the
+full string because the string is the user-facing contract; the drift test asserts only the
+suffix so it stays insensitive to the drift wording while proving the hint targets the checked
+copy. Manual replay: `check --artifact .tmp/drift-copy.json` on an altered copy exited `1` with the
+explicit hint; the tracked artifact was untouched.
