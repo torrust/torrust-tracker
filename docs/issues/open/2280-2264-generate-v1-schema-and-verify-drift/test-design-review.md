@@ -41,3 +41,24 @@ proves repeated generations produce identical newline-terminated bytes.
 The temporary artifact owns only file mechanics. The production comparison and independently
 specified failure message remain visible. The explicit-artifact test isolates the one new command
 argument behavior: it chooses the requested copy instead of the tracked artifact.
+
+## Refactor Plan Item 1 - Temporary Directory Ownership
+
+### Arrange
+
+Each filesystem test owns a `TempDir`; the artifact path is a child of that directory.
+
+### Act
+
+Unchanged: the drift test still compares the disposable copy with the canonical bytes.
+
+### Assert
+
+Unchanged. Cleanup moves from an explicit `remove_file` after the assertions to the `TempDir` drop,
+so a failing assertion no longer leaks the file.
+
+### Review
+
+The previous helper derived its name from the process id, which every test in the binary shares, so
+a second filesystem test would have raced with it under parallel execution. The `TempDir` is
+collaborator mechanics and is kept out of the test narrative; the artifact name stays visible.

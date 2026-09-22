@@ -84,6 +84,8 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
+    use tempfile::TempDir;
+
     use super::{artifact_path, check_schema, schema_json};
 
     #[test]
@@ -100,8 +102,9 @@ mod tests {
 
     #[test]
     fn it_should_detect_drift_from_the_deterministic_schema_output() {
-        // Arrange: a temporary artifact contains content that differs from the generated schema.
-        let artifact = temporary_artifact_path();
+        // Arrange: a disposable artifact contains content that differs from the generated schema.
+        let directory = TempDir::new().unwrap();
+        let artifact = directory.path().join("frontmatter-v1.schema.json");
         fs::write(&artifact, "{}\n").unwrap();
 
         // Act: check the artifact against the canonical schema output.
@@ -111,7 +114,6 @@ mod tests {
         assert!(error.contains("differs from the deterministic v1 schema output"));
         assert!(error.contains("--offline"));
         assert!(error.contains("--artifact"));
-        fs::remove_file(artifact).unwrap();
     }
 
     #[test]
@@ -125,9 +127,5 @@ mod tests {
         // Assert: both serializations produce identical newline-terminated artifact bytes.
         assert_eq!(first, second);
         assert!(first.ends_with('\n'));
-    }
-
-    fn temporary_artifact_path() -> PathBuf {
-        std::env::temp_dir().join(format!("frontmatter-v1-schema-{}", std::process::id()))
     }
 }

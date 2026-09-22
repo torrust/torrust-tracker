@@ -56,7 +56,7 @@ Two latent defects were also found while auditing:
 
 ## Items
 
-### 1. [ ] Replace the PID-based temporary path with `tempfile::TempDir` [HIGH impact / TRIVIAL effort]
+### 1. [x] Replace the PID-based temporary path with `tempfile::TempDir` [HIGH impact / TRIVIAL effort]
 
 **Problem**: `temporary_artifact_path()` in the binary's `tests` module is not unique per test and
 does not clean up on panic. Every later test item would inherit that race and leak.
@@ -257,7 +257,7 @@ per form.
 
 | Order | Status | Item                                                              | Impact | Effort  |
 | ----- | ------ | ----------------------------------------------------------------- | ------ | ------- |
-| 1     | [ ]    | Replace the PID-based temporary path with `tempfile::TempDir`     | High   | Trivial |
+| 1     | [x]    | Replace the PID-based temporary path with `tempfile::TempDir`     | High   | Trivial |
 | 2     | [ ]    | Cover successful generation and clean check                       | High   | Low     |
 | 3     | [ ]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
 | 4     | [ ]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
