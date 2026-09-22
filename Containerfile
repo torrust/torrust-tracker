@@ -77,6 +77,7 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 #   - workspace-coupling (analysis/coupling tool, no production value)
 #   - agent-review-report-contract (documentation contract check, no production value)
 #   - clippy-allow-reasons (prospective source-quality check, no production value)
+#   - package-coverage-check (pull-request coverage report check, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
 #   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
 #   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
@@ -90,6 +91,7 @@ COPY contrib/dev-tools/analysis/workspace-coupling/Cargo.toml contrib/dev-tools/
 COPY contrib/dev-tools/checks/agent-review-report-contract/Cargo.toml contrib/dev-tools/checks/agent-review-report-contract/
 COPY contrib/dev-tools/checks/clippy-allow-reasons/Cargo.toml contrib/dev-tools/checks/clippy-allow-reasons/
 COPY contrib/dev-tools/checks/frontmatter-validator/Cargo.toml contrib/dev-tools/checks/frontmatter-validator/
+COPY contrib/dev-tools/checks/package-coverage-check/Cargo.toml contrib/dev-tools/checks/package-coverage-check/
 COPY packages/e2e-tools/Cargo.toml packages/e2e-tools/
 COPY packages/persistence-benchmark/Cargo.toml packages/persistence-benchmark/
 COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check-api-server/
@@ -138,6 +140,7 @@ RUN mkdir -p \
       contrib/dev-tools/checks/agent-review-report-contract/src \
       contrib/dev-tools/checks/clippy-allow-reasons/src \
       contrib/dev-tools/checks/frontmatter-validator/src \
+      contrib/dev-tools/checks/package-coverage-check/src \
       console/tracker-client/src/bin \
       packages/axum-health-check-api-server/src \
       packages/axum-http-server/src \
@@ -178,6 +181,8 @@ RUN mkdir -p \
       contrib/dev-tools/checks/clippy-allow-reasons/src/lib.rs \
       contrib/dev-tools/checks/clippy-allow-reasons/src/main.rs \
       contrib/dev-tools/checks/frontmatter-validator/src/lib.rs \
+      contrib/dev-tools/checks/package-coverage-check/src/lib.rs \
+      contrib/dev-tools/checks/package-coverage-check/src/main.rs \
       console/tracker-client/src/lib.rs \
       console/tracker-client/src/bin/http_tracker_client.rs \
       console/tracker-client/src/bin/tracker_checker.rs \
@@ -237,7 +242,8 @@ COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
 # exposes `--workspace` and `--package`, not `--exclude`). The excluded workspace
 # members (workspace-coupling, torrust-tracker-torrent-repository-benchmarking,
-# agent-review-report-contract, clippy-allow-reasons, torrust-tracker-client,
+# agent-review-report-contract, clippy-allow-reasons, package-coverage-check,
+# torrust-tracker-client,
 # torrust-tracker-contrib-bencode, torrust-tracker-e2e-tools,
 # torrust-tracker-persistence-benchmark) are therefore
 # still compiled as part of the cook skeleton (their Cargo.toml manifests are in
@@ -253,6 +259,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude package-coverage-check \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -281,6 +288,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude package-coverage-check \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -297,6 +305,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude package-coverage-check \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
@@ -312,6 +321,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude package-coverage-check \
     --exclude torrust-tracker-torrent-repository-benchmarking \
     --exclude torrust-tracker-client \
     --exclude torrust-tracker-contrib-bencode \
