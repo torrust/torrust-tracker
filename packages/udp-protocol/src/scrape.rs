@@ -10,7 +10,7 @@ use std::io::{self, Write};
 use byteorder::{NetworkEndian, WriteBytesExt};
 use zerocopy::{FromBytes, Immutable, IntoBytes};
 
-use super::common::*;
+use super::common::{ConnectionId, InfoHash, NumberOfDownloads, NumberOfPeers, TransactionId};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ScrapeRequest {
@@ -20,6 +20,9 @@ pub struct ScrapeRequest {
 }
 
 impl ScrapeRequest {
+    /// # Errors
+    ///
+    /// Returns an error if the request cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_all(self.connection_id.as_bytes())?;
         bytes.write_i32::<NetworkEndian>(2)?;
@@ -38,6 +41,9 @@ pub struct ScrapeResponse {
 
 impl ScrapeResponse {
     #[inline]
+    /// # Errors
+    ///
+    /// Returns an error if the response cannot be written to `bytes`.
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         bytes.write_i32::<NetworkEndian>(2)?;
         bytes.write_all(self.transaction_id.as_bytes())?;

@@ -3,7 +3,7 @@ name: merge-pull-request
 description: Safely construct, inspect, validate, sign, and optionally push a maintainer GitHub pull-request merge using the repository-local vendored tool. Use when asked to merge a pull request or perform a maintainer merge workflow.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Merging a Pull Request
@@ -107,9 +107,13 @@ If it passes and an authorized maintainer wants an inspection attempt, run:
 Immediately before starting the interactive merge, rebase the pull-request branch onto the latest
 `develop`, push it, and wait for GitHub to recompute the pull request merge and required checks.
 The tool compares GitHub's merge base with the fetched `develop` tip and refuses a stale merge
-before constructing or signing a local commit. A direct-push rejection containing `GH013` and
-"Changes must be made through a pull request" can therefore mean that GitHub's merge ref was
-stale, not that a new pull request is required: rebase, push, wait for recomputation, then retry.
+before constructing or signing a local commit. When a direct push is rejected with `GH013` and
+"Changes must be made through a pull request", first perform that rebase, push the source branch,
+and wait for GitHub to recompute the pull request merge. If the source branch is already current
+or the same rejection persists after recomputation, the repository rule rejects this tool's
+direct push to `develop`; it is not a stale-branch failure. Do not force-push `develop` or retry
+the signed merge. Stop and obtain maintainer approval for a branch-protection-compatible merge
+workflow before proceeding.
 
 The vendor tool fetches the pull request and upstream base, checks out its temporary branches,
 and creates an unsigned local merge with `git merge --commit --no-edit --no-ff --no-gpg-sign`.

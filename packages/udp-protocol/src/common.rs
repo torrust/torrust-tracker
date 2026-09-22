@@ -31,6 +31,7 @@ pub struct InfoHash(pub [u8; 20]);
 pub struct ConnectionId(pub I64);
 
 impl ConnectionId {
+    #[must_use]
     pub const fn new(v: i64) -> Self {
         Self(I64::new(v))
     }
@@ -41,6 +42,7 @@ impl ConnectionId {
 pub struct TransactionId(pub I32);
 
 impl TransactionId {
+    #[must_use]
     pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
@@ -56,6 +58,7 @@ impl TransactionId {
 pub struct NumberOfBytes(pub I64);
 
 impl NumberOfBytes {
+    #[must_use]
     pub const fn new(v: i64) -> Self {
         Self(I64::new(v))
     }
@@ -66,6 +69,7 @@ impl NumberOfBytes {
 pub struct NumberOfPeers(pub I32);
 
 impl NumberOfPeers {
+    #[must_use]
     pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
@@ -76,6 +80,7 @@ impl NumberOfPeers {
 pub struct NumberOfDownloads(pub I32);
 
 impl NumberOfDownloads {
+    #[must_use]
     pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
@@ -86,6 +91,7 @@ impl NumberOfDownloads {
 pub struct Port(pub U16);
 
 impl Port {
+    #[must_use]
     pub fn new(v: NonZeroU16) -> Self {
         Self(U16::new(v.into()))
     }
@@ -96,6 +102,7 @@ impl Port {
 pub struct PeerKey(pub I32);
 
 impl PeerKey {
+    #[must_use]
     pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
@@ -144,6 +151,9 @@ impl From<Ipv6Addr> for Ipv6AddrBytes {
     }
 }
 
+/// # Errors
+///
+/// Returns an error if four bytes cannot be read from `bytes`.
 pub fn read_i32_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<I32> {
     let mut tmp = [0u8; 4];
 
@@ -152,6 +162,9 @@ pub fn read_i32_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<I32> {
     Ok(I32::from_bytes(tmp))
 }
 
+/// # Errors
+///
+/// Returns an error if eight bytes cannot be read from `bytes`.
 pub fn read_i64_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<I64> {
     let mut tmp = [0u8; 8];
 
@@ -160,6 +173,9 @@ pub fn read_i64_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<I64> {
     Ok(I64::from_bytes(tmp))
 }
 
+/// # Errors
+///
+/// Returns an error if two bytes cannot be read from `bytes`.
 pub fn read_u16_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<U16> {
     let mut tmp = [0u8; 2];
 
@@ -168,6 +184,9 @@ pub fn read_u16_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<U16> {
     Ok(U16::from_bytes(tmp))
 }
 
+/// # Errors
+///
+/// Returns an error if four bytes cannot be read from `bytes`.
 pub fn read_u32_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<U32> {
     let mut tmp = [0u8; 4];
 
@@ -176,6 +195,7 @@ pub fn read_u32_ne(bytes: &mut impl ::std::io::Read) -> ::std::io::Result<U32> {
     Ok(U32::from_bytes(tmp))
 }
 
+#[must_use]
 pub fn invalid_data() -> ::std::io::Error {
     ::std::io::Error::new(::std::io::ErrorKind::InvalidData, "invalid data")
 }
@@ -185,7 +205,7 @@ impl quickcheck::Arbitrary for InfoHash {
     fn arbitrary(g: &mut quickcheck::Gen) -> Self {
         let mut bytes = [0u8; 20];
 
-        for byte in bytes.iter_mut() {
+        for byte in &mut bytes {
             *byte = u8::arbitrary(g);
         }
 

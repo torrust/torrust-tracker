@@ -3,7 +3,7 @@ name: run-linters
 description: Run code quality checks and linters for the torrust-tracker project. Includes Rust clippy, rustfmt, Markdown, local link checking, YAML, TOML, spell checking, and shellcheck. Use when asked to lint code, check formatting, fix code quality issues, or prepare for commit. Triggers on "lint", "run linters", "check code quality", "fix formatting", "run clippy", "run rustfmt", or "pre-commit checks".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Run Linters
@@ -52,6 +52,26 @@ linter clippy
 linter rustfmt
 linter shellcheck
 ```
+
+### CI-Only or Newly Introduced Linter Failure
+
+When CI reports a linter failure that does not reproduce locally, first identify the failed
+workflow job, matrix value, and command from its log. Refresh the installed Rust toolchains and
+record their versions before classifying the warning or changing source:
+
+```bash
+rustup update
+rustup show active-toolchain
+rustc --version
+rustc +nightly --version
+linter all
+```
+
+If the failure reproduces after the update, fix or document the warning using the current
+diagnostic. For Clippy warnings from macro expansion or another tool limitation, follow the
+exception decision framework and record the toolchain version and diagnostic origin in the
+issue evidence. If it still does not reproduce, investigate the CI job environment before adding
+an unverified suppression.
 
 ### Fix Clippy Warnings
 

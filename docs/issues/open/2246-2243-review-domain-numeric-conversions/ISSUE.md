@@ -44,6 +44,8 @@ shared conclusion.
 - Boundary behavior in primitives, torrent repository benchmarking, and tracker core.
 - For each entry: retain with a native `reason`, replace with `TryFrom` or a bounded type where it
   is clearer, or fix a demonstrated defect.
+- Apply the shared [Clippy exception decision framework](../../closed/2158-2003-inventory-existing-clippy-allows/clippy-exception-decision-framework.md)
+  when deciding whether a retained conversion exception is permanent or temporary.
 
 ### Out of Scope
 
