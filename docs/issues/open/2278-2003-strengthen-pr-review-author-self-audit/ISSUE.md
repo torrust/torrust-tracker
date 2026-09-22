@@ -9,11 +9,12 @@ github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md
 branch: "2278-2003-strengthen-pr-review-author-self-audit-spec"
 related-pr: null
-last-updated-utc: "2026-09-21 16:26"
+last-updated-utc: "2026-09-22 06:28"
 semantic-links:
   skill-links:
     - create-issue
     - process-pr-review
+    - fetch-review-threads
   related-artifacts:
     - "issue #2003"
     - "issue #2219"
@@ -23,8 +24,10 @@ semantic-links:
     - docs/pr-reviews/pr-2272-review/review-retrospective.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
+    - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs
+    - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -60,6 +63,17 @@ capability and availability change too frequently to be a durable repository pol
 must instead make each role's evidence and verification boundary explicit, so any capable model or
 human can perform the work reproducibly.
 
+The maintainer's review of the EPIC #2003 comment thread
+(<https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5767266486>) adds a
+second evidence source: a register of `F1`-`F81` frictions filed across review rounds since
+2026-08-27. Its Theme E items show that the author-side skill and the audit template now state
+contradictory rules for the same case (outdated threads, the field roster, the consolidated-response
+condition, review-body rows), and that the append-only and re-raise rules the retrospectives rely on
+are not written where the record lives. An author cannot self-audit against a contract that
+disagrees with itself, so reconciling those contradictions is a precondition for T2, not a separate
+clean-up. The register items this issue owns, and those left to other owners, are dispositioned in
+`retrospective-improvement-matrix.md`.
+
 ## Scope
 
 ### In Scope
@@ -78,6 +92,16 @@ human can perform the work reproducibly.
 - Define an evidence-first ordering for review processing: implement and validate the substantive
   change, inspect the committed tree, derive audit fields, validate the audit, then reply and
   resolve. The workflow must prevent an intended change from being recorded as an observed fact.
+- Reconcile the author-side contract so `process-pr-review` and `PR-REVIEW-TEMPLATE.md` state one
+  rule per case: the outdated-thread disposition, a single field roster written one field per line
+  and matching the detail skeleton, the admissible `Resolution reference` value per disposition, the
+  consolidated-response condition, the `Source URL` and `Thread state` of a review-body row, the
+  one-row-per-re-raise rule, the Processing Log append-only rule and its in-place-repair procedure,
+  and an explicit marker for the template sections a record copies verbatim. Define how Copilot's
+  collapsed suppressed comments are normalized. These reconcile existing rules and add no field.
+- Align `fetch-review-threads` with the author workflow: fetch all threads, including resolved and
+  outdated, and include `resolvedBy` and `line` in the worked query, so re-raise detection and the
+  self-audit see the same data the reviewer does.
 - Extend or replace the existing audit validator with narrowly scoped deterministic checks and
   fixture-based tests for objective audit invariants, including row/detail parity and order,
   required-field roster, audit-local re-raise targets, source/reply-thread ownership, cited commit
@@ -85,7 +109,14 @@ human can perform the work reproducibly.
   sections.
 - Stop `agent-review-report-contract` from being cited as audit evidence: either make it honor an
   explicit path argument or document that it validates only fixed skill and template literals, so
-  a passing run is never recorded as verification of an audit record.
+  a passing run is never recorded as verification of an audit record. Fix its inconsistent pin
+  granularity in the same change.
+- Decide the audit validator's implementation language and test coverage: port the Python prototype
+  to Rust with fixture tests, per the repository's developer-tooling policy, following the check-crate
+  shape and output contract that #2266 selects for `frontmatter-validator`, and proving behaviour
+  parity before adding invariants. The audit validator validates the audit body only; frontmatter
+  and `review-finding:` target existence belong to EPIC #2264. An audit-existence check can only be
+  a self-audit step here, because pre-commit has no PR context.
 - Evaluate and implement only the evidence-generation helpers that demonstrably remove manual
   transcription. Candidate helpers include generating finding-detail skeletons from GitHub source
   identifiers and deriving processing-log event references or timestamps from Git and GitHub data.
@@ -105,7 +136,16 @@ human can perform the work reproducibly.
 - Removing finding-specific replies or resolving threads without a durable disposition.
 - Building a general-purpose shared guardrail runner, cache, policy engine, or CI integration;
   those choices remain owned by EPIC #2003's later architecture decision.
-- Changing reviewer behavior, severity vocabulary, or GitHub's review interface.
+- Changing reviewer behavior, severity vocabulary, or GitHub's review interface. The reviewer-side
+  `review-pr` items in the EPIC #2003 register (verdict mapping, re-pushed-head procedure, ACK
+  re-earning, superseded-PR path, draft-PR bar, first-round finding-ID scheme) are recorded in the
+  matrix as input for a separate reviewer-side issue.
+- Invoking `agent-review-report-contract` or the audit validator from `testing.yaml`; CI
+  integration remains an EPIC #2003 architecture decision.
+- Planning-template, semantic-link, linter, and CI-workflow items from the register; their owners
+  are named in the matrix.
+- Frontmatter validation of audit records, `review-finding:` target-existence checks, and any new
+  marker syntax; these belong to EPIC #2264 and its subissues. The matrix records the boundary.
 - Making an audit helper a prerequisite for the manual self-audit gate. The workflow must remain
   usable with direct Git and GitHub evidence while automation is unavailable.
 
@@ -149,9 +189,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Build the retrospective improvement matrix | Add an issue-local evidence matrix mapping every proposed improvement from PRs #2270, #2271, and #2272 to an adopted, deferred, or rejected disposition, owner artifact, and rationale. Preserve links to the source retrospectives. |
-| T2 | TODO | Specify and add the author self-audit gate | Update `process-pr-review` so each affected claim is re-derived from named current-tree, Git, or GitHub evidence before audit commit, reply, resolution, and re-review request. Add the second-re-raise and context-compaction re-derivation triggers and the one-commit-per-concern rule (repository fixes separate from audit updates). Require a concise self-audit record that identifies the commands or inspections actually used. |
-| T3 | TODO | Deliver the smallest useful deterministic audit guardrails | Implement or extend a read-only validator/helper according to T1's matrix. It must support offline fixture input, emit actionable deterministic diagnostics, and cover the selected structural and source-derived invariants without asserting unverifiable prose claims. Resolve the `agent-review-report-contract` false-evidence gap in the same task. |
+| T1 | DONE | Build the retrospective improvement matrix | Added `retrospective-improvement-matrix.md`, mapping every proposed improvement from PRs #2270, #2271, and #2272, plus the author-side items of the EPIC #2003 friction register, to an adopted, deferred, rejected, or out-of-scope disposition with owner and rationale. Maintainer review is required before T2. |
+| T2 | TODO | Specify and add the author self-audit gate and reconcile the contract | Update `process-pr-review` so each affected claim is re-derived from named current-tree, Git, or GitHub evidence before audit commit, reply, resolution, and re-review request. Add the second-re-raise and context-compaction re-derivation triggers, the one-commit-per-concern rule, and a completion-checklist item for the self-audit (register F65). Reconcile the skill and template contradictions listed in the matrix (F58, F60, F61, F62, F63, F66, F73, F75, F76, F77, F79, F80) without adding fields. Align `fetch-review-threads` to return all threads with `resolvedBy` and `line` (F17, F18, F32). Require a concise self-audit record that identifies the commands or inspections actually used. |
+| T3 | TODO | Deliver the smallest useful deterministic audit guardrails | Implement or extend a read-only validator/helper according to T1's matrix. It must support offline fixture input, emit actionable deterministic diagnostics, and cover the selected structural and source-derived invariants (row/detail parity and order, F64; audit-local re-raise targets, F75; cited commit touches the described path, F74; roster and copied-section parity, F58 and F63) without asserting unverifiable prose claims. Port to Rust following the #2266 check-crate shape and `no-stdout-result` output contract, with parity fixtures first (F7); start after #2266 records its integration-point decision. Resolve the `agent-review-report-contract` false-evidence gap and pin granularity (F56, F57) in the same task. |
 | T4 | TODO | Decide proportionate evidence handling | Compare no-tier and risk-tier alternatives against the three retrospectives. Define eligibility, mandatory escalation, retained traceability, and explicit non-eligibility conditions; either implement the approved limited change or record why the current single path remains preferable. |
 | T5 | TODO | Validate realistic author workflows | Exercise the revised process against representative audit fixtures: an ordinary substantive finding, an audit-record correction, a re-raised finding, and a narrow low-risk change. Record manual evidence and confirm the workflow blocks reply or resolution whenever a claim lacks recorded current-source evidence. |
 
@@ -160,7 +200,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | Retrospective evidence matrix and approved scope decisions | Commit after documentation validation and maintainer review of dispositions. |
-| T2 | Author self-audit workflow and audit/template wording | Commit after focused documentation validation and scenario review. |
+| T2 | Author self-audit workflow, contract reconciliation of skill and template, and `fetch-review-threads` alignment | Commit the skill/template reconciliation separately from the self-audit gate and from the helper-skill change so each rule change is independently reviewable. |
 | T3 | Read-only validator/helper, fixture tests, and narrow workflow integration | Commit after focused tests, design review, and validation of diagnostics. |
 | T4 | Proportionate-evidence decision and any resulting limited skill/template change | Commit after maintainer decision and focused documentation validation. |
 | T5 | Manual verification evidence and completion-review updates | Commit separately when it improves traceability; do not create an empty commit for evidence already included in a coherent prior change. |
@@ -174,7 +214,7 @@ Use a Conventional Commit subject with the narrow affected scope and sign every 
 - [x] Folder-style spec drafted and moved to `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -189,6 +229,9 @@ Use a Conventional Commit subject with the narrow affected scope and sign every 
 
 - 2026-09-21 16:15 UTC - GitHub Copilot - Drafted from the author-side review-process evidence in PR #2270, PR #2271, and PR #2272 retrospectives; awaiting maintainer review before GitHub issue creation.
 - 2026-09-21 16:25 UTC - GitHub Copilot - Maintainer approved the specification; created GitHub sub-issue #2278 under EPIC #2003 and moved this specification to its numbered open-issue folder. Implementation remains deferred until this spec-only pull request merges.
+- 2026-09-21 18:21 UTC - GitHub Copilot - PR #2279 merged into `develop` as merge commit `ffa3528cfd9ed170eeb910c6273bf675637dd3d1`; began implementation from the merged specification.
+- 2026-09-21 18:31 UTC - GitHub Copilot - Completed T1 with `retrospective-improvement-matrix.md`; awaiting maintainer review of its adopted, deferred, and rejected dispositions before T2.
+- 2026-09-22 06:28 UTC - GitHub Copilot - Extended T1 and the specification with the author-side items of the EPIC #2003 friction register (comment 5767266486): skill/template contradictions, helper-skill alignment, validator language and existence-check decisions; reviewer-side and non-review items recorded as out of scope with named owners.
 
 ## Acceptance Criteria
 
@@ -198,6 +241,7 @@ Use a Conventional Commit subject with the narrow affected scope and sign every 
 - [ ] AC4: The workflow distinguishes mechanically verifiable fields from prose judgment, retaining manual verification where no sound deterministic check exists, and no check that ignores the audit record can be cited as audit evidence.
 - [ ] AC5: A documented maintainer decision addresses proportionate evidence for low-risk changes, including eligibility, escalation, and preserved audit requirements; it does not rely on a named model or vendor.
 - [ ] AC6: Manual scenarios demonstrate convergence for substantive, audit-correction, re-raise, and low-risk cases without relaxing reply, traceability, or final GraphQL completion requirements.
+- [ ] AC7: `process-pr-review`, its helper skills, and `PR-REVIEW-TEMPLATE.md` state one rule for every case the matrix lists under skill and template contradictions; the field roster appears once, one field per line, and matches the detail skeleton; and every author-side register item in the matrix has a recorded disposition.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant tests pass.
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
@@ -241,12 +285,13 @@ validator/helper behavior and issue-local manual evidence for author workflow sc
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Retrospective improvement matrix and maintainer disposition review. |
+| AC1 | DONE | `retrospective-improvement-matrix.md` maps every proposal from PR #2270, #2271, and #2272, and every author-side EPIC #2003 register item, to a disposition, rationale, and owner; pending maintainer review gates T2. |
 | AC2 | TODO | Updated skill/template and M1-M2 evidence. |
 | AC3 | TODO | Focused fixture tests and diagnostic examples. |
 | AC4 | TODO | Validator contract, skill evidence boundaries, and M4. |
 | AC5 | TODO | Decision record and M3 evidence. |
 | AC6 | TODO | Manual scenarios M1-M4 and final GraphQL completion check. |
+| AC7 | TODO | Side-by-side reading of skill and template for each listed case; roster/skeleton diff; matrix register section. |
 
 ## Risks and Trade-offs
 
@@ -279,6 +324,8 @@ material design changes, unexpected validation findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2003.
+- Sibling child EPIC with shared check-crate shape: #2264 (subissues #2266, #2280, #2281).
+- EPIC #2003 friction register summary: <https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5767266486>.
 - Prior process work: #2219 and #2233.
 - Source retrospectives: PR #2270, PR #2271, and PR #2272 under `docs/pr-reviews/`.
 - Current author workflow: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`.
