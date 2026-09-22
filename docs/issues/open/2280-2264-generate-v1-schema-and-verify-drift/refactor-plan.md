@@ -206,7 +206,7 @@ binary calls the library function and owns only I/O.
 
 ---
 
-### 8. [ ] Encapsulate artifact I/O in a `SchemaArtifact` value object with a specific error enum [MEDIUM impact / MEDIUM effort]
+### 8. [x] Encapsulate artifact I/O in a `SchemaArtifact` value object with a specific error enum [MEDIUM impact / MEDIUM effort]
 
 **Problem**: After items 5–7 the binary still passes `&Path` through free functions and formats
 error strings at the point of failure, so tests match on substrings and the process boundary
@@ -264,7 +264,7 @@ per form.
 | 5     | [x]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
 | 6     | [x]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
 | 7     | [x]    | Move the canonical artifact encoding into the library             | Medium | Low     |
-| 8     | [ ]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
+| 8     | [x]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [ ]    | Make the drift hint match the documented command                  | Low    | Trivial |
 
 Item 4 is placed before item 5 despite its lower impact because it completes the test baseline

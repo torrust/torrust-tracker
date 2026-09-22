@@ -9,13 +9,27 @@ use frontmatter_validator::v1_schema_json;
 
 const ARTIFACT_PATH: &str = "docs/schemas/frontmatter-v1.schema.json";
 
-/// Failures reported by the command, classified by the exit code they map to.
-#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+/// Failures reported by the command. Every variant except `Usage` is a runtime failure.
+#[derive(Debug, thiserror::Error)]
 enum Error {
     #[error("usage: frontmatter-schema <generate|check> [--artifact <path>]")]
     Usage,
-    #[error("{0}")]
-    Runtime(String),
+    #[error("could not determine repository root")]
+    RepositoryRoot,
+    #[error("schema artifact has no parent directory: {}", artifact.display())]
+    NoParentDirectory { artifact: PathBuf },
+    #[error("could not create {}: {source}", directory.display())]
+    CreateDirectory { directory: PathBuf, source: io::Error },
+    #[error("could not write {}: {source}", artifact.display())]
+    Write { artifact: PathBuf, source: io::Error },
+    #[error("could not read {}: {source}", artifact.display())]
+    Read { artifact: PathBuf, source: io::Error },
+    #[error(
+        "{} differs from the deterministic v1 schema output; run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact {}`",
+        artifact.display(),
+        artifact.display()
+    )]
+    Drift { artifact: PathBuf },
 }
 
 impl Error {
@@ -23,7 +37,7 @@ impl Error {
     fn exit_code(&self) -> ExitCode {
         match self {
             Self::Usage => ExitCode::from(2),
-            Self::Runtime(_) => ExitCode::FAILURE,
+            _ => ExitCode::FAILURE,
         }
     }
 }
@@ -42,68 +56,88 @@ fn main() -> ExitCode {
 /// A parsed invocation: the action to perform and the artifact it applies to.
 #[derive(Debug, Eq, PartialEq)]
 enum Command {
-    Generate { artifact: PathBuf },
-    Check { artifact: PathBuf },
+    Generate(SchemaArtifact),
+    Check(SchemaArtifact),
 }
 
 impl Command {
     /// Parses the process arguments after the program name. Performs no I/O.
     fn parse(mut arguments: impl Iterator<Item = String>) -> Result<Self, Error> {
         let action = arguments.next().ok_or(Error::Usage)?;
-        let artifact = artifact_path(&arguments.collect::<Vec<_>>())?;
+        let artifact = SchemaArtifact::from_arguments(&arguments.collect::<Vec<_>>())?;
 
         match action.as_str() {
-            "generate" => Ok(Self::Generate { artifact }),
-            "check" => Ok(Self::Check { artifact }),
+            "generate" => Ok(Self::Generate(artifact)),
+            "check" => Ok(Self::Check(artifact)),
             _ => Err(Error::Usage),
         }
     }
 
     fn execute(&self) -> Result<(), Error> {
         match self {
-            Self::Generate { artifact } => write_schema(artifact),
-            Self::Check { artifact } => check_schema(artifact),
+            Self::Generate(artifact) => artifact.write(),
+            Self::Check(artifact) => artifact.verify_current(),
         }
     }
 }
 
-fn artifact_path(arguments: &[String]) -> Result<PathBuf, Error> {
-    match arguments {
-        [] => Ok(repository_root()?.join(ARTIFACT_PATH)),
-        [flag, path] if flag == "--artifact" => Ok(PathBuf::from(path)),
-        _ => Err(Error::Usage),
-    }
+/// The on-disk JSON Schema file whose bytes must equal `v1_schema_json()`.
+#[derive(Debug, Eq, PartialEq)]
+struct SchemaArtifact {
+    path: PathBuf,
 }
 
-fn repository_root() -> Result<PathBuf, Error> {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(4)
-        .map(Path::to_path_buf)
-        .ok_or_else(|| Error::Runtime(String::from("could not determine repository root")))
-}
-
-fn write_schema(artifact: &Path) -> Result<(), Error> {
-    let parent = artifact
-        .parent()
-        .ok_or_else(|| Error::Runtime(format!("schema artifact has no parent directory: {}", artifact.display())))?;
-    fs::create_dir_all(parent).map_err(|error| Error::Runtime(format!("could not create {}: {error}", parent.display())))?;
-    fs::write(artifact, v1_schema_json())
-        .map_err(|error| Error::Runtime(format!("could not write {}: {error}", artifact.display())))
-}
-
-fn check_schema(artifact: &Path) -> Result<(), Error> {
-    let actual = fs::read_to_string(artifact)
-        .map_err(|error| Error::Runtime(format!("could not read {}: {error}", artifact.display())))?;
-    if actual == v1_schema_json() {
-        return Ok(());
+impl SchemaArtifact {
+    fn from_arguments(arguments: &[String]) -> Result<Self, Error> {
+        match arguments {
+            [] => Ok(Self::tracked()?),
+            [flag, path] if flag == "--artifact" => Ok(Self::at(PathBuf::from(path))),
+            _ => Err(Error::Usage),
+        }
     }
 
-    Err(Error::Runtime(format!(
-        "{} differs from the deterministic v1 schema output; run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact {}`",
-        artifact.display(),
-        artifact.display(),
-    )))
+    /// The artifact committed in the repository that contains this crate.
+    fn tracked() -> Result<Self, Error> {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .nth(4)
+            .map(|root| Self::at(root.join(ARTIFACT_PATH)))
+            .ok_or(Error::RepositoryRoot)
+    }
+
+    const fn at(path: PathBuf) -> Self {
+        Self { path }
+    }
+
+    /// Writes the canonical bytes, creating missing parent directories.
+    fn write(&self) -> Result<(), Error> {
+        let directory = self.path.parent().ok_or_else(|| Error::NoParentDirectory {
+            artifact: self.path.clone(),
+        })?;
+        fs::create_dir_all(directory).map_err(|source| Error::CreateDirectory {
+            directory: directory.to_path_buf(),
+            source,
+        })?;
+        fs::write(&self.path, v1_schema_json()).map_err(|source| Error::Write {
+            artifact: self.path.clone(),
+            source,
+        })
+    }
+
+    /// Succeeds only when the file's bytes equal the canonical bytes.
+    fn verify_current(&self) -> Result<(), Error> {
+        let actual = fs::read_to_string(&self.path).map_err(|source| Error::Read {
+            artifact: self.path.clone(),
+            source,
+        })?;
+        if actual == v1_schema_json() {
+            Ok(())
+        } else {
+            Err(Error::Drift {
+                artifact: self.path.clone(),
+            })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -115,7 +149,7 @@ mod tests {
     use frontmatter_validator::v1_schema_json;
     use tempfile::TempDir;
 
-    use super::{Command, Error, check_schema, write_schema};
+    use super::{Command, Error, SchemaArtifact};
 
     fn parse(arguments: &[&str]) -> Result<Command, Error> {
         Command::parse(arguments.iter().map(ToString::to_string))
@@ -136,7 +170,9 @@ mod tests {
     #[test]
     fn it_should_exit_with_code_one_for_a_runtime_failure() {
         // Arrange: the command failed while doing its work.
-        let error = Error::Runtime(String::from("could not read schema.json"));
+        let error = Error::Drift {
+            artifact: PathBuf::from("schema.json"),
+        };
 
         // Act: map the error to a process exit code.
         let exit_code = error.exit_code();
@@ -149,27 +185,27 @@ mod tests {
     fn it_should_write_the_canonical_schema_bytes_creating_missing_parent_directories() {
         // Arrange: the artifact path lies under directories that do not exist yet.
         let directory = TempDir::new().unwrap();
-        let artifact = directory.path().join("nested").join("dir").join("frontmatter-v1.schema.json");
+        let path = directory.path().join("nested").join("dir").join("frontmatter-v1.schema.json");
 
         // Act: generate the artifact.
-        write_schema(&artifact).unwrap();
+        SchemaArtifact::at(path.clone()).write().unwrap();
 
         // Assert: the file holds exactly the canonical schema bytes.
-        assert_eq!(fs::read_to_string(&artifact).unwrap(), v1_schema_json());
+        assert_eq!(fs::read_to_string(&path).unwrap(), v1_schema_json());
     }
 
     #[test]
     fn it_should_accept_an_artifact_that_matches_the_canonical_schema() {
         // Arrange: the artifact was produced by the generator and not modified since.
         let directory = TempDir::new().unwrap();
-        let artifact = directory.path().join("frontmatter-v1.schema.json");
-        write_schema(&artifact).unwrap();
+        let artifact = SchemaArtifact::at(directory.path().join("frontmatter-v1.schema.json"));
+        artifact.write().unwrap();
 
         // Act: check the artifact against the canonical schema output.
-        let result = check_schema(&artifact);
+        let result = artifact.verify_current();
 
         // Assert: no drift is reported.
-        assert_eq!(result, Ok(()));
+        assert!(result.is_ok(), "{result:?}");
     }
 
     #[test]
@@ -183,9 +219,7 @@ mod tests {
         // Assert: the command targets the requested copy instead of the tracked artifact.
         assert_eq!(
             command,
-            Command::Generate {
-                artifact: PathBuf::from(".tmp/frontmatter-v1.schema.json")
-            }
+            Command::Generate(SchemaArtifact::at(PathBuf::from(".tmp/frontmatter-v1.schema.json")))
         );
     }
 
@@ -195,18 +229,18 @@ mod tests {
         let arguments = ["check"];
 
         // Act: parse the command.
-        let Command::Check { artifact } = parse(&arguments).unwrap() else {
+        let Command::Check(artifact) = parse(&arguments).unwrap() else {
             panic!("expected a check command");
         };
 
         // Assert: the default is the tracked artifact, which must exist so the crate location
         // walk cannot silently point at a directory outside the repository.
         assert!(
-            artifact.ends_with("docs/schemas/frontmatter-v1.schema.json"),
+            artifact.path.ends_with("docs/schemas/frontmatter-v1.schema.json"),
             "{}",
-            artifact.display()
+            artifact.path.display()
         );
-        assert!(artifact.is_file(), "{} does not exist", artifact.display());
+        assert!(artifact.path.is_file(), "{} does not exist", artifact.path.display());
     }
 
     #[test]
@@ -218,7 +252,7 @@ mod tests {
         let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, Error::Usage);
+        assert!(matches!(error, Error::Usage), "{error:?}");
     }
 
     #[test]
@@ -230,7 +264,7 @@ mod tests {
         let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, Error::Usage);
+        assert!(matches!(error, Error::Usage), "{error:?}");
     }
 
     #[test]
@@ -242,7 +276,7 @@ mod tests {
         let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, Error::Usage);
+        assert!(matches!(error, Error::Usage), "{error:?}");
     }
 
     #[test]
@@ -254,7 +288,7 @@ mod tests {
         let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, Error::Usage);
+        assert!(matches!(error, Error::Usage), "{error:?}");
     }
 
     #[test]
@@ -266,21 +300,23 @@ mod tests {
         let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, Error::Usage);
+        assert!(matches!(error, Error::Usage), "{error:?}");
     }
 
     #[test]
     fn it_should_report_a_missing_artifact_when_checking() {
         // Arrange: the artifact path does not exist.
         let directory = TempDir::new().unwrap();
-        let artifact = directory.path().join("missing.json");
+        let path = directory.path().join("missing.json");
 
         // Act: check the missing artifact.
-        let error = check_schema(&artifact).unwrap_err().to_string();
+        let error = SchemaArtifact::at(path.clone()).verify_current().unwrap_err();
 
-        // Assert: the error names the read failure and the path.
-        assert!(error.starts_with("could not read"), "{error}");
-        assert!(error.contains("missing.json"), "{error}");
+        // Assert: the error is a read failure naming the artifact.
+        assert!(
+            matches!(&error, Error::Read { artifact, .. } if *artifact == path),
+            "{error:?}"
+        );
     }
 
     #[test]
@@ -289,29 +325,33 @@ mod tests {
         let directory = TempDir::new().unwrap();
         let blocker = directory.path().join("blocker");
         fs::write(&blocker, "").unwrap();
-        let artifact = blocker.join("frontmatter-v1.schema.json");
 
         // Act: generate the artifact.
-        let error = write_schema(&artifact).unwrap_err().to_string();
+        let error = SchemaArtifact::at(blocker.join("frontmatter-v1.schema.json"))
+            .write()
+            .unwrap_err();
 
-        // Assert: the error names the directory-creation failure and the blocking path.
-        assert!(error.starts_with("could not create"), "{error}");
-        assert!(error.contains("blocker"), "{error}");
+        // Assert: the error is a directory-creation failure naming the blocking path.
+        assert!(
+            matches!(&error, Error::CreateDirectory { directory, .. } if *directory == blocker),
+            "{error:?}"
+        );
     }
 
     #[test]
     fn it_should_detect_drift_from_the_deterministic_schema_output() {
         // Arrange: a disposable artifact contains content that differs from the generated schema.
         let directory = TempDir::new().unwrap();
-        let artifact = directory.path().join("frontmatter-v1.schema.json");
-        fs::write(&artifact, "{}\n").unwrap();
+        let path = directory.path().join("frontmatter-v1.schema.json");
+        fs::write(&path, "{}\n").unwrap();
 
         // Act: check the artifact against the canonical schema output.
-        let error = check_schema(&artifact).unwrap_err().to_string();
+        let error = SchemaArtifact::at(path.clone()).verify_current().unwrap_err();
 
-        // Assert: the check explains that the differing artifact must be regenerated.
-        assert!(error.contains("differs from the deterministic v1 schema output"));
-        assert!(error.contains("--offline"));
-        assert!(error.contains("--artifact"));
+        // Assert: drift is reported for that artifact and the message names offline regeneration.
+        assert!(matches!(&error, Error::Drift { artifact } if *artifact == path), "{error:?}");
+        let message = error.to_string();
+        assert!(message.contains("--offline"), "{message}");
+        assert!(message.contains("--artifact"), "{message}");
     }
 }

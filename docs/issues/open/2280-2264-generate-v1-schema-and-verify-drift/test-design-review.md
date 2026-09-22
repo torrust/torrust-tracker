@@ -206,3 +206,33 @@ not-double-newline check pins "exactly one" rather than "at least one". The bina
 import `v1_schema_json` from the library for their expected bytes, keeping a single definition of
 the artifact encoding. `frontmatter-schema check` still passes against the tracked artifact,
 proving the move did not alter the bytes.
+
+## Refactor Plan Item 8 - SchemaArtifact and Specific Errors
+
+### Arrange
+
+Unchanged from items 2 and 4: a `TempDir` plus either a nested path, a generated file, a missing
+file, or a `blocker` regular file. Exit-code tests construct `Error::Usage` and a representative
+runtime variant, `Error::Drift`.
+
+### Act
+
+`SchemaArtifact::at(path).write()` or `.verify_current()` replace the free functions; parsing
+yields `Command::Generate(SchemaArtifact)` / `Command::Check(SchemaArtifact)`.
+
+### Assert
+
+Failure tests match the variant and the path it carries (`Read { artifact }`,
+`CreateDirectory { directory }`, `Drift { artifact }`) with `matches!`; the drift test additionally
+keeps its two message assertions because the regeneration hint is user-facing behavior that item 9
+changes. Usage tests match `Error::Usage`. The default-location test reads `artifact.path` directly;
+the field is private to production callers but visible to the child `tests` module.
+
+### Review
+
+Variant matching replaces substring matching so a wording change no longer fails the failure-path
+tests, while the path carried in each variant still ties the failure to its cause. `Error` lost
+`PartialEq` because `io::Error` does not implement it; the success test therefore asserts
+`is_ok()` with the `Debug` output in the message. `SchemaArtifact::at` is a plain constructor used
+by tests to build disposable artifacts, and `tracked()` is the only place that knows the repository
+layout. The tracked-artifact check still passes, so the restructuring did not change behavior.
