@@ -182,6 +182,36 @@ mod tests {
     }
 
     #[test]
+    fn it_should_report_a_missing_artifact_when_checking() {
+        // Arrange: the artifact path does not exist.
+        let directory = TempDir::new().unwrap();
+        let artifact = directory.path().join("missing.json");
+
+        // Act: check the missing artifact.
+        let error = check_schema(&artifact).unwrap_err();
+
+        // Assert: the error names the read failure and the path.
+        assert!(error.starts_with("could not read"), "{error}");
+        assert!(error.contains("missing.json"), "{error}");
+    }
+
+    #[test]
+    fn it_should_report_a_parent_that_cannot_be_created_when_generating() {
+        // Arrange: the artifact's parent path is a regular file, so no directory can be created there.
+        let directory = TempDir::new().unwrap();
+        let blocker = directory.path().join("blocker");
+        fs::write(&blocker, "").unwrap();
+        let artifact = blocker.join("frontmatter-v1.schema.json");
+
+        // Act: generate the artifact.
+        let error = write_schema(&artifact).unwrap_err();
+
+        // Assert: the error names the directory-creation failure and the blocking path.
+        assert!(error.starts_with("could not create"), "{error}");
+        assert!(error.contains("blocker"), "{error}");
+    }
+
+    #[test]
     fn it_should_detect_drift_from_the_deterministic_schema_output() {
         // Arrange: a disposable artifact contains content that differs from the generated schema.
         let directory = TempDir::new().unwrap();

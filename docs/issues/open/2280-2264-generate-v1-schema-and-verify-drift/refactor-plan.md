@@ -114,7 +114,7 @@ Dispatch of an unknown action is covered in item 6 once `run` accepts explicit a
 
 ---
 
-### 4. [ ] Cover filesystem failure paths with a real temporary directory [MEDIUM impact / LOW effort]
+### 4. [x] Cover filesystem failure paths with a real temporary directory [MEDIUM impact / LOW effort]
 
 **Problem**: The `could not read` and `could not create` branches are untested. A filesystem
 trait was considered and rejected: every relevant failure is reproducible deterministically on
@@ -260,7 +260,7 @@ per form.
 | 1     | [x]    | Replace the PID-based temporary path with `tempfile::TempDir`     | High   | Trivial |
 | 2     | [x]    | Cover successful generation and clean check                       | High   | Low     |
 | 3     | [x]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
-| 4     | [ ]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
+| 4     | [x]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
 | 5     | [ ]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
 | 6     | [ ]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
 | 7     | [ ]    | Move the canonical artifact encoding into the library             | Medium | Low     |

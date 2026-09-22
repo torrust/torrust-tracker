@@ -110,3 +110,26 @@ relocated crate would make `generate` create a stray `docs/schemas/` elsewhere a
 would still pass. Comparing against `usage()` rather than a literal keeps the tests
 structure-insensitive to wording while still proving each malformed form is rejected the same way.
 Dispatch of an unknown action remains untested until item 6 makes `run` accept explicit arguments.
+
+## Refactor Plan Item 4 - Filesystem Failure Paths
+
+### Arrange
+
+Missing artifact: a path inside the `TempDir` that was never written. Blocked parent: a regular
+file named `blocker` whose child path is used as the artifact.
+
+### Act
+
+Missing artifact: check it. Blocked parent: generate into it.
+
+### Assert
+
+Each error starts with its operation (`could not read`, `could not create`) and names the path that
+failed.
+
+### Review
+
+Both failures are produced by the real filesystem and are deterministic on every platform, which is
+why the plan rejected a filesystem trait. Permission-denied cases are deliberately not tested: they
+are ignored when the test process runs as root, as in CI containers. The `blocker` name is visible
+in the test because it is the causal state and appears in the asserted message.
