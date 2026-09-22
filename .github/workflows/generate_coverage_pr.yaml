@@ -19,8 +19,7 @@ jobs:
     name: Discover Package Coverage
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.discover.outputs.matrix }}
-      unavailable: ${{ steps.discover.outputs.unavailable }}
+      discovery: ${{ steps.discover.outputs.discovery }}
 
     steps:
       - name: Checkout base revision
@@ -51,18 +50,17 @@ jobs:
             "$GITHUB_WORKSPACE/head" \
             "${{ github.event.pull_request.base.sha }}" \
             "${{ github.event.pull_request.head.sha }}")
-          echo "matrix=$(jq -c .matrix <<< "$discovery")" >> "$GITHUB_OUTPUT"
-          echo "unavailable=$(jq -c .unavailable <<< "$discovery")" >> "$GITHUB_OUTPUT"
+          echo "discovery=$discovery" >> "$GITHUB_OUTPUT"
 
   package-coverage-regression:
     name: Package Coverage (${{ matrix.package }})
     needs: discover-package-coverage
-    if: ${{ needs.discover-package-coverage.outputs.matrix != '{"include":[]}' }}
+    if: ${{ fromJSON(needs.discover-package-coverage.outputs.discovery).matrix.include[0] != null }}
     continue-on-error: true
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.discover-package-coverage.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.discover-package-coverage.outputs.discovery).matrix }}
     env:
       CARGO_INCREMENTAL: "0"
       RUSTFLAGS: "-Cinstrument-coverage"
@@ -127,6 +125,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout head revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: head
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+
       - name: Download Package Coverage Results
         if: ${{ needs.package-coverage-regression.result != 'skipped' }}
         uses: actions/download-artifact@v5
@@ -136,44 +146,15 @@ jobs:
           merge-multiple: true
 
       - name: Write Report-Only Summary
+        working-directory: head
         env:
-          MATRIX: ${{ needs.discover-package-coverage.outputs.matrix }}
-          UNAVAILABLE: ${{ needs.discover-package-coverage.outputs.unavailable }}
+          DISCOVERY: ${{ needs.discover-package-coverage.outputs.discovery }}
         run: |
-          {
-            echo "## Package Coverage Regression"
-            echo
-            echo "This report is informational and does not block merging."
-            echo
-            if [[ "$MATRIX" == '{"include":[]}' && "$UNAVAILABLE" == '[]' ]]; then
-              echo "No directly changed workspace package was selected."
-              exit 0
-            fi
-            echo "| Package | Base | Head | Delta | Warning |"
-            echo "| --- | ---: | ---: | ---: | --- |"
-            while IFS=$'\t' read -r package base_directory head_directory; do
-              result="package-coverage-results/package-coverage-$package.json"
-              if [[ ! -f "$result" ]]; then
-                echo "| $package | unavailable | unavailable | unavailable | comparison unavailable |"
-                continue
-              fi
-              base_covered=$(jq -r '.base.covered_lines' "$result")
-              base_instrumented=$(jq -r '.base.instrumented_lines' "$result")
-              head_covered=$(jq -r '.head.covered_lines' "$result")
-              head_instrumented=$(jq -r '.head.instrumented_lines' "$result")
-              base="$base_covered/$base_instrumented ($(awk -v covered="$base_covered" -v instrumented="$base_instrumented" 'BEGIN { printf "%.2f%%", (covered * 100) / instrumented }'))"
-              head="$head_covered/$head_instrumented ($(awk -v covered="$head_covered" -v instrumented="$head_instrumented" 'BEGIN { printf "%.2f%%", (covered * 100) / instrumented }'))"
-              delta=$(awk \
-                -v base_covered="$base_covered" -v base_instrumented="$base_instrumented" \
-                -v head_covered="$head_covered" -v head_instrumented="$head_instrumented" \
-                'BEGIN { printf "%+.2f pp", ((head_covered * 100) / head_instrumented) - ((base_covered * 100) / base_instrumented) }')
-              warning=$(jq -r '.warning' "$result")
-              echo "| $package | $base | $head | $delta | $warning |"
-            done < <(jq -r '.include[] | "\(.package)\t\(.base_directory)\t\(.head_directory)"' <<< "$MATRIX")
-            while IFS=$'\t' read -r package outcome; do
-              echo "| $package | unavailable | unavailable | unavailable | $outcome |"
-            done < <(jq -r '.[] | "\(.package)\t\(.outcome)"' <<< "$UNAVAILABLE")
-          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s' "$DISCOVERY" > "$GITHUB_WORKSPACE/package-coverage-discovery.json"
+          cargo run -p package-coverage-check -- summary \
+            "$GITHUB_WORKSPACE/package-coverage-discovery.json" \
+            "$GITHUB_WORKSPACE/package-coverage-results" \
+            >> "$GITHUB_STEP_SUMMARY"
 
   coverage:
     name: Generate Coverage Report

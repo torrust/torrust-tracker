@@ -143,7 +143,7 @@ switching the workflow to consume it.
 
 ---
 
-### 3. [ ] Simplify the GitHub Actions adapter [Medium impact / Low effort]
+### 3. [x] Simplify the GitHub Actions adapter [Medium impact / Low effort]
 
 **Problem**: [`.github/workflows/generate_coverage_pr.yaml`](../../../../.github/workflows/generate_coverage_pr.yaml)
 contains report decisions and numeric presentation details that the Rust tool
