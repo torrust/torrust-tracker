@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: done
+status: in_progress
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/refactor-plan.md
-last-updated-utc: "2026-09-22 17:40"
+last-updated-utc: "2026-09-22 17:55"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -253,6 +253,82 @@ per form.
 
 ---
 
+### 10. [ ] Do not interpolate caller-controlled paths into a shell command [HIGH impact / LOW effort]
+
+**Problem**: `SchemaArtifact::regenerate_command` interpolates an explicit artifact path directly
+into a shell command displayed on stderr. Paths with whitespace do not round-trip when pasted;
+shell special characters can alter a pasted command's meaning. The command must not construct
+executable shell text from caller-controlled data.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`
+- `docs/schemas/README.md`
+
+**Change**: Replace `Error::Drift`'s stored `regenerate_command: String` with a structured
+regeneration instruction. For the tracked artifact, display the exact documented default command.
+For an explicit artifact, name the path separately and direct the user to run the documented
+generator with `--artifact <path>`; do not render a shell command that incorporates the
+path. Add behavior tests using paths with whitespace and shell special characters.
+
+---
+
+### 11. [ ] Replace the tracked artifact atomically [HIGH impact / MEDIUM effort]
+
+**Problem**: `SchemaArtifact::write` calls `fs::write` directly on the destination. It truncates
+the existing generated artifact before the full replacement bytes are durable. An interrupted
+generation or storage failure can leave a corrupt tracked schema.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/Cargo.toml`
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`
+
+**Change**: Write canonical bytes to a temporary file in the destination directory, flush it, then
+replace the target with a same-directory rename using a platform-aware operation. Define and test
+the symlink policy first: direct write follows a symlink, while rename normally replaces it.
+Preserve the selected policy deliberately. Test successful replacement preserves exact canonical
+bytes and leaves no temporary artifact. Record any platform limitation that prevents a fully
+atomic overwrite.
+
+---
+
+### 12. [ ] Model artifact origin instead of carrying an `explicit` boolean [MEDIUM impact / LOW effort]
+
+**Problem**: `SchemaArtifact` represents selection origin with `path: PathBuf` plus `explicit:
+bool`, while `Error::Drift` independently stores `artifact: PathBuf` plus a derived command
+string. Both pairs permit inconsistent states, such as a tracked path with `explicit: true` or a
+drift path paired with a regeneration command for another path.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`
+
+**Change**: Replace the boolean with `ArtifactOrigin::Tracked` / `ArtifactOrigin::Explicit`. Let
+`SchemaArtifact` own its path and origin, and let drift retain the artifact or a narrow immutable
+regeneration instruction instead of a preformatted string. Render messages at the error-display
+boundary. Add unit tests for both origins and their valid instruction forms.
+
+---
+
+### 13. [ ] Make process reporting unit-testable without spawning the binary [MEDIUM impact / LOW effort]
+
+**Problem**: `main` is the only owner of stderr reporting, but the test suite asserts only error
+values and exit codes independently. A future edit could emit the wrong prefix, write a success
+diagnostic, or ignore a writer failure without a focused test observing it.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`
+
+**Change**: Extract a narrow process adapter that accepts parsed arguments and `&mut impl Write`,
+returns an `ExitCode`, and contains the single stderr formatting decision. Keep `main` as the line
+that locks real stderr and delegates. Test success emits no stderr, usage emits one exact line and
+code `2`, runtime failure emits one exact line and code `1`, and a failing writer is handled
+deliberately. Do not add a generic framework or change the ADR-owned NDJSON rollout.
+
+---
+
 ## Order of Execution
 
 | Order | Status | Item                                                              | Impact | Effort  |
@@ -266,10 +342,17 @@ per form.
 | 7     | [x]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [x]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [x]    | Make the drift hint match the documented command                  | Low    | Trivial |
+| 10    | [ ]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
+| 11    | [ ]    | Replace the tracked artifact atomically                            | High   | Medium  |
+| 12    | [ ]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
+| 13    | [ ]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |
 
 Item 4 is placed before item 5 despite its lower impact because it completes the test baseline
 that item 5 changes behavior against. Item 7 is placed after item 6 because it changes the same
-call sites that item 6 restructures; landing it first would be rewritten immediately.
+call sites that item 6 restructures; landing it first would be rewritten immediately. Item 10 must
+precede item 12 because the origin model should encode the structured instruction selected for
+safe diagnostics. Item 11 is independent and may land before item 12. Item 13 should land last so
+it tests the final diagnostic shape.
 
 ## Test Design Rules
 
@@ -282,6 +365,8 @@ call sites that item 6 restructures; landing it first would be rewritten immedia
   `cargo machete --with-metadata`, `linter all`.
 - Items 5–9 change production code; run the mutation check from the `write-unit-test` skill for
   each new test (reintroduce the old behavior, confirm the test fails, restore).
+- Items 10–13 change production code; use the same mutation-check workflow for each behavior
+  whose regression test should distinguish the previous implementation.
 
 ## Non-Goals and Rejected Alternatives
 
@@ -293,5 +378,8 @@ call sites that item 6 restructures; landing it first would be rewritten immedia
 ## Review Decision
 
 The maintainer approved the plan on 2026-09-22 and chose to implement every item inside the #2280
-branch, one signed commit per item, before opening the pull request. All items are complete; each
+branch, one signed commit per item, before opening the pull request. Items 1–9 are complete; each
 commit carries its prose-first design review in `test-design-review.md`.
+
+A deeper post-implementation review identified items 10–13. They are pending maintainer review;
+do not implement them until approved.
