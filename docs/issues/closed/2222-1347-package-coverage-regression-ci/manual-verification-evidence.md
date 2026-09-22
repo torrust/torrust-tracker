@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
-last-updated-utc: 2026-09-22 08:43
+issue-spec: docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
+last-updated-utc: 2026-09-22 16:40
 ---
 
 # Manual Verification Evidence
