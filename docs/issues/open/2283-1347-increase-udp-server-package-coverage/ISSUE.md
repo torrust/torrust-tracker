@@ -252,7 +252,7 @@ inventory and every plan.
 | 3 | `container.rs` | Probably no change | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
 | 4 | `event.rs` | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 5 | `handlers/mod.rs` | Probably no change | DONE | [handlers-mod-tests.md](test-refactor-plans/handlers-mod-tests.md) |
-| 6 | `handlers/connect.rs` | Probably no change | PENDING | — |
+| 6 | `handlers/connect.rs` | Probably no change | DONE | [handlers-connect-tests.md](test-refactor-plans/handlers-connect-tests.md) |
 | 7 | `handlers/announce.rs` | Probably no change | PENDING | — |
 | 8 | `handlers/scrape.rs` | Probably no change | PENDING | — |
 | 9 | `handlers/error.rs` | Probably no change | PENDING | — |
@@ -393,6 +393,13 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 17:14 UTC - User/maintainer - Approved the completed `handlers/mod.rs` file result:
   two tests increased unit-only line coverage from 85.98% to 96.40%. The signed test and
   documentation increment is pending validation and commit.
+- 2026-09-22 17:16 UTC - GitHub Copilot - Started `handlers/connect.rs` as the only
+  `IN_PROGRESS` file and created [handlers-connect-tests.md](test-refactor-plans/handlers-connect-tests.md).
+  Fresh unit-only coverage is complete, but R1 identifies duplicate IPv4 response tests and test
+  naming/AAA cleanup. No tests or production code changed.
+- 2026-09-22 17:23 UTC - User/maintainer - Approved the completed `handlers/connect.rs` file
+  result: one duplicate test was removed while unit-only coverage remained 100.00%. The signed
+  test and documentation increment is pending validation and commit.
 
 ## Acceptance Criteria
 

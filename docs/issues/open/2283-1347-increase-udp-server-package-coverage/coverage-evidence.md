@@ -124,6 +124,7 @@ file completes.
 | `container.rs` | 59 / 59 (100.00%) | 59 / 59 (100.00%) | 0 | 0 | No; enabled publication is already directly protected, while generic bus behavior and real UDP boundaries are owned elsewhere |
 | `event.rs` | 125 / 131 (95.42%) | 190 / 190 (100.00%) | 1 | 4 | No; event classification has no real UDP boundary |
 | `handlers/mod.rs` | 184 / 214 (85.98%) | 241 / 250 (96.40%) | 0 | 2 | No; remaining fixture-only and generated mock entries are not package-owned production decisions |
+| `handlers/connect.rs` | 251 / 251 (100.00%) | 212 / 212 (100.00%) | 3 | 0 | No; R1 removes duplicate test code while retaining all direct adapter contracts |
 
 ## Relationship To Issue #2149
 
