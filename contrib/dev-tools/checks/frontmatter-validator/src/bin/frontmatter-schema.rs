@@ -3,7 +3,7 @@
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
-use std::{env, fs};
+use std::{env, fmt, fs};
 
 use frontmatter_validator::v1_schema_json;
 
@@ -24,8 +24,11 @@ enum Error {
     Write { artifact: PathBuf, source: io::Error },
     #[error("could not read {}: {source}", artifact.display())]
     Read { artifact: PathBuf, source: io::Error },
-    #[error("{} differs from the deterministic v1 schema output; run `{regenerate_command}`", artifact.display())]
-    Drift { artifact: PathBuf, regenerate_command: String },
+    #[error("{} differs from the deterministic v1 schema output; {regeneration}", artifact.display())]
+    Drift {
+        artifact: PathBuf,
+        regeneration: RegenerationInstruction,
+    },
 }
 
 impl Error {
@@ -34,6 +37,30 @@ impl Error {
         match self {
             Self::Usage => ExitCode::from(2),
             _ => ExitCode::FAILURE,
+        }
+    }
+}
+
+/// An actionable, non-shell-formatted instruction for regenerating a schema artifact.
+#[derive(Debug, Eq, PartialEq)]
+enum RegenerationInstruction {
+    /// The tracked artifact has one documented copy-paste command.
+    TrackedArtifact,
+    /// A caller-selected path must remain diagnostic data instead of shell syntax.
+    ExplicitArtifact,
+}
+
+impl fmt::Display for RegenerationInstruction {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::TrackedArtifact => write!(
+                formatter,
+                "run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate`"
+            ),
+            Self::ExplicitArtifact => write!(
+                formatter,
+                "run the documented generator with `--artifact <path>` and the artifact path above"
+            ),
         }
     }
 }
@@ -111,13 +138,12 @@ impl SchemaArtifact {
         Self { path, explicit: true }
     }
 
-    /// The documented command that regenerates this artifact.
-    fn regenerate_command(&self) -> String {
-        let command = "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate";
+    /// The safe regeneration instruction for this artifact.
+    const fn regeneration_instruction(&self) -> RegenerationInstruction {
         if self.explicit {
-            format!("{command} --artifact {}", self.path.display())
+            RegenerationInstruction::ExplicitArtifact
         } else {
-            String::from(command)
+            RegenerationInstruction::TrackedArtifact
         }
     }
 
@@ -147,7 +173,7 @@ impl SchemaArtifact {
         } else {
             Err(Error::Drift {
                 artifact: self.path.clone(),
-                regenerate_command: self.regenerate_command(),
+                regeneration: self.regeneration_instruction(),
             })
         }
     }
@@ -162,7 +188,7 @@ mod tests {
     use frontmatter_validator::v1_schema_json;
     use tempfile::TempDir;
 
-    use super::{Command, Error, SchemaArtifact};
+    use super::{Command, Error, RegenerationInstruction, SchemaArtifact};
 
     fn parse(arguments: &[&str]) -> Result<Command, Error> {
         Command::parse(arguments.iter().map(ToString::to_string))
@@ -185,7 +211,7 @@ mod tests {
         // Arrange: the command failed while doing its work.
         let error = Error::Drift {
             artifact: PathBuf::from("schema.json"),
-            regenerate_command: String::new(),
+            regeneration: RegenerationInstruction::TrackedArtifact,
         };
 
         // Act: map the error to a process exit code.
@@ -369,7 +395,7 @@ mod tests {
         );
         let message = error.to_string();
         assert!(
-            message.ends_with(&format!("-- generate --artifact {}`", path.display())),
+            message.ends_with("`--artifact <path>` and the artifact path above"),
             "{message}"
         );
     }
@@ -379,13 +405,20 @@ mod tests {
         // Arrange: the artifact is the tracked default, selected without `--artifact`.
         let artifact = SchemaArtifact::tracked().unwrap();
 
-        // Act: render the regeneration hint.
-        let command = artifact.regenerate_command();
+        // Act: render the drift diagnostic.
+        let message = Error::Drift {
+            artifact: artifact.path.clone(),
+            regeneration: artifact.regeneration_instruction(),
+        }
+        .to_string();
 
         // Assert: the hint is exactly the command documented in docs/schemas/README.md.
         assert_eq!(
-            command,
-            "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate"
+            message,
+            format!(
+                "{} differs from the deterministic v1 schema output; run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate`",
+                artifact.path.display()
+            )
         );
     }
 
@@ -394,13 +427,33 @@ mod tests {
         // Arrange: the caller named a disposable copy with `--artifact`.
         let artifact = SchemaArtifact::at(PathBuf::from(".tmp/copy.json"));
 
-        // Act: render the regeneration hint.
-        let command = artifact.regenerate_command();
+        // Act: render the drift diagnostic.
+        let message = Error::Drift {
+            artifact: artifact.path.clone(),
+            regeneration: artifact.regeneration_instruction(),
+        }
+        .to_string();
 
-        // Assert: the hint targets that copy, not the tracked artifact.
+        // Assert: the copy is named as data and guidance remains safe shell-independent text.
         assert_eq!(
-            command,
-            "cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact .tmp/copy.json"
+            message,
+            ".tmp/copy.json differs from the deterministic v1 schema output; run the documented generator with `--artifact <path>` and the artifact path above"
         );
+    }
+
+    #[test]
+    fn it_should_not_embed_an_explicit_artifact_path_in_a_shell_command() {
+        // Arrange: the explicit path contains text that a shell would interpret if pasted into a command.
+        let directory = TempDir::new().unwrap();
+        let path = directory.path().join("schema with spaces $(unexpected).json");
+        fs::write(&path, "{}\n").unwrap();
+
+        // Act: check the non-canonical artifact and render its diagnostic.
+        let message = SchemaArtifact::at(path.clone()).verify_current().unwrap_err().to_string();
+
+        // Assert: the path remains data, not part of an executable shell command.
+        assert!(message.contains(&path.display().to_string()), "{message}");
+        assert!(message.contains("--artifact <path>"), "{message}");
+        assert!(!message.contains(&format!("--artifact {}", path.display())), "{message}");
     }
 }

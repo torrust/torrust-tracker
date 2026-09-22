@@ -253,7 +253,7 @@ per form.
 
 ---
 
-### 10. [ ] Do not interpolate caller-controlled paths into a shell command [HIGH impact / LOW effort]
+### 10. [x] Do not interpolate caller-controlled paths into a shell command [HIGH impact / LOW effort]
 
 **Problem**: `SchemaArtifact::regenerate_command` interpolates an explicit artifact path directly
 into a shell command displayed on stderr. Paths with whitespace do not round-trip when pasted;
@@ -342,7 +342,7 @@ deliberately. Do not add a generic framework or change the ADR-owned NDJSON roll
 | 7     | [x]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [x]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [x]    | Make the drift hint match the documented command                  | Low    | Trivial |
-| 10    | [ ]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
+| 10    | [x]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
 | 11    | [ ]    | Replace the tracked artifact atomically                            | High   | Medium  |
 | 12    | [ ]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
 | 13    | [ ]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |

@@ -262,3 +262,30 @@ full string because the string is the user-facing contract; the drift test asser
 suffix so it stays insensitive to the drift wording while proving the hint targets the checked
 copy. Manual replay: `check --artifact .tmp/drift-copy.json` on an altered copy exited `1` with the
 explicit hint; the tracked artifact was untouched.
+
+## Refactor Plan Item 10 - Explicit Paths Are Diagnostic Data, Not Shell Syntax
+
+### Arrange
+
+A disposable explicit artifact path contains whitespace and a shell command-substitution sequence;
+its content differs from the canonical schema bytes.
+
+### Act
+
+Check the artifact and render the resulting drift error.
+
+### Assert
+
+The message names the artifact path as data and directs the user to the documented `--artifact
+<path>` usage, but it does not concatenate the path after `--artifact` into a runnable shell
+command.
+
+### Review
+
+The unusual filename is the single causal state: ordinary filenames do not prove whether a
+diagnostic has converted path data into shell syntax. The test observes the error's display text,
+which is the process-facing contract, rather than the temporary internal representation that will
+change again in item 12. The command-substitution characters are inert because the test writes a
+filesystem path directly; no shell parses the value. Red-first verification against the prior
+implementation failed because it appended the path immediately after `--artifact`; structured
+guidance returned the focused test to green.
