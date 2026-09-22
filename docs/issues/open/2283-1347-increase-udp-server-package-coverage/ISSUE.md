@@ -251,7 +251,7 @@ inventory and every plan.
 | 2 | `lib.rs` | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | 3 | `container.rs` | Probably no change | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
 | 4 | `event.rs` | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
-| 5 | `handlers/mod.rs` | Probably no change | PENDING | — |
+| 5 | `handlers/mod.rs` | Probably no change | DONE | [handlers-mod-tests.md](test-refactor-plans/handlers-mod-tests.md) |
 | 6 | `handlers/connect.rs` | Probably no change | PENDING | — |
 | 7 | `handlers/announce.rs` | Probably no change | PENDING | — |
 | 8 | `handlers/scrape.rs` | Probably no change | PENDING | — |
@@ -386,6 +386,13 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 16:38 UTC - User/maintainer - Approved the completed `event.rs` file result:
   one test refactor and four unit tests increased unit-only line coverage from 95.42% to 100.00%.
   The signed test and documentation increment is pending validation and commit.
+- 2026-09-22 16:43 UTC - GitHub Copilot - Started `handlers/mod.rs` as the only `IN_PROGRESS`
+  file and created [handlers-mod-tests.md](test-refactor-plans/handlers-mod-tests.md). Fresh
+  unit-only coverage found the `CookieTimeValues::new` range calculation as the only uncovered
+  package-owned decision. The plan proposes one direct deterministic unit test.
+- 2026-09-22 17:14 UTC - User/maintainer - Approved the completed `handlers/mod.rs` file result:
+  two tests increased unit-only line coverage from 85.98% to 96.40%. The signed test and
+  documentation increment is pending validation and commit.
 
 ## Acceptance Criteria
 

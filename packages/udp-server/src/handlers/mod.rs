@@ -265,10 +265,13 @@ pub(crate) mod tests {
     use torrust_tracker_udp_core::services::announce::AnnounceService;
     use torrust_tracker_udp_core::services::scrape::ScrapeService;
     use torrust_tracker_udp_core::{self, event as core_event};
-    use torrust_tracker_udp_protocol::{ConnectionId, ErrorResponse, Request, Response, ScrapeRequest, TransactionId};
+    use torrust_tracker_udp_protocol::{
+        ConnectRequest, ConnectionId, ErrorResponse, Request, Response, ScrapeRequest, TransactionId,
+    };
     use zerocopy::byteorder::network_endian::{I32, I64};
 
-    use crate::handlers::handle_packet;
+    use crate::event::UdpRequestKind;
+    use crate::handlers::{handle_packet, handle_request};
     use crate::testing::environment::EnvContainer;
     use crate::{RawRequest, event as server_event};
 
@@ -493,6 +496,53 @@ pub(crate) mod tests {
             payload,
             from: sample_ipv4_remote_addr(),
         }
+    }
+
+    #[test]
+    fn it_should_build_a_cookie_validation_range_around_the_issue_time() {
+        // Arrange
+        let cookie_lifetime = 60.0;
+
+        // Act
+        let cookie_time_values = super::CookieTimeValues::new(cookie_lifetime);
+
+        // Assert
+        assert_eq!(
+            cookie_time_values.valid_range,
+            cookie_time_values.issue_time - cookie_lifetime - 1.0..cookie_time_values.issue_time + 1.0
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_dispatch_a_connect_request() {
+        // Arrange
+        let environment = initialize_udp_handler_environment().await;
+        let transaction_id = TransactionId(I32::new(42));
+        let request = Request::Connect(ConnectRequest { transaction_id });
+
+        // Act
+        let actual = handle_request(
+            request,
+            sample_ipv4_remote_addr(),
+            ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address()).expect("UDP service binding should be valid"),
+            environment.udp_tracker_core_container,
+            environment.udp_tracker_server_container,
+            super::CookieTimeValues {
+                issue_time: sample_issue_time(),
+                valid_range: sample_cookie_valid_range(),
+            },
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(matches!(
+            actual,
+            Ok((
+                Response::Connect(connect_response),
+                UdpRequestKind::Connect,
+            )) if connect_response.transaction_id == transaction_id
+        ));
     }
 
     #[tokio::test]

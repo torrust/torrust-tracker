@@ -26,6 +26,7 @@ maintainer approves it.
 | 2 | [lib-tests.md](lib-tests.md) | DONE | No code or test change; unit-only 96.55% lines |
 | 3 | [container-tests.md](container-tests.md) | DONE | No code or test change; unit-only 100.00% lines |
 | 4 | [event-tests.md](event-tests.md) | DONE | 1 test refactored, 4 unit tests added; unit-only 95.42% → 100.00% lines |
+| 5 | [handlers-mod-tests.md](handlers-mod-tests.md) | DONE | 2 unit tests added; unit-only 85.98% → 96.40% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

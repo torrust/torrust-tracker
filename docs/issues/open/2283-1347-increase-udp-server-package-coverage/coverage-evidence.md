@@ -123,6 +123,7 @@ file completes.
 | `lib.rs` | 28 / 29 (96.55%) | 28 / 29 (96.55%) | 0 | 0 | No; crate-root declarations and test-support helper have no real UDP boundary |
 | `container.rs` | 59 / 59 (100.00%) | 59 / 59 (100.00%) | 0 | 0 | No; enabled publication is already directly protected, while generic bus behavior and real UDP boundaries are owned elsewhere |
 | `event.rs` | 125 / 131 (95.42%) | 190 / 190 (100.00%) | 1 | 4 | No; event classification has no real UDP boundary |
+| `handlers/mod.rs` | 184 / 214 (85.98%) | 241 / 250 (96.40%) | 0 | 2 | No; remaining fixture-only and generated mock entries are not package-owned production decisions |
 
 ## Relationship To Issue #2149
 
