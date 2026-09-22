@@ -158,3 +158,12 @@ semantic-links:
 - Regression coverage: external records that resemble v1 issues remain permissive, while malformed
   `metadata.semantic-links` produces an `InvalidSemanticLinks` diagnostic.
 - Verification: `cargo test --package frontmatter-validator` passed 36 tests.
+
+### 2026-09-21 22:00 UTC - Task Reviewer - Final Structural Review
+
+- Result: `PASS`.
+- Verified: external ownership is retained through profile validation; malformed nested external
+  `metadata.semantic-links` remains rejected; predecessor fixtures, strict profile boundaries,
+  parser/profile separation, and frozen reference syntax all conform to the approved contract.
+- Scope note: schema generation and drift verification remain #2280; command, discovery,
+  diagnostic rendering, hook integration, and manual/mutation validation remain #2281.
