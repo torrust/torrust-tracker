@@ -489,7 +489,7 @@ async fn start_http_instance(
         RuntimeServiceMetadata::new(configuration_instance_id)
             .with_public_url(http_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         torrust_tracker_axum_http_server::Version::V1,
-        job_manager.new_cancellation_token(),
+        job_manager.new_cancellation_token().child_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -589,11 +589,13 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{
-        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_peers_inactivity_update,
-        start_torrent_cleanup,
+        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_http_instance,
+        start_peers_inactivity_update, start_torrent_cleanup,
     };
+    use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
     use crate::container::AppContainer;
 
@@ -721,6 +723,36 @@ mod tests {
             outcomes,
             vec![JobOutcome {
                 name: "peers_inactivity_update".to_string(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_http_tracker_component_through_the_job_manager() {
+        // Arrange
+        let configuration = ephemeral_public();
+        let http_tracker_config = &configuration.http_trackers.as_ref().expect("test configuration enables HTTP")[0];
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_http_instance(0, http_tracker_config, &app_container, &mut job_manager)
+            .await
+            .expect("HTTP tracker should start through application bootstrap");
+
+        // Act
+        job_manager.cancel();
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: format!("http_instance_0_{}", http_tracker_config.bind_address),
                 status: JobStatus::Cancelled,
             }]
         );

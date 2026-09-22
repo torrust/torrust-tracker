@@ -1,77 +1,69 @@
 # Verification Evidence — HTTP Tracker Token Lifecycle Migration
 
-> **Status**: Not started — capture deterministic and manual evidence for this
-> HTTP-only vertical slice.
-
-## Environment
-
-- Date:
-- OS:
-- Rust version (`rustc --version`):
-- Tracker commit/branch:
+> **Status**: Complete as of 2026-09-22 on Linux with nightly Rust 1.100.0.
 
 ## Deterministic Tests
 
-### Test 1: Injected cancellation drains HTTP component
+- `cargo test -p torrust-tracker-axum-http-server`: passed.
+      Includes token-aware drain, registration-failure cleanup, and unchanged
+      legacy start/stop coverage.
+- `cargo test -p torrust-tracker bootstrap::jobs::http_tracker`: passed.
+      Covers injected cancellation, independent server completion, and panicking
+      server-task outcomes. Completion and failure tests hold the controller after
+      it observes cancellation, prove the supervisor remains pending, then release
+      it and assert the final component outcome.
+- `cargo test -p torrust-tracker it_should_cancel_the_http_tracker_component_through_the_job_manager`: passed.
+      Proves root-token cancellation reaches the named
+      `http_instance_0_<address>` component without an OS signal.
+- `cargo test -p torrust-tracker`: passed.
 
-- [ ] Start one HTTP tracker component with an injected `CancellationToken`.
-- [ ] Cancel the token without delivering `SIGINT` or `SIGTERM`.
-- [ ] Verify the component awaits its server and drain-controller children.
-- [ ] Verify the component reports a named completion outcome.
+### Prose-First Test Review
 
-**Evidence:**
+The tested modules decide lifecycle ownership and component outcomes; registry
+and HTTP serving details remain collaborator mechanics. Each changed test was
+compared against its Arrange-Act-Assert prose before recording this evidence:
 
-```text
-(paste focused test output)
-```
+- Token-aware server drain: an available HTTP binding and injected token start
+      the server; cancelling that token is the visible Act; the server launcher and
+      `Drained` controller outcome are asserted.
+- Token-aware registration failure: duplicate registry state is the causal
+      initial condition; token-aware startup is the visible Act; the typed duplicate
+      binding error and released listener are asserted.
+- Independent completion and panic: a completed or panicking server task plus a
+      controller held after cancellation is the causal state; supervision is the
+      visible Act; the tests prove supervision remains pending until controller
+      release and then assert completed or failed outcome.
+- Bootstrap propagation: a configured HTTP tracker registered through
+      `start_http_instance` is the causal state; `JobManager::cancel` is the visible
+      Act; the named cancelled HTTP component outcome is asserted.
 
-### Test 2: Unexpected server completion is reported
+These tests keep behavior-selecting state, production actions, and independently
+specified outcomes visible. Legacy start/stop coverage remains unchanged and
+continues to test the separate compatibility API.
 
-- [ ] Cause or simulate server-task completion/failure without cancellation.
-- [ ] Verify the component reports an explicit outcome and does not leave the
-      drain-controller task detached.
+## Compatibility and Ownership Review
 
-**Evidence:**
+- `HttpServer::start` and `HttpServer::stop` remain the unchanged legacy path;
+      their compatibility test passes.
+- The token-aware path calls `graceful_shutdown_on_cancellation` and does not
+      subscribe to operating-system signals.
+- The HTTP component owns both direct children. It cancels and joins the drain
+      controller before reporting cancellation, independent completion, or runtime
+      failure.
 
-```text
-(paste focused test output)
-```
+## Manual Evidence
 
-### Test 3: Bootstrap wiring
+Direct binary PID shutdown and HTTP listener rebind evidence is recorded in
+[manual-verification-evidence.md](manual-verification-evidence.md). The direct
+tracker process exited with status `0` in two consecutive SIGTERM runs and the
+logs recorded the token-aware drain path.
 
-- [ ] Start the tracker bootstrap with an HTTP binding.
-- [ ] Request root-token cancellation without an OS signal.
-- [ ] Verify the `http_instance_<index>_<address>` managed component completes.
+The migrated executable has no configuration switch for its retained legacy
+server API. Legacy compatibility is therefore automatic coverage, not a manual
+scenario.
 
-**Evidence:**
+## Quality Gates
 
-```text
-(paste focused test output)
-```
-
-## Compatibility and Manual Evidence
-
-- [ ] Existing legacy HTTP start/stop tests pass without changing their call
-      sites.
-- [ ] After SI-1, SIGTERM sent to the tracker binary reaches `main()` and the
-      migrated HTTP component records token-driven drain completion.
-- [ ] The token-aware HTTP path has no OS-signal subscription.
-- [ ] Every drain-controller handle created by the new path is retained and
-      awaited by its HTTP component owner.
-
-**Evidence:**
-
-```text
-(paste test output, source-review notes, and relevant shutdown logs)
-```
-
-## Summary
-
-| Check                     | Result  | Evidence link or note |
-| ------------------------- | ------- | --------------------- |
-| Token-driven HTTP drain   | Pending |                       |
-| Joined child tasks        | Pending |                       |
-| Unexpected server outcome | Pending |                       |
-| Bootstrap propagation     | Pending |                       |
-| Legacy API compatibility  | Pending |                       |
-| Manual SIGTERM path       | Pending |                       |
+- `linter all`: passed.
+- `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh`:
+      passed all eight checks.
