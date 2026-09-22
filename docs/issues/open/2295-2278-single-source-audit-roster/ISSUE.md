@@ -9,7 +9,7 @@ github-issue: 2295
 spec-path: docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
 branch: "2295-2278-single-source-audit-roster-spec"
 related-pr: null
-last-updated-utc: "2026-09-22 10:55"
+last-updated-utc: "2026-09-22 10:52"
 semantic-links:
   skill-links:
     - create-issue
