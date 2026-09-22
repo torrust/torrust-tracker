@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 2278
 github-issue: 2295
-spec-path: docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
+spec-path: docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md
 branch: "2295-2278-single-source-audit-roster"
-related-pr: null
-last-updated-utc: "2026-09-22 14:11"
+related-pr: "https://github.com/torrust/torrust-tracker/pull/2300"
+last-updated-utc: "2026-09-22"
 semantic-links:
   skill-links:
     - create-issue
@@ -154,8 +154,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Evidence-based implementation completion review recorded: no retrospective needed; rationale recorded in the progress log
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -164,6 +164,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-09-22 13:16 UTC - GitHub Copilot - PR #2296 merged as `a3e9c9e1`; implemented T1-T4 in `docs(pr-reviews): single-source the audit field roster` and `docs(pr-reviews): mark audit template section ownership`.
 - 2026-09-22 13:16 UTC - GitHub Copilot - Recorded M1-M4 in `manual-verification-evidence.md`, updated the parent EPIC row to `IN_PROGRESS`, and re-reviewed AC1-AC6 and AC8-AC9. No retrospective is needed: the implementation matched the approved scope; correcting the M1 extraction boundary was a verification-command repair, not a material discovery.
 - 2026-09-22 13:19 UTC - GitHub Copilot - `linter all`, `cargo run --package agent-review-report-contract`, and the full pre-commit gate passed; AC7 is verified.
+- 2026-09-22 - GitHub Copilot - PR #2300 merged and automatically closed GitHub issue #2295 as completed. Archived this specification and its evidence in `docs/issues/closed/2295-2278-single-source-audit-roster/`.
 
 ## Acceptance Criteria
 
