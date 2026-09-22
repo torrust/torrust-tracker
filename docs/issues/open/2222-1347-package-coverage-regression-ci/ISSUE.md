@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 - [x] Draft moved to `docs/issues/open/` with assigned issue number.
 - [x] Local implementation completed; hosted workflow rollout verification remains pending.
 - [x] Local automatic verification completed; hosted workflow validation remains pending.
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`.
+- [ ] Hosted manual verification scenarios executed and recorded in `manual-verification-evidence.md`; local M1 proof is complete.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -210,6 +210,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
   full pre-commit gate passed. Local discovery against repository history selected only
   `package-coverage-regression`. Hosted runner timing, artifact behavior, and fork execution have
   not yet been observed and remain rollout evidence rather than completed claims.
+- 2026-09-22 06:10 UTC - GitHub Copilot - Completed the controlled local M1 double-build proof
+  between `88822c5c` and `aa026584`. Separate instrumented package builds each took 2.98 seconds,
+  passed all 15 tests, and produced `290/461` source lines covered at base and head. The helper
+  emitted `warning: false`. This validates the local command path only; GitHub-hosted timing and
+  fork execution remain pending.
 
 ## Acceptance Criteria
 
@@ -259,7 +264,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Command/Steps                                                                                               | Expected Result                                                                                           | Status | Evidence |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Base/head double-build proof of concept | Run a controlled changed-package comparison at the PR base and head revisions.                              | Matching package/source scope produces a correct delta without a persisted baseline.                       | TODO   | [manual evidence](manual-verification-evidence.md#m1-basehead-double-build-proof-of-concept) |
+| M1  | Base/head double-build proof of concept | Run a controlled changed-package comparison at the PR base and head revisions.                              | Matching package/source scope produces a correct delta without a persisted baseline.                       | DONE   | [manual evidence](manual-verification-evidence.md#m1-basehead-double-build-proof-of-concept) |
 | M2  | Dynamic changed-package matrix          | Exercise a one-package change, multiple-package change, and non-package-only change.                         | Matrix contains only directly changed comparable packages; the report job remains present.                 | TODO   | [manual evidence](manual-verification-evidence.md#m2-dynamic-changed-package-matrix) |
 | M3  | Equal, improved, and reduced coverage  | Exercise ratio calculation with controlled report fixtures or changes.                                      | The summary warns only for a decrease greater than five percentage points and never blocks a merge.        | TODO   | [manual evidence](manual-verification-evidence.md#m3-equal-improved-and-reduced-coverage) |
 | M4  | Exceptional package outcomes            | Exercise documentation/workspace-config-only changes and new, deleted, or unmatched renamed packages.       | No package is falsely selected; summary explicitly reports non-comparable outcomes.                       | TODO   | [manual evidence](manual-verification-evidence.md#m4-exceptional-package-outcomes) |

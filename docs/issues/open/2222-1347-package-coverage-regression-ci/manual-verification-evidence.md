@@ -39,20 +39,33 @@ represented by this local evidence. Their scenarios remain pending below.
 
 - Goal: Verify a controlled changed-package comparison at the pull request base and head
   revisions without a persisted baseline artifact.
-- Initial state: Pending implementation.
-- Status: `TODO`
+- Initial state: `88822c5c` as base and `aa026584` as head, with the
+  `package-coverage-regression` package present in both revisions.
+- Status: `DONE` (local proof only)
 
 #### Steps Performed
 
-Pending implementation.
+1. Created a detached base checkout with `git worktree add --detach
+  .tmp/package-coverage-base 88822c5c`.
+2. Ran `cargo llvm-cov -p package-coverage-regression --all-features --codecov`
+  at the base and head revisions with `CARGO_INCREMENTAL=0`,
+  `RUSTFLAGS=-Cinstrument-coverage`, separate `CARGO_TARGET_DIR` values, and
+  separate Codecov JSON output paths.
+3. Ran the repository helper's `compare` command over each revision's JSON report and `src/`
+  directory.
 
 #### Observed Result
 
-Pending implementation.
+- The base build passed all 15 package tests and took 2.98 seconds.
+- The head build passed all 15 package tests and took 2.98 seconds.
+- The helper emitted
+  `{"package":"package-coverage-regression","base":{"covered_lines":290,"instrumented_lines":461},"head":{"covered_lines":290,"instrumented_lines":461},"warning":false}`.
 
 #### Conclusion
 
-Pending implementation.
+The local double build used isolated artifacts, retained exact source-only counts, and reported no
+warning for equal coverage. It does not establish GitHub-hosted-runner runtime, artifact-download
+behavior, rendered job-summary output, or fork safety; those remain M2-M5 rollout checks.
 
 ### M2 Dynamic Changed-Package Matrix
 
