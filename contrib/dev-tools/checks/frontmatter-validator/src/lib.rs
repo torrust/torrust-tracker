@@ -13,7 +13,9 @@ pub struct Frontmatter {
     pub values: Mapping,
     /// The original YAML source for strict scalar-style validation.
     pub(crate) yaml: String,
-    /// The optional repository-owned universal metadata extension.
+    /// The document's known top-level schema ownership.
+    pub(crate) ownership: DocumentOwnership,
+    /// The optional semantic-link extension validated for this ownership mode.
     pub semantic_links: Option<SemanticLinks>,
 }
 
@@ -127,6 +129,7 @@ pub fn extract_with_ownership(markdown: &str, ownership: DocumentOwnership) -> R
     Ok(Some(Frontmatter {
         values,
         yaml,
+        ownership,
         semantic_links,
     }))
 }
@@ -317,6 +320,33 @@ mod tests {
                 related_artifacts: None,
             })
         );
+    }
+
+    #[test]
+    fn it_should_reject_invalid_semantic_links_from_external_metadata() {
+        // Arrange: an external schema has a malformed nested extension.
+        let markdown = "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nmetadata:\n  semantic-links: invalid\n---\n# Skill\n";
+
+        // Act: extract the external-document envelope.
+        let error = extract_with_ownership(markdown, DocumentOwnership::External).unwrap_err();
+
+        // Assert: external ownership still validates its owned nested extension.
+        assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
+    }
+
+    #[test]
+    fn it_should_keep_an_external_v1_looking_document_permissive() {
+        // Arrange: an external schema happens to use strict-profile field names.
+        let markdown = "---\nname: external-record\ndescription: An externally governed record.\nschema-version: 1\ndoc-type: issue\nmetadata:\n  semantic-links:\n    skill-links:\n      - write-markdown-docs\n---\n# External\n";
+        let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External)
+            .unwrap()
+            .unwrap();
+
+        // Act: validate the extracted document profile.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: ownership prevents strict repository-profile interpretation.
+        assert!(matches!(profile, Profile::Permissive));
     }
 
     #[test]

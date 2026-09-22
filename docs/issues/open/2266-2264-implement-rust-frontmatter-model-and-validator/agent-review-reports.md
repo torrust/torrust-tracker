@@ -140,3 +140,21 @@ semantic-links:
 - Verification: `cargo test --package frontmatter-validator` passed 34 tests; nightly Rust
   `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
   warnings` passed.
+
+### 2026-09-21 21:45 UTC - Task Reviewer - Final Structural Review
+
+- Result: `FAIL`.
+- Finding: explicit external ownership was honored during extraction but not retained for profile
+  dispatch, allowing external records with `schema-version: 1` and `doc-type: issue` or `epic` to
+  be interpreted as strict repository profiles.
+- Required correction: retain ownership in extracted frontmatter or pass it to profile validation;
+  externally governed documents must remain permissive. Add composition coverage and a malformed
+  nested metadata extension case.
+
+### 2026-09-21 21:45 UTC - GitHub Copilot - Final Review Correction
+
+- Correction: retained `DocumentOwnership` in `Frontmatter`; profile validation returns
+  `Profile::Permissive` for explicitly external documents before strict-profile dispatch.
+- Regression coverage: external records that resemble v1 issues remain permissive, while malformed
+  `metadata.semantic-links` produces an `InvalidSemanticLinks` diagnostic.
+- Verification: `cargo test --package frontmatter-validator` passed 36 tests.

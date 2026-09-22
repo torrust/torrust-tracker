@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
 
-use crate::{Diagnostic, DiagnosticCategory, Frontmatter, SemanticLinks};
+use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter, SemanticLinks};
 
 /// A recognized frontmatter profile.
 #[derive(Debug, Eq, PartialEq)]
@@ -188,6 +188,10 @@ pub enum Priority {
 /// Returns a diagnostic when a strict v1 issue or EPIC record has an unknown field, omits a
 /// required field, uses the wrong scalar type, or violates an allowed-value or field invariant.
 pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
+    if frontmatter.ownership == DocumentOwnership::External {
+        return Ok(Profile::Permissive);
+    }
+
     let Some(doc_type) = strict_document_type(&frontmatter.values)? else {
         return Ok(Profile::Permissive);
     };
