@@ -327,11 +327,9 @@ fn is_positive_integer(value: &str) -> bool {
 
 fn is_lowercase_identifier(value: &str) -> bool {
     !value.is_empty()
-        && !value.starts_with('-')
-        && !value.ends_with('-')
         && value
-            .bytes()
-            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+            .split('-')
+            .all(|segment| !segment.is_empty() && segment.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit()))
 }
 
 fn validate_issue_invariants(issue: &Issue, yaml: &str) -> Result<(), Diagnostic> {
@@ -405,8 +403,17 @@ fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic>
 fn has_double_quoted_timestamp(yaml: &str) -> bool {
     yaml.lines()
         .find_map(|line| line.strip_prefix("last-updated-utc:").map(str::trim))
-        .map(|value| value.split_once(" #").map_or(value, |(scalar, _)| scalar.trim_end()))
+        .map(strip_yaml_comment)
         .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
+}
+
+fn strip_yaml_comment(value: &str) -> &str {
+    value
+        .char_indices()
+        .find_map(|(index, character)| {
+            (character == '#' && value[..index].chars().last().is_some_and(char::is_whitespace)).then_some(index)
+        })
+        .map_or(value, |index| value[..index].trim_end())
 }
 
 fn is_valid_utc_minute(value: &str) -> bool {

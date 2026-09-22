@@ -126,3 +126,17 @@ semantic-links:
 - Verification: `cargo test --package frontmatter-validator` passed 31 tests; nightly Rust
   `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
   warnings` passed.
+
+### 2026-09-21 21:30 UTC - GitHub Copilot - Ownership Boundary Correction
+
+- Response to the final boundary findings: extraction now accepts explicit `DocumentOwnership`,
+  removing content-only external-schema inference. The future path-discovery adapter selects the
+  external ownership mode for Agent Skills and profiles; repository-owned and unknown documents
+  retain top-level universal validation. Identifier parsing now requires every hyphen-separated
+  segment to be non-empty, and timestamp comment stripping accepts any preceding whitespace.
+- Regression coverage: added ordinary `name`/`description` validation, explicit external Skill and
+  profile ownership, consecutive-hyphen identifier rejection, and tab-separated timestamp comment
+  acceptance.
+- Verification: `cargo test --package frontmatter-validator` passed 34 tests; nightly Rust
+  `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
+  warnings` passed.

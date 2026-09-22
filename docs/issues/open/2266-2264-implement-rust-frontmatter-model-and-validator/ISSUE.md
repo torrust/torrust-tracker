@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 21:10"
+last-updated-utc: "2026-09-21 21:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,6 +242,15 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   causal field difference at a time. Focused validation passed: `cargo test --package
   frontmatter-validator`, nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy
   --package frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 21:30 UTC - GitHub Copilot - Corrected the final structural-boundary review findings:
+  the extractor now takes explicit repository/external schema ownership instead of inferring an
+  external schema from arbitrary field content; strict hyphenated identifiers reject empty segments;
+  and quoted timestamps accept comments preceded by spaces or tabs. Added regressions for ordinary
+  name/description records, external Skills and profiles, consecutive hyphens, and tab-separated
+  comments. Focused validation passed: `cargo test --package frontmatter-validator` (34 tests),
+  nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
+  frontmatter-validator -- -D warnings` -
   `contrib/dev-tools/checks/frontmatter-validator/`
 - 2026-09-21 18:30 UTC - GitHub Copilot - Performed the mandatory first-vertical-slice boundary
   review. T6 schema generation/drift verification and T7-T8 command, pre-commit, and operational

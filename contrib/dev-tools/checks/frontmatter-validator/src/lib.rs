@@ -17,6 +17,15 @@ pub struct Frontmatter {
     pub semantic_links: Option<SemanticLinks>,
 }
 
+/// Ownership of the document's top-level frontmatter schema.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DocumentOwnership {
+    /// Repository-owned or unknown documents use the top-level universal extension.
+    Repository,
+    /// Agent Skills and agent profiles use only the nested metadata extension.
+    External,
+}
+
 /// The universal repository-owned semantic-link extension.
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -88,6 +97,18 @@ pub struct Diagnostic {
 /// Returns a diagnostic when the opening delimiter is unclosed, the YAML is malformed, the YAML
 /// root is not a mapping, or `semantic-links` does not match its universal extension shape.
 pub fn extract(markdown: &str) -> Result<Option<Frontmatter>, Diagnostic> {
+    extract_with_ownership(markdown, DocumentOwnership::Repository)
+}
+
+/// Extracts frontmatter using the document's known top-level schema ownership.
+///
+/// Repository-owned documents validate top-level `semantic-links`. Externally governed Agent Skill
+/// and agent-profile documents validate only `metadata.semantic-links`.
+///
+/// # Errors
+///
+/// Returns the same extraction and envelope diagnostics as [`extract`].
+pub fn extract_with_ownership(markdown: &str, ownership: DocumentOwnership) -> Result<Option<Frontmatter>, Diagnostic> {
     let Some(yaml) = delimited_yaml(markdown)? else {
         return Ok(None);
     };
@@ -101,7 +122,7 @@ pub fn extract(markdown: &str) -> Result<Option<Frontmatter>, Diagnostic> {
             message: String::from("Markdown frontmatter must have a YAML mapping root."),
         });
     };
-    let semantic_links = semantic_links(&values)?;
+    let semantic_links = semantic_links(&values, ownership)?;
 
     Ok(Some(Frontmatter {
         values,
@@ -131,9 +152,9 @@ fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
     })
 }
 
-fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic> {
+fn semantic_links(values: &Mapping, ownership: DocumentOwnership) -> Result<Option<SemanticLinks>, Diagnostic> {
     let metadata_key = Value::String(String::from("metadata"));
-    if is_externally_governed_document(values) {
+    if ownership == DocumentOwnership::External {
         return values.get(&metadata_key).and_then(Value::as_mapping).map_or_else(
             || Ok(None),
             |metadata| semantic_links_from(metadata, "metadata.semantic-links"),
@@ -142,22 +163,6 @@ fn semantic_links(values: &Mapping) -> Result<Option<SemanticLinks>, Diagnostic>
 
     semantic_links_from(values, "semantic-links")
 }
-
-fn is_externally_governed_document(values: &Mapping) -> bool {
-    let metadata_key = Value::String(String::from("metadata"));
-    let is_external_schema = has_string_field(values, "name") && has_string_field(values, "description");
-    let is_agent_skill = is_external_schema && values.get(&metadata_key).is_some_and(Value::is_mapping);
-    let is_agent_profile = is_external_schema
-        && (values.contains_key(Value::String(String::from("tools")))
-            || values.contains_key(Value::String(String::from("argument-hint"))));
-
-    is_external_schema || is_agent_skill || is_agent_profile
-}
-
-fn has_string_field(values: &Mapping, field: &str) -> bool {
-    values.get(Value::String(String::from(field))).is_some_and(Value::is_string)
-}
-
 fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<SemanticLinks>, Diagnostic> {
     let key = Value::String(String::from("semantic-links"));
     let Some(value) = values.get(&key) else {
@@ -174,7 +179,7 @@ fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<Sema
 #[cfg(test)]
 mod tests {
     use super::profile::Profile;
-    use super::{DiagnosticCategory, SemanticLinks, extract};
+    use super::{DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership};
 
     // Extraction owns delimiter, YAML, mapping-root, and universal-envelope shape decisions.
     // Strict profile parsing owns the v1 structural and reference-syntax decisions. External
@@ -300,7 +305,9 @@ mod tests {
         let markdown = "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nmetadata:\n  semantic-links:\n    skill-links:\n      - write-markdown-docs\n---\n# Skill\n";
 
         // Act: extract the external-document envelope.
-        let frontmatter = extract(markdown).unwrap().unwrap();
+        let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External)
+            .unwrap()
+            .unwrap();
 
         // Assert: the nested extension is parsed without interpreting external top-level fields.
         assert_eq!(
@@ -318,7 +325,9 @@ mod tests {
         let markdown = "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nsemantic-links: invalid\nmetadata:\n  semantic-links:\n    related-artifacts:\n      - docs/AGENTS.md\n---\n# Skill\n";
 
         // Act: extract the external-document envelope.
-        let frontmatter = extract(markdown).unwrap().unwrap();
+        let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External)
+            .unwrap()
+            .unwrap();
 
         // Assert: only the nested externally owned extension determines v1 semantics.
         assert_eq!(
@@ -336,7 +345,9 @@ mod tests {
         let markdown = "---\nname: Implementer\ndescription: Implements repository changes.\ntools: [execute, read]\nsemantic-links: invalid\n---\n# Agent\n";
 
         // Act: extract the agent-profile envelope.
-        let frontmatter = extract(markdown).unwrap().unwrap();
+        let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External)
+            .unwrap()
+            .unwrap();
 
         // Assert: external top-level metadata remains outside the v1 validator's ownership.
         assert_eq!(frontmatter.semantic_links, None);
@@ -349,10 +360,24 @@ mod tests {
             "---\nname: write-markdown-docs\ndescription: Writes repository Markdown.\nsemantic-links: invalid\n---\n# Skill\n";
 
         // Act: extract the Agent Skill envelope.
-        let frontmatter = extract(markdown).unwrap().unwrap();
+        let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External)
+            .unwrap()
+            .unwrap();
 
         // Assert: its external top-level extension remains outside v1 validation ownership.
         assert_eq!(frontmatter.semantic_links, None);
+    }
+
+    #[test]
+    fn it_should_validate_top_level_semantic_links_for_an_ordinary_document_with_name_and_description() {
+        // Arrange: a repository-owned document happens to contain common external-schema fields.
+        let markdown = "---\nname: Evidence\ndescription: A repository-owned record.\nsemantic-links: invalid\n---\n# Evidence\n";
+
+        // Act: extract the document under repository ownership.
+        let error = extract(markdown).unwrap_err();
+
+        // Assert: content alone cannot bypass universal top-level envelope validation.
+        assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
     }
 
     #[test]
@@ -496,6 +521,19 @@ mod tests {
     }
 
     #[test]
+    fn it_should_accept_a_quoted_strict_timestamp_with_a_tab_separated_comment() {
+        // Arrange: a v1 EPIC record separates a quoted timestamp and YAML comment with a tab.
+        let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-09-21 20:35\"\t# updated\nsemantic-links: {}\n---\n# EPIC\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict EPIC profile.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: any YAML whitespace before a trailing comment remains valid.
+        assert!(matches!(profile, Profile::Epic(_)));
+    }
+
+    #[test]
     fn it_should_reject_an_impossible_strict_timestamp() {
         // Arrange: a v1 EPIC record has syntactically shaped but impossible calendar and clock values.
         let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-99-99 99:99\"\nsemantic-links: {}\n---\n# EPIC\n";
@@ -598,6 +636,19 @@ mod tests {
         let error = super::profile::validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the frozen skill-name syntax violation.
+        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+    }
+
+    #[test]
+    fn it_should_reject_a_skill_name_with_consecutive_hyphens() {
+        // Arrange: a strict issue uses an empty segment in a hyphen-separated skill name.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 21:10\"\nsemantic-links:\n  skill-links:\n    - write--markdown-docs\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: every identifier segment must contain lowercase letters or digits.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
     }
 }
