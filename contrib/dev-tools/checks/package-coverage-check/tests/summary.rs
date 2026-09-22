@@ -39,7 +39,7 @@ fn it_should_load_valid_and_invalid_comparison_artifacts_without_reading_unrelat
     let artifacts = read_comparison_artifacts(directory).unwrap();
 
     // Assert
-    assert!(missing.is_empty());
+    assert_eq!(missing, Vec::new());
     assert_eq!(artifacts.len(), 2);
     assert_eq!(artifacts[0].source, "package-coverage-invalid.json");
     assert!(artifacts[0].result.is_err());
