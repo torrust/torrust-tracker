@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2283
 spec-path: docs/issues/open/2283-1347-increase-udp-server-package-coverage/ISSUE.md
-branch: "2283-1347-increase-udp-server-package-coverage-spec"
+branch: "2283-1347-increase-udp-server-package-coverage"
 related-pr: null
-last-updated-utc: "2026-09-21 18:51"
+last-updated-utc: "2026-09-22 07:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,6 +24,7 @@ semantic-links:
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/implementation-retrospective.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/manual-verification-evidence.md
+    - docs/issues/open/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md
     - packages/udp-server
 ---
 
@@ -145,10 +146,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO | Create refreshed coverage evidence and complete module inventory | `coverage-evidence.md` records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and terminal decision category. No tests are changed before this task is reviewed. |
-| T2  | TODO | Create shared plan guidance and module decision records | `test-refactor-plans/README.md` contains shared guardrails, validation commands, non-goals, review gates, and one-file-at-a-time progress rules. Each selected module gets a concise decision record with current-test review, refactor decisions, ownership boundaries, approved contracts, status, and evidence. |
-| T3  | TODO | Review and approve prioritized implementation queue | Maintainer reviews the inventory and module decision records. Only approved modules move to test-producing work; no-change and deferral rows enumerate uncovered lines and reasons. |
-| T4  | TODO | Refactor and then extend approved package-local unit tests | Work on one source file at a time: review and complete the approved refactor of its current tests first, validate and review that result, then add the smallest approved deterministic unit-test increment. After each file is complete, perform the prose-first Arrange-Act-Assert design review, run focused validation, update its decision-record status, and record evidence before beginning another file. |
+| T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and terminal decision category. No tests were changed. |
+| T2  | DONE | Create shared plan guidance and module decision records | [test-refactor-plans/README.md](test-refactor-plans/README.md) contains shared guardrails, validation commands, non-goals, review gates, subsystem order, and one-file-at-a-time progress rules. The [error adapter record](test-refactor-plans/error-tests.md) records current-test review, refactor decisions, ownership boundaries, proposed contracts, status, and evidence. No tests were changed. |
+| T3  | DONE | Review and approve prioritized implementation queue | Maintainer approved the one-file `error.rs` error-adapter queue, which completed its R3 review and completed-file gate. |
+| T4  | DONE | Refactor and then extend approved package-local unit tests | Completed the approved `error.rs` error-adapter increment: refactored fragmented assertions, added direct announce/scrape conversion contracts, recorded 100% unit-only file coverage, and obtained completed-file review. |
 | T5  | TODO | Refactor and then extend approved package integration tests, if any | Work on one integration-test file at a time. Refactor approved current-test issues before adding a real-loopback contract, and select that contract only when T1-T3 justify the integration boundary over a unit test. Record why the integration boundary is clearer or necessary. |
 | T6  | TODO | Perform bounded mutation assessment | Sample one changed high-risk seam after test increments are complete. Record configuration, timeout, outcome, limitations, and behavior-relevant survivors in `mutation-evidence.md`. |
 | T7  | TODO | Reconcile evidence and progress state | Verify that plan frontmatter, checklists, module records, coverage evidence, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed records, and rebase-unstable commit SHA citations. |
@@ -176,23 +177,26 @@ not branch SHA, until the branch is merged.
 
 Apply this loop to every test-producing task:
 
-1. Complete and approve the target source file's decision record before changing tests. Do not
+1. Order approved files by cohesive subsystem. Complete all selected files in the current
+  subsystem before starting an unrelated subsystem; do not interleave, for example, banning and
+  statistics work merely because both have uncovered lines.
+2. Complete and approve the target source file's decision record before changing tests. Do not
   begin a second source file while the current record is `IN_PROGRESS`.
-2. Review the source file's current tests and implement every approved readability, duplication,
+3. Review the source file's current tests and implement every approved readability, duplication,
   fixture, assertion, or Arrange-Act-Assert refactor before adding coverage. Run focused
   validation and record the completed refactor decision.
-3. Add the smallest approved behavior-focused test increment for that same source file.
-4. Review the refactored and added tests before beginning the next source file. Write temporary
+4. Add the smallest approved behavior-focused test increment for that same source file.
+5. Review the refactored and added tests before beginning the next source file. Write temporary
   prose for Arrange, Act, and Assert; refactor until the code expresses that prose; remove
   redundant prose; and record the result in the module decision record.
-5. Confirm the one causal initial-state difference is visible, the production Act remains visible,
+6. Confirm the one causal initial-state difference is visible, the production Act remains visible,
    and expected results are independently specified rather than derived through production code
    under test.
-6. Run focused tests and correct failures.
-7. Record test-level coverage or explicit no-change evidence, update the file status to `DONE`,
+7. Run focused tests and correct failures.
+8. Record test-level coverage or explicit no-change evidence, update the file status to `DONE`,
   and obtain the completed-file review before beginning another source file.
-8. Commit the coherent increment after focused validation and required review.
-9. After the final test-producing increment, stop for maintainer review before final verification,
+9. Commit the coherent increment after focused validation and required review.
+10. After the final test-producing increment, stop for maintainer review before final verification,
    committing the final evidence, or opening an implementation pull request.
 
 Helpers must hide only incidental mechanics and must be justified by meaningful named actions and
@@ -203,8 +207,8 @@ abstraction-level alignment, not by caller count.
 Use a lightweight issue-local plan layout:
 
 - `test-refactor-plans/README.md` for shared guardrails, selected validation commands, non-goals,
-  module approval gates, one-file-at-a-time progress rules, manual-verification definition, and
-  reconciliation checklist.
+  subsystem order, module approval gates, one-file-at-a-time progress rules, manual-verification
+  definition, and reconciliation checklist.
 - One concise module decision record per selected source file. Each record should name current
   coverage, current-test refactor review and outcome, selected contracts, rejected alternatives,
   property-test decision, ownership boundaries, `TODO`/`IN_PROGRESS`/`DONE` status, review status,
@@ -226,9 +230,10 @@ terminal decision.
 - [x] Draft specification reviewed and approved by user/maintainer.
 - [x] GitHub issue #2283 created and linked as a subissue of #1347.
 - [x] Draft moved to `docs/issues/open/` using the assigned issue number.
-- [ ] Spec-only PR merged into `develop` before implementation.
-- [ ] Complete module inventory and baseline coverage evidence recorded.
-- [ ] Module decision records reviewed and approved before test-producing work.
+- [x] Spec-only PR #2286 merged into `develop` before implementation.
+- [x] Complete module inventory and baseline coverage evidence recorded.
+- [x] Shared plan guidance and proposed error-adapter decision record created; no tests changed.
+- [x] Module decision record reviewed and approved for the active `error.rs` file before test-producing work.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -236,7 +241,7 @@ terminal decision.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence.
 - [ ] Evidence-based implementation completion review recorded.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes.
-- [ ] Committer verified spec progress is up to date before commit.
+- [x] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
@@ -249,6 +254,32 @@ terminal decision.
 - 2026-09-21 18:51 UTC - User/maintainer and GitHub Copilot - Approved the specification, created
   GitHub issue #2283, linked it as a subissue of #1347, and moved this specification to its
   numbered open-issue folder. The next workflow step is a spec-only PR before implementation.
+- 2026-09-22 06:41 UTC - GitHub Copilot - Completed T1 without changing package code or tests.
+  Clean aggregate/global, unit-only, and integration-only `cargo llvm-cov` reports at `cfb93157`
+  are recorded in [coverage-evidence.md](coverage-evidence.md). The complete source inventory
+  selects only `error.rs` for T2/T3 review; all other modules have an explicit no-change or
+  owner-based deferral decision.
+- 2026-09-22 06:59 UTC - User/maintainer - Approved the T1 queue and required subsystem-complete
+  sequencing: complete related selected files before beginning an unrelated subsystem while
+  retaining one-file-at-a-time status and review gates.
+- 2026-09-22 07:00 UTC - GitHub Copilot - Completed T2 without changing package code or tests.
+  Added shared plan guidance and the proposed `error.rs` service-error adapter decision record.
+  T3 maintainer approval is required before R1 begins.
+- 2026-09-22 07:10 UTC - User/maintainer - Approved T3 for the one-file `error.rs` queue.
+- 2026-09-22 07:10 UTC - GitHub Copilot - Completed `error.rs` R1 with a reviewed no-change
+  decision: the current parse-error tests already expose their causal state, direct conversion Act,
+  and independently specified expected fields or typed variant. R2 remains pending approval.
+- 2026-09-22 07:10 UTC - User/maintainer - Approved R2 for `error.rs`.
+- 2026-09-22 07:10 UTC - GitHub Copilot - Completed `error.rs` R2 by adding direct typed
+  conversion tests for announce and scrape service errors. The prose-first review confirmed each
+  test exposes a fixed source error, direct `Error::from` Act, and independently expected
+  UDP-server error variant. Focused test, nightly formatting, and whitespace checks passed. R3 and
+  the completed-file review gate remain before beginning another source file.
+- 2026-09-22 07:10 UTC - User/maintainer - Approved the completed-file review for `error.rs`.
+- 2026-09-22 07:10 UTC - GitHub Copilot - Completed T4 for the approved one-file error-adapter
+  queue. The decision record is `DONE`; no additional package source file has started.
+- 2026-09-22 07:10 UTC - GitHub Copilot - Reconciled the completed `error.rs` queue state before
+  commit: the shared plan, file decision record, issue task table, and workflow checkpoint agree.
 
 ## Acceptance Criteria
 
