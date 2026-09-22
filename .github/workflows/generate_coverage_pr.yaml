@@ -1,4 +1,4 @@
-name: Generate Coverage Report (PR)
+name: Generate Coverage Reports (PR)
 
 # skill-link: update-github-workflow-actions
 # Path policy: skip this workflow when every changed file is documentation.

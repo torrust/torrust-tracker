@@ -47,7 +47,7 @@ source-line coverage decreases by more than five percentage points, and not bloc
 
 ## Background
 
-The current `Generate Coverage Report (PR)` workflow produces one workspace-wide Codecov report.
+The current `Generate Coverage Reports (PR)` workflow produces one workspace-wide Codecov report.
 `codecov.yaml` allows a 0.5 percentage-point decrease for project and patch status, but it neither
 compares individual packages nor provides a repository-owned required check. The completed
 `axum-http-server` work demonstrates why a package baseline is useful navigation evidence while
