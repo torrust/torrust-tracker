@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: in-progress
+status: in-review
 priority: p1
 epic: 2264
 github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
-related-pr: 2269
-last-updated-utc: "2026-09-21 22:00"
+related-pr: 2287
+last-updated-utc: "2026-09-22 06:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -188,12 +188,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] Planning/evidence PR #2269 opened and `related-pr` updated
 - [x] Planning/evidence PR #2269 merged into `develop` before implementation
 - [x] First issue-profile vertical slice completed and design boundaries reviewed
-- [ ] Implementation completed
-- [ ] Automatic verification completed
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded when applicable
+- [x] Implementation completed
+- [x] Automatic verification completed
+- [x] Manual verification scenarios transferred to #2281
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded when applicable
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -265,6 +265,11 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   generation/drift remains tracked in #2280; CLI, discovery, diagnostic rendering, pre-commit
   rollout, and manual/mutation evidence remain tracked in #2281 -
   `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-22 06:47 UTC - GitHub Copilot - Completed delivery review for the structural scope:
+  implementation, focused tests, full pre-commit gate, and independent review are complete. Opened
+  implementation PR #2287 targeting `develop`, which closes this issue when merged. The mandatory
+  split retains schema/drift acceptance in #2280 and command, diagnostics, integration, and
+  manual/mutation acceptance in #2281 - https://github.com/torrust/torrust-tracker/pull/2287
 - 2026-09-21 18:30 UTC - GitHub Copilot - Performed the mandatory first-vertical-slice boundary
   review. T6 schema generation/drift verification and T7-T8 command, pre-commit, and operational
   proof are independently reviewable and would materially broaden this structural-model PR. Keep
