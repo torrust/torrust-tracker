@@ -117,3 +117,12 @@ semantic-links:
 - Verification: `cargo test --package frontmatter-validator` passed 30 tests; nightly Rust
   `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
   warnings` passed.
+
+### 2026-09-21 21:10 UTC - GitHub Copilot - Timestamp Comment Correction
+
+- Response to the final lexical finding: strict timestamp source validation now ignores an optional
+  YAML comment after the scalar before checking the mandatory surrounding double quotes.
+- Regression coverage: added an accepted v1 timestamp followed by `# updated`.
+- Verification: `cargo test --package frontmatter-validator` passed 31 tests; nightly Rust
+  `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
+  warnings` passed.

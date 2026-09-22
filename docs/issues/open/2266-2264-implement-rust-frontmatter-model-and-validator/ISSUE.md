@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 20:55"
+last-updated-utc: "2026-09-21 21:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -293,6 +293,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   (30 tests), nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
   frontmatter-validator -- -D warnings` -
   `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 21:10 UTC - GitHub Copilot - Corrected the final timestamp lexical review finding:
+  strict double-quoted timestamps now accept an optional trailing YAML comment while retaining the
+  quoted scalar and calendar/clock requirements. Added a direct accepted-comment regression.
+  Focused validation passed: `cargo test --package frontmatter-validator` (31 tests), nightly Rust
+  `cargo +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D
+  warnings` - `contrib/dev-tools/checks/frontmatter-validator/`
 
 ## Acceptance Criteria
 

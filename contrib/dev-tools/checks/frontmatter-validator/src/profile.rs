@@ -405,6 +405,7 @@ fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic>
 fn has_double_quoted_timestamp(yaml: &str) -> bool {
     yaml.lines()
         .find_map(|line| line.strip_prefix("last-updated-utc:").map(str::trim))
+        .map(|value| value.split_once(" #").map_or(value, |(scalar, _)| scalar.trim_end()))
         .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
 }
 

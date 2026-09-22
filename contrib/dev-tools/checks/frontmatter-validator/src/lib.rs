@@ -483,6 +483,19 @@ mod tests {
     }
 
     #[test]
+    fn it_should_accept_a_quoted_strict_timestamp_with_a_trailing_comment() {
+        // Arrange: a v1 EPIC record annotates its quoted timestamp with a YAML comment.
+        let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-09-21 20:35\" # updated\nsemantic-links: {}\n---\n# EPIC\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict EPIC profile.
+        let profile = super::profile::validate(&frontmatter).unwrap();
+
+        // Assert: comments do not change the quoted scalar's v1 validity.
+        assert!(matches!(profile, Profile::Epic(_)));
+    }
+
+    #[test]
     fn it_should_reject_an_impossible_strict_timestamp() {
         // Arrange: a v1 EPIC record has syntactically shaped but impossible calendar and clock values.
         let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-99-99 99:99\"\nsemantic-links: {}\n---\n# EPIC\n";
