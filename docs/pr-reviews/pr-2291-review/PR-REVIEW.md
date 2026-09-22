@@ -37,9 +37,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2291-f1` | Copilot | Major (inferred) | formatting | ORIGINAL | FIXED | OPEN |
-| F2 | `review-finding:pr-2291-f2` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | OPEN |
-| F3 | `review-finding:pr-2291-f3` | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | OPEN |
+| F1 | `review-finding:pr-2291-f1` | Copilot | Major (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2291-f2` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2291-f3` | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -87,6 +87,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-22 09:24 UTC - Fetched Copilot review 5275427308 and normalized its three actionable findings.
 - 2026-09-22 09:24 UTC - Applied and validated F1 through F3 in `docs(issues): address SI-11 specification review`; replies and thread resolution remain pending this initial audit commit.
 - 2026-09-22 10:16 UTC - Posted evidence-backed replies for F1 through F3; thread resolution remains pending audit validation and commit.
+- 2026-09-22 10:22 UTC - Resolved the three replied-to Copilot threads and refreshed GraphQL review-thread data; no unresolved actionable thread remains.
 
 ## Completion Rules
 
