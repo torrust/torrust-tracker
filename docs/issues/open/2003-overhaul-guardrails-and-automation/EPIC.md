@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-21 16:26
+last-updated-utc: 2026-09-22 06:59
 semantic-links:
   skill-links:
     - create-issue
@@ -260,7 +260,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 8     | #2219 - Unify PR review-processing workflow (DONE)   | `docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md`                | Low-risk, additive, independently verifiable local/CI formatting parity plus skill, template, and review-audit process improvements; selects no shared automation architecture. | Existing pre-commit, pre-push, and PR-review entry points |
 | 9     | #2233 - Tune unified PR-review process (DONE)        | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`            | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. | #2219 PR-review workflow evidence |
 | 10    | #2264 - Refactor semantic-link and frontmatter conventions | `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` | Defines document metadata and reference semantics. Its initial read-only frontmatter validator may use pre-commit as its single integration tier but must remain replaceable by the architecture selected here. | Current Markdown conventions and templates |
-| 11    | #2278 - Strengthen PR review author self-audit and evidence generation | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/ISSUE.md` | Evidence-driven refinement of author self-audit, audit validation, and proportionate review evidence. It remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. | PR #2270, #2271, and #2272 retrospectives; #2219 and #2233 |
+| 11    | #2278 - Strengthen PR review author self-audit and evidence generation | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md` | Child EPIC converted from a task after its improvement matrix showed several independently reviewable artifacts. Evidence-driven refinement of author self-audit, audit validation, and proportionate review evidence, split into one-PR subissues. Remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. | PR #2270, #2271, and #2272 retrospectives; #2219 and #2233; #2266 for check-crate placement |
 
 ## Delivery Strategy
 
