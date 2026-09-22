@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
-last-updated-utc: 2026-09-22 06:10
+last-updated-utc: 2026-09-22 08:43
 ---
 
 # Manual Verification Evidence
@@ -109,39 +109,54 @@ Pending implementation.
 
 - Goal: Verify documentation/workspace-config-only changes and new, deleted, or unmatched renamed
   package outcomes.
-- Initial state: Pending implementation.
-- Status: `TODO`
+- Initial state: Fork PR [#2293](https://github.com/torrust/torrust-tracker/pull/2293) added
+  `package-coverage-check`, which is absent from its `develop` base revision.
+- Status: `DONE` (new-package outcome)
 
 #### Steps Performed
 
-Pending implementation.
+1. Opened fork PR #2293 against `torrust/torrust-tracker:develop`.
+2. Observed the successful
+   [Generate Coverage Report (PR) run](https://github.com/torrust/torrust-tracker/actions/runs/35705895905).
 
 #### Observed Result
 
-Pending implementation.
+- `Discover Package Coverage` completed successfully in 21 seconds.
+- Discovery emitted `{"matrix":{"include":[]},"unavailable":[{"package":"package-coverage-check","outcome":"new package"}]}`.
+- The matrix job was skipped, and the always-present `Package Coverage Regression` job completed
+  successfully in 60 seconds.
 
 #### Conclusion
 
-Pending implementation.
+The workflow does not fabricate a base/head comparison for a new package and still produces the
+report-only summary. Documentation-only, removed-package, and unmatched-rename outcomes remain
+unverified in GitHub Actions.
 
 ### M5 Fork Pull Request
 
 - Goal: Verify the report-only check stays in the unprivileged `pull_request` workflow and the
   trusted uploader remains artifact-only.
-- Initial state: Pending implementation.
-- Status: `TODO`
+- Initial state: Fork PR [#2293](https://github.com/torrust/torrust-tracker/pull/2293) from
+  `josecelano:2222-1347-package-coverage-regression-ci` to `torrust:develop`.
+- Status: `DONE`
 
 #### Steps Performed
 
-Pending implementation.
+1. Opened the fork PR and inspected its successful coverage workflow run.
+2. Reviewed the `Package Coverage Regression` job log for its checkout, toolchain, and summary
+   command steps.
 
 #### Observed Result
 
-Pending implementation.
+- The workflow ran successfully from the fork PR without accessing the trusted uploader workflow.
+- The summary job checked out the immutable pull request head revision, configured the nightly
+  toolchain, and ran `package-coverage-check summary` with GitHub-provided discovery JSON and
+  downloaded-artifact paths.
 
 #### Conclusion
 
-Pending implementation.
+The report-only coverage check executes in the unprivileged fork pull-request workflow. This run
+did not alter or execute the trusted `workflow_run` uploader, preserving its artifact-only role.
 
 ## Failures and Follow-up
 

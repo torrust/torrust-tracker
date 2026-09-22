@@ -183,7 +183,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 - [x] Draft moved to `docs/issues/open/` with assigned issue number.
 - [x] Local implementation completed; hosted workflow rollout verification remains pending.
 - [x] Local automatic verification completed; hosted workflow validation remains pending.
-- [ ] Hosted manual verification scenarios executed and recorded in `manual-verification-evidence.md`; local M1 proof is complete.
+- [ ] Hosted manual verification scenarios M2-M3 remain pending; local M1 and hosted M4-M5 evidence
+  are recorded in `manual-verification-evidence.md`.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -267,8 +268,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | Base/head double-build proof of concept | Run a controlled changed-package comparison at the PR base and head revisions.                              | Matching package/source scope produces a correct delta without a persisted baseline.                       | DONE   | [manual evidence](manual-verification-evidence.md#m1-basehead-double-build-proof-of-concept) |
 | M2  | Dynamic changed-package matrix          | Exercise a one-package change, multiple-package change, and non-package-only change.                         | Matrix contains only directly changed comparable packages; the report job remains present.                 | TODO   | [manual evidence](manual-verification-evidence.md#m2-dynamic-changed-package-matrix) |
 | M3  | Equal, improved, and reduced coverage  | Exercise ratio calculation with controlled report fixtures or changes.                                      | The summary warns only for a decrease greater than five percentage points and never blocks a merge.        | TODO   | [manual evidence](manual-verification-evidence.md#m3-equal-improved-and-reduced-coverage) |
-| M4  | Exceptional package outcomes            | Exercise documentation/workspace-config-only changes and new, deleted, or unmatched renamed packages.       | No package is falsely selected; summary explicitly reports non-comparable outcomes.                       | TODO   | [manual evidence](manual-verification-evidence.md#m4-exceptional-package-outcomes) |
-| M5  | Fork pull request                       | Inspect the generated workflow and a fork PR run.                                                           | The report-only check runs in `pull_request` without secrets; the trusted uploader remains artifact-only. | TODO   | [manual evidence](manual-verification-evidence.md#m5-fork-pull-request) |
+| M4  | Exceptional package outcomes            | Exercise documentation/workspace-config-only changes and new, deleted, or unmatched renamed packages.       | No package is falsely selected; summary explicitly reports non-comparable outcomes.                       | DONE (new package) | [manual evidence](manual-verification-evidence.md#m4-exceptional-package-outcomes) |
+| M5  | Fork pull request                       | Inspect the generated workflow and a fork PR run.                                                           | The report-only check runs in `pull_request` without secrets; the trusted uploader remains artifact-only. | DONE   | [manual evidence](manual-verification-evidence.md#m5-fork-pull-request) |
 
 ## Acceptance Verification
 
