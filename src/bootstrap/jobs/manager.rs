@@ -179,6 +179,51 @@ impl<T> Drop for NestedServerTask<T> {
     }
 }
 
+/// Owns a token-aware server task and its cancellation drain controller.
+///
+/// Dropping the outer component runner aborts both children, preventing either
+/// task from outliving its component owner.
+#[derive(Debug)]
+pub struct TokenAwareServerTask<T, U> {
+    task: JoinHandle<T>,
+    shutdown_controller: JoinHandle<U>,
+}
+
+impl<T, U> TokenAwareServerTask<T, U> {
+    #[must_use]
+    pub const fn new(task: JoinHandle<T>, shutdown_controller: JoinHandle<U>) -> Self {
+        Self {
+            task,
+            shutdown_controller,
+        }
+    }
+
+    /// Joins the nested server task.
+    ///
+    /// # Errors
+    ///
+    /// Returns the nested task's join error when it panics or is aborted.
+    pub async fn join(&mut self) -> Result<T, JoinError> {
+        (&mut self.task).await
+    }
+
+    /// Joins the nested cancellation drain controller.
+    ///
+    /// # Errors
+    ///
+    /// Returns the controller's join error when it panics or is aborted.
+    pub async fn join_shutdown_controller(&mut self) -> Result<U, JoinError> {
+        (&mut self.shutdown_controller).await
+    }
+}
+
+impl<T, U> Drop for TokenAwareServerTask<T, U> {
+    fn drop(&mut self) {
+        self.task.abort();
+        self.shutdown_controller.abort();
+    }
+}
+
 // issue: #1488
 // Transitional compatibility boundary. Do not register new components here.
 // SI-5 must migrate peers inactivity update to `JobManager::spawn`; UDP IP-ban

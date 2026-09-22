@@ -1,6 +1,7 @@
 //! Module to handle the HTTP server instances.
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
@@ -8,6 +9,8 @@ use derive_more::Constructor;
 use futures::future::BoxFuture;
 use socket2::{Domain, Socket, Type};
 use tokio::sync::oneshot::{Receiver, Sender};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{
@@ -15,13 +18,15 @@ use torrust_server_lib::registar::{
 };
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-use torrust_tracker_axum_server::signals::graceful_shutdown;
+use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
 
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
+
+const HTTP_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
 
 /// Error that can occur when starting or stopping the HTTP server.
 ///
@@ -109,6 +114,44 @@ impl Launcher {
         Ok(std::net::TcpListener::from(socket))
     }
 
+    fn server_future(
+        &self,
+        socket: std::net::TcpListener,
+        handle: Handle<SocketAddr>,
+        http_tracker_container: &Arc<HttpTrackerCoreContainer>,
+        service_binding: &ServiceBinding,
+    ) -> Result<BoxFuture<'static, ()>, Error> {
+        let app = router(http_tracker_container, service_binding);
+
+        if let Some(tls) = self.tls.clone() {
+            let server =
+                custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
+
+            Ok(Box::pin(async move {
+                if let Err(error) = server
+                    .handle(handle)
+                    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+                    .await
+                {
+                    tracing::error!(%error, "HTTP TLS server stopped with an error");
+                }
+            }))
+        } else {
+            let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
+
+            Ok(Box::pin(async move {
+                if let Err(error) = server
+                    .handle(handle)
+                    .acceptor(TimeoutAcceptor)
+                    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+                    .await
+                {
+                    tracing::error!(%error, "HTTP server stopped with an error");
+                }
+            }))
+        }
+    }
+
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
     fn start(
         &self,
@@ -136,38 +179,7 @@ impl Launcher {
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{address}");
 
-        let app = router(http_tracker_container, &service_binding);
-
-        let running: BoxFuture<'static, ()> = if let Some(tls) = tls {
-            let server =
-                custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
-
-            Box::pin(async move {
-                if let Err(error) = server
-                    .handle(handle)
-                    // The TimeoutAcceptor is commented because TLS does not work with it.
-                    // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
-                    //.acceptor(TimeoutAcceptor)
-                    .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                {
-                    tracing::error!(%error, "HTTP TLS server stopped with an error");
-                }
-            })
-        } else {
-            let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
-
-            Box::pin(async move {
-                if let Err(error) = server
-                    .handle(handle)
-                    .acceptor(TimeoutAcceptor)
-                    .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                {
-                    tracing::error!(%error, "HTTP server stopped with an error");
-                }
-            })
-        };
+        let running = self.server_future(socket, handle, http_tracker_container, &service_binding)?;
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
@@ -233,6 +245,16 @@ pub struct Running {
     pub task: tokio::task::JoinHandle<Launcher>,
 }
 
+/// A token-aware HTTP tracker runtime and its owned drain controller.
+///
+/// The caller must retain and join both handles. The existing [`Running`] state
+/// remains the compatibility path for consumers using [`Halted`].
+pub struct CancellationRunning {
+    pub binding: SocketAddr,
+    pub task: JoinHandle<Launcher>,
+    pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
+}
+
 impl HttpServer<Stopped> {
     /// It creates a new `HttpServer` controller in `stopped` state.
     #[must_use]
@@ -263,6 +285,25 @@ impl HttpServer<Stopped> {
         metadata: RuntimeServiceMetadata,
     ) -> Result<HttpServer<Running>, Error> {
         self.start_with_health_check(http_tracker_container, form, metadata, check_fn)
+            .await
+    }
+
+    /// Starts the HTTP tracker using an injected cancellation token.
+    ///
+    /// This additive path does not subscribe to operating-system signals. Its
+    /// caller owns the returned runtime task and drain controller.
+    ///
+    /// # Errors
+    ///
+    /// Returns listener, startup-notification, or service-registration errors.
+    pub async fn start_with_cancellation(
+        self,
+        http_tracker_container: Arc<HttpTrackerCoreContainer>,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
+        cancellation_token: CancellationToken,
+    ) -> Result<CancellationRunning, Error> {
+        self.start_with_cancellation_and_health_check(http_tracker_container, form, metadata, cancellation_token, check_fn)
             .await
     }
 
@@ -323,6 +364,86 @@ impl HttpServer<Stopped> {
             },
         })
     }
+
+    async fn start_with_cancellation_and_health_check(
+        self,
+        http_tracker_container: Arc<HttpTrackerCoreContainer>,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
+        cancellation_token: CancellationToken,
+        health_check: FnSpawnServiceHeathCheck,
+    ) -> Result<CancellationRunning, Error> {
+        let (running, service_binding) =
+            start_token_aware_runtime(self.state.launcher, &http_tracker_container, cancellation_token.clone())?;
+
+        if let Some(public_url) = metadata.public_url() {
+            tracing::info!(service_binding = %service_binding, public_url = %public_url, "Started HTTP tracker");
+        } else {
+            tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
+        }
+
+        if let Err(source) = form
+            .register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
+            .await
+        {
+            let CancellationRunning {
+                task,
+                shutdown_controller,
+                ..
+            } = running;
+            cancellation_token.cancel();
+            task.abort();
+            shutdown_controller.abort();
+            drop(task.await);
+            drop(shutdown_controller.await);
+            return Err(Error::Registration { source });
+        }
+
+        Ok(running)
+    }
+}
+
+fn start_token_aware_runtime(
+    launcher: Launcher,
+    http_tracker_container: &Arc<HttpTrackerCoreContainer>,
+    cancellation_token: CancellationToken,
+) -> Result<(CancellationRunning, ServiceBinding), Error> {
+    let socket =
+        Launcher::create_tcp_listener(launcher.bind_to, launcher.ipv6_v6only).map_err(|source| Error::Bind { source })?;
+    let binding = socket.local_addr().map_err(|source| Error::Listener { source })?;
+    let handle = Handle::new();
+    let protocol = if launcher.tls.is_some() {
+        Protocol::HTTPS
+    } else {
+        Protocol::HTTP
+    };
+    let service_binding = ServiceBinding::new(protocol.clone(), binding).map_err(|error| Error::Listener {
+        source: std::io::Error::other(error),
+    })?;
+    let server = launcher.server_future(socket, handle.clone(), http_tracker_container, &service_binding)?;
+
+    tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{binding}");
+    tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{binding}");
+    let task = tokio::spawn(async move {
+        server.await;
+        launcher
+    });
+    let shutdown_controller = tokio::spawn(graceful_shutdown_on_cancellation(
+        handle,
+        cancellation_token,
+        format!("Shutting down HTTP server on socket address: {binding}"),
+        binding,
+        HTTP_GRACEFUL_DRAIN_TIMEOUT,
+    ));
+
+    Ok((
+        CancellationRunning {
+            binding,
+            task,
+            shutdown_controller,
+        },
+        service_binding,
+    ))
 }
 
 impl HttpServer<Running> {
@@ -394,6 +515,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration, ServiceRegistrationForm};
+    use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
@@ -678,6 +800,63 @@ mod tests {
 
         // Assert
         assert_eq!(stopped.state.launcher.bind_to, scenario.bind_to);
+    }
+
+    #[tokio::test]
+    async fn it_should_drain_the_token_aware_http_server_when_its_cancellation_token_is_cancelled() {
+        // Arrange
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let http_tracker_container = scenario.container().await;
+        let cancellation_token = CancellationToken::new();
+        let running = HttpServer::new(scenario.launcher().await)
+            .start_with_cancellation(
+                http_tracker_container,
+                scenario.registration_form(),
+                scenario.metadata(),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware HTTP server should start");
+
+        // Act
+        cancellation_token.cancel();
+        let launcher = running.task.await.expect("the HTTP server task should not panic");
+        let drain_outcome = running
+            .shutdown_controller
+            .await
+            .expect("the HTTP drain controller should not panic");
+
+        // Assert
+        assert_eq!(launcher.bind_to, scenario.bind_to);
+        assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
+        // Arrange
+        let scenario = ServerStartWithDuplicateRegistration::new().await;
+        let http_tracker_container = scenario.container().await;
+
+        // Act
+        let result = HttpServer::new(scenario.launcher())
+            .start_with_cancellation(
+                http_tracker_container,
+                scenario.registration_form(),
+                scenario.metadata(),
+                CancellationToken::new(),
+            )
+            .await;
+
+        // Assert
+        let binding = match result {
+            Err(Error::Registration {
+                source: RegistrationError::DuplicateBinding(binding),
+            }) => binding,
+            Err(error) => panic!("token-aware starter should retain the registration failure source: {error}"),
+            Ok(_) => panic!("duplicate registration should fail"),
+        };
+        assert_eq!(binding.bind_address(), scenario.bind_to);
+        TcpListener::bind(scenario.bind_to).expect("HTTP listener should be released after token-aware registration failure");
     }
 
     #[tokio::test]
