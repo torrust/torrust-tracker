@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: feature
-status: in-review
+status: done
 priority: p1
 epic: 2264
 github-issue: 2266
-spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
+spec-path: docs/issues/closed/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2287
-last-updated-utc: "2026-09-22 06:47"
+last-updated-utc: "2026-09-22 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,7 +194,7 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Independent reviewer reports recorded when applicable
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -334,6 +334,9 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   Focused validation passed: `cargo test --package frontmatter-validator` (39 tests) and `docker
   build --target recipe --file Containerfile .` -
   https://github.com/torrust/torrust-tracker/pull/2287
+- 2026-09-22 08:22 UTC - GitHub Copilot - PR #2287 merged into `develop`, automatically closing
+  issue #2266. Archived this specification in `docs/issues/closed/` and repaired the parent EPIC's
+  live subissue link and status - https://github.com/torrust/torrust-tracker/pull/2287
 
 ## Acceptance Criteria
 
