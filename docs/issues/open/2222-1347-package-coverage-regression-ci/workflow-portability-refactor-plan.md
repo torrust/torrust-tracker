@@ -264,14 +264,15 @@ observed evidence has been reviewed; do not combine it with implementation chang
 | Order | Status | Item | Impact | Effort |
 | --- | --- | --- | --- | --- |
 | 1 | [x] | Rename the CI tool | High | Low |
-| 2 | [ ] | Define portable command contracts and tests | High | Medium |
-| 3 | [ ] | Simplify the GitHub Actions adapter | Medium | Low |
-| 4 | [ ] | Establish reusable CI workflow implementation guidance | High | Medium |
+| 2 | [x] | Define portable command contracts and tests | High | Medium |
+| 3 | [x] | Simplify the GitHub Actions adapter | Medium | Low |
+| 4 | [x] | Establish reusable CI workflow implementation guidance | High | Medium |
 | 5 | [ ] | Reconcile hosted rollout evidence | Medium | Medium |
 
 ## Commit Boundaries
 
 1. `refactor(ci): rename package coverage check tool` for item 1.
-2. `refactor(ci): move coverage summary rendering into Rust` for items 2-3.
-3. `docs(ci): add portable workflow implementation guidance` for item 4.
-4. `docs(issues): record package coverage workflow rollout` for item 5.
+2. `refactor(ci): move coverage summary rendering into Rust` for item 2.
+3. `refactor(ci): simplify package coverage workflow adapter` for item 3.
+4. `docs(ci): add portable workflow implementation guidance` for item 4.
+5. `docs(issues): record package coverage workflow rollout` for hosted item-5 evidence.
