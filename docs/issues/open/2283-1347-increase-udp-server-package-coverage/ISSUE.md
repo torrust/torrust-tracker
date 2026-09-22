@@ -250,7 +250,7 @@ inventory and every plan.
 | 1 | `error.rs` | Test candidate | DONE | [error-tests.md](test-refactor-plans/error-tests.md) |
 | 2 | `lib.rs` | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | 3 | `container.rs` | Probably no change | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
-| 4 | `event.rs` | Probably no change | PENDING | — |
+| 4 | `event.rs` | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 5 | `handlers/mod.rs` | Probably no change | PENDING | — |
 | 6 | `handlers/connect.rs` | Probably no change | PENDING | — |
 | 7 | `handlers/announce.rs` | Probably no change | PENDING | — |
@@ -379,6 +379,13 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 16:25 UTC - User/maintainer - Approved the completed `container.rs` file result:
   no refactor or new test, with unchanged 100.00% unit-only line coverage. The signed
   documentation-only file increment is pending validation and commit.
+- 2026-09-22 16:27 UTC - GitHub Copilot - Started `event.rs` as the only `IN_PROGRESS` file and
+  created [event-tests.md](test-refactor-plans/event-tests.md). Fresh unit-only coverage found
+  three untested `Error::ScrapeFailed` classification branches. The plan also identifies one
+  existing test that combines display and metrics-label contracts for R1 review.
+- 2026-09-22 16:38 UTC - User/maintainer - Approved the completed `event.rs` file result:
+  one test refactor and four unit tests increased unit-only line coverage from 95.42% to 100.00%.
+  The signed test and documentation increment is pending validation and commit.
 
 ## Acceptance Criteria
 

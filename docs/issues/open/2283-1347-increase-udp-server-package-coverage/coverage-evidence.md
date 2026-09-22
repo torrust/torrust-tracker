@@ -122,6 +122,7 @@ file completes.
 | `error.rs` | 52 / 62 (83.87%) | 86 / 86 (100.00%) | 2 | 2 | No |
 | `lib.rs` | 28 / 29 (96.55%) | 28 / 29 (96.55%) | 0 | 0 | No; crate-root declarations and test-support helper have no real UDP boundary |
 | `container.rs` | 59 / 59 (100.00%) | 59 / 59 (100.00%) | 0 | 0 | No; enabled publication is already directly protected, while generic bus behavior and real UDP boundaries are owned elsewhere |
+| `event.rs` | 125 / 131 (95.42%) | 190 / 190 (100.00%) | 1 | 4 | No; event classification has no real UDP boundary |
 
 ## Relationship To Issue #2149
 
