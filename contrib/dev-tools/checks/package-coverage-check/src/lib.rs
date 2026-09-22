@@ -1,9 +1,11 @@
 //! Package ownership discovery for coverage-regression workflow matrices.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write;
+use std::fs;
 use std::path::{Path, PathBuf};
 
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// A workspace package that can own changed source files.
@@ -25,7 +27,7 @@ pub struct MatrixPackage {
 }
 
 /// A comparable package with source directories from both revisions.
-#[derive(Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ComparisonPackage {
     /// Cargo package name.
     pub package: String,
@@ -36,14 +38,14 @@ pub struct ComparisonPackage {
 }
 
 /// GitHub Actions dynamic-matrix input.
-#[derive(Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageMatrix {
     /// Comparable packages selected for parallel coverage jobs.
     pub include: Vec<ComparisonPackage>,
 }
 
 /// A directly changed package that cannot be compared across revisions.
-#[derive(Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UnavailablePackage {
     /// Cargo package name.
     pub package: String,
@@ -61,7 +63,7 @@ pub struct PackageDiscovery {
 }
 
 /// Exact source-line coverage counts for one package.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CoverageSummary {
     /// Number of instrumented source lines that have at least one execution.
     pub covered_lines: u64,
@@ -70,7 +72,7 @@ pub struct CoverageSummary {
 }
 
 /// Exact base/head comparison result for one package.
-#[derive(Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CoverageComparison {
     /// Coverage summary measured at the pull request base revision.
     pub base: CoverageSummary,
@@ -80,23 +82,158 @@ pub struct CoverageComparison {
     pub warning: bool,
 }
 
-impl Serialize for CoverageSummary {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        struct SerializableCoverageSummary {
-            covered_lines: u64,
-            instrumented_lines: u64,
-        }
+/// Coverage comparison emitted by an individual package job.
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct PackageCoverageResult {
+    /// Cargo package name.
+    pub package: String,
+    /// Exact base/head coverage comparison.
+    #[serde(flatten)]
+    pub comparison: CoverageComparison,
+}
 
-        SerializableCoverageSummary {
-            covered_lines: self.covered_lines,
-            instrumented_lines: self.instrumented_lines,
-        }
-        .serialize(serializer)
+/// One comparison-artifact outcome consumed by the report-only summary.
+#[derive(Debug, Eq, PartialEq)]
+pub struct ComparisonArtifact {
+    /// Artifact file name or other human-readable source identifier.
+    pub source: String,
+    /// Parsed comparison or the validation failure for this artifact.
+    pub result: Result<PackageCoverageResult, String>,
+}
+
+/// Renders a report-only Markdown summary for discovered coverage work.
+#[must_use]
+pub fn render_summary(matrix: &PackageMatrix, unavailable: &[UnavailablePackage], artifacts: &[ComparisonArtifact]) -> String {
+    let mut summary =
+        String::from("## Package Coverage Regression\n\nThis report is informational and does not block merging.\n\n");
+    if matrix.include.is_empty() && unavailable.is_empty() {
+        summary.push_str("No directly changed workspace package was selected.\n");
+        return summary;
     }
+
+    summary.push_str("| Package | Base | Head | Delta | Warning |\n| --- | ---: | ---: | ---: | --- |\n");
+    for package in &matrix.include {
+        let matching = artifacts
+            .iter()
+            .filter_map(|artifact| artifact.result.as_ref().ok())
+            .filter(|result| result.package == package.package)
+            .collect::<Vec<_>>();
+        match matching.as_slice() {
+            [] => append_unavailable_row(&mut summary, &package.package, "comparison unavailable"),
+            [result] => append_comparison_row(&mut summary, result),
+            _ => append_unavailable_row(&mut summary, &package.package, "duplicate comparison results"),
+        }
+    }
+    for package in unavailable {
+        append_unavailable_row(&mut summary, &package.package, &package.outcome);
+    }
+    for artifact in artifacts {
+        match &artifact.result {
+            Ok(result) if !matrix.include.iter().any(|package| package.package == result.package) => {
+                append_unavailable_row(&mut summary, &result.package, "unexpected comparison result");
+            }
+            Err(error) => append_unavailable_row(&mut summary, &artifact.source, &format!("invalid comparison result: {error}")),
+            Ok(_) => {}
+        }
+    }
+
+    summary
+}
+
+/// Loads package coverage comparison artifacts from a directory.
+///
+/// # Errors
+///
+/// Returns an error when the directory cannot be read. Individual artifact
+/// failures are retained in the returned values for report-only rendering.
+pub fn read_comparison_artifacts(directory: &Path) -> Result<Vec<ComparisonArtifact>, String> {
+    if !directory.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut paths = fs::read_dir(directory)
+        .map_err(|error| format!("{}: {error}", directory.display()))?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.is_file()
+                && path.file_name().is_some_and(|file_name| {
+                    let file_name = file_name.to_string_lossy();
+                    file_name.starts_with("package-coverage-") && file_name.ends_with(".json")
+                })
+        })
+        .collect::<Vec<_>>();
+    paths.sort();
+
+    Ok(paths
+        .into_iter()
+        .map(|path| ComparisonArtifact {
+            source: artifact_source(&path),
+            result: fs::read_to_string(&path)
+                .map_err(|error| error.to_string())
+                .and_then(|source| serde_json::from_str(&source).map_err(|error| error.to_string())),
+        })
+        .collect())
+}
+
+fn artifact_source(path: &Path) -> String {
+    path.file_name().map_or_else(
+        || path.display().to_string(),
+        |file_name| file_name.to_string_lossy().into_owned(),
+    )
+}
+
+fn append_comparison_row(summary: &mut String, result: &PackageCoverageResult) {
+    let base = format_coverage(&result.comparison.base);
+    let head = format_coverage(&result.comparison.head);
+    let delta = format_delta(&result.comparison.base, &result.comparison.head);
+    writeln!(
+        summary,
+        "| {} | {base} | {head} | {delta} | {} |",
+        result.package, result.comparison.warning
+    )
+    .expect("writing to String must succeed");
+}
+
+fn append_unavailable_row(summary: &mut String, package: &str, outcome: &str) {
+    writeln!(summary, "| {package} | unavailable | unavailable | unavailable | {outcome} |")
+        .expect("writing to String must succeed");
+}
+
+fn format_coverage(summary: &CoverageSummary) -> String {
+    let Some(rate) = percentage_hundredths(summary) else {
+        return format!("{}/{} (unavailable)", summary.covered_lines, summary.instrumented_lines);
+    };
+
+    format!(
+        "{}/{} ({}.{:02}%)",
+        summary.covered_lines,
+        summary.instrumented_lines,
+        rate / 100,
+        rate % 100
+    )
+}
+
+fn format_delta(base: &CoverageSummary, head: &CoverageSummary) -> String {
+    let (Some(base_rate), Some(head_rate)) = (percentage_hundredths(base), percentage_hundredths(head)) else {
+        return String::from("unavailable");
+    };
+    let (sign, difference) = if head_rate >= base_rate {
+        ('+', head_rate - base_rate)
+    } else {
+        ('-', base_rate - head_rate)
+    };
+
+    format!("{sign}{}.{:02} pp", difference / 100, difference % 100)
+}
+
+fn percentage_hundredths(summary: &CoverageSummary) -> Option<u128> {
+    let instrumented = u128::from(summary.instrumented_lines);
+    if instrumented == 0 {
+        return None;
+    }
+
+    Some((u128::from(summary.covered_lines) * 10_000 + instrumented / 2) / instrumented)
 }
 
 /// Selects workspace packages that directly own at least one changed path.
@@ -265,6 +402,23 @@ mod tests {
         WorkspacePackage {
             name: String::from("torrust-tracker"),
             directory: PathBuf::from("."),
+        }
+    }
+
+    fn comparison_result(package: &str, base_covered: u64, head_covered: u64) -> PackageCoverageResult {
+        PackageCoverageResult {
+            package: String::from(package),
+            comparison: CoverageComparison {
+                base: CoverageSummary {
+                    covered_lines: base_covered,
+                    instrumented_lines: 100,
+                },
+                head: CoverageSummary {
+                    covered_lines: head_covered,
+                    instrumented_lines: 100,
+                },
+                warning: head_covered + 5 < base_covered,
+            },
         }
     }
 
@@ -513,5 +667,90 @@ mod tests {
 
         // Assert
         assert_eq!(error, "cannot compare coverage without instrumented source lines");
+    }
+
+    #[test]
+    fn it_should_render_that_no_changed_package_was_selected() {
+        // Act
+        let summary = render_summary(&PackageMatrix { include: Vec::new() }, &[], &[]);
+
+        // Assert
+        assert_eq!(
+            summary,
+            "## Package Coverage Regression\n\nThis report is informational and does not block merging.\n\nNo directly changed workspace package was selected.\n"
+        );
+    }
+
+    #[test]
+    fn it_should_render_comparable_and_unavailable_package_outcomes() {
+        // Arrange
+        let matrix = PackageMatrix {
+            include: vec![ComparisonPackage {
+                package: String::from("tracker-core"),
+                base_directory: PathBuf::from("packages/tracker-core"),
+                head_directory: PathBuf::from("packages/tracker-core"),
+            }],
+        };
+        let unavailable = vec![UnavailablePackage {
+            package: String::from("new-core"),
+            outcome: String::from("new package"),
+        }];
+        let artifacts = vec![ComparisonArtifact {
+            source: String::from("package-coverage-tracker-core.json"),
+            result: Ok(comparison_result("tracker-core", 95, 89)),
+        }];
+
+        // Act
+        let summary = render_summary(&matrix, &unavailable, &artifacts);
+
+        // Assert
+        assert!(summary.contains("| tracker-core | 95/100 (95.00%) | 89/100 (89.00%) | -6.00 pp | true |"));
+        assert!(summary.contains("| new-core | unavailable | unavailable | unavailable | new package |"));
+    }
+
+    #[test]
+    fn it_should_render_missing_invalid_duplicate_and_unexpected_artifact_outcomes() {
+        // Arrange
+        let matrix = PackageMatrix {
+            include: vec![
+                ComparisonPackage {
+                    package: String::from("tracker-core"),
+                    base_directory: PathBuf::from("packages/tracker-core"),
+                    head_directory: PathBuf::from("packages/tracker-core"),
+                },
+                ComparisonPackage {
+                    package: String::from("udp-core"),
+                    base_directory: PathBuf::from("packages/udp-core"),
+                    head_directory: PathBuf::from("packages/udp-core"),
+                },
+            ],
+        };
+        let artifacts = vec![
+            ComparisonArtifact {
+                source: String::from("first-tracker-core.json"),
+                result: Ok(comparison_result("tracker-core", 95, 95)),
+            },
+            ComparisonArtifact {
+                source: String::from("second-tracker-core.json"),
+                result: Ok(comparison_result("tracker-core", 95, 95)),
+            },
+            ComparisonArtifact {
+                source: String::from("package-coverage-invalid.json"),
+                result: Err(String::from("invalid JSON")),
+            },
+            ComparisonArtifact {
+                source: String::from("package-coverage-unexpected.json"),
+                result: Ok(comparison_result("unexpected-core", 95, 95)),
+            },
+        ];
+
+        // Act
+        let summary = render_summary(&matrix, &[], &artifacts);
+
+        // Assert
+        assert!(summary.contains("| tracker-core | unavailable | unavailable | unavailable | duplicate comparison results |"));
+        assert!(summary.contains("| udp-core | unavailable | unavailable | unavailable | comparison unavailable |"));
+        assert!(summary.contains("| package-coverage-invalid.json | unavailable | unavailable | unavailable | invalid comparison result: invalid JSON |"));
+        assert!(summary.contains("| unexpected-core | unavailable | unavailable | unavailable | unexpected comparison result |"));
     }
 }

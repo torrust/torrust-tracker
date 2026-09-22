@@ -1,6 +1,6 @@
 ---
 doc-type: refactor-plan
-status: draft
+status: in-progress
 related-issue: 2222
 spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/workflow-portability-refactor-plan.md
 last-updated-utc: 2026-09-22 06:58
@@ -84,7 +84,7 @@ command contract or workflow behavior.
 
 ---
 
-### 2. [ ] Define portable discovery and summary command contracts [High impact / Medium effort]
+### 2. [x] Define portable discovery and summary command contracts [High impact / Medium effort]
 
 **Problem**: the workflow currently parses discovery JSON with `jq` and renders
 its report using `jq`, `awk`, Bash loops, and process substitution. Those

@@ -5,9 +5,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 use std::{env, fs};
 
-use package_coverage_check::{WorkspacePackage, compare_coverage, discover_coverage_packages, summarize_source_coverage};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use package_coverage_check::{
+    PackageCoverageResult, PackageMatrix, UnavailablePackage, WorkspacePackage, compare_coverage, discover_coverage_packages,
+    read_comparison_artifacts, render_summary, summarize_source_coverage,
+};
+use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 fn main() -> ExitCode {
     match run() {
@@ -41,6 +44,10 @@ fn run() -> Result<(), String> {
             &head_report,
             &head_source_directory,
         )?,
+        Arguments::Summary {
+            discovery,
+            artifacts_directory,
+        } => summary(&discovery, &artifacts_directory)?,
     };
     writeln!(io::stdout().lock(), "{output}").map_err(|error| error.to_string())?;
     Ok(())
@@ -59,6 +66,10 @@ enum Arguments {
         base_source_directory: PathBuf,
         head_report: PathBuf,
         head_source_directory: PathBuf,
+    },
+    Summary {
+        discovery: PathBuf,
+        artifacts_directory: PathBuf,
     },
 }
 
@@ -96,13 +107,24 @@ fn arguments() -> Result<Arguments, String> {
                 head_source_directory: paths[3].clone(),
             })
         }
+        Some("summary") => {
+            let discovery = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
+            let artifacts_directory = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
+            if arguments.next().is_some() {
+                return Err(usage());
+            }
+            Ok(Arguments::Summary {
+                discovery,
+                artifacts_directory,
+            })
+        }
         _ => Err(usage()),
     }
 }
 
 fn usage() -> String {
     String::from(
-        "usage: <matrix <base-workspace> <head-workspace> <base-sha> <head-sha> | compare <package> <base-report> <base-src> <head-report> <head-src>>",
+        "usage: <matrix <base-workspace> <head-workspace> <base-sha> <head-sha> | compare <package> <base-report> <base-src> <head-report> <head-src> | summary <discovery-json> <artifacts-directory>>",
     )
 }
 
@@ -117,13 +139,6 @@ fn matrix(base_workspace_root: &Path, head_workspace_root: &Path, base_sha: &str
         &head_packages,
     ))
     .map_err(|error| error.to_string())
-}
-
-#[derive(Serialize)]
-struct PackageCoverageResult {
-    package: String,
-    #[serde(flatten)]
-    comparison: package_coverage_check::CoverageComparison,
 }
 
 fn compare(
@@ -143,7 +158,20 @@ fn compare(
     serde_json::to_string(&result).map_err(|error| error.to_string())
 }
 
-fn read_json(path: &Path) -> Result<Value, String> {
+fn summary(discovery: &Path, artifacts_directory: &Path) -> Result<String, String> {
+    let discovery = read_json::<SummaryInput>(discovery)?;
+    let artifacts = read_comparison_artifacts(artifacts_directory)?;
+
+    Ok(render_summary(&discovery.matrix, &discovery.unavailable, &artifacts))
+}
+
+#[derive(Deserialize)]
+struct SummaryInput {
+    matrix: PackageMatrix,
+    unavailable: Vec<UnavailablePackage>,
+}
+
+fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T, String> {
     let source = fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))?;
     serde_json::from_str(&source).map_err(|error| format!("{}: invalid JSON: {error}", path.display()))
 }
