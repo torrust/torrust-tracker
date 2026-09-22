@@ -13,13 +13,20 @@ semantic-links:
 
 # Retrospective Improvement Matrix
 
-This matrix is the T1 decision input for issue #2278. It maps every improvement proposed by the
+This matrix is the approved decision input for EPIC #2278 and its subissues. It maps every
+improvement proposed by the
 PR #2270, #2271, and #2272 review retrospectives, plus the author-side items of the EPIC #2003
 friction register, to an implementation disposition. `Adopt` means the issue must deliver it.
 `Defer` means a named later task must decide the policy before any workflow change. `Reject`
 means the evidence does not justify the proposed change; the rationale states the retained
 control. `Out of scope` means the item belongs to another artifact owner and is listed only so
 the decision is traceable.
+
+The `Owner task` columns predate the conversion of #2278 into an EPIC and are kept as written.
+They map to the EPIC's subissues as follows: T2 covers subissues 1-4 (roster, contract rules,
+`fetch-review-threads`, self-audit gate); T3 covers subissues 5-8 (contract checker boundary,
+validator port, validator invariants, skeleton generator); T4 is subissue 9 (proportionate
+evidence).
 
 ## Author Verification and Convergence
 
