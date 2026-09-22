@@ -164,7 +164,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-09-22 13:16 UTC - GitHub Copilot - PR #2296 merged as `a3e9c9e1`; implemented T1-T4 in `docs(pr-reviews): single-source the audit field roster` and `docs(pr-reviews): mark audit template section ownership`.
 - 2026-09-22 13:16 UTC - GitHub Copilot - Recorded M1-M4 in `manual-verification-evidence.md`, updated the parent EPIC row to `IN_PROGRESS`, and re-reviewed AC1-AC6 and AC8-AC9. No retrospective is needed: the implementation matched the approved scope; correcting the M1 extraction boundary was a verification-command repair, not a material discovery.
 - 2026-09-22 13:19 UTC - GitHub Copilot - `linter all`, `cargo run --package agent-review-report-contract`, and the full pre-commit gate passed; AC7 is verified.
-- 2026-09-22 - GitHub Copilot - PR #2300 merged and automatically closed GitHub issue #2295 as completed. Archived this specification and its evidence in `docs/issues/closed/2295-2278-single-source-audit-roster/`.
+- 2026-09-22 17:26 UTC - GitHub Copilot - PR #2300 merged and automatically closed GitHub issue #2295 as completed. Archived this specification and its evidence in `docs/issues/closed/2295-2278-single-source-audit-roster/`.
 
 ## Acceptance Criteria
 

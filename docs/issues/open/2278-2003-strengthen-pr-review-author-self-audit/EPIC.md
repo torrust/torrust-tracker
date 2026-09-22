@@ -242,7 +242,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-22 06:59 UTC - GitHub Copilot - Maintainer approved the matrix dispositions and the conversion of #2278 into a child EPIC split into nine one-PR subissues. Converted `ISSUE.md` to `EPIC.md` in place.
 - 2026-09-22 09:40 UTC - GitHub Copilot - PR #2288 merged; GitHub issue #2278 relabelled `task` to `EPIC` and its body replaced with this specification. Created subissue #2295 (order 1) after maintainer approval of its specification.
 - 2026-09-22 13:16 UTC - GitHub Copilot - Implemented #2295 T1-T5 on its implementation branch; manual verification evidence recorded and the subissue is awaiting its implementation PR.
-- 2026-09-22 - GitHub Copilot - PR #2300 merged and automatically closed subissue #2295. Archived its specification under `docs/issues/closed/`; subissues 2, 4, and 7 are unblocked.
+- 2026-09-22 17:26 UTC - GitHub Copilot - PR #2300 merged and automatically closed subissue #2295. Archived its specification under `docs/issues/closed/`; subissues 2, 4, and 7 are unblocked.
 
 ## Acceptance Criteria
 
