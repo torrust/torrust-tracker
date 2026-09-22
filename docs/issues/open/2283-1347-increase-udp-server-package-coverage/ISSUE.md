@@ -218,6 +218,56 @@ Do not repeat the full issue workflow in each module record. The complete invent
 `coverage-evidence.md` is the authoritative checklist for whether every source file reached a
 terminal decision.
 
+### Source File Refactor-Plan Ledger
+
+This ledger is the execution-control checklist for every Rust source file in the package. The
+inventory in `coverage-evidence.md` remains the authority for coverage and ownership rationale.
+Before a file receives test changes, change its ledger state to `TODO`, create its decision record,
+and obtain T3 approval. A selected file is complete only when its record is `DONE`, focused
+validation and completed-file review are recorded, and this ledger says `DONE`. A terminal
+no-change row needs no decision record; a deferred row remains visible until its named owner
+resolves the boundary. T7 must reconcile this ledger with the inventory and every decision record.
+
+| Source module | T1 decision | Refactor-plan state | Verification state |
+| --- | --- | --- | --- |
+| `banning/event/handler.rs` | No change | N/A | T1 terminal decision recorded |
+| `banning/event/listener.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
+| `banning/event/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `banning/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `container.rs` | No change | N/A | T1 terminal decision recorded |
+| `error.rs` | Test selected | DONE ([record](test-refactor-plans/error-tests.md)) | R1-R3, focused validation, and completed-file review recorded |
+| `event.rs` | No change | N/A | T1 terminal decision recorded |
+| `handlers/announce.rs` | No change | N/A | T1 terminal decision recorded |
+| `handlers/connect.rs` | No change | N/A | T1 terminal decision recorded |
+| `handlers/error.rs` | No change | N/A | T1 terminal decision recorded |
+| `handlers/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `handlers/scrape.rs` | No change | N/A | T1 terminal decision recorded |
+| `lib.rs` | No change | N/A | T1 terminal decision recorded |
+| `server/bound_socket.rs` | Deferred (platform boundary) | DEFERRED | T1 owner recorded |
+| `server/launcher.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
+| `server/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `server/processor.rs` | No change | N/A | T1 terminal decision recorded |
+| `server/receiver.rs` | No change | N/A | T1 terminal decision recorded |
+| `server/request_buffer.rs` | Deferred (#1488 SI-15) | DEFERRED | T1 owner recorded |
+| `server/spawner.rs` | No change | N/A | T1 terminal decision recorded |
+| `server/states.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
+| `statistics/event/handler/error.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/request_aborted.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/request_accepted.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/request_banned.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/request_discarded.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/request_received.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/handler/response_sent.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/event/listener.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
+| `statistics/event/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/metrics.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/repository.rs` | No change | N/A | T1 terminal decision recorded |
+| `statistics/services.rs` | No change | N/A | T1 terminal decision recorded |
+| `testing/environment.rs` | Deferred (#1488 SI-14/SI-17) | DEFERRED | T1 owner recorded |
+| `testing/mod.rs` | No change | N/A | T1 terminal decision recorded |
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -280,6 +330,12 @@ terminal decision.
   queue. The decision record is `DONE`; no additional package source file has started.
 - 2026-09-22 07:10 UTC - GitHub Copilot - Reconciled the completed `error.rs` queue state before
   commit: the shared plan, file decision record, issue task table, and workflow checkpoint agree.
+- 2026-09-22 09:23 UTC - User/maintainer - Required an explicit source-file refactor-plan ledger
+  in this specification so unstarted, active, completed, no-change, and deferred files cannot be
+  confused during later issue stages.
+- 2026-09-22 09:23 UTC - GitHub Copilot - Added the 37-file ledger. It records `error.rs` as the
+  only completed decision record; all other rows remain explicitly terminal or deferred, with no
+  pending refactor plan until a future T3-approved selection changes its row to `TODO`.
 
 ## Acceptance Criteria
 

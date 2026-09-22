@@ -8,8 +8,10 @@ status: done
 # UDP Server Test Plan Guidance
 
 This folder contains concise decision records for source files selected by Issue #2283. The
-[coverage inventory](../coverage-evidence.md) is authoritative for the whole package; a decision
-record authorizes neither test changes nor work on another file until the maintainer approves it.
+[coverage inventory](../coverage-evidence.md) is authoritative for coverage and ownership
+rationale, while the [source-file refactor-plan ledger](../ISSUE.md#source-file-refactor-plan-ledger)
+is authoritative for execution state. A decision record authorizes neither test changes nor work
+on another file until the maintainer approves it.
 
 ## Order And Status
 
@@ -22,6 +24,10 @@ The current queue contains only the top-level error-adapter subsystem:
 | Order | Record | Status | Boundary |
 | ---: | --- | --- | --- |
 | 1 | [Error adapter tests](error-tests.md) | DONE | `error.rs` conversions from UDP-core service errors |
+
+When a later T3 selection activates another source file, first update its ledger row to `TODO`,
+then create its decision record. On completed-file review, mark both the record and ledger row
+`DONE`; do not begin another file before that state is recorded.
 
 ## Required Two-Phase Sequence
 
