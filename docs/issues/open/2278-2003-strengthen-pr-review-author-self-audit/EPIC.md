@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-22 06:59"
+last-updated-utc: "2026-09-22 09:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -144,7 +144,7 @@ register; retrospective items are cited by PR.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #[To be assigned] - Single-source the audit field roster and mark copied template sections | `docs/issues/open/{number}-2278-single-source-audit-roster/ISSUE.md` | TODO | F58, F77, F63. Docs only. No dependencies. Unblocks 2, 4, and 7. |
+| 1 | #2295 - Single-source the audit field roster and mark copied template sections | `docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md` | TODO | F58, F77, F63. Docs plus the `agent-review-report-contract` literal pins the roster rewrite invalidates. No dependencies. Unblocks 2, 4, and 7. |
 | 2 | #[To be assigned] - Reconcile skill and template rule contradictions | `docs/issues/open/{number}-2278-reconcile-audit-contract-rules/ISSUE.md` | TODO | F60, F73, F76, F79, F80, F61, F62, F66. Docs only. Depends on 1. |
 | 3 | #[To be assigned] - Align `fetch-review-threads` with the author workflow | `docs/issues/open/{number}-2278-fetch-all-review-threads/ISSUE.md` | TODO | F17, F32, F18. Skill and scripts. No dependencies. |
 | 4 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
@@ -240,6 +240,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-21 18:31 UTC - GitHub Copilot - Completed T1 with `retrospective-improvement-matrix.md`; awaiting maintainer review of its dispositions.
 - 2026-09-22 06:28 UTC - GitHub Copilot - Extended the matrix with the author-side items of the EPIC #2003 friction register (comment 5767266486) and recorded the boundaries with EPIC #2264 and #2266.
 - 2026-09-22 06:59 UTC - GitHub Copilot - Maintainer approved the matrix dispositions and the conversion of #2278 into a child EPIC split into nine one-PR subissues. Converted `ISSUE.md` to `EPIC.md` in place; the GitHub label changes from `task` to `epic` when this specification merges.
+- 2026-09-22 09:40 UTC - GitHub Copilot - PR #2288 merged; GitHub issue #2278 relabelled `task` to `EPIC` and its body replaced with this specification. Created subissue #2295 (order 1) after maintainer approval of its specification.
 
 ## Acceptance Criteria
 
