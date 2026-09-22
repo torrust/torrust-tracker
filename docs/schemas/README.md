@@ -25,6 +25,10 @@ For a disposable copy, pass `--artifact <path>` after the action. For example:
 cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- check --artifact .tmp/frontmatter-v1.schema.json
 ```
 
+The command exits `0` on success, `1` when it cannot read or write the artifact
+or the artifact has drifted, and `2` for invalid arguments, following
+`docs/adrs/20260519000000_define_global_cli_output_contract.md`.
+
 The schema covers strict issue and EPIC field presence, JSON types, nullability,
 enumerations, numeric bounds, string patterns, mapping shape, and approved
 `x-` experimental fields. The Rust validator remains authoritative for Markdown

@@ -136,7 +136,7 @@ root in containers.
 
 ---
 
-### 5. [ ] Distinguish usage errors (exit 2) from runtime failures (exit 1) [HIGH impact / LOW effort]
+### 5. [x] Distinguish usage errors (exit 2) from runtime failures (exit 1) [HIGH impact / LOW effort]
 
 **Problem**: `main` maps every `Err` to `ExitCode::FAILURE`. The repository CLI output contract
 (`docs/adrs/20260519000000_define_global_cli_output_contract.md`) assigns `2` to usage errors and
@@ -261,7 +261,7 @@ per form.
 | 2     | [x]    | Cover successful generation and clean check                       | High   | Low     |
 | 3     | [x]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
 | 4     | [x]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
-| 5     | [ ]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
+| 5     | [x]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
 | 6     | [ ]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
 | 7     | [ ]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [ ]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |

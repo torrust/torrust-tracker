@@ -133,3 +133,26 @@ Both failures are produced by the real filesystem and are deterministic on every
 why the plan rejected a filesystem trait. Permission-denied cases are deliberately not tested: they
 are ignored when the test process runs as root, as in CI containers. The `blocker` name is visible
 in the test because it is the causal state and appears in the asserted message.
+
+## Refactor Plan Item 5 - Exit Code Classification
+
+### Arrange
+
+One `Error` value per test: `Usage`, and `Runtime` with an arbitrary message.
+
+### Act
+
+Map the error to its exit code.
+
+### Assert
+
+`Usage` maps to `2`; `Runtime` maps to `ExitCode::FAILURE`.
+
+### Review
+
+The mapping is tested on the enum rather than through `main`, so no child process is needed and the
+failure names the variant. Argument tests now compare against `Error::Usage` instead of the usage
+string; message-content tests call `to_string()` so they keep asserting the user-visible text.
+Mutation check: changing the `Usage` arm to `ExitCode::FAILURE` made
+`it_should_exit_with_code_two_for_a_usage_error` fail and nothing else; restoring it returned the
+suite to green.

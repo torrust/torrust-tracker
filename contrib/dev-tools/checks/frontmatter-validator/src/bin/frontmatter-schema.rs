@@ -9,84 +9,126 @@ use frontmatter_validator::v1_schema;
 
 const ARTIFACT_PATH: &str = "docs/schemas/frontmatter-v1.schema.json";
 
+/// Failures reported by the command, classified by the exit code they map to.
+#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+enum Error {
+    #[error("usage: frontmatter-schema <generate|check> [--artifact <path>]")]
+    Usage,
+    #[error("{0}")]
+    Runtime(String),
+}
+
+impl Error {
+    /// Exit codes follow the repository CLI output contract: `2` for usage errors, `1` otherwise.
+    fn exit_code(&self) -> ExitCode {
+        match self {
+            Self::Usage => ExitCode::from(2),
+            Self::Runtime(_) => ExitCode::FAILURE,
+        }
+    }
+}
+
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             let mut stderr = io::stderr().lock();
             drop(writeln!(stderr, "frontmatter-schema: {error}"));
-            ExitCode::FAILURE
+            error.exit_code()
         }
     }
 }
 
-fn run() -> Result<(), String> {
+fn run() -> Result<(), Error> {
     let mut arguments = env::args().skip(1);
-    let action = arguments.next().ok_or_else(usage)?;
+    let action = arguments.next().ok_or(Error::Usage)?;
     let artifact = artifact_path(&arguments.collect::<Vec<_>>())?;
 
     match action.as_str() {
         "generate" => write_schema(&artifact),
         "check" => check_schema(&artifact),
-        _ => Err(usage()),
+        _ => Err(Error::Usage),
     }
 }
 
-fn usage() -> String {
-    String::from("usage: frontmatter-schema <generate|check> [--artifact <path>]")
-}
-
-fn artifact_path(arguments: &[String]) -> Result<PathBuf, String> {
+fn artifact_path(arguments: &[String]) -> Result<PathBuf, Error> {
     match arguments {
         [] => Ok(repository_root()?.join(ARTIFACT_PATH)),
         [flag, path] if flag == "--artifact" => Ok(PathBuf::from(path)),
-        _ => Err(usage()),
+        _ => Err(Error::Usage),
     }
 }
 
-fn repository_root() -> Result<PathBuf, String> {
+fn repository_root() -> Result<PathBuf, Error> {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
         .nth(4)
         .map(Path::to_path_buf)
-        .ok_or_else(|| String::from("could not determine repository root"))
+        .ok_or_else(|| Error::Runtime(String::from("could not determine repository root")))
 }
 
-fn schema_json() -> Result<String, String> {
+fn schema_json() -> Result<String, Error> {
     serde_json::to_string_pretty(&v1_schema())
         .map(|schema| format!("{schema}\n"))
-        .map_err(|error| format!("could not serialize schema: {error}"))
+        .map_err(|error| Error::Runtime(format!("could not serialize schema: {error}")))
 }
 
-fn write_schema(artifact: &Path) -> Result<(), String> {
+fn write_schema(artifact: &Path) -> Result<(), Error> {
     let parent = artifact
         .parent()
-        .ok_or_else(|| format!("schema artifact has no parent directory: {}", artifact.display()))?;
-    fs::create_dir_all(parent).map_err(|error| format!("could not create {}: {error}", parent.display()))?;
-    fs::write(artifact, schema_json()?).map_err(|error| format!("could not write {}: {error}", artifact.display()))
+        .ok_or_else(|| Error::Runtime(format!("schema artifact has no parent directory: {}", artifact.display())))?;
+    fs::create_dir_all(parent).map_err(|error| Error::Runtime(format!("could not create {}: {error}", parent.display())))?;
+    fs::write(artifact, schema_json()?)
+        .map_err(|error| Error::Runtime(format!("could not write {}: {error}", artifact.display())))
 }
 
-fn check_schema(artifact: &Path) -> Result<(), String> {
-    let actual = fs::read_to_string(artifact).map_err(|error| format!("could not read {}: {error}", artifact.display()))?;
+fn check_schema(artifact: &Path) -> Result<(), Error> {
+    let actual = fs::read_to_string(artifact)
+        .map_err(|error| Error::Runtime(format!("could not read {}: {error}", artifact.display())))?;
     if actual == schema_json()? {
         return Ok(());
     }
 
-    Err(format!(
+    Err(Error::Runtime(format!(
         "{} differs from the deterministic v1 schema output; run `cargo run --offline --package frontmatter-validator --bin frontmatter-schema -- generate --artifact {}`",
         artifact.display(),
         artifact.display(),
-    ))
+    )))
 }
 
 #[cfg(test)]
 mod tests {
     use std::fs;
     use std::path::PathBuf;
+    use std::process::ExitCode;
 
     use tempfile::TempDir;
 
-    use super::{artifact_path, check_schema, schema_json, usage, write_schema};
+    use super::{Error, artifact_path, check_schema, schema_json, write_schema};
+
+    #[test]
+    fn it_should_exit_with_code_two_for_a_usage_error() {
+        // Arrange: the command was invoked with invalid arguments.
+        let error = Error::Usage;
+
+        // Act: map the error to a process exit code.
+        let exit_code = error.exit_code();
+
+        // Assert: usage errors use the CLI contract's dedicated code.
+        assert_eq!(exit_code, ExitCode::from(2));
+    }
+
+    #[test]
+    fn it_should_exit_with_code_one_for_a_runtime_failure() {
+        // Arrange: the command failed while doing its work.
+        let error = Error::Runtime(String::from("could not read schema.json"));
+
+        // Act: map the error to a process exit code.
+        let exit_code = error.exit_code();
+
+        // Assert: runtime failures use the generic failure code.
+        assert_eq!(exit_code, ExitCode::FAILURE);
+    }
 
     #[test]
     fn it_should_write_the_canonical_schema_bytes_creating_missing_parent_directories() {
@@ -154,7 +196,7 @@ mod tests {
         let error = artifact_path(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, usage());
+        assert_eq!(error, Error::Usage);
     }
 
     #[test]
@@ -166,7 +208,7 @@ mod tests {
         let error = artifact_path(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, usage());
+        assert_eq!(error, Error::Usage);
     }
 
     #[test]
@@ -178,7 +220,7 @@ mod tests {
         let error = artifact_path(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
-        assert_eq!(error, usage());
+        assert_eq!(error, Error::Usage);
     }
 
     #[test]
@@ -188,7 +230,7 @@ mod tests {
         let artifact = directory.path().join("missing.json");
 
         // Act: check the missing artifact.
-        let error = check_schema(&artifact).unwrap_err();
+        let error = check_schema(&artifact).unwrap_err().to_string();
 
         // Assert: the error names the read failure and the path.
         assert!(error.starts_with("could not read"), "{error}");
@@ -204,7 +246,7 @@ mod tests {
         let artifact = blocker.join("frontmatter-v1.schema.json");
 
         // Act: generate the artifact.
-        let error = write_schema(&artifact).unwrap_err();
+        let error = write_schema(&artifact).unwrap_err().to_string();
 
         // Assert: the error names the directory-creation failure and the blocking path.
         assert!(error.starts_with("could not create"), "{error}");
@@ -219,7 +261,7 @@ mod tests {
         fs::write(&artifact, "{}\n").unwrap();
 
         // Act: check the artifact against the canonical schema output.
-        let error = check_schema(&artifact).unwrap_err();
+        let error = check_schema(&artifact).unwrap_err().to_string();
 
         // Assert: the check explains that the differing artifact must be regenerated.
         assert!(error.contains("differs from the deterministic v1 schema output"));
