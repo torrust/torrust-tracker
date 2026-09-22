@@ -32,7 +32,7 @@ evidence).
 
 | Source | Proposal | Disposition | Owner artifact or task | Rationale |
 | ------ | -------- | ----------- | ---------------------- | --------- |
-| PR #2270 | Run the audit validator before every reply and audit commit. | Adopt | T2, `process-pr-review` | Objective audit inconsistencies must fail before they reach a reviewer. |
+| PR #2270 | Run the audit validator before every reply and audit commit. | Adopt | T2, `process-pr-review` | Objective audit inconsistencies must fail before they reach a reviewer. The run is required whenever the validator is available; when it is not, the self-audit gate performs the same checks by hand (row/detail parity and order, reply posted on the source thread, resolution subject present on the branch, log order) and records the commands used. The validator is never a prerequisite for the gate. |
 | PR #2270 | Extend validation to issue progress logs, including chronological order, finding-ID references, and append-only changes. | Defer | T3 | Chronological order is objective; finding-ID and append-only checks need a defined ownership boundary and Git comparison input before enforcement. |
 | PR #2270 | Generate mechanical audit fields from a source comment identifier. | Adopt | T3 | Source review ID, source URL, severity, and reply relationship are transcription-prone facts. |
 | PR #2270 | Derive processing-log timestamps from the carrying commit. | Defer | T3 | Commit timestamps cannot represent GitHub reply or resolution events. T3 must choose a source-derived event-reference format that does not make false timing claims. |
