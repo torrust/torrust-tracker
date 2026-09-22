@@ -26,6 +26,8 @@ use tracing::instrument;
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
+const HTTP_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
+
 /// Error that can occur when starting or stopping the HTTP server.
 ///
 /// Some errors triggered while starting the server are:
@@ -372,7 +374,7 @@ impl HttpServer<Stopped> {
         health_check: FnSpawnServiceHeathCheck,
     ) -> Result<CancellationRunning, Error> {
         let (running, service_binding) =
-            start_token_aware_runtime(self.state.launcher, http_tracker_container, cancellation_token.clone()).await?;
+            start_token_aware_runtime(self.state.launcher, &http_tracker_container, cancellation_token.clone())?;
 
         if let Some(public_url) = metadata.public_url() {
             tracing::info!(service_binding = %service_binding, public_url = %public_url, "Started HTTP tracker");
@@ -384,9 +386,16 @@ impl HttpServer<Stopped> {
             .register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
             .await
         {
+            let CancellationRunning {
+                task,
+                shutdown_controller,
+                ..
+            } = running;
             cancellation_token.cancel();
-            drop(running.task.await);
-            drop(running.shutdown_controller.await);
+            task.abort();
+            shutdown_controller.abort();
+            drop(task.await);
+            drop(shutdown_controller.await);
             return Err(Error::Registration { source });
         }
 
@@ -394,12 +403,11 @@ impl HttpServer<Stopped> {
     }
 }
 
-async fn start_token_aware_runtime(
+fn start_token_aware_runtime(
     launcher: Launcher,
-    http_tracker_container: Arc<HttpTrackerCoreContainer>,
+    http_tracker_container: &Arc<HttpTrackerCoreContainer>,
     cancellation_token: CancellationToken,
 ) -> Result<(CancellationRunning, ServiceBinding), Error> {
-    let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
     let socket =
         Launcher::create_tcp_listener(launcher.bind_to, launcher.ipv6_v6only).map_err(|source| Error::Bind { source })?;
     let binding = socket.local_addr().map_err(|source| Error::Listener { source })?;
@@ -412,28 +420,20 @@ async fn start_token_aware_runtime(
     let service_binding = ServiceBinding::new(protocol.clone(), binding).map_err(|error| Error::Listener {
         source: std::io::Error::other(error),
     })?;
-    let server = launcher.server_future(socket, handle.clone(), &http_tracker_container, &service_binding)?;
+    let server = launcher.server_future(socket, handle.clone(), http_tracker_container, &service_binding)?;
 
     tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{binding}");
-    tx_start
-        .send(Started {
-            service_binding,
-            address: binding,
-        })
-        .map_err(|_| Error::StartupNotificationDropped)?;
     let task = tokio::spawn(async move {
         server.await;
         launcher
     });
     let shutdown_controller = tokio::spawn(graceful_shutdown_on_cancellation(
-        handle.clone(),
+        handle,
         cancellation_token,
         format!("Shutting down HTTP server on socket address: {binding}"),
         binding,
-        Duration::from_secs(90),
+        HTTP_GRACEFUL_DRAIN_TIMEOUT,
     ));
-
-    let started = rx_start.await.map_err(|source| Error::StartupNotification { source })?;
 
     Ok((
         CancellationRunning {
@@ -441,7 +441,7 @@ async fn start_token_aware_runtime(
             task,
             shutdown_controller,
         },
-        started.service_binding,
+        service_binding,
     ))
 }
 
