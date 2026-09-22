@@ -249,7 +249,7 @@ inventory and every plan.
 | ---: | --- | --- | --- | --- |
 | 1 | `error.rs` | Test candidate | DONE | [error-tests.md](test-refactor-plans/error-tests.md) |
 | 2 | `lib.rs` | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
-| 3 | `container.rs` | Probably no change | PENDING | — |
+| 3 | `container.rs` | Probably no change | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
 | 4 | `event.rs` | Probably no change | PENDING | — |
 | 5 | `handlers/mod.rs` | Probably no change | PENDING | — |
 | 6 | `handlers/connect.rs` | Probably no change | PENDING | — |
@@ -372,6 +372,13 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 12:45 UTC - GitHub Copilot - Completed the `lib.rs` plan as a no-change result:
   crate-root declarations and test-support helpers have no package-owned runtime decision, while
   the helper caller is owned by the future `handlers/announce.rs` plan.
+- 2026-09-22 12:50 UTC - GitHub Copilot - Started `container.rs` as the only `IN_PROGRESS` file
+  and created [container-tests.md](test-refactor-plans/container-tests.md). The plan records its
+  complete unit-only baseline, current enabled-publication test, ownership boundaries, and
+  approval gate. No tests or production code changed.
+- 2026-09-22 16:25 UTC - User/maintainer - Approved the completed `container.rs` file result:
+  no refactor or new test, with unchanged 100.00% unit-only line coverage. The signed
+  documentation-only file increment is pending validation and commit.
 
 ## Acceptance Criteria
 
