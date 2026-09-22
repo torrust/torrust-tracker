@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
-last-updated-utc: 2026-09-22 11:13
+issue-spec: docs/issues/closed/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
+last-updated-utc: 2026-09-22 17:43
 ---
 
 # Manual Verification Evidence

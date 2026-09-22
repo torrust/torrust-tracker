@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 epic: 1488
 github-issue: 2289
-spec-path: docs/issues/open/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
+spec-path: docs/issues/closed/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
 branch: "2289-1488-si-11-migrate-http-tracker-token-lifecycle"
-related-pr: null
-last-updated-utc: "2026-09-22 12:39"
+related-pr: 2297
+last-updated-utc: "2026-09-22 17:43"
 semantic-links:
  skill-links: [create-issue, write-unit-test]
  related-artifacts: [.github/skills/dev/planning/create-issue/SKILL.md, .github/skills/dev/testing/write-unit-test/SKILL.md, src/app.rs, src/bootstrap/jobs/http_tracker.rs, packages/axum-http-server/src/server.rs, packages/axum-server/src/signals.rs, docs/features/shutdown-process/README.md, docs/features/shutdown-process/task-inventory.md, docs/features/shutdown-process/shutdown-architecture-examples.md, docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md, docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md, docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md]
@@ -148,7 +148,7 @@ review before beginning another test area or committing.
 - [x] Evidence-based implementation completion review recorded.
 - [x] Reviewer validated acceptance criteria and updated checkboxes.
 - [x] Committer verified spec progress is up to date before commit.
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -185,6 +185,9 @@ review before beginning another test area or committing.
    component remains pending until its cancellation-aware drain controller is
    released and joined. See `agent-review-reports.md` and
    `implementation-retrospective.md`.
+- 2026-09-22 17:43 UTC - GitHub Copilot - PR #2297 merged and GitHub issue
+   #2289 closed. Archived this completed specification and its evidence below
+   `docs/issues/closed/`; updated the #1488 roadmap link and status.
 
 - 2026-09-22 07:45 UTC - GitHub Copilot - Updated the existing SI-11 draft with
    the required implementation plan, commit points, test-development loop,
