@@ -118,7 +118,7 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     ),
     (
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "author class, finding ID, review finding reference, severity, category, summary,",
+        "### Tracking Row Fields",
     ),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
@@ -162,7 +162,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
     ),
     (
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "Record each finding as one compact tracking row (finding ID, review finding reference, author class, severity, category, relationship, disposition, thread state) plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
+        "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
     ),
     (
         "docs/skills/semantic-skill-link-convention.md",
@@ -250,7 +250,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
     ),
     (
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "Record each finding as one compact tracking row (finding ID, review finding reference, author class, severity, category, relationship, disposition, thread state) plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
+        "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
     ),
 ];
 
@@ -546,7 +546,7 @@ fn verify_audit_schema(workspace_root: &Path, failures: &mut Vec<String>) {
         "**Categorize for future analysis.** For every new audit row, assign exactly one",
         "primary category: `link-integrity`, `formatting`, `metadata`, `testing`,",
         "`correctness`, `documentation`, `maintainability`, `security`, or `other`.",
-        "author class, finding ID, review finding reference, severity, category, summary,",
+        "### Detail-Entry Heading Field",
         "listed category fits. Do not backfill or reinterpret historical audit records.",
     ] {
         require(workspace_root, workflow, text, failures);
@@ -597,7 +597,7 @@ fn verify_finding_details(workspace_root: &Path, failures: &mut Vec<String>) {
     require_wrapped(
         workspace_root,
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "Record each finding as one compact tracking row (finding ID, review finding reference, author class, severity, category, relationship, disposition, thread state) plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
+        "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
         failures,
     );
 }
