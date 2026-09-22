@@ -125,7 +125,7 @@ expansion.
 | A163 | `missing_errors_doc` | Public wire read, parse, and write APIs lacked error contracts. | Added specific `# Errors` documentation. |
 | A164 | `missing_panics_doc` | `Request::parse_bytes` used `unwrap` after slicing action bytes. | Replaced with a fallible conversion. |
 | A165 | `must_use_candidate` | Constructors and error factories discard meaningful values if ignored. | Added `#[must_use]`. |
-| A166 | `needless_pass_by_value` | Round-trip test helpers did not consume their request or response. | Changed helpers to take references. |
+| A166 | `needless_pass_by_value` | Round-trip test helpers did not consume their request or response. | Removed the helper and inlined each test's conversion and assertion. |
 | A167 | `semicolon_if_nothing_returned` | Test-only assignment calls omitted semicolons. | Added semicolons. |
 | A168 | `wildcard_imports` | Four protocol modules used wildcard imports. | Replaced with explicit production and test-only imports. |
 

@@ -37,7 +37,7 @@ without recording the required prose-first review.
 
 1. Remove a historical allowance baseline before classifying it, then make each
    result rely on observed current-toolchain diagnostics rather than its old
-   rationale.
+   diagnostic.
 2. When a lint cleanup changes test helpers or signatures, perform and record a
    prose-first review of those tests even when the intended behavior is unchanged.
 

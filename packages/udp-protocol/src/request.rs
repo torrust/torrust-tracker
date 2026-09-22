@@ -301,7 +301,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_not_panic_when_parsing_supported_actions_at_all_packet_lengths() {
+    fn it_should_not_panic_when_parsing_all_action_codes_at_all_packet_lengths() {
         for action in 0i32..4 {
             for max_scrape_torrents in 0..3 {
                 for num_bytes in 0..256 {

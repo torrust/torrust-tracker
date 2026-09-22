@@ -399,7 +399,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A163 | Removed | crate | `missing_errors_doc` | UDP protocol crate baseline | #2261 added `# Errors` contracts to public wire APIs. | #2261 | Removed |
 | A164 | Removed | crate | `missing_panics_doc` | UDP protocol crate baseline | #2261 replaced the parser's `unwrap` with a fallible conversion. | #2261 | Removed |
 | A165 | Removed | crate | `must_use_candidate` | UDP protocol crate baseline | #2261 added `#[must_use]` to constructors and error factories. | #2261 | Removed |
-| A166 | Removed | crate | `needless_pass_by_value` | UDP protocol crate baseline | #2261 changed round-trip test helpers to take references. | #2261 | Removed |
+| A166 | Removed | crate | `needless_pass_by_value` | UDP protocol crate baseline | #2261 removed the round-trip helper and inlined each test's conversion and assertion. | #2261 | Removed |
 | A167 | Removed | crate | `semicolon_if_nothing_returned` | UDP protocol crate baseline | #2261 added test-only semicolons. | #2261 | Removed |
 | A168 | Removed | crate | `wildcard_imports` | UDP protocol crate baseline | #2261 replaced wildcard imports with explicit production and test imports. | #2261 | Removed |
 | A169 | `packages/udp-server/examples/udp_only_public_tracker.rs:35` | crate | `print_stdout` | Example executable output | Runnable public-tracker example intentionally prints service information | #2158 | Retain |
