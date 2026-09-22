@@ -163,7 +163,8 @@ names and order exactly.
 - Reply URL
 
 Record a post-merge approval URL once in the audit's Ownership section, rather
-than repeating it in each detail entry. Record each finding as one compact
+than repeating it in each detail entry. `Reviewer finding ID` is optional: record
+the original ID when reassigned; otherwise use `N/A`. Record each finding as one compact
 tracking row plus one matching detail entry carrying the remaining narrative and
 source-metadata fields, as laid out in the audit template. The immutable
 repository reference is

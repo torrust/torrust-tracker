@@ -32,4 +32,4 @@ semantic-links:
 - Issue-spec updates: Marked the verified reviewer-validation and independent-review-report checkpoints complete. All acceptance criteria were already verified and remained checked.
 - Verdict: REVIEW PASSED
 - Follow-up actions:
-  - Include this uncommitted review report and checkpoint update in the reviewed documentation change set before opening the implementation PR.
+  - The review report and checkpoint update are included in this implementation PR.

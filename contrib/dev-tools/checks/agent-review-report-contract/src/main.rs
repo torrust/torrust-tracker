@@ -120,6 +120,17 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
         "### Tracking Row Fields",
     ),
+    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- Finding ID"),
+    (
+        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        "### Detail-Entry Heading Field",
+    ),
+    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- Summary"),
+    (
+        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        "### Detail-Entry Fields",
+    ),
+    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- PR number"),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
         "- Author class: `Copilot`, `Human`, `Unknown`",
