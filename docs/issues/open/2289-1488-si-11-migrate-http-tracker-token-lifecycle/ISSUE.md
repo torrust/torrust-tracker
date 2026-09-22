@@ -9,24 +9,24 @@ github-issue: 2289
 spec-path: docs/issues/open/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
 branch: "2289-1488-si-11-migrate-http-tracker-token-lifecycle-spec"
 related-pr: null
-last-updated-utc: "2026-09-22 07:30"
+last-updated-utc: "2026-09-22 07:55"
 semantic-links:
-  skill-links:
-    - create-issue
-      - write-unit-test
-  related-artifacts:
-      - .github/skills/dev/planning/create-issue/SKILL.md
-      - .github/skills/dev/testing/write-unit-test/SKILL.md
-    - src/app.rs
-    - src/bootstrap/jobs/http_tracker.rs
-    - packages/axum-http-server/src/server.rs
-    - packages/axum-server/src/signals.rs
-    - docs/features/shutdown-process/README.md
-    - docs/features/shutdown-process/task-inventory.md
-    - docs/features/shutdown-process/shutdown-architecture-examples.md
-    - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
-    - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+ skill-links:
+  - create-issue
+  - write-unit-test
+ related-artifacts:
+  - .github/skills/dev/planning/create-issue/SKILL.md
+  - .github/skills/dev/testing/write-unit-test/SKILL.md
+  - src/app.rs
+  - src/bootstrap/jobs/http_tracker.rs
+  - packages/axum-http-server/src/server.rs
+  - packages/axum-server/src/signals.rs
+  - docs/features/shutdown-process/README.md
+  - docs/features/shutdown-process/task-inventory.md
+  - docs/features/shutdown-process/shutdown-architecture-examples.md
+  - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
+  - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
+  - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
