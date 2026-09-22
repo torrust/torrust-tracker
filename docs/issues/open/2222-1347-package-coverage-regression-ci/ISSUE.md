@@ -7,8 +7,8 @@ epic: 1347
 github-issue: 2222
 spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
 branch: "2222-1347-package-coverage-regression-ci"
-related-pr: null
-last-updated-utc: 2026-09-22 06:10
+related-pr: 2293
+last-updated-utc: 2026-09-22 10:07
 semantic-links:
   skill-links:
     - create-issue
@@ -216,6 +216,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
   passed all 15 tests, and produced `290/461` source lines covered at base and head. The helper
   emitted `warning: false`. This validates the local command path only; GitHub-hosted timing and
   fork execution remain pending.
+- 2026-09-22 10:07 UTC - User/maintainer - Reported that PR #2293's Container workflow failed
+  because the new `package-coverage-check` workspace member was absent from the Cargo Chef recipe
+  build context. The repair adds its manifest and source stubs to the recipe, allows the manifest
+  through `.dockerignore`, and excludes the CI-only package from nextest archives. A local
+  `docker build --target test --file Containerfile .` completed all 68 stages successfully,
+  including the recipe, archive, extraction, and release test stages. The repaired workflow must
+  still be observed in GitHub Actions after the fix is pushed.
 
 ## Acceptance Criteria
 
