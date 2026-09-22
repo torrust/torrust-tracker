@@ -317,3 +317,27 @@ portable symbolic-link creation has platform-specific privilege and support cons
 temporary-file mechanics remain entirely behind `write`; tests observe filesystem effects only.
 Red-first verification against direct `fs::write` failed because the artifact remained a symbolic
 link; same-directory `NamedTempFile::persist` returned the test to green.
+
+## Refactor Plan Item 12 - Artifact Origin as a Closed Domain
+
+### Arrange
+
+One artifact is constructed through `tracked()` and another through `at()` with an explicit path.
+
+### Act
+
+Ask each artifact for its regeneration instruction.
+
+### Assert
+
+The tracked artifact selects `TrackedArtifact`; the caller-selected artifact selects
+`ExplicitArtifact`.
+
+### Review
+
+The test observes the domain consequence of origin rather than an implementation field. It fails
+when origin is not carried with the artifact, and it remains valid whether the representation is an
+enum, a type-state design, or another closed model. Existing drift-display tests already verify
+the user-facing rendering for both instruction forms, so this test owns only selection. The
+refactor is behavior-preserving; the mutation check uses a temporary inversion of explicit-origin
+selection and confirmed this test failed before the correct mapping was restored.

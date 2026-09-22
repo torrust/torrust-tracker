@@ -299,7 +299,7 @@ command does not promise crash-durable directory metadata on every platform.
 
 ---
 
-### 12. [ ] Model artifact origin instead of carrying an `explicit` boolean [MEDIUM impact / LOW effort]
+### 12. [x] Model artifact origin instead of carrying an `explicit` boolean [MEDIUM impact / LOW effort]
 
 **Problem**: `SchemaArtifact` represents selection origin with `path: PathBuf` plus `explicit:
 bool`, while `Error::Drift` independently stores `artifact: PathBuf` plus a derived command
@@ -350,7 +350,7 @@ deliberately. Do not add a generic framework or change the ADR-owned NDJSON roll
 | 9     | [x]    | Make the drift hint match the documented command                  | Low    | Trivial |
 | 10    | [x]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
 | 11    | [x]    | Replace the tracked artifact atomically                            | High   | Medium  |
-| 12    | [ ]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
+| 12    | [x]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
 | 13    | [ ]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |
 
 Item 4 is placed before item 5 despite its lower impact because it completes the test baseline

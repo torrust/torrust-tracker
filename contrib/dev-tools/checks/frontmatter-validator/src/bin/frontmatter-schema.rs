@@ -115,8 +115,16 @@ impl Command {
 #[derive(Debug, Eq, PartialEq)]
 struct SchemaArtifact {
     path: PathBuf,
-    /// Whether the caller named the path with `--artifact`, as opposed to the tracked default.
-    explicit: bool,
+    origin: ArtifactOrigin,
+}
+
+/// How a schema artifact path was selected.
+#[derive(Debug, Eq, PartialEq)]
+enum ArtifactOrigin {
+    /// The artifact tracked in the repository.
+    Tracked,
+    /// A path supplied by the caller through `--artifact`.
+    Explicit,
 }
 
 impl SchemaArtifact {
@@ -135,22 +143,24 @@ impl SchemaArtifact {
             .nth(4)
             .map(|root| Self {
                 path: root.join(ARTIFACT_PATH),
-                explicit: false,
+                origin: ArtifactOrigin::Tracked,
             })
             .ok_or(Error::RepositoryRoot)
     }
 
     /// An artifact at a caller-chosen path.
     const fn at(path: PathBuf) -> Self {
-        Self { path, explicit: true }
+        Self {
+            path,
+            origin: ArtifactOrigin::Explicit,
+        }
     }
 
     /// The safe regeneration instruction for this artifact.
     const fn regeneration_instruction(&self) -> RegenerationInstruction {
-        if self.explicit {
-            RegenerationInstruction::ExplicitArtifact
-        } else {
-            RegenerationInstruction::TrackedArtifact
+        match self.origin {
+            ArtifactOrigin::Tracked => RegenerationInstruction::TrackedArtifact,
+            ArtifactOrigin::Explicit => RegenerationInstruction::ExplicitArtifact,
         }
     }
 
@@ -509,6 +519,21 @@ mod tests {
             message,
             ".tmp/copy.json differs from the deterministic v1 schema output; run the documented generator with `--artifact <path>` and the artifact path above"
         );
+    }
+
+    #[test]
+    fn it_should_select_a_regeneration_instruction_from_the_artifact_origin() {
+        // Arrange: one artifact is tracked and the other was named explicitly by the caller.
+        let tracked = SchemaArtifact::tracked().unwrap();
+        let explicit = SchemaArtifact::at(PathBuf::from(".tmp/copy.json"));
+
+        // Act: select the regeneration instruction for each artifact.
+        let tracked_instruction = tracked.regeneration_instruction();
+        let explicit_instruction = explicit.regeneration_instruction();
+
+        // Assert: each closed origin has exactly one matching instruction.
+        assert_eq!(tracked_instruction, RegenerationInstruction::TrackedArtifact);
+        assert_eq!(explicit_instruction, RegenerationInstruction::ExplicitArtifact);
     }
 
     #[test]
