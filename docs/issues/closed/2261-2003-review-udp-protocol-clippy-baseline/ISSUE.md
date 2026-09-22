@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 2003
 github-issue: 2261
-spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
+spec-path: docs/issues/closed/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
-related-pr: null
-last-updated-utc: 2026-09-22 07:49
+related-pr: 2290
+last-updated-utc: 2026-09-22 10:18
 semantic-links:
   skill-links:
     - create-issue
@@ -169,7 +169,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -196,6 +196,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-09-22 07:49 UTC - GitHub Copilot - Updated nightly Rust to 1.100.0 (2026-09-21) after CI
   began reporting `empty_enums` from `FromBytes` derive expansion. Restored A159 as a documented
   permanent generated-code exception; current-nightly focused Clippy, focused tests, and `linter all` passed
+- 2026-09-22 10:18 UTC - GitHub Copilot - PR #2290 merged and closed GitHub issue #2261 as
+  completed. Archived this specification under `docs/issues/closed/` - https://github.com/torrust/torrust-tracker/pull/2290
 
 ## Acceptance Criteria
 
