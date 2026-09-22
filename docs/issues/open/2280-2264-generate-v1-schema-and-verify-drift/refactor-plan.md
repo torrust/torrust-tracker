@@ -158,7 +158,7 @@ The ADR also requires NDJSON on stderr. That is a repository-wide rollout the AD
 
 ---
 
-### 6. [ ] Split `run` into a pure `Command::parse` and an executing `Command::execute` [MEDIUM impact / MEDIUM effort]
+### 6. [x] Split `run` into a pure `Command::parse` and an executing `Command::execute` [MEDIUM impact / MEDIUM effort]
 
 **Problem**: `run` reads `env::args()` itself, so the action/artifact decision cannot be tested
 without a child process, and the unknown-action branch is unreachable from tests.
@@ -262,7 +262,7 @@ per form.
 | 3     | [x]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
 | 4     | [x]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
 | 5     | [x]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
-| 6     | [ ]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
+| 6     | [x]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
 | 7     | [ ]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [ ]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [ ]    | Make the drift hint match the documented command                  | Low    | Trivial |

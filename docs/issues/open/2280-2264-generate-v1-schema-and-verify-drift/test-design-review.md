@@ -156,3 +156,28 @@ string; message-content tests call `to_string()` so they keep asserting the user
 Mutation check: changing the `Usage` arm to `ExitCode::FAILURE` made
 `it_should_exit_with_code_two_for_a_usage_error` fail and nothing else; restoring it returned the
 suite to green.
+
+## Refactor Plan Item 6 - Command Parse and Execute
+
+### Arrange
+
+A full argument vector per test, as the shell would pass it after the program name: a complete
+`generate --artifact <path>`; a bare `check`; no arguments; an unknown action; and the three
+malformed option forms from item 3 now preceded by an action.
+
+### Act
+
+`Command::parse` over the vector.
+
+### Assert
+
+Well-formed vectors produce the expected `Command` variant and artifact; malformed vectors produce
+`Error::Usage`.
+
+### Review
+
+Parsing is now pure, so the two branches that were unreachable from tests (missing action, unknown
+action) are covered without a child process. The `parse(&[&str])` helper only converts literals to
+owned strings; the argument vector stays visible in every test because it is the causal input. The
+item 3 tests moved to `Command::parse` unchanged in intent; `artifact_path` is now an internal
+detail with no direct tests, which is deliberate: its behavior is fully observable through `parse`.

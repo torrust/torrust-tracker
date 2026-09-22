@@ -29,7 +29,7 @@ impl Error {
 }
 
 fn main() -> ExitCode {
-    match run() {
+    match Command::parse(env::args().skip(1)).and_then(|command| command.execute()) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             let mut stderr = io::stderr().lock();
@@ -39,15 +39,31 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> Result<(), Error> {
-    let mut arguments = env::args().skip(1);
-    let action = arguments.next().ok_or(Error::Usage)?;
-    let artifact = artifact_path(&arguments.collect::<Vec<_>>())?;
+/// A parsed invocation: the action to perform and the artifact it applies to.
+#[derive(Debug, Eq, PartialEq)]
+enum Command {
+    Generate { artifact: PathBuf },
+    Check { artifact: PathBuf },
+}
 
-    match action.as_str() {
-        "generate" => write_schema(&artifact),
-        "check" => check_schema(&artifact),
-        _ => Err(Error::Usage),
+impl Command {
+    /// Parses the process arguments after the program name. Performs no I/O.
+    fn parse(mut arguments: impl Iterator<Item = String>) -> Result<Self, Error> {
+        let action = arguments.next().ok_or(Error::Usage)?;
+        let artifact = artifact_path(&arguments.collect::<Vec<_>>())?;
+
+        match action.as_str() {
+            "generate" => Ok(Self::Generate { artifact }),
+            "check" => Ok(Self::Check { artifact }),
+            _ => Err(Error::Usage),
+        }
+    }
+
+    fn execute(&self) -> Result<(), Error> {
+        match self {
+            Self::Generate { artifact } => write_schema(artifact),
+            Self::Check { artifact } => check_schema(artifact),
+        }
     }
 }
 
@@ -104,7 +120,11 @@ mod tests {
 
     use tempfile::TempDir;
 
-    use super::{Error, artifact_path, check_schema, schema_json, write_schema};
+    use super::{Command, Error, check_schema, schema_json, write_schema};
+
+    fn parse(arguments: &[&str]) -> Result<Command, Error> {
+        Command::parse(arguments.iter().map(ToString::to_string))
+    }
 
     #[test]
     fn it_should_exit_with_code_two_for_a_usage_error() {
@@ -158,24 +178,31 @@ mod tests {
     }
 
     #[test]
-    fn it_should_use_an_explicit_artifact_path_when_requested() {
-        // Arrange: a caller requests a disposable artifact path for a schema operation.
-        let arguments = vec![String::from("--artifact"), String::from(".tmp/frontmatter-v1.schema.json")];
+    fn it_should_parse_a_generate_action_with_an_explicit_artifact_path() {
+        // Arrange: a caller requests generation into a disposable artifact path.
+        let arguments = ["generate", "--artifact", ".tmp/frontmatter-v1.schema.json"];
 
-        // Act: resolve the artifact path from the command arguments.
-        let artifact = artifact_path(&arguments).unwrap();
+        // Act: parse the command.
+        let command = parse(&arguments).unwrap();
 
-        // Assert: the command uses the requested copy instead of the tracked artifact.
-        assert_eq!(artifact, PathBuf::from(".tmp/frontmatter-v1.schema.json"));
+        // Assert: the command targets the requested copy instead of the tracked artifact.
+        assert_eq!(
+            command,
+            Command::Generate {
+                artifact: PathBuf::from(".tmp/frontmatter-v1.schema.json")
+            }
+        );
     }
 
     #[test]
-    fn it_should_default_to_the_tracked_artifact_in_the_repository_checkout() {
-        // Arrange: the caller passes no artifact option.
-        let arguments: Vec<String> = vec![];
+    fn it_should_parse_a_check_action_defaulting_to_the_tracked_artifact_in_the_repository_checkout() {
+        // Arrange: the caller passes the action and no artifact option.
+        let arguments = ["check"];
 
-        // Act: resolve the artifact path from the command arguments.
-        let artifact = artifact_path(&arguments).unwrap();
+        // Act: parse the command.
+        let Command::Check { artifact } = parse(&arguments).unwrap() else {
+            panic!("expected a check command");
+        };
 
         // Assert: the default is the tracked artifact, which must exist so the crate location
         // walk cannot silently point at a directory outside the repository.
@@ -188,12 +215,36 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_a_missing_action() {
+        // Arrange: the caller passes no arguments at all.
+        let arguments: [&str; 0] = [];
+
+        // Act: parse the command.
+        let error = parse(&arguments).unwrap_err();
+
+        // Assert: the command reports its usage.
+        assert_eq!(error, Error::Usage);
+    }
+
+    #[test]
+    fn it_should_reject_an_unknown_action() {
+        // Arrange: the caller passes an action the command does not define.
+        let arguments = ["validate"];
+
+        // Act: parse the command.
+        let error = parse(&arguments).unwrap_err();
+
+        // Assert: the command reports its usage.
+        assert_eq!(error, Error::Usage);
+    }
+
+    #[test]
     fn it_should_reject_an_artifact_option_without_a_path() {
         // Arrange: the option is present but its value is missing.
-        let arguments = vec![String::from("--artifact")];
+        let arguments = ["check", "--artifact"];
 
-        // Act: resolve the artifact path from the command arguments.
-        let error = artifact_path(&arguments).unwrap_err();
+        // Act: parse the command.
+        let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
         assert_eq!(error, Error::Usage);
@@ -202,10 +253,10 @@ mod tests {
     #[test]
     fn it_should_reject_an_unknown_option() {
         // Arrange: the caller passes an option the command does not define.
-        let arguments = vec![String::from("--output"), String::from("schema.json")];
+        let arguments = ["check", "--output", "schema.json"];
 
-        // Act: resolve the artifact path from the command arguments.
-        let error = artifact_path(&arguments).unwrap_err();
+        // Act: parse the command.
+        let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
         assert_eq!(error, Error::Usage);
@@ -214,10 +265,10 @@ mod tests {
     #[test]
     fn it_should_reject_extra_arguments_after_the_artifact_path() {
         // Arrange: a trailing argument follows a complete artifact option.
-        let arguments = vec![String::from("--artifact"), String::from("a.json"), String::from("b.json")];
+        let arguments = ["check", "--artifact", "a.json", "b.json"];
 
-        // Act: resolve the artifact path from the command arguments.
-        let error = artifact_path(&arguments).unwrap_err();
+        // Act: parse the command.
+        let error = parse(&arguments).unwrap_err();
 
         // Assert: the command reports its usage.
         assert_eq!(error, Error::Usage);
