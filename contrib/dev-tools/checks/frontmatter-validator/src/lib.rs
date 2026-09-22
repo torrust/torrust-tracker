@@ -590,6 +590,19 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_a_backslash_strict_specification_path() {
+        // Arrange: a v1 issue uses a platform-specific separator in its specification path.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs\\issues\\open\\example\\ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict issue profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: repository paths use forward-slash separators.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
     fn it_should_reject_a_non_string_document_type_for_a_v1_record() {
         // Arrange: a v1 record supplies an integer instead of a document-type string.
         let markdown = "---\nschema-version: 1\ndoc-type: 2266\n---\n# Invalid record\n";
@@ -654,6 +667,33 @@ mod tests {
 
         // Assert: the diagnostic reserves typed forms for the approved v1 union.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+    }
+
+    #[test]
+    fn it_should_reject_a_backslash_related_artifact_path() {
+        // Arrange: a strict issue uses a platform-specific separator in a related artifact path.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  related-artifacts:\n    - docs\\AGENTS.md\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict issue profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: related artifact paths use forward-slash separators.
+        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+    }
+
+    #[test]
+    fn it_should_report_a_missing_envelope_instead_of_panicking() {
+        // Arrange: a strict issue's retained envelope has been lost after extraction.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n";
+        let mut frontmatter = extract(markdown).unwrap().unwrap();
+        frontmatter.semantic_links = None;
+
+        // Act: validate the inconsistent strict frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: validation reports the missing envelope instead of panicking.
+        assert_eq!(error.category, DiagnosticCategory::MissingRequiredField);
     }
 
     #[test]

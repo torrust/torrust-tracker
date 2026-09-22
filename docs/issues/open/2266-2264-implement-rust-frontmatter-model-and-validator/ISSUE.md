@@ -265,11 +265,6 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   generation/drift remains tracked in #2280; CLI, discovery, diagnostic rendering, pre-commit
   rollout, and manual/mutation evidence remain tracked in #2281 -
   `contrib/dev-tools/checks/frontmatter-validator/`
-- 2026-09-22 06:47 UTC - GitHub Copilot - Completed delivery review for the structural scope:
-  implementation, focused tests, full pre-commit gate, and independent review are complete. Opened
-  implementation PR #2287 targeting `develop`, which closes this issue when merged. The mandatory
-  split retains schema/drift acceptance in #2280 and command, diagnostics, integration, and
-  manual/mutation acceptance in #2281 - https://github.com/torrust/torrust-tracker/pull/2287
 - 2026-09-21 18:30 UTC - GitHub Copilot - Performed the mandatory first-vertical-slice boundary
   review. T6 schema generation/drift verification and T7-T8 command, pre-commit, and operational
   proof are independently reviewable and would materially broaden this structural-model PR. Keep
@@ -326,6 +321,19 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   Focused validation passed: `cargo test --package frontmatter-validator` (31 tests), nightly Rust
   `cargo +nightly fmt --all -- --check`, and `cargo clippy --package frontmatter-validator -- -D
   warnings` - `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-22 06:47 UTC - GitHub Copilot - Completed delivery review for the structural scope:
+  implementation, focused tests, full pre-commit gate, and independent review are complete. Opened
+  implementation PR #2287 targeting `develop`, which closes this issue when merged. The mandatory
+  split retains schema/drift acceptance in #2280 and command, diagnostics, integration, and
+  manual/mutation acceptance in #2281 - https://github.com/torrust/torrust-tracker/pull/2287
+- 2026-09-22 07:13 UTC - GitHub Copilot - Repaired PR #2287's failed container recipe stage by
+  adding the validator crate's manifest and source stub to cargo-chef's manifest-only staging list
+  and including its manifest in the Docker build context. Addressed Copilot review findings by
+  making strict envelope validation non-panicking, rejecting backslash-separated repository paths,
+  and clarifying the double-quoted timestamp diagnostic. Restored chronological progress-log order.
+  Focused validation passed: `cargo test --package frontmatter-validator` (39 tests) and `docker
+  build --target recipe --file Containerfile .` -
+  https://github.com/torrust/torrust-tracker/pull/2287
 
 ## Acceptance Criteria
 

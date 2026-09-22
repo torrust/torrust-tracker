@@ -274,7 +274,12 @@ fn validate_epic(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticL
 }
 
 fn validate_reference_syntax(semantic_links: Option<&SemanticLinks>) -> Result<(), Diagnostic> {
-    let semantic_links = semantic_links.expect("strict profiles require `semantic-links`");
+    let Some(semantic_links) = semantic_links else {
+        return Err(Diagnostic {
+            category: DiagnosticCategory::MissingRequiredField,
+            message: String::from("Strict profiles require a `semantic-links` mapping."),
+        });
+    };
     for skill_link in semantic_links.skill_links.as_deref().unwrap_or_default() {
         if !is_skill_name(skill_link) {
             return Err(invalid_reference_syntax(format!(
@@ -304,6 +309,7 @@ fn is_related_artifact(value: &str) -> bool {
 fn is_repository_relative_path(value: &str) -> bool {
     !value.is_empty()
         && !value.starts_with('/')
+        && !value.contains('\\')
         && !value.contains(':')
         && !value.contains('#')
         && !value.chars().any(char::is_whitespace)
@@ -397,7 +403,7 @@ fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic>
         || !has_double_quoted_timestamp(yaml)
     {
         return Err(invalid_field_value(String::from(
-            "`last-updated-utc` must use the YYYY-MM-DD HH:MM UTC-minute format.",
+            "`last-updated-utc` must be a double-quoted YAML string in YYYY-MM-DD HH:MM UTC-minute format.",
         )));
     }
 
