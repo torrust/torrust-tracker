@@ -137,7 +137,7 @@ patch or restore the deprecated API in a new compatible release if needed.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol for the tracker and both standalone binaries: signal each direct PID, capture bounded completion and exit status, and prove affected bindings are released.
 
 1. Link all start-gate evidence, including the external deprecation window and
    maintainer approval.

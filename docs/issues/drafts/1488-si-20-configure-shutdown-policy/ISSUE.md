@@ -168,7 +168,7 @@ changing their meaning.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol and record the configured deadline, direct-binary result, and required container or service-manager result.
 
 1. Run deterministic configuration and outcome-to-exit tests without OS signals.
 2. Verify default fixtures apply the approved 25s/20s/5s policy.

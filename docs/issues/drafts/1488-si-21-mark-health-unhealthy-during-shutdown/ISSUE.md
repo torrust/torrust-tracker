@@ -130,7 +130,7 @@ rather than silently restoring always-probe behavior.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol: signal the direct tracker binary PID, capture bounded completion and exit status, and prove readiness changes before affected bindings are released.
 
 1. Run deterministic handler/application tests that toggle readiness without
    delivering an OS signal. Prove not-ready returns 503 without probe fan-out.

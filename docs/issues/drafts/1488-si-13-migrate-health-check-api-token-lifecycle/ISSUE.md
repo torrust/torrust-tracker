@@ -133,7 +133,7 @@ unused; HTTP, REST, UDP, and standalone consumers are unaffected.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol: signal the direct tracker binary PID, capture bounded completion and exit status, and prove the health-check binding is released.
 
 1. Run focused health-check API component and bootstrap tests that cancel an
    injected token, recording their output.
