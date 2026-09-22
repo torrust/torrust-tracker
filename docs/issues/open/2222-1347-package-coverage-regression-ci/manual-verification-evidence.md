@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
-last-updated-utc: 2026-09-21 18:11
+last-updated-utc: 2026-09-22 06:10
 ---
 
 # Manual Verification Evidence
@@ -14,10 +14,24 @@ is actually executed.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): Pending implementation.
-- Artifact under test: Pending implementation.
-- Operating system / environment: Pending implementation.
-- Prerequisites and setup performed: Pending implementation.
+- Date and time (UTC): 2026-09-22 06:10.
+- Artifact under test: Local implementation of `package-coverage-regression` and
+  `.github/workflows/generate_coverage_pr.yaml`.
+- Operating system / environment: Linux local development workspace.
+- Prerequisites and setup performed: Nightly Rust formatter and the repository pre-commit gate.
+
+## Local Automated Evidence
+
+- `cargo clippy -p package-coverage-regression --all-targets --all-features -- -D warnings` passed.
+- `cargo test -p package-coverage-regression` passed with 15 tests covering report filtering,
+  tolerance comparison, base/head pairing, new/removed/moved/unchanged packages, and Git rename
+  and deletion status parsing.
+- `cargo run -p package-coverage-regression -- matrix "$PWD" "$PWD" HEAD~3 HEAD` selected only
+  `package-coverage-regression` and emitted an empty unavailable list.
+- `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` passed.
+
+Hosted GitHub Actions runtime, artifact transfer, matrix rendering, and fork execution are not
+represented by this local evidence. Their scenarios remain pending below.
 
 ## Verification Processes
 

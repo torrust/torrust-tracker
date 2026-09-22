@@ -8,7 +8,7 @@ github-issue: 2222
 spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
 branch: "2222-1347-package-coverage-regression-ci"
 related-pr: null
-last-updated-utc: 2026-09-21 18:11
+last-updated-utc: 2026-09-22 06:10
 semantic-links:
   skill-links:
     - create-issue
@@ -152,9 +152,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | --- | ------ | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Revalidate the approved strategy               | Recheck `cargo llvm-cov` JSON semantics, package layout, GitHub dynamic-matrix behavior, and fork security constraints. Prototype a controlled package base/head double build; record runtime, source-path scope, summary behavior, and failure behavior. |
 | T2  | IN_PROGRESS | Confirm implementation details             | Maintainer approved the report-only base-worktree double build, directly changed-package scope, dynamic matrix, and warning for a decrease greater than five percentage points. Complete after T1 confirms the design is viable on GitHub-hosted runners. |
-| T3  | TODO   | Implement package discovery and summary        | Use Cargo metadata plus `git diff --name-status --find-renames "$base_sha" "$head_sha"` to identify directly changed workspace packages and preserve rename pairing. Carry old/new package paths into the comparison decision. Produce matrix JSON and exact source-only per-package covered/instrumented-line summaries. Define root, new, removed, renamed, and workspace-config behavior. |
-| T4  | TODO   | Compare report-only base and head coverage     | Run matching package-scoped coverage commands in base and head checkouts. Add dynamic matrix comparison jobs and an always-present, readable non-blocking summary. Warn only when a comparable package falls by more than five percentage points. |
-| T5  | TODO   | Add focused automated coverage                 | Test discovery, matrix generation, report filtering, and ratio decisions: equal, increased, decreased within tolerance, decreased beyond tolerance, zero-total, new, removed, renamed, and unavailable baseline. |
+| T3  | DONE   | Implement package discovery and summary        | Cargo metadata plus `git diff --name-status --find-renames "$base_sha" "$head_sha"` identifies directly changed workspace packages and preserves base/head pairing. The command emits dynamic-matrix JSON, exact source-only per-package covered/instrumented-line summaries, and root/new/removed/renamed/workspace-config decisions. |
+| T4  | DONE   | Compare report-only base and head coverage     | Dynamic matrix jobs run matching package-scoped coverage commands in immutable base and head checkouts. The always-present summary is non-blocking and warns only when a comparable package falls by more than five percentage points. |
+| T5  | DONE   | Add focused automated coverage                 | Focused tests cover selection, base/head pairing, report filtering, ratio decisions, zero totals, new, removed, moved, unchanged, and unavailable outcomes. |
 | T6  | TODO   | Review first vertical slice                    | Verify runtime, cleanup, summary quality, fork safety, dynamic-matrix behavior, and whether the Rust command remains appropriately small. Record whether GitHub-hosted runner performance warrants a redesign. |
 | T7  | TODO   | Reconcile completion records                   | Before final verification, verify issue frontmatter, task/checkpoint/acceptance tables, evidence links, workflow names, and the EPIC #1347 registration agree. Search for stale `TODO`/`IN_PROGRESS` states and provisional wording. |
 | T8  | TODO   | Document rollout and verify                    | Update canonical documentation, run required checks, exercise manual pass/fail/exceptional scenarios, and review acceptance criteria. Do not enable a required regression gate without a separate maintainer approval.                                                                                                |
@@ -181,8 +181,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 - [x] Draft reviewed and approved by user/maintainer.
 - [x] GitHub subissue #2222 created under #1347.
 - [x] Draft moved to `docs/issues/open/` with assigned issue number.
-- [ ] Implementation completed.
-- [ ] Automatic verification completed.
+- [x] Local implementation completed; hosted workflow rollout verification remains pending.
+- [x] Local automatic verification completed; hosted workflow validation remains pending.
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
@@ -204,6 +204,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
   and remain non-blocking. Do not maintain a CI-generated or manually updated JSON baseline; the
   parent EPIC's package table and issue-local coverage evidence remain the durable record. Revisit
   performance if GitHub-hosted runners reveal a bottleneck.
+- 2026-09-22 06:10 UTC - GitHub Copilot - Implemented local package discovery, exact source-only
+  report comparison, and a non-blocking dynamic base/head coverage matrix in the unprivileged PR
+  workflow. Focused strict Clippy and 15 tests passed; `linter yaml`, `linter markdown`, and the
+  full pre-commit gate passed. Local discovery against repository history selected only
+  `package-coverage-regression`. Hosted runner timing, artifact behavior, and fork execution have
+  not yet been observed and remain rollout evidence rather than completed claims.
 
 ## Acceptance Criteria
 
@@ -264,14 +270,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   | —        |
-| AC2   | TODO                   | —        |
-| AC3   | TODO                   | —        |
-| AC4   | TODO                   | —        |
-| AC5   | TODO                   | —        |
-| AC6   | TODO                   | —        |
+| AC2   | TODO                   | Implemented locally; pending hosted workflow run. |
+| AC3   | DONE                   | Source filtering and matching base/head `cargo llvm-cov` commands are implemented; 15 focused tests and local linting passed. |
+| AC4   | DONE                   | Exact count comparison uses integer arithmetic; focused threshold and zero-total tests passed. |
+| AC5   | TODO                   | Summary renders exact counts, derived rates, delta, and unavailable outcomes; pending hosted workflow rendering evidence. |
+| AC6   | DONE                   | Focused tests cover new, removed, moved, and unavailable outcomes. |
 | AC7   | TODO                   | —        |
-| AC8   | TODO                   | —        |
-| AC9   | TODO                   | —        |
+| AC8   | DONE                   | Existing workspace-wide `coverage` job remains unchanged. |
+| AC9   | DONE                   | 15 focused Rust tests cover discovery, filtering, and ratio decisions. |
 | AC10  | TODO                   | —        |
 | AC11  | TODO                   | —        |
 

@@ -1,5 +1,6 @@
 //! Package ownership discovery for coverage-regression workflow matrices.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use serde::{Serialize, Serializer};
@@ -19,13 +20,44 @@ pub struct WorkspacePackage {
 pub struct MatrixPackage {
     /// Cargo package name.
     pub package: String,
+    /// Repository-relative package directory.
+    pub directory: PathBuf,
+}
+
+/// A comparable package with source directories from both revisions.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ComparisonPackage {
+    /// Cargo package name.
+    pub package: String,
+    /// Repository-relative package directory at the pull request base revision.
+    pub base_directory: PathBuf,
+    /// Repository-relative package directory at the pull request head revision.
+    pub head_directory: PathBuf,
 }
 
 /// GitHub Actions dynamic-matrix input.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct PackageMatrix {
     /// Comparable packages selected for parallel coverage jobs.
-    pub include: Vec<MatrixPackage>,
+    pub include: Vec<ComparisonPackage>,
+}
+
+/// A directly changed package that cannot be compared across revisions.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct UnavailablePackage {
+    /// Cargo package name.
+    pub package: String,
+    /// Reason no base/head comparison is available.
+    pub outcome: String,
+}
+
+/// Base/head package coverage work selected from a pull request diff.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct PackageDiscovery {
+    /// Packages that exist in both revisions and can be compared.
+    pub matrix: PackageMatrix,
+    /// Changed packages that exist in only one revision.
+    pub unavailable: Vec<UnavailablePackage>,
 }
 
 /// Exact source-line coverage counts for one package.
@@ -35,6 +67,17 @@ pub struct CoverageSummary {
     pub covered_lines: u64,
     /// Number of instrumented source lines.
     pub instrumented_lines: u64,
+}
+
+/// Exact base/head comparison result for one package.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct CoverageComparison {
+    /// Coverage summary measured at the pull request base revision.
+    pub base: CoverageSummary,
+    /// Coverage summary measured at the pull request head revision.
+    pub head: CoverageSummary,
+    /// Whether the head lost more than the configured percentage-point tolerance.
+    pub warning: bool,
 }
 
 impl Serialize for CoverageSummary {
@@ -64,12 +107,60 @@ pub fn directly_changed_packages(changed_paths: &[PathBuf], packages: &[Workspac
         .filter_map(|changed_path| owning_package(changed_path, packages))
         .map(|package| MatrixPackage {
             package: package.name.clone(),
+            directory: package.directory.clone(),
         })
         .collect::<Vec<_>>();
 
     changed_packages.sort_by(|left, right| left.package.cmp(&right.package));
     changed_packages.dedup_by(|left, right| left.package == right.package);
     changed_packages
+}
+
+/// Selects comparable and unavailable packages from base and head changed paths.
+#[must_use]
+pub fn discover_coverage_packages(
+    base_changed_paths: &[PathBuf],
+    base_packages: &[WorkspacePackage],
+    head_changed_paths: &[PathBuf],
+    head_packages: &[WorkspacePackage],
+) -> PackageDiscovery {
+    let base_package_directories = package_directories(base_packages);
+    let head_package_directories = package_directories(head_packages);
+    let changed_package_names = directly_changed_packages(base_changed_paths, base_packages)
+        .into_iter()
+        .chain(directly_changed_packages(head_changed_paths, head_packages))
+        .map(|package| package.package)
+        .collect::<BTreeSet<_>>();
+    let mut matrix = PackageMatrix { include: Vec::new() };
+    let mut unavailable = Vec::new();
+
+    for package in changed_package_names {
+        match (base_package_directories.get(&package), head_package_directories.get(&package)) {
+            (Some(base_directory), Some(head_directory)) => matrix.include.push(ComparisonPackage {
+                package,
+                base_directory: base_directory.clone(),
+                head_directory: head_directory.clone(),
+            }),
+            (None, Some(_)) => unavailable.push(UnavailablePackage {
+                package,
+                outcome: String::from("new package"),
+            }),
+            (Some(_), None) => unavailable.push(UnavailablePackage {
+                package,
+                outcome: String::from("removed package"),
+            }),
+            (None, None) => unreachable!("changed package must be present in at least one workspace revision"),
+        }
+    }
+
+    PackageDiscovery { matrix, unavailable }
+}
+
+fn package_directories(packages: &[WorkspacePackage]) -> BTreeMap<String, PathBuf> {
+    packages
+        .iter()
+        .map(|package| (package.name.clone(), package.directory.clone()))
+        .collect()
 }
 
 fn owning_package<'a>(changed_path: &Path, packages: &'a [WorkspacePackage]) -> Option<&'a WorkspacePackage> {
@@ -120,6 +211,32 @@ pub fn summarize_source_coverage(report: &Value, source_directory: &Path) -> Res
     Ok(summary)
 }
 
+/// Compares exact coverage counts with a percentage-point warning tolerance.
+///
+/// # Errors
+///
+/// Returns an error when either summary has no instrumented source lines.
+pub fn compare_coverage(
+    base: CoverageSummary,
+    head: CoverageSummary,
+    tolerance_percentage_points: u64,
+) -> Result<CoverageComparison, String> {
+    if base.instrumented_lines == 0 || head.instrumented_lines == 0 {
+        return Err(String::from("cannot compare coverage without instrumented source lines"));
+    }
+
+    let base_scaled = u128::from(base.covered_lines) * u128::from(head.instrumented_lines) * 100;
+    let head_scaled = u128::from(head.covered_lines) * u128::from(base.instrumented_lines) * 100;
+    let tolerance =
+        u128::from(tolerance_percentage_points) * u128::from(base.instrumented_lines) * u128::from(head.instrumented_lines);
+
+    Ok(CoverageComparison {
+        base,
+        head,
+        warning: base_scaled > head_scaled + tolerance,
+    })
+}
+
 fn parse_hit_count(coverage: &Value) -> Result<u64, String> {
     let coverage = coverage
         .as_str()
@@ -164,7 +281,8 @@ mod tests {
         assert_eq!(
             changed_packages,
             vec![MatrixPackage {
-                package: String::from("tracker-core")
+                package: String::from("tracker-core"),
+                directory: PathBuf::from("packages/tracker-core")
             }]
         );
     }
@@ -195,7 +313,8 @@ mod tests {
         assert_eq!(
             changed_packages,
             vec![MatrixPackage {
-                package: String::from("tracker-core")
+                package: String::from("tracker-core"),
+                directory: PathBuf::from("packages/tracker-core")
             }]
         );
     }
@@ -213,9 +332,92 @@ mod tests {
         assert_eq!(
             changed_packages,
             vec![MatrixPackage {
-                package: String::from("torrust-tracker")
+                package: String::from("torrust-tracker"),
+                directory: PathBuf::from(".")
             }]
         );
+    }
+
+    #[test]
+    fn it_should_compare_a_moved_package_using_its_base_and_head_directories() {
+        // Arrange
+        let base_paths = vec![PathBuf::from("packages/old-core/src/lib.rs")];
+        let head_paths = vec![PathBuf::from("packages/new-core/src/lib.rs")];
+        let base_packages = vec![WorkspacePackage {
+            name: String::from("tracker-core"),
+            directory: PathBuf::from("packages/old-core"),
+        }];
+        let head_packages = vec![WorkspacePackage {
+            name: String::from("tracker-core"),
+            directory: PathBuf::from("packages/new-core"),
+        }];
+
+        // Act
+        let discovery = discover_coverage_packages(&base_paths, &base_packages, &head_paths, &head_packages);
+
+        // Assert
+        assert_eq!(
+            discovery.matrix.include,
+            vec![ComparisonPackage {
+                package: String::from("tracker-core"),
+                base_directory: PathBuf::from("packages/old-core"),
+                head_directory: PathBuf::from("packages/new-core"),
+            }]
+        );
+        assert!(discovery.unavailable.is_empty());
+    }
+
+    #[test]
+    fn it_should_report_a_new_package_as_unavailable() {
+        // Arrange
+        let head_paths = vec![PathBuf::from("packages/new-core/src/lib.rs")];
+        let head_packages = vec![package("new-core")];
+
+        // Act
+        let discovery = discover_coverage_packages(&[], &[], &head_paths, &head_packages);
+
+        // Assert
+        assert!(discovery.matrix.include.is_empty());
+        assert_eq!(
+            discovery.unavailable,
+            vec![UnavailablePackage {
+                package: String::from("new-core"),
+                outcome: String::from("new package"),
+            }]
+        );
+    }
+
+    #[test]
+    fn it_should_report_a_removed_package_as_unavailable() {
+        // Arrange
+        let base_paths = vec![PathBuf::from("packages/old-core/src/lib.rs")];
+        let base_packages = vec![package("old-core")];
+
+        // Act
+        let discovery = discover_coverage_packages(&base_paths, &base_packages, &[], &[]);
+
+        // Assert
+        assert!(discovery.matrix.include.is_empty());
+        assert_eq!(
+            discovery.unavailable,
+            vec![UnavailablePackage {
+                package: String::from("old-core"),
+                outcome: String::from("removed package"),
+            }]
+        );
+    }
+
+    #[test]
+    fn it_should_exclude_unchanged_packages() {
+        // Arrange
+        let packages = vec![package("tracker-core")];
+
+        // Act
+        let discovery = discover_coverage_packages(&[], &packages, &[], &packages);
+
+        // Assert
+        assert!(discovery.matrix.include.is_empty());
+        assert!(discovery.unavailable.is_empty());
     }
 
     #[test]
@@ -254,5 +456,62 @@ mod tests {
 
         // Assert
         assert_eq!(error, "expected Codecov line coverage value `invalid` to contain `/`");
+    }
+
+    #[test]
+    fn it_should_warn_when_coverage_decreases_by_more_than_five_percentage_points() {
+        // Arrange
+        let base = CoverageSummary {
+            covered_lines: 95,
+            instrumented_lines: 100,
+        };
+        let head = CoverageSummary {
+            covered_lines: 89,
+            instrumented_lines: 100,
+        };
+
+        // Act
+        let comparison = compare_coverage(base, head, 5).unwrap();
+
+        // Assert
+        assert!(comparison.warning);
+    }
+
+    #[test]
+    fn it_should_not_warn_for_a_five_percentage_point_decrease() {
+        // Arrange
+        let base = CoverageSummary {
+            covered_lines: 95,
+            instrumented_lines: 100,
+        };
+        let head = CoverageSummary {
+            covered_lines: 90,
+            instrumented_lines: 100,
+        };
+
+        // Act
+        let comparison = compare_coverage(base, head, 5).unwrap();
+
+        // Assert
+        assert!(!comparison.warning);
+    }
+
+    #[test]
+    fn it_should_reject_a_comparison_without_instrumented_lines() {
+        // Arrange
+        let base = CoverageSummary {
+            covered_lines: 0,
+            instrumented_lines: 0,
+        };
+        let head = CoverageSummary {
+            covered_lines: 1,
+            instrumented_lines: 1,
+        };
+
+        // Act
+        let error = compare_coverage(base, head, 5).unwrap_err();
+
+        // Assert
+        assert_eq!(error, "cannot compare coverage without instrumented source lines");
     }
 }
