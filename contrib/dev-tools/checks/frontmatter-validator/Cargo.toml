@@ -1,0 +1,16 @@
+[package]
+description = "Validation primitives for Markdown frontmatter."
+name = "frontmatter-validator"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { version = "1", features = [ "derive" ] }
+serde_yaml = "0.9.34"

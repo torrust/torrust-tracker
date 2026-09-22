@@ -437,6 +437,7 @@ sarif
 savepath
 scanf
 sccache
+schemars
 sendto
 serde
 serialisation

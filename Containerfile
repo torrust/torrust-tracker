@@ -89,6 +89,7 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 COPY contrib/dev-tools/analysis/workspace-coupling/Cargo.toml contrib/dev-tools/analysis/workspace-coupling/
 COPY contrib/dev-tools/checks/agent-review-report-contract/Cargo.toml contrib/dev-tools/checks/agent-review-report-contract/
 COPY contrib/dev-tools/checks/clippy-allow-reasons/Cargo.toml contrib/dev-tools/checks/clippy-allow-reasons/
+COPY contrib/dev-tools/checks/frontmatter-validator/Cargo.toml contrib/dev-tools/checks/frontmatter-validator/
 COPY packages/e2e-tools/Cargo.toml packages/e2e-tools/
 COPY packages/persistence-benchmark/Cargo.toml packages/persistence-benchmark/
 COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check-api-server/
@@ -136,6 +137,7 @@ RUN mkdir -p \
       contrib/dev-tools/analysis/workspace-coupling/src \
       contrib/dev-tools/checks/agent-review-report-contract/src \
       contrib/dev-tools/checks/clippy-allow-reasons/src \
+      contrib/dev-tools/checks/frontmatter-validator/src \
       console/tracker-client/src/bin \
       packages/axum-health-check-api-server/src \
       packages/axum-http-server/src \
@@ -175,6 +177,7 @@ RUN mkdir -p \
       contrib/dev-tools/checks/agent-review-report-contract/src/main.rs \
       contrib/dev-tools/checks/clippy-allow-reasons/src/lib.rs \
       contrib/dev-tools/checks/clippy-allow-reasons/src/main.rs \
+      contrib/dev-tools/checks/frontmatter-validator/src/lib.rs \
       console/tracker-client/src/lib.rs \
       console/tracker-client/src/bin/http_tracker_client.rs \
       console/tracker-client/src/bin/tracker_checker.rs \
