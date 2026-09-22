@@ -285,6 +285,7 @@ Implementation workflow references:
 - Dependency updates: `.github/skills/dev/maintenance/update-dependencies/SKILL.md`
 - Adding a new Rust dependency: `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md`
 - Unit testing conventions: `.github/skills/dev/testing/write-unit-test/SKILL.md`
+- CI workflow implementation: `.github/skills/dev/ci/implement-workflow/SKILL.md`
 
 ## 🔧 Essential Rules
 

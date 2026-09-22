@@ -176,7 +176,7 @@ the hosted run separately when its evidence is available.
 
 ---
 
-### 4. [ ] Establish reusable CI workflow implementation guidance [High impact / Medium effort]
+### 4. [x] Establish reusable CI workflow implementation guidance [High impact / Medium effort]
 
 **Problem**: the current shell-versus-Rust policy in `AGENTS.md` says when Rust
 is preferred, but it does not make the CI portability, testability, and
