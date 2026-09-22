@@ -423,6 +423,7 @@ fn start_token_aware_runtime(
     let server = launcher.server_future(socket, handle.clone(), http_tracker_container, &service_binding)?;
 
     tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{binding}");
+    tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{binding}");
     let task = tokio::spawn(async move {
         server.await;
         launcher
