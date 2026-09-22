@@ -9,7 +9,7 @@ github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-22 16:44"
+last-updated-utc: "2026-09-22 17:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,6 +152,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - 2026-09-22 16:44 UTC - GitHub Copilot - Completed focused offline tests and schema check,
   `linter all`, and the eight-step pre-commit gate; the independent follow-up review passed with no
   remaining #2280 blockers - `agent-review-reports.md`
+- 2026-09-22 17:42 UTC - GitHub Copilot - Maintainer requested and approved a post-implementation
+  refactor plan for the schema command; implemented all nine items in order as separate signed
+  commits (TempDir-owned tests, full unit coverage, exit code `2` for usage errors per the CLI
+  output ADR, pure `Command::parse`, library-owned artifact encoding, `SchemaArtifact` with typed
+  errors, documented regeneration hint). Binary tests grew from 3 to 16; the tracked artifact bytes
+  are unchanged - `refactor-plan.md`, `test-design-review.md`
 
 ## Acceptance Criteria
 
