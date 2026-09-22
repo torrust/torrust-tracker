@@ -86,7 +86,7 @@ mod tests {
 
     use tempfile::TempDir;
 
-    use super::{artifact_path, check_schema, schema_json, write_schema};
+    use super::{artifact_path, check_schema, schema_json, usage, write_schema};
 
     #[test]
     fn it_should_write_the_canonical_schema_bytes_creating_missing_parent_directories() {
@@ -125,6 +125,60 @@ mod tests {
 
         // Assert: the command uses the requested copy instead of the tracked artifact.
         assert_eq!(artifact, PathBuf::from(".tmp/frontmatter-v1.schema.json"));
+    }
+
+    #[test]
+    fn it_should_default_to_the_tracked_artifact_in_the_repository_checkout() {
+        // Arrange: the caller passes no artifact option.
+        let arguments: Vec<String> = vec![];
+
+        // Act: resolve the artifact path from the command arguments.
+        let artifact = artifact_path(&arguments).unwrap();
+
+        // Assert: the default is the tracked artifact, which must exist so the crate location
+        // walk cannot silently point at a directory outside the repository.
+        assert!(
+            artifact.ends_with("docs/schemas/frontmatter-v1.schema.json"),
+            "{}",
+            artifact.display()
+        );
+        assert!(artifact.is_file(), "{} does not exist", artifact.display());
+    }
+
+    #[test]
+    fn it_should_reject_an_artifact_option_without_a_path() {
+        // Arrange: the option is present but its value is missing.
+        let arguments = vec![String::from("--artifact")];
+
+        // Act: resolve the artifact path from the command arguments.
+        let error = artifact_path(&arguments).unwrap_err();
+
+        // Assert: the command reports its usage.
+        assert_eq!(error, usage());
+    }
+
+    #[test]
+    fn it_should_reject_an_unknown_option() {
+        // Arrange: the caller passes an option the command does not define.
+        let arguments = vec![String::from("--output"), String::from("schema.json")];
+
+        // Act: resolve the artifact path from the command arguments.
+        let error = artifact_path(&arguments).unwrap_err();
+
+        // Assert: the command reports its usage.
+        assert_eq!(error, usage());
+    }
+
+    #[test]
+    fn it_should_reject_extra_arguments_after_the_artifact_path() {
+        // Arrange: a trailing argument follows a complete artifact option.
+        let arguments = vec![String::from("--artifact"), String::from("a.json"), String::from("b.json")];
+
+        // Act: resolve the artifact path from the command arguments.
+        let error = artifact_path(&arguments).unwrap_err();
+
+        // Assert: the command reports its usage.
+        assert_eq!(error, usage());
     }
 
     #[test]

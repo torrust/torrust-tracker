@@ -93,7 +93,7 @@ production Act uses so an unrelated formatting change cannot make the test fail 
 
 ---
 
-### 3. [ ] Cover argument parsing edge cases and guard the default artifact location [HIGH impact / LOW effort]
+### 3. [x] Cover argument parsing edge cases and guard the default artifact location [HIGH impact / LOW effort]
 
 **Problem**: `artifact_path` is already pure but only its happy path is tested. The default
 resolution walks `CARGO_MANIFEST_DIR.ancestors().nth(4)`; if the crate is moved, `generate` would
@@ -259,7 +259,7 @@ per form.
 | ----- | ------ | ----------------------------------------------------------------- | ------ | ------- |
 | 1     | [x]    | Replace the PID-based temporary path with `tempfile::TempDir`     | High   | Trivial |
 | 2     | [x]    | Cover successful generation and clean check                       | High   | Low     |
-| 3     | [ ]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
+| 3     | [x]    | Cover argument parsing edge cases and guard the default location  | High   | Low     |
 | 4     | [ ]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
 | 5     | [ ]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
 | 6     | [ ]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |

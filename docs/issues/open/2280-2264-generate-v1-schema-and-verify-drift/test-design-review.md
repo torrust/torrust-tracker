@@ -86,3 +86,27 @@ unrelated formatting change cannot fail the test with stale literal data; byte-l
 the encoding itself is pinned separately by the determinism test. The clean-check Arrange calls
 `write_schema` because "produced by the generator" is the causal state; a hand-written copy would
 re-encode the expectation.
+
+## Refactor Plan Item 3 - Argument Parsing and Default Location
+
+### Arrange
+
+One argument vector per test: none; `--artifact` without a value; an unknown option with a value; a
+complete `--artifact` pair followed by an extra argument.
+
+### Act
+
+Resolve the artifact path from the arguments.
+
+### Assert
+
+No arguments: the path ends with the tracked artifact location and that file exists in the
+checkout. Each malformed vector: the error equals the usage text.
+
+### Review
+
+The existence assertion is the guard for the crate-depth walk in `repository_root`; without it a
+relocated crate would make `generate` create a stray `docs/schemas/` elsewhere and every other test
+would still pass. Comparing against `usage()` rather than a literal keeps the tests
+structure-insensitive to wording while still proving each malformed form is rejected the same way.
+Dispatch of an unknown action remains untested until item 6 makes `run` accept explicit arguments.
