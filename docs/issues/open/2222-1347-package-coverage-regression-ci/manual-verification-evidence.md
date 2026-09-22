@@ -15,8 +15,8 @@ is actually executed.
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-09-22 06:10.
-- Artifact under test: Local implementation of `package-coverage-regression` and
-  `.github/workflows/generate_coverage_pr.yaml`.
+- Artifact under test: Local implementation then named `package-coverage-regression` (renamed
+  later to `package-coverage-check`) and `.github/workflows/generate_coverage_pr.yaml`.
 - Operating system / environment: Linux local development workspace.
 - Prerequisites and setup performed: Nightly Rust formatter and the repository pre-commit gate.
 
@@ -29,6 +29,9 @@ is actually executed.
 - `cargo run -p package-coverage-regression -- matrix "$PWD" "$PWD" HEAD~3 HEAD` selected only
   `package-coverage-regression` and emitted an empty unavailable list.
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` passed.
+
+The commands and package name above are historical evidence captured before the rename. Reproduce
+them by checking out the recorded commits; use `package-coverage-check` for current commands.
 
 Hosted GitHub Actions runtime, artifact transfer, matrix rendering, and fork execution are not
 represented by this local evidence. Their scenarios remain pending below.

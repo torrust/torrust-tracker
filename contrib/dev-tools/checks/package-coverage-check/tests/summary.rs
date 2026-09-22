@@ -1,7 +1,7 @@
-use std::time::SystemTime;
-use std::{env, fs, process};
+use std::fs;
 
 use package_coverage_check::{CoverageComparison, CoverageSummary, PackageCoverageResult, read_comparison_artifacts};
+use tempfile::tempdir;
 
 fn comparison_result(package: &str) -> PackageCoverageResult {
     PackageCoverageResult {
@@ -23,10 +23,9 @@ fn comparison_result(package: &str) -> PackageCoverageResult {
 #[test]
 fn it_should_load_valid_and_invalid_comparison_artifacts_without_reading_unrelated_files() {
     // Arrange
-    let nonce = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
-    let directory = env::temp_dir().join(format!("package-coverage-check-{}-{nonce}", process::id()));
+    let temporary_directory = tempdir().unwrap();
+    let directory = temporary_directory.path();
     let missing_directory = directory.join("missing");
-    fs::create_dir(&directory).unwrap();
     fs::write(
         directory.join("package-coverage-tracker-core.json"),
         serde_json::to_string(&comparison_result("tracker-core")).unwrap(),
@@ -37,7 +36,7 @@ fn it_should_load_valid_and_invalid_comparison_artifacts_without_reading_unrelat
 
     // Act
     let missing = read_comparison_artifacts(&missing_directory).unwrap();
-    let artifacts = read_comparison_artifacts(&directory).unwrap();
+    let artifacts = read_comparison_artifacts(directory).unwrap();
 
     // Assert
     assert!(missing.is_empty());
@@ -46,6 +45,4 @@ fn it_should_load_valid_and_invalid_comparison_artifacts_without_reading_unrelat
     assert!(artifacts[0].result.is_err());
     assert_eq!(artifacts[1].source, "package-coverage-tracker-core.json");
     assert_eq!(artifacts[1].result.as_ref().unwrap().package, "tracker-core");
-
-    fs::remove_dir_all(directory).unwrap();
 }
