@@ -181,3 +181,28 @@ action) are covered without a child process. The `parse(&[&str])` helper only co
 owned strings; the argument vector stays visible in every test because it is the causal input. The
 item 3 tests moved to `Command::parse` unchanged in intent; `artifact_path` is now an internal
 detail with no direct tests, which is deliberate: its behavior is fully observable through `parse`.
+
+## Refactor Plan Item 7 - Canonical Encoding in the Library
+
+### Arrange
+
+The canonical strict profile model is unchanged between encodings.
+
+### Act
+
+Encode the artifact bytes twice with `v1_schema_json()`.
+
+### Assert
+
+Both encodings are identical; the bytes parse back to the same JSON value as `v1_schema()`; the
+string ends with exactly one newline.
+
+### Review
+
+The determinism test moved from the binary to the library because the encoding is now a library
+contract that the binary merely writes and compares. The parse-back assertion is new: it ties the
+bytes to the schema value so a future encoder change cannot produce stable but wrong output. The
+not-double-newline check pins "exactly one" rather than "at least one". The binary's tests now
+import `v1_schema_json` from the library for their expected bytes, keeping a single definition of
+the artifact encoding. `frontmatter-schema check` still passes against the tracked artifact,
+proving the move did not alter the bytes.

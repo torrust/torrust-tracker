@@ -6,7 +6,7 @@ use serde_yaml::{Mapping, Value};
 
 pub mod profile;
 
-pub use profile::v1_schema;
+pub use profile::{v1_schema, v1_schema_json};
 
 /// A parsed Markdown frontmatter block.
 #[derive(Debug, Eq, PartialEq)]
@@ -186,7 +186,26 @@ mod tests {
     use serde_json::Value as JsonValue;
 
     use super::profile::Profile;
-    use super::{DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership, v1_schema};
+    use super::{
+        DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership, v1_schema, v1_schema_json,
+    };
+
+    #[test]
+    fn it_should_encode_the_schema_artifact_as_deterministic_newline_terminated_json() {
+        // Arrange: the canonical strict profile model is unchanged between encodings.
+
+        // Act: encode the artifact bytes twice.
+        let first = v1_schema_json();
+        let second = v1_schema_json();
+
+        // Assert: both encodings are identical, parse as the same schema, and end with one newline.
+        assert_eq!(first, second);
+        assert_eq!(
+            serde_json::from_str::<JsonValue>(&first).unwrap(),
+            serde_json::to_value(v1_schema()).unwrap()
+        );
+        assert!(first.ends_with('\n') && !first.ends_with("\n\n"));
+    }
 
     #[test]
     fn it_should_generate_a_draft_2020_12_schema_for_the_strict_v1_profiles() {

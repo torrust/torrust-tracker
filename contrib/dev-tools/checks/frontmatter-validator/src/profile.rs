@@ -34,6 +34,18 @@ pub fn v1_schema() -> schemars::Schema {
     schemars::schema_for!(FrontmatterV1)
 }
 
+/// The exact bytes of the tracked `docs/schemas/frontmatter-v1.schema.json` artifact:
+/// pretty-printed JSON with a single trailing newline.
+///
+/// # Panics
+///
+/// Panics if the schema cannot be serialized, which cannot happen: a `Schema` is plain JSON data.
+#[must_use]
+pub fn v1_schema_json() -> String {
+    let schema = serde_json::to_string_pretty(&v1_schema()).expect("schemars::Schema serializes as JSON");
+    format!("{schema}\n")
+}
+
 /// The canonical strict issue frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]

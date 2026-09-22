@@ -186,7 +186,7 @@ Do not add a CLI framework; the surface is two actions and one optional flag.
 
 ---
 
-### 7. [ ] Move the canonical artifact encoding into the library [MEDIUM impact / LOW effort]
+### 7. [x] Move the canonical artifact encoding into the library [MEDIUM impact / LOW effort]
 
 **Problem**: `schema_json()` (pretty JSON plus trailing newline) is the definition of "the tracked
 artifact bytes", yet it lives in the binary. The library test for `v1_schema()` can only inspect a
@@ -263,7 +263,7 @@ per form.
 | 4     | [x]    | Cover filesystem failure paths with a real temporary directory    | Medium | Low     |
 | 5     | [x]    | Distinguish usage errors (exit 2) from runtime failures (exit 1)  | High   | Low     |
 | 6     | [x]    | Split `run` into pure `Command::parse` and `Command::execute`     | Medium | Medium  |
-| 7     | [ ]    | Move the canonical artifact encoding into the library             | Medium | Low     |
+| 7     | [x]    | Move the canonical artifact encoding into the library             | Medium | Low     |
 | 8     | [ ]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [ ]    | Make the drift hint match the documented command                  | Low    | Trivial |
 

@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{env, fs};
 
-use frontmatter_validator::v1_schema;
+use frontmatter_validator::v1_schema_json;
 
 const ARTIFACT_PATH: &str = "docs/schemas/frontmatter-v1.schema.json";
 
@@ -83,25 +83,19 @@ fn repository_root() -> Result<PathBuf, Error> {
         .ok_or_else(|| Error::Runtime(String::from("could not determine repository root")))
 }
 
-fn schema_json() -> Result<String, Error> {
-    serde_json::to_string_pretty(&v1_schema())
-        .map(|schema| format!("{schema}\n"))
-        .map_err(|error| Error::Runtime(format!("could not serialize schema: {error}")))
-}
-
 fn write_schema(artifact: &Path) -> Result<(), Error> {
     let parent = artifact
         .parent()
         .ok_or_else(|| Error::Runtime(format!("schema artifact has no parent directory: {}", artifact.display())))?;
     fs::create_dir_all(parent).map_err(|error| Error::Runtime(format!("could not create {}: {error}", parent.display())))?;
-    fs::write(artifact, schema_json()?)
+    fs::write(artifact, v1_schema_json())
         .map_err(|error| Error::Runtime(format!("could not write {}: {error}", artifact.display())))
 }
 
 fn check_schema(artifact: &Path) -> Result<(), Error> {
     let actual = fs::read_to_string(artifact)
         .map_err(|error| Error::Runtime(format!("could not read {}: {error}", artifact.display())))?;
-    if actual == schema_json()? {
+    if actual == v1_schema_json() {
         return Ok(());
     }
 
@@ -118,9 +112,10 @@ mod tests {
     use std::path::PathBuf;
     use std::process::ExitCode;
 
+    use frontmatter_validator::v1_schema_json;
     use tempfile::TempDir;
 
-    use super::{Command, Error, check_schema, schema_json, write_schema};
+    use super::{Command, Error, check_schema, write_schema};
 
     fn parse(arguments: &[&str]) -> Result<Command, Error> {
         Command::parse(arguments.iter().map(ToString::to_string))
@@ -160,7 +155,7 @@ mod tests {
         write_schema(&artifact).unwrap();
 
         // Assert: the file holds exactly the canonical schema bytes.
-        assert_eq!(fs::read_to_string(&artifact).unwrap(), schema_json().unwrap());
+        assert_eq!(fs::read_to_string(&artifact).unwrap(), v1_schema_json());
     }
 
     #[test]
@@ -318,18 +313,5 @@ mod tests {
         assert!(error.contains("differs from the deterministic v1 schema output"));
         assert!(error.contains("--offline"));
         assert!(error.contains("--artifact"));
-    }
-
-    #[test]
-    fn it_should_generate_deterministic_schema_json() {
-        // Arrange: the canonical strict profile model is unchanged between generations.
-
-        // Act: serialize its JSON Schema projection twice.
-        let first = schema_json().unwrap();
-        let second = schema_json().unwrap();
-
-        // Assert: both serializations produce identical newline-terminated artifact bytes.
-        assert_eq!(first, second);
-        assert!(first.ends_with('\n'));
     }
 }
