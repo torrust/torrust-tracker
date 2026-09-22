@@ -324,6 +324,6 @@ mod tests {
 
         // Assert
         assert_eq!(paths.base, vec![PathBuf::from("packages/tracker-core/src/obsolete.rs")]);
-        assert!(paths.head.is_empty());
+        assert_eq!(paths.head, Vec::<PathBuf>::new());
     }
 }
