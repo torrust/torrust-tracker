@@ -273,7 +273,7 @@ path. Add behavior tests using paths with whitespace and shell special character
 
 ---
 
-### 11. [ ] Replace the tracked artifact atomically [HIGH impact / MEDIUM effort]
+### 11. [x] Replace the tracked artifact atomically [HIGH impact / MEDIUM effort]
 
 **Problem**: `SchemaArtifact::write` calls `fs::write` directly on the destination. It truncates
 the existing generated artifact before the full replacement bytes are durable. An interrupted
@@ -290,6 +290,12 @@ the symlink policy first: direct write follows a symlink, while rename normally 
 Preserve the selected policy deliberately. Test successful replacement preserves exact canonical
 bytes and leaves no temporary artifact. Record any platform limitation that prevents a fully
 atomic overwrite.
+
+**Decision**: Stage the artifact with `tempfile::NamedTempFile` in the destination directory,
+call `sync_all` on the staged file, and replace with `persist`. The operation atomically replaces
+the destination on supported same-filesystem platforms and intentionally replaces a destination
+symlink rather than following it. `tempfile` does not synchronize the containing directory, so the
+command does not promise crash-durable directory metadata on every platform.
 
 ---
 
@@ -343,7 +349,7 @@ deliberately. Do not add a generic framework or change the ADR-owned NDJSON roll
 | 8     | [x]    | Encapsulate artifact I/O in `SchemaArtifact` with a typed error   | Medium | Medium  |
 | 9     | [x]    | Make the drift hint match the documented command                  | Low    | Trivial |
 | 10    | [x]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
-| 11    | [ ]    | Replace the tracked artifact atomically                            | High   | Medium  |
+| 11    | [x]    | Replace the tracked artifact atomically                            | High   | Medium  |
 | 12    | [ ]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
 | 13    | [ ]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |
 

@@ -289,3 +289,31 @@ change again in item 12. The command-substitution characters are inert because t
 filesystem path directly; no shell parses the value. Red-first verification against the prior
 implementation failed because it appended the path immediately after `--artifact`; structured
 guidance returned the focused test to green.
+
+## Refactor Plan Item 11 - Atomic Artifact Replacement
+
+### Arrange
+
+One disposable artifact contains stale bytes. On Unix, a second scenario supplies an artifact path
+that is a symbolic link to a separate sentinel file containing those same stale bytes.
+
+### Act
+
+Generate the artifact through `SchemaArtifact::write`.
+
+### Assert
+
+The ordinary artifact contains the canonical bytes and its directory contains only the completed
+artifact, proving no temporary filename remains. The Unix symbolic-link scenario replaces the link
+with a regular canonical artifact while preserving the linked sentinel bytes.
+
+### Review
+
+The stale-file scenario is necessary but does not distinguish direct truncating writes from atomic
+replacement. The Unix symbolic-link test supplies that causal difference: the old direct write
+follows the link and changes the sentinel, whereas same-directory persist replaces the link. This
+is an intentional safety policy, not an incidental implementation detail. It is Unix-only because
+portable symbolic-link creation has platform-specific privilege and support constraints. The
+temporary-file mechanics remain entirely behind `write`; tests observe filesystem effects only.
+Red-first verification against direct `fs::write` failed because the artifact remained a symbolic
+link; same-directory `NamedTempFile::persist` returned the test to green.

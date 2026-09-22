@@ -6,6 +6,7 @@ use std::process::ExitCode;
 use std::{env, fmt, fs};
 
 use frontmatter_validator::v1_schema_json;
+use tempfile::NamedTempFile;
 
 const ARTIFACT_PATH: &str = "docs/schemas/frontmatter-v1.schema.json";
 
@@ -20,8 +21,14 @@ enum Error {
     NoParentDirectory { artifact: PathBuf },
     #[error("could not create {}: {source}", directory.display())]
     CreateDirectory { directory: PathBuf, source: io::Error },
-    #[error("could not write {}: {source}", artifact.display())]
-    Write { artifact: PathBuf, source: io::Error },
+    #[error("could not create a staging file in {}: {source}", directory.display())]
+    CreateStagingFile { directory: PathBuf, source: io::Error },
+    #[error("could not write the staging file for {}: {source}", artifact.display())]
+    WriteStagingFile { artifact: PathBuf, source: io::Error },
+    #[error("could not synchronize the staging file for {}: {source}", artifact.display())]
+    SynchronizeStagingFile { artifact: PathBuf, source: io::Error },
+    #[error("could not atomically replace {}: {source}", artifact.display())]
+    ReplaceArtifact { artifact: PathBuf, source: io::Error },
     #[error("could not read {}: {source}", artifact.display())]
     Read { artifact: PathBuf, source: io::Error },
     #[error("{} differs from the deterministic v1 schema output; {regeneration}", artifact.display())]
@@ -147,7 +154,7 @@ impl SchemaArtifact {
         }
     }
 
-    /// Writes the canonical bytes, creating missing parent directories.
+    /// Atomically replaces the artifact with canonical bytes, creating missing parent directories.
     fn write(&self) -> Result<(), Error> {
         let directory = self.path.parent().ok_or_else(|| Error::NoParentDirectory {
             artifact: self.path.clone(),
@@ -156,10 +163,30 @@ impl SchemaArtifact {
             directory: directory.to_path_buf(),
             source,
         })?;
-        fs::write(&self.path, v1_schema_json()).map_err(|source| Error::Write {
-            artifact: self.path.clone(),
+
+        let mut staging_file = NamedTempFile::new_in(directory).map_err(|source| Error::CreateStagingFile {
+            directory: directory.to_path_buf(),
             source,
-        })
+        })?;
+        staging_file
+            .write_all(v1_schema_json().as_bytes())
+            .map_err(|source| Error::WriteStagingFile {
+                artifact: self.path.clone(),
+                source,
+            })?;
+        staging_file
+            .as_file_mut()
+            .sync_all()
+            .map_err(|source| Error::SynchronizeStagingFile {
+                artifact: self.path.clone(),
+                source,
+            })?;
+        staging_file.persist(&self.path).map_err(|error| Error::ReplaceArtifact {
+            artifact: self.path.clone(),
+            source: error.error,
+        })?;
+
+        Ok(())
     }
 
     /// Succeeds only when the file's bytes equal the canonical bytes.
@@ -182,6 +209,8 @@ impl SchemaArtifact {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    #[cfg(unix)]
+    use std::os::unix::fs::symlink;
     use std::path::PathBuf;
     use std::process::ExitCode;
 
@@ -232,6 +261,47 @@ mod tests {
 
         // Assert: the file holds exactly the canonical schema bytes.
         assert_eq!(fs::read_to_string(&path).unwrap(), v1_schema_json());
+    }
+
+    #[test]
+    fn it_should_replace_an_existing_artifact_without_leaving_a_temporary_file() {
+        // Arrange: the destination contains stale bytes before generation.
+        let directory = TempDir::new().unwrap();
+        let path = directory.path().join("frontmatter-v1.schema.json");
+        fs::write(&path, "stale schema\n").unwrap();
+
+        // Act: replace the existing artifact with canonical bytes.
+        SchemaArtifact::at(path.clone()).write().unwrap();
+
+        // Assert: the completed artifact is canonical and no staging filename remains.
+        assert_eq!(fs::read_to_string(&path).unwrap(), v1_schema_json());
+        assert_eq!(
+            fs::read_dir(directory.path())
+                .unwrap()
+                .map(Result::unwrap)
+                .map(|entry| entry.file_name())
+                .collect::<Vec<_>>(),
+            vec!["frontmatter-v1.schema.json"]
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn it_should_replace_a_destination_symlink_without_modifying_its_referent() {
+        // Arrange: the artifact path is a link to a separate sentinel file with stale bytes.
+        let directory = TempDir::new().unwrap();
+        let referent = directory.path().join("schema-referent.json");
+        let artifact = directory.path().join("frontmatter-v1.schema.json");
+        fs::write(&referent, "stale schema\n").unwrap();
+        symlink(&referent, &artifact).unwrap();
+
+        // Act: generate the selected artifact path.
+        SchemaArtifact::at(artifact.clone()).write().unwrap();
+
+        // Assert: generation replaced the link, leaving its former referent unchanged.
+        assert_eq!(fs::read_to_string(&artifact).unwrap(), v1_schema_json());
+        assert!(!fs::symlink_metadata(&artifact).unwrap().file_type().is_symlink());
+        assert_eq!(fs::read_to_string(&referent).unwrap(), "stale schema\n");
     }
 
     #[test]
