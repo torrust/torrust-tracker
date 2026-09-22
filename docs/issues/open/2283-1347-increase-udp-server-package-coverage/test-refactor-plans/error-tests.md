@@ -13,9 +13,11 @@ semantic-links:
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/error-tests.md
 ---
 
-# UDP Server Service-Error Adapter Decision Record
+# UDP Server Service-Error Adapter File Test Plan
 
-Follow the shared [guidance](README.md). This record covers only `packages/udp-server/src/error.rs`.
+Follow the shared [guidance](README.md). This plan covers only `packages/udp-server/src/error.rs`.
+It predates the section layout defined in the issue's Per-File Workflow; its `R1`-`R3` map to
+R1 refactor, R2 unit tests, and R4 record coverage. No integration increment (R3) was selected.
 
 ## Current State
 

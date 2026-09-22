@@ -60,14 +60,15 @@ boundary. It is not a substitute for unit-only protection.
 | ---: | ---: | ---: |
 | 1,118 / 1,469 (76.11%) | 1,190 / 1,654 (71.95%) | 148 / 187 (79.14%) |
 
-## Module Inventory And Ownership Decisions
+## Module Inventory And T1 Hypotheses
 
-Every source file has one T1 decision. `test-selected` is a proposed T4 queue entry, not approval
-to change tests: T2 must create its decision record and T3 requires maintainer approval before any
-test refactor or addition. `property candidate` records a selection decision, not a requirement to
-add a property-testing dependency.
+Every source file has one T1 hypothesis. It orders the per-file work and records the ownership
+reasoning at inventory time; it is **not** a terminal decision. Every file is still processed through
+its own file test plan (see the issue's Per-File Workflow), and only that plan can conclude "no test
+change" for the file. `property candidate` records a selection decision, not a requirement to add a
+property-testing dependency.
 
-| Source module | Unit-only lines | Property candidate | T1 decision | Ownership rationale |
+| Source module | Unit-only lines | Property candidate | T1 hypothesis | Ownership rationale |
 | --- | ---: | --- | --- | --- |
 | `banning/event/handler.rs` | 81 / 82 (98.78%) | No | No change | Direct cookie-error IP forwarding and distinct-IP gauge contracts cover the package-owned handler decisions; residual behavior is logging or ban-service policy. |
 | `banning/event/listener.rs` | 147 / 150 (98.00%) | No | Deferred with owner | Listener receive/termination and task cleanup are shutdown lifecycle concerns owned by #1488. |
@@ -107,27 +108,18 @@ add a property-testing dependency.
 | `testing/environment.rs` | 168 / 184 (91.30%) | No | Deferred with owner | Fixture startup/stop, listener joining, and cleanup are explicitly owned by #1488 SI-14 and SI-17. |
 | `testing/mod.rs` | No executable entries | No | No change | Test-module wiring has no independent observable contract. |
 
-## Proposed T2-T3 Queue
+## Processing Order
 
-The refreshed inventory selects only `error.rs` for T2/T3 review. T2 has created the shared
-[plan guidance](test-refactor-plans/README.md) and proposed [error adapter decision
-record](test-refactor-plans/error-tests.md). Before any coverage addition:
+The inventory hypotheses placed `error.rs` first. The full processing order and the per-file state
+live in the issue's [Source File Ledger](ISSUE.md#source-file-ledger); the workflow and gates live in
+its [Per-File Workflow](ISSUE.md#per-file-workflow). Per-file results are appended below as each
+file completes.
 
-1. Create `test-refactor-plans/error-tests.md` with the current-test refactor review, module
-   behavior inventory, precise adapter contracts, and focused validation commands.
-2. Obtain maintainer approval of that decision record and the one-file queue.
-3. Refactor the current `error.rs` tests if the review identifies a readability, duplication,
-   fixture, assertion, or AAA issue; validate and review the refactor.
-4. Add only the approved conversion test increment, validate it, update its record, and stop for
-   completed-file review before selecting another source file.
+## Per-File Results
 
-When a later inventory or a reopened decision selects more than one file, T3 must group those files
-by cohesive subsystem and complete the current subsystem before starting an unrelated one. For
-example, selected banning files are completed together before statistics work begins. The
-one-file-at-a-time status and review gates still apply within that subsystem.
-
-No package integration expansion is selected: every T1 gap either has a feasible lower unit
-boundary, is already covered at that boundary, or is owned by a lifecycle/platform boundary.
+| Source module | Unit-only lines before | Unit-only lines after | Tests refactored | Tests added | Integration selected |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `error.rs` | 52 / 62 (83.87%) | 86 / 86 (100.00%) | 2 | 2 | No |
 
 ## Relationship To Issue #2149
 
@@ -140,8 +132,7 @@ inventory trigger, not proof that prior no-change decisions remain correct.
 
 ## Next Evidence
 
-- `test-refactor-plans/README.md` and `test-refactor-plans/error-tests.md` belong to T2 after the
-  T1 inventory review.
+- One `test-refactor-plans/<module>-tests.md` per source file, created when that file starts.
 - `mutation-evidence.md`, `manual-verification-evidence.md`, and
   `implementation-retrospective.md` are created when their corresponding implementation stages
   produce evidence.

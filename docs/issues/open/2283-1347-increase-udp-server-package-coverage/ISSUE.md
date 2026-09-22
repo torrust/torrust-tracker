@@ -36,10 +36,11 @@ Parent EPIC: #1347 - Overhaul: Packages Testing
 
 ## Goal
 
-Continue improving the maintainable package-local safety net for
-`torrust-tracker-udp-server` after #2149 by refreshing the complete module inventory, identifying
-remaining package-owned behavior gaps, and implementing only maintainer-approved focused test
-increments.
+Increase the maintainable test coverage of `torrust-tracker-udp-server` by going systematically
+over every Rust source file in the package. For each file: review the existing tests against the
+`write-unit-test` skill and refactor them when they are not clean, then analyse coverage and add
+unit tests (preferred) or integration tests (when only the real UDP boundary is clearer), and
+record the resulting per-file coverage before moving to the next file.
 
 ## Background
 
@@ -54,9 +55,10 @@ injection, or external package ownership made additional tests inappropriate at 
 
 This follow-up is not a replay of #2149 and does not assume that a high percentage means the package
 is complete. It starts from a fresh per-file inventory because the package and surrounding shutdown
-work may have changed since #2149. The first implementation task must decide, for every
-`packages/udp-server/src/` module, whether there is a valuable package-owned test increment, an
-explicit no-change decision, or a deferral with an owner.
+work may have changed since #2149. The inventory gives every `packages/udp-server/src/` module an
+initial hypothesis (test candidate, probably no change, or lifecycle owned by #1488). That hypothesis
+is **not** a terminal decision: every file still receives its own file test plan and review in T4.
+Only the file test plan can conclude "no test change" for a file.
 
 ## Scope
 
@@ -64,8 +66,10 @@ explicit no-change decision, or a deferral with an owner.
 
 - Produce a complete per-file module inventory for `packages/udp-server/src/` before adding or
   changing tests. Each row must record current unit-only coverage, selected package-owned behavior,
-  property-test candidacy, and a terminal decision: test-added, no-change-with-reason, or
-  deferred-with-owner.
+  property-test candidacy, and an initial hypothesis: test candidate, probably no change, or
+  lifecycle owned by #1488. The hypothesis guides processing order; it does not skip a file.
+- Process every Rust source file in the package through the per-file workflow below, one file at
+  a time, creating its file test plan right before work on that file starts.
 - Measure fresh aggregate/global, unit-only, and integration-only package-source coverage using
   clean, reproducible `cargo llvm-cov` runs. Keep the three scopes in separate issue-local evidence
   tables and never use aggregate or integration coverage as proof of unit coverage.
@@ -78,9 +82,10 @@ explicit no-change decision, or a deferral with an owner.
 - Assess a bounded mutation-testing sample after the approved test increments are complete. Use it
   to challenge assertions and record behavior-relevant survivors; do not introduce a mutation score
   target or CI gate.
-- Record concise module decision records under an issue-local `test-refactor-plans/` directory:
-  one shared README for guardrails and roughly 40-line per-module records for current state,
-  selected contracts, ownership boundaries, review outcomes, and evidence.
+- Record one concise file test plan per source file under the issue-local `test-refactor-plans/`
+  directory (name kept for EPIC #1347 consistency): one shared README for guardrails and roughly
+  40-line per-file plans for current tests review, coverage analysis, selected contracts, ownership
+  boundaries, review outcomes, and resulting coverage.
 - Collect any reusable testing or workflow lessons in issue-local `lessons.md`; do not modify
   repository-wide skills, agents, or testing guidance in this implementation branch.
 
@@ -114,7 +119,7 @@ own package boundary. Collaborator business rules remain owned by `udp-core`, `u
 `tracker-core`, `events`, `metrics`, root application composition, and the #1488 shutdown EPIC.
 
 Before adding or changing tests that involve asynchronous I/O, child tasks, listeners, readiness,
-or teardown, the module decision record must define:
+or teardown, the file test plan must define:
 
 - the narrow public or package-visible interface under test;
 - which component owns normal, failure, cancellation, and drop-path cleanup;
@@ -137,7 +142,7 @@ separate bug issue using `.github/skills/dev/debugging/fix-bug/SKILL.md`.
 Not applicable as a bug-fix strategy. For each selected coverage increment, choose the smallest
 deterministic maintained boundary that protects the package-owned behavior. Prefer unit tests at
 the causal seam; use package integration only when the real UDP boundary is clearer or the only
-practical maintained contract. Record the selected boundary in the module decision record and
+practical maintained contract. Record the selected boundary in the file test plan and
 coverage evidence.
 
 ## Implementation Plan
@@ -146,13 +151,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and terminal decision category. No tests were changed. |
-| T2  | DONE | Create shared plan guidance and module decision records | [test-refactor-plans/README.md](test-refactor-plans/README.md) contains shared guardrails, validation commands, non-goals, review gates, subsystem order, and one-file-at-a-time progress rules. The [error adapter record](test-refactor-plans/error-tests.md) records current-test review, refactor decisions, ownership boundaries, proposed contracts, status, and evidence. No tests were changed. |
-| T3  | DONE | Review and approve prioritized implementation queue | Maintainer approved the one-file `error.rs` error-adapter queue, which completed its R3 review and completed-file gate. |
-| T4  | DONE | Refactor and then extend approved package-local unit tests | Completed the approved `error.rs` error-adapter increment: refactored fragmented assertions, added direct announce/scrape conversion contracts, recorded 100% unit-only file coverage, and obtained completed-file review. |
-| T5  | TODO | Refactor and then extend approved package integration tests, if any | Work on one integration-test file at a time. Refactor approved current-test issues before adding a real-loopback contract, and select that contract only when T1-T3 justify the integration boundary over a unit test. Record why the integration boundary is clearer or necessary. |
+| T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests were changed. |
+| T2  | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index. The first plan, [error-tests.md](test-refactor-plans/error-tests.md), was created for `error.rs`. No tests were changed. |
+| T3  | DONE | Review and approve the processing order | Maintainer approved starting with `error.rs`. The processing order for the remaining files is the order column of the [ledger](#source-file-ledger); the maintainer may reorder it at any time. |
+| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. `error.rs` is done; 36 files remain. See [Per-File Workflow](#per-file-workflow). |
+| T5  | TODO | Implement integration-test increments selected by file test plans | Only for files whose plan selected a 3B integration increment because the real UDP loopback boundary is clearer or necessary. One integration-test file at a time; record why the integration boundary was chosen. Close with an explicit note if no plan selected one. |
 | T6  | TODO | Perform bounded mutation assessment | Sample one changed high-risk seam after test increments are complete. Record configuration, timeout, outcome, limitations, and behavior-relevant survivors in `mutation-evidence.md`. |
-| T7  | TODO | Reconcile evidence and progress state | Verify that plan frontmatter, checklists, module records, coverage evidence, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed records, and rebase-unstable commit SHA citations. |
+| T7  | TODO | Reconcile evidence and progress state | Verify that the ledger (37 rows, all `DONE`), every file test plan, coverage evidence per-file results, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed plans, and rebase-unstable commit SHA citations. |
 | T8  | TODO | Complete verification and acceptance review | Run final automatic checks, manual verification, acceptance-criteria review, and implementation completion review. Stop for maintainer review after the final test-producing increment before final verification, committing, or opening an implementation PR. |
 
 ## Commit Points
@@ -160,9 +165,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | Coverage evidence and complete module inventory | Include in the spec-only or first documentation commit after focused markdown validation and maintainer review. |
-| T2 | Shared plan guidance and module decision records | Commit reviewed documentation records separately from code/test changes when practical. |
-| T3 | Approved prioritized queue | Record approval and selected queue as documentation-only evidence before test-producing work. |
-| T4 | One source file's test refactor followed by its unit-test increment | Complete, validate, and review the current-test refactor before adding coverage. Commit the completed file result after focused validation and recorded test-design review; do not begin or mix another source file. |
+| T2 | Shared plan guidance and the first file test plan | Commit reviewed documentation separately from code/test changes when practical. |
+| T3 | Approved processing order | Record approval and order as documentation-only evidence before test-producing work. |
+| T4 | One source file: its file test plan, test refactor, unit-test increment, and recorded coverage | One commit per completed file after its completed-file review (see the gates table). A no-change conclusion is committed too, as documentation. Do not mix two source files in one commit. |
 | T5 | One integration-test file's refactor followed by its contract increment | Complete, validate, and review the current-test refactor before adding coverage. Commit the completed file result after focused validation and recorded boundary rationale. |
 | T6 | Mutation evidence | Commit only if it records a material decision, survivor, or follow-up; otherwise include in final evidence. |
 | T7 | Reconciliation fixes | Commit documentation-state alignment separately when it materially changes issue evidence. |
@@ -173,100 +178,115 @@ Use Conventional Commit messages that name the narrow affected area, for example
 All commits must remain GPG signed. Cite in-progress commits by unique Conventional Commit subject,
 not branch SHA, until the branch is merged.
 
-## Test Development Loop
+## Per-File Workflow
 
-Apply this loop to every test-producing task:
+T4 applies this workflow to **every** Rust source file in `packages/udp-server/src/`, one file at a
+time, in the order of the [ledger](#source-file-ledger). Only one file may be `IN_PROGRESS`.
 
-1. Order approved files by cohesive subsystem. Complete all selected files in the current
-  subsystem before starting an unrelated subsystem; do not interleave, for example, banning and
-  statistics work merely because both have uncovered lines.
-2. Complete and approve the target source file's decision record before changing tests. Do not
-  begin a second source file while the current record is `IN_PROGRESS`.
-3. Review the source file's current tests and implement every approved readability, duplication,
-  fixture, assertion, or Arrange-Act-Assert refactor before adding coverage. Run focused
-  validation and record the completed refactor decision.
-4. Add the smallest approved behavior-focused test increment for that same source file.
-5. Review the refactored and added tests before beginning the next source file. Write temporary
-  prose for Arrange, Act, and Assert; refactor until the code expresses that prose; remove
-  redundant prose; and record the result in the module decision record.
-6. Confirm the one causal initial-state difference is visible, the production Act remains visible,
-   and expected results are independently specified rather than derived through production code
-   under test.
-7. Run focused tests and correct failures.
-8. Record test-level coverage or explicit no-change evidence, update the file status to `DONE`,
-  and obtain the completed-file review before beginning another source file.
-9. Commit the coherent increment after focused validation and required review.
-10. After the final test-producing increment, stop for maintainer review before final verification,
-   committing the final evidence, or opening an implementation pull request.
+### The tracking artifact: the file test plan
+
+Each file is tracked by one **file test plan**: `test-refactor-plans/<module>-tests.md` (for
+example `error-tests.md`, `handlers-announce-tests.md`). The directory name is kept for consistency
+with EPIC #1347 and earlier subissues. Create the plan **right before** starting the file, so each
+plan can apply lessons from the previous ones. Do not create plans in advance. The plan is about
+40 lines and has these sections:
+
+1. **Current state** — unit-only coverage of the file from the latest report, existing tests, and
+   the T1 hypothesis.
+2. **Current tests review** — each existing test checked against the `write-unit-test` skill:
+   `it_should_*` naming, visible Arrange-Act-Assert, state-centred Arrange, one semantic assertion
+   or one reason to fail, no production-derived expectations, no hidden Act, no fixture coupling.
+   Conclusion: `refactor` (list the concrete smells) or `clean`.
+3. **Coverage analysis** — the uncovered lines/regions grouped by behavior, each classified as:
+   - **3A unit** — package-owned decision testable at the module's own API (preferred);
+   - **3B integration** — only observable through the real UDP loopback boundary; record why;
+   - **collaborator-owned / lifecycle (#1488) / platform** — not testable here; name the owner.
+4. **Steps table** — `R1` refactor current tests, `R2` add unit tests, `R3` select integration
+   increment (or `none`), `R4` record resulting coverage. Each with `TODO`/`DONE`/`SKIPPED`.
+5. **Results** — unit-only coverage of the file before and after, tests added/refactored, and the
+   completed-file review outcome.
+6. **Progress log**.
+
+### Steps for one file
+
+| Step | Action | Gate before continuing |
+| --- | --- | --- |
+| 0 | Set the ledger row to `IN_PROGRESS`. Create the file test plan with sections 1-3 filled in. | **Maintainer approval** of the plan (its review conclusion, coverage classification, and proposed steps). |
+| 1 | R1: refactor the current tests if section 2 said `refactor`. Run focused tests, nightly `fmt`, `git diff --check`. Prose-first AAA review. | **Maintainer review** of the refactor result before adding tests. Skip the gate if section 2 said `clean`. |
+| 2 | R2: add the approved unit tests (3A). Run focused tests, nightly `fmt`, `git diff --check`. Prose-first AAA review and test-smell review. | Self-review only; the completed-file review below covers it. |
+| 3 | R3: if section 3 selected a 3B integration increment, record it in the plan and in the T5 queue. Do not implement it here. | None. |
+| 4 | R4: re-run the unit-only coverage report and record the file's before/after coverage in the plan and in `coverage-evidence.md`. | None. |
+| 5 | Mark the plan and ledger row `DONE`. | **Maintainer completed-file review.** |
+| 6 | **Commit** the file's plan, tests, and evidence updates as one signed Conventional Commit (`test(udp-server): ...` or `docs(issues): ...` for a no-change file). | Pre-commit gate passes. |
+
+After step 6, start step 0 of the next file in ledger order. Before the first lifecycle-related
+increment (socket readiness, listeners, teardown) add a design-review checkpoint as described in
+[Design and Ownership Review](#design-and-ownership-review).
 
 Helpers must hide only incidental mechanics and must be justified by meaningful named actions and
 abstraction-level alignment, not by caller count.
 
-## Test Refactor Plans
+### Approval and commit summary
 
-Use a lightweight issue-local plan layout:
+- **Wait for maintainer approval**: step 0 (plan), step 1 (refactor result, when a refactor was
+  needed), step 5 (completed file), and after the last file before T6-T8.
+- **Commit**: once per completed file (step 6); separately for T6 mutation evidence if material;
+  separately for T7 reconciliation; separately for T8 final evidence.
+- **Never**: start a second file while one is `IN_PROGRESS`; add tests before R1 is reviewed; mix
+  two files in one commit; conclude "no change" for a file without its own file test plan.
 
-- `test-refactor-plans/README.md` for shared guardrails, selected validation commands, non-goals,
-  subsystem order, module approval gates, one-file-at-a-time progress rules, manual-verification
-  definition, and reconciliation checklist.
-- One concise module decision record per selected source file. Each record should name current
-  coverage, current-test refactor review and outcome, selected contracts, rejected alternatives,
-  property-test decision, ownership boundaries, `TODO`/`IN_PROGRESS`/`DONE` status, review status,
-  and focused validation evidence.
-
-Do not repeat the full issue workflow in each module record. The complete inventory in
-`coverage-evidence.md` is the authoritative checklist for whether every source file reached a
-terminal decision.
-
-### Source File Refactor-Plan Ledger
+## Source File Ledger
 
 This ledger is the execution-control checklist for every Rust source file in the package. The
-inventory in `coverage-evidence.md` remains the authority for coverage and ownership rationale.
-Before a file receives test changes, change its ledger state to `TODO`, create its decision record,
-and obtain T3 approval. A selected file is complete only when its record is `DONE`, focused
-validation and completed-file review are recorded, and this ledger says `DONE`. A terminal
-no-change row needs no decision record; a deferred row remains visible until its named owner
-resolves the boundary. T7 must reconcile this ledger with the inventory and every decision record.
+inventory in `coverage-evidence.md` holds the coverage numbers and ownership rationale; the T1
+hypothesis column below repeats it. States: `PENDING` (no plan yet), `IN_PROGRESS` (plan
+created, work ongoing), `DONE` (plan concluded, completed-file review recorded, committed). A file
+whose coverage step is lifecycle-owned by #1488 is still processed (its existing tests are still
+reviewed); its plan records the deferral in section 3. T7 must reconcile this ledger with the
+inventory and every plan.
 
-| Source module | T1 decision | Refactor-plan state | Verification state |
-| --- | --- | --- | --- |
-| `banning/event/handler.rs` | No change | N/A | T1 terminal decision recorded |
-| `banning/event/listener.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
-| `banning/event/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `banning/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `container.rs` | No change | N/A | T1 terminal decision recorded |
-| `error.rs` | Test selected | DONE ([record](test-refactor-plans/error-tests.md)) | R1-R3, focused validation, and completed-file review recorded |
-| `event.rs` | No change | N/A | T1 terminal decision recorded |
-| `handlers/announce.rs` | No change | N/A | T1 terminal decision recorded |
-| `handlers/connect.rs` | No change | N/A | T1 terminal decision recorded |
-| `handlers/error.rs` | No change | N/A | T1 terminal decision recorded |
-| `handlers/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `handlers/scrape.rs` | No change | N/A | T1 terminal decision recorded |
-| `lib.rs` | No change | N/A | T1 terminal decision recorded |
-| `server/bound_socket.rs` | Deferred (platform boundary) | DEFERRED | T1 owner recorded |
-| `server/launcher.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
-| `server/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `server/processor.rs` | No change | N/A | T1 terminal decision recorded |
-| `server/receiver.rs` | No change | N/A | T1 terminal decision recorded |
-| `server/request_buffer.rs` | Deferred (#1488 SI-15) | DEFERRED | T1 owner recorded |
-| `server/spawner.rs` | No change | N/A | T1 terminal decision recorded |
-| `server/states.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
-| `statistics/event/handler/error.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/request_aborted.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/request_accepted.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/request_banned.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/request_discarded.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/request_received.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/handler/response_sent.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/event/listener.rs` | Deferred (#1488) | DEFERRED | T1 owner recorded |
-| `statistics/event/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/metrics.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/mod.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/repository.rs` | No change | N/A | T1 terminal decision recorded |
-| `statistics/services.rs` | No change | N/A | T1 terminal decision recorded |
-| `testing/environment.rs` | Deferred (#1488 SI-14/SI-17) | DEFERRED | T1 owner recorded |
-| `testing/mod.rs` | No change | N/A | T1 terminal decision recorded |
+| Order | Source module | T1 hypothesis | State | Plan |
+| ---: | --- | --- | --- | --- |
+| 1 | `error.rs` | Test candidate | DONE | [error-tests.md](test-refactor-plans/error-tests.md) |
+| 2 | `lib.rs` | Probably no change | PENDING | — |
+| 3 | `container.rs` | Probably no change | PENDING | — |
+| 4 | `event.rs` | Probably no change | PENDING | — |
+| 5 | `handlers/mod.rs` | Probably no change | PENDING | — |
+| 6 | `handlers/connect.rs` | Probably no change | PENDING | — |
+| 7 | `handlers/announce.rs` | Probably no change | PENDING | — |
+| 8 | `handlers/scrape.rs` | Probably no change | PENDING | — |
+| 9 | `handlers/error.rs` | Probably no change | PENDING | — |
+| 10 | `server/mod.rs` | Probably no change | PENDING | — |
+| 11 | `server/bound_socket.rs` | Platform boundary | PENDING | — |
+| 12 | `server/spawner.rs` | Probably no change | PENDING | — |
+| 13 | `server/launcher.rs` | Lifecycle (#1488) | PENDING | — |
+| 14 | `server/receiver.rs` | Probably no change | PENDING | — |
+| 15 | `server/processor.rs` | Probably no change | PENDING | — |
+| 16 | `server/request_buffer.rs` | Lifecycle (#1488 SI-15) | PENDING | — |
+| 17 | `server/states.rs` | Lifecycle (#1488) | PENDING | — |
+| 18 | `banning/mod.rs` | Wiring only | PENDING | — |
+| 19 | `banning/event/mod.rs` | Wiring only | PENDING | — |
+| 20 | `banning/event/handler.rs` | Probably no change | PENDING | — |
+| 21 | `banning/event/listener.rs` | Lifecycle (#1488) | PENDING | — |
+| 22 | `statistics/mod.rs` | Probably no change | PENDING | — |
+| 23 | `statistics/metrics.rs` | Probably no change | PENDING | — |
+| 24 | `statistics/repository.rs` | Probably no change | PENDING | — |
+| 25 | `statistics/services.rs` | Probably no change | PENDING | — |
+| 26 | `statistics/event/mod.rs` | Wiring only | PENDING | — |
+| 27 | `statistics/event/listener.rs` | Lifecycle (#1488) | PENDING | — |
+| 28 | `statistics/event/handler/mod.rs` | Probably no change | PENDING | — |
+| 29 | `statistics/event/handler/error.rs` | Probably no change | PENDING | — |
+| 30 | `statistics/event/handler/request_received.rs` | Probably no change | PENDING | — |
+| 31 | `statistics/event/handler/request_accepted.rs` | Probably no change | PENDING | — |
+| 32 | `statistics/event/handler/request_discarded.rs` | Probably no change | PENDING | — |
+| 33 | `statistics/event/handler/request_banned.rs` | Probably no change | PENDING | — |
+| 34 | `statistics/event/handler/request_aborted.rs` | Probably no change | PENDING | — |
+| 35 | `statistics/event/handler/response_sent.rs` | Probably no change | PENDING | — |
+| 36 | `testing/mod.rs` | Wiring only | PENDING | — |
+| 37 | `testing/environment.rs` | Lifecycle (#1488 SI-14/SI-17) | PENDING | — |
+
+Wiring-only `mod.rs` files with no executable lines may conclude in a few lines; they still get a
+plan so the ledger has no implicit exceptions.
 
 ## Progress Tracking
 
@@ -282,8 +302,9 @@ resolves the boundary. T7 must reconcile this ledger with the inventory and ever
 - [x] Draft moved to `docs/issues/open/` using the assigned issue number.
 - [x] Spec-only PR #2286 merged into `develop` before implementation.
 - [x] Complete module inventory and baseline coverage evidence recorded.
-- [x] Shared plan guidance and proposed error-adapter decision record created; no tests changed.
-- [x] Module decision record reviewed and approved for the active `error.rs` file before test-producing work.
+- [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
+- [x] First file test plan reviewed and approved before test-producing work.
+- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 1 / 37).
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -336,11 +357,20 @@ resolves the boundary. T7 must reconcile this ledger with the inventory and ever
 - 2026-09-22 09:23 UTC - GitHub Copilot - Added the 37-file ledger. It records `error.rs` as the
   only completed decision record; all other rows remain explicitly terminal or deferred, with no
   pending refactor plan until a future T3-approved selection changes its row to `TODO`.
+- 2026-09-22 11:00 UTC - User/maintainer - Corrected the process: the T1 inventory rows are
+  hypotheses, not terminal decisions. Every Rust file must be processed through its own file test
+  plan (review/refactor current tests, then analyse and add unit or integration coverage, then
+  record coverage). T4 is not complete; T5-T8 wait.
+- 2026-09-22 11:00 UTC - GitHub Copilot - Reopened T4 as `IN_PROGRESS`, rewrote the per-file
+  workflow with explicit approval gates and commit points, and reset the ledger to 36 `PENDING`
+  files in processing order. `lib.rs` is next.
 
 ## Acceptance Criteria
 
 - [ ] A complete `packages/udp-server/src/` module inventory is recorded with unit-only coverage,
-      property-test candidacy, selected behavior, and terminal decisions for every source file.
+      property-test candidacy, selected behavior, and a T1 hypothesis for every source file.
+- [ ] Every Rust source file in the package has its own file test plan, processed through the
+      per-file workflow, with its resulting unit-only coverage recorded in `coverage-evidence.md`.
 - [ ] Fresh aggregate/global, unit-only, and integration-only coverage evidence is recorded with
       clean reproducible commands and toolchain-qualified results.
 - [ ] Selected tests protect package-owned UDP server behavior at the narrowest maintainable
@@ -409,19 +439,21 @@ and why any non-Rust implementation is justified.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | TODO | Complete inventory in `coverage-evidence.md` |
-| AC2 | TODO | Coverage evidence tables and command output summaries |
-| AC3 | TODO | Module decision records and test output |
-| AC4 | TODO | Integration-boundary rationale in module decision records |
-| AC5 | TODO | No-change/deferral rows in `coverage-evidence.md` |
-| AC6 | TODO | Module decision records and focused validation evidence |
-| AC7 | TODO | `mutation-evidence.md` |
-| AC8 | TODO | Reconciliation progress-log entry and final diff review |
-| AC9 | TODO | Nightly rustfmt output |
-| AC10 | TODO | `linter all` output |
-| AC11 | TODO | Package test output |
-| AC12 | TODO | `manual-verification-evidence.md` |
-| AC13 | TODO | Post-implementation acceptance review |
-| AC14 | TODO | Documentation diff or no-change rationale |
+| AC2 | TODO | Ledger 37 / 37 `DONE`; one plan per file; per-file results table in `coverage-evidence.md` |
+| AC3 | TODO | Coverage evidence tables and command output summaries |
+| AC4 | TODO | File test plans and test output |
+| AC5 | TODO | Integration-boundary rationale in file test plans |
+| AC6 | TODO | No-change/deferral conclusions in file test plans and `coverage-evidence.md` |
+| AC7 | TODO | File test plans and focused validation evidence |
+| AC8 | TODO | File test plans: R1 reviewed before R2; completed-file review recorded |
+| AC9 | TODO | `mutation-evidence.md` |
+| AC10 | TODO | Reconciliation progress-log entry and final diff review |
+| AC11 | TODO | Nightly rustfmt output |
+| AC12 | TODO | `linter all` output |
+| AC13 | TODO | Package test output |
+| AC14 | TODO | `manual-verification-evidence.md` |
+| AC15 | TODO | Post-implementation acceptance review |
+| AC16 | TODO | Documentation diff or no-change rationale |
 
 ## Risks and Trade-offs
 
