@@ -74,6 +74,20 @@ respective responsibilities:
 | CI                       | Is the merge authority. It runs workflow-selected validation, including container and qBittorrent E2E coverage where applicable. | [Testing workflow](../.github/workflows/testing.yaml); [container workflow](../.github/workflows/container.yaml) |
 | Manual verification      | Complements automated evidence with scenario status and recorded evidence in the relevant issue specification.                   | [Issue-specification workflow](issues/README.md)                                                                 |
 
+## Pull-Request Package Coverage
+
+The `Generate Coverage Report (PR)` workflow reports source-line coverage changes for directly
+changed workspace packages. It discovers packages from Cargo metadata and the pull-request diff,
+runs package-scoped `cargo llvm-cov` coverage at the pull request base and head revisions, and
+reports the exact covered/instrumented line counts in the workflow summary.
+
+The comparison is informational: it never blocks merging. A package result is marked as a warning
+only when head source-line coverage has decreased by more than five percentage points. A package
+moved without changing its Cargo name is compared using its base and head directories. New,
+removed, renamed, or otherwise non-comparable package outcomes are reported as unavailable rather
+than as a passing comparison. The issue-local evidence and package table in [EPIC #1347](issues/open/1347-overhaul-packages-testing/EPIC.md)
+remain the durable coverage record; this workflow does not maintain a coverage baseline file.
+
 ## Verification Types
 
 Use three distinct verification activities; they produce different evidence and

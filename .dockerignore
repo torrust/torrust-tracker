@@ -48,12 +48,14 @@
 # agent-review-report-contract/Cargo.toml is copied in the recipe stage for cargo chef prepare
 # clippy-allow-reasons/Cargo.toml is copied in the recipe stage for cargo chef prepare
 # frontmatter-validator/Cargo.toml is copied in the recipe stage for cargo chef prepare
+# package-coverage-check/Cargo.toml is copied in the recipe stage for cargo chef prepare
 /contrib/dev-tools/
 !/contrib/dev-tools/su-exec/
 !/contrib/dev-tools/analysis/workspace-coupling/Cargo.toml
 !/contrib/dev-tools/checks/agent-review-report-contract/Cargo.toml
 !/contrib/dev-tools/checks/clippy-allow-reasons/Cargo.toml
 !/contrib/dev-tools/checks/frontmatter-validator/Cargo.toml
+!/contrib/dev-tools/checks/package-coverage-check/Cargo.toml
 
 # ── Build artifacts and runtime state ─────────────────────────────────────────
 /bin/

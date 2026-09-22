@@ -1,4 +1,4 @@
-name: Generate Coverage Report (PR)
+name: Generate Coverage Reports (PR)
 
 # skill-link: update-github-workflow-actions
 # Path policy: skip this workflow when every changed file is documentation.
@@ -15,6 +15,147 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  discover-package-coverage:
+    name: Discover Package Coverage
+    runs-on: ubuntu-latest
+    outputs:
+      discovery: ${{ steps.discover.outputs.discovery }}
+
+    steps:
+      - name: Checkout base revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: base
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Checkout head revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: head
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+
+      - id: discover
+        name: Discover Changed Packages
+        working-directory: head
+        run: |
+          discovery=$(cargo run -p package-coverage-check -- matrix \
+            "$GITHUB_WORKSPACE/base" \
+            "$GITHUB_WORKSPACE/head" \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}")
+          echo "discovery=$discovery" >> "$GITHUB_OUTPUT"
+
+  package-coverage-regression:
+    name: Package Coverage (${{ matrix.package }})
+    needs: discover-package-coverage
+    if: ${{ fromJSON(needs.discover-package-coverage.outputs.discovery).matrix.include[0] != null }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover-package-coverage.outputs.discovery).matrix }}
+    env:
+      CARGO_INCREMENTAL: "0"
+      RUSTFLAGS: "-Cinstrument-coverage"
+
+    steps:
+      - name: Checkout base revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: base
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Checkout head revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: head
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2.87.14
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Generate Base Coverage Report
+        working-directory: base
+        run: cargo llvm-cov -p "${{ matrix.package }}" --all-features --codecov --output-path "$GITHUB_WORKSPACE/base-codecov.json"
+
+      - name: Generate Head Coverage Report
+        working-directory: head
+        run: cargo llvm-cov -p "${{ matrix.package }}" --all-features --codecov --output-path "$GITHUB_WORKSPACE/head-codecov.json"
+
+      - name: Compare Package Coverage
+        working-directory: head
+        run: |
+          cargo run -p package-coverage-check -- compare \
+            "${{ matrix.package }}" \
+            "$GITHUB_WORKSPACE/base-codecov.json" \
+            "$GITHUB_WORKSPACE/base/${{ matrix.base_directory }}/src" \
+            "$GITHUB_WORKSPACE/head-codecov.json" \
+            "$GITHUB_WORKSPACE/head/${{ matrix.head_directory }}/src" \
+            > "$GITHUB_WORKSPACE/package-coverage-${{ matrix.package }}.json"
+
+      - name: Store Package Coverage Result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: package-coverage-${{ matrix.package }}
+          path: package-coverage-${{ matrix.package }}.json
+          if-no-files-found: ignore
+
+  package-coverage-summary:
+    name: Package Coverage Regression
+    needs: [discover-package-coverage, package-coverage-regression]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout head revision
+        uses: actions/checkout@v7.0.1
+        with:
+          path: head
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+
+      - name: Download Package Coverage Results
+        if: ${{ needs.package-coverage-regression.result != 'skipped' }}
+        uses: actions/download-artifact@v5
+        with:
+          pattern: package-coverage-*
+          path: package-coverage-results
+          merge-multiple: true
+
+      - name: Write Report-Only Summary
+        working-directory: head
+        env:
+          DISCOVERY: ${{ needs.discover-package-coverage.outputs.discovery }}
+        run: |
+          printf '%s' "$DISCOVERY" > "$GITHUB_WORKSPACE/package-coverage-discovery.json"
+          cargo run -p package-coverage-check -- summary \
+            "$GITHUB_WORKSPACE/package-coverage-discovery.json" \
+            "$GITHUB_WORKSPACE/package-coverage-results" \
+            >> "$GITHUB_STEP_SUMMARY"
+
   coverage:
     name: Generate Coverage Report
     environment: coverage
