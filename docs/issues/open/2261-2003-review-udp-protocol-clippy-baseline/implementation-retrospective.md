@@ -2,10 +2,12 @@
 
 ## Outcome
 
-All twelve nonnumeric UDP protocol crate-level Clippy allowances were removed.
-The source now uses explicit imports, documented public error contracts,
-`#[must_use]` annotations, and small behavior-preserving fixes. Focused Clippy,
-the UDP protocol test suite, and `linter all` pass.
+Eleven nonnumeric UDP protocol crate-level Clippy allowances were removed. A159
+remains with a native reason because current nightly Clippy reports generated
+empty helper enums from `FromBytes` derives. The source now uses explicit
+imports, documented public error contracts, `#[must_use]` annotations, and small
+behavior-preserving fixes. Focused Clippy, the UDP protocol test suite, and
+`linter all` pass.
 
 ## What Went Well
 
@@ -16,11 +18,13 @@ the UDP protocol test suite, and `linter all` pass.
 
 ## What Changed During Implementation
 
-The initial source review showed that the former `empty_enums` rationale no
-longer emitted on stable or nightly Clippy, so it was removed rather than
-narrowed. The completion review also found that the modified round-trip tests
-hid their production action and assertions in helpers. The tests were refactored
-to expose Arrange, Act, and Assert and use behavior-focused names.
+The initial source review used an older nightly toolchain that did not emit
+`empty_enums`, so A159 was temporarily removed. After the PR workflow updated
+nightly, CI reported 37 `FromBytes` derive-generated diagnostics. The allowance
+was restored with a native permanent reason. The completion review also found
+that the modified round-trip tests hid their production action and assertions in
+helpers. The tests were refactored to expose Arrange, Act, and Assert and use
+behavior-focused names.
 
 ## Root Cause
 

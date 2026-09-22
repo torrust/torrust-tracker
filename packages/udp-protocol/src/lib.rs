@@ -9,6 +9,12 @@
     clippy::cast_possible_truncation,
     reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
 )]
+// `FromBytes` derives expand to empty helper enums on current nightly Clippy.
+// The protocol wire structs are inhabited and cannot use Clippy's suggested replacement.
+#![allow(
+    clippy::empty_enums,
+    reason = "FromBytes derives generate empty helper enums for inhabited protocol wire structs"
+)]
 
 pub mod announce;
 pub mod common;

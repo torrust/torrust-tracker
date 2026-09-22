@@ -8,7 +8,7 @@ github-issue: 2261
 spec-path: docs/issues/open/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 branch: "2261-2003-review-udp-protocol-clippy-baseline"
 related-pr: null
-last-updated-utc: 2026-09-22 06:23
+last-updated-utc: 2026-09-22 07:49
 semantic-links:
   skill-links:
     - create-issue
@@ -110,13 +110,15 @@ Ownership boundary:
 ## Diagnostic and Classification Evidence
 
 The owned crate-level controls were removed together and checked with stable and nightly Clippy.
-All outcomes remove the crate-level allowance; no #2261 exception remains.
+Eleven outcomes remove the crate-level allowance. A159 remains as a permanent documented
+generated-code exception because the current nightly toolchain emits it from `FromBytes` derive
+expansion.
 
 | Inventory ID | Lint | Diagnostic outcome | Final outcome |
 | ------------ | ---- | ------------------ | ------------- |
 | A157 | `default_trait_access` | `AnnounceResponse::empty` initialized `Vec` through `Default::default`. | Replaced with `Vec::default`. |
 | A158 | `doc_markdown` | No stable or nightly diagnostic. | Removed unused crate-level allowance. |
-| A159 | `empty_enums` | No stable or nightly diagnostic from the current `FromBytes` derives. | Removed unused crate-level allowance. |
+| A159 | `empty_enums` | Nightly Rust 1.100.0 (2026-09-21) emits 37 diagnostics from `FromBytes` derive expansion for inhabited protocol wire structs. | Retained at crate scope with a native generated-code rationale. |
 | A160 | `explicit_iter_loop` | Test generators iterated with `.iter_mut()`. | Replaced with direct mutable-array iteration. |
 | A161 | `legacy_numeric_constants` | No stable or nightly diagnostic. | Removed unused crate-level allowance. |
 | A162 | `match_same_arms` | A test generator had two equivalent arms. | Merged the equivalent patterns. |
@@ -137,7 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Expose the real diagnostics | Removed the owned crate-level controls and recorded the results by lint family. |
-| T2 | DONE | Classify each lint family | Every A157-A168 entry is removed; no retained #2261 exception needs a native reason. |
+| T2 | DONE | Classify each lint family | A157-A158 and A160-A168 are removed; A159 is a permanent documented generated-code exception. |
 | T3 | DONE | Apply focused fixes | Applied behavior-preserving fixes, public API annotations, explicit imports, and documentation. |
 | T4 | DONE | Validate protocol behavior | Focused Clippy and all nine UDP protocol tests pass. |
 | T5 | DONE | Reconcile #2158 evidence | Updated the inventory entries with final outcomes and focused validation. |
@@ -191,6 +193,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-09-22 06:43 UTC - GitHub Copilot - Reconciled superseded #2158 evidence, made parser
   boundary tests behavior-focused with visible assertions, and passed the final independent task
   review; `linter all` passed - Ready for PR
+- 2026-09-22 07:49 UTC - GitHub Copilot - Updated nightly Rust to 1.100.0 (2026-09-21) after CI
+  began reporting `empty_enums` from `FromBytes` derive expansion. Restored A159 as a documented
+  permanent generated-code exception; current-nightly focused Clippy, focused tests, and `linter all` passed
 
 ## Acceptance Criteria
 
@@ -225,11 +230,11 @@ No disposable verification script is planned. Prefer focused Rust tests and repo
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Diagnostic and Classification Evidence records all A157-A168 outcomes. |
-| AC2 | DONE | All owned crate-level allowances were removed; no retained #2261 exception remains. |
+| AC2 | DONE | Eleven allowances were removed; A159 remains with a native generated-code reason. |
 | AC3 | DONE | The #2245 `cast_possible_truncation` allowance remains unchanged. |
 | AC4 | DONE | Existing request and response round-trip tests pass after parsing and serialization changes. |
 | AC5 | DONE | #2158 inventory entries A157-A168 record final outcomes and focused validation evidence. |
-| AC6 | DONE | Focused UDP protocol Clippy and tests plus `linter all` pass. |
+| AC6 | DONE | Current-nightly focused UDP protocol Clippy and tests plus `linter all` pass. |
 
 ## Risks and Trade-offs
 

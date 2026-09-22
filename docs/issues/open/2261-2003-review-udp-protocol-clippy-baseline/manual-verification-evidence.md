@@ -29,3 +29,20 @@ running-service scenario.
 PASS. The inventory marks A157-A168 as removed and links each outcome to #2261.
 No owned suppression remains in the final UDP protocol source. A156 remains
 unambiguously owned by #2245; no numeric conversion scope was absorbed by #2261.
+
+## M1 Revalidation - Current Nightly Toolchain
+
+**Executed:** 2026-09-22 07:49 UTC
+
+After `rustup update nightly` installed Rust 1.100.0 (2026-09-21), CI's failing
+diagnostic was reproduced locally:
+
+```sh
+cargo +nightly clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings
+```
+
+The command reported 37 `clippy::empty_enums` diagnostics from `FromBytes` derive
+expansion across the inhabited protocol wire structs in `common.rs`, `connect.rs`,
+and `scrape.rs`. The crate-level A159 allowance was restored with a native reason.
+The #2158 inventory now records A159 as retained; A157-A158 and A160-A168 remain
+removed, and A156 remains owned by #2245.

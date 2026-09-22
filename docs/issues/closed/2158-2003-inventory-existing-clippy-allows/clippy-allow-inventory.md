@@ -129,8 +129,9 @@ follow-up issues now own the final checked-boundary decisions.
 ### UDP Protocol Crate Baseline
 
 The UDP protocol crate inherited broad allowances with its vendored foundation. A156 remains owned
-by wire numeric conversion follow-up #2245. Follow-up #2261 removed A157-A168 after recording
-each diagnostic outcome and focused validation in its specification and the entry table below.
+by wire numeric conversion follow-up #2245. Follow-up #2261 removed A157-A158 and A160-A168, and
+retained A159 with a native reason after current nightly Clippy reported `FromBytes` derive-generated
+empty helper enums for inhabited protocol wire structs.
 
 ### Type, Callable, Visibility, and Import Contracts
 
@@ -215,7 +216,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A107, A110, A126, A132, A134, A136, A138 | Added native `reason` parameters for retained compatibility and API-shape suppressions. | `cargo clippy -p torrust-tracker-rest-api-client -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-client-lib -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A108, A109, A111, A116, A117, A118, A125, A140, A172 | Added native `reason` parameters for retained API-shape, standard trait, lock, benchmark, and UDP error-boundary suppressions. | `cargo clippy -p torrust-tracker-rest-api-protocol -p torrust-tracker-rest-api-runtime-adapter -p torrust-tracker-test-helpers -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A112, A120 | Added native `reason` parameters for retained benchmark/test-data numeric suppressions. | `cargo clippy -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings` |
-| A159 | Superseded by #2261: removed the `empty_enums` allowance after stable and nightly Clippy no longer emitted the generated-code diagnostic. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
+| A159 | Superseded by #2261: retained the `empty_enums` allowance with a native reason after nightly Rust 1.100.0 emitted `FromBytes` derive-generated helper enums. | `cargo +nightly clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A236 | Reconciled a current-source collaboration-test gauge conversion already carrying a native retained reason. | `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features -- -D warnings` |
 | A240 | Reconciled a current-source torrent-cleanup job `#[expect]` already carrying a native retained reason. | `cargo clippy -p torrust-tracker --all-targets --all-features -- -D warnings` |
 
@@ -226,7 +227,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A099, A123, A129 | Added native temporary `reason` parameters linking the domain numeric conversion suppressions to #2246. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings` |
 | A156, A171 | Added native temporary `reason` parameters linking the wire numeric conversion suppressions to #2245. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | Added native temporary `reason` parameters linking metric aggregate suppressions to #2244. | `cargo clippy -p torrust-tracker-http-core -p torrust-tracker-swarm-coordination-registry -p torrust-tracker-udp-core -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings` |
-| A157-A158, A160-A168 | Superseded by #2261: removed every nonnumeric UDP protocol baseline allowance after focused source fixes or confirmation that no current diagnostic emitted. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
+| A157-A158, A160-A168 | Superseded by #2261: removed the nonnumeric UDP protocol baseline allowances after focused source fixes or confirmation that no current diagnostic emitted. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 
 ## Entries
@@ -391,7 +392,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A156 | `packages/udp-protocol/src/lib.rs:8` | crate | `cast_possible_truncation` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): replace with checked wire conversion or a narrow documented exception | #2158 | Temporary |
 | A157 | Removed | crate | `default_trait_access` | UDP protocol crate baseline | #2261 replaced `Default::default` with `Vec::default`. | #2261 | Removed |
 | A158 | Removed | crate | `doc_markdown` | UDP protocol crate baseline | #2261 found no stable or nightly diagnostic after removing the crate-level allowance. | #2261 | Removed |
-| A159 | Removed | crate | `empty_enums` | UDP protocol macro expansion | #2261 found no stable or nightly diagnostic from the current `FromBytes` derives after removing the allowance. | #2261 | Removed |
+| A159 | `packages/udp-protocol/src/lib.rs:14` | crate | `empty_enums` | UDP protocol macro expansion | Nightly Rust 1.100.0 emits `FromBytes` derive-generated empty helper enums for inhabited wire structs; native reason documents the tool limitation. | #2261 | Retain |
 | A160 | Removed | crate | `explicit_iter_loop` | UDP protocol crate baseline | #2261 replaced `.iter_mut()` loops with direct mutable-array iteration. | #2261 | Removed |
 | A161 | Removed | crate | `legacy_numeric_constants` | UDP protocol crate baseline | #2261 found no stable or nightly diagnostic after removing the crate-level allowance. | #2261 | Removed |
 | A162 | Removed | crate | `match_same_arms` | UDP protocol crate baseline | #2261 merged equivalent test-generator match arms. | #2261 | Removed |

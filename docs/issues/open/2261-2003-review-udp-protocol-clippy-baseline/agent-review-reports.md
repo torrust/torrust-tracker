@@ -58,3 +58,11 @@ semantic-links:
   entries; parser tests have behavior-focused names, visible Arrange-Act-Assert sections, direct
   production calls, and observable assertions.
 - Verdict: REVIEW PASSED - READY FOR PR
+
+### 2026-09-22 07:49 UTC - GitHub Copilot Toolchain-Drift Correction
+
+- Scope: Corrected the prior A159 removal conclusion after PR CI ran a newer nightly Rust toolchain.
+- Evidence: `rustup update nightly` installed Rust 1.100.0 (2026-09-21), and `cargo +nightly clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` reproduced 37 `empty_enums` diagnostics originating in `FromBytes` derive expansion.
+- Correction: Restored only A159 at crate scope with a native reason. The inventory and completion evidence now record it as a permanent generated-code exception; A157-A158 and A160-A168 remain removed.
+- Validation: Current-nightly focused Clippy, focused tests (9 passed), formatting, and `linter all` passed.
+- Verdict: CORRECTION VALIDATED - READY FOR CI RERUN
