@@ -1,5 +1,6 @@
 //! Canonical strict frontmatter profile types and structural validation.
 
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
 
@@ -16,11 +17,30 @@ pub enum Profile {
     Permissive,
 }
 
+/// The strict frontmatter document profiles represented by the v1 JSON Schema.
+#[derive(JsonSchema)]
+#[schemars(title = "Torrust Tracker Frontmatter V1")]
+#[serde(untagged)]
+pub enum FrontmatterV1 {
+    /// The strict issue profile.
+    Issue(Issue),
+    /// The strict EPIC profile.
+    Epic(Epic),
+}
+
+/// Generates the JSON Schema Draft 2020-12 projection of the strict v1 profiles.
+#[must_use]
+pub fn v1_schema() -> schemars::Schema {
+    schemars::schema_for!(FrontmatterV1)
+}
+
 /// The canonical strict issue frontmatter model.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
+#[schemars(extend("patternProperties" = { "^x-": {} }))]
 pub struct Issue {
     /// The strict contract version.
+    #[schemars(range(min = 1, max = 1))]
     pub schema_version: u8,
     /// The recognized issue document class.
     pub doc_type: IssueDocumentType,
@@ -31,47 +51,60 @@ pub struct Issue {
     /// The issue urgency.
     pub priority: Priority,
     /// The optional positive parent EPIC issue number.
+    #[schemars(range(min = 1))]
     pub epic: Option<u64>,
     /// The optional positive GitHub issue number.
+    #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
+    #[schemars(regex(pattern = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$"))]
     pub spec_path: String,
     /// The development branch name.
+    #[schemars(length(min = 1))]
     pub branch: String,
     /// The optional positive related pull request number.
+    #[schemars(range(min = 1))]
     pub related_pr: Option<u64>,
     /// The required UTC-minute update timestamp.
+    #[schemars(regex(pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"))]
     pub last_updated_utc: String,
     /// The required strict semantic-link envelope.
     pub semantic_links: StrictSemanticLinks,
 }
 
 /// The canonical strict EPIC frontmatter model.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
+#[schemars(extend("patternProperties" = { "^x-": {} }))]
 pub struct Epic {
     /// The strict contract version.
+    #[schemars(range(min = 1, max = 1))]
     pub schema_version: u8,
     /// The recognized EPIC document class.
     pub doc_type: EpicDocumentType,
     /// The current lifecycle state.
     pub status: IssueStatus,
     /// The optional positive parent EPIC issue number.
+    #[schemars(range(min = 1))]
     pub epic: Option<u64>,
     /// The optional positive GitHub issue number.
+    #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
+    #[schemars(regex(pattern = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$"))]
     pub spec_path: String,
     /// The optional owner of the EPIC.
+    #[schemars(length(min = 1))]
     pub epic_owner: Option<String>,
     /// The required UTC-minute update timestamp.
+    #[schemars(regex(pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"))]
     pub last_updated_utc: String,
     /// The required strict semantic-link envelope.
     pub semantic_links: StrictSemanticLinks,
 }
 
 /// The strict semantic-link envelope with frozen v1 reference value types.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct StrictSemanticLinks {
     /// Optional validated repository skill names.
@@ -81,13 +114,15 @@ pub struct StrictSemanticLinks {
 }
 
 /// A validated repository skill name.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(try_from = "String")]
+#[schemars(extend("pattern" = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"))]
 pub struct SkillName(String);
 
 /// A validated v1 related-artifact reference.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(try_from = "String")]
+#[schemars(extend("pattern" = r"^(?:(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"))]
 pub struct RelatedArtifact(String);
 
 impl TryFrom<String> for SkillName {
@@ -115,7 +150,7 @@ impl TryFrom<String> for RelatedArtifact {
 }
 
 /// The fixed document type for strict issue records.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 pub enum IssueDocumentType {
     /// The issue document class.
     #[serde(rename = "issue")]
@@ -123,7 +158,7 @@ pub enum IssueDocumentType {
 }
 
 /// The fixed document type for strict EPIC records.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 pub enum EpicDocumentType {
     /// The EPIC document class.
     #[serde(rename = "epic")]
@@ -131,7 +166,7 @@ pub enum EpicDocumentType {
 }
 
 /// The allowed issue classifications.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum IssueType {
     /// A routine unit of planned work.
@@ -145,7 +180,7 @@ pub enum IssueType {
 }
 
 /// The shared issue and EPIC lifecycle values.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum IssueStatus {
     /// Work is being drafted.
@@ -163,7 +198,7 @@ pub enum IssueStatus {
 }
 
 /// The allowed issue urgency levels.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 pub enum Priority {
     /// Highest urgency.
     #[serde(rename = "p0")]

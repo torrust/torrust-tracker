@@ -7,9 +7,9 @@ priority: p1
 epic: 2264
 github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-branch: "2280-frontmatter-schema-drift-spec"
+branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-22 13:41"
+last-updated-utc: "2026-09-22 16:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,11 +98,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Design schema projection | Verify `schemars` compatibility and expose the canonical v1 schema root without duplicating validation models. |
-| T2 | TODO | Generate and track schema | Add `docs/schemas/frontmatter-v1.schema.json` with Draft 2020-12 metadata and deterministic content. |
-| T3 | TODO | Verify offline drift | Add reproducible regeneration and byte-for-byte drift checking with focused passing and failure coverage. |
-| T4 | TODO | Document schema boundary | Document unsupported invariants and generator usage beside the artifact or in its owning crate documentation. |
-| T5 | TODO | Validate and review | Run focused tests, formatter, Clippy, repository gate, manual offline regeneration, and independent review. |
+| T1 | DONE | Design schema projection | Derived a Draft 2020-12 root from canonical types using `schemars` 1.2.1. |
+| T2 | DONE | Generate and track schema | Added `docs/schemas/frontmatter-v1.schema.json` and deterministic `frontmatter-schema generate`. |
+| T3 | DONE | Verify offline drift | Added byte-for-byte `frontmatter-schema check` plus deterministic and drift-failure tests. |
+| T4 | DONE | Document schema boundary | Documented generator usage and Rust-only invariants in `docs/schemas/README.md`. |
+| T5 | DONE | Validate and review | Focused tests, manual scenarios, independent review, and the full pre-commit gate pass. |
 
 ## Commit Points
 
@@ -123,13 +123,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] GitHub issue #2280 created as the schema-generation follow-up from #2266
 - [x] Local folder-style specification created
 - [x] Specification reviewed and approved by user/maintainer
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded when applicable
+- [x] Spec-only PR #2299 merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded when applicable
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -138,23 +138,37 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   the spec-first workflow and `docs/schemas/frontmatter-v1.schema.json` as the tracked generated
   artifact location - This specification
 - 2026-09-22 13:41 UTC - Maintainer - Approved the #2280 local specification - User conversation
+- 2026-09-22 16:24 UTC - GitHub Copilot - Implemented deterministic Draft 2020-12 generation,
+  tracked schema artifact, byte-for-byte drift command, focused tests, and schema-boundary
+  documentation. `schemars` is pinned to 1.2.1 because registry release 1.2.2 cannot resolve its
+  required `schemars_derive = 1.2.2` package - Focused tests, Clippy, Machete, and `linter all`
+- 2026-09-22 16:37 UTC - GitHub Copilot - Remediated independent-review findings: documented
+  `cargo run --offline` commands, added a disposable `--artifact` check seam, recorded prose-first
+  test design, and re-ran offline drift verification without modifying the tracked artifact -
+  `manual-verification-evidence.md`, `test-design-review.md`
+- 2026-09-22 16:37 UTC - GitHub Copilot - No implementation retrospective is needed: the resolved
+  dependency pin and disposable-artifact command option were local implementation details that did
+  not change schema ownership, artifact placement, or the approved generation design - This log
+- 2026-09-22 16:44 UTC - GitHub Copilot - Completed focused offline tests and schema check,
+  `linter all`, and the eight-step pre-commit gate; the independent follow-up review passed with no
+  remaining #2280 blockers - `agent-review-reports.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: The JSON Schema is generated from canonical Rust v1 types in `frontmatter-validator`,
+- [x] AC1: The JSON Schema is generated from canonical Rust v1 types in `frontmatter-validator`,
       not from an independently maintained schema model.
-- [ ] AC2: `docs/schemas/frontmatter-v1.schema.json` declares and conforms to JSON Schema Draft
+- [x] AC2: `docs/schemas/frontmatter-v1.schema.json` declares and conforms to JSON Schema Draft
       2020-12.
-- [ ] AC3: Documented regeneration and drift-verification commands are deterministic and run
+- [x] AC3: Documented regeneration and drift-verification commands are deterministic and run
       offline using the workspace Rust toolchain.
-- [ ] AC4: Focused drift coverage fails when the tracked generated artifact differs from the
+- [x] AC4: Focused drift coverage fails when the tracked generated artifact differs from the
       deterministic generator output.
-- [ ] AC5: Documentation identifies every material invariant still enforced by Rust or a later
+- [x] AC5: Documentation identifies every material invariant still enforced by Rust or a later
       command layer rather than by the JSON Schema.
-- [ ] Relevant Rust tests and `linter all` exit with code `0`.
-- [ ] Manual offline regeneration and drift verification are recorded in
+- [x] Relevant Rust tests and `linter all` exit with code `0`.
+- [x] Manual offline regeneration and drift verification are recorded in
       `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -171,9 +185,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | DONE | `manual-verification-evidence.md` section V1 |
+| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | DONE | `manual-verification-evidence.md` section V2 |
 
 ## Risks and Trade-offs
 

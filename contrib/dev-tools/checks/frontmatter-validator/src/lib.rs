@@ -6,6 +6,8 @@ use serde_yaml::{Mapping, Value};
 
 pub mod profile;
 
+pub use profile::v1_schema;
+
 /// A parsed Markdown frontmatter block.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Frontmatter {
@@ -181,8 +183,35 @@ fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<Sema
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value as JsonValue;
+
     use super::profile::Profile;
-    use super::{DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership};
+    use super::{DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership, v1_schema};
+
+    #[test]
+    fn it_should_generate_a_draft_2020_12_schema_for_the_strict_v1_profiles() {
+        // Arrange: the canonical strict issue and EPIC models define the v1 contract.
+
+        // Act: generate their JSON Schema projection.
+        let schema = serde_json::to_value(v1_schema()).unwrap();
+
+        // Assert: the root declares Draft 2020-12 and exposes exactly the two strict profiles.
+        assert_eq!(
+            schema["$schema"],
+            JsonValue::String(String::from("https://json-schema.org/draft/2020-12/schema"))
+        );
+        assert_eq!(schema["anyOf"].as_array().map(Vec::len), Some(2));
+        assert!(schema["$defs"].get("Issue").is_some());
+        assert!(schema["$defs"].get("Epic").is_some());
+        assert_eq!(schema["$defs"]["Issue"]["properties"]["schema-version"]["minimum"], 1);
+        assert!(schema["$defs"]["Issue"]["patternProperties"].get("^x-").is_some());
+        assert!(schema["$defs"]["Epic"]["patternProperties"].get("^x-").is_some());
+        assert_eq!(schema["$defs"]["SkillName"]["pattern"], "^[a-z0-9]+(?:-[a-z0-9]+)*$");
+        assert_eq!(
+            schema["$defs"]["RelatedArtifact"]["pattern"],
+            "^(?:(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"
+        );
+    }
 
     // Extraction owns delimiter, YAML, mapping-root, and universal-envelope shape decisions.
     // Strict profile parsing owns the v1 structural and reference-syntax decisions. External
