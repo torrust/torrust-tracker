@@ -14,12 +14,16 @@ semantic-links:
 
 Source: pull-request reviews and inline review threads for <PR_URL>.
 
+<!-- Copied verbatim into each audit record after placeholder replacement. -->
+
 ## Ownership
 
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
 - Post-merge workflow approval: <DURABLE_GITHUB_COMMENT_URL_OR_NA>
+
+<!-- Copied verbatim into each audit record. -->
 
 ## Status Values
 
@@ -33,6 +37,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Author class: `Copilot`, `Human`, `Unknown`
 - Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
   `documentation`, `maintainability`, `security`, `other`
+
+<!-- Guidance omitted from an audit record; instantiate the heading and table below. -->
 
 ## Findings
 
@@ -57,11 +63,13 @@ need review-finding references.
 
 Record each finding in two coordinated places: one compact tracking row below, and one matching
 entry in `## Finding Details` for the narrative fields. The pair shares the finding ID and
-together records every required audit field.
+together records every field in the [canonical roster](../../.github/skills/dev/pr-reviews/process-pr-review/SKILL.md#required-audit-fields).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <AUTHOR_CLASS> | <SEVERITY> | <CATEGORY> | <RELATIONSHIP> | <DISPOSITION> | <THREAD_STATE> |
+
+<!-- Guidance omitted from an audit record; instantiate the heading and entries below. -->
 
 ## Finding Details
 
@@ -81,9 +89,13 @@ readable as prose; this section carries the source metadata and verification evi
 - Follow-up PR URL: <DURABLE_FOLLOW_UP_PR_URL_OR_NA>
 - Reply URL: <REPLY_URL_OR_NA>
 
+<!-- Guidance omitted from an audit record; append only audit events below. -->
+
 ## Processing Log
 
 - <YYYY-MM-DD HH:MM UTC> - Started audit.
+
+<!-- Copied verbatim into each audit record. -->
 
 ## Completion Rules
 

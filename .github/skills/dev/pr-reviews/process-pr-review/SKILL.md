@@ -130,16 +130,44 @@ maintainer approved that audit update. Do not silently turn a late review into a
 
 ## Required Audit Fields
 
-Every new normalized finding records PR number, source review ID, source URL,
-author class, finding ID, review finding reference, severity, category, summary,
-relationship, disposition, current-tree verification, resolution reference, reply
-URL, optional reviewer finding ID when reassigned, follow-up PR URL, and thread
-state. Record a post-merge approval URL once in the audit's Ownership section,
-rather than repeating it in each detail entry. Record each finding as one compact
-tracking row (finding ID, review finding reference, author class, severity,
-category, relationship, disposition, thread state) plus one matching detail entry
-carrying the remaining narrative and source-metadata fields, as laid out in the
-audit template. The immutable repository reference is
+Every new normalized finding has the following 19 fields. This list is the
+canonical roster; the skeleton in `PR-REVIEW-TEMPLATE.md` must match its field
+names and order exactly.
+
+### Tracking Row Fields
+
+- Finding ID
+- Review finding reference
+- Author class
+- Severity
+- Category
+- Relationship
+- Disposition
+- Thread state
+
+### Detail-Entry Heading Field
+
+- Summary
+
+### Detail-Entry Fields
+
+- PR number
+- Source review ID
+- Reviewer finding ID
+- Source URL
+- Concern
+- Solution
+- Current-tree verification
+- Resolution reference
+- Follow-up PR URL
+- Reply URL
+
+Record a post-merge approval URL once in the audit's Ownership section, rather
+than repeating it in each detail entry. `Reviewer finding ID` is optional: record
+the original ID when reassigned; otherwise use `N/A`. Record each finding as one compact
+tracking row plus one matching detail entry carrying the remaining narrative and
+source-metadata fields, as laid out in the audit template. The immutable
+repository reference is
 `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with a lowercase finding ID; use it
 when another repository artifact needs to cite the finding. GitHub identifiers
 remain source metadata, not the canonical finding reference. Never change the
