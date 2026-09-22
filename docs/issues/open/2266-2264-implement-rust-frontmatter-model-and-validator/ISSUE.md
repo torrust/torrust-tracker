@@ -8,7 +8,7 @@ github-issue: 2266
 spec-path: docs/issues/open/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md
 branch: "2266-rust-frontmatter-model-validator"
 related-pr: 2269
-last-updated-utc: "2026-09-21 20:35"
+last-updated-utc: "2026-09-21 20:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -283,6 +283,14 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   `semantic-links` whether or not nested metadata exists. Added direct regressions for both
   boundaries. Focused validation passed: `cargo test --package frontmatter-validator` (28 tests),
   nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
+  frontmatter-validator -- -D warnings` -
+  `contrib/dev-tools/checks/frontmatter-validator/`
+- 2026-09-21 20:55 UTC - GitHub Copilot - Corrected the final scalar review findings: strict
+  issue/EPIC candidates with a present non-integer `schema-version` now report a scalar error, and
+  strict timestamp validation retains the extracted YAML source to require the contract's
+  double-quoted UTC-minute scalar form. Added direct regressions for quoted schema version and
+  unquoted timestamp cases. Focused validation passed: `cargo test --package frontmatter-validator`
+  (30 tests), nightly Rust `cargo +nightly fmt --all -- --check`, and `cargo clippy --package
   frontmatter-validator -- -D warnings` -
   `contrib/dev-tools/checks/frontmatter-validator/`
 

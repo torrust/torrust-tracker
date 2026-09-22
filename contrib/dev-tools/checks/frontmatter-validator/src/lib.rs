@@ -11,6 +11,8 @@ pub mod profile;
 pub struct Frontmatter {
     /// The complete YAML mapping for later profile-specific validation.
     pub values: Mapping,
+    /// The original YAML source for strict scalar-style validation.
+    pub(crate) yaml: String,
     /// The optional repository-owned universal metadata extension.
     pub semantic_links: Option<SemanticLinks>,
 }
@@ -101,7 +103,11 @@ pub fn extract(markdown: &str) -> Result<Option<Frontmatter>, Diagnostic> {
     };
     let semantic_links = semantic_links(&values)?;
 
-    Ok(Some(Frontmatter { values, semantic_links }))
+    Ok(Some(Frontmatter {
+        values,
+        yaml,
+        semantic_links,
+    }))
 }
 
 fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
@@ -464,6 +470,19 @@ mod tests {
     }
 
     #[test]
+    fn it_should_reject_an_unquoted_strict_timestamp() {
+        // Arrange: a v1 EPIC record uses a valid-looking but plain YAML timestamp scalar.
+        let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: 2026-09-21 20:35\nsemantic-links: {}\n---\n# EPIC\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: validate the strict EPIC profile.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the strict contract requires a double-quoted timestamp string.
+        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
     fn it_should_reject_an_impossible_strict_timestamp() {
         // Arrange: a v1 EPIC record has syntactically shaped but impossible calendar and clock values.
         let markdown = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-99-99 99:99\"\nsemantic-links: {}\n---\n# EPIC\n";
@@ -499,6 +518,19 @@ mod tests {
         let error = super::profile::validate(&frontmatter).unwrap_err();
 
         // Assert: the strict-profile dispatcher identifies the scalar-type violation.
+        assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
+    }
+
+    #[test]
+    fn it_should_reject_a_non_integer_schema_version_for_a_strict_issue_candidate() {
+        // Arrange: an issue-shaped v1 candidate quotes its schema-version integer.
+        let markdown = "---\nschema-version: \"1\"\ndoc-type: issue\n---\n# Invalid issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify and validate the frontmatter.
+        let error = super::profile::validate(&frontmatter).unwrap_err();
+
+        // Assert: the schema version must remain an unquoted YAML integer.
         assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
     }
 

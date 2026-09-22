@@ -106,3 +106,14 @@ semantic-links:
 - Verification: `cargo test --package frontmatter-validator` passed 28 tests; nightly Rust
   `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
   warnings` passed.
+
+### 2026-09-21 20:55 UTC - GitHub Copilot - Strict Scalar Correction
+
+- Response to the final scalar findings: issue/EPIC candidates with a present but non-integer
+  `schema-version` now receive `wrong-scalar-type`; the parsed frontmatter retains its YAML source
+  so strict `last-updated-utc` validation can require a double-quoted scalar in addition to valid
+  calendar and clock values.
+- Regression coverage: added isolated quoted-schema-version and unquoted-timestamp cases.
+- Verification: `cargo test --package frontmatter-validator` passed 30 tests; nightly Rust
+  `cargo +nightly fmt --all -- --check` and `cargo clippy --package frontmatter-validator -- -D
+  warnings` passed.

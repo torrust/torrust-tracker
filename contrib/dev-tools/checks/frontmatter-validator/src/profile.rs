@@ -193,14 +193,28 @@ pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
     };
 
     match doc_type {
-        "issue" => validate_issue(&frontmatter.values, frontmatter.semantic_links.as_ref()).map(Profile::Issue),
-        "epic" => validate_epic(&frontmatter.values, frontmatter.semantic_links.as_ref()).map(Profile::Epic),
+        "issue" => {
+            validate_issue(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Issue)
+        }
+        "epic" => validate_epic(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Epic),
         _ => Ok(Profile::Permissive),
     }
 }
 
 fn strict_document_type(values: &Mapping) -> Result<Option<&str>, Diagnostic> {
-    let Some(schema_version) = values.get(field_key("schema-version")).and_then(Value::as_i64) else {
+    let Some(schema_version) = values.get(field_key("schema-version")) else {
+        return Ok(None);
+    };
+    let doc_type = values.get(field_key("doc-type")).and_then(Value::as_str);
+    let is_strict_profile_candidate = matches!(doc_type, Some("issue" | "epic"));
+    let Some(schema_version) = schema_version.as_i64() else {
+        if is_strict_profile_candidate {
+            return Err(Diagnostic {
+                category: DiagnosticCategory::WrongScalarType,
+                message: String::from("`schema-version` must be a YAML integer."),
+            });
+        }
+
         return Ok(None);
     };
     if schema_version != 1 {
@@ -223,7 +237,7 @@ fn strict_document_type(values: &Mapping) -> Result<Option<&str>, Diagnostic> {
     Ok(Some(doc_type))
 }
 
-fn validate_issue(values: &Mapping, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
+fn validate_issue(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
     validate_known_fields(values, ISSUE_FIELDS)?;
     validate_required_fields(values, ISSUE_FIELDS)?;
     validate_allowed_string(values, "issue-type", &["task", "bug", "feature", "enhancement"])?;
@@ -235,12 +249,12 @@ fn validate_issue(values: &Mapping, semantic_links: Option<&SemanticLinks>) -> R
     validate_allowed_string(values, "priority", &["p0", "p1", "p2", "p3"])?;
     validate_reference_syntax(semantic_links)?;
     let issue = deserialize_strict(values)?;
-    validate_issue_invariants(&issue)?;
+    validate_issue_invariants(&issue, yaml)?;
 
     Ok(issue)
 }
 
-fn validate_epic(values: &Mapping, semantic_links: Option<&SemanticLinks>) -> Result<Epic, Diagnostic> {
+fn validate_epic(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Epic, Diagnostic> {
     validate_known_fields(values, EPIC_FIELDS)?;
     validate_required_fields(values, EPIC_FIELDS)?;
     validate_allowed_string(
@@ -250,7 +264,7 @@ fn validate_epic(values: &Mapping, semantic_links: Option<&SemanticLinks>) -> Re
     )?;
     validate_reference_syntax(semantic_links)?;
     let epic = deserialize_strict(values)?;
-    validate_epic_invariants(&epic)?;
+    validate_epic_invariants(&epic, yaml)?;
 
     Ok(epic)
 }
@@ -320,23 +334,23 @@ fn is_lowercase_identifier(value: &str) -> bool {
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
-fn validate_issue_invariants(issue: &Issue) -> Result<(), Diagnostic> {
+fn validate_issue_invariants(issue: &Issue, yaml: &str) -> Result<(), Diagnostic> {
     validate_optional_positive_integer("epic", issue.epic)?;
     validate_optional_positive_integer("github-issue", issue.github_issue)?;
     validate_optional_positive_integer("related-pr", issue.related_pr)?;
     validate_repository_relative_path("spec-path", &issue.spec_path)?;
     validate_non_empty_string("branch", &issue.branch)?;
-    validate_utc_minute_string(&issue.last_updated_utc)
+    validate_utc_minute_string(&issue.last_updated_utc, yaml)
 }
 
-fn validate_epic_invariants(epic: &Epic) -> Result<(), Diagnostic> {
+fn validate_epic_invariants(epic: &Epic, yaml: &str) -> Result<(), Diagnostic> {
     validate_optional_positive_integer("epic", epic.epic)?;
     validate_optional_positive_integer("github-issue", epic.github_issue)?;
     validate_repository_relative_path("spec-path", &epic.spec_path)?;
     if let Some(owner) = &epic.epic_owner {
         validate_non_empty_string("epic-owner", owner)?;
     }
-    validate_utc_minute_string(&epic.last_updated_utc)
+    validate_utc_minute_string(&epic.last_updated_utc, yaml)
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
@@ -363,7 +377,7 @@ fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Dia
     Ok(())
 }
 
-fn validate_utc_minute_string(value: &str) -> Result<(), Diagnostic> {
+fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic> {
     let bytes = value.as_bytes();
     let has_expected_separators = bytes.get(4) == Some(&b'-')
         && bytes.get(7) == Some(&b'-')
@@ -374,13 +388,24 @@ fn validate_utc_minute_string(value: &str) -> Result<(), Diagnostic> {
         .enumerate()
         .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
         .all(|(_, byte)| byte.is_ascii_digit());
-    if bytes.len() != 16 || !has_expected_separators || !has_ascii_digits || !is_valid_utc_minute(value) {
+    if bytes.len() != 16
+        || !has_expected_separators
+        || !has_ascii_digits
+        || !is_valid_utc_minute(value)
+        || !has_double_quoted_timestamp(yaml)
+    {
         return Err(invalid_field_value(String::from(
             "`last-updated-utc` must use the YYYY-MM-DD HH:MM UTC-minute format.",
         )));
     }
 
     Ok(())
+}
+
+fn has_double_quoted_timestamp(yaml: &str) -> bool {
+    yaml.lines()
+        .find_map(|line| line.strip_prefix("last-updated-utc:").map(str::trim))
+        .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
 }
 
 fn is_valid_utc_minute(value: &str) -> bool {
