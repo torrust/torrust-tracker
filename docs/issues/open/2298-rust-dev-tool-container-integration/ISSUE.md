@@ -7,7 +7,7 @@ priority: p2
 epic: null
 github-issue: 2298
 spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-branch: "{issue-number}-rust-dev-tool-container-integration"
+branch: "2298-rust-dev-tool-container-integration-spec"
 related-pr: 2293
 last-updated-utc: 2026-09-22 13:17
 semantic-links:
