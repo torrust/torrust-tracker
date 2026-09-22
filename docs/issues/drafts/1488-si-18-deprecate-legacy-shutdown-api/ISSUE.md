@@ -125,7 +125,7 @@ source-compatible and has no runtime impact.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. This source-deprecation task must state whether executable-boundary verification is non-applicable; if its implementation changes a supported runtime path, follow the EPIC executable-boundary protocol.
 
 1. Link the completed migration verification records and final task inventory.
 2. Compile representative code using each deprecated API; record the expected

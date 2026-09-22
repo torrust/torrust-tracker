@@ -183,6 +183,17 @@ deterministic tests, and manual evidence.
   owner-joined completion without exposing nested task handles to `JobManager`.
 - Each task requires deterministic token/lifecycle tests. OS signals and
   Docker/Podman behavior are end-to-end verification, not unit-test mechanisms.
+- Every runtime-affecting shutdown work item must record issue-local
+  executable-boundary verification in `manual-verification-evidence.md`: start
+  the affected tracker or standalone binary with a configuration that enables
+  the changed service, establish readiness, signal the actual binary PID (not
+  only a `cargo run` parent) with `SIGTERM`, capture bounded exit status and
+  shutdown output, then restart or otherwise prove listener/resource release.
+  Repeat with `SIGINT` when the work changes an executable signal boundary.
+  An additive API that has no production consumer records this as supported-path
+  regression evidence and states that limitation; its first consumer migration
+  proves the new production path. Pure documentation or test-only tasks may
+  record a reasoned non-applicability decision instead.
 - Each task must have a documented rollback/revert story: revert the component
   migration while the legacy API remains available, or revert an additive API
   without changing existing consumers.

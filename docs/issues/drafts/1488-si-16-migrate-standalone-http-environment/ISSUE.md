@@ -123,7 +123,7 @@ standalone UDP environment/example and other components are unaffected.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol for the standalone binary: signal its direct PID, capture bounded completion and exit status, and prove the HTTP binding is released.
 
 1. Run deterministic environment tests that call `stop()` or cancel its token
    without delivering an OS signal. Record proof that listener and server work

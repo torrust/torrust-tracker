@@ -8,7 +8,7 @@ github-issue: 2274
 spec-path: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
 branch: "2274-1488-si-10-add-token-aware-axum-drain-helper"
 related-pr: 2275
-last-updated-utc: 2026-09-21 17:49
+last-updated-utc: 2026-09-22 06:23
 semantic-links:
   skill-links:
     - create-issue
@@ -182,6 +182,7 @@ Test-producing work must use the `write-unit-test` skill. After each passing tes
 - 2026-09-21 18:12 UTC - GitHub Copilot - Added a retained `token_aware_drain` real-server example after the independent completion review found manual scenarios mandatory. It owns and awaits both the helper and server tasks, verifies a released `Connection: close` request drains, and verifies a held request reports `TimedOut`. The first manual run showed that releasing the handler alone leaves an unread connection active; the example now reads the response before asserting `Drained`. Manual evidence and focused verification output are recorded in this folder.
 - 2026-09-21 18:16 UTC - Task Reviewer - Final independent review passed. The retained example now also verifies that a real new loopback connection is refused after cancellation and before releasing the original request. All acceptance criteria and T5 are complete; automatic verification remains pending the installed pre-push hook on push.
 - 2026-09-21 18:23 UTC - GitHub Copilot - Pushed the rebased implementation branch to the `josecelano` fork. The installed pre-push hook passed nightly formatting, nightly workspace checks, nightly documentation build, and the full test suite; automatic verification is complete.
+- 2026-09-22 06:23 UTC - GitHub Copilot - Ran the direct local tracker binary twice with one configured loopback HTTP tracker and health-check API. Each healthy process received `SIGTERM` at its exact PID, exited with status 0, and logged orderly shutdown. The immediate second start rebound the same listeners. This is a regression check for the supported legacy tracker path, not evidence that the unconsumed SI-10 helper runs in production; SI-11 owns that first migrated HTTP-path proof.
 
 ## Acceptance Criteria
 
@@ -217,9 +218,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Inspect helper ownership | Review the implemented helper and its caller-side use; confirm it takes `CancellationToken` and `drain_timeout`, returns a typed outcome, and contains no detached `tokio::spawn`. | The component can await or retain every drain task it owns, and the timeout starts only after cancellation. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Exercise graceful drain | Start a representative Axum server using the new helper, establish an in-flight connection, cancel its token, then observe the connection finish before `drain_timeout` elapses. | New connections stop, the in-flight connection drains, and the helper returns the drained outcome. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Exercise timeout outcome | Repeat M2 with a connection that remains active past a deliberately small `drain_timeout`. | The helper returns the timeout outcome without an OS signal. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Inspect helper ownership | Review the implemented helper and its caller-side use; confirm it takes `CancellationToken` and `drain_timeout`, returns a typed outcome, and contains no detached `tokio::spawn`. | The component can await or retain every drain task it owns, and the timeout starts only after cancellation. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Exercise graceful drain | Start a representative Axum server using the new helper, establish an in-flight connection, cancel its token, then observe the connection finish before `drain_timeout` elapses. | New connections stop, the in-flight connection drains, and the helper returns the drained outcome. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Exercise timeout outcome | Repeat M2 with a connection that remains active past a deliberately small `drain_timeout`. | The helper returns the timeout outcome without an OS signal. | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Regress supported tracker shutdown | Start the direct tracker binary with one configured HTTP tracker, verify it is healthy, signal its exact PID with `SIGTERM`, then immediately restart it with the same listener bindings. | Each process logs orderly shutdown, exits 0, and the restart proves listener bindings were released. | DONE | `manual-verification-evidence.md` section V4 |
 
 Manual verification is mandatory. Create `manual-verification-evidence.md` from the repository template when executing these scenarios and record actual commands, toolchain/runtime, output, relevant logs, and results. Record any failed scenario and diagnosis in the progress log before proceeding.
 
@@ -248,7 +250,7 @@ None planned. The behaviors belong in maintained Rust tests; manual scenarios us
 
 After implementation, compare the result with this specification; record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: Not yet assessed.
+- Retrospective: `implementation-retrospective.md` records the material discovery that handler completion does not itself prove a TCP connection drained.
 - Create `implementation-retrospective.md` from the repository template for material discoveries, design changes, or deviations; otherwise add a concise progress-log entry explaining why none was needed.
 - When an independent reviewer receives this folder-style specification, it records its result in `agent-review-reports.md` using the repository template.
 

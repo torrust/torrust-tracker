@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
-last-updated-utc: 2026-09-21 18:12
+last-updated-utc: 2026-09-22 06:23
 ---
 
 # Manual Verification Evidence
@@ -93,6 +93,70 @@ The example exited with status 0 only after the held-request scenario asserted
 
 The helper reported a timeout without an OS signal. A component caller can
 observe that typed outcome and owns escalation policy.
+
+### V4 - Direct Tracker Process Regression
+
+- Goal: Verify that the supported configured tracker process remains healthy,
+  handles `SIGTERM` at its executable boundary, exits cleanly, and releases its
+  HTTP listener after this additive helper change.
+- Scope: This does not execute `graceful_shutdown_on_cancellation` in
+  production because no tracker consumer uses it yet. It is compatibility
+  regression evidence for the existing legacy HTTP path; SI-11 owns the first
+  migrated-path proof.
+- Status: `DONE`
+
+#### Tested Configuration
+
+The ignored local configuration `.tmp/2274-tracker-shutdown.toml` used SQLite
+storage under `.tmp/` and configured:
+
+```toml
+[[http_trackers]]
+bind_address = "127.0.0.1:17070"
+tracker_usage_statistics = false
+
+[health_check_api]
+bind_address = "127.0.0.1:11313"
+```
+
+#### Steps Performed
+
+1. Built or confirmed `./target/debug/torrust-tracker`.
+2. Started that direct binary, not `cargo run`, with the isolated
+   configuration and captured each run's output in `.tmp/2274-<run>.log`.
+3. Waited for `GET http://127.0.0.1:11313/health_check` to return success.
+4. Sent `kill -TERM <exact-direct-binary-pid>` and waited for the process.
+5. Immediately repeated the same start and stop using the identical bindings.
+
+#### Terminal Output
+
+```text
+first_PID=520315
+first_HEALTH_CHECK=OK
+first_SIGTERM_EXIT=0
+2026-09-22T06:23:28.817373Z  INFO torrust_tracker: Tracker shutdown signal handlers installed.
+2026-09-22T06:23:28.826997Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-09-22T06:23:28.827336Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+restart_PID=520361
+restart_HEALTH_CHECK=OK
+restart_SIGTERM_EXIT=0
+2026-09-22T06:23:28.864796Z  INFO torrust_tracker: Tracker shutdown signal handlers installed.
+2026-09-22T06:23:28.875266Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-09-22T06:23:28.875598Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+HTTP_LISTENER_REBIND=OK
+CONFIGURED_HTTP_TRACKER=127.0.0.1:17070
+CONFIGURED_HEALTH_CHECK=127.0.0.1:11313
+```
+
+The first and restart logs both record `HTTP TRACKER Started on:
+http://127.0.0.1:17070`, a successful health-check response, the legacy Axum
+drain completion, and `Torrust tracker successfully shutdown.`
+
+#### Conclusion
+
+Both direct processes became healthy, shut down with `SIGTERM` and exit status
+0, and the immediate restart rebound the configured HTTP listener. The current
+tracker's legacy shutdown behavior remains operational.
 
 ## Failures and Follow-up
 

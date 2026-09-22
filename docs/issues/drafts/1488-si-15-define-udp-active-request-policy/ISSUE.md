@@ -136,7 +136,7 @@ or standalone consumer is changed.
 
 ## Manual Verification
 
-Record evidence in `verification.md` before closing this issue.
+Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol: signal the direct tracker binary PID, capture bounded completion and exit status, and prove affected bindings are released.
 
 1. Run deterministic tests with controlled request completion and deadline
    expiry, recording completed, failed, and aborted counts.
