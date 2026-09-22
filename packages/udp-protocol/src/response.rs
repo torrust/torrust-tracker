@@ -263,38 +263,59 @@ mod tests {
         }
     }
 
-    fn same_after_conversion(response: &Response, ipv4: bool) -> bool {
-        let mut buf = Vec::new();
+    #[quickcheck]
+    fn it_should_preserve_connect_response_when_encoded_and_parsed(response: ConnectResponse) {
+        // Arrange
+        let response = Response::from(response);
+        let mut bytes = Vec::new();
 
-        response.write_bytes(&mut buf).unwrap();
-        let r2 = Response::parse_bytes(&buf[..], ipv4).unwrap();
+        // Act
+        response.write_bytes(&mut bytes).unwrap();
+        let parsed_response = Response::parse_bytes(&bytes, true).unwrap();
 
-        let success = response == &r2;
-
-        if !success {
-            ::pretty_assertions::assert_eq!(response, &r2);
-        }
-
-        success
+        // Assert
+        ::pretty_assertions::assert_eq!(response, parsed_response);
     }
 
     #[quickcheck]
-    fn test_connect_response_convert_identity(response: ConnectResponse) -> bool {
-        same_after_conversion(&response.into(), true)
+    fn it_should_preserve_ipv4_announce_response_when_encoded_and_parsed(response: AnnounceResponse<Ipv4AddrBytes>) {
+        // Arrange
+        let response = Response::from(response);
+        let mut bytes = Vec::new();
+
+        // Act
+        response.write_bytes(&mut bytes).unwrap();
+        let parsed_response = Response::parse_bytes(&bytes, true).unwrap();
+
+        // Assert
+        ::pretty_assertions::assert_eq!(response, parsed_response);
     }
 
     #[quickcheck]
-    fn test_announce_response_ipv4_convert_identity(response: AnnounceResponse<Ipv4AddrBytes>) -> bool {
-        same_after_conversion(&response.into(), true)
+    fn it_should_preserve_ipv6_announce_response_when_encoded_and_parsed(response: AnnounceResponse<Ipv6AddrBytes>) {
+        // Arrange
+        let response = Response::from(response);
+        let mut bytes = Vec::new();
+
+        // Act
+        response.write_bytes(&mut bytes).unwrap();
+        let parsed_response = Response::parse_bytes(&bytes, false).unwrap();
+
+        // Assert
+        ::pretty_assertions::assert_eq!(response, parsed_response);
     }
 
     #[quickcheck]
-    fn test_announce_response_ipv6_convert_identity(response: AnnounceResponse<Ipv6AddrBytes>) -> bool {
-        same_after_conversion(&response.into(), false)
-    }
+    fn it_should_preserve_scrape_response_when_encoded_and_parsed(response: ScrapeResponse) {
+        // Arrange
+        let response = Response::from(response);
+        let mut bytes = Vec::new();
 
-    #[quickcheck]
-    fn test_scrape_response_convert_identity(response: ScrapeResponse) -> bool {
-        same_after_conversion(&response.into(), true)
+        // Act
+        response.write_bytes(&mut bytes).unwrap();
+        let parsed_response = Response::parse_bytes(&bytes, true).unwrap();
+
+        // Assert
+        ::pretty_assertions::assert_eq!(response, parsed_response);
     }
 }

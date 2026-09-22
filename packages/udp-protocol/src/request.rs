@@ -254,65 +254,90 @@ mod tests {
         }
     }
 
-    fn same_after_conversion(request: &Request) -> bool {
-        let mut buf = Vec::new();
+    #[quickcheck]
+    fn it_should_preserve_connect_request_when_encoded_and_parsed(request: ConnectRequest) {
+        // Arrange
+        let request = Request::from(request);
+        let mut bytes = Vec::new();
 
-        request.write_bytes(&mut buf).unwrap();
-        let r2 = Request::parse_bytes(&buf[..], u8::MAX).unwrap();
+        // Act
+        request.write_bytes(&mut bytes).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
 
-        let success = request == &r2;
-
-        if !success {
-            ::pretty_assertions::assert_eq!(request, &r2);
-        }
-
-        success
+        // Assert
+        ::pretty_assertions::assert_eq!(request, parsed_request);
     }
 
     #[quickcheck]
-    fn test_connect_request_convert_identity(request: ConnectRequest) -> bool {
-        same_after_conversion(&request.into())
+    fn it_should_preserve_announce_request_when_encoded_and_parsed(request: AnnounceRequest) {
+        // Arrange
+        let request = Request::from(request);
+        let mut bytes = Vec::new();
+
+        // Act
+        request.write_bytes(&mut bytes).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
+
+        // Assert
+        ::pretty_assertions::assert_eq!(request, parsed_request);
     }
 
     #[quickcheck]
-    fn test_announce_request_convert_identity(request: AnnounceRequest) -> bool {
-        same_after_conversion(&request.into())
-    }
-
-    #[quickcheck]
-    fn test_scrape_request_convert_identity(request: ScrapeRequest) -> TestResult {
+    fn it_should_preserve_scrape_request_when_encoded_and_parsed(request: ScrapeRequest) -> TestResult {
+        // Arrange
         if request.info_hashes.is_empty() {
             return TestResult::discard();
         }
 
-        TestResult::from_bool(same_after_conversion(&request.into()))
+        let request = Request::from(request);
+        let mut bytes = Vec::new();
+
+        // Act
+        request.write_bytes(&mut bytes).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
+
+        // Assert
+        TestResult::from_bool(request == parsed_request)
     }
 
     #[test]
-    fn test_various_input_lengths() {
+    fn it_should_not_panic_when_parsing_supported_actions_at_all_packet_lengths() {
         for action in 0i32..4 {
             for max_scrape_torrents in 0..3 {
                 for num_bytes in 0..256 {
+                    // Arrange
                     let mut request_bytes = ::std::iter::repeat_n(0, num_bytes).collect::<Vec<_>>();
 
                     if let Some(action_bytes) = request_bytes.get_mut(8..12) {
                         action_bytes.copy_from_slice(&action.to_be_bytes());
                     }
 
-                    drop(Request::parse_bytes(&request_bytes, max_scrape_torrents));
+                    // Act
+                    let parsing_result = std::panic::catch_unwind(|| Request::parse_bytes(&request_bytes, max_scrape_torrents));
+
+                    // Assert
+                    assert!(
+                        parsing_result.is_ok(),
+                        "parsing action {action} with {num_bytes} bytes and max scrape torrents {max_scrape_torrents} panicked"
+                    );
                 }
             }
         }
     }
 
     #[test]
-    fn test_scrape_request_with_no_info_hashes() {
+    fn it_should_reject_scrape_request_without_info_hashes() {
+        // Arrange
         let mut request_bytes = Vec::new();
 
         request_bytes.extend(0i64.to_be_bytes());
         request_bytes.extend(2i32.to_be_bytes());
         request_bytes.extend(0i32.to_be_bytes());
 
-        Request::parse_bytes(&request_bytes, 1).unwrap_err();
+        // Act
+        let parsing_result = Request::parse_bytes(&request_bytes, 1);
+
+        // Assert
+        assert!(parsing_result.is_err());
     }
 }
