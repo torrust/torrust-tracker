@@ -1,8 +1,10 @@
 ---
+spec-path: docs/issues/closed/2295-2278-single-source-audit-roster/agent-review-reports.md
+last-updated-utc: "2026-09-22"
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
-    - docs/issues/open/2295-2278-single-source-audit-roster/manual-verification-evidence.md
+    - docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md
+    - docs/issues/closed/2295-2278-single-source-audit-roster/manual-verification-evidence.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
 ---

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2295-2278-single-source-audit-roster/ISSUE.md
-last-updated-utc: "2026-09-22 13:16"
+issue-spec: docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md
+last-updated-utc: "2026-09-22"
 ---
 
 # Manual Verification Evidence
