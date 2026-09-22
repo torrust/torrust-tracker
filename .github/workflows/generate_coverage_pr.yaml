@@ -46,7 +46,7 @@ jobs:
         name: Discover Changed Packages
         working-directory: head
         run: |
-          discovery=$(cargo run -p package-coverage-regression -- matrix \
+          discovery=$(cargo run -p package-coverage-check -- matrix \
             "$GITHUB_WORKSPACE/base" \
             "$GITHUB_WORKSPACE/head" \
             "${{ github.event.pull_request.base.sha }}" \
@@ -104,7 +104,7 @@ jobs:
       - name: Compare Package Coverage
         working-directory: head
         run: |
-          cargo run -p package-coverage-regression -- compare \
+          cargo run -p package-coverage-check -- compare \
             "${{ matrix.package }}" \
             "$GITHUB_WORKSPACE/base-codecov.json" \
             "$GITHUB_WORKSPACE/base/${{ matrix.base_directory }}/src" \

@@ -129,7 +129,7 @@ members = [
   "contrib/dev-tools/checks/agent-review-report-contract",
   "contrib/dev-tools/checks/clippy-allow-reasons",
   "contrib/dev-tools/checks/frontmatter-validator",
-  "contrib/dev-tools/checks/package-coverage-regression",
+  "contrib/dev-tools/checks/package-coverage-check",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
   "packages/rest-api-application",

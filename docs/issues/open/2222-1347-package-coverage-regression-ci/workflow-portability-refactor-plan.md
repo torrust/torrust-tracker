@@ -7,7 +7,7 @@ last-updated-utc: 2026-09-22 06:58
 semantic-links:
   related-artifacts:
     - .github/workflows/generate_coverage_pr.yaml
-    - contrib/dev-tools/checks/package-coverage-regression/
+   - contrib/dev-tools/checks/package-coverage-check/
     - AGENTS.md
       - .github/workflows/AGENTS.md
       - .github/skills/dev/ci/implement-workflow/SKILL.md
@@ -47,7 +47,7 @@ be able to call the same commands and consume their JSON or Markdown output.
 
 ## Items
 
-### 1. [ ] Rename the CI tool to `package-coverage-check` [High impact / Low effort]
+### 1. [x] Rename the CI tool to `package-coverage-check` [High impact / Low effort]
 
 **Problem**: `package-coverage-regression` sounds like an application workspace
 package. Its actual location is `contrib/dev-tools/checks/`, where it is
@@ -57,7 +57,7 @@ repository-owned CI/developer tooling. The current name obscures that boundary.
 
 - `Cargo.toml`
 - `Cargo.lock`
-- `contrib/dev-tools/checks/package-coverage-regression/`
+- `contrib/dev-tools/checks/package-coverage-check/`
 - `.github/workflows/generate_coverage_pr.yaml`
 - `docs/testing.md`
 - `docs/issues/open/2222-1347-package-coverage-regression-ci/`
@@ -263,7 +263,7 @@ observed evidence has been reviewed; do not combine it with implementation chang
 
 | Order | Status | Item | Impact | Effort |
 | --- | --- | --- | --- | --- |
-| 1 | [ ] | Rename the CI tool | High | Low |
+| 1 | [x] | Rename the CI tool | High | Low |
 | 2 | [ ] | Define portable command contracts and tests | High | Medium |
 | 3 | [ ] | Simplify the GitHub Actions adapter | Medium | Low |
 | 4 | [ ] | Establish reusable CI workflow implementation guidance | High | Medium |

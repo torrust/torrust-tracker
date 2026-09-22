@@ -1,6 +1,6 @@
 [package]
-description = "Discover directly changed workspace packages for coverage regression checks."
-name = "package-coverage-regression"
+description = "Check directly changed workspace packages for coverage regressions."
+name = "package-coverage-check"
 publish = false
 
 authors.workspace = true

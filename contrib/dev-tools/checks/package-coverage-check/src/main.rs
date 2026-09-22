@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 use std::{env, fs};
 
-use package_coverage_regression::{WorkspacePackage, compare_coverage, discover_coverage_packages, summarize_source_coverage};
+use package_coverage_check::{WorkspacePackage, compare_coverage, discover_coverage_packages, summarize_source_coverage};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -14,7 +14,7 @@ fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             let mut stderr = io::stderr().lock();
-            drop(writeln!(stderr, "package-coverage-regression: {error}"));
+            drop(writeln!(stderr, "package-coverage-check: {error}"));
             ExitCode::FAILURE
         }
     }
@@ -123,7 +123,7 @@ fn matrix(base_workspace_root: &Path, head_workspace_root: &Path, base_sha: &str
 struct PackageCoverageResult {
     package: String,
     #[serde(flatten)]
-    comparison: package_coverage_regression::CoverageComparison,
+    comparison: package_coverage_check::CoverageComparison,
 }
 
 fn compare(
