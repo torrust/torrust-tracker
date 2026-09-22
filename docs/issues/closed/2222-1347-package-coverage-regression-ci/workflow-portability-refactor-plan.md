@@ -2,8 +2,8 @@
 doc-type: refactor-plan
 status: in-progress
 related-issue: 2222
-spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/workflow-portability-refactor-plan.md
-last-updated-utc: 2026-09-22 06:58
+spec-path: docs/issues/closed/2222-1347-package-coverage-regression-ci/workflow-portability-refactor-plan.md
+last-updated-utc: 2026-09-22 16:40
 semantic-links:
   related-artifacts:
     - .github/workflows/generate_coverage_pr.yaml
@@ -60,7 +60,7 @@ repository-owned CI/developer tooling. The current name obscures that boundary.
 - `contrib/dev-tools/checks/package-coverage-check/`
 - `.github/workflows/generate_coverage_pr.yaml`
 - `docs/testing.md`
-- `docs/issues/open/2222-1347-package-coverage-regression-ci/`
+- `docs/issues/closed/2222-1347-package-coverage-regression-ci/`
 
 **Change**:
 
@@ -241,8 +241,8 @@ prove hosted artifact transport, the final rendered summary, or fork behavior.
 
 **Files**:
 
-- `docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md`
-- `docs/issues/open/2222-1347-package-coverage-regression-ci/manual-verification-evidence.md`
+- `docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md`
+- `docs/issues/closed/2222-1347-package-coverage-regression-ci/manual-verification-evidence.md`
 
 **Change**:
 

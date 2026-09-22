@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: done
 priority: p2
 epic: 1347
 github-issue: 2222
-spec-path: docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
+spec-path: docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
 branch: "2222-1347-package-coverage-regression-ci"
 related-pr: 2293
-last-updated-utc: 2026-09-22 10:07
+last-updated-utc: 2026-09-22 16:40
 semantic-links:
   skill-links:
     - create-issue
@@ -223,6 +223,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
   `docker build --target test --file Containerfile .` completed all 68 stages successfully,
   including the recipe, archive, extraction, and release test stages. The repaired workflow must
   still be observed in GitHub Actions after the fix is pushed.
+- 2026-09-22 16:40 UTC - GitHub Copilot - Archived this closed issue specification after PR #2293
+  merged and all applicable hosted checks passed. Deferred rollout review remains tracked by #2301.
 
 ## Acceptance Criteria
 

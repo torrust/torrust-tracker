@@ -16,14 +16,14 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/workflows/generate_coverage_pr.yaml
-    - docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
-    - docs/issues/open/2222-1347-package-coverage-regression-ci/manual-verification-evidence.md
+    - docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
+    - docs/issues/closed/2222-1347-package-coverage-regression-ci/manual-verification-evidence.md
     - docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Review Package Coverage Rollout After Testing EPIC Completion
+# Issue #2301 - Review Package Coverage Rollout After Testing EPIC Completion
 
 Parent EPIC: #1347 - Overhaul: Packages Testing
 
@@ -101,7 +101,6 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 ### Workflow Checkpoints
 
 - [x] Folder-style draft created in `docs/issues/drafts/1347-review-package-coverage-rollout/ISSUE.md`.
-- [ ] Spec reviewed and approved by user/maintainer.
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue #2301 created as a subissue of #1347 and issue number added to this spec.
 - [ ] #2222 receives a closing comment linking this deferred review.
