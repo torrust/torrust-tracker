@@ -253,7 +253,7 @@ inventory and every plan.
 | 4 | `event.rs` | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 5 | `handlers/mod.rs` | Probably no change | DONE | [handlers-mod-tests.md](test-refactor-plans/handlers-mod-tests.md) |
 | 6 | `handlers/connect.rs` | Probably no change | DONE | [handlers-connect-tests.md](test-refactor-plans/handlers-connect-tests.md) |
-| 7 | `handlers/announce.rs` | Probably no change | PENDING | — |
+| 7 | `handlers/announce.rs` | Probably no change | DONE | [handlers-announce-tests.md](test-refactor-plans/handlers-announce-tests.md) |
 | 8 | `handlers/scrape.rs` | Probably no change | PENDING | — |
 | 9 | `handlers/error.rs` | Probably no change | PENDING | — |
 | 10 | `server/mod.rs` | Probably no change | PENDING | — |
@@ -304,7 +304,7 @@ plan so the ledger has no implicit exceptions.
 - [x] Complete module inventory and baseline coverage evidence recorded.
 - [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
 - [x] First file test plan reviewed and approved before test-producing work.
-- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 1 / 37).
+- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 7 / 37).
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -400,6 +400,15 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-22 17:23 UTC - User/maintainer - Approved the completed `handlers/connect.rs` file
   result: one duplicate test was removed while unit-only coverage remained 100.00%. The signed
   test and documentation increment is pending validation and commit.
+- 2026-09-22 17:25 UTC - GitHub Copilot - Started `handlers/announce.rs` as the only
+  `IN_PROGRESS` file and created [handlers-announce-tests.md](test-refactor-plans/handlers-announce-tests.md).
+  Fresh unit-only coverage found the six-line error adaptation from `UdpAnnounceError` to
+  `HandlerError`; the plan proposed one strict invalid-cookie collaboration test plus two event-test
+  name corrections. No Rust tests or production code changed.
+- 2026-09-22 18:30 UTC - Jose Celano - Approved the completed `handlers/announce.rs` review.
+  Its plan and ledger row are `DONE`; unit-only coverage improved from 781 / 800 (97.63%) to 903
+  / 905 (99.78%) lines. The next eligible file is `handlers/scrape.rs` after this file's signed
+  commit.
 
 ## Acceptance Criteria
 
