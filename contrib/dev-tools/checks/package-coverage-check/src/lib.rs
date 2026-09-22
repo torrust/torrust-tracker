@@ -451,7 +451,7 @@ mod tests {
         let changed_packages = directly_changed_packages(&changed_paths, &packages);
 
         // Assert
-        assert!(changed_packages.is_empty());
+        assert_eq!(changed_packages, Vec::new());
     }
 
     #[test]
@@ -518,7 +518,7 @@ mod tests {
                 head_directory: PathBuf::from("packages/new-core"),
             }]
         );
-        assert!(discovery.unavailable.is_empty());
+        assert_eq!(discovery.unavailable, Vec::new());
     }
 
     #[test]
@@ -531,7 +531,7 @@ mod tests {
         let discovery = discover_coverage_packages(&[], &[], &head_paths, &head_packages);
 
         // Assert
-        assert!(discovery.matrix.include.is_empty());
+        assert_eq!(discovery.matrix.include, Vec::new());
         assert_eq!(
             discovery.unavailable,
             vec![UnavailablePackage {
@@ -551,7 +551,7 @@ mod tests {
         let discovery = discover_coverage_packages(&base_paths, &base_packages, &[], &[]);
 
         // Assert
-        assert!(discovery.matrix.include.is_empty());
+        assert_eq!(discovery.matrix.include, Vec::new());
         assert_eq!(
             discovery.unavailable,
             vec![UnavailablePackage {
@@ -570,8 +570,8 @@ mod tests {
         let discovery = discover_coverage_packages(&[], &packages, &[], &packages);
 
         // Assert
-        assert!(discovery.matrix.include.is_empty());
-        assert!(discovery.unavailable.is_empty());
+        assert_eq!(discovery.matrix.include, Vec::new());
+        assert_eq!(discovery.unavailable, Vec::new());
     }
 
     #[test]
