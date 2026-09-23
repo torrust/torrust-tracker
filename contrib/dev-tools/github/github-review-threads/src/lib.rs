@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 const REVIEW_THREADS_QUERY: &str = r"query($owner: String!, $repo: String!, $pullNumber: Int!) {
     repository(owner: $owner, name: $repo) {
@@ -131,11 +131,216 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Lists unresolved threads with the first comment URL used by the shell script.
+///
+/// # Errors
+///
+/// Returns an error when `response` does not match the expected GraphQL shape.
+pub fn list_unresolved(response: &[u8]) -> Result<Vec<ListedThread>, Error> {
+    Ok(parse_response(response)?
+        .threads()
+        .filter(|thread| !thread.is_resolved)
+        .map(|thread| ListedThread {
+            id: thread.id,
+            is_outdated: thread.is_outdated,
+            path: thread.path,
+            url: thread.comments.nodes.first().map(|comment| comment.url.clone()),
+        })
+        .collect())
+}
+
+/// Lists each unresolved thread's comments and review metadata.
+///
+/// # Errors
+///
+/// Returns an error when `response` does not match the expected GraphQL shape.
+pub fn show_unresolved(response: &[u8]) -> Result<Vec<ShownThread>, Error> {
+    Ok(parse_response(response)?
+        .threads()
+        .filter(|thread| !thread.is_resolved)
+        .map(|thread| ShownThread {
+            id: thread.id,
+            is_outdated: thread.is_outdated,
+            path: thread.path,
+            comments: thread
+                .comments
+                .nodes
+                .into_iter()
+                .map(|comment| ShownComment {
+                    url: comment.url,
+                    author: comment.author.map(|author| author.login),
+                    body: comment.body,
+                })
+                .collect(),
+        })
+        .collect())
+}
+
+/// Reports whether each unresolved thread includes a comment by `login`.
+///
+/// # Errors
+///
+/// Returns an error when `response` does not match the expected GraphQL shape.
+pub fn reply_status(response: &[u8], login: &str) -> Result<ReplyStatus, Error> {
+    let threads = parse_response(response)?
+        .threads()
+        .filter(|thread| !thread.is_resolved)
+        .map(|thread| ReplyStatusThread {
+            id: thread.id,
+            path: thread.path,
+            url: thread.comments.nodes.first().map(|comment| comment.url.clone()),
+            has_reply: thread
+                .comments
+                .nodes
+                .iter()
+                .any(|comment| comment.author.as_ref().is_some_and(|author| author.login == login)),
+        })
+        .collect::<Vec<_>>();
+    let with_reply = threads.iter().filter(|thread| thread.has_reply).count();
+    let total = threads.len();
+
+    Ok(ReplyStatus {
+        threads,
+        summary: ReplyStatusSummary {
+            total,
+            with_reply,
+            without_reply: total - with_reply,
+        },
+    })
+}
+
+/// A compact unresolved-thread result.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListedThread {
+    id: String,
+    is_outdated: bool,
+    path: String,
+    url: Option<String>,
+}
+
+/// An unresolved thread with each review comment.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShownThread {
+    id: String,
+    is_outdated: bool,
+    path: String,
+    comments: Vec<ShownComment>,
+}
+
+/// A review comment shown in an unresolved thread.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ShownComment {
+    url: String,
+    author: Option<String>,
+    body: String,
+}
+
+/// Reply status for all unresolved threads.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ReplyStatus {
+    threads: Vec<ReplyStatusThread>,
+    summary: ReplyStatusSummary,
+}
+
+impl ReplyStatus {
+    /// Returns whether at least one unresolved thread lacks the requested reply.
+    #[must_use]
+    pub const fn has_missing_replies(&self) -> bool {
+        self.summary.without_reply > 0
+    }
+}
+
+/// Reply state for one unresolved thread.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ReplyStatusThread {
+    id: String,
+    path: String,
+    url: Option<String>,
+    has_reply: bool,
+}
+
+/// Aggregate reply state for unresolved threads.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ReplyStatusSummary {
+    total: usize,
+    with_reply: usize,
+    without_reply: usize,
+}
+
+fn parse_response(response: &[u8]) -> Result<GraphQlResponse, Error> {
+    serde_json::from_slice(response).map_err(|error| Error::MalformedResponse(error.to_string()))
+}
+
+#[derive(Deserialize)]
+struct GraphQlResponse {
+    data: GraphQlData,
+}
+
+impl GraphQlResponse {
+    fn threads(self) -> impl Iterator<Item = ReviewThread> {
+        self.data.repository.pull_request.review_threads.nodes.into_iter()
+    }
+}
+
+#[derive(Deserialize)]
+struct GraphQlData {
+    repository: Repository,
+}
+
+#[derive(Deserialize)]
+struct Repository {
+    #[serde(rename = "pullRequest")]
+    pull_request: PullRequestData,
+}
+
+#[derive(Deserialize)]
+struct PullRequestData {
+    #[serde(rename = "reviewThreads")]
+    review_threads: ReviewThreads,
+}
+
+#[derive(Deserialize)]
+struct ReviewThreads {
+    nodes: Vec<ReviewThread>,
+}
+
+#[derive(Deserialize)]
+struct ReviewThread {
+    id: String,
+    #[serde(rename = "isResolved")]
+    is_resolved: bool,
+    #[serde(rename = "isOutdated")]
+    is_outdated: bool,
+    path: String,
+    comments: ReviewComments,
+}
+
+#[derive(Deserialize)]
+struct ReviewComments {
+    nodes: Vec<ReviewComment>,
+}
+
+#[derive(Deserialize)]
+struct ReviewComment {
+    url: String,
+    body: String,
+    author: Option<ReviewAuthor>,
+}
+
+#[derive(Deserialize)]
+struct ReviewAuthor {
+    login: String,
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs;
 
-    use super::{PullRequest, ThreadSource, fetch};
+    use serde_json::json;
+
+    use super::{PullRequest, ThreadSource, fetch, list_unresolved, reply_status, show_unresolved};
 
     struct FixtureSource;
 
@@ -196,5 +401,63 @@ mod tests {
         // Assert: invalid source data produces an error before a file is created.
         assert!(matches!(error, super::Error::MalformedResponse(_)));
         assert!(!output_file.exists());
+    }
+
+    #[test]
+    fn it_should_list_only_unresolved_threads() {
+        // Arrange: the fixture has one resolved and two unresolved threads.
+        let response = include_bytes!("../tests/fixtures/review-threads.json");
+
+        // Act: list the unresolved threads.
+        let threads = list_unresolved(response).unwrap();
+
+        // Assert: the compact projection matches the existing script's selected fields.
+        assert_eq!(
+            serde_json::to_value(threads).unwrap(),
+            json!([
+                {"id":"THREAD_UNRESOLVED_CURRENT","isOutdated":false,"path":"src/example.rs","url":"https://example.test/pull/42#discussion-3"},
+                {"id":"THREAD_UNRESOLVED_OUTDATED","isOutdated":true,"path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4"}
+            ]),
+        );
+    }
+
+    #[test]
+    fn it_should_show_all_comments_for_each_unresolved_thread() {
+        // Arrange: one unresolved fixture thread contains both reviewer and author comments.
+        let response = include_bytes!("../tests/fixtures/review-threads.json");
+
+        // Act: project the unresolved threads for detailed display.
+        let threads = show_unresolved(response).unwrap();
+
+        // Assert: the detailed projection preserves both comments from the multi-comment thread.
+        assert_eq!(threads.len(), 2);
+        assert_eq!(
+            serde_json::to_value(&threads[1]).unwrap()["comments"]
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn it_should_report_missing_and_present_author_replies() {
+        // Arrange: only the outdated unresolved thread has a comment from the author.
+        let response = include_bytes!("../tests/fixtures/review-threads.json");
+
+        // Act: check unresolved threads for the author reply.
+        let status = reply_status(response, "author").unwrap();
+
+        // Assert: the reply summary retains the shell script's pass and failure cases.
+        assert_eq!(
+            serde_json::to_value(status).unwrap(),
+            json!({
+                "threads":[
+                    {"id":"THREAD_UNRESOLVED_CURRENT","path":"src/example.rs","url":"https://example.test/pull/42#discussion-3","has_reply":false},
+                    {"id":"THREAD_UNRESOLVED_OUTDATED","path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4","has_reply":true}
+                ],
+                "summary":{"total":2,"with_reply":1,"without_reply":1}
+            }),
+        );
     }
 }

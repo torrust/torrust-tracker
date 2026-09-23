@@ -3,9 +3,10 @@
 use std::io::{self, IsTerminal, Write};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::{fs, process};
 
 use clap::{Parser, Subcommand};
-use github_review_threads::{GhCli, PullRequest, fetch};
+use github_review_threads::{GhCli, PullRequest, fetch, list_unresolved, reply_status, show_unresolved};
 use serde::Serialize;
 
 /// Fetch pull-request review threads through the GitHub CLI.
@@ -33,6 +34,27 @@ enum Commands {
         #[arg(long, default_value = "torrust-tracker")]
         repository: String,
     },
+    /// Emit unresolved threads as one JSON array.
+    List {
+        /// Raw GraphQL response written by `fetch`.
+        #[arg(long)]
+        threads_file: PathBuf,
+    },
+    /// Emit unresolved threads with their review comments as one JSON array.
+    Show {
+        /// Raw GraphQL response written by `fetch`.
+        #[arg(long)]
+        threads_file: PathBuf,
+    },
+    /// Verify that each unresolved thread includes a reply from the requested login.
+    ReplyStatus {
+        /// Raw GraphQL response written by `fetch`.
+        #[arg(long)]
+        threads_file: PathBuf,
+        /// GitHub login expected to reply to each unresolved thread.
+        #[arg(long)]
+        login: String,
+    },
 }
 
 #[derive(Serialize)]
@@ -49,7 +71,7 @@ fn main() -> ExitCode {
     let cli = Cli::try_parse().unwrap_or_else(|error| {
         let message = error.to_string();
         let _ = emit_diagnostic("usage_error", &message, 2);
-        std::process::exit(2);
+        process::exit(2);
     });
 
     match cli.command {
@@ -71,7 +93,35 @@ fn main() -> ExitCode {
                 Err(error) => emit_diagnostic("fetch_error", &error.to_string(), 1),
             }
         }
+        Commands::List { threads_file } => read_response(&threads_file)
+            .and_then(|response| list_unresolved(&response).map_err(|error| error.to_string()))
+            .map_or_else(
+                |error| emit_diagnostic("list_error", &error, 1),
+                |threads| emit_json(&threads),
+            ),
+        Commands::Show { threads_file } => read_response(&threads_file)
+            .and_then(|response| show_unresolved(&response).map_err(|error| error.to_string()))
+            .map_or_else(
+                |error| emit_diagnostic("show_error", &error, 1),
+                |threads| emit_json(&threads),
+            ),
+        Commands::ReplyStatus { threads_file, login } => read_response(&threads_file)
+            .and_then(|response| reply_status(&response, &login).map_err(|error| error.to_string()))
+            .map_or_else(
+                |error| emit_diagnostic("reply_status_error", &error, 1),
+                |status| {
+                    if status.has_missing_replies() {
+                        emit_diagnostic("missing_reply", "at least one unresolved thread has no reply", 1)
+                    } else {
+                        emit_json(&status)
+                    }
+                },
+            ),
     }
+}
+
+fn read_response(path: &PathBuf) -> Result<Vec<u8>, String> {
+    fs::read(path).map_err(|error| format!("cannot read review-thread response: {error}"))
 }
 
 fn emit_json(value: &impl Serialize) -> ExitCode {
