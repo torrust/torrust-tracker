@@ -87,7 +87,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.16
+        uses: taiki-e/install-action@v2.87.17
         with:
           tool: cargo-llvm-cov
 
@@ -184,7 +184,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.16
+        uses: taiki-e/install-action@v2.87.17
         with:
           tool: grcov,cargo-llvm-cov
 
