@@ -177,13 +177,9 @@ fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<Sema
 
 #[cfg(test)]
 mod tests {
-    // Owns delimiter, YAML, mapping-root, and universal-envelope extraction decisions.
+    // Owns delimiter, YAML, mapping-root, scalar-style, and universal-envelope extraction decisions.
 
     use super::{DiagnosticCategory, DocumentOwnership, SemanticLinks, extract, extract_with_ownership};
-
-    // Extraction owns delimiter, YAML, mapping-root, and universal-envelope shape decisions.
-    // Strict profile parsing owns the v1 structural and reference-syntax decisions. External
-    // metadata and repository-aware checks remain deferred to issue #2266 tasks T4-T7.
 
     #[test]
     fn it_should_accept_a_document_without_frontmatter() {
