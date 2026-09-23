@@ -61,8 +61,15 @@ git push --force-with-lease <fork-remote> <branch-name>
 Because every rebase rewrites the branch's commit ids, nothing that will be merged (issue specs,
 evidence files, PR body, review replies) may cite a PR-branch commit by id. Cite the Conventional
 Commit subject instead; ids are durable only once on `develop`. Before pushing after a rebase, run
-`git grep -nE '\b[0-9a-f]{7,40}\b' -- docs/issues/open/<issue-folder>` and check that each hit
-is a `develop` commit, tag, or external reference.
+
+```bash
+git grep -ohE '\b[0-9a-f]{7,40}\b' -- docs/issues/open/<issue-folder> | grep '[a-f]' | sort -u
+```
+
+and check that each token is a `develop` commit, a tag, an external reference (toolchain build
+hash, third-party commit), or non-commit data (info-hashes, checksums, recorded ids). The
+`grep '[a-f]'` drops purely decimal values such as config sizes. This grep covers only the
+worktree; the PR body and review replies are a manual read.
 
 <!-- markdownlint-disable-next-line MD028 -->
 
