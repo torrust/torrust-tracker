@@ -163,3 +163,19 @@ permissive. Swapping typed dispatch mappings must fail the two accepted-fixture 
 that centralizing lookup does not decouple a kind from its validator.
 The swapped mapping made both fixture tests fail with the opposite `doc-type` deserialization
 error before the matching typed dispatch was restored.
+
+## Refactor Plan Item 8 - Unified Diagnostic Construction
+
+### Arrange
+
+Existing extraction and strict-profile tests assert every public diagnostic category.
+
+### Act
+
+Construct every diagnostic through `Diagnostic::new` while keeping each category and message
+expression unchanged.
+
+### Assert
+
+The existing extraction and strict-profile tests retain their diagnostic category results. This is
+a behavior-preserving construction cleanup, so no extra test is needed.

@@ -219,7 +219,7 @@ mutation.
 
 ---
 
-### 8. [ ] Unify diagnostic construction [LOW impact / LOW effort]
+### 8. [x] Unify diagnostic construction [LOW impact / LOW effort]
 
 **Problem**: The module builds `Diagnostic` values three ways: inline struct literals (eight
 sites), `const fn invalid_field_value`, and `const fn invalid_reference_syntax`. Readers cannot
@@ -285,7 +285,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 5     | [x]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
 | 6     | [x]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
 | 7     | [x]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
-| 8     | [ ]    | Unify diagnostic construction                            | Low    | Low    |
+| 8     | [x]    | Unify diagnostic construction                            | Low    | Low    |
 | 9     | [ ]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
 | 10    | [ ]    | Declare shared schema patterns once                      | Low    | Low    |
 

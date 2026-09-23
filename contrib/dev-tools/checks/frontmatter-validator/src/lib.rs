@@ -91,6 +91,15 @@ pub struct Diagnostic {
     pub message: String,
 }
 
+impl Diagnostic {
+    fn new(category: DiagnosticCategory, message: impl Into<String>) -> Self {
+        Self {
+            category,
+            message: message.into(),
+        }
+    }
+}
+
 /// Extracts an optional opening frontmatter block and validates its universal envelope.
 ///
 /// Documents without an opening `---` delimiter have no frontmatter and are accepted. Profile
@@ -116,15 +125,13 @@ pub fn extract_with_ownership(markdown: &str, ownership: DocumentOwnership) -> R
     let Some(yaml) = delimited_yaml(markdown)? else {
         return Ok(None);
     };
-    let value = serde_yaml::from_str::<Value>(&yaml).map_err(|error| Diagnostic {
-        category: DiagnosticCategory::MalformedYaml,
-        message: error.to_string(),
-    })?;
+    let value = serde_yaml::from_str::<Value>(&yaml)
+        .map_err(|error| Diagnostic::new(DiagnosticCategory::MalformedYaml, error.to_string()))?;
     let Value::Mapping(values) = value else {
-        return Err(Diagnostic {
-            category: DiagnosticCategory::NonMappingRoot,
-            message: String::from("Markdown frontmatter must have a YAML mapping root."),
-        });
+        return Err(Diagnostic::new(
+            DiagnosticCategory::NonMappingRoot,
+            "Markdown frontmatter must have a YAML mapping root.",
+        ));
     };
     let semantic_links = semantic_links(&values, ownership)?;
 
@@ -151,10 +158,10 @@ fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
         yaml.push('\n');
     }
 
-    Err(Diagnostic {
-        category: DiagnosticCategory::UnclosedDelimiter,
-        message: String::from("Markdown frontmatter opening delimiter has no closing delimiter."),
-    })
+    Err(Diagnostic::new(
+        DiagnosticCategory::UnclosedDelimiter,
+        "Markdown frontmatter opening delimiter has no closing delimiter.",
+    ))
 }
 
 fn semantic_links(values: &Mapping, ownership: DocumentOwnership) -> Result<Option<SemanticLinks>, Diagnostic> {
@@ -173,9 +180,11 @@ fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<Sema
     let Some(value) = values.get(&key) else {
         return Ok(None);
     };
-    let semantic_links = serde_yaml::from_value::<SemanticLinks>(value.clone()).map_err(|error| Diagnostic {
-        category: DiagnosticCategory::InvalidSemanticLinks,
-        message: format!("`{field_path}` must be a mapping with string sequences: {error}"),
+    let semantic_links = serde_yaml::from_value::<SemanticLinks>(value.clone()).map_err(|error| {
+        Diagnostic::new(
+            DiagnosticCategory::InvalidSemanticLinks,
+            format!("`{field_path}` must be a mapping with string sequences: {error}"),
+        )
     })?;
 
     Ok(Some(semantic_links))
