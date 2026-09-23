@@ -15,11 +15,14 @@ semantic-links:
 Source: pull-request reviews and inline review threads for
 <https://github.com/torrust/torrust-tracker/pull/2320>.
 
-This record was created after review round 4, once all fourteen threads had already been replied
-to and resolved through GitHub directly. The `process-pr-review` workflow was not used while the
-rounds were in progress; see `review-retrospective.md` in this directory, cost item 8. Every
-`Current-tree verification` below was re-run against the tree at the time this record was written,
-not copied from the earlier replies.
+This record was first committed at 18:32 UTC on 2026-09-23, after four review rounds had been
+processed as GitHub threads without the `process-pr-review` workflow (see `review-retrospective.md`,
+cost item 8). Its first version said all fourteen threads were resolved; that was false when
+committed, because round 5 (18:26 UTC) had already opened two more. The record is extended each
+round; the Findings table is current as of the round named in the last Processing Log entry, and
+the Processing Log is append-only, so entries known to be wrong are followed by a dated
+correction rather than rewritten. Every `Current-tree verification` was re-run against the tree
+when its entry was written, not copied from a reply.
 
 ## Ownership
 
@@ -48,8 +51,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Audit IDs `F1`-`F4` are the Copilot round (no reviewer IDs). The human reviewer numbered their
-findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and are recorded here as
-`F5`-`F14` with the reviewer's original ID in each detail entry.
+findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and are recorded here as
+`F5`-`F21` (reviewer `F<k>` is audit `F<k+4>`), with the reviewer's original ID in each detail entry.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -69,6 +72,11 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 | F14 | `review-finding:pr-2320-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2320-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2320-f16` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2320-f17` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2320-f18` | Human | Minor | documentation | RE_RAISE_OF:F15 | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2320-f19` | Human | Minor | documentation | RE_RAISE_OF:F16 | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2320-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2320-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -337,6 +345,97 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086635594>
 
+### F17 - Record claimed a completeness it did not have when committed
+
+- PR number: 2320
+- Source review ID: 5295966158
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086608965>
+- Concern: the preamble said all fourteen threads were resolved when the record was committed at
+  18:32, but round 5 (18:26) had opened two unresolved threads; the record had 16 threads to
+  cover and rows for 14. Re-raised at 20:24 when the next push left the sentence unchanged while
+  the table had grown to 16 rows against 20 threads.
+- Solution: preamble rewritten to state when the record was first committed, that its first
+  version was wrong, and that the table is current as of the last Processing Log entry; rows
+  added for every reviewer finding through F17.
+- Current-tree verification: `rg -c '^\| F[0-9]+ \|' docs/pr-reviews/pr-2320-review/PR-REVIEW.md`
+  returns 21; the GraphQL `reviewThreads` connection returns 21 threads at the time of writing.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087461114>
+
+### F18 - Two Processing Log entries do not match the events they record
+
+- PR number: 2320
+- Source review ID: 5295966158
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086608973>
+- Concern: the 17:52 entry says F5-F13 were resolved then "at the maintainer's request", but
+  round 4 at 18:02 records them open and no GitHub comment contains a request; the 18:18 entry
+  says the Copilot replies were posted "now" but they are stamped 18:27; round 5 (18:26) had no
+  entry. Re-raised at 20:24 when the push left the entries unchanged while the retrospective's
+  timeline had been corrected, so the two files disagreed. Same claim as F15 in this record.
+- Solution: the Processing Log is append-only, so the entries stand and a dated correction entry
+  names each wrong clause and gives the sourced value; an entry for review 5295088674 exists.
+- Current-tree verification: `rg -n '^- 2026.*UTC - Correction:' docs/pr-reviews/pr-2320-review/PR-REVIEW.md`
+  matches one Processing Log entry naming the 17:52 and 18:18 clauses; `rg -n '18:26 UTC - Human review 5295088674'`
+  matches one entry.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087461329>
+
+### F19 - Retrospective Review Summary one round stale again
+
+- PR number: 2320
+- Source review ID: 5295966158
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086608977>
+- Concern: the summary rows (rounds, findings, blocking, processed-through-skill, preamble ID
+  range) and the timeline were refreshed at 19:43 and stale again at 19:46; the push at 20:12
+  shipped them without a re-check. Same drift as F16 in this record.
+- Solution: values recomputed from the `reviews` and `reviewThreads` connections at the time of
+  writing; a "current as of" sentence added at the top of the retrospective naming the last round
+  it covers, so later rounds do not make it wrong.
+- Current-tree verification: `rg -n '^Current as of' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches one line; the `Review rounds` row reads `8 (7 human, 1 Copilot)` and the `Findings` row
+  reads `21`, matching seven `da2ce7` reviews with bodies plus Copilot, and 21 threads.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087461668>
+
+### F20 - Root cause 7 attributed the author's own words to the reviewer
+
+- PR number: 2320
+- Source review ID: 5295966158
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086608989>
+- Concern: root cause 7 quoted "without the `process-pr-review` skill" as the reviewer's round-2
+  observation; review 5293432174 contains no such string. The words are the retrospective's own
+  first-version preamble.
+- Solution: the quotation and attribution removed; the sentence now says no review flagged the
+  missing record and the gap was first written down by the retrospective's first version.
+- Current-tree verification: `rg -n 'round-2 body observed' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  returns nothing; `rg -n 'first written down by this retrospective'` matches root cause 7.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087461948>
+
+### F21 - "the commit that writes this row" moved when the row was edited
+
+- PR number: 2320
+- Source review ID: 5296377033
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086947986>
+- Concern: the commit-count row anchored its value to "the commit that writes this row"; a later
+  commit edited the row, so the anchor moved to a commit where the count is 16. The trailing
+  exclusion clause rescued it, but only for a reader who classifies the editing commit. Advisory.
+- Solution: the row names the commit by subject.
+- Current-tree verification: `rg -n 'returned 15 at .docs.pr-reviews.: source #2320' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches the `Commits on the branch` row.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087462247>
+
 ## Processing Log
 
 - 2026-09-23 13:09 UTC - Copilot review 5291390450 submitted (F1-F4).
@@ -355,7 +454,12 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 - 2026-09-23 18:26 UTC - Human review 5295088674 submitted, `CHANGES_REQUESTED` (F15, F16) against the retrospective.
 - 2026-09-23 18:32 UTC - `docs(pr-reviews): add #2320 review audit record` authored.
 - 2026-09-23 19:43 UTC - `docs(pr-reviews): source #2320 retrospective times and counts from git and the API` authored (F15, F16); a first signing attempt at 19:39 failed on an expired GPG agent cache.
+- 2026-09-23 19:46 UTC - Human review 5295966158 submitted, `CHANGES_REQUESTED` (F17-F20) against this record and the retrospective. Not recorded until 21:20; the 19:49 and 20:12 events below happened without it having been read.
 - 2026-09-23 19:49 UTC - Replies posted on F15, F16.
+- 2026-09-23 20:12 UTC - `docs(pr-reviews): record round 5 in the #2320 audit and retrospective` authored (F15, F16 rows); F15, F16 resolved after the push. F17-F20 were open and unrecorded at this commit.
+- 2026-09-23 20:24 UTC - Human review 5296377033 submitted, `CHANGES_REQUESTED` (F21; F17-F20 re-raised in their threads).
+- 2026-09-23 21:20 UTC - Correction: the 17:52 entry's clause "F5-F13 resolved at the maintainer's request" is wrong on time and source. Round 4 (18:02) records those threads still open; they were resolved after 18:02, and the request was made by the maintainer in the editor chat session, which no GitHub comment shows. The 18:18 entry's clause "replies were posted now" is wrong: the four Copilot replies are stamped 18:27:17Z-18:27:22Z. Both entries stand as written; this entry supersedes those clauses.
+- 2026-09-23 21:20 UTC - Rows F17-F21 added; replies posted on their threads after this commit, then resolved.
 
 ## Completion Rules
 
