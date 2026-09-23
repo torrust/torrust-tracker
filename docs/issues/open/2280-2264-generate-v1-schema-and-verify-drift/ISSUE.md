@@ -9,7 +9,7 @@ github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-23 15:09"
+last-updated-utc: "2026-09-23 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -276,6 +276,9 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   `required` entries added, nullability preserved), a parity test pins the invariant, and
   `docs/schemas/README.md` documents the one remaining null-sequence divergence and the `syntax.rs`
   pattern location - `docs/schemas/`, `profile.rs`
+- 2026-09-23 15:22 UTC - GitHub Copilot - Re-ran M1-M3 plus an invalid-action case against HEAD
+  `4c58b5a9`: regeneration idempotent, drift exits `1` with the shipped shell-safe hint, unknown
+  action exits `2`, stdout empty throughout; recorded as V3 - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -309,9 +312,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | DONE | `manual-verification-evidence.md` section V1 |
-| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | DONE | `manual-verification-evidence.md` section V1 |
-| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | DONE | `manual-verification-evidence.md` section V2 |
+| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | DONE | `manual-verification-evidence.md` sections V1, V3 |
+| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | DONE | `manual-verification-evidence.md` sections V1, V3 |
+| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | DONE | `manual-verification-evidence.md` sections V2, V3 |
 
 ## Risks and Trade-offs
 
