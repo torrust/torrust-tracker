@@ -93,7 +93,7 @@ incorrect dispatch.
 
 ---
 
-### 3. [ ] Make shared strict-profile validation order explicit [MEDIUM impact / MEDIUM effort]
+### 3. [x] Make shared strict-profile validation order explicit [MEDIUM impact / MEDIUM effort]
 
 **Problem**: `validate_issue` and `validate_epic` each perform known-field validation, required
 field validation, allowed-value validation, reference-syntax validation, deserialization, and
@@ -138,7 +138,7 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 | ----- | ------ | -------------------------------------------------------- | ------ | ------ |
 | 1     | [x]    | Move strict-profile tests beside their owning module     | High   | Low    |
 | 2     | [x]    | Represent strict profile kind as a closed enum           | Medium | Low    |
-| 3     | [ ]    | Make shared strict-profile validation order explicit     | Medium | Medium |
+| 3     | [x]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [ ]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
 
 Item 1 establishes the correct test ownership before production refactors. Item 2 makes the

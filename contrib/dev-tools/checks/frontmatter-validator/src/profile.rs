@@ -300,35 +300,33 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
 }
 
 fn validate_issue(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
-    validate_known_fields(values, ISSUE_FIELDS)?;
-    validate_required_fields(values, ISSUE_FIELDS)?;
-    validate_allowed_string(values, "issue-type", &["task", "bug", "feature", "enhancement"])?;
-    validate_allowed_string(
-        values,
-        "status",
-        &["draft", "planned", "in-progress", "blocked", "in-review", "done"],
-    )?;
-    validate_allowed_string(values, "priority", &["p0", "p1", "p2", "p3"])?;
-    validate_reference_syntax(semantic_links)?;
-    let issue = deserialize_strict(values)?;
-    validate_issue_invariants(&issue, yaml)?;
-
-    Ok(issue)
+    validate_strict_profile(values, yaml, semantic_links, &ISSUE_PROFILE, validate_issue_invariants)
 }
 
 fn validate_epic(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Epic, Diagnostic> {
-    validate_known_fields(values, EPIC_FIELDS)?;
-    validate_required_fields(values, EPIC_FIELDS)?;
-    validate_allowed_string(
-        values,
-        "status",
-        &["draft", "planned", "in-progress", "blocked", "in-review", "done"],
-    )?;
-    validate_reference_syntax(semantic_links)?;
-    let epic = deserialize_strict(values)?;
-    validate_epic_invariants(&epic, yaml)?;
+    validate_strict_profile(values, yaml, semantic_links, &EPIC_PROFILE, validate_epic_invariants)
+}
 
-    Ok(epic)
+fn validate_strict_profile<T>(
+    values: &Mapping,
+    yaml: &str,
+    semantic_links: Option<&SemanticLinks>,
+    definition: &StrictProfileDefinition,
+    validate_invariants: impl FnOnce(&T, &str) -> Result<(), Diagnostic>,
+) -> Result<T, Diagnostic>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    validate_known_fields(values, definition.fields)?;
+    validate_required_fields(values, definition.fields)?;
+    for (field, allowed_values) in definition.allowed_values {
+        validate_allowed_string(values, field, allowed_values)?;
+    }
+    validate_reference_syntax(semantic_links)?;
+    let profile = deserialize_strict(values)?;
+    validate_invariants(&profile, yaml)?;
+
+    Ok(profile)
 }
 
 fn validate_reference_syntax(semantic_links: Option<&SemanticLinks>) -> Result<(), Diagnostic> {
@@ -612,6 +610,25 @@ const EPIC_FIELDS: &[&str] = &[
     "semantic-links",
 ];
 
+struct StrictProfileDefinition {
+    fields: &'static [&'static str],
+    allowed_values: &'static [(&'static str, &'static [&'static str])],
+}
+
+const ISSUE_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
+    fields: ISSUE_FIELDS,
+    allowed_values: &[
+        ("issue-type", &["task", "bug", "feature", "enhancement"]),
+        ("status", &["draft", "planned", "in-progress", "blocked", "in-review", "done"]),
+        ("priority", &["p0", "p1", "p2", "p3"]),
+    ],
+};
+
+const EPIC_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
+    fields: EPIC_FIELDS,
+    allowed_values: &[("status", &["draft", "planned", "in-progress", "blocked", "in-review", "done"])],
+};
+
 #[cfg(test)]
 mod tests {
     // Owns strict-profile recognition, schema projection, invariants, and reference syntax decisions.
@@ -762,6 +779,21 @@ mod tests {
 
         // Assert: the diagnostic identifies the disallowed lifecycle value.
         assert_eq!(error.category, DiagnosticCategory::InvalidAllowedValue);
+    }
+
+    #[test]
+    fn it_should_prioritize_unknown_fields_before_reference_syntax_for_strict_profiles() {
+        // Arrange: each strict profile has an unknown field and an invalid semantic-link value.
+        let issue = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - Invalid\nfuture-field: value\n---\n# Issue\n";
+        let epic = "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - Invalid\nfuture-field: value\n---\n# EPIC\n";
+
+        // Act: validate both strict profiles.
+        let issue_error = validate(&extract(issue).unwrap().unwrap()).unwrap_err();
+        let epic_error = validate(&extract(epic).unwrap().unwrap()).unwrap_err();
+
+        // Assert: profile-specific contracts retain common structural diagnostic precedence.
+        assert_eq!(issue_error.category, DiagnosticCategory::UnknownField);
+        assert_eq!(epic_error.category, DiagnosticCategory::UnknownField);
     }
 
     #[test]

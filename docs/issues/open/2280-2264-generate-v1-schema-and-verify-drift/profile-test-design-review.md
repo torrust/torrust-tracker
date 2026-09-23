@@ -51,3 +51,30 @@ The enum is intentionally private because it exists only between recognition and
 Public profile variants, generated schema bytes, and diagnostics remain the behavior boundary.
 The red mutation swapped the two enum-to-validator mappings; both accepted-profile classification
 tests failed with the expected unknown-field diagnostics before the correct mappings were restored.
+
+## Refactor Plan Item 3 - Shared Strict Validation Sequence
+
+### Arrange
+
+An issue and an EPIC can each contain both an unknown field and an invalid semantic-link value.
+The existing validation contract establishes unknown-field detection before reference syntax.
+
+### Act
+
+Validate the two malformed documents through the strict-profile boundary after routing their
+declarative field and allowed-value contracts through one private shared sequence.
+
+### Assert
+
+Both documents report `UnknownField`, preserving the same diagnostic precedence despite their
+different profile contracts. A temporary mutation that skips the shared known-field stage must
+make this test fail before the stage is restored.
+
+### Review
+
+The helper remains private and takes only the differing declarative contract plus a typed final
+invariant validator. Deserialization remains generic but strongly typed at each call site; no
+trait or dynamic-dispatch framework is introduced.
+Removing the stage directly was rejected at compile time by the strict dead-code policy. Moving
+the stage after reference syntax produced `InvalidReferenceSyntax` rather than `UnknownField` for
+both documents, so the precedence test failed before the original sequence was restored.
