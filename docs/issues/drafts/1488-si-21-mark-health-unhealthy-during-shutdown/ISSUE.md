@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-23
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - packages/axum-health-check-api-server/src/handlers.rs
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
-    - docs/issues/drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
+    - docs/issues/open/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
