@@ -1,11 +1,15 @@
 //! Markdown frontmatter extraction and universal-envelope validation.
+//!
+//! Diagnostics live in [`diagnostic`] and strict v1 profiles in [`profile`].
 
 use serde::de::Error as _;
 use serde::{Deserialize, Deserializer};
 use serde_yaml::{Mapping, Value};
 
+pub mod diagnostic;
 pub mod profile;
 
+pub use diagnostic::{Diagnostic, DiagnosticCategory};
 pub use profile::{v1_schema, v1_schema_json};
 
 /// A parsed Markdown frontmatter block.
@@ -55,49 +59,6 @@ where
     serde_yaml::from_value::<Vec<String>>(value)
         .map(Some)
         .map_err(D::Error::custom)
-}
-
-/// A category for frontmatter extraction or universal-envelope failures.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum DiagnosticCategory {
-    /// An opening delimiter did not have a matching closing delimiter.
-    UnclosedDelimiter,
-    /// The delimited content was not valid YAML.
-    MalformedYaml,
-    /// The YAML root value was not a mapping.
-    NonMappingRoot,
-    /// The universal `semantic-links` extension had an invalid shape.
-    InvalidSemanticLinks,
-    /// A strict profile contains an unprefixed field outside its contract.
-    UnknownField,
-    /// A strict profile omits a required field.
-    MissingRequiredField,
-    /// A strict profile field does not have its required YAML scalar type.
-    WrongScalarType,
-    /// A strict profile field has a scalar value outside its allowed set.
-    InvalidAllowedValue,
-    /// A strict profile field violates a non-enumerated value invariant.
-    InvalidFieldValue,
-    /// A strict profile reference does not use an approved provisional syntax.
-    InvalidReferenceSyntax,
-}
-
-/// A deterministic failure found while extracting frontmatter.
-#[derive(Debug, Eq, PartialEq)]
-pub struct Diagnostic {
-    /// The stable category used by the future command adapter.
-    pub category: DiagnosticCategory,
-    /// A human-readable description of the failure.
-    pub message: String,
-}
-
-impl Diagnostic {
-    fn new(category: DiagnosticCategory, message: impl Into<String>) -> Self {
-        Self {
-            category,
-            message: message.into(),
-        }
-    }
 }
 
 /// Extracts an optional opening frontmatter block and validates its universal envelope.

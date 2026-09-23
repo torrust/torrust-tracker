@@ -173,7 +173,7 @@ to the linter-specific ignore file and record why.
 
 ---
 
-### 2. [ ] Home the diagnostic vocabulary in its own module [MEDIUM impact / LOW effort]
+### 2. [x] Home the diagnostic vocabulary in its own module [MEDIUM impact / LOW effort]
 
 **Problem**: `Diagnostic` and `DiagnosticCategory` (`lib.rs` lines 58-100) are documented as
 extraction failures but six of ten categories are produced only by `profile.rs`. The #2281 command
@@ -302,7 +302,7 @@ private models and private helpers, and `StrictProfileKind::definition` referenc
 | Order | Status | Item                                                | Impact | Effort |
 | ----- | ------ | --------------------------------------------------- | ------ | ------ |
 | 1     | [x]    | Move the Markdown fixtures into the crate           | High   | Low    |
-| 2     | [ ]    | Home the diagnostic vocabulary in its own module    | Medium | Low    |
+| 2     | [x]    | Home the diagnostic vocabulary in its own module    | Medium | Low    |
 | 3     | [ ]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
 | 4     | [ ]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
 | 5     | [ ]    | Validate reference syntax on one path               | Medium | Medium |
