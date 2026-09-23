@@ -35,18 +35,18 @@ the four Copilot findings, which came first, occupy `F1`-`F4` there.
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 5 (4 human, 1 Copilot) |
-| Findings | 14 (4 Copilot, 10 human: 6 Minor, 1 Suggestion, 3 Nit) |
-| Blocking findings | 4 (F1, F2 in round 1; F9 in round 3; F10 in round 4) |
+| Review rounds | 6 (5 human, 1 Copilot) |
+| Findings | 16 (4 Copilot, 12 human: 8 Minor, 1 Suggestion, 3 Nit) |
+| Blocking findings | 6 (F1, F2 in round 1; F9 in round 3; F10 in round 4; F11, F12 in round 5) |
 | Re-raised findings | 1 (F9 is the same defect class as F1 and F2, reintroduced by their fix) |
-| Human findings about issue-local evidence documents | 8 of 10 (F3 is a manifest comment; F10 is a skill rule) |
-| Human findings about process changes made during the review | 1 (F10, on the rule added in response to F9) |
-| Findings processed through `process-pr-review` while the review was open | 0 of 14 |
+| Human findings about issue-local evidence documents | 8 of 12 (F3 manifest comment; F10 skill rule; F11, F12 this retrospective) |
+| Human findings about process changes made during the review | 3 (F10 on the rule added for F9; F11, F12 on this retrospective) |
+| Findings processed through `process-pr-review` while the review was open | 0 of 16 |
 | Human findings about production code or tests | 0 |
-| Commits on the branch | 14 at the time of writing (4 original, 1 CI fix, 5 review-response, 4 retrospective or audit) |
+| Commits on the branch | 15 including the commit that writes this line (4 original, 1 CI fix, 5 review-response, 5 retrospective or audit) |
 | Rebases while the PR was open | 2 (one before the first human review, one between rounds 2 and 3) |
 | Approval lifetime | 1 h 24 min (approved 16:00 UTC, changes requested 17:24 UTC on a pure rebase) |
-| First review to last author reply | 2026-09-23 13:09 UTC to the round-4 reply (see Timeline) |
+| First review to last author reply | 2026-09-23 13:09 UTC to the round-5 reply (see Timeline) |
 
 Derivation: review rounds, states, and timestamps from the pull request `reviews` GraphQL
 connection; finding count and severities from the first comment of each `reviewThreads` node
@@ -74,10 +74,14 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 | 17:08 | Author rebases onto `a110200d` and force-pushes; every branch id changes. |
 | 17:24 | Round 3 (human), `CHANGES_REQUESTED` at head `305ddce1`: F9 blocks. The rebase itself is verified pure. |
 | 17:49 | Author fixes F8, F9 and adds the process rule in two commits; replies at 17:52. |
-| after 17:52 | Author resolves all nine human threads at the maintainer's request. |
 | 18:02 | Round 4 (human), `CHANGES_REQUESTED` at head `7e426ba2`: F8, F9 addressed; F10 blocks — the new pre-push grep returns 20 hits on this PR's own folder and its disposition list covers 10. |
-| 18:16 | Author commits this retrospective (first version, before reading round 4). |
-| after 18:16 | Author fixes F10 (fourth disposition, decimal filter, scope note), updates this retrospective, replies, resolves. |
+| after 18:02 | Author resolves the nine human threads F1-F9. The request came from the maintainer in the editor chat session, not in any GitHub comment; the round-2 body had said the opposite. |
+| 18:08 | Author commits this retrospective (first version, written before reading round 4). |
+| 18:13-18:15 | Author fixes F10 (`docs(skills): make the branch-id pre-push check clear its reference case`, 18:13), updates this retrospective (18:13), replies on F10 (18:15) and resolves it. |
+| 18:26 | Round 5 (human), `CHANGES_REQUESTED` at head `c84a224a`: F10 addressed; F11 (three timeline rows contradicted by git and API timestamps) and F12 (commit count one short) block. |
+| 18:27 | Author posts the replies the four Copilot threads never had, while creating `PR-REVIEW.md`. |
+| 18:32 | Author commits `PR-REVIEW.md` and the retrospective update recording the skipped workflow. |
+| 18:40 | Author fixes F11, F12 in this retrospective, replies, resolves. |
 
 ## What Went Well
 
@@ -141,6 +145,15 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    retrospective contained a bullet arguing a backfilled audit was unnecessary, which contradicted
    `docs/pr-reviews/README.md`; and the record, once written, had to reassign the reviewer's IDs
    because the Copilot findings had never been numbered.
+9. **This retrospective repeated the defect it describes (F11, F12).** Its first two versions
+   wrote three timeline times and a commit count from recollection: the retrospective commit was
+   dated 18:16 when `git log` says 18:08, two events were placed "after 18:16" when all had
+   happened by 18:15, the thread resolution was placed after 17:52 when the round-4 body at
+   18:02 shows the threads still open, and the commit count omitted the commit that wrote it.
+   The `#2271` retrospective's lesson 4 ("record log events from `git log --format=%cI` and the
+   GitHub `created_at` fields, not from recollection") was cited in this file and not applied
+   to it. The "at the maintainer's request" clause was true but had no cited source: the request was made
+   in the editor chat, which the GitHub record cannot show.
 
 ## Root Causes
 
@@ -202,6 +215,10 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    `docs/pr-reviews/pr-<N>-review/PR-REVIEW.md` first, then fix, reply, resolve. When an editor or
    provider skill matches the request, check `.github/skills/` for the repository owner before
    following it.
+10. A retrospective is a merged artifact and gets the F1/F2/F9 test: every time comes from
+    `git log` or a GitHub `created_at`, every count is recomputed at the head that ships it (and
+    includes the commit that writes it), and every attribution to a person names where the
+    record shows it or says the record does not.
 
 ## Improvements for Future Reviews
 
