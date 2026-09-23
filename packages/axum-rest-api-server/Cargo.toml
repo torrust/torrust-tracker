@@ -34,6 +34,7 @@ serde_json = { version = "1", features = [ "preserve_order" ] }
 subtle = "2.6.1"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
+tokio-util = "0.7.15"
 torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
 torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
 torrust-tracker-rest-api-application = { version = "0.1.0", path = "../rest-api-application" }
