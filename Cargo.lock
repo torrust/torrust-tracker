@@ -5365,6 +5365,7 @@ name = "torrust-tracker-udp-server"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "criterion 0.5.1",
  "derive_more 2.1.1",
  "futures",
  "futures-util",
