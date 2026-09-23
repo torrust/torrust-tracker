@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-23
+last-updated-utc: "2026-09-23 18:15"
 semantic-links:
   skill-links:
     - create-issue

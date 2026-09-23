@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
 status: open
@@ -8,7 +9,7 @@ github-issue: 2324
 spec-path: docs/issues/open/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
 branch: "2324-1488-si-13-migrate-health-check-api-token-lifecycle-spec"
 related-pr: null
-last-updated-utc: 2026-09-23
+last-updated-utc: "2026-09-23 18:15"
 semantic-links:
   skill-links:
     - create-issue
