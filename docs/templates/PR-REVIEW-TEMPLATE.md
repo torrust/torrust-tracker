@@ -37,6 +37,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Author class: `Copilot`, `Human`, `Unknown`
 - Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
   `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
 
 <!-- Guidance omitted from an audit record; instantiate the heading and table below. -->
 
@@ -46,6 +50,10 @@ Create one row for every independent concern. Split a review body into separate 
 actionable assertions. Assign a reviewer-provided finding ID when available; otherwise assign
 `F<ordinal>` in source-review and source-order order. Before action, map a later request for the
 same current-tree change to `RE_RAISE_OF:<FindingId>`.
+Every re-raise has its own tracking row and matching detail entry; never collapse it into the
+original finding.
+For an independently actionable review-body finding without an inline thread, use the submitted
+review URL as `Source URL` and `Thread state=NON_RESOLVABLE`.
 
 For every new audit row, record the source author's derived `Author class` and exactly one primary
 `Category`. Classify the category from the concern, not the proposed fix; use `other` only when no
@@ -89,11 +97,18 @@ readable as prose; this section carries the source metadata and verification evi
 - Follow-up PR URL: <DURABLE_FOLLOW_UP_PR_URL_OR_NA>
 - Reply URL: <REPLY_URL_OR_NA>
 
+Use a unique Conventional Commit subject as the `Resolution reference` for `FIXED`. Use a durable
+reply URL for `NO_ACTION`, `SUPERSEDED`, or `FOLLOW_UP`; record a follow-up pull request only in
+the separate Follow-up PR URL field.
+
 <!-- Guidance omitted from an audit record; append only audit events below. -->
 
 ## Processing Log
 
 - <YYYY-MM-DD HH:MM UTC> - Started audit.
+
+Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
+correction that names the rewritten content; do not rewrite the record again.
 
 <!-- Copied verbatim into each audit record. -->
 
@@ -101,11 +116,15 @@ readable as prose; this section carries the source metadata and verification evi
 
 - Re-derive the reply claim against the current tree before replying or resolving a thread.
 - Reply on every resolvable thread before resolving it.
-- For an outdated or superseded thread, reply exactly
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
   `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
-  `Thread state=SUPERSEDED`, then resolve it.
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
 - A consolidated PR conversation response may cover multiple review rounds only when it names
-  every review ID and every finding ID with its disposition and resolution reference.
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
