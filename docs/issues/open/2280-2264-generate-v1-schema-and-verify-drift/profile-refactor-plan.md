@@ -74,7 +74,7 @@ decisions it owns. Do not change production behavior in this item.
 
 ---
 
-### 2. [ ] Represent strict profile kind as a closed enum [MEDIUM impact / LOW effort]
+### 2. [x] Represent strict profile kind as a closed enum [MEDIUM impact / LOW effort]
 
 **Problem**: `strict_document_type` identifies only `issue` and `epic` but returns `Option<&str>`;
 `validate` matches those string literals again. Adding a new strict profile could update one branch
@@ -137,7 +137,7 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 | Order | Status | Item                                                     | Impact | Effort |
 | ----- | ------ | -------------------------------------------------------- | ------ | ------ |
 | 1     | [x]    | Move strict-profile tests beside their owning module     | High   | Low    |
-| 2     | [ ]    | Represent strict profile kind as a closed enum           | Medium | Low    |
+| 2     | [x]    | Represent strict profile kind as a closed enum           | Medium | Low    |
 | 3     | [ ]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [ ]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
 

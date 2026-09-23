@@ -17,6 +17,12 @@ pub enum Profile {
     Permissive,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+enum StrictProfileKind {
+    Issue,
+    Epic,
+}
+
 /// The strict frontmatter document profiles represented by the v1 JSON Schema.
 #[derive(JsonSchema)]
 #[schemars(title = "Torrust Tracker Frontmatter V1")]
@@ -244,15 +250,16 @@ pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
     };
 
     match doc_type {
-        "issue" => {
+        StrictProfileKind::Issue => {
             validate_issue(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Issue)
         }
-        "epic" => validate_epic(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Epic),
-        _ => Ok(Profile::Permissive),
+        StrictProfileKind::Epic => {
+            validate_epic(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Epic)
+        }
     }
 }
 
-fn strict_document_type(values: &Mapping) -> Result<Option<&str>, Diagnostic> {
+fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, Diagnostic> {
     let Some(schema_version) = values.get(field_key("schema-version")) else {
         return Ok(None);
     };
@@ -285,7 +292,11 @@ fn strict_document_type(values: &Mapping) -> Result<Option<&str>, Diagnostic> {
         });
     };
 
-    Ok(Some(doc_type))
+    Ok(match doc_type {
+        "issue" => Some(StrictProfileKind::Issue),
+        "epic" => Some(StrictProfileKind::Epic),
+        _ => None,
+    })
 }
 
 fn validate_issue(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
@@ -664,6 +675,20 @@ mod tests {
         // Assert: ownership prevents strict repository-profile interpretation.
         assert!(matches!(profile, Profile::Permissive));
     }
+
+    #[test]
+    fn it_should_keep_an_unknown_v1_document_type_permissive() {
+        // Arrange: a repository-owned version-one document uses an unrecognized document class.
+        let markdown = "---\nschema-version: 1\ndoc-type: note\n---\n# Note\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: classify the parsed frontmatter profile.
+        let profile = validate(&frontmatter).unwrap();
+
+        // Assert: unrecognized document classes remain outside the strict v1 profiles.
+        assert_eq!(profile, Profile::Permissive);
+    }
+
     #[test]
     fn it_should_classify_the_accepted_issue_fixture_as_a_strict_issue_profile() {
         // Arrange: the predecessor's accepted issue fixture declares schema version one.
