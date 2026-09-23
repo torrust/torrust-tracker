@@ -165,6 +165,7 @@ RUN mkdir -p \
       packages/tracker-core/src \
       packages/udp-protocol/src \
       packages/udp-server/src \
+      packages/udp-server/benches \
       packages/udp-server/examples \
       packages/udp-core/src \
       packages/udp-core/benches \
@@ -211,6 +212,7 @@ RUN mkdir -p \
       packages/tracker-core/src/lib.rs \
       packages/udp-protocol/src/lib.rs \
       packages/udp-server/src/lib.rs \
+      packages/udp-server/benches/udp_tracker_server_benchmark.rs \
       packages/udp-server/examples/udp_only_public_tracker.rs \
       packages/udp-core/src/lib.rs \
       packages/udp-core/benches/udp_tracker_core_benchmark.rs \
