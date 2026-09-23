@@ -61,6 +61,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    against the current tree. A later item requesting the same current-tree
    change is a re-raise: keep its source row and record
    `RE_RAISE_OF:<FindingId>`.
+   Every re-raise has its own tracking row and detail entry; never collapse it
+   into the original finding.
 4. **Categorize for future analysis.** For every new audit row, assign exactly one
    primary category: `link-integrity`, `formatting`, `metadata`, `testing`,
    `correctness`, `documentation`, `maintainability`, `security`, or `other`.
@@ -81,7 +83,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    GitHub marks the original thread outdated after the push. For a duplicate,
    superseded, or no-change thread, reply exactly `Superseded by <FindingId>:
 <reason>.`, record `Disposition=NO_ACTION` and `Thread state=SUPERSEDED`, then
-   resolve it.
+   resolve it. In a post-merge review, record `NO_ACTION` only when the
+   maintainer has approved declining the follow-up work.
 8. **Consolidate review bodies.** A PR conversation response may cover multiple
    review rounds only when it names every review ID and every finding ID with its
    disposition and resolution reference. Store its durable URL in each related
@@ -177,8 +180,9 @@ Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
 `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
 `maintainability`, `security`, or `other`. Severity is `Blocker`, `Major`,
 `Minor`, `Nit`, or `Suggestion`; mark a severity inferred from free prose as
-inferred. Resolution references are unique Conventional Commit subjects or
-durable reply URLs, never branch SHAs. Record a follow-up pull request in the
+inferred. `FIXED` resolution references are unique Conventional Commit subjects;
+`NO_ACTION`, `SUPERSEDED`, and `FOLLOW_UP` resolution references are durable
+reply URLs. Never use a branch SHA. Record a follow-up pull request only in the
 separate Follow-up PR URL field, using `N/A` when it does not apply. Historical
 records remain valid without the analysis fields.
 
