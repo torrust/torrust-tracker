@@ -2,7 +2,7 @@
 doc-type: benchmark-report
 parent-issue: 2314
 status: open
-last-updated-utc: 2026-09-23 10:55
+last-updated-utc: "2026-09-23 10:55"
 semantic-links:
   related-artifacts:
     - docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
