@@ -104,3 +104,21 @@ The diagnostic-producing validator remains the single composition point for layo
 YAML source-style rules. No time dependency or public behavior change is introduced.
 Replacing the calendar conjunction with an always-permissive disjunction made the table fail at
 the non-leap-year `2025-02-29 23:59` row before the real predicate was restored.
+
+## Refactor Plan Item 5 - Aggregate-Owned Invariants
+
+### Arrange
+
+The existing strict-profile tests exercise issue identifiers, specification paths, timestamps, and
+EPIC ownership. Those checks inspect only the fully deserialized aggregate and the original YAML.
+
+### Act
+
+Run the existing strict-profile validation boundary after relocating each aggregate's invariant
+sequence to its private `validate_invariants` method.
+
+### Assert
+
+The same fixtures and inline invalid states retain their profile results and diagnostic categories.
+No new test is needed because this is ownership-only relocation with unchanged observable inputs,
+order, and assertions; schema drift verification proves the model projection remains unchanged.

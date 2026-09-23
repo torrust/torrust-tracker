@@ -90,6 +90,17 @@ pub struct Issue {
     pub semantic_links: StrictSemanticLinks,
 }
 
+impl Issue {
+    fn validate_invariants(&self, yaml: &str) -> Result<(), Diagnostic> {
+        validate_optional_positive_integer("epic", self.epic)?;
+        validate_optional_positive_integer("github-issue", self.github_issue)?;
+        validate_optional_positive_integer("related-pr", self.related_pr)?;
+        validate_repository_relative_path("spec-path", &self.spec_path)?;
+        validate_non_empty_string("branch", &self.branch)?;
+        validate_utc_minute_string(&self.last_updated_utc, yaml)
+    }
+}
+
 /// The canonical strict EPIC frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
@@ -119,6 +130,18 @@ pub struct Epic {
     pub last_updated_utc: String,
     /// The required strict semantic-link envelope.
     pub semantic_links: StrictSemanticLinks,
+}
+
+impl Epic {
+    fn validate_invariants(&self, yaml: &str) -> Result<(), Diagnostic> {
+        validate_optional_positive_integer("epic", self.epic)?;
+        validate_optional_positive_integer("github-issue", self.github_issue)?;
+        validate_repository_relative_path("spec-path", &self.spec_path)?;
+        if let Some(owner) = &self.epic_owner {
+            validate_non_empty_string("epic-owner", owner)?;
+        }
+        validate_utc_minute_string(&self.last_updated_utc, yaml)
+    }
 }
 
 /// The strict semantic-link envelope with frozen v1 reference value types.
@@ -300,11 +323,11 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
 }
 
 fn validate_issue(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, &ISSUE_PROFILE, validate_issue_invariants)
+    validate_strict_profile(values, yaml, semantic_links, &ISSUE_PROFILE, Issue::validate_invariants)
 }
 
 fn validate_epic(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Epic, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, &EPIC_PROFILE, validate_epic_invariants)
+    validate_strict_profile(values, yaml, semantic_links, &EPIC_PROFILE, Epic::validate_invariants)
 }
 
 fn validate_strict_profile<T>(
@@ -396,25 +419,6 @@ fn is_lowercase_identifier(value: &str) -> bool {
         && value
             .split('-')
             .all(|segment| !segment.is_empty() && segment.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit()))
-}
-
-fn validate_issue_invariants(issue: &Issue, yaml: &str) -> Result<(), Diagnostic> {
-    validate_optional_positive_integer("epic", issue.epic)?;
-    validate_optional_positive_integer("github-issue", issue.github_issue)?;
-    validate_optional_positive_integer("related-pr", issue.related_pr)?;
-    validate_repository_relative_path("spec-path", &issue.spec_path)?;
-    validate_non_empty_string("branch", &issue.branch)?;
-    validate_utc_minute_string(&issue.last_updated_utc, yaml)
-}
-
-fn validate_epic_invariants(epic: &Epic, yaml: &str) -> Result<(), Diagnostic> {
-    validate_optional_positive_integer("epic", epic.epic)?;
-    validate_optional_positive_integer("github-issue", epic.github_issue)?;
-    validate_repository_relative_path("spec-path", &epic.spec_path)?;
-    if let Some(owner) = &epic.epic_owner {
-        validate_non_empty_string("epic-owner", owner)?;
-    }
-    validate_utc_minute_string(&epic.last_updated_utc, yaml)
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {

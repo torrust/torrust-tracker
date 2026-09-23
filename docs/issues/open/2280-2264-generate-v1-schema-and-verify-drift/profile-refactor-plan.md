@@ -153,7 +153,7 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 
 ---
 
-### 5. [ ] Move typed invariant checks onto `Issue` and `Epic` [MEDIUM impact / LOW effort]
+### 5. [x] Move typed invariant checks onto `Issue` and `Epic` [MEDIUM impact / LOW effort]
 
 **Problem**: `validate_issue_invariants(&Issue, &str)` and `validate_epic_invariants(&Epic, &str)`
 are free functions whose only input is the aggregate they inspect. The rules they encode (positive
@@ -282,7 +282,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 2     | [x]    | Represent strict profile kind as a closed enum           | Medium | Low    |
 | 3     | [x]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [x]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
-| 5     | [ ]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
+| 5     | [x]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
 | 6     | [ ]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
 | 7     | [ ]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
 | 8     | [ ]    | Unify diagnostic construction                            | Low    | Low    |
