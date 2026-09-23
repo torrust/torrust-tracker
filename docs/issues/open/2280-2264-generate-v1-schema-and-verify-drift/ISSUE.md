@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: planned
+status: in_progress
 priority: p1
 epic: 2264
 github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-22 21:34"
+last-updated-utc: "2026-09-23 12:28"
 semantic-links:
   skill-links:
     - create-issue
