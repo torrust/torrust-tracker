@@ -52,6 +52,8 @@ actionable assertions. Assign a reviewer-provided finding ID when available; oth
 same current-tree change to `RE_RAISE_OF:<FindingId>`.
 Every re-raise has its own tracking row and matching detail entry; never collapse it into the
 original finding.
+For an independently actionable review-body finding without an inline thread, use the submitted
+review URL as `Source URL` and `Thread state=NON_RESOLVABLE`.
 
 For every new audit row, record the source author's derived `Author class` and exactly one primary
 `Category`. Classify the category from the concern, not the proposed fix; use `other` only when no
@@ -105,6 +107,9 @@ the separate Follow-up PR URL field.
 
 - <YYYY-MM-DD HH:MM UTC> - Started audit.
 
+Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
+correction that names the rewritten content; do not rewrite the record again.
+
 <!-- Copied verbatim into each audit record. -->
 
 ## Completion Rules
@@ -118,7 +123,8 @@ the separate Follow-up PR URL field.
   `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
   approval to decline the follow-up work.
 - A consolidated PR conversation response may cover multiple review rounds only when it names
-  every review ID and every finding ID with its disposition and resolution reference.
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.

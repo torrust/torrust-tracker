@@ -50,6 +50,10 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    every other bot or unavailable author as `Unknown`. Split each review body into
    one row per independently actionable assertion; do not make a row for a summary
    or verdict that contains no request. Preserve the source review ID and URL.
+   Treat Copilot's collapsed `Suppressed comments` as findings only when their
+   full content is retrievable and contains an independently actionable
+   assertion. Otherwise record no row and retain the review summary only as
+   non-actionable context.
 3. **Assign and deduplicate findings.** Use a reviewer-provided finding ID when
    present and it does not collide with an existing audit finding ID. When a
    later review reuses an existing ID for a different finding, assign the next
@@ -72,7 +76,9 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    current tree with file inspection or a focused command. Record one of
    `FIXED`, `NO_ACTION`, `SUPERSEDED`, or `FOLLOW_UP`, the verification performed,
    and a concise independent summary. Never close a row with an undocumented
-   disposition.
+   disposition. If a Processing Log was rewritten in place, restore its prior
+   entries, append a correction that names the rewritten content, and do not
+   rewrite the record again.
 6. **Implement and validate fixes.** Make each independent fix in its own GPG
    signed Conventional Commit after focused validation. Cite the unique commit
    subject, not a branch SHA, because the branch can be rebased.
@@ -268,7 +274,9 @@ audit detail before resolving the finding.
 - [ ] `scripts/validate-audit-record.py` exits `0` against the committed audit
 - [ ] Every resolvable thread replied to before resolution
 - [ ] Every superseded thread has the prescribed reply and audit state
-- [ ] Consolidated responses name every covered review and finding
+- [ ] Consolidated responses that cover multiple review rounds name every covered review and
+      finding ID with its disposition and resolution reference, with the durable response URL in
+      each related row
 - [ ] Final GraphQL fetch reports no unresolved actionable thread
 - [ ] Audit committed separately from product fixes
 - [ ] For feedback submitted after merge: maintainer approval recorded before any mutating action
