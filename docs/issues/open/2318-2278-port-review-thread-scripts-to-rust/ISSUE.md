@@ -9,7 +9,7 @@ github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
 branch: "2318-2278-port-review-thread-scripts-to-rust"
 related-pr: https://github.com/torrust/torrust-tracker/pull/2319
-last-updated-utc: "2026-09-23 14:47"
+last-updated-utc: "2026-09-23 15:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -142,7 +142,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture tests, and ADR table row. |
 | T3 | DONE | Port the three read-only projections | `list`, `show`, and `reply-status` subcommands have fixture-tested data parity. |
 | T4 | DONE | Retire the scripts and update skills | Scripts deleted; review skills document the binary and compatible resolver file shape. |
-| T5 | IN_PROGRESS | Verify and record completion evidence | Manual scenarios and acceptance review recorded; pre-push check pending. |
+| T5 | DONE | Verify and record completion evidence | Manual scenarios, acceptance review, and pre-push gate recorded. |
 
 ## Commit Points
 
@@ -184,8 +184,9 @@ call is visible, and the expected output is stated independently of the code und
 - 2026-09-23 13:02 UTC - GitHub Copilot - T1 captured a minimal deterministic GraphQL response fixture and shell-script golden outputs. The fixture covers resolved, unresolved, outdated, multi-comment, reply-present, and reply-missing states. A fixture-backed `gh` shim captured the `fetch` script without network access.
 - 2026-09-23 14:25 UTC - GitHub Copilot - T2 added `github-review-threads fetch`, a fixture-tested `ThreadSource` seam, `GhCli` process adapter, response validation, and the ADR output-contract row. The design-review checkpoint passed after a fixture-backed command run and a real PR #2319 capture preserved the downstream GraphQL response shape.
 - 2026-09-23 14:30 UTC - GitHub Copilot - T3 added fixture-tested `list`, `show`, and `reply-status` projections. `reply-status` preserves its missing-reply exit code while following the output contract: on missing replies, stdout is empty and stderr contains a JSON diagnostic; its detailed computed summary is covered by the unit test.
-- 2026-09-23 15:00 UTC - GitHub Copilot - T4 retired the four Bash helpers and updated the review skills to invoke `github-review-threads`. Fixture checks confirmed the Rust commands and existing bulk resolver share the response-file shape.
+- 2026-09-23 14:42 UTC - GitHub Copilot - T4 retired the four Bash helpers and updated the review skills to invoke `github-review-threads`. Fixture checks confirmed the Rust commands and existing bulk resolver share the response-file shape.
 - 2026-09-23 14:47 UTC - GitHub Copilot - T5 recorded live fetch parity, projection, resolver, output-contract, and container integration evidence in `manual-verification-evidence.md`. The remaining completion gate is the installed pre-push hook.
+- 2026-09-23 15:08 UTC - GitHub Copilot - The installed pre-push hook passed nightly formatting, workspace checks, documentation build, and the complete stable test suite; T5 is complete.
 
 ## Acceptance Criteria
 
@@ -195,10 +196,10 @@ call is visible, and the expected output is stated independently of the code und
 - [x] AC4: The binary complies with the CLI output contract (`stdout-result-data`, TTY refusal, JSON diagnostics on stderr) and is listed in the ADR classification table.
 - [x] AC5: No test invokes `gh` or the network; the GraphQL call sits behind a trait with a fixture implementation.
 - [x] AC6: The four Bash scripts are deleted and `fetch-review-threads` and `resolve-review-threads` document the `cargo run --package` invocation; no live documentation references the removed paths.
-- [ ] `linter all` exits with code `0`.
-- [ ] Crate tests and pre-push checks pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] `linter all` exits with code `0`.
+- [x] Crate tests and pre-push checks pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
