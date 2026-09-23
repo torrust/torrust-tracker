@@ -1,7 +1,7 @@
 ---
 pr-number: 2322
 pr-url: https://github.com/torrust/torrust-tracker/pull/2322
-last-updated-utc: "2026-09-23 17:59"
+last-updated-utc: "2026-09-23 18:03"
 ---
 
 # PR #2322 Review Audit
@@ -231,6 +231,7 @@ audit's `F8` and `F9`; they are `F11` and `F12` here.
 - 2026-09-23 17:54 UTC - Committed `fix(dev-tools): satisfy nightly clippy assert_is_empty in CLI tests` (F11); pushed at 17:57 UTC with the pre-push suite passing.
 - 2026-09-23 17:59 UTC - Correction (F12): the `17:20 UTC` and `17:25 UTC` entries above were stamped with estimated times. Recovered event times: fix commits pushed 17:11 UTC; the eleven replies posted 17:12-17:13 UTC; validator run and audit committed 17:16 UTC; threads resolved and fetched again 17:18 UTC, recorded in the commit made 17:18 UTC and pushed 17:19 UTC. Entries from this point on are stamped with the time of the event they record.
 - 2026-09-23 17:59 UTC - Replied on the two round-2 threads.
+- 2026-09-23 18:03 UTC - Pushed the audit correction; `reply-status --login josecelano` reported `2/2/0`; resolved both round-2 threads; a fresh fetch and `list` report zero unresolved threads.
 
 ## Completion Rules
 
