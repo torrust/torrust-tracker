@@ -122,3 +122,24 @@ sequence to its private `validate_invariants` method.
 The same fixtures and inline invalid states retain their profile results and diagnostic categories.
 No new test is needed because this is ownership-only relocation with unchanged observable inputs,
 order, and assertions; schema drift verification proves the model projection remains unchanged.
+
+## Refactor Plan Item 6 - Definition-Owned Structural Validation
+
+### Arrange
+
+The existing cross-profile precedence test supplies both an unrecognized field and an invalid
+skill link. It requires known-field validation to precede reference syntax for both profile
+definitions.
+
+### Act
+
+Validate those documents after moving the field, required-field, and allowed-value sequence into
+`StrictProfileDefinition::validate_structure`.
+
+### Assert
+
+Both profiles still report `UnknownField`. Temporarily calling reference validation before the
+definition method must change the result to `InvalidReferenceSyntax`, proving the existing test
+guards the behavior after ownership moves.
+The mutation produced `InvalidReferenceSyntax` for the cross-profile test before the original
+order was restored.

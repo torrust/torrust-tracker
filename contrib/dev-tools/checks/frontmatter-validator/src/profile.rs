@@ -340,11 +340,7 @@ fn validate_strict_profile<T>(
 where
     T: for<'de> Deserialize<'de>,
 {
-    validate_known_fields(values, definition.fields)?;
-    validate_required_fields(values, definition.fields)?;
-    for (field, allowed_values) in definition.allowed_values {
-        validate_allowed_string(values, field, allowed_values)?;
-    }
+    definition.validate_structure(values)?;
     validate_reference_syntax(semantic_links)?;
     let profile = deserialize_strict(values)?;
     validate_invariants(&profile, yaml)?;
@@ -619,18 +615,32 @@ struct StrictProfileDefinition {
     allowed_values: &'static [(&'static str, &'static [&'static str])],
 }
 
+impl StrictProfileDefinition {
+    fn validate_structure(&self, values: &Mapping) -> Result<(), Diagnostic> {
+        validate_known_fields(values, self.fields)?;
+        validate_required_fields(values, self.fields)?;
+        for (field, allowed_values) in self.allowed_values {
+            validate_allowed_string(values, field, allowed_values)?;
+        }
+
+        Ok(())
+    }
+}
+
+const STATUS_VALUES: &[&str] = &["draft", "planned", "in-progress", "blocked", "in-review", "done"];
+
 const ISSUE_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
     fields: ISSUE_FIELDS,
     allowed_values: &[
         ("issue-type", &["task", "bug", "feature", "enhancement"]),
-        ("status", &["draft", "planned", "in-progress", "blocked", "in-review", "done"]),
+        ("status", STATUS_VALUES),
         ("priority", &["p0", "p1", "p2", "p3"]),
     ],
 };
 
 const EPIC_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
     fields: EPIC_FIELDS,
-    allowed_values: &[("status", &["draft", "planned", "in-progress", "blocked", "in-review", "done"])],
+    allowed_values: &[("status", STATUS_VALUES)],
 };
 
 #[cfg(test)]

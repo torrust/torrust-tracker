@@ -174,7 +174,7 @@ the schema bytes are unchanged.
 
 ---
 
-### 6. [ ] Let `StrictProfileDefinition` own the structural stage [MEDIUM impact / LOW effort]
+### 6. [x] Let `StrictProfileDefinition` own the structural stage [MEDIUM impact / LOW effort]
 
 **Problem**: `StrictProfileDefinition` holds the allowed fields and allowed values, but the code
 that applies them lives in `validate_strict_profile`, which reaches into `definition.fields` and
@@ -283,7 +283,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 3     | [x]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [x]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
 | 5     | [x]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
-| 6     | [ ]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
+| 6     | [x]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
 | 7     | [ ]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
 | 8     | [ ]    | Unify diagnostic construction                            | Low    | Low    |
 | 9     | [ ]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
