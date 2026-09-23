@@ -362,10 +362,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | B6 | DONE | Review the red tests' design | Completed prose-first review: both tests retain visible ordered request data, independently specified typed expected vectors, production `handle_scrape` Acts, and exact-response assertions. Evidence: `manual-verification-evidence.md`. |
 | P0 | DONE | Add the scrape microbenchmark | Added `packages/udp-server/benches/udp_tracker_server_benchmark.rs` with the production `handle_scrape` scenario and 74 distinct requested hashes. |
 | P1 | DONE | Record the pre-fix performance baseline | Recorded machine characteristics, exact configuration, per-run results, and medians in `scrape-benchmark-evidence.md`. |
-| B7 | TODO | Re-confirm the repair boundary after the red tests | Option 1 is already selected (see Architectural Decisions, Decision). Confirm the red tests point at `build_response` as the causal seam and that no `ScrapeData` consumer discovered during B3-B6 needs request order; record the confirmation. Escalate to the maintainer only if the red tests contradict the decision. |
-| B8 | TODO | Implement the smallest causal fix | In `udp-server::handlers::scrape::build_response`, iterate `request.info_hashes` and look up each hash in `scrape_data.files` before encoding it; never iterate the map for a positional response. Allocate `torrent_stats` with `Vec::with_capacity(request.info_hashes.len())`. Use zeroed metadata for a hash absent from the map (cannot happen today; matches how unknown and unauthorized torrents are reported) and cover it with a test. Add the keyed-and-unordered doc comment to `ScrapeData`. |
-| B9 | TODO | Run focused regression tests green | Re-run B4 and B5 after the fix. Both tests must pass without weakened assertions; record the commands and output in `manual-verification-evidence.md`. |
-| B10 | TODO | Run focused affected-crate tests | Run the `torrust-tracker-udp-server` package tests and, because of the `ScrapeData` doc comment, `torrust-tracker-primitives` (`cargo test --doc` included). |
+| B7 | DONE | Re-confirm the repair boundary after the red tests | The red tests isolate `build_response` as the positional adaptation seam; no discovered `ScrapeData` consumer requires request order. |
+| B8 | DONE | Implement the smallest causal fix | `build_response` iterates request hashes, performs keyed lookups with zeroed fallback, and preallocates the response vector. `ScrapeData` documents its keyed/unordered contract. |
+| B9 | DONE | Run focused regression tests green | Both maintained regressions passed without weakened assertions; commands and results are recorded in `manual-verification-evidence.md`. |
+| B10 | DONE | Run focused affected-crate tests | UDP server unit/integration/documentation tests and primitives documentation tests passed; details are recorded in `manual-verification-evidence.md`. |
 | P2 | DONE | Repeat the performance measurement after the fix | Recorded the P2 results next to P1. The E2E median declined 3.37%, within the 5% threshold; the microbenchmark increased 0.5354 us, consistent with the keyed lookups. |
 | B11 | TODO | Recheck the original user-visible artifact | Repeat V1 unchanged against a fresh local tracker as V2: ten `[A, B]` scrapes, ten `[B, A]` scrapes, and `[A, A, B]`. Record commands, output, runtime details, and relevant logs. Every response must align with request order and the duplicate request must contain three entries. |
 | B12 | TODO | Complete quality gates and acceptance review | Run `cargo +nightly fmt --all -- --check` and `linter all`; review every acceptance criterion against the red/green and V1/V2 evidence. |
@@ -396,8 +396,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Red regression tests recorded
 - [x] Scrape microbenchmark added and pre-fix baseline recorded (P0, P1)
 - [x] Fix option decided by maintainer (Option 1; see Architectural Decisions)
-- [ ] Fix option re-confirmed against the red tests (B7)
-- [ ] Production fix completed
+- [x] Fix option re-confirmed against the red tests (B7)
+- [x] Production fix completed
 - [ ] Green regression and like-for-like artifact recheck (V2) recorded
 - [x] Post-fix benchmark recorded and compared with the baseline (P2)
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
@@ -449,6 +449,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   request returned the statistics in a different order. The prose-first review confirmed the
   tests hold request order, expected typed vectors, the production Act, and exact assertions
   visible in their bodies.
+- 2026-09-23 - GitHub Copilot - Completed B7-B10. The selected positional response-builder
+  repair preserves request order and duplicates, with a zeroed missing-key fallback. Both
+  regressions and affected UDP-server/primitives checks passed; details are in
+  `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
@@ -456,9 +460,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   (`manual-verification-evidence.md` V1).
 - [x] AC2: Maintained regression tests fail before the fix: the order test for `N ≥ 8` distinct
   hashes with distinct statistics, and the entry-count test for a duplicated hash.
-- [ ] AC3: The production path returns `torrent_stats[i]` for `info_hashes[i]` for every `i`,
+- [x] AC3: The production path returns `torrent_stats[i]` for `info_hashes[i]` for every `i`,
   including duplicated hashes, without sorting info hashes or accepting unordered results.
-- [ ] AC4: The regression tests pass after the fix.
+- [x] AC4: The regression tests pass after the fix.
 - [ ] AC5: The V1 scenario is rerun unchanged after the fix (V2) and every response returns
   statistics in request order; `[A, A, B]` returns three entries.
 - [ ] AC6: HTTP scrape behavior is unchanged (`http-core` and `axum-http-server` tests pass).
@@ -550,8 +554,8 @@ conclusion recorded before merge.
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | `manual-verification-evidence.md` V1 |
 | AC2   | TODO                   | Red test output in `manual-verification-evidence.md` |
-| AC3   | TODO                   | Fix commit |
-| AC4   | TODO                   | Green test output in `manual-verification-evidence.md` |
+| AC3   | DONE                   | `build_response` request-order lookup implementation |
+| AC4   | DONE                   | Green test output in `manual-verification-evidence.md` |
 | AC5   | TODO                   | `manual-verification-evidence.md` V2 |
 | AC6   | TODO                   | Focused HTTP crate test output |
 | AC7   | DONE                   | `scrape-benchmark-evidence.md` P1/P2 comparison; E2E median decline 3.37% |

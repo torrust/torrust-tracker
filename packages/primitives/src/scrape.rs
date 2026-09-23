@@ -9,7 +9,9 @@ use crate::swarm_metadata::SwarmMetadata;
 /// Structure that holds the data returned by the `scrape` request.
 #[derive(Debug, PartialEq, Eq, Default)]
 pub struct ScrapeData {
-    /// A map of infohashes and swarm metadata for each torrent.
+    /// Keyed, unordered swarm metadata for each torrent.
+    ///
+    /// Positional protocol adapters must iterate their request hashes and look up each entry here.
     pub files: HashMap<InfoHash, SwarmMetadata>,
 }
 
