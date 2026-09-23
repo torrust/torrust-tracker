@@ -58,6 +58,12 @@ git push --force-with-lease <fork-remote> <branch-name>
 > In general, every PR targeting `develop` should sit on top of the latest commit in
 > `<upstream-remote>/develop`. Check this whenever you push or re-push.
 
+Because every rebase rewrites the branch's commit ids, nothing that will be merged (issue specs,
+evidence files, PR body, review replies) may cite a PR-branch commit by id. Cite the Conventional
+Commit subject instead; ids are durable only once on `develop`. Before pushing after a rebase, run
+`git grep -nE '\b[0-9a-f]{7,40}\b' -- docs/issues/open/<issue-folder>` and check that each hit
+is a `develop` commit, tag, or external reference.
+
 <!-- markdownlint-disable-next-line MD028 -->
 
 > Important:
