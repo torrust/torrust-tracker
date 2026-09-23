@@ -1,7 +1,7 @@
 ---
 pr-number: 2313
 pr-url: https://github.com/torrust/torrust-tracker/pull/2313
-last-updated-utc: "2026-09-23 09:52"
+last-updated-utc: "2026-09-23 10:22"
 ---
 
 # PR #2313 Review Audit
@@ -30,16 +30,55 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-
-No submitted review, review-body finding, or inline review thread existed when this audit started.
+| F1 | `review-finding:pr-2313-f1` | Copilot | Major (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2313-f2` | Copilot | Major (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2313-f3` | Copilot | Major (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
-No findings have been normalized.
+### F1 - State the skill's fixed-outdated-thread behavior in V1
+
+- PR number: 2313
+- Source review ID: 5289588303
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081285795
+- Concern: V1 named fixed outdated threads in its goal but its observed result did not explicitly say that the skill also requires `FIXED`/`RESOLVED`.
+- Solution: Updated V1 to state that both the template and skill require `FIXED`/`RESOLVED` for a fixed outdated thread.
+- Current-tree verification: `rg -n 'The template and skill state' docs/issues/open/2308-2278-reconcile-audit-contract-rules/manual-verification-evidence.md` and `rg -n 'If a code or documentation change fixed|outdated thread whose concern was fixed' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md docs/templates/PR-REVIEW-TEMPLATE.md` found the matching evidence and normative rules.
+- Resolution reference: docs(issues): clarify #2308 verification evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081386514
+
+### F2 - Retain the duplicate V1 evidence request
+
+- PR number: 2313
+- Source review ID: 5289588303
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081285850
+- Concern: A second inline thread independently requested that V1 explicitly confirm the skill's fixed-outdated-thread behavior.
+- Solution: The F1 evidence correction also resolves this re-raised concern.
+- Current-tree verification: `rg -n 'The template and skill state' docs/issues/open/2308-2278-reconcile-audit-contract-rules/manual-verification-evidence.md` found the explicit shared behavior statement.
+- Resolution reference: docs(issues): clarify #2308 verification evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081386709
+
+### F3 - Correct the V2 recorded search pattern
+
+- PR number: 2313
+- Source review ID: 5289588303
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081285888
+- Concern: V2's recorded `rg` command had an unmatched backtick in its quoted search pattern.
+- Solution: Removed the unmatched backtick so the recorded command is reproducible.
+- Current-tree verification: `rg -n 'FIXED resolution\|Resolution reference' docs/issues/open/2308-2278-reconcile-audit-contract-rules/manual-verification-evidence.md` found the corrected pattern.
+- Resolution reference: docs(issues): clarify #2308 verification evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4081386861
 
 ## Processing Log
 
 - 2026-09-23 09:52 UTC - Started audit; fetched GraphQL review threads and GitHub PR metadata. No reviews, comments, or unresolved threads were present.
+- 2026-09-23 10:22 UTC - Normalized Copilot's three inline findings. Fixed F1 and F3 in `docs(issues): clarify #2308 verification evidence`; retained the duplicate F2 request as `RE_RAISE_OF:F1`; replied to all three threads with current-tree verification and the resolution reference.
 
 ## Completion Rules
 
