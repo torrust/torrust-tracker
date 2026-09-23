@@ -195,3 +195,22 @@ Use `serde_yaml::Mapping`'s native `&str` `get` and `contains_key` support in th
 
 The existing strict-profile tests retain recognition, required-field, and allowed-value behavior.
 This is a mechanical allocation removal with no contract change, so no extra test is needed.
+
+## Refactor Plan Item 10 - Shared Schema Patterns
+
+### Arrange
+
+The canonical schema contains identical repository-path patterns on issue and EPIC `spec-path`,
+and identical UTC-minute patterns on both `last-updated-utc` properties.
+
+### Act
+
+Reference the shared Rust constants from the Schemars attributes and generate the canonical schema.
+
+### Assert
+
+The existing schema test asserts every affected generated pattern equals the corresponding
+constant, and offline drift verification keeps the tracked artifact byte-identical. No schema
+contract is changed.
+Replacing the shared path pattern with `^changed-pattern$` made offline schema verification report
+artifact drift before the canonical pattern was restored.

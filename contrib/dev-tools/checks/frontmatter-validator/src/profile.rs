@@ -69,6 +69,9 @@ pub fn v1_schema_json() -> String {
     format!("{schema}\n")
 }
 
+const REPOSITORY_RELATIVE_PATH_PATTERN: &str = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$";
+const UTC_MINUTE_PATTERN: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$";
+
 /// The canonical strict issue frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
@@ -92,7 +95,7 @@ pub struct Issue {
     #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
-    #[schemars(regex(pattern = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$"))]
+    #[schemars(regex(pattern = REPOSITORY_RELATIVE_PATH_PATTERN))]
     pub spec_path: String,
     /// The development branch name.
     #[schemars(length(min = 1))]
@@ -101,7 +104,7 @@ pub struct Issue {
     #[schemars(range(min = 1))]
     pub related_pr: Option<u64>,
     /// The required UTC-minute update timestamp.
-    #[schemars(regex(pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"))]
+    #[schemars(regex(pattern = UTC_MINUTE_PATTERN))]
     pub last_updated_utc: String,
     /// The required strict semantic-link envelope.
     pub semantic_links: StrictSemanticLinks,
@@ -137,13 +140,13 @@ pub struct Epic {
     #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
-    #[schemars(regex(pattern = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$"))]
+    #[schemars(regex(pattern = REPOSITORY_RELATIVE_PATH_PATTERN))]
     pub spec_path: String,
     /// The optional owner of the EPIC.
     #[schemars(length(min = 1))]
     pub epic_owner: Option<String>,
     /// The required UTC-minute update timestamp.
-    #[schemars(regex(pattern = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"))]
+    #[schemars(regex(pattern = UTC_MINUTE_PATTERN))]
     pub last_updated_utc: String,
     /// The required strict semantic-link envelope.
     pub semantic_links: StrictSemanticLinks,
@@ -711,6 +714,22 @@ mod tests {
         assert_eq!(schema["$defs"]["Issue"]["properties"]["schema-version"]["minimum"], 1);
         assert!(schema["$defs"]["Issue"]["patternProperties"].get("^x-").is_some());
         assert!(schema["$defs"]["Epic"]["patternProperties"].get("^x-").is_some());
+        assert_eq!(
+            schema["$defs"]["Issue"]["properties"]["spec-path"]["pattern"],
+            REPOSITORY_RELATIVE_PATH_PATTERN
+        );
+        assert_eq!(
+            schema["$defs"]["Epic"]["properties"]["spec-path"]["pattern"],
+            REPOSITORY_RELATIVE_PATH_PATTERN
+        );
+        assert_eq!(
+            schema["$defs"]["Issue"]["properties"]["last-updated-utc"]["pattern"],
+            UTC_MINUTE_PATTERN
+        );
+        assert_eq!(
+            schema["$defs"]["Epic"]["properties"]["last-updated-utc"]["pattern"],
+            UTC_MINUTE_PATTERN
+        );
         assert_eq!(schema["$defs"]["SkillName"]["pattern"], "^[a-z0-9]+(?:-[a-z0-9]+)*$");
         assert_eq!(
             schema["$defs"]["RelatedArtifact"]["pattern"],

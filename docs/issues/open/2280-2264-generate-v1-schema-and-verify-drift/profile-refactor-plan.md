@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: in_progress
+status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
-last-updated-utc: "2026-09-23 09:18"
+last-updated-utc: "2026-09-23 10:02"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -254,7 +254,7 @@ dictates), then delete `field_key`. Pure mechanical change covered by the existi
 
 ---
 
-### 10. [ ] Declare shared schema patterns once [LOW impact / LOW effort]
+### 10. [x] Declare shared schema patterns once [LOW impact / LOW effort]
 
 **Problem**: The repository-relative path regex appears three times (`Issue::spec_path`,
 `Epic::spec_path`, and inside the `RelatedArtifact` union pattern) and the UTC-minute regex twice.
@@ -287,7 +287,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 7     | [x]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
 | 8     | [x]    | Unify diagnostic construction                            | Low    | Low    |
 | 9     | [x]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
-| 10    | [ ]    | Declare shared schema patterns once                      | Low    | Low    |
+| 10    | [x]    | Declare shared schema patterns once                      | Low    | Low    |
 
 Item 1 establishes the correct test ownership before production refactors. Item 2 makes the
 dispatch boundary explicit, so item 3 can share the validation sequence without retaining raw
@@ -344,6 +344,6 @@ it removes code, whereas item 10 must prove schema bytes are unchanged.
 ## Review Decision
 
 The maintainer approved items 1-4 on 2026-09-23 and they were implemented as four signed commits.
-Items 5-10 were added on 2026-09-23 after the responsibility and complexity review and await
-maintainer approval before implementation. Implement items in order, record the required
-prose-first test-design review, and commit each item separately.
+The maintainer approved items 5-10 on 2026-09-23 after the responsibility and complexity review;
+each was implemented in order with the required prose-first test-design review and separate signed
+commits.
