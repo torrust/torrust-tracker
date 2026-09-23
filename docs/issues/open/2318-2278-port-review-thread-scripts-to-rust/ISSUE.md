@@ -8,7 +8,7 @@ epic: 2278
 github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
 branch: "2318-2278-port-review-thread-scripts-to-rust"
-related-pr: https://github.com/torrust/torrust-tracker/pull/2319
+related-pr: https://github.com/torrust/torrust-tracker/pull/2322
 last-updated-utc: "2026-09-23 15:08"
 semantic-links:
   skill-links:
@@ -187,6 +187,7 @@ call is visible, and the expected output is stated independently of the code und
 - 2026-09-23 14:42 UTC - GitHub Copilot - T4 retired the four Bash helpers and updated the review skills to invoke `github-review-threads`. Fixture checks confirmed the Rust commands and existing bulk resolver share the response-file shape.
 - 2026-09-23 14:47 UTC - GitHub Copilot - T5 recorded live fetch parity, projection, resolver, output-contract, and container integration evidence in `manual-verification-evidence.md`. The remaining completion gate is the installed pre-push hook.
 - 2026-09-23 15:08 UTC - GitHub Copilot - The installed pre-push hook passed nightly formatting, workspace checks, documentation build, and the complete stable test suite; T5 is complete.
+- 2026-09-23 15:10 UTC - GitHub Copilot - Opened implementation PR #2322 targeting `develop`; it closes #2318 when merged.
 
 ## Acceptance Criteria
 
