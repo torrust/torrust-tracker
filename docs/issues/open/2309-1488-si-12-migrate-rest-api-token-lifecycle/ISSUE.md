@@ -12,7 +12,7 @@ last-updated-utc: 2026-09-23 07:19
 semantic-links:
   skill-links:
     - create-issue
-      - write-unit-test
+    - write-unit-test
   related-artifacts:
     - src/app.rs
     - src/bootstrap/jobs/tracker_apis.rs
@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
     - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-   - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
+    - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
 ---
 
 <!-- skill-link: create-issue -->
