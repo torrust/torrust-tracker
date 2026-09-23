@@ -23,6 +23,28 @@ sudo apt-get install libsqlite3-dev pkg-config libssl-dev make
 > For other distributions, install the equivalent packages for SQLite3 development headers, OpenSSL
 > development headers, `pkg-config`, and `make`.
 
+### Command-line tools used by manual verification skills
+
+Some skills (for example `run-tracker-locally` and `manual-torrent-cleanup-e2e`) shell out to
+these common tools. They are preinstalled on Ubuntu, including the GitHub `ubuntu-latest` runner
+image used by `.github/workflows/copilot-setup-steps.yml`, so that workflow does not install them.
+
+| Tool   | Debian/Ubuntu package | Used for                                             |
+| ------ | --------------------- | ---------------------------------------------------- |
+| `ss`   | `iproute2`            | Confirming a tracker process bound its UDP/TCP ports |
+| `curl` | `curl`                | Calling the REST and health-check APIs               |
+| `jq`   | `jq`                  | Filtering JSON API responses                         |
+| `rg`   | `ripgrep`             | Filtering command output and searching the tree      |
+
+Install any that are missing:
+
+```bash
+sudo apt-get install iproute2 curl jq ripgrep
+```
+
+Only tools missing from the default runner image (Rust cargo tools, `linter`, git hooks) belong in
+`copilot-setup-steps.yml`.
+
 ## Step 2: Rust Toolchain
 
 ```bash
