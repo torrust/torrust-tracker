@@ -54,7 +54,7 @@ future format change unnecessarily risky.
 
 ## Items
 
-### 1. [ ] Move strict-profile tests beside their owning module [HIGH impact / LOW effort]
+### 1. [x] Move strict-profile tests beside their owning module [HIGH impact / LOW effort]
 
 **Problem**: Profile-validation tests live in `lib.rs`, while `profile.rs` owns `validate`, schema
 projection, profile recognition, invariant checks, and reference syntax. The test module instead
@@ -136,7 +136,7 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 
 | Order | Status | Item                                                     | Impact | Effort |
 | ----- | ------ | -------------------------------------------------------- | ------ | ------ |
-| 1     | [ ]    | Move strict-profile tests beside their owning module     | High   | Low    |
+| 1     | [x]    | Move strict-profile tests beside their owning module     | High   | Low    |
 | 2     | [ ]    | Represent strict profile kind as a closed enum           | Medium | Low    |
 | 3     | [ ]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [ ]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
