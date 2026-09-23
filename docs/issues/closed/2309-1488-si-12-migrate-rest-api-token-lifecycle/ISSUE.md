@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 epic: 1488
 github-issue: 2309
-spec-path: docs/issues/open/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md
+spec-path: docs/issues/closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md
 branch: "2309-1488-si-12-migrate-rest-api-token-lifecycle"
-related-pr: null
-last-updated-utc: 2026-09-23 09:33
+related-pr: 2316
+last-updated-utc: 2026-09-23
 semantic-links:
   skill-links:
     - create-issue
@@ -200,7 +200,7 @@ policy.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence.
 - [x] Evidence-based implementation completion review recorded.
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -229,6 +229,9 @@ policy.
   PID received SIGTERM, exited `0` within the 20-second bound, and logged both
   the main signal boundary and REST token-aware drain. The second run proved
   immediate listener rebind. See `manual-verification-evidence.md`.
+- 2026-09-23 UTC - GitHub Copilot - PR #2316 merged and GitHub issue #2309
+  closed as completed. Archived this completed specification and its evidence
+  under `docs/issues/closed/`.
 
 ## Verification Plan
 
