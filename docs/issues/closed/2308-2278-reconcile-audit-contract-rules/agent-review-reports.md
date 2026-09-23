@@ -1,10 +1,10 @@
 ---
-spec-path: docs/issues/open/2308-2278-reconcile-audit-contract-rules/agent-review-reports.md
-last-updated-utc: "2026-09-23 09:41"
+spec-path: docs/issues/closed/2308-2278-reconcile-audit-contract-rules/agent-review-reports.md
+last-updated-utc: "2026-09-23 11:00"
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md
-    - docs/issues/open/2308-2278-reconcile-audit-contract-rules/manual-verification-evidence.md
+    - docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md
+    - docs/issues/closed/2308-2278-reconcile-audit-contract-rules/manual-verification-evidence.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
 ---
