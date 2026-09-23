@@ -157,13 +157,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   commits (TempDir-owned tests, full unit coverage, exit code `2` for usage errors per the CLI
   output ADR, pure `Command::parse`, library-owned artifact encoding, `SchemaArtifact` with typed
   errors, documented regeneration hint). Binary tests grew from 3 to 16; the tracked artifact bytes
-  are unchanged - `refactor-plan.md`, `test-design-review.md`
+  are unchanged - `schema-command-refactor-plan.md`, `test-design-review.md`
 - 2026-09-22 21:34 UTC - GitHub Copilot - Completed the maintainer-approved deeper refactor plan
   review items as four additional signed commits: safe explicit-path diagnostics, atomic
   same-directory schema replacement with an explicit symlink policy, closed artifact-origin
   modeling, and writer-injected process reporting. Binary tests grew from 16 to 24; focused
   red-first and mutation checks passed, as did the full pre-commit gate after every increment -
-  `refactor-plan.md`, `test-design-review.md`
+  `schema-command-refactor-plan.md`, `test-design-review.md`
 
 ## Acceptance Criteria
 

@@ -2,7 +2,7 @@
 doc-type: refactor-plan
 status: done
 related-issue: 2280
-spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/refactor-plan.md
+spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
 last-updated-utc: "2026-09-22 21:34"
 semantic-links:
   skill-links:

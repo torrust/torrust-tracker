@@ -13,7 +13,7 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator/src/profile.rs
     - contrib/dev-tools/checks/frontmatter-validator/src/lib.rs
     - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/refactor-plan.md
+    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
     - issue #2280
 ---
 
