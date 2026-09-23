@@ -196,7 +196,7 @@ unchanged.
 
 ---
 
-### 3. [ ] Replace the raw YAML seam with a `Frontmatter` query [MEDIUM impact / LOW effort]
+### 3. [x] Replace the raw YAML seam with a `Frontmatter` query [MEDIUM impact / LOW effort]
 
 **Problem**: `Frontmatter.yaml` is exposed `pub(crate)` (`lib.rs` line 17) so that
 `profile.rs` can lexically scan YAML source for the `last-updated-utc:` line
@@ -303,7 +303,7 @@ private models and private helpers, and `StrictProfileKind::definition` referenc
 | ----- | ------ | --------------------------------------------------- | ------ | ------ |
 | 1     | [x]    | Move the Markdown fixtures into the crate           | High   | Low    |
 | 2     | [x]    | Home the diagnostic vocabulary in its own module    | Medium | Low    |
-| 3     | [ ]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
+| 3     | [x]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
 | 4     | [ ]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
 | 5     | [ ]    | Validate reference syntax on one path               | Medium | Medium |
 | 6     | [ ]    | Order `profile.rs` for top-down reading             | Low    | Low    |

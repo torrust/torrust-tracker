@@ -111,13 +111,16 @@ pub struct Issue {
 }
 
 impl Issue {
-    fn validate_invariants(&self, yaml: &str) -> Result<(), Diagnostic> {
+    fn validate_invariants(&self, frontmatter: &Frontmatter) -> Result<(), Diagnostic> {
         validate_optional_positive_integer("epic", self.epic)?;
         validate_optional_positive_integer("github-issue", self.github_issue)?;
         validate_optional_positive_integer("related-pr", self.related_pr)?;
         validate_repository_relative_path("spec-path", &self.spec_path)?;
         validate_non_empty_string("branch", &self.branch)?;
-        validate_utc_minute_string(&self.last_updated_utc, yaml)
+        validate_utc_minute_string(
+            &self.last_updated_utc,
+            frontmatter.has_double_quoted_scalar("last-updated-utc"),
+        )
     }
 }
 
@@ -153,14 +156,17 @@ pub struct Epic {
 }
 
 impl Epic {
-    fn validate_invariants(&self, yaml: &str) -> Result<(), Diagnostic> {
+    fn validate_invariants(&self, frontmatter: &Frontmatter) -> Result<(), Diagnostic> {
         validate_optional_positive_integer("epic", self.epic)?;
         validate_optional_positive_integer("github-issue", self.github_issue)?;
         validate_repository_relative_path("spec-path", &self.spec_path)?;
         if let Some(owner) = &self.epic_owner {
             validate_non_empty_string("epic-owner", owner)?;
         }
-        validate_utc_minute_string(&self.last_updated_utc, yaml)
+        validate_utc_minute_string(
+            &self.last_updated_utc,
+            frontmatter.has_double_quoted_scalar("last-updated-utc"),
+        )
     }
 }
 
@@ -293,20 +299,8 @@ pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
     };
 
     match doc_type {
-        StrictProfileKind::Issue => validate_issue(
-            &frontmatter.values,
-            &frontmatter.yaml,
-            frontmatter.semantic_links.as_ref(),
-            doc_type.definition(),
-        )
-        .map(Profile::Issue),
-        StrictProfileKind::Epic => validate_epic(
-            &frontmatter.values,
-            &frontmatter.yaml,
-            frontmatter.semantic_links.as_ref(),
-            doc_type.definition(),
-        )
-        .map(Profile::Epic),
+        StrictProfileKind::Issue => validate_issue(frontmatter, doc_type.definition()).map(Profile::Issue),
+        StrictProfileKind::Epic => validate_epic(frontmatter, doc_type.definition()).map(Profile::Epic),
     }
 }
 
@@ -348,38 +342,26 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
     Ok(StrictProfileKind::from_doc_type(doc_type))
 }
 
-fn validate_issue(
-    values: &Mapping,
-    yaml: &str,
-    semantic_links: Option<&SemanticLinks>,
-    definition: &StrictProfileDefinition,
-) -> Result<Issue, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, definition, Issue::validate_invariants)
+fn validate_issue(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Issue, Diagnostic> {
+    validate_strict_profile(frontmatter, definition, Issue::validate_invariants)
 }
 
-fn validate_epic(
-    values: &Mapping,
-    yaml: &str,
-    semantic_links: Option<&SemanticLinks>,
-    definition: &StrictProfileDefinition,
-) -> Result<Epic, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, definition, Epic::validate_invariants)
+fn validate_epic(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Epic, Diagnostic> {
+    validate_strict_profile(frontmatter, definition, Epic::validate_invariants)
 }
 
 fn validate_strict_profile<T>(
-    values: &Mapping,
-    yaml: &str,
-    semantic_links: Option<&SemanticLinks>,
+    frontmatter: &Frontmatter,
     definition: &StrictProfileDefinition,
-    validate_invariants: impl FnOnce(&T, &str) -> Result<(), Diagnostic>,
+    validate_invariants: impl FnOnce(&T, &Frontmatter) -> Result<(), Diagnostic>,
 ) -> Result<T, Diagnostic>
 where
     T: for<'de> Deserialize<'de>,
 {
-    definition.validate_structure(values)?;
-    validate_reference_syntax(semantic_links)?;
-    let profile = deserialize_strict(values)?;
-    validate_invariants(&profile, yaml)?;
+    definition.validate_structure(&frontmatter.values)?;
+    validate_reference_syntax(frontmatter.semantic_links.as_ref())?;
+    let profile = deserialize_strict(&frontmatter.values)?;
+    validate_invariants(&profile, frontmatter)?;
 
     Ok(profile)
 }
@@ -488,8 +470,8 @@ fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Dia
     Ok(())
 }
 
-fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic> {
-    if !has_utc_minute_layout(value) || !is_valid_utc_minute_calendar(value) || !has_double_quoted_timestamp(yaml) {
+fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Diagnostic> {
+    if !has_utc_minute_layout(value) || !is_valid_utc_minute_calendar(value) || !double_quoted {
         return Err(Diagnostic::new(
             DiagnosticCategory::InvalidFieldValue,
             "`last-updated-utc` must be a double-quoted YAML string in YYYY-MM-DD HH:MM UTC-minute format.",
@@ -511,22 +493,6 @@ fn has_utc_minute_layout(value: &str) -> bool {
             .enumerate()
             .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
             .all(|(_, byte)| byte.is_ascii_digit())
-}
-
-fn has_double_quoted_timestamp(yaml: &str) -> bool {
-    yaml.lines()
-        .find_map(|line| line.strip_prefix("last-updated-utc:").map(str::trim))
-        .map(strip_yaml_comment)
-        .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
-}
-
-fn strip_yaml_comment(value: &str) -> &str {
-    value
-        .char_indices()
-        .find_map(|(index, character)| {
-            (character == '#' && value[..index].chars().last().is_some_and(char::is_whitespace)).then_some(index)
-        })
-        .map_or(value, |index| value[..index].trim_end())
 }
 
 fn is_valid_utc_minute_calendar(value: &str) -> bool {

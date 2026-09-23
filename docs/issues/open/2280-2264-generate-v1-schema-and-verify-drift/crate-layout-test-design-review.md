@@ -46,3 +46,28 @@ warnings.
 This is a declaration move with corrected documentation and no behavior change. Every existing
 test already asserts on a `DiagnosticCategory` value through the crate-root path, so the unchanged
 suite is the proof that the public surface did not move.
+
+## Refactor Plan Item 3 - Frontmatter Scalar-Style Query
+
+### Arrange
+
+Four Markdown documents write the same top-level field with a double-quoted value, a plain value, a
+double-quoted value followed by a tab-separated YAML comment, and a double-quoted value under a
+field name that merely shares the queried prefix.
+
+### Act
+
+Extract each document and ask `Frontmatter::has_double_quoted_scalar("last-updated-utc")`.
+
+### Assert
+
+Only the two exact-field, double-quoted rows return `true`; the plain scalar and the
+prefix-sharing field return `false`.
+
+### Review
+
+The query moves scalar-style detection to the module that owns the YAML source and makes `yaml`
+private; `Issue` and `Epic` now ask a named question instead of receiving source text. The strict
+profile sequence takes `&Frontmatter` so three loose parameters collapse into one. Mutation:
+inverting the query's quote check made seven tests fail, including the new direct test and
+`it_should_reject_an_unquoted_strict_timestamp`, before the canonical check was restored.

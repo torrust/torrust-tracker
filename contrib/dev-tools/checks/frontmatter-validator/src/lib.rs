@@ -18,11 +18,34 @@ pub struct Frontmatter {
     /// The complete YAML mapping for later profile-specific validation.
     pub values: Mapping,
     /// The original YAML source for strict scalar-style validation.
-    pub(crate) yaml: String,
+    yaml: String,
     /// The document's known top-level schema ownership.
     pub(crate) ownership: DocumentOwnership,
     /// The optional semantic-link extension validated for this ownership mode.
     pub semantic_links: Option<SemanticLinks>,
+}
+
+impl Frontmatter {
+    /// Whether the top-level `field` scalar was written with double quotes in the YAML source.
+    ///
+    /// YAML parsing erases scalar style, so this is the only place that still sees it.
+    pub(crate) fn has_double_quoted_scalar(&self, field: &str) -> bool {
+        self.yaml
+            .lines()
+            .find_map(|line| line.strip_prefix(field)?.strip_prefix(':'))
+            .map(str::trim)
+            .map(strip_yaml_comment)
+            .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
+    }
+}
+
+fn strip_yaml_comment(value: &str) -> &str {
+    value
+        .char_indices()
+        .find_map(|(index, character)| {
+            (character == '#' && value[..index].chars().last().is_some_and(char::is_whitespace)).then_some(index)
+        })
+        .map_or(value, |index| value[..index].trim_end())
 }
 
 /// Ownership of the document's top-level frontmatter schema.
@@ -171,6 +194,26 @@ mod tests {
 
         // Assert: the document has no frontmatter rather than an extraction failure.
         assert_eq!(frontmatter, None);
+    }
+
+    #[test]
+    fn it_should_detect_whether_a_top_level_scalar_was_double_quoted() {
+        // Arrange: each row writes the same top-level scalar with a different YAML style.
+        let cases = [
+            ("---\nlast-updated-utc: \"2026-09-21 20:35\"\n---\n", true),
+            ("---\nlast-updated-utc: 2026-09-21 20:35\n---\n", false),
+            ("---\nlast-updated-utc: \"2026-09-21 20:35\"\t# updated\n---\n", true),
+            ("---\nlast-updated-utc-draft: \"2026-09-21 20:35\"\n---\n", false),
+        ];
+
+        for (markdown, expected) in cases {
+            // Act: ask the extracted frontmatter about the scalar's source style.
+            let frontmatter = extract(markdown).unwrap().unwrap();
+            let actual = frontmatter.has_double_quoted_scalar("last-updated-utc");
+
+            // Assert: only an exact field name followed by a double-quoted value counts.
+            assert_eq!(actual, expected, "unexpected style result for {markdown:?}");
+        }
     }
 
     #[test]
