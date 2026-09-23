@@ -136,8 +136,8 @@ impl std::error::Error for Error {}
 /// # Errors
 ///
 /// Returns an error when `response` does not match the expected GraphQL shape.
-pub fn list_unresolved(response: &[u8]) -> Result<Vec<ListedThread>, Error> {
-    Ok(parse_response(response)?
+pub fn list_unresolved(response: &[u8]) -> Result<ListedThreads, Error> {
+    let threads = parse_response(response)?
         .threads()
         .filter(|thread| !thread.is_resolved)
         .map(|thread| ListedThread {
@@ -146,7 +146,9 @@ pub fn list_unresolved(response: &[u8]) -> Result<Vec<ListedThread>, Error> {
             path: thread.path,
             url: thread.comments.nodes.first().map(|comment| comment.url.clone()),
         })
-        .collect())
+        .collect();
+
+    Ok(ListedThreads { threads })
 }
 
 /// Lists each unresolved thread's comments and review metadata.
@@ -154,8 +156,8 @@ pub fn list_unresolved(response: &[u8]) -> Result<Vec<ListedThread>, Error> {
 /// # Errors
 ///
 /// Returns an error when `response` does not match the expected GraphQL shape.
-pub fn show_unresolved(response: &[u8]) -> Result<Vec<ShownThread>, Error> {
-    Ok(parse_response(response)?
+pub fn show_unresolved(response: &[u8]) -> Result<ShownThreads, Error> {
+    let threads = parse_response(response)?
         .threads()
         .filter(|thread| !thread.is_resolved)
         .map(|thread| ShownThread {
@@ -173,7 +175,9 @@ pub fn show_unresolved(response: &[u8]) -> Result<Vec<ShownThread>, Error> {
                 })
                 .collect(),
         })
-        .collect())
+        .collect();
+
+    Ok(ShownThreads { threads })
 }
 
 /// Reports whether each unresolved thread includes a comment by `login`.
@@ -186,7 +190,7 @@ pub fn reply_status(response: &[u8], login: &str) -> Result<ReplyStatus, Error> 
         .threads()
         .filter(|thread| !thread.is_resolved)
         .map(|thread| ReplyStatusThread {
-            id: thread.id,
+            thread_id: thread.id,
             path: thread.path,
             url: thread.comments.nodes.first().map(|comment| comment.url.clone()),
             has_reply: thread
@@ -209,6 +213,12 @@ pub fn reply_status(response: &[u8], login: &str) -> Result<ReplyStatus, Error> 
     })
 }
 
+/// The single JSON result object emitted by `list`.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ListedThreads {
+    threads: Vec<ListedThread>,
+}
+
 /// A compact unresolved-thread result.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -217,6 +227,12 @@ pub struct ListedThread {
     is_outdated: bool,
     path: String,
     url: Option<String>,
+}
+
+/// The single JSON result object emitted by `show`.
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct ShownThreads {
+    threads: Vec<ShownThread>,
 }
 
 /// An unresolved thread with each review comment.
@@ -248,14 +264,20 @@ impl ReplyStatus {
     /// Returns whether at least one unresolved thread lacks the requested reply.
     #[must_use]
     pub const fn has_missing_replies(&self) -> bool {
-        self.summary.without_reply > 0
+        self.without_reply() > 0
+    }
+
+    /// Returns how many unresolved threads lack the requested reply.
+    #[must_use]
+    pub const fn without_reply(&self) -> usize {
+        self.summary.without_reply
     }
 }
 
 /// Reply state for one unresolved thread.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct ReplyStatusThread {
-    id: String,
+    thread_id: String,
     path: String,
     url: Option<String>,
     has_reply: bool,
@@ -414,10 +436,10 @@ mod tests {
         // Assert: the compact projection matches the existing script's selected fields.
         assert_eq!(
             serde_json::to_value(threads).unwrap(),
-            json!([
+            json!({"threads":[
                 {"id":"THREAD_UNRESOLVED_CURRENT","isOutdated":false,"path":"src/example.rs","url":"https://example.test/pull/42#discussion-3"},
                 {"id":"THREAD_UNRESOLVED_OUTDATED","isOutdated":true,"path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4"}
-            ]),
+            ]}),
         );
     }
 
@@ -430,9 +452,9 @@ mod tests {
         let threads = show_unresolved(response).unwrap();
 
         // Assert: the detailed projection preserves both comments from the multi-comment thread.
-        assert_eq!(threads.len(), 2);
+        assert_eq!(threads.threads.len(), 2);
         assert_eq!(
-            serde_json::to_value(&threads[1]).unwrap()["comments"]
+            serde_json::to_value(&threads.threads[1]).unwrap()["comments"]
                 .as_array()
                 .unwrap()
                 .len(),
@@ -453,8 +475,8 @@ mod tests {
             serde_json::to_value(status).unwrap(),
             json!({
                 "threads":[
-                    {"id":"THREAD_UNRESOLVED_CURRENT","path":"src/example.rs","url":"https://example.test/pull/42#discussion-3","has_reply":false},
-                    {"id":"THREAD_UNRESOLVED_OUTDATED","path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4","has_reply":true}
+                    {"thread_id":"THREAD_UNRESOLVED_CURRENT","path":"src/example.rs","url":"https://example.test/pull/42#discussion-3","has_reply":false},
+                    {"thread_id":"THREAD_UNRESOLVED_OUTDATED","path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4","has_reply":true}
                 ],
                 "summary":{"total":2,"with_reply":1,"without_reply":1}
             }),
