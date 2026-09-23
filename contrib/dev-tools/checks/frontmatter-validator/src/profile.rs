@@ -4,6 +4,10 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
 
+use crate::syntax::{
+    RELATED_ARTIFACT_PATTERN, REPOSITORY_RELATIVE_PATH_PATTERN, SKILL_NAME_PATTERN, UTC_MINUTE_PATTERN, has_utc_minute_layout,
+    is_related_artifact, is_repository_relative_path, is_skill_name, is_valid_utc_minute_calendar,
+};
 use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter, SemanticLinks};
 
 /// A recognized frontmatter profile.
@@ -68,9 +72,6 @@ pub fn v1_schema_json() -> String {
     let schema = serde_json::to_string_pretty(&v1_schema()).expect("schemars::Schema serializes as JSON");
     format!("{schema}\n")
 }
-
-const REPOSITORY_RELATIVE_PATH_PATTERN: &str = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$";
-const UTC_MINUTE_PATTERN: &str = r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$";
 
 /// The canonical strict issue frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
@@ -183,13 +184,13 @@ pub struct StrictSemanticLinks {
 /// A validated repository skill name.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(try_from = "String")]
-#[schemars(extend("pattern" = r"^[a-z0-9]+(?:-[a-z0-9]+)*$"))]
+#[schemars(extend("pattern" = SKILL_NAME_PATTERN))]
 pub struct SkillName(String);
 
 /// A validated v1 related-artifact reference.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(try_from = "String")]
-#[schemars(extend("pattern" = r"^(?:(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"))]
+#[schemars(extend("pattern" = RELATED_ARTIFACT_PATTERN))]
 pub struct RelatedArtifact(String);
 
 impl TryFrom<String> for SkillName {
@@ -393,50 +394,6 @@ fn validate_reference_syntax(semantic_links: Option<&SemanticLinks>) -> Result<(
     Ok(())
 }
 
-fn is_skill_name(value: &str) -> bool {
-    is_lowercase_identifier(value)
-}
-
-fn is_related_artifact(value: &str) -> bool {
-    is_repository_relative_path(value) || is_issue_reference(value) || is_review_finding(value)
-}
-
-fn is_repository_relative_path(value: &str) -> bool {
-    !value.is_empty()
-        && !value.starts_with('/')
-        && !value.contains('\\')
-        && !value.contains(':')
-        && !value.contains('#')
-        && !value.chars().any(char::is_whitespace)
-        && !value.split('/').any(|component| matches!(component, "" | "." | ".."))
-}
-
-fn is_issue_reference(value: &str) -> bool {
-    value.strip_prefix("issue #").is_some_and(is_positive_integer)
-}
-
-fn is_review_finding(value: &str) -> bool {
-    let Some(value) = value.strip_prefix("review-finding:pr-") else {
-        return false;
-    };
-    let Some((pull_request, identifier)) = value.split_once('-') else {
-        return false;
-    };
-
-    is_positive_integer(pull_request) && is_lowercase_identifier(identifier)
-}
-
-fn is_positive_integer(value: &str) -> bool {
-    !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()) && value != "0"
-}
-
-fn is_lowercase_identifier(value: &str) -> bool {
-    !value.is_empty()
-        && value
-            .split('-')
-            .all(|segment| !segment.is_empty() && segment.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit()))
-}
-
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
     if value == Some(0) {
         return Err(Diagnostic::new(
@@ -479,42 +436,6 @@ fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Di
     }
 
     Ok(())
-}
-
-fn has_utc_minute_layout(value: &str) -> bool {
-    let bytes = value.as_bytes();
-    bytes.len() == 16
-        && bytes.get(4) == Some(&b'-')
-        && bytes.get(7) == Some(&b'-')
-        && bytes.get(10) == Some(&b' ')
-        && bytes.get(13) == Some(&b':')
-        && bytes
-            .iter()
-            .enumerate()
-            .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
-            .all(|(_, byte)| byte.is_ascii_digit())
-}
-
-fn is_valid_utc_minute_calendar(value: &str) -> bool {
-    debug_assert!(has_utc_minute_layout(value));
-    let year = value[0..4].parse::<u16>().expect("UTC-minute layout contains ASCII digits");
-    let month = value[5..7].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
-    let day = value[8..10].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
-    let hour = value[11..13].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
-    let minute = value[14..16].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
-    let days_in_month = match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if is_leap_year(year) => 29,
-        2 => 28,
-        _ => return false,
-    };
-
-    (1..=days_in_month).contains(&day) && hour < 24 && minute < 60
-}
-
-const fn is_leap_year(year: u16) -> bool {
-    year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400))
 }
 
 fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<(), Diagnostic> {
@@ -696,11 +617,8 @@ mod tests {
             schema["$defs"]["Epic"]["properties"]["last-updated-utc"]["pattern"],
             UTC_MINUTE_PATTERN
         );
-        assert_eq!(schema["$defs"]["SkillName"]["pattern"], "^[a-z0-9]+(?:-[a-z0-9]+)*$");
-        assert_eq!(
-            schema["$defs"]["RelatedArtifact"]["pattern"],
-            "^(?:(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"
-        );
+        assert_eq!(schema["$defs"]["SkillName"]["pattern"], SKILL_NAME_PATTERN);
+        assert_eq!(schema["$defs"]["RelatedArtifact"]["pattern"], RELATED_ARTIFACT_PATTERN);
     }
     #[test]
     fn it_should_keep_an_external_v1_looking_document_permissive() {
@@ -899,35 +817,6 @@ mod tests {
 
         // Assert: the diagnostic rejects out-of-range date and time components.
         assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
-    }
-
-    #[test]
-    fn it_should_distinguish_utc_minute_layout_from_calendar_boundaries() {
-        // Arrange: each row changes one UTC-minute layout or calendar boundary.
-        let cases = [
-            ("2024-02-29 23:59", true, true),
-            ("2025-02-29 23:59", true, false),
-            ("2026-04-31 12:00", true, false),
-            ("2026-13-01 12:00", true, false),
-            ("2026-01-01 24:00", true, false),
-            ("2026-01-01 12:60", true, false),
-            ("2026-01-01 12:0", false, false),
-            ("2026-01-01 12:é0", false, false),
-        ];
-
-        for (value, expected_layout, expected_calendar) in cases {
-            // Act: evaluate layout first, then calendar validity only for a safe fixed layout.
-            let actual_layout = has_utc_minute_layout(value);
-            let actual_calendar = if actual_layout {
-                is_valid_utc_minute_calendar(value)
-            } else {
-                false
-            };
-
-            // Assert: each independent boundary has the documented result without panics.
-            assert_eq!(actual_layout, expected_layout, "unexpected layout result for `{value}`");
-            assert_eq!(actual_calendar, expected_calendar, "unexpected calendar result for `{value}`");
-        }
     }
 
     #[test]

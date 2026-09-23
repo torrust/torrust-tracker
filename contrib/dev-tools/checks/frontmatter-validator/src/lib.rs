@@ -8,6 +8,7 @@ use serde_yaml::{Mapping, Value};
 
 pub mod diagnostic;
 pub mod profile;
+mod syntax;
 
 pub use diagnostic::{Diagnostic, DiagnosticCategory};
 pub use profile::{v1_schema, v1_schema_json};

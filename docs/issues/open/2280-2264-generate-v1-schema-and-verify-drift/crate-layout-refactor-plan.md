@@ -222,7 +222,7 @@ confirm `it_should_reject_an_unquoted_strict_timestamp` and the new direct test 
 
 ---
 
-### 4. [ ] Extract the v1 value syntax into `syntax.rs` [MEDIUM impact / MEDIUM effort]
+### 4. [x] Extract the v1 value syntax into `syntax.rs` [MEDIUM impact / MEDIUM effort]
 
 **Problem**: `profile.rs` interleaves dependency-free string predicates (lines 414-456 and
 502-552) and their schema regex constants (lines 72-73, 180, 186) with mapping-level policy that
@@ -304,7 +304,7 @@ private models and private helpers, and `StrictProfileKind::definition` referenc
 | 1     | [x]    | Move the Markdown fixtures into the crate           | High   | Low    |
 | 2     | [x]    | Home the diagnostic vocabulary in its own module    | Medium | Low    |
 | 3     | [x]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
-| 4     | [ ]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
+| 4     | [x]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
 | 5     | [ ]    | Validate reference syntax on one path               | Medium | Medium |
 | 6     | [ ]    | Order `profile.rs` for top-down reading             | Low    | Low    |
 

@@ -71,3 +71,32 @@ private; `Issue` and `Epic` now ask a named question instead of receiving source
 profile sequence takes `&Frontmatter` so three loose parameters collapse into one. Mutation:
 inverting the query's quote check made seven tests fail, including the new direct test and
 `it_should_reject_an_unquoted_strict_timestamp`, before the canonical check was restored.
+
+## Refactor Plan Item 4 - Syntax Module
+
+### Arrange
+
+The canonical model declares four schema regex patterns, two of them still as inline attribute
+literals, and ten dependency-free predicates that the Rust validator treats as authoritative for
+the same languages.
+
+### Act
+
+Move the predicates and all four constants into `syntax.rs`, declaring each constant directly
+above its predicate, reference the two newly named constants from the `SkillName` and
+`RelatedArtifact` attributes, and move the UTC table test with the code it exercises.
+
+### Assert
+
+The schema projection test asserts the generated `SkillName` and `RelatedArtifact` patterns equal
+the constants, offline drift verification reports the tracked artifact byte-identical, and the
+library suite stays at 45 tests with the UTC table test now under `syntax::tests`.
+
+### Review
+
+`schemars_derive` 1.2.1 passes `extend(...)` values through `serde_json::json!`, so a constant
+expression is a supported input; this was verified in the derive source before the change. Clippy's
+`redundant_pub_crate` required plain `pub` inside the private module. Mutation: pointing the
+`SkillName` attribute at `UTC_MINUTE_PATTERN` made the schema test fail on the `SkillName` pattern
+assertion, and the strict `-D unused` build rejected the now-unused import, before the canonical
+constant was restored.
