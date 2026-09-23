@@ -214,3 +214,28 @@ constant, and offline drift verification keeps the tracked artifact byte-identic
 contract is changed.
 Replacing the shared path pattern with `^changed-pattern$` made offline schema verification report
 artifact drift before the canonical pattern was restored.
+
+## AC5 Correction - Schema Required Set Matches the Validator Field List
+
+### Arrange
+
+The strict profile field lists `ISSUE_FIELDS` and `EPIC_FIELDS` are the presence contract the
+validator enforces, including nullable fields such as `epic` and `epic-owner`.
+
+### Act
+
+Generate the canonical schema and read each profile's `required` array.
+
+### Assert
+
+The sorted `required` set equals the sorted field list for both `Issue` and `Epic`.
+
+### Review
+
+The test pins an invariant that `schemars` does not provide by default (it omits every `Option`
+field from `required`), so the schema and the validator can no longer disagree about presence
+without this test failing. The `required` array is produced by a struct-level transform that reads
+the same field list, so presence has one source. Mutation: dropping `epic-owner` from the EPIC
+transform input made the test fail with the missing field named before the canonical mapping was
+restored. `#[schemars(required)]` was rejected because it replaces the field schema with its
+non-optional form and would have removed the contract's `null` type.

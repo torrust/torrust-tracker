@@ -112,3 +112,53 @@ semantic-links:
   scenario statuses were already independently verified; this follow-up review does not alter them.
 - Remaining blockers: None within #2280 scope.
 - Verdict: REVIEW PASSED
+
+### 2026-09-23 12:40 UTC - GitHub Copilot (Task Reviewer)
+
+- Invocation scope: Final pre-PR review of the whole branch after the schema-command, profile, and
+  crate-layout refactor plans and the field-scoped diagnostic correction.
+- Inputs: `ISSUE.md`; EPIC #2264; the #2266 spec and #2265 contract; all crate sources; the three
+  refactor plans and test-design reviews; manual evidence; this file.
+- Evidence: 44 library and 24 binary tests passed; offline `check` passed; two independent
+  `generate --artifact` runs were byte-identical to the tracked artifact; Clippy, nightly fmt,
+  Machete, rustdoc with `-D warnings`, and `linter all` passed; no upstream `torrust/develop`
+  commit touched a branch path.
+- Acceptance-criteria verdicts: PASS AC1-AC4 and the tests/linter criterion. FAIL AC5: the schema
+  omitted the contract's nullable-but-required fields from `required`, and typed `skill-links` /
+  `related-artifacts` as `array | null` while the validator rejects null; neither divergence was
+  documented. PENDING manual evidence: V1-V2 predated 35 behavior-changing commits and quoted a
+  superseded drift hint.
+- Repository-convention findings: the spec's own frontmatter violated the v1 contract
+  (`status: in_progress`, trailing-slash related artifact); `docs/schemas/README.md` still named
+  only `profile.rs` as the model location; `docs/index.md` lacked a schema-guide row; the
+  `schemars = "=1.2.1"` pin was justified only in the progress log; a stale duplicate ownership
+  comment remained in the `lib.rs` test module. The earlier 2026-09-22 PASSED conclusion for AC5
+  is superseded by this finding.
+- Completion-review finding: PASS. The no-retrospective rationale predates the refactor series but
+  still holds; their lessons are recorded in the plans.
+- Issue-spec updates made: None (read-only review).
+- Remaining blockers: spec frontmatter contract values; AC5 divergence decision; refreshed manual
+  evidence.
+- Verdict: REVIEW FAILED
+
+### 2026-09-23 17:10 UTC - GitHub Copilot (Task Reviewer)
+
+- Invocation scope: Re-review of the three blockers and doc corrections after the branch was
+  rebased onto `torrust/develop` `a110200d` (45 signed commits).
+- Inputs: `ISSUE.md`; `manual-verification-evidence.md`; the generated schema and its README;
+  `profile.rs`, `lib.rs`, `Cargo.toml`; `docs/index.md`; this file.
+- Evidence: 45 library and 24 binary tests passed; offline `check` passed with the artifact
+  untouched; Clippy and `linter all` passed; all 45 commits verify with a good signature; a
+  throwaway probe validated `ISSUE.md` as `Profile::Issue`.
+- Acceptance-criteria verdicts: PASS AC1-AC5, tests/linter, manual evidence, and re-review. AC5 is
+  now met by generating each profile's `required` array from the validator's field list through a
+  `schemars` transform (nullability preserved), a parity test, and README documentation of the
+  remaining null-sequence divergence.
+- Repository-convention findings: the new parity test lacked a prose-first Arrange-Act-Assert
+  record; the two 2026-09-23 reviews were not yet persisted here; V3 cited a pre-rebase commit
+  hash. All three are documentation-only.
+- Completion-review finding: PASS.
+- Issue-spec updates made: None (read-only review).
+- Remaining blockers: the parity-test design record (resolved in the same commit that adds this
+  entry).
+- Verdict: REVIEW FAILED (documentation-only); ready for the PR once the record is added.

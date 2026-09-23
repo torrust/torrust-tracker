@@ -69,8 +69,9 @@ tracked artifact was never modified; its SHA-256 stayed unchanged.
 - Goal: Repeat M1-M3 against the finished implementation, which changed the drift wording, added
   exit code `2`, made artifact replacement atomic, and regenerated the artifact for AC5, none of
   which V1-V2 exercised.
-- Initial state: HEAD `4c58b5a9` on `2026-09-23 15:22 UTC`; clean worktree; tracked artifact
-  SHA-256 `88540c823de57134925e875ab50acbd107e98c10dbc59f92918e3958ca6fe8c5`.
+- Initial state: HEAD `4c58b5a9` (now `412facad` after the rebase onto `torrust/develop`; the crate,
+  schema, and issue-folder trees are identical) on `2026-09-23 15:22 UTC`; clean worktree; tracked
+  artifact SHA-256 `88540c823de57134925e875ab50acbd107e98c10dbc59f92918e3958ca6fe8c5`.
 - Status: `DONE`
 
 #### Steps Performed
