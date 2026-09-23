@@ -55,18 +55,23 @@ or change `fetch-review-threads`, which subissue 3 owns.
 ### In Scope
 
 - Align the template with the skill: an outdated thread whose concern is fixed records
-  `Disposition=FIXED` and `Thread state=RESOLVED`; `NO_ACTION` and `SUPERSEDED` apply only to an
-  unimplemented duplicate, superseded, or no-change concern (F60).
+  `Disposition=FIXED` and `Thread state=RESOLVED`. For in-PR feedback, `NO_ACTION` and
+  `SUPERSEDED` apply only to an unimplemented duplicate, superseded, or no-change concern;
+  preserve the post-merge `NO_ACTION` path when a maintainer declines approved follow-up work
+  (F60).
 - State in the template that every re-raise has its own tracking row and detail entry, related to
   the earlier finding by `RE_RAISE_OF:<FindingId>` (F73).
 - Define admissible `Resolution reference` values for each disposition without adding a field:
-  a unique commit subject for `FIXED`; a durable reply URL for `NO_ACTION` or `SUPERSEDED`; and a
-  follow-up PR URL for `FOLLOW_UP` (F76).
+  a unique commit subject for `FIXED` and a durable reply URL for `NO_ACTION`, `SUPERSEDED`, or
+  `FOLLOW_UP`. Record a `FOLLOW_UP` pull request only in the existing separate Follow-up PR URL
+  field (F76).
 - State in the template that `Processing Log` entries are append-only, and state in the skill how
   to recover from an in-place rewrite: restore prior entries, append a correction that names the
   rewritten content, and do not rewrite the record again (F61, F62).
 - Make the skill completion-checklist wording preserve Step 8's condition: a consolidated PR
-  conversation response is needed only when one response covers multiple review rounds (F79).
+  conversation response is needed only when one response covers multiple review rounds; it must
+  name every covered review ID and finding ID with its disposition and resolution reference, and
+  its durable URL must be recorded in each related row (F79).
 - State in the template that an independently actionable review-body finding uses the submitted
   review URL as `Source URL` and `Thread state=NON_RESOLVABLE` (F80).
 - State whether Copilot's collapsed `Suppressed comments` are normalized findings. Treat them as
@@ -155,11 +160,11 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 
 ## Acceptance Criteria
 
-- [ ] AC1: The skill and template agree that a fixed outdated thread is `FIXED`/`RESOLVED`; only duplicate, superseded, or no-change concerns are `NO_ACTION`/`SUPERSEDED` (F60).
+- [ ] AC1: The skill and template agree that a fixed outdated thread is `FIXED`/`RESOLVED`; in-PR duplicate, superseded, or no-change concerns are `NO_ACTION`/`SUPERSEDED`; and a maintainer-approved post-merge decline remains `NO_ACTION` (F60).
 - [ ] AC2: The template makes the append-only Processing Log rule explicit, and the skill defines the F62 recovery sequence for an in-place rewrite.
 - [ ] AC3: The template requires a separate row and detail entry for every re-raise and uses `RE_RAISE_OF:<FindingId>` to identify its predecessor (F73).
-- [ ] AC4: The skill and template define the permitted `Resolution reference` evidence for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP` without adding an audit field (F76).
-- [ ] AC5: The skill's completion checklist limits the consolidated-response requirement to responses that cover multiple review rounds (F79).
+- [ ] AC4: The skill and template define the permitted `Resolution reference` evidence for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP` without adding an audit field, and use the separate Follow-up PR URL field for a follow-up pull request (F76).
+- [ ] AC5: The skill's completion checklist limits the consolidated-response requirement to responses that cover multiple review rounds and requires every covered review ID, finding ID, disposition, resolution reference, and durable response URL (F79).
 - [ ] AC6: The template defines `Source URL` and `Thread state=NON_RESOLVABLE` for a review-body finding (F80).
 - [ ] AC7: The skill defines the normalization decision for retrievable and non-retrievable Copilot `Suppressed comments` (F66).
 - [ ] AC8: The parent #2278 tracking records this subissue as `IN_PROGRESS` only while its implementation PR is pending, and records the verification evidence.
@@ -184,8 +189,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Compare outdated-thread and re-raise rules | Read the skill and template sections governing dispositions, thread state, and findings. | Both documents state the same F60 and F73 behavior. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Compare resolution-reference rules | Read the skill and template resolution-reference rules for each disposition. | The admissible evidence is explicit for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP`. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Review append-only and response-scope rules | Read Processing Log guidance, correction recovery, and the completion checklist. | The append-only recovery and conditional consolidated-response rule are explicit and consistent. | TODO | `manual-verification-evidence.md` section V3 |
+| M2 | Compare resolution-reference rules | Read the skill and template resolution-reference rules for each disposition and Follow-up PR URL. | The admissible evidence is explicit for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP`; the follow-up pull request remains in its separate field. | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Review append-only and response-scope rules | Read Processing Log guidance, correction recovery, and the completion checklist. | The append-only recovery and conditional consolidated-response rule, including every covered ID, disposition, resolution reference, and durable URL, are explicit and consistent. | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Review body-only and suppressed-comment handling | Inspect the template's review-body guidance and the skill's normalization rule. | The source/thread-state and suppressed-comment outcomes are unambiguous. | TODO | `manual-verification-evidence.md` section V4 |
 
 Notes:
