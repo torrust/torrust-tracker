@@ -73,12 +73,17 @@ impl fmt::Display for RegenerationInstruction {
 }
 
 fn main() -> ExitCode {
-    match Command::parse(env::args().skip(1)).and_then(|command| command.execute()) {
-        Ok(()) => ExitCode::SUCCESS,
+    let mut stderr = io::stderr().lock();
+    run(env::args().skip(1), &mut stderr).unwrap_or(ExitCode::FAILURE)
+}
+
+/// Executes the command and emits its human-readable diagnostics to stderr.
+fn run(arguments: impl Iterator<Item = String>, stderr: &mut impl Write) -> io::Result<ExitCode> {
+    match Command::parse(arguments).and_then(|command| command.execute()) {
+        Ok(()) => Ok(ExitCode::SUCCESS),
         Err(error) => {
-            let mut stderr = io::stderr().lock();
-            drop(writeln!(stderr, "frontmatter-schema: {error}"));
-            error.exit_code()
+            writeln!(stderr, "frontmatter-schema: {error}")?;
+            Ok(error.exit_code())
         }
     }
 }
@@ -219,6 +224,7 @@ impl SchemaArtifact {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::io::{self, Write};
     #[cfg(unix)]
     use std::os::unix::fs::symlink;
     use std::path::PathBuf;
@@ -227,10 +233,22 @@ mod tests {
     use frontmatter_validator::v1_schema_json;
     use tempfile::TempDir;
 
-    use super::{Command, Error, RegenerationInstruction, SchemaArtifact};
+    use super::{Command, Error, RegenerationInstruction, SchemaArtifact, run};
 
     fn parse(arguments: &[&str]) -> Result<Command, Error> {
         Command::parse(arguments.iter().map(ToString::to_string))
+    }
+
+    struct FailingWriter;
+
+    impl Write for FailingWriter {
+        fn write(&mut self, _buffer: &[u8]) -> io::Result<usize> {
+            Err(io::Error::other("intentional write failure"))
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
     }
 
     #[test]
@@ -258,6 +276,77 @@ mod tests {
 
         // Assert: runtime failures use the generic failure code.
         assert_eq!(exit_code, ExitCode::FAILURE);
+    }
+
+    #[test]
+    fn it_should_report_no_stderr_for_a_successful_process_run() {
+        // Arrange: generation writes to an explicit disposable artifact.
+        let directory = TempDir::new().unwrap();
+        let arguments = vec![
+            String::from("generate"),
+            String::from("--artifact"),
+            directory.path().join("frontmatter-v1.schema.json").display().to_string(),
+        ];
+        let mut stderr = Vec::new();
+
+        // Act: execute the process adapter.
+        let exit_code = run(arguments.into_iter(), &mut stderr).unwrap();
+
+        // Assert: success writes no diagnostic and returns the success code.
+        assert_eq!(exit_code, ExitCode::SUCCESS);
+        assert!(stderr.is_empty(), "{}", String::from_utf8_lossy(&stderr));
+    }
+
+    #[test]
+    fn it_should_report_a_usage_error_to_stderr_with_code_two() {
+        // Arrange: the process arguments omit the required action.
+        let mut stderr = Vec::new();
+
+        // Act: execute the process adapter.
+        let exit_code = run(std::iter::empty(), &mut stderr).unwrap();
+
+        // Assert: usage failures follow the CLI's one-line stderr contract.
+        assert_eq!(exit_code, ExitCode::from(2));
+        assert_eq!(
+            String::from_utf8(stderr).unwrap(),
+            "frontmatter-schema: usage: frontmatter-schema <generate|check> [--artifact <path>]\n"
+        );
+    }
+
+    #[test]
+    fn it_should_report_a_runtime_error_to_stderr_with_code_one() {
+        // Arrange: the named artifact differs from the canonical schema output.
+        let directory = TempDir::new().unwrap();
+        let path = directory.path().join("drifted.json");
+        fs::write(&path, "{}\n").unwrap();
+        let arguments = vec![String::from("check"), String::from("--artifact"), path.display().to_string()];
+        let mut stderr = Vec::new();
+
+        // Act: execute the process adapter.
+        let exit_code = run(arguments.into_iter(), &mut stderr).unwrap();
+
+        // Assert: runtime failures use one prefixed line and the generic failure code.
+        assert_eq!(exit_code, ExitCode::FAILURE);
+        assert_eq!(
+            String::from_utf8(stderr).unwrap(),
+            format!(
+                "frontmatter-schema: {} differs from the deterministic v1 schema output; run the documented generator with `--artifact <path>` and the artifact path above\n",
+                path.display()
+            )
+        );
+    }
+
+    #[test]
+    fn it_should_return_an_error_when_stderr_cannot_be_written() {
+        // Arrange: malformed arguments require a diagnostic, but the output writer always fails.
+        let mut stderr = FailingWriter;
+
+        // Act: execute the process adapter.
+        let error = run(std::iter::empty(), &mut stderr).unwrap_err();
+
+        // Assert: the output failure reaches the process boundary instead of being discarded.
+        assert_eq!(error.kind(), io::ErrorKind::Other);
+        assert_eq!(error.to_string(), "intentional write failure");
     }
 
     #[test]

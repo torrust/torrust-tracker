@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: in_progress
+status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/refactor-plan.md
-last-updated-utc: "2026-09-22 17:55"
+last-updated-utc: "2026-09-22 21:34"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -317,7 +317,7 @@ boundary. Add unit tests for both origins and their valid instruction forms.
 
 ---
 
-### 13. [ ] Make process reporting unit-testable without spawning the binary [MEDIUM impact / LOW effort]
+### 13. [x] Make process reporting unit-testable without spawning the binary [MEDIUM impact / LOW effort]
 
 **Problem**: `main` is the only owner of stderr reporting, but the test suite asserts only error
 values and exit codes independently. A future edit could emit the wrong prefix, write a success
@@ -351,7 +351,7 @@ deliberately. Do not add a generic framework or change the ADR-owned NDJSON roll
 | 10    | [x]    | Keep caller-controlled paths out of shell command text            | High   | Low     |
 | 11    | [x]    | Replace the tracked artifact atomically                            | High   | Medium  |
 | 12    | [x]    | Model artifact origin instead of carrying an `explicit` boolean   | Medium | Low     |
-| 13    | [ ]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |
+| 13    | [x]    | Make process reporting unit-testable without spawning the binary  | Medium | Low     |
 
 Item 4 is placed before item 5 despite its lower impact because it completes the test baseline
 that item 5 changes behavior against. Item 7 is placed after item 6 because it changes the same
@@ -387,5 +387,6 @@ The maintainer approved the plan on 2026-09-22 and chose to implement every item
 branch, one signed commit per item, before opening the pull request. Items 1–9 are complete; each
 commit carries its prose-first design review in `test-design-review.md`.
 
-A deeper post-implementation review identified items 10–13. They are pending maintainer review;
-do not implement them until approved.
+A deeper post-implementation review identified items 10–13. The maintainer approved them on
+2026-09-22; all are complete and carry prose-first test design plus mutation evidence in
+`test-design-review.md`.

@@ -341,3 +341,33 @@ enum, a type-state design, or another closed model. Existing drift-display tests
 the user-facing rendering for both instruction forms, so this test owns only selection. The
 refactor is behavior-preserving; the mutation check uses a temporary inversion of explicit-origin
 selection and confirmed this test failed before the correct mapping was restored.
+
+## Refactor Plan Item 13 - Writer-Injected Process Reporting
+
+### Arrange
+
+Each test supplies an argument vector and an in-memory stderr buffer: a successful explicit
+generation, malformed arguments, and a missing explicit artifact. A separate test supplies a
+writer that always fails.
+
+### Act
+
+Run the process adapter with those arguments and the selected writer.
+
+### Assert
+
+Successful execution returns `ExitCode::SUCCESS` with an empty buffer. Malformed arguments return
+code `2` and one exact prefixed line. Runtime failure returns code `1` and one exact prefixed line.
+A failing writer returns its I/O error to the thin `main` boundary instead of being silently
+dropped.
+
+### Review
+
+The adapter owns process-reporting decisions but delegates parsing and execution to `Command`, so
+tests do not duplicate command behavior. Each test varies exactly one causal state: valid input,
+usage input, runtime input, or output failure. `Vec<u8>` makes emitted bytes directly observable
+without a child process. The failing writer is a minimal collaborator implementation because real
+stderr cannot deterministically fail in a unit test. The adapter intentionally does not introduce
+an output protocol or a generic command framework; it preserves the current one-line human stderr
+contract. A temporary `frontmatter-schema:` to `schema:` prefix mutation made the exact usage
+diagnostic test fail; restoring the prefix returned it to green.
