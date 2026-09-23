@@ -62,15 +62,17 @@ Successful output should report `isResolved: true`.
 ## Batch Pattern
 
 Before any batch resolution, confirm every targeted thread already has a reply. Run the
-`github-review-threads reply-status` command first; it exits with code 1 and a JSON diagnostic
-on stderr when any thread lacks a reply. Provide the GitHub login that must have replied. Only
-proceed with the batch resolver once it exits 0. This preserves the workflow rule that every
-resolvable thread is replied to before it is resolved.
+`github-review-threads reply-status` command first; it exits with code 1 and a `missing_reply`
+JSON record on stderr, listing every unresolved thread with its `has_reply` flag, when any thread
+lacks a reply. Provide the GitHub login that must have replied. The binary refuses a terminal on
+stdout, so redirect stdout even when only the exit code matters. Only proceed with the batch
+resolver once it exits 0. This preserves the workflow rule that every resolvable thread is
+replied to before it is resolved.
 
 ```bash
 cargo run --package github-review-threads -- reply-status \
   --threads-file /tmp/pr_threads_<PR_NUMBER>.json \
-  --login <AUTHOR_LOGIN>
+  --login <AUTHOR_LOGIN> > /dev/null
 ```
 
 For multiple threads, resolve them one by one and check each result:

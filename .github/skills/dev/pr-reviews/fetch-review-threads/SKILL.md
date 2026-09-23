@@ -58,8 +58,13 @@ Use GitHub CLI if you need to retrieve threads directly from the terminal.
 
 Run `cargo run --package github-review-threads --` from the repository root. Its `fetch`
 subcommand writes the raw GraphQL response file consumed unchanged by the resolution workflow.
-Its `list` and `show` subcommands emit JSON arrays of unresolved threads; use `jq` to format or
-filter their result data.
+Its `list` and `show` subcommands emit one JSON object whose `threads` array holds the
+unresolved threads; use `jq` to format or filter their result data.
+
+The binary follows the CLI output contract: it refuses to run when stdout is a terminal (exit
+code `2`, `tty_refusal` record on stderr), so every command below pipes or redirects stdout.
+Usage errors and `--help` are JSON `usage_error` records on stderr with exit code `2`; the
+subcommands and options are documented here instead.
 
 Recommended usage:
 
@@ -67,15 +72,15 @@ Recommended usage:
 # 1. Fetch all threads once
 cargo run --package github-review-threads -- fetch \
   --pr-number 1707 \
-  --output-file /tmp/pr_threads_1707.json
+  --output-file /tmp/pr_threads_1707.json | jq .
 
 # 2. Read full suggestion bodies
 cargo run --package github-review-threads -- show \
-  --threads-file /tmp/pr_threads_1707.json
+  --threads-file /tmp/pr_threads_1707.json | jq '.threads[]'
 
 # 3. Get compact IDs/paths for tracker population
 cargo run --package github-review-threads -- list \
-  --threads-file /tmp/pr_threads_1707.json
+  --threads-file /tmp/pr_threads_1707.json | jq -c '.threads[]'
 ```
 
 ```bash
