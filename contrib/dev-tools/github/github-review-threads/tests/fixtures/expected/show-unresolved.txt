@@ -1,0 +1,21 @@
+=== Thread THREAD_UNRESOLVED_CURRENT ===
+Path:     src/example.rs
+Outdated: false
+URL:      https://example.test/pull/42#discussion-3
+Author:   reviewer
+Body:
+An unresolved current concern.
+---
+=== Thread THREAD_UNRESOLVED_OUTDATED ===
+Path:     src/legacy.rs
+Outdated: true
+URL:      https://example.test/pull/42#discussion-4
+Author:   reviewer
+Body:
+An unresolved outdated concern.
+---
+URL:      https://example.test/pull/42#discussion-5
+Author:   author
+Body:
+An author reply without resolution.
+---

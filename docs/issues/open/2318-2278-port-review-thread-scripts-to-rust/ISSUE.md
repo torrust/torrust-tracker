@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2278
 github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
-branch: "2318-2278-port-review-thread-scripts-to-rust-spec"
-related-pr: null
-last-updated-utc: "2026-09-23 12:30"
+branch: "2318-2278-port-review-thread-scripts-to-rust"
+related-pr: https://github.com/torrust/torrust-tracker/pull/2319
+last-updated-utc: "2026-09-23 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -96,10 +96,11 @@ its own.
 
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`,
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`.
-- Placement: a non-published workspace crate under `contrib/dev-tools/github/` (proposed
-  directory for GitHub API tools; it is not a repository check, so not under `checks/`). This
-  follows the `clippy-allow-reasons` and `frontmatter-validator` precedent and does not anticipate
-  the #2266 or #2003 placement decisions for check crates.
+- Placement: the non-published `github-review-threads` workspace crate under
+  `contrib/dev-tools/github/github-review-threads/` (the proposed directory for GitHub API tools;
+  it is not a repository check, so not under `checks/`). This follows the `clippy-allow-reasons`
+  and `frontmatter-validator` precedent and does not anticipate the #2266 or #2003 placement
+  decisions for check crates.
 - Output class: `stdout-result-data`. The human-readable body listing of
   `show-unresolved-thread-bodies.sh` becomes JSON; readers use `jq` for formatting. This is a
   deliberate format deviation recorded here; data parity is the requirement, byte parity is not.
@@ -137,7 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Capture parity fixtures from the shell scripts | GraphQL fixture files plus the exact shell outputs for each script, committed as test data. |
+| T1 | DONE | Capture parity fixtures from the shell scripts | Minimal GraphQL fixture and shell-script golden outputs are committed as test data. |
 | T2 | TODO | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture test, ADR table row. |
 | T3 | TODO | Port the three read-only projections | `list`, `show`, and `reply-status` subcommands with fixture tests matching T1 outputs. |
 | T4 | TODO | Retire the scripts and update skills | Scripts deleted; `fetch-review-threads` and `resolve-review-threads` document the binary. |
@@ -164,7 +165,7 @@ call is visible, and the expected output is stated independently of the code und
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-port-review-thread-scripts-to-rust/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR #2319 merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -179,6 +180,8 @@ call is visible, and the expected output is stated independently of the code und
 
 - 2026-09-23 12:10 UTC - GitHub Copilot - Drafted after the maintainer chose Rust for the `fetch-review-threads` helper and approved splitting the work into a parity port (this issue) and the F17/F18/F32 change (subissue 4); awaiting maintainer review.
 - 2026-09-23 12:30 UTC - GitHub Copilot - Maintainer approved the specification; created GitHub sub-issue #2318 under EPIC #2278 and moved this specification to `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/`. Spec-only PR pending.
+- 2026-09-23 13:02 UTC - GitHub Copilot - PR #2319 merged as `ef234623`; started implementation on branch `2318-2278-port-review-thread-scripts-to-rust` with T1, the parity-fixture baseline.
+- 2026-09-23 13:02 UTC - GitHub Copilot - T1 captured a minimal deterministic GraphQL response fixture and shell-script golden outputs. The fixture covers resolved, unresolved, outdated, multi-comment, reply-present, and reply-missing states. A fixture-backed `gh` shim captured the `fetch` script without network access.
 
 ## Acceptance Criteria
 
