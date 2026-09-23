@@ -110,7 +110,8 @@ fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response
     let mut torrent_stats = Vec::with_capacity(request.info_hashes.len());
 
     for info_hash in &request.info_hashes {
-        let swarm_metadata = scrape_data.files.get(&info_hash.0.into()).copied().unwrap_or_default();
+        let info_hash = info_hash.0.into();
+        let swarm_metadata = scrape_data.files.get(&info_hash).copied().unwrap_or_default();
 
         let scrape_entry = TorrentScrapeStatistics {
             seeders: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.complete))),
@@ -434,7 +435,7 @@ mod tests {
                 info_hashes: requested_info_hashes,
             };
 
-            for (info_hash, number_of_seeders) in request.info_hashes.iter().zip([8, 3, 6, 1, 7, 2, 5, 4]) {
+            for (info_hash, number_of_seeders) in request.info_hashes.iter().zip([8u8, 3, 6, 1, 7, 2, 5, 4]) {
                 add_seeders(
                     core_tracker_services.in_memory_torrent_repository.clone(),
                     info_hash,

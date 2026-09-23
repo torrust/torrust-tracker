@@ -24,6 +24,7 @@ use torrust_tracker_udp_server::handlers::CookieValidationContext;
 use torrust_tracker_udp_server::handlers::scrape::handle_scrape;
 
 const SCRAPE_TORRENT_COUNT: u8 = 74;
+const BENCHMARK_COOKIE_VALIDITY_SECS: f64 = 24.0 * 60.0 * 60.0;
 
 struct ScrapeBenchmarkContext {
     scrape_service: Arc<ScrapeService>,
@@ -78,7 +79,7 @@ impl ScrapeBenchmarkContext {
             server_service_binding,
             request,
             cookie_validation: CookieValidationContext {
-                valid_range: (issue_time - 60.0)..(issue_time + 60.0),
+                valid_range: (issue_time - BENCHMARK_COOKIE_VALIDITY_SECS)..(issue_time + BENCHMARK_COOKIE_VALIDITY_SECS),
                 connection_id_validation: ConnectionIdValidationPolicy::Strict,
             },
         }
