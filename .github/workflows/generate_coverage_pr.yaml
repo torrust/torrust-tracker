@@ -87,7 +87,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.14
+        uses: taiki-e/install-action@v2.87.16
         with:
           tool: cargo-llvm-cov
 
@@ -139,7 +139,7 @@ jobs:
 
       - name: Download Package Coverage Results
         if: ${{ needs.package-coverage-regression.result != 'skipped' }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: package-coverage-*
           path: package-coverage-results
@@ -184,7 +184,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.14
+        uses: taiki-e/install-action@v2.87.16
         with:
           tool: grcov,cargo-llvm-cov
 
