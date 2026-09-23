@@ -1,7 +1,7 @@
 ---
 pr-number: 2322
 pr-url: https://github.com/torrust/torrust-tracker/pull/2322
-last-updated-utc: "2026-09-23 17:25"
+last-updated-utc: "2026-09-23 17:59"
 ---
 
 # PR #2322 Review Audit
@@ -31,6 +31,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Review 5293086967 (Copilot, 15:30 UTC) provided the IDs `F1`, `F2`, `F3`, and `PR2322-003`.
 Review 5293174934 (da2ce7, 15:37 UTC) reused `F1` to `F7` for different findings, so its rows
 carry audit-local IDs assigned in source order with the reviewer's ID in the detail entry.
+Review 5294619694 (da2ce7, 17:41 UTC, round 2) provided `F8` and `F9`, which collide with the
+audit's `F8` and `F9`; they are `F11` and `F12` here.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -45,6 +47,8 @@ carry audit-local IDs assigned in source order with the reviewer's ID in the det
 | F8 | `review-finding:pr-2322-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2322-f9` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2322-f10` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2322-f11` | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2322-f12` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -191,12 +195,42 @@ carry audit-local IDs assigned in source order with the reviewer's ID in the det
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2322#discussion_r4085197067
 
+### F11 - Make `linter all` pass: `clippy::assert_is_empty` in `tests/cli.rs`
+
+- PR number: 2322
+- Source review ID: 5294619694
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2322#discussion_r4085465426
+- Concern: The four `assert!(....is_empty())` calls in `tests/cli.rs` fail the workspace-wide pedantic `clippy::assert_is_empty` lint on the nightly toolchain, so `linter all` and the CI `Unit (nightly)` job failed at the previous head. The local pre-commit gate passed because its clippy step ran on the stable toolchain, which does not yet ship the lint.
+- Solution: Replaced the four assertions with `assert_eq!` against the decoded stream text, which also prints the unexpected bytes on failure.
+- Current-tree verification: `cargo +nightly clippy --package github-review-threads --all-targets -- -D warnings` and `linter clippy` exit `0`; `cargo test --package github-review-threads --test cli` passes 5 tests.
+- Resolution reference: fix(dev-tools): satisfy nightly clippy assert_is_empty in CLI tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2322#discussion_r4085623075
+
+### F12 - Stamp Processing Log entries with the time of the event
+
+- PR number: 2322
+- Source review ID: 5294619694
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2322#discussion_r4085465441
+- Concern: The `17:20` and `17:25 UTC` log entries and `last-updated-utc` were stamped later than the commit that carries them and later than the replies and resolutions they record; the stamps were estimates, not event times.
+- Solution: Appended a correction entry below with the event times recovered from commit, push, and review-comment metadata, left the earlier entries unchanged as the skill requires, and stamped every later entry with the time of the event it records.
+- Current-tree verification: The correction entry names both misdated entries and each corrected time is at or before the commit that carries it (`git log --format='%h %cI %s' a9603656..HEAD`).
+- Resolution reference: docs(pr-reviews): correct the PR #2322 audit timeline
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2322#discussion_r4085623327
+
 ## Processing Log
 
 - 2026-09-23 16:50 UTC - Started audit; fetched GraphQL review threads with `github-review-threads fetch` and the two submitted reviews. Eleven unresolved inline threads: four from Copilot review 5293086967 and seven from da2ce7 review 5293174934; the review bodies summarize the inline findings and add no independent request.
 - 2026-09-23 17:10 UTC - Normalized eleven findings; da2ce7's `F1`-`F7` collide with Copilot's IDs and were assigned `F4`-`F10` in source order. Fixed all eleven across five signed commits and appended re-verification evidence V6 to the #2318 evidence file.
 - 2026-09-23 17:20 UTC - Pushed the fixes, replied on all eleven threads, and ran `validate-audit-record.py --pr-number 2322 --base torrust/develop`: `rows: 10, failures: 0`. The validator matches only `F<n>` IDs and skipped the `PR2322-003` row; its review ID, `[Minor]` bracket, same-thread reply, and commit subject were checked by hand.
 - 2026-09-23 17:25 UTC - `github-review-threads reply-status --login josecelano` on a fresh fetch reported `11/11/0`; resolved all eleven threads with `resolve-all-unresolved-threads.sh`; a final fetch and `list` report zero unresolved threads.
+- 2026-09-23 17:41 UTC - da2ce7 submitted round-2 review 5294619694 with two inline findings; normalized as `F11` and `F12`.
+- 2026-09-23 17:54 UTC - Committed `fix(dev-tools): satisfy nightly clippy assert_is_empty in CLI tests` (F11); pushed at 17:57 UTC with the pre-push suite passing.
+- 2026-09-23 17:59 UTC - Correction (F12): the `17:20 UTC` and `17:25 UTC` entries above were stamped with estimated times. Recovered event times: fix commits pushed 17:11 UTC; the eleven replies posted 17:12-17:13 UTC; validator run and audit committed 17:16 UTC; threads resolved and fetched again 17:18 UTC, recorded in the commit made 17:18 UTC and pushed 17:19 UTC. Entries from this point on are stamped with the time of the event they record.
+- 2026-09-23 17:59 UTC - Replied on the two round-2 threads.
 
 ## Completion Rules
 
