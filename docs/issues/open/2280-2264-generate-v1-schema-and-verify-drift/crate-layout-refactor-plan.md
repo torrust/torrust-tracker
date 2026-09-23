@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: in_progress
+status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/crate-layout-refactor-plan.md
-last-updated-utc: "2026-09-23 10:42"
+last-updated-utc: "2026-09-23 12:07"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -278,7 +278,7 @@ mapped category to `WrongScalarType` and confirm the four reference-syntax rejec
 
 ---
 
-### 6. [ ] Order `profile.rs` for top-down reading [LOW impact / LOW effort]
+### 6. [x] Order `profile.rs` for top-down reading [LOW impact / LOW effort]
 
 **Problem**: After items 2-4 the file still declares the public entry point `validate` between
 private models and private helpers, and `StrictProfileKind::definition` references
@@ -306,7 +306,7 @@ private models and private helpers, and `StrictProfileKind::definition` referenc
 | 3     | [x]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
 | 4     | [x]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
 | 5     | [x]    | Validate reference syntax on one path               | Medium | Medium |
-| 6     | [ ]    | Order `profile.rs` for top-down reading             | Low    | Low    |
+| 6     | [x]    | Order `profile.rs` for top-down reading             | Low    | Low    |
 
 Each item is one signed commit that also flips its checkbox in the heading and the table. Every
 item runs the full gate before commit: `cargo test --package frontmatter-validator`, the offline
@@ -341,5 +341,7 @@ mutation result in `crate-layout-test-design-review.md` beside this plan.
 Drafted on 2026-09-23 after the maintainer asked for a cross-file organization review following
 the completed profile plan. Items 1-4 and 6 are behavior-preserving and keep the generated schema
 byte-identical. Item 5 changes diagnostic message text and was called out for separate approval.
-The maintainer approved all six items on 2026-09-23. Implement items in order, record the required
-prose-first test-design review, and commit each item separately.
+The maintainer approved all six items on 2026-09-23. All six were implemented in order as separate
+signed commits with the prose-first test-design review recorded beside this plan. The generated
+schema stayed byte-identical throughout; the library suite ended at 44 tests (one direct test added
+in item 3, one inconsistent-state test removed in item 5).

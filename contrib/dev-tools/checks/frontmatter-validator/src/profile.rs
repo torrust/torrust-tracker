@@ -21,29 +21,6 @@ pub enum Profile {
     Permissive,
 }
 
-#[derive(Debug, Eq, PartialEq)]
-enum StrictProfileKind {
-    Issue,
-    Epic,
-}
-
-impl StrictProfileKind {
-    fn from_doc_type(doc_type: &str) -> Option<Self> {
-        match doc_type {
-            "issue" => Some(Self::Issue),
-            "epic" => Some(Self::Epic),
-            _ => None,
-        }
-    }
-
-    const fn definition(&self) -> &'static StrictProfileDefinition {
-        match self {
-            Self::Issue => &ISSUE_PROFILE,
-            Self::Epic => &EPIC_PROFILE,
-        }
-    }
-}
-
 /// The strict frontmatter document profiles represented by the v1 JSON Schema.
 #[derive(JsonSchema)]
 #[schemars(title = "Torrust Tracker Frontmatter V1")]
@@ -71,6 +48,224 @@ pub fn v1_schema() -> schemars::Schema {
 pub fn v1_schema_json() -> String {
     let schema = serde_json::to_string_pretty(&v1_schema()).expect("schemars::Schema serializes as JSON");
     format!("{schema}\n")
+}
+
+/// Validates a parsed frontmatter block against the strict v1 profile boundary.
+///
+/// Legacy and unknown document classes are deliberately permissive.
+///
+/// # Errors
+///
+/// Returns a diagnostic when a strict v1 issue or EPIC record has an unknown field, omits a
+/// required field, uses the wrong scalar type, or violates an allowed-value or field invariant.
+pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
+    if frontmatter.ownership == DocumentOwnership::External {
+        return Ok(Profile::Permissive);
+    }
+
+    let Some(doc_type) = strict_document_type(&frontmatter.values)? else {
+        return Ok(Profile::Permissive);
+    };
+
+    match doc_type {
+        StrictProfileKind::Issue => validate_issue(frontmatter, doc_type.definition()).map(Profile::Issue),
+        StrictProfileKind::Epic => validate_epic(frontmatter, doc_type.definition()).map(Profile::Epic),
+    }
+}
+
+fn validate_issue(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Issue, Diagnostic> {
+    validate_strict_profile(frontmatter, definition, Issue::validate_invariants)
+}
+
+fn validate_epic(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Epic, Diagnostic> {
+    validate_strict_profile(frontmatter, definition, Epic::validate_invariants)
+}
+
+fn validate_strict_profile<T>(
+    frontmatter: &Frontmatter,
+    definition: &StrictProfileDefinition,
+    validate_invariants: impl FnOnce(&T, &Frontmatter) -> Result<(), Diagnostic>,
+) -> Result<T, Diagnostic>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    definition.validate_structure(&frontmatter.values)?;
+    validate_reference_syntax(&frontmatter.values)?;
+    let profile = deserialize_strict(&frontmatter.values)?;
+    validate_invariants(&profile, frontmatter)?;
+
+    Ok(profile)
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum StrictProfileKind {
+    Issue,
+    Epic,
+}
+
+impl StrictProfileKind {
+    fn from_doc_type(doc_type: &str) -> Option<Self> {
+        match doc_type {
+            "issue" => Some(Self::Issue),
+            "epic" => Some(Self::Epic),
+            _ => None,
+        }
+    }
+
+    const fn definition(&self) -> &'static StrictProfileDefinition {
+        match self {
+            Self::Issue => &ISSUE_PROFILE,
+            Self::Epic => &EPIC_PROFILE,
+        }
+    }
+}
+
+fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, Diagnostic> {
+    let Some(schema_version) = values.get("schema-version") else {
+        return Ok(None);
+    };
+    let profile_kind = values
+        .get("doc-type")
+        .and_then(Value::as_str)
+        .and_then(StrictProfileKind::from_doc_type);
+    let Some(schema_version) = schema_version.as_i64() else {
+        if profile_kind.is_some() {
+            return Err(Diagnostic::new(
+                DiagnosticCategory::WrongScalarType,
+                "`schema-version` must be a YAML integer.",
+            ));
+        }
+
+        return Ok(None);
+    };
+    if schema_version != 1 {
+        return Ok(None);
+    }
+
+    let Some(doc_type) = values.get("doc-type") else {
+        return Err(Diagnostic::new(
+            DiagnosticCategory::MissingRequiredField,
+            "Strict frontmatter requires `doc-type`.",
+        ));
+    };
+    let Some(doc_type) = doc_type.as_str() else {
+        return Err(Diagnostic::new(
+            DiagnosticCategory::WrongScalarType,
+            "`doc-type` must be a YAML string.",
+        ));
+    };
+
+    Ok(StrictProfileKind::from_doc_type(doc_type))
+}
+
+struct StrictProfileDefinition {
+    fields: &'static [&'static str],
+    allowed_values: &'static [(&'static str, &'static [&'static str])],
+}
+
+impl StrictProfileDefinition {
+    fn validate_structure(&self, values: &Mapping) -> Result<(), Diagnostic> {
+        validate_known_fields(values, self.fields)?;
+        validate_required_fields(values, self.fields)?;
+        for (field, allowed_values) in self.allowed_values {
+            validate_allowed_string(values, field, allowed_values)?;
+        }
+
+        Ok(())
+    }
+}
+
+const ISSUE_FIELDS: &[&str] = &[
+    "schema-version",
+    "doc-type",
+    "issue-type",
+    "status",
+    "priority",
+    "epic",
+    "github-issue",
+    "spec-path",
+    "branch",
+    "related-pr",
+    "last-updated-utc",
+    "semantic-links",
+];
+
+const EPIC_FIELDS: &[&str] = &[
+    "schema-version",
+    "doc-type",
+    "status",
+    "epic",
+    "github-issue",
+    "spec-path",
+    "epic-owner",
+    "last-updated-utc",
+    "semantic-links",
+];
+
+const STATUS_VALUES: &[&str] = &["draft", "planned", "in-progress", "blocked", "in-review", "done"];
+
+const ISSUE_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
+    fields: ISSUE_FIELDS,
+    allowed_values: &[
+        ("issue-type", &["task", "bug", "feature", "enhancement"]),
+        ("status", STATUS_VALUES),
+        ("priority", &["p0", "p1", "p2", "p3"]),
+    ],
+};
+
+const EPIC_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
+    fields: EPIC_FIELDS,
+    allowed_values: &[("status", STATUS_VALUES)],
+};
+
+fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<(), Diagnostic> {
+    for key in values.keys() {
+        let Some(field) = key.as_str() else {
+            return Err(Diagnostic::new(
+                DiagnosticCategory::UnknownField,
+                "Strict frontmatter field names must be strings.",
+            ));
+        };
+        if !allowed_fields.contains(&field) && !field.starts_with("x-") {
+            return Err(Diagnostic::new(
+                DiagnosticCategory::UnknownField,
+                format!("`{field}` is not allowed by this strict frontmatter profile."),
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Result<(), Diagnostic> {
+    for field in required_fields {
+        if !values.contains_key(*field) {
+            return Err(Diagnostic::new(
+                DiagnosticCategory::MissingRequiredField,
+                format!("Strict frontmatter requires `{field}`."),
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str]) -> Result<(), Diagnostic> {
+    let value = values.get(field).expect("required fields were checked first");
+    let Some(value) = value.as_str() else {
+        return Err(Diagnostic::new(
+            DiagnosticCategory::WrongScalarType,
+            format!("`{field}` must be a YAML string."),
+        ));
+    };
+    if !allowed_values.contains(&value) {
+        return Err(Diagnostic::new(
+            DiagnosticCategory::InvalidAllowedValue,
+            format!("`{field}` has an unsupported value `{value}`."),
+        ));
+    }
+
+    Ok(())
 }
 
 /// The canonical strict issue frontmatter model.
@@ -171,52 +366,6 @@ impl Epic {
     }
 }
 
-/// The strict semantic-link envelope with frozen v1 reference value types.
-#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields, rename_all = "kebab-case")]
-pub struct StrictSemanticLinks {
-    /// Optional validated repository skill names.
-    pub skill_links: Option<Vec<SkillName>>,
-    /// Optional validated repository paths or typed references.
-    pub related_artifacts: Option<Vec<RelatedArtifact>>,
-}
-
-/// A validated repository skill name.
-#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
-#[serde(try_from = "String")]
-#[schemars(extend("pattern" = SKILL_NAME_PATTERN))]
-pub struct SkillName(String);
-
-/// A validated v1 related-artifact reference.
-#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
-#[serde(try_from = "String")]
-#[schemars(extend("pattern" = RELATED_ARTIFACT_PATTERN))]
-pub struct RelatedArtifact(String);
-
-impl TryFrom<String> for SkillName {
-    type Error = String;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if is_skill_name(&value) {
-            Ok(Self(value))
-        } else {
-            Err(format!("`{value}` must match [a-z0-9]+(-[a-z0-9]+)*."))
-        }
-    }
-}
-
-impl TryFrom<String> for RelatedArtifact {
-    type Error = String;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if is_related_artifact(&value) {
-            Ok(Self(value))
-        } else {
-            Err(format!("`{value}` is not an approved v1 related-artifact reference."))
-        }
-    }
-}
-
 /// The fixed document type for strict issue records.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 pub enum IssueDocumentType {
@@ -282,89 +431,50 @@ pub enum Priority {
     P3,
 }
 
-/// Validates a parsed frontmatter block against the strict v1 profile boundary.
-///
-/// Legacy and unknown document classes are deliberately permissive.
-///
-/// # Errors
-///
-/// Returns a diagnostic when a strict v1 issue or EPIC record has an unknown field, omits a
-/// required field, uses the wrong scalar type, or violates an allowed-value or field invariant.
-pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
-    if frontmatter.ownership == DocumentOwnership::External {
-        return Ok(Profile::Permissive);
-    }
-
-    let Some(doc_type) = strict_document_type(&frontmatter.values)? else {
-        return Ok(Profile::Permissive);
-    };
-
-    match doc_type {
-        StrictProfileKind::Issue => validate_issue(frontmatter, doc_type.definition()).map(Profile::Issue),
-        StrictProfileKind::Epic => validate_epic(frontmatter, doc_type.definition()).map(Profile::Epic),
-    }
+/// The strict semantic-link envelope with frozen v1 reference value types.
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
+pub struct StrictSemanticLinks {
+    /// Optional validated repository skill names.
+    pub skill_links: Option<Vec<SkillName>>,
+    /// Optional validated repository paths or typed references.
+    pub related_artifacts: Option<Vec<RelatedArtifact>>,
 }
 
-fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, Diagnostic> {
-    let Some(schema_version) = values.get("schema-version") else {
-        return Ok(None);
-    };
-    let profile_kind = values
-        .get("doc-type")
-        .and_then(Value::as_str)
-        .and_then(StrictProfileKind::from_doc_type);
-    let Some(schema_version) = schema_version.as_i64() else {
-        if profile_kind.is_some() {
-            return Err(Diagnostic::new(
-                DiagnosticCategory::WrongScalarType,
-                "`schema-version` must be a YAML integer.",
-            ));
+/// A validated repository skill name.
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
+#[serde(try_from = "String")]
+#[schemars(extend("pattern" = SKILL_NAME_PATTERN))]
+pub struct SkillName(String);
+
+/// A validated v1 related-artifact reference.
+#[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
+#[serde(try_from = "String")]
+#[schemars(extend("pattern" = RELATED_ARTIFACT_PATTERN))]
+pub struct RelatedArtifact(String);
+
+impl TryFrom<String> for SkillName {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if is_skill_name(&value) {
+            Ok(Self(value))
+        } else {
+            Err(format!("`{value}` must match [a-z0-9]+(-[a-z0-9]+)*."))
         }
-
-        return Ok(None);
-    };
-    if schema_version != 1 {
-        return Ok(None);
     }
-
-    let Some(doc_type) = values.get("doc-type") else {
-        return Err(Diagnostic::new(
-            DiagnosticCategory::MissingRequiredField,
-            "Strict frontmatter requires `doc-type`.",
-        ));
-    };
-    let Some(doc_type) = doc_type.as_str() else {
-        return Err(Diagnostic::new(
-            DiagnosticCategory::WrongScalarType,
-            "`doc-type` must be a YAML string.",
-        ));
-    };
-
-    Ok(StrictProfileKind::from_doc_type(doc_type))
 }
 
-fn validate_issue(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Issue, Diagnostic> {
-    validate_strict_profile(frontmatter, definition, Issue::validate_invariants)
-}
+impl TryFrom<String> for RelatedArtifact {
+    type Error = String;
 
-fn validate_epic(frontmatter: &Frontmatter, definition: &StrictProfileDefinition) -> Result<Epic, Diagnostic> {
-    validate_strict_profile(frontmatter, definition, Epic::validate_invariants)
-}
-
-fn validate_strict_profile<T>(
-    frontmatter: &Frontmatter,
-    definition: &StrictProfileDefinition,
-    validate_invariants: impl FnOnce(&T, &Frontmatter) -> Result<(), Diagnostic>,
-) -> Result<T, Diagnostic>
-where
-    T: for<'de> Deserialize<'de>,
-{
-    definition.validate_structure(&frontmatter.values)?;
-    validate_reference_syntax(&frontmatter.values)?;
-    let profile = deserialize_strict(&frontmatter.values)?;
-    validate_invariants(&profile, frontmatter)?;
-
-    Ok(profile)
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if is_related_artifact(&value) {
+            Ok(Self(value))
+        } else {
+            Err(format!("`{value}` is not an approved v1 related-artifact reference."))
+        }
+    }
 }
 
 /// Reference syntax is reported before any other scalar-type failure in the profile.
@@ -378,6 +488,16 @@ fn validate_reference_syntax(values: &Mapping) -> Result<(), Diagnostic> {
                 format!("`semantic-links` contains an invalid v1 reference: {error}"),
             )
         })
+}
+
+fn deserialize_strict<T>(values: &Mapping) -> Result<T, Diagnostic>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let mut values = values.clone();
+    values.retain(|key, _| !key.as_str().is_some_and(|field| field.starts_with("x-")));
+    serde_yaml::from_value(Value::Mapping(values))
+        .map_err(|error| Diagnostic::new(DiagnosticCategory::WrongScalarType, error.to_string()))
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
@@ -423,126 +543,6 @@ fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Di
 
     Ok(())
 }
-
-fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<(), Diagnostic> {
-    for key in values.keys() {
-        let Some(field) = key.as_str() else {
-            return Err(Diagnostic::new(
-                DiagnosticCategory::UnknownField,
-                "Strict frontmatter field names must be strings.",
-            ));
-        };
-        if !allowed_fields.contains(&field) && !field.starts_with("x-") {
-            return Err(Diagnostic::new(
-                DiagnosticCategory::UnknownField,
-                format!("`{field}` is not allowed by this strict frontmatter profile."),
-            ));
-        }
-    }
-
-    Ok(())
-}
-
-fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Result<(), Diagnostic> {
-    for field in required_fields {
-        if !values.contains_key(*field) {
-            return Err(Diagnostic::new(
-                DiagnosticCategory::MissingRequiredField,
-                format!("Strict frontmatter requires `{field}`."),
-            ));
-        }
-    }
-
-    Ok(())
-}
-
-fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str]) -> Result<(), Diagnostic> {
-    let value = values.get(field).expect("required fields were checked first");
-    let Some(value) = value.as_str() else {
-        return Err(Diagnostic::new(
-            DiagnosticCategory::WrongScalarType,
-            format!("`{field}` must be a YAML string."),
-        ));
-    };
-    if !allowed_values.contains(&value) {
-        return Err(Diagnostic::new(
-            DiagnosticCategory::InvalidAllowedValue,
-            format!("`{field}` has an unsupported value `{value}`."),
-        ));
-    }
-
-    Ok(())
-}
-
-fn deserialize_strict<T>(values: &Mapping) -> Result<T, Diagnostic>
-where
-    T: for<'de> Deserialize<'de>,
-{
-    let mut values = values.clone();
-    values.retain(|key, _| !key.as_str().is_some_and(|field| field.starts_with("x-")));
-    serde_yaml::from_value(Value::Mapping(values))
-        .map_err(|error| Diagnostic::new(DiagnosticCategory::WrongScalarType, error.to_string()))
-}
-
-const ISSUE_FIELDS: &[&str] = &[
-    "schema-version",
-    "doc-type",
-    "issue-type",
-    "status",
-    "priority",
-    "epic",
-    "github-issue",
-    "spec-path",
-    "branch",
-    "related-pr",
-    "last-updated-utc",
-    "semantic-links",
-];
-
-const EPIC_FIELDS: &[&str] = &[
-    "schema-version",
-    "doc-type",
-    "status",
-    "epic",
-    "github-issue",
-    "spec-path",
-    "epic-owner",
-    "last-updated-utc",
-    "semantic-links",
-];
-
-struct StrictProfileDefinition {
-    fields: &'static [&'static str],
-    allowed_values: &'static [(&'static str, &'static [&'static str])],
-}
-
-impl StrictProfileDefinition {
-    fn validate_structure(&self, values: &Mapping) -> Result<(), Diagnostic> {
-        validate_known_fields(values, self.fields)?;
-        validate_required_fields(values, self.fields)?;
-        for (field, allowed_values) in self.allowed_values {
-            validate_allowed_string(values, field, allowed_values)?;
-        }
-
-        Ok(())
-    }
-}
-
-const STATUS_VALUES: &[&str] = &["draft", "planned", "in-progress", "blocked", "in-review", "done"];
-
-const ISSUE_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
-    fields: ISSUE_FIELDS,
-    allowed_values: &[
-        ("issue-type", &["task", "bug", "feature", "enhancement"]),
-        ("status", STATUS_VALUES),
-        ("priority", &["p0", "p1", "p2", "p3"]),
-    ],
-};
-
-const EPIC_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
-    fields: EPIC_FIELDS,
-    allowed_values: &[("status", STATUS_VALUES)],
-};
 
 #[cfg(test)]
 mod tests {

@@ -177,6 +177,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   verification, Clippy, Machete, and `linter all` passed; a shared-pattern mutation demonstrated
   deterministic schema drift detection - `profile-refactor-plan.md`,
   `profile-test-design-review.md`
+- 2026-09-23 12:07 UTC - GitHub Copilot - Completed the maintainer-approved crate layout refactor
+  plan as six signed commits: crate-owned test fixtures, a `diagnostic` module, a
+  `Frontmatter::has_double_quoted_scalar` query replacing the raw YAML seam, a `syntax` module
+  pairing each schema regex with its authoritative predicate, a single reference-validation path
+  through `StrictSemanticLinks`, and top-down ordering of `profile.rs`. The generated schema stayed
+  byte-identical, mutations proved each new boundary, and the full quality gate passed after every
+  increment - `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
 
 ## Acceptance Criteria
 

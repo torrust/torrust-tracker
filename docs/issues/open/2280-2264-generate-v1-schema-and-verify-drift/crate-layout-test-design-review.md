@@ -136,3 +136,28 @@ reads `` `semantic-links` contains an invalid v1 reference: `Write-Markdown-Docs
 prefix was added explicitly so the diagnostic keeps naming the offending mapping. Mutation: mapping
 the failure to `WrongScalarType` made exactly the five reference-syntax tests fail before the
 canonical category was restored.
+
+## Refactor Plan Item 6 - Top-Down Ordering
+
+### Arrange
+
+After items 2-5, `profile.rs` still declares `validate` between private types and helpers, and
+`StrictProfileKind::definition` references profile constants declared hundreds of lines later.
+
+### Act
+
+Reorder the 42 top-level items only: public surface, `validate` and its shared sequence, kind
+recognition, definitions with the structural checks they apply, models with their enums and
+invariants, envelope newtypes, then field-level helpers and tests.
+
+### Assert
+
+`git diff --stat` shows an equal number of inserted and deleted lines, the sorted non-blank lines
+are unchanged, rustfmt makes no further edits, and all 44 library and 24 binary tests, the drift
+check, Clippy, and rustdoc pass.
+
+### Review
+
+A scripted permutation with a lossless round-trip check was used so that no item text could
+change during the move. No test was added: the change has no behavior to observe beyond the
+existing suite continuing to compile and pass.
