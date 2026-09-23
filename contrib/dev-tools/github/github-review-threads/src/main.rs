@@ -6,7 +6,7 @@ use std::process::ExitCode;
 use std::{fs, process};
 
 use clap::{Parser, Subcommand};
-use github_review_threads::{GhCli, PullRequest, fetch, list_unresolved, reply_status, show_unresolved};
+use github_review_threads::{GhCli, PullRequest, ReplyStatus, fetch, list_unresolved, reply_status, show_unresolved};
 use serde::Serialize;
 
 /// Fetch pull-request review threads through the GitHub CLI.
@@ -34,13 +34,13 @@ enum Commands {
         #[arg(long, default_value = "torrust-tracker")]
         repository: String,
     },
-    /// Emit unresolved threads as one JSON array.
+    /// Emit unresolved threads as one JSON object with a `threads` array.
     List {
         /// Raw GraphQL response written by `fetch`.
         #[arg(long)]
         threads_file: PathBuf,
     },
-    /// Emit unresolved threads with their review comments as one JSON array.
+    /// Emit unresolved threads with their review comments as one JSON object with a `threads` array.
     Show {
         /// Raw GraphQL response written by `fetch`.
         #[arg(long)]
@@ -61,6 +61,15 @@ enum Commands {
 struct Diagnostic<'a> {
     kind: &'a str,
     message: &'a str,
+}
+
+/// The `missing_reply` diagnostic keeps every per-thread row so the operator knows which threads to answer.
+#[derive(Serialize)]
+struct MissingReplyDiagnostic<'a> {
+    kind: &'a str,
+    message: String,
+    #[serde(flatten)]
+    status: &'a ReplyStatus,
 }
 
 fn main() -> ExitCode {
@@ -111,7 +120,12 @@ fn main() -> ExitCode {
                 |error| emit_diagnostic("reply_status_error", &error, 1),
                 |status| {
                     if status.has_missing_replies() {
-                        emit_diagnostic("missing_reply", "at least one unresolved thread has no reply", 1)
+                        let diagnostic = MissingReplyDiagnostic {
+                            kind: "missing_reply",
+                            message: format!("{} unresolved thread(s) have no reply from {login}", status.without_reply()),
+                            status: &status,
+                        };
+                        write_diagnostic(&diagnostic, 1)
                     } else {
                         emit_json(&status)
                     }
@@ -125,18 +139,24 @@ fn read_response(path: &PathBuf) -> Result<Vec<u8>, String> {
 }
 
 fn emit_json(value: &impl Serialize) -> ExitCode {
-    match serde_json::to_writer(io::stdout().lock(), value) {
-        Ok(()) => {
-            drop(writeln!(io::stdout()));
-            ExitCode::SUCCESS
-        }
-        Err(_) => ExitCode::from(1),
+    let mut buffer = match serde_json::to_vec(value) {
+        Ok(buffer) => buffer,
+        Err(error) => return emit_diagnostic("output_error", &error.to_string(), 1),
+    };
+    buffer.push(b'\n');
+
+    match io::stdout().lock().write_all(&buffer) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => emit_diagnostic("output_error", &error.to_string(), 1),
     }
 }
 
 fn emit_diagnostic(kind: &str, message: &str, exit_code: u8) -> ExitCode {
-    let diagnostic = Diagnostic { kind, message };
-    drop(serde_json::to_writer(io::stderr().lock(), &diagnostic));
+    write_diagnostic(&Diagnostic { kind, message }, exit_code)
+}
+
+fn write_diagnostic(diagnostic: &impl Serialize, exit_code: u8) -> ExitCode {
+    drop(serde_json::to_writer(io::stderr().lock(), diagnostic));
     drop(writeln!(io::stderr()));
     ExitCode::from(exit_code)
 }
