@@ -1,7 +1,7 @@
 ---
 doc-type: review-process-improvement-matrix
 issue: 2278
-last-updated-utc: 2026-09-22 06:28
+last-updated-utc: "2026-09-23 12:10"
 semantic-links:
   related-artifacts:
     - "issue #2278"
@@ -23,10 +23,10 @@ control. `Out of scope` means the item belongs to another artifact owner and is 
 the decision is traceable.
 
 The `Owner task` columns predate the conversion of #2278 into an EPIC and are kept as written.
-They map to the EPIC's subissues as follows: T2 covers subissues 1-4 (roster, contract rules,
-`fetch-review-threads`, self-audit gate); T3 covers subissues 5-8 (contract checker boundary,
-validator port, validator invariants, skeleton generator); T4 is subissue 9 (proportionate
-evidence).
+They map to the EPIC's subissues (numbering of 2026-09-23) as follows: T2 covers subissues 1-5
+(roster, contract rules, thread-tool Rust port, `fetch-review-threads` behaviour, self-audit gate);
+T3 covers subissues 6-9 (contract checker boundary, validator port, validator invariants, skeleton
+generator); T4 is subissue 10 (proportionate evidence).
 
 ## Author Verification and Convergence
 

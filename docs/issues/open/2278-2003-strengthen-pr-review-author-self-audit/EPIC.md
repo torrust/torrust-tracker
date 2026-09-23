@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-23 11:00"
+last-updated-utc: "2026-09-23 12:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,6 +24,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
     - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
+    - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md
@@ -105,7 +106,8 @@ Decisions the matrix fixes and that subissues must respect:
 - Add an explicit author self-audit gate before each audit commit, reply, thread resolution, and
   re-review request, with re-derivation triggers after a second re-raise and after context
   compaction, and an evidence-first ordering that prevents intent from being recorded as fact.
-- Align `fetch-review-threads` with the author workflow so both see all threads.
+- Port the `fetch-review-threads` shell scripts to a tested Rust tool with parity, then align it
+  with the author workflow so both see all threads.
 - Port the audit validator to Rust with parity fixtures, then extend it to the objective invariants
   the matrix adopts.
 - Stop `agent-review-report-contract` from being cited as audit evidence and fix its pin granularity.
@@ -140,27 +142,37 @@ Decisions the matrix fixes and that subissues must respect:
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Each subissue is one pull request. Register items are the `F<k>` numbers from the #2003 friction
-register; retrospective items are cited by PR.
+register; retrospective items are cited by PR. Orders 3 to 10 were renumbered on 2026-09-23 when
+the `fetch-review-threads` work was split into a Rust parity port and the behavior change;
+subissue specifications written before that date cite the earlier numbering (old 3-9 are now 4-10).
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2295 - Single-source the audit field roster and mark copied template sections | `docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md` | DONE | F58, F77, F63. Completed by merged PR #2300; GitHub issue closed. Unblocks 2, 4, and 7. |
+| 1 | #2295 - Single-source the audit field roster and mark copied template sections | `docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md` | DONE | F58, F77, F63. Completed by merged PR #2300; GitHub issue closed. Unblocks 2, 5, and 8. |
 | 2 | #2308 - Reconcile skill and template rule contradictions | `docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md` | DONE | F60, F73, F76, F79, F80, F61, F62, F66. Completed by merged PR #2313; GitHub issue closed. Depends on 1. |
-| 3 | #[To be assigned] - Align `fetch-review-threads` with the author workflow | `docs/issues/open/{number}-2278-fetch-all-review-threads/ISSUE.md` | TODO | F17, F32, F18. Skill and scripts. No dependencies. |
-| 4 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
-| 5 | #[To be assigned] - Make `agent-review-report-contract` state what it reads | `docs/issues/open/{number}-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
-| 6 | #[To be assigned] - Port the audit validator to Rust with parity fixtures | `docs/issues/open/{number}-2278-port-audit-validator-to-rust/ISSUE.md` | TODO | F7. Behaviour parity only, `no-stdout-result` output contract. Depends on #2266 recording its integration-point decision. |
-| 7 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63. Depends on 1 and 6. |
-| 8 | #[To be assigned] - Generate finding-detail skeletons from source comments | `docs/issues/open/{number}-2278-generate-finding-detail-skeleton/ISSUE.md` | TODO | PR #2270 tooling proposal 3. Depends on 6. |
-| 9 | #[To be assigned] - Decide proportionate evidence for low-risk changes | `docs/issues/open/{number}-2278-proportionate-review-evidence/ISSUE.md` | TODO | PR #2272 proposals 3 and 4; F55 as a self-audit step. Decision note first, maintainer approval, then the limited change. Depends on 4. |
+| 3 | #2318 - Port the review-thread shell scripts to a Rust tool | `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md` | TODO | Parity port of the four `fetch-review-threads` scripts as a `contrib/dev-tools/` crate with fixture tests and `stdout-result-data` output contract; scripts removed. No dependencies. |
+| 4 | #[To be assigned] - Align `fetch-review-threads` with the author workflow | `docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md` | TODO | F17, F32, F18 on the Rust tool: all threads by default, `resolvedBy` and `line`, skill contract. Depends on 3. |
+| 5 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
+| 6 | #[To be assigned] - Make `agent-review-report-contract` state what it reads | `docs/issues/open/{number}-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
+| 7 | #[To be assigned] - Port the audit validator to Rust with parity fixtures | `docs/issues/open/{number}-2278-port-audit-validator-to-rust/ISSUE.md` | TODO | F7. Behaviour parity only, `no-stdout-result` output contract. Depends on #2266 recording its integration-point decision. |
+| 8 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63. Depends on 1 and 7. |
+| 9 | #[To be assigned] - Generate finding-detail skeletons from source comments | `docs/issues/open/{number}-2278-generate-finding-detail-skeleton/ISSUE.md` | TODO | PR #2270 tooling proposal 3. Consumes the thread data from 3 and the roster the validator enforces. Depends on 4 and 7. |
+| 10 | #[To be assigned] - Decide proportionate evidence for low-risk changes | `docs/issues/open/{number}-2278-proportionate-review-evidence/ISSUE.md` | TODO | PR #2272 proposals 3 and 4; F55 as a self-audit step. Decision note first, maintainer approval, then the limited change. Depends on 5. |
 
 Subissue specifications are drafted one at a time as `docs/issues/drafts/2278-{slug}/ISSUE.md`
 and created only after maintainer approval, following the `create-issue` skill.
 
+Language decision for helper tooling (2026-09-23): developer tools this EPIC creates or touches are
+Rust workspace crates under `contrib/dev-tools/`, invoked with `cargo run --package`, following
+the `clippy-allow-reasons` and `frontmatter-validator` precedent. The Agent Skills specification
+allows any executable in a skill's `scripts/` directory, but a Cargo crate cannot be built from
+there without becoming a workspace member, so skills document the `cargo run` invocation rather
+than carrying Bash wrappers. Remaining Bash is acceptable only for scripts that stay trivial.
+
 ## Delivery Strategy
 
 Deliver in dependency order with the smallest reviewable change per pull request. Subissues 1, 3,
-and 5 have no dependencies and may run in parallel. Subissue 6 waits for #2266 so both check crates
+and 6 have no dependencies and may run in parallel. Subissue 7 waits for #2266 so both check crates
 give the same answer to placement and output-contract questions.
 
 For each subissue implementation in this EPIC, the default completion policy is:
@@ -178,28 +190,28 @@ review of the pull request that delivers it.
 
 ### Phase 1: Consistent contract
 
-- Outcome: subissues 1, 2, and 3 merged. The skill, template, and helper skill agree on every case
-  the matrix lists, and the roster exists once.
+- Outcome: subissues 1, 2, 3, and 4 merged. The skill, template, and helper skill agree on every
+  case the matrix lists, the roster exists once, and the thread helper is a tested Rust tool.
 - Exit criteria: a side-by-side reading of skill and template finds no contradictory rule for the
   same case; `fetch-review-threads` returns resolved and outdated threads.
 
 ### Phase 2: Author gate and honest checkers
 
-- Outcome: subissues 4 and 5 merged. The self-audit gate is normative and no check that ignores the
+- Outcome: subissues 5 and 6 merged. The self-audit gate is normative and no check that ignores the
   audit can be cited as audit evidence.
 - Exit criteria: a pull request processed with the revised skill records the self-audit before each
   reply; `agent-review-report-contract` documents or honors its input.
 
 ### Phase 3: Deterministic validation
 
-- Outcome: subissues 6, 7, and 8 merged. The Rust validator enforces the adopted objective
+- Outcome: subissues 7, 8, and 9 merged. The Rust validator enforces the adopted objective
   invariants with fixtures; mechanical fields are generated rather than transcribed.
 - Exit criteria: mutation fixtures for each invariant fail with an actionable diagnostic; the
   Python prototype is removed.
 
 ### Phase 4: Proportionate evidence and closure
 
-- Outcome: subissue 9 decided and applied; EPIC validation scenarios recorded.
+- Outcome: subissue 10 decided and applied; EPIC validation scenarios recorded.
 - Exit criteria: the scenarios below are satisfied by real subissue review evidence, and the
   acceptance criteria are checked against it.
 
@@ -246,16 +258,18 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-23 07:24 UTC - GitHub Copilot - Created and linked subissue #2308 for the adopted audit skill/template contract rules; its spec-only PR is pending.
 - 2026-09-23 09:27 UTC - GitHub Copilot - PR #2310 merged; implemented #2308 T1-T4, recorded M1-M4 and acceptance review, and opened its implementation branch; implementation PR pending.
 - 2026-09-23 11:00 UTC - GitHub Copilot - PR #2313 merged and automatically closed subissue #2308. Archived its completed specification under `docs/issues/closed/`; subissue 4 is unblocked.
+- 2026-09-23 12:10 UTC - GitHub Copilot - Maintainer chose Rust for the `fetch-review-threads` helper and approved splitting it into a parity port (new order 3) and the F17/F18/F32 change (order 4); orders 5-10 renumbered from 4-9, so the 11:00 entry's "subissue 4" is now order 5. Drafted both specs under `docs/issues/drafts/`; GitHub issues not yet created.
+- 2026-09-23 12:30 UTC - GitHub Copilot - Maintainer approved both drafts. Created and linked subissue #2318 (order 3) and moved its specification to `docs/issues/open/`; order 4 stays in `docs/issues/drafts/` until #2318 is under way. Spec-only PR pending.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Every proposal in the PR #2270, #2271, and #2272 retrospectives and every author-side #2003 register item has a recorded disposition, rationale, and owner in the matrix.
-- [ ] AC2: `process-pr-review`, its helper skills, and `PR-REVIEW-TEMPLATE.md` state one rule for every case the matrix lists; the field roster appears once, one field per line, and matches the detail skeleton. (Subissues 1, 2, 3.)
-- [ ] AC3: The author workflow requires current-source self-audit before every audit commit, reply, thread resolution, and re-review request; states the evidence source for each claim; never accepts intent as verification; and defines the second-re-raise and context-compaction triggers. (Subissue 4.)
-- [ ] AC4: No check that ignores the audit record can be cited as audit evidence. (Subissue 5.)
-- [ ] AC5: A Rust audit validator verifies its documented objective invariants with offline fixture tests, emits actionable diagnostics under the `no-stdout-result` contract, does not mutate repository or GitHub state, and does not validate frontmatter or `review-finding:` targets. (Subissues 6, 7.)
-- [ ] AC6: Mechanical audit fields are generated from source identifiers rather than transcribed. (Subissue 8.)
-- [ ] AC7: A documented maintainer decision addresses proportionate evidence for low-risk changes, including eligibility, escalation, and preserved audit requirements, without relying on a named model or vendor. (Subissue 9.)
+- [ ] AC2: `process-pr-review`, its helper skills, and `PR-REVIEW-TEMPLATE.md` state one rule for every case the matrix lists; the field roster appears once, one field per line, and matches the detail skeleton. (Subissues 1, 2, 3, 4.)
+- [ ] AC3: The author workflow requires current-source self-audit before every audit commit, reply, thread resolution, and re-review request; states the evidence source for each claim; never accepts intent as verification; and defines the second-re-raise and context-compaction triggers. (Subissue 5.)
+- [ ] AC4: No check that ignores the audit record can be cited as audit evidence. (Subissue 6.)
+- [ ] AC5: A Rust audit validator verifies its documented objective invariants with offline fixture tests, emits actionable diagnostics under the `no-stdout-result` contract, does not mutate repository or GitHub state, and does not validate frontmatter or `review-finding:` targets. (Subissues 7, 8.)
+- [ ] AC6: Mechanical audit fields are generated from source identifiers rather than transcribed. (Subissue 9.)
+- [ ] AC7: A documented maintainer decision addresses proportionate evidence for low-risk changes, including eligibility, escalation, and preserved audit requirements, without relying on a named model or vendor. (Subissue 10.)
 - [ ] AC8: Scenarios M1-M4 are satisfied by recorded evidence without relaxing reply, traceability, or GraphQL completion requirements.
 - [ ] All subissues are created, linked, and their statuses reflect actual state.
 - [ ] Every completed subissue includes automated verification, manual verification, post-implementation acceptance review, and an implementation completion review.
@@ -265,12 +279,12 @@ requests where possible; a fixture is used only when no real review produced the
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | `retrospective-improvement-matrix.md`; maintainer approval recorded in the 2026-09-22 06:59 UTC progress entry. |
-| AC2 | TODO | #2295 and #2308 are DONE via merged PRs #2300 and #2313; subissue 3 remains. |
-| AC3 | TODO | Subissue 4. |
-| AC4 | TODO | Subissue 5. |
-| AC5 | TODO | Subissues 6, 7. |
-| AC6 | TODO | Subissue 8. |
-| AC7 | TODO | Subissue 9. |
+| AC2 | TODO | #2295 and #2308 are DONE via merged PRs #2300 and #2313; subissues 3 and 4 remain. |
+| AC3 | TODO | Subissue 5. |
+| AC4 | TODO | Subissue 6. |
+| AC5 | TODO | Subissues 7, 8. |
+| AC6 | TODO | Subissue 9. |
+| AC7 | TODO | Subissue 10. |
 | AC8 | TODO | Subissue PR audits under `docs/pr-reviews/`; fixtures where no real case arose. |
 
 ## Risks and Trade-offs
@@ -283,8 +297,8 @@ requests where possible; a fixture is used only when no real review produced the
 - A risk tier can be gamed or misclassified. Eligibility must be objective, conservative, and
   include escalation triggers; uncertain cases use the full path.
 - Two check crates answering placement and output questions differently would decide architecture
-  before #2003 does. Subissue 6 follows the #2266 decision rather than making its own.
-- Nine small pull requests each carry review overhead. The EPIC accepts that cost because each is
+  before #2003 does. Subissue 7 follows the #2266 decision rather than making its own.
+- Ten small pull requests each carry review overhead. The EPIC accepts that cost because each is
   independently revertible and each review is validation evidence for the workflow under change.
 - The process must be independent of model identity. Evidence, command output, and acceptance
   criteria are the durable controls, not presumed model capability.
