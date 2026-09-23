@@ -25,6 +25,7 @@
 /// shutdown the server, etc.
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
@@ -33,12 +34,14 @@ use derive_more::derive::Display;
 use futures::future::BoxFuture;
 use thiserror::Error;
 use tokio::sync::oneshot::{Receiver, Sender};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-use torrust_tracker_axum_server::signals::graceful_shutdown;
+use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
@@ -46,6 +49,8 @@ use tracing::{Level, instrument};
 
 use super::routes::router;
 use crate::API_LOG_TARGET;
+
+const API_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
 
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
@@ -69,6 +74,13 @@ pub enum Error {
 
     #[error("could not stop tracker API service: {message}")]
     Stop { message: String },
+}
+
+/// An error returned by the token-aware REST API runtime after startup.
+#[derive(Debug, Error)]
+#[error("tracker API server stopped with an error: {message}")]
+pub struct RuntimeError {
+    message: String,
 }
 
 /// An alias for the `ApiServer` struct with the `Stopped` state.
@@ -116,6 +128,16 @@ pub struct Running {
     pub local_addr: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
+}
+
+/// A token-aware REST API runtime and its owned drain controller.
+///
+/// The caller must retain and join both handles. The existing [`Running`] state
+/// remains the compatibility path for consumers using [`Halted`].
+pub struct CancellationRunning {
+    pub local_addr: SocketAddr,
+    pub task: JoinHandle<Result<Launcher, RuntimeError>>,
+    pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
 }
 
 impl Running {
@@ -196,6 +218,132 @@ impl ApiServer<Stopped> {
 
         Ok(api_server)
     }
+
+    /// Starts the REST API using an injected cancellation token.
+    ///
+    /// This additive path does not subscribe to operating-system signals. Its
+    /// caller owns the returned runtime task and drain controller.
+    ///
+    /// # Errors
+    ///
+    /// Returns listener or service-registration errors.
+    pub async fn start_with_cancellation(
+        self,
+        http_api_container: Arc<TrackerHttpApiCoreContainer>,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
+        access_tokens: Arc<AccessTokens>,
+        cancellation_token: CancellationToken,
+    ) -> Result<CancellationRunning, Error> {
+        let (running, service_binding) = start_token_aware_runtime(
+            self.state.launcher,
+            &http_api_container,
+            access_tokens,
+            cancellation_token.clone(),
+        )?;
+
+        if let Some(public_url) = metadata.public_url() {
+            tracing::info!(target: API_LOG_TARGET, service_binding = %service_binding, public_url = %public_url, "Started tracker API");
+        } else {
+            tracing::info!(target: API_LOG_TARGET, service_binding = %service_binding, "Started tracker API");
+        }
+
+        if let Err(source) = form
+            .register(ServiceRegistration::new(service_binding, metadata, Some(check_fn)))
+            .await
+        {
+            let CancellationRunning {
+                task,
+                shutdown_controller,
+                ..
+            } = running;
+            cancellation_token.cancel();
+            task.abort();
+            shutdown_controller.abort();
+            drop(task.await);
+            drop(shutdown_controller.await);
+            return Err(Error::Registration { source });
+        }
+
+        Ok(running)
+    }
+}
+
+fn start_token_aware_runtime(
+    launcher: Launcher,
+    http_api_container: &Arc<TrackerHttpApiCoreContainer>,
+    access_tokens: Arc<AccessTokens>,
+    cancellation_token: CancellationToken,
+) -> Result<(CancellationRunning, ServiceBinding), Error> {
+    let socket = std::net::TcpListener::bind(launcher.bind_to).map_err(|source| Error::Bind { source })?;
+    socket.set_nonblocking(true).map_err(|source| Error::Listener { source })?;
+    let local_addr = socket.local_addr().map_err(|source| Error::Listener { source })?;
+    let handle = Handle::new();
+    let server_handle = handle.clone();
+    let protocol = if launcher.tls.is_some() {
+        Protocol::HTTPS
+    } else {
+        Protocol::HTTP
+    };
+    let service_binding = ServiceBinding::new(protocol.clone(), local_addr).map_err(|error| Error::Listener {
+        source: std::io::Error::other(error),
+    })?;
+    let router = router(http_api_container, access_tokens, &service_binding);
+    let server: BoxFuture<'static, Result<(), RuntimeError>> = if let Some(tls) = launcher.tls.clone() {
+        let server =
+            custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
+        Box::pin(async move {
+            if let Err(error) = server
+                .handle(server_handle)
+                .serve(router.into_make_service_with_connect_info::<SocketAddr>())
+                .await
+            {
+                tracing::error!(%error, "Tracker API TLS server stopped with an error");
+                return Err(RuntimeError {
+                    message: error.to_string(),
+                });
+            }
+
+            Ok(())
+        })
+    } else {
+        let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
+        Box::pin(async move {
+            if let Err(error) = server
+                .handle(server_handle)
+                .acceptor(TimeoutAcceptor)
+                .serve(router.into_make_service_with_connect_info::<SocketAddr>())
+                .await
+            {
+                tracing::error!(%error, "Tracker API server stopped with an error");
+                return Err(RuntimeError {
+                    message: error.to_string(),
+                });
+            }
+
+            Ok(())
+        })
+    };
+
+    tracing::info!(target: API_LOG_TARGET, "Starting on: {protocol}://{local_addr}");
+    tracing::info!(target: API_LOG_TARGET, "{STARTED_ON}: {protocol}://{local_addr}");
+    let task = tokio::spawn(async move { server.await.map(|()| launcher) });
+    let shutdown_controller = tokio::spawn(graceful_shutdown_on_cancellation(
+        handle,
+        cancellation_token,
+        format!("Shutting down tracker API server on socket address: {local_addr}"),
+        local_addr,
+        API_GRACEFUL_DRAIN_TIMEOUT,
+    ));
+
+    Ok((
+        CancellationRunning {
+            local_addr,
+            task,
+            shutdown_controller,
+        },
+        service_binding,
+    ))
 }
 
 impl ApiServer<Running> {
@@ -351,16 +499,23 @@ impl Launcher {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, TcpListener};
     use std::sync::Arc;
+    use std::time::Duration;
 
-    use torrust_server_lib::registar::Registar;
+    use tokio_util::sync::CancellationToken;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
+    use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::server::{ApiServer, Launcher};
+    use crate::server::{ApiServer, Error, Launcher};
+
+    const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
     fn initialize_global_services(configuration: &Configuration) {
         initialize_static();
@@ -372,17 +527,33 @@ mod tests {
         torrust_tracker_udp_core::initialize_static();
     }
 
+    async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiCoreContainer> {
+        let core_config = Arc::new(configuration.core.clone());
+        let http_tracker_config = configuration
+            .http_trackers
+            .clone()
+            .expect("missing HTTP tracker configuration");
+        let http_tracker_config = Arc::new(http_tracker_config[0].clone());
+        let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
+        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+        let udp_tracker_server_config = configuration.udp_tracker_server.clone();
+        let http_api_config = Arc::new(configuration.http_api.clone().expect("missing HTTP API configuration"));
+
+        TrackerHttpApiCoreContainer::initialize(
+            &core_config,
+            &http_tracker_config,
+            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+            &udp_tracker_config,
+            &udp_tracker_server_config,
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            &http_api_config,
+        )
+        .await
+    }
+
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_public());
-        let core_config = Arc::new(cfg.core.clone());
-        let http_tracker_config = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
-        let http_tracker_config = Arc::new(http_tracker_config[0].clone());
-        let http_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let udp_tracker_configurations = cfg.udp_trackers.clone().expect("missing UDP tracker configuration");
-        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
-        let udp_tracker_server_config = cfg.udp_tracker_server.clone();
-        let udp_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));
 
         initialize_global_services(&cfg);
@@ -401,16 +572,7 @@ mod tests {
 
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
-        let http_api_container = TrackerHttpApiCoreContainer::initialize(
-            &core_config,
-            &http_tracker_config,
-            http_tracker_configuration_instance_id,
-            &udp_tracker_config,
-            &udp_tracker_server_config,
-            udp_tracker_configuration_instance_id,
-            &http_api_config,
-        )
-        .await;
+        let http_api_container = api_container(&cfg).await;
 
         let started = stopped
             .start(
@@ -424,5 +586,91 @@ mod tests {
         let stopped = started.stop().await.expect("it should stop the server");
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);
+    }
+
+    #[tokio::test]
+    async fn it_should_drain_the_token_aware_rest_api_when_its_cancellation_token_is_cancelled() {
+        // Arrange
+        let configuration = Arc::new(ephemeral_public());
+        initialize_global_services(&configuration);
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+        let cancellation_token = CancellationToken::new();
+        let running = ApiServer::new(Launcher::new(http_api_config.bind_address, None))
+            .start_with_cancellation(
+                api_container(&configuration).await,
+                Registar::default().give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware REST API should start");
+
+        // Act
+        cancellation_token.cancel();
+        let launcher = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task)
+            .await
+            .expect("the REST API task should stop after token cancellation")
+            .expect("the REST API task should not panic")
+            .expect("the REST API task should stop without an error");
+        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+            .await
+            .expect("the REST API drain controller should complete after token cancellation")
+            .expect("the REST API drain controller should not panic");
+
+        // Assert
+        assert_eq!(launcher.bind_to, http_api_config.bind_address);
+        assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
+        // Arrange
+        let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available REST API listener address");
+        let bind_to = available_listener
+            .local_addr()
+            .expect("read available REST API listener address");
+        drop(available_listener);
+        let mut configuration = ephemeral_public();
+        configuration
+            .http_api
+            .as_mut()
+            .expect("test configuration enables REST API")
+            .bind_address = bind_to;
+        let configuration = Arc::new(configuration);
+        initialize_global_services(&configuration);
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::HTTP, bind_to).expect("REST API service binding should be valid"),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                None,
+            ))
+            .await
+            .expect("reserve the REST API service registration");
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+
+        // Act
+        let result = ApiServer::new(Launcher::new(bind_to, None))
+            .start_with_cancellation(
+                api_container(&configuration).await,
+                registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                CancellationToken::new(),
+            )
+            .await;
+
+        // Assert
+        let binding = match result {
+            Err(Error::Registration {
+                source: RegistrationError::DuplicateBinding(binding),
+            }) => binding,
+            Err(error) => panic!("token-aware starter should retain the registration failure source: {error}"),
+            Ok(_) => panic!("duplicate registration should fail"),
+        };
+        assert_eq!(binding.bind_address(), bind_to);
+        TcpListener::bind(bind_to).expect("REST API listener should be released after token-aware registration failure");
     }
 }
