@@ -8,8 +8,8 @@ epic: null
 github-issue: 2314
 spec-path: docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
 branch: "2314-preserve-udp-scrape-response-order-spec"
-related-pr: null
-last-updated-utc: "2026-09-23 10:55"
+related-pr: 2315
+last-updated-utc: "2026-09-23 11:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -437,6 +437,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   is automated later.
 - 2026-09-23 10:55 UTC - GitHub Copilot - Created GitHub issue #2314, moved this folder to the
   open issue location, and prepared the spec-only branch.
+- 2026-09-23 11:10 UTC - GitHub Copilot - Opened spec-only PR #2315 targeting `develop` from
+  `josecelano:2314-preserve-udp-scrape-response-order-spec` with `Related to #2314`.
 
 ## Acceptance Criteria
 
