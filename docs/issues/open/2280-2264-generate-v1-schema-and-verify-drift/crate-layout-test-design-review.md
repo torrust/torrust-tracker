@@ -137,6 +137,21 @@ prefix was added explicitly so the diagnostic keeps naming the offending mapping
 the failure to `WrongScalarType` made exactly the five reference-syntax tests fail before the
 canonical category was restored.
 
+### Correction - Field-Scoped Reference Diagnostics
+
+**Arrange**: The invalid-skill-name and unapproved-tagged-artifact tests already supply one bad
+entry under a known `semantic-links` field.
+
+**Act**: Deserialize `skill-links` and `related-artifacts` separately through `Vec<SkillName>` and
+`Vec<RelatedArtifact>`, prefixing the failure with `semantic-links.<field>`.
+
+**Assert**: Both tests additionally assert the message starts with the dotted field path; all 44
+library tests and 24 binary tests pass and the schema is byte-identical.
+
+**Review**: The single typed path is kept; only the granularity of the deserialization call changed
+so the field name is known at the failure point. Mutation: swapping the two field literals failed
+five tests, including both extended assertions, before the mapping was restored.
+
 ## Refactor Plan Item 6 - Top-Down Ordering
 
 ### Arrange

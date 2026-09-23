@@ -3,7 +3,7 @@ doc-type: refactor-plan
 status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/crate-layout-refactor-plan.md
-last-updated-utc: "2026-09-23 12:07"
+last-updated-utc: "2026-09-23 12:22"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -275,6 +275,14 @@ categories and their precedence are unchanged; message text changes because serd
 field path. This item was called out for separate approval because it alters message wording that
 a future adapter could surface; the maintainer approved it on 2026-09-23. Mutation proof: swap the
 mapped category to `WrongScalarType` and confirm the four reference-syntax rejection tests fail.
+
+**Correction (2026-09-23)**: The first implementation deserialized the whole `semantic-links`
+mapping in one call, and `serde_yaml` attaches no field path, so the diagnostic no longer said
+whether `skill-links` or `related-artifacts` held the bad entry. That regressed the #2266
+requirement that diagnostics carry a field path when applicable, which the #2281 adapter must
+render. The path now deserializes each sequence through its newtype separately and prefixes the
+message with `semantic-links.<field>`. Two existing rejection tests assert the prefix. A structured
+`field_path` on `Diagnostic` remains #2281's decision.
 
 ---
 

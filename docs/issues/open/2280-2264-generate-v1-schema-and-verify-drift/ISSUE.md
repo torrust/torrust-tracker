@@ -184,6 +184,10 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   through `StrictSemanticLinks`, and top-down ordering of `profile.rs`. The generated schema stayed
   byte-identical, mutations proved each new boundary, and the full quality gate passed after every
   increment - `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
+- 2026-09-23 12:22 UTC - GitHub Copilot - Corrected crate layout item 5: reference-syntax
+  diagnostics again name the failing `semantic-links.<field>`, restoring the #2266 field-path
+  requirement that #2281 will render; two rejection tests pin the prefix -
+  `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
 
 ## Acceptance Criteria
 

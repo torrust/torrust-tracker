@@ -479,15 +479,27 @@ impl TryFrom<String> for RelatedArtifact {
 
 /// Reference syntax is reported before any other scalar-type failure in the profile.
 fn validate_reference_syntax(values: &Mapping) -> Result<(), Diagnostic> {
-    let semantic_links = values.get("semantic-links").expect("required fields were checked first");
-    serde_yaml::from_value::<StrictSemanticLinks>(semantic_links.clone())
-        .map(drop)
-        .map_err(|error| {
-            Diagnostic::new(
-                DiagnosticCategory::InvalidReferenceSyntax,
-                format!("`semantic-links` contains an invalid v1 reference: {error}"),
-            )
-        })
+    let semantic_links = values
+        .get("semantic-links")
+        .and_then(Value::as_mapping)
+        .expect("required fields and the universal envelope shape were checked first");
+    validate_reference_sequence::<SkillName>(semantic_links, "skill-links")?;
+    validate_reference_sequence::<RelatedArtifact>(semantic_links, "related-artifacts")
+}
+
+fn validate_reference_sequence<T>(semantic_links: &Mapping, field: &str) -> Result<(), Diagnostic>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let Some(value) = semantic_links.get(field) else {
+        return Ok(());
+    };
+    serde_yaml::from_value::<Vec<T>>(value.clone()).map(drop).map_err(|error| {
+        Diagnostic::new(
+            DiagnosticCategory::InvalidReferenceSyntax,
+            format!("`semantic-links.{field}` contains an invalid v1 reference: {error}"),
+        )
+    })
 }
 
 fn deserialize_strict<T>(values: &Mapping) -> Result<T, Diagnostic>
@@ -892,8 +904,13 @@ mod tests {
         // Act: structurally validate the strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic reserves typed forms for the approved v1 union.
+        // Assert: the diagnostic reserves typed forms for the approved v1 union and names the field.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+        assert!(
+            error.message.starts_with("`semantic-links.related-artifacts` "),
+            "{}",
+            error.message
+        );
     }
 
     #[test]
@@ -918,8 +935,13 @@ mod tests {
         // Act: structurally validate the strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic identifies the frozen skill-name syntax violation.
+        // Assert: the diagnostic identifies the frozen skill-name syntax violation and names the field.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
+        assert!(
+            error.message.starts_with("`semantic-links.skill-links` "),
+            "{}",
+            error.message
+        );
     }
 
     #[test]
