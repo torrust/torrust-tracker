@@ -48,8 +48,8 @@ Record once, before P1. P2 must run on the same machine; note any difference in 
 
 | Phase | Branch / commit | Notes |
 | ----- | --------------- | ----- |
-| P1 (pre-fix) | `e03b22f711156443d23be3d62a5c137f9c9f84c4` | Contains the P0 microbenchmark; `build_response` still iterates `scrape_data.files`. |
-| P2 (post-fix) | working tree | `build_response` iterates `request.info_hashes`; measurements were taken before committing. |
+| P1 (pre-fix) | `e03b22f711156443d23be3d62a5c137f9c9f84c4` plus the then-uncommitted P0 microbenchmark | `build_response` still iterates `scrape_data.files`. The published commit with the same code state is `b6619256` (bench added, fix absent). |
+| P2 (post-fix) | working tree before committing the fix | `build_response` iterates `request.info_hashes`. The published commit with the same code state is `d38c1d2c`. |
 
 ## Instrument 1 - Microbenchmark (`scrape_once`)
 
@@ -200,5 +200,18 @@ using the P1 baseline as its reference number).
   lifetime exhausted the per-IP connection-ID error budget. The next three runs reported zero
   responses and were excluded as invalid. The tracker was restarted before P1 runs 3-5; P2 must
   use the same reset procedure. P1 runs 1 and 2 were valid measured windows before that limit.
+- P2 followed that reset procedure: every P2 run used a freshly started tracker. The P2 raw
+  blocks omit the `connect`/`announce` breakdown because only the total and scrape rates were
+  captured for those runs.
+- The load-test config used for both phases is the generic UDP config from `docs/benchmarking.md`,
+  not the scrape-heavy mix the spec's Performance Verification suggests (`weight_scrape = 80`,
+  `scrape_max_torrents = 74`, `duration = 30`). With `weight_scrape = 1` and 10 hashes per
+  scrape, the end-to-end leg exercises about a tenth of the per-request cost the spec intended
+  and its -3.37% delta sits inside the P1 run-to-run spread (1427.59 to 1608.74). The
+  microbenchmark, which the spec names as the precise instrument, does exercise the full 74-hash
+  path and its +8.72% delta matches the analysis; the end-to-end leg here only confirms no gross
+  regression. A rerun with the spec's mix would sharpen the end-to-end resolution.
+- The P1 and P2 results were committed together in `b6619256` rather than split across the P1
+  and P2 Commit Points; the fix itself is in `d38c1d2c`. The history is kept as is.
 - The machine was not otherwise idle. No samples were excluded: the P1 median remains the
   comparison baseline and the same environment constraints apply to P2.

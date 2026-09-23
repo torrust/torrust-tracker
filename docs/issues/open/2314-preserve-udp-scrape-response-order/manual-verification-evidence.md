@@ -157,8 +157,9 @@ representation.
 
 - Goal: repeat V1 unchanged against the fixed build.
 - Initial state: same as V1.
-- Artifact under test: local branch `2314-preserve-udp-scrape-response-order` at
-  `aef07ca4a72939f67f5d047559da15be72033a23`, rebuilt with
+- Artifact under test: local branch `2314-preserve-udp-scrape-response-order` at a pre-rebase
+  local commit (`aef07ca4`, since orphaned by the rebase onto `develop`); the published commit
+  carrying the same fix is `d38c1d2c`. Rebuilt with
   `cargo build --bin torrust-tracker` and
   `cargo build -p torrust-tracker-client --bin tracker_client`.
 - Status: `DONE`
@@ -262,7 +263,11 @@ cargo test -p torrust-tracker-udp-server it_should_preserve_the_order_of_eight_r
 
 Result: `FAILED` as expected. For requested distinct-seeder sequence `[8, 3, 6, 1, 7, 2, 5, 4]`,
 the response returned `[3, 1, 8, 6, 7, 2, 4, 5]`. The test uses $N = 8$, so a map iteration would
-match this deliberate request order by chance with probability at most $1/8! = 1/40320$.
+match this deliberate request order by chance with probability about $1/8! = 1/40320$
+(`HashMap` iteration order is unspecified, not a uniform permutation, so this is a heuristic
+rather than a bound). The recorded failure above is the actual red evidence; the two sibling
+regressions (B4 duplicate `[A, A]` and the direct `build_response` empty-map test) are
+deterministic on the unfixed code.
 
 #### B6 - Completed Prose-First Review
 

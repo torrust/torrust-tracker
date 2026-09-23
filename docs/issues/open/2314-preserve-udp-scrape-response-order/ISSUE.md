@@ -400,7 +400,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Production fix completed
 - [x] Green regression and like-for-like artifact recheck (V2) recorded
 - [x] Post-fix benchmark recorded and compared with the baseline (P2)
-- [x] Automatic verification completed (`linter all`, relevant tests)
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
