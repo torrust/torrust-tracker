@@ -2,7 +2,7 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: in_progress
+status: in-progress
 priority: p1
 epic: 2264
 github-issue: 2280
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - issue #2264
     - issue #2266
-    - contrib/dev-tools/checks/frontmatter-validator/
+    - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md
     - docs/schemas/frontmatter-v1.schema.json
 ---
