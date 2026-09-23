@@ -24,9 +24,12 @@ five review-response commits, why an approval was lost to a rebase whose `range-
 byte-identical, and what to change so that rebasing an open pull request stops restarting its
 review. This is a blameless review of the process, not of the reviewer or the author.
 
-No `PR-REVIEW.md` audit record exists for this pull request: every finding was processed as a
-GitHub review thread and answered in place, without the `process-pr-review` skill. The metrics
-below are therefore derived from the GitHub API and `git log`, not from an audit record.
+The `PR-REVIEW.md` audit record beside this file was created after round 4, once every thread had
+already been replied to and resolved through GitHub directly; the `process-pr-review` workflow was
+not used while the rounds were in progress (cost item 8). The metrics below are derived from the
+GitHub API and `git log`, and the audit record was built from the same data. This document uses
+the reviewer's finding IDs (`F1`-`F10`); the audit record reassigns them to `F5`-`F14` because
+the four Copilot findings, which came first, occupy `F1`-`F4` there.
 
 ## Review Summary
 
@@ -38,8 +41,9 @@ below are therefore derived from the GitHub API and `git log`, not from an audit
 | Re-raised findings | 1 (F9 is the same defect class as F1 and F2, reintroduced by their fix) |
 | Human findings about issue-local evidence documents | 8 of 10 (F3 is a manifest comment; F10 is a skill rule) |
 | Human findings about process changes made during the review | 1 (F10, on the rule added in response to F9) |
+| Findings processed through `process-pr-review` while the review was open | 0 of 14 |
 | Human findings about production code or tests | 0 |
-| Commits on the branch | 11 (4 original, 1 CI fix, 5 review-response, 1 retrospective) |
+| Commits on the branch | 14 at the time of writing (4 original, 1 CI fix, 5 review-response, 4 retrospective or audit) |
 | Rebases while the PR was open | 2 (one before the first human review, one between rounds 2 and 3) |
 | Approval lifetime | 1 h 24 min (approved 16:00 UTC, changes requested 17:24 UTC on a pure rebase) |
 | First review to last author reply | 2026-09-23 13:09 UTC to the round-4 reply (see Timeline) |
@@ -127,6 +131,16 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    two test info-hashes and a recorded transaction id had no disposition. The reviewer's point
    that an info-hash and a git id are indistinguishable by pattern constrained the fix to a
    disposition clause plus a decimal filter, not a tighter regex.
+8. **The repository's review-processing workflow was not used.** The first request was "address
+   Copilot's suggestions"; the author read a third-party editor skill (`address-pr-comments`) and
+   worked the GitHub threads directly, then kept that approach through four human rounds. The
+   repository's own `process-pr-review` skill, which AGENTS.md Engineering Policy 8 says governs
+   when the two conflict, makes the audit record the first step and the `Copilot Suggestions
+   Handler` agent exists to run it. Consequences: the four Copilot threads were resolved without
+   replies; F1-F10 had no normalized rows until after round 4; the first version of this
+   retrospective contained a bullet arguing a backfilled audit was unnecessary, which contradicted
+   `docs/pr-reviews/README.md`; and the record, once written, had to reassign the reviewer's IDs
+   because the Copilot findings had never been numbered.
 
 ## Root Causes
 
@@ -156,6 +170,13 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    and only the loop was run. The same gap the #2271 retrospective named ("write the
    verification command and its output first") applies to writing a rule: a check belongs in a
    skill only after the exact text has been run on the case that motivated it.
+7. **A third-party skill shadowed the repository skill and nothing flagged it.** The editor
+   surfaces its own `address-pr-comments` skill for exactly the phrasing the maintainer used, and
+   its procedure (fetch threads, fix, resolve) looks complete. The repository rule that its own
+   skills take precedence exists, but it relies on the agent noticing the conflict; the reviewer's
+   round-2 body observed "without the `process-pr-review` skill" as a neutral fact rather than a
+   finding, and the maintainer noticed the missing record only after the retrospective was
+   committed.
 
 ## What We Learnt
 
@@ -177,6 +198,10 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 8. Before committing a command into a skill, paste the exact text into a shell and run it on the
    artifact that motivated it; if the output needs a disposition the text does not give, the rule
    is not finished.
+9. "Address the review comments" in this repository means `process-pr-review`: create or update
+   `docs/pr-reviews/pr-<N>-review/PR-REVIEW.md` first, then fix, reply, resolve. When an editor or
+   provider skill matches the request, check `.github/skills/` for the repository owner before
+   following it.
 
 ## Improvements for Future Reviews
 
@@ -268,6 +293,32 @@ round if the fix is insufficient. Or the opposite, but exactly one.
 - Cons: the reviewer's stated preference differs from the skill's current text, so this needs
   the reviewer's agreement, not just an edit.
 
+### 7. Audit record created after the fact for this PR — `APPLIED_IN_THIS_PR`
+
+Owner: `docs/pr-reviews/pr-2320-review/PR-REVIEW.md`.
+
+All fourteen findings normalized with dispositions, current-tree verification re-run at writing
+time, resolution references by commit subject, replies posted on the four Copilot threads that had
+none, and `validate-audit-record.py` passing (14 rows, 0 failures). The Processing Log states
+when the record was created relative to the threads.
+
+- Pros: the continuous-improvement purpose of the audit is served; the folder matches the README
+  convention; the retrospective no longer contradicts it.
+- Cons: a record written after resolution cannot show the "verify before reply" sequence the
+  skill is designed to enforce; its value here is aggregation, not process evidence.
+
+### 8. Make the repository review skill the one that gets picked — `PROPOSED`
+
+Owner: `AGENTS.md` (Engineering Policy 8 wording) and `.github/agents/copilot-suggestions-handler.agent.md`.
+
+Add the trigger phrases maintainers actually use ("address the comments", "process the review",
+"resolve the threads") to the `process-pr-review` skill description and the handler agent's
+description, so the repository skill outranks a third-party one on the same phrasing.
+
+- Pros: a description edit; targets the exact failure that occurred.
+- Cons: skill selection is still heuristic; it does not stop an agent that has already started
+  down the third-party path.
+
 ### Alternatives considered and discarded
 
 - **GitHub merge queue / auto-merge.** Rebases and tests automatically, but the merge commit is
@@ -291,13 +342,14 @@ round if the fix is insufficient. Or the opposite, but exactly one.
   push; the stub check in item 5 is the proportionate fix.
 - Do not require a full-mix end-to-end rerun for every performance-sensitive PR. The
   microbenchmark is the precise instrument; the end-to-end leg is a gross-regression guard.
-- Do not create a `PR-REVIEW.md` audit record retroactively for this PR. The GitHub threads and
-  this retrospective are the record; a backfilled audit would be the kind of self-referential
-  artifact the #2271 retrospective warned about.
 - Do not relax GPG-signed maintainer merges to solve the rebase loop. Items 1 and 2 keep them.
+- Do not treat the after-the-fact audit record as equivalent to one kept during the review; the
+  Processing Log says when it was written, and that is enough.
 
 ## Evidence
 
+- Audit record: `docs/pr-reviews/pr-2320-review/PR-REVIEW.md` (created after round 4;
+  `validate-audit-record.py --pr-number 2320 --base torrust/develop` reports 14 rows, 0 failures).
 - Pull request: <https://github.com/torrust/torrust-tracker/pull/2320>
 - Review rounds: Copilot 13:09:22 UTC; human 15:16:12 UTC (`CHANGES_REQUESTED`), 16:00:09 UTC
   (`APPROVED`), 17:24:16 UTC (`CHANGES_REQUESTED`), 18:02:41 UTC (`CHANGES_REQUESTED`), all
