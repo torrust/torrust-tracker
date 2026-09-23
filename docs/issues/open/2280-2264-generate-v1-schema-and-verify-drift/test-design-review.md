@@ -100,16 +100,18 @@ Resolve the artifact path from the arguments.
 
 ### Assert
 
-No arguments: the path ends with the tracked artifact location and that file exists in the
-checkout. Each malformed vector: the error equals the usage text.
+No arguments: the path ends with the tracked artifact location. Each malformed vector: the error
+equals the usage text.
 
 ### Review
 
-The existence assertion is the guard for the crate-depth walk in `repository_root`; without it a
-relocated crate would make `generate` create a stray `docs/schemas/` elsewhere and every other test
-would still pass. Comparing against `usage()` rather than a literal keeps the tests
-structure-insensitive to wording while still proving each malformed form is rejected the same way.
-Dispatch of an unknown action remains untested until item 6 makes `run` accept explicit arguments.
+The path suffix is the guard for the crate-depth walk in `tracked()`. The test cannot assert that
+the path exists: `cargo nextest --extract-to` executes a binary compiled under the build-stage
+source path after extracting it into a different test-stage path. The command-level schema-drift
+check owns accessibility of the real tracked artifact. Comparing against `usage()` rather than a
+literal keeps the tests structure-insensitive to wording while still proving each malformed form is
+rejected the same way. Dispatch of an unknown action remains untested until item 6 makes `run`
+accept explicit arguments.
 
 ## Refactor Plan Item 4 - Filesystem Failure Paths
 

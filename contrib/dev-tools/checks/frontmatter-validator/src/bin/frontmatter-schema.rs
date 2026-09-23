@@ -444,14 +444,12 @@ mod tests {
             panic!("expected a check command");
         };
 
-        // Assert: the default is the tracked artifact, which must exist so the crate location
-        // walk cannot silently point at a directory outside the repository.
+        // Assert: the default path is the artifact location relative to the compiled crate.
         assert!(
             artifact.path.ends_with("docs/schemas/frontmatter-v1.schema.json"),
             "{}",
             artifact.path.display()
         );
-        assert!(artifact.path.is_file(), "{} does not exist", artifact.path.display());
     }
 
     #[test]
