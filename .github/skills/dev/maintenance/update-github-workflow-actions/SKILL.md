@@ -30,6 +30,15 @@ For Cargo dependency updates, use
 - When this work accompanies a Cargo dependency update, use its dedicated branch and update workflow actions only after the Cargo update has been validated.
 - When an organization allowed-actions policy update is required, capture the complete old and new allowlists in `.tmp/`. Include both lists verbatim in the signed commit body and pull-request description. State whether the change added, replaced, or retained patterns. Do not claim the policy was updated unless it has been confirmed.
 
+## Dependabot Notifications
+
+Dependabot GitHub Actions pull requests are advisory notifications that an action may need an
+update. Use them as one discovery signal, but inventory the current workflow references and
+follow this skill's normal process to select, validate, commit, and open the update.
+
+Do not copy a Dependabot commit or use Dependabot as the commit author. Do not close, merge, or
+otherwise manage the notification pull requests unless the user explicitly requests that work.
+
 ## Quick Reference
 
 ```bash
@@ -64,8 +73,8 @@ git push {your-fork-remote} "$UPDATE_BRANCH"
 
 1. Generate one nanosecond-resolution timestamp and use it for the dedicated branch and `.tmp/` evidence filenames shown in the quick reference. This prevents same-second collisions between independent invocations. Concurrent update workflows must not share a working tree because Git branches and the index are shared.
 2. Start from an up-to-date `develop` branch and create that dedicated branch.
-3. Identify every matching action reference and review the action's release notes for compatibility or security implications. If no workflow reference needs an update, stop without committing.
-4. Update all intended `.github/workflows/*.yaml` references consistently. Dependabot manages GitHub Actions updates through `.github/dependabot.yaml`; preserve its explicit version format.
+3. Inventory every current action reference, using Dependabot notifications as one possible signal, and review each intended action's release notes for compatibility or security implications. If no workflow reference needs an update, stop without committing.
+4. Update all intended `.github/workflows/*.yaml` references consistently. Dependabot is configured through `.github/dependabot.yaml` to report GitHub Actions updates; preserve the workflows' explicit version format.
 5. Before opening the pull request, obtain the complete current Torrust organization allowed-actions list and save it in `"$ALLOWLIST_CURRENT"`. Prepare the complete revised list in `"$ALLOWLIST_NEW"`, retaining every current entry. The allowlist is organization-wide: never replace it with an inventory from this repository alone. A missing entry from the configured list may be authorized by a broader organization policy, such as GitHub-owned or verified Marketplace actions; do not infer that it must be added from a repository scan. If a complete replacement list is requested, obtain an organization-wide inventory first; otherwise, provide only the required additions and replacements. If the required reference is not allowed and the agent cannot change the organization policy, tell the user that a GitHub organization administrator must update the allowed-actions list before the workflow can run. Add an allowlist pattern that permits the versioned reference, such as `owner/action@v2.*`, and prefer a scoped, stable pattern over a moving `owner/action@v2` tag when Dependabot updates exact versions. Confirm that the configured pattern matches the full `uses:` reference. Compare the lists with a set-based comparison: for an additive change, `"$ALLOWLIST_CURRENT"` must be a subset of `"$ALLOWLIST_NEW"`, and every third-party `uses:` reference must be matched by the new list. Have an organization administrator apply the revised list at [Organization Actions settings](https://github.com/organizations/torrust/settings/actions), then confirm the update. Do not remove old entries merely because this repository no longer uses them; other Torrust repositories may still rely on them.
 
 6. Add one semantic `skill-link: update-github-workflow-actions` comment near the workflow's top-level metadata and review the related skills when updating the workflow policy.
