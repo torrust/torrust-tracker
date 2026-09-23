@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
-last-updated-utc: "2026-09-23 12:35"
+last-updated-utc: "2026-09-23 12:45"
 ---
 
 # Manual Verification Evidence
@@ -157,7 +157,48 @@ representation.
 
 - Goal: repeat V1 unchanged against the fixed build.
 - Initial state: same as V1.
-- Status: `TODO`
+- Artifact under test: local branch `2314-preserve-udp-scrape-response-order` at
+  `aef07ca4a72939f67f5d047559da15be72033a23`, rebuilt with
+  `cargo build --bin torrust-tracker` and
+  `cargo build -p torrust-tracker-client --bin tracker_client`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Removed `storage/tracker/lib/database/sqlite3.db` and started the rebuilt debug tracker with
+   `share/default/config/tracker.development.sqlite3.toml`.
+2. Repeated the four UDP announces from V1 to establish `A` with one seeder and `B` with two
+   seeders and one leecher.
+3. Repeated ten UDP scrapes for `[A, B]`, ten for `[B, A]`, and one for `[A, A, B]`, using the
+   exact V1 `tracker_client` commands.
+4. Stopped the tracker after the verification.
+
+#### Observed Result
+
+All ten `[A, B]` responses were:
+
+```text
+[{"seeders":1,"completed":0,"leechers":0},{"seeders":2,"completed":0,"leechers":1}]
+```
+
+All ten `[B, A]` responses were:
+
+```text
+[{"seeders":2,"completed":0,"leechers":1},{"seeders":1,"completed":0,"leechers":0}]
+```
+
+The duplicated request `[A, A, B]` returned three ordered entries:
+
+```text
+[{"seeders":1,"completed":0,"leechers":0},{"seeders":1,"completed":0,"leechers":0},{"seeders":2,"completed":0,"leechers":1}]
+```
+
+#### Conclusion
+
+Passed. Every positional response entry aligned with its request hash and the duplicate hash
+produced a duplicate response entry. An initial V2 attempt was excluded because it used a stale
+debug tracker binary built before the fix; rebuilding both the tracker and unified client produced
+the valid results recorded above.
 
 ## Regression-Test Design
 
@@ -276,6 +317,18 @@ Results: UDP server `170` unit tests, `11` integration tests, and `1` doctest pa
 `2` documentation tests passed. The focused fallback command
 `cargo test -p torrust-tracker-udp-server it_should_return_zeroed_statistics_when_scrape_data_does_not_contain_a_requested_hash`
 also passed.
+
+#### AC6 - HTTP Non-regression
+
+Commands:
+
+```text
+cargo test -p torrust-tracker-http-core
+cargo test -p torrust-tracker-axum-http-server
+```
+
+Results: HTTP core `31` tests passed. Axum HTTP server `36` unit tests and `61` integration tests
+passed. The UDP-only positional adaptation did not change HTTP scrape behavior.
 
 ## Failures and Follow-up
 
