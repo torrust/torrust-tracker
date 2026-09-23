@@ -7,7 +7,7 @@ metadata:
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
-      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/check-thread-reply-status.sh
+      - contrib/dev-tools/github/github-review-threads/Cargo.toml
 ---
 
 # Resolving PR Review Threads
@@ -62,13 +62,15 @@ Successful output should report `isResolved: true`.
 ## Batch Pattern
 
 Before any batch resolution, confirm every targeted thread already has a reply. Run the
-`fetch-review-threads` helper script `check-thread-reply-status.sh` first; it exits with code 1
-when any thread lacks a reply. Only proceed with the batch resolver once it exits 0. This
-preserves the workflow rule that every resolvable thread is replied to before it is resolved.
+`github-review-threads reply-status` command first; it exits with code 1 and a JSON diagnostic
+on stderr when any thread lacks a reply. Provide the GitHub login that must have replied. Only
+proceed with the batch resolver once it exits 0. This preserves the workflow rule that every
+resolvable thread is replied to before it is resolved.
 
 ```bash
-bash ../fetch-review-threads/scripts/check-thread-reply-status.sh \
-  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+cargo run --package github-review-threads -- reply-status \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json \
+  --login <AUTHOR_LOGIN>
 ```
 
 For multiple threads, resolve them one by one and check each result:
@@ -104,6 +106,6 @@ done
 
 - [ ] All targeted threads were verified against the current branch state
 - [ ] Validation passed before resolution
-- [ ] Every thread had a reply before any batch resolution (`check-thread-reply-status.sh` exits 0)
+- [ ] Every thread had a reply before any batch resolution (`github-review-threads reply-status` exits 0)
 - [ ] Each resolved mutation returned `isResolved: true`
 - [ ] Any intentionally unresolved feedback is documented with reasoning

@@ -40,7 +40,7 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 
 ## Workflow
 
-1. **Fetch the source of truth.** Use `fetch-review-threads`' GraphQL scripts to
+1. **Fetch the source of truth.** Use `fetch-review-threads`' GitHub CLI-backed Rust tool to
    collect all threads, including resolved and outdated threads. Also fetch each
    submitted review and its review-specific comments by review ID. REST comment
    responses are supplementary: GraphQL thread data is authoritative for thread
