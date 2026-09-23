@@ -83,6 +83,78 @@ semantics.
 - ADRs to create: None expected; create one only for an enduring repository-wide schema ownership
   or generation decision not already approved by #2265 and #2266.
 
+### AC5 Decision: Nullable-Field Presence in the Generated Schema
+
+The final pre-PR review (2026-09-23) found two places where the generated schema is looser than
+the Rust validator and the #2265 contract:
+
+1. `epic`, `github-issue`, `related-pr`, and `epic-owner` are `Required: Yes` (null allowed) in
+   `frontmatter-v1-contract.md` and in `ISSUE_FIELDS`/`EPIC_FIELDS`, but `schemars` omits every
+   `Option<T>` field from the schema's `required` array. A document that leaves `epic:` out entirely
+   passes the schema and fails the validator with `MissingRequiredField`.
+2. `skill-links` and `related-artifacts` are `type: ["array", "null"]` in the schema, but the
+   universal envelope rejects an explicit `null` with `InvalidSemanticLinks`.
+
+The contract states that the schema "expresses field presence … nullability", and the Boundary
+decision above keeps an invariant Rust-only "unless the generated schema can express them without
+a parallel model". Two options were weighed.
+
+#### Option A: document both divergences as Rust-enforced
+
+Change: add both items to the Rust-only invariant list in `docs/schemas/README.md`. No code or
+artifact change.
+
+Pros:
+
+- Zero risk; the artifact bytes every refactor commit preserved stay unchanged.
+- Satisfies the literal text of AC5 in a few lines.
+- Keeps the model free of schema-only annotations.
+
+Cons:
+
+- Contradicts the contract's own statement that the schema expresses presence, and the Boundary
+  decision, because presence *can* be expressed without a parallel model.
+- Editors and agents validating against the schema accept documents the validator rejects; the
+  gap is exactly the "field presence" discovery this issue lists as its purpose.
+- The divergence lives only in prose, which no test can keep honest as the model evolves.
+
+#### Option B: make the schema express presence; document only what it cannot express
+
+Change: add `#[schemars(required)]` to the four nullable fields, regenerate the artifact (four
+entries added across two `required` arrays; nothing else moves), and add a test asserting that
+each profile's schema `required` set equals its `ISSUE_FIELDS`/`EPIC_FIELDS` list. Document the
+null-sequence divergence in the README as Rust-enforced.
+
+Pros:
+
+- The schema states the contract; editor and agent validation match the validator for presence.
+- Follows the Boundary decision and the contract's presence statement instead of documenting an
+  exception to them.
+- The parity test turns the duplication between the attribute and the field list into a checked
+  invariant, and would have caught this gap at generation time.
+- Still no parallel model: one attribute per field on the canonical type.
+
+Cons:
+
+- Changes tracked artifact bytes for the first time since initial generation, so the PR carries a
+  schema diff (small and reviewable; the drift check forces regeneration).
+- Presence is now declared twice (field list and attribute); mitigated, not removed, by the test.
+- `#[schemars(required)]` documents the structural rule rather than serde behavior, since serde
+  still deserializes a missing `Option` as `None`; a reader must know the structural stage runs
+  first.
+- The null-sequence divergence remains and must still be documented. Closing it would require
+  changing `Option<Vec<_>>` to `Vec<_>` with `#[serde(default)]` on `StrictSemanticLinks`, a public
+  model change that drops the absent-versus-empty distinction nothing currently uses; deferred
+  unless #2264 wants it.
+
+#### Recommendation
+
+Option B. It is the spec-compliant choice, not merely the more thorough one: the approved Boundary
+decision already resolves what to do when the schema can express an invariant without a parallel
+model. The cost is four attributes, one regeneration, and one test.
+
+Status: Option B approved by the maintainer on 2026-09-23.
+
 ## Design and Ownership Review
 
 The schema module owns projection from canonical v1 Rust types. A generator owns deterministic
