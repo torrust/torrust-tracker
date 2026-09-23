@@ -4,7 +4,9 @@
 
 `frontmatter-v1.schema.json` is the JSON Schema Draft 2020-12 projection of the
 canonical strict v1 Rust model in
-`contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`. Do not edit the
+`contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`, using the frozen
+value-syntax patterns declared beside their predicates in
+`contrib/dev-tools/checks/frontmatter-validator/src/syntax.rs`. Do not edit the
 generated JSON directly.
 
 Regenerate the artifact from the repository root with:
@@ -31,8 +33,16 @@ or the artifact has drifted, and `2` for invalid arguments, following
 
 The schema covers strict issue and EPIC field presence, JSON types, nullability,
 enumerations, numeric bounds, string patterns, mapping shape, and approved
-`x-` experimental fields. The Rust validator remains authoritative for Markdown
+`x-` experimental fields. Each profile's `required` array is generated from the
+same field list the validator enforces, so nullable fields such as `epic` and
+`related-pr` are required to be present and may be `null`.
+
+The Rust validator remains authoritative for Markdown
 delimiter extraction, YAML parsing and scalar lexemes, exact double-quote
 requirements, calendar-valid timestamps, strict-profile dispatch, and all
 repository-aware checks such as path existence, lifecycle/location consistency,
-skill discovery, and review-finding resolution.
+skill discovery, and review-finding resolution. It is also stricter than the
+schema in one place the schema cannot express without a parallel model:
+`semantic-links.skill-links` and `semantic-links.related-artifacts` may be
+omitted but may not be an explicit `null`, while the schema types them as
+`array` or `null`.

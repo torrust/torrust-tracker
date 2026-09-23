@@ -41,7 +41,7 @@
           "$ref": "#/$defs/Priority"
         },
         "epic": {
-          "description": "The optional positive parent EPIC issue number.",
+          "description": "The nullable positive parent EPIC issue number.",
           "type": [
             "integer",
             "null"
@@ -50,7 +50,7 @@
           "minimum": 1
         },
         "github-issue": {
-          "description": "The optional positive GitHub issue number.",
+          "description": "The nullable positive GitHub issue number.",
           "type": [
             "integer",
             "null"
@@ -69,7 +69,7 @@
           "minLength": 1
         },
         "related-pr": {
-          "description": "The optional positive related pull request number.",
+          "description": "The nullable positive related pull request number.",
           "type": [
             "integer",
             "null"
@@ -94,8 +94,11 @@
         "issue-type",
         "status",
         "priority",
+        "epic",
+        "github-issue",
         "spec-path",
         "branch",
+        "related-pr",
         "last-updated-utc",
         "semantic-links"
       ],
@@ -255,7 +258,7 @@
           "$ref": "#/$defs/IssueStatus"
         },
         "epic": {
-          "description": "The optional positive parent EPIC issue number.",
+          "description": "The nullable positive parent EPIC issue number.",
           "type": [
             "integer",
             "null"
@@ -264,7 +267,7 @@
           "minimum": 1
         },
         "github-issue": {
-          "description": "The optional positive GitHub issue number.",
+          "description": "The nullable positive GitHub issue number.",
           "type": [
             "integer",
             "null"
@@ -278,7 +281,7 @@
           "pattern": "^(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*$"
         },
         "epic-owner": {
-          "description": "The optional owner of the EPIC.",
+          "description": "The nullable owner of the EPIC.",
           "type": [
             "string",
             "null"
@@ -300,7 +303,10 @@
         "schema-version",
         "doc-type",
         "status",
+        "epic",
+        "github-issue",
         "spec-path",
+        "epic-owner",
         "last-updated-utc",
         "semantic-links"
       ],

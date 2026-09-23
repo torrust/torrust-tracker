@@ -9,7 +9,7 @@ github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-23 12:28"
+last-updated-utc: "2026-09-23 15:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -155,6 +155,15 @@ model. The cost is four attributes, one regeneration, and one test.
 
 Status: Option B approved by the maintainer on 2026-09-23.
 
+Implementation note (2026-09-23): `#[schemars(required)]` was tried first and rejected. In
+`schemars` 1.2.1 that attribute swaps in the field's *non-optional* schema, so the four fields lost
+their `"null"` type and the artifact became stricter than the contract (a first regeneration made
+this visible immediately). The shipped change instead attaches a `#[schemars(transform = ...)]` to
+each profile struct that writes `required` from `ISSUE_FIELDS`/`EPIC_FIELDS`, the same lists the
+validator enforces. Presence therefore has one source, nullability is untouched, and the parity test
+asserts the generated `required` set equals the field list. The artifact diff is exactly the four
+added `required` entries plus doc wording.
+
 ## Design and Ownership Review
 
 The schema module owns projection from canonical v1 Rust types. A generator owns deterministic
@@ -260,6 +269,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   diagnostics again name the failing `semantic-links.<field>`, restoring the #2266 field-path
   requirement that #2281 will render; two rejection tests pin the prefix -
   `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
+- 2026-09-23 15:09 UTC - GitHub Copilot - Final pre-PR review failed on three documentation and
+  contract blockers; fixed the spec's own frontmatter (`in-progress`, no trailing slash) and
+  implemented the approved AC5 Option B: each profile's schema `required` array is now generated
+  from the validator's field list via a `schemars` transform, the artifact was regenerated (four
+  `required` entries added, nullability preserved), a parity test pins the invariant, and
+  `docs/schemas/README.md` documents the one remaining null-sequence divergence and the `syntax.rs`
+  pattern location - `docs/schemas/`, `profile.rs`
 
 ## Acceptance Criteria
 

@@ -1,7 +1,8 @@
 //! Canonical strict frontmatter profile types and structural validation.
 
-use schemars::JsonSchema;
+use schemars::{JsonSchema, Schema};
 use serde::Deserialize;
+use serde_json::Value as JsonValue;
 use serde_yaml::{Mapping, Value};
 
 use crate::syntax::{
@@ -218,6 +219,21 @@ const EPIC_PROFILE: StrictProfileDefinition = StrictProfileDefinition {
     allowed_values: &[("status", STATUS_VALUES)],
 };
 
+/// `schemars` leaves `Option<T>` fields out of `required`; the contract requires them present.
+fn require_fields(fields: &'static [&'static str]) -> impl FnMut(&mut Schema) {
+    move |schema| {
+        schema.insert("required".into(), fields.iter().copied().map(JsonValue::from).collect());
+    }
+}
+
+fn require_issue_fields(schema: &mut Schema) {
+    require_fields(ISSUE_FIELDS)(schema);
+}
+
+fn require_epic_fields(schema: &mut Schema) {
+    require_fields(EPIC_FIELDS)(schema);
+}
+
 fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<(), Diagnostic> {
     for key in values.keys() {
         let Some(field) = key.as_str() else {
@@ -271,7 +287,7 @@ fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str
 /// The canonical strict issue frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
-#[schemars(extend("patternProperties" = { "^x-": {} }))]
+#[schemars(extend("patternProperties" = { "^x-": {} }), transform = require_issue_fields)]
 pub struct Issue {
     /// The strict contract version.
     #[schemars(range(min = 1, max = 1))]
@@ -284,10 +300,10 @@ pub struct Issue {
     pub status: IssueStatus,
     /// The issue urgency.
     pub priority: Priority,
-    /// The optional positive parent EPIC issue number.
+    /// The nullable positive parent EPIC issue number.
     #[schemars(range(min = 1))]
     pub epic: Option<u64>,
-    /// The optional positive GitHub issue number.
+    /// The nullable positive GitHub issue number.
     #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
@@ -296,7 +312,7 @@ pub struct Issue {
     /// The development branch name.
     #[schemars(length(min = 1))]
     pub branch: String,
-    /// The optional positive related pull request number.
+    /// The nullable positive related pull request number.
     #[schemars(range(min = 1))]
     pub related_pr: Option<u64>,
     /// The required UTC-minute update timestamp.
@@ -323,7 +339,7 @@ impl Issue {
 /// The canonical strict EPIC frontmatter model.
 #[derive(Debug, Deserialize, Eq, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
-#[schemars(extend("patternProperties" = { "^x-": {} }))]
+#[schemars(extend("patternProperties" = { "^x-": {} }), transform = require_epic_fields)]
 pub struct Epic {
     /// The strict contract version.
     #[schemars(range(min = 1, max = 1))]
@@ -332,16 +348,16 @@ pub struct Epic {
     pub doc_type: EpicDocumentType,
     /// The current lifecycle state.
     pub status: IssueStatus,
-    /// The optional positive parent EPIC issue number.
+    /// The nullable positive parent EPIC issue number.
     #[schemars(range(min = 1))]
     pub epic: Option<u64>,
-    /// The optional positive GitHub issue number.
+    /// The nullable positive GitHub issue number.
     #[schemars(range(min = 1))]
     pub github_issue: Option<u64>,
     /// The repository-relative specification path.
     #[schemars(regex(pattern = REPOSITORY_RELATIVE_PATH_PATTERN))]
     pub spec_path: String,
-    /// The optional owner of the EPIC.
+    /// The nullable owner of the EPIC.
     #[schemars(length(min = 1))]
     pub epic_owner: Option<String>,
     /// The required UTC-minute update timestamp.
@@ -559,8 +575,6 @@ fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Di
 #[cfg(test)]
 mod tests {
     // Owns strict-profile recognition, schema projection, invariants, and reference syntax decisions.
-    use serde_json::Value as JsonValue;
-
     use super::*;
     use crate::{DiagnosticCategory, DocumentOwnership, extract, extract_with_ownership};
 
@@ -617,6 +631,35 @@ mod tests {
         );
         assert_eq!(schema["$defs"]["SkillName"]["pattern"], SKILL_NAME_PATTERN);
         assert_eq!(schema["$defs"]["RelatedArtifact"]["pattern"], RELATED_ARTIFACT_PATTERN);
+    }
+
+    #[test]
+    fn it_should_require_every_contract_field_in_the_schema_including_nullable_ones() {
+        // Arrange: the strict profile field lists are the presence contract the validator enforces.
+        let schema = serde_json::to_value(v1_schema()).unwrap();
+        let required = |profile: &str| -> Vec<String> {
+            let mut fields: Vec<String> = schema["$defs"][profile]["required"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|value| value.as_str().unwrap().to_owned())
+                .collect();
+            fields.sort();
+            fields
+        };
+        let expected = |fields: &[&str]| -> Vec<String> {
+            let mut fields: Vec<String> = fields.iter().map(ToString::to_string).collect();
+            fields.sort();
+            fields
+        };
+
+        // Act: read each profile's generated `required` array.
+        let issue_required = required("Issue");
+        let epic_required = required("Epic");
+
+        // Assert: the schema requires exactly the fields the validator requires, nullable or not.
+        assert_eq!(issue_required, expected(ISSUE_FIELDS));
+        assert_eq!(epic_required, expected(EPIC_FIELDS));
     }
     #[test]
     fn it_should_keep_an_external_v1_looking_document_permissive() {
