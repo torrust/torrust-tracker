@@ -9,7 +9,7 @@ github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
 branch: "2318-2278-port-review-thread-scripts-to-rust"
 related-pr: https://github.com/torrust/torrust-tracker/pull/2319
-last-updated-utc: "2026-09-23 13:02"
+last-updated-utc: "2026-09-23 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,7 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Capture parity fixtures from the shell scripts | Minimal GraphQL fixture and shell-script golden outputs are committed as test data. |
-| T2 | TODO | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture test, ADR table row. |
+| T2 | DONE | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture tests, and ADR table row. |
 | T3 | TODO | Port the three read-only projections | `list`, `show`, and `reply-status` subcommands with fixture tests matching T1 outputs. |
 | T4 | TODO | Retire the scripts and update skills | Scripts deleted; `fetch-review-threads` and `resolve-review-threads` document the binary. |
 | T5 | TODO | Verify and record completion evidence | Manual capture, automatic checks, acceptance review, parent EPIC row updated. |
@@ -182,6 +182,7 @@ call is visible, and the expected output is stated independently of the code und
 - 2026-09-23 12:30 UTC - GitHub Copilot - Maintainer approved the specification; created GitHub sub-issue #2318 under EPIC #2278 and moved this specification to `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/`. Spec-only PR pending.
 - 2026-09-23 13:02 UTC - GitHub Copilot - PR #2319 merged as `ef234623`; started implementation on branch `2318-2278-port-review-thread-scripts-to-rust` with T1, the parity-fixture baseline.
 - 2026-09-23 13:02 UTC - GitHub Copilot - T1 captured a minimal deterministic GraphQL response fixture and shell-script golden outputs. The fixture covers resolved, unresolved, outdated, multi-comment, reply-present, and reply-missing states. A fixture-backed `gh` shim captured the `fetch` script without network access.
+- 2026-09-23 14:25 UTC - GitHub Copilot - T2 added `github-review-threads fetch`, a fixture-tested `ThreadSource` seam, `GhCli` process adapter, response validation, and the ADR output-contract row. The design-review checkpoint passed after a fixture-backed command run and a real PR #2319 capture preserved the downstream GraphQL response shape.
 
 ## Acceptance Criteria
 
