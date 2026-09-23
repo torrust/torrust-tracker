@@ -442,28 +442,27 @@ fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Dia
 }
 
 fn validate_utc_minute_string(value: &str, yaml: &str) -> Result<(), Diagnostic> {
-    let bytes = value.as_bytes();
-    let has_expected_separators = bytes.get(4) == Some(&b'-')
-        && bytes.get(7) == Some(&b'-')
-        && bytes.get(10) == Some(&b' ')
-        && bytes.get(13) == Some(&b':');
-    let has_ascii_digits = bytes
-        .iter()
-        .enumerate()
-        .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
-        .all(|(_, byte)| byte.is_ascii_digit());
-    if bytes.len() != 16
-        || !has_expected_separators
-        || !has_ascii_digits
-        || !is_valid_utc_minute(value)
-        || !has_double_quoted_timestamp(yaml)
-    {
+    if !has_utc_minute_layout(value) || !is_valid_utc_minute_calendar(value) || !has_double_quoted_timestamp(yaml) {
         return Err(invalid_field_value(String::from(
             "`last-updated-utc` must be a double-quoted YAML string in YYYY-MM-DD HH:MM UTC-minute format.",
         )));
     }
 
     Ok(())
+}
+
+fn has_utc_minute_layout(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 16
+        && bytes.get(4) == Some(&b'-')
+        && bytes.get(7) == Some(&b'-')
+        && bytes.get(10) == Some(&b' ')
+        && bytes.get(13) == Some(&b':')
+        && bytes
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| !matches!(index, 4 | 7 | 10 | 13))
+            .all(|(_, byte)| byte.is_ascii_digit())
 }
 
 fn has_double_quoted_timestamp(yaml: &str) -> bool {
@@ -482,12 +481,13 @@ fn strip_yaml_comment(value: &str) -> &str {
         .map_or(value, |index| value[..index].trim_end())
 }
 
-fn is_valid_utc_minute(value: &str) -> bool {
-    let year = value[0..4].parse::<u16>().expect("timestamp digits were checked first");
-    let month = value[5..7].parse::<u8>().expect("timestamp digits were checked first");
-    let day = value[8..10].parse::<u8>().expect("timestamp digits were checked first");
-    let hour = value[11..13].parse::<u8>().expect("timestamp digits were checked first");
-    let minute = value[14..16].parse::<u8>().expect("timestamp digits were checked first");
+fn is_valid_utc_minute_calendar(value: &str) -> bool {
+    debug_assert!(has_utc_minute_layout(value));
+    let year = value[0..4].parse::<u16>().expect("UTC-minute layout contains ASCII digits");
+    let month = value[5..7].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
+    let day = value[8..10].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
+    let hour = value[11..13].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
+    let minute = value[14..16].parse::<u8>().expect("UTC-minute layout contains ASCII digits");
     let days_in_month = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
@@ -885,6 +885,35 @@ mod tests {
 
         // Assert: the diagnostic rejects out-of-range date and time components.
         assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+    }
+
+    #[test]
+    fn it_should_distinguish_utc_minute_layout_from_calendar_boundaries() {
+        // Arrange: each row changes one UTC-minute layout or calendar boundary.
+        let cases = [
+            ("2024-02-29 23:59", true, true),
+            ("2025-02-29 23:59", true, false),
+            ("2026-04-31 12:00", true, false),
+            ("2026-13-01 12:00", true, false),
+            ("2026-01-01 24:00", true, false),
+            ("2026-01-01 12:60", true, false),
+            ("2026-01-01 12:0", false, false),
+            ("2026-01-01 12:é0", false, false),
+        ];
+
+        for (value, expected_layout, expected_calendar) in cases {
+            // Act: evaluate layout first, then calendar validity only for a safe fixed layout.
+            let actual_layout = has_utc_minute_layout(value);
+            let actual_calendar = if actual_layout {
+                is_valid_utc_minute_calendar(value)
+            } else {
+                false
+            };
+
+            // Assert: each independent boundary has the documented result without panics.
+            assert_eq!(actual_layout, expected_layout, "unexpected layout result for `{value}`");
+            assert_eq!(actual_calendar, expected_calendar, "unexpected calendar result for `{value}`");
+        }
     }
 
     #[test]

@@ -78,3 +78,29 @@ trait or dynamic-dispatch framework is introduced.
 Removing the stage directly was rejected at compile time by the strict dead-code policy. Moving
 the stage after reference syntax produced `InvalidReferenceSyntax` rather than `UnknownField` for
 both documents, so the precedence test failed before the original sequence was restored.
+
+## Refactor Plan Item 4 - UTC-Minute Layout and Calendar Predicates
+
+### Arrange
+
+UTC-minute strings have independent byte-layout and calendar rules. Boundary cases include valid
+and invalid leap days, invalid month/day combinations, clock bounds, short input, and non-ASCII
+input. Existing profile tests retain coverage for YAML double-quote source style.
+
+### Act
+
+Evaluate the pure layout predicate for every table row and evaluate the calendar predicate only
+when the value has the required fixed layout.
+
+### Assert
+
+Each row yields the expected layout and calendar result without panicking. Temporarily accepting
+every calendar-shaped value must fail the table rows for invalid dates and clock bounds before the
+real predicate is restored.
+
+### Review
+
+The diagnostic-producing validator remains the single composition point for layout, calendar, and
+YAML source-style rules. No time dependency or public behavior change is introduced.
+Replacing the calendar conjunction with an always-permissive disjunction made the table fail at
+the non-leap-year `2025-02-29 23:59` row before the real predicate was restored.

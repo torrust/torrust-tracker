@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: in_progress
+status: done
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
-last-updated-utc: "2026-09-23 07:36"
+last-updated-utc: "2026-09-23 08:45"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -113,7 +113,7 @@ red-first mutation that skips one common validation stage.
 
 ---
 
-### 4. [ ] Separate UTC-minute format predicates from calendar validation [MEDIUM impact / MEDIUM effort]
+### 4. [x] Separate UTC-minute format predicates from calendar validation [MEDIUM impact / MEDIUM effort]
 
 **Problem**: `validate_utc_minute_string` combines byte layout, ASCII digits, calendar validity,
 and double-quoted YAML source-style validation in one compound condition. Existing tests exercise
@@ -139,7 +139,7 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 | 1     | [x]    | Move strict-profile tests beside their owning module     | High   | Low    |
 | 2     | [x]    | Represent strict profile kind as a closed enum           | Medium | Low    |
 | 3     | [x]    | Make shared strict-profile validation order explicit     | Medium | Medium |
-| 4     | [ ]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
+| 4     | [x]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
 
 Item 1 establishes the correct test ownership before production refactors. Item 2 makes the
 dispatch boundary explicit, so item 3 can share the validation sequence without retaining raw

@@ -164,6 +164,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   modeling, and writer-injected process reporting. Binary tests grew from 16 to 24; focused
   red-first and mutation checks passed, as did the full pre-commit gate after every increment -
   `schema-command-refactor-plan.md`, `test-design-review.md`
+- 2026-09-23 08:45 UTC - GitHub Copilot - Completed the maintainer-approved profile validation
+  refactor plan as four signed commits: module-owned profile tests, closed strict-profile kinds,
+  explicit shared validation precedence, and separated UTC-minute layout/calendar predicates.
+  Library tests grew from 41 to 44; red mutations proved each new regression boundary, schema
+  drift stayed clean, and the full quality gate passed after every increment -
+  `profile-refactor-plan.md`, `profile-test-design-review.md`
 
 ## Acceptance Criteria
 
