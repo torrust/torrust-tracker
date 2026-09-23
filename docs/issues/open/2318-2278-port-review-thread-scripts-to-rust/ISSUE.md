@@ -8,8 +8,8 @@ epic: 2278
 github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
 branch: "2318-2278-port-review-thread-scripts-to-rust"
-related-pr: https://github.com/torrust/torrust-tracker/pull/2322
-last-updated-utc: "2026-09-23 15:08"
+related-pr: 2322
+last-updated-utc: "2026-09-23 17:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -104,6 +104,20 @@ its own.
 - Output class: `stdout-result-data`. The human-readable body listing of
   `show-unresolved-thread-bodies.sh` becomes JSON; readers use `jq` for formatting. This is a
   deliberate format deviation recorded here; data parity is the requirement, byte parity is not.
+- Further deliberate deviations from the retired scripts, all format-level and recorded so that
+  subissue 4 inherits an accurate parity record:
+  - `list` and `show` emit one JSON object with a `threads` array instead of one JSON value per
+    line, because the output contract requires exactly one JSON object on stdout.
+  - `reply-status` keeps the `thread_id`, `path`, `url`, and `has_reply` row fields but nests the
+    counts in a `summary` object instead of a trailing `{"summary":true,...}` line. When a reply
+    is missing it exits `1` with empty stdout and a `missing_reply` stderr record that carries the
+    same `threads` and `summary` fields, so the offending thread IDs remain reachable.
+  - `reply-status --login` is required. The script defaulted to the authenticated `gh` user
+    through a second network call; the explicit login keeps the guard deterministic and testable
+    without `gh`, and the `resolve-review-threads` skill documents the argument.
+  - `--help` and usage errors are JSON `usage_error` records on stderr with exit code `2`, and
+    the TTY check runs before argument parsing, so `--help` on a terminal returns `tty_refusal`.
+    The scripts printed plain-text help with exit code `0`; the skills document the subcommands.
 - ADRs to create: `None known`.
 
 ## Design and Ownership Review
@@ -166,11 +180,11 @@ call is visible, and the expected output is stated independently of the code und
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
 - [x] Spec-only PR #2319 merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -188,12 +202,13 @@ call is visible, and the expected output is stated independently of the code und
 - 2026-09-23 14:47 UTC - GitHub Copilot - T5 recorded live fetch parity, projection, resolver, output-contract, and container integration evidence in `manual-verification-evidence.md`. The remaining completion gate is the installed pre-push hook.
 - 2026-09-23 15:08 UTC - GitHub Copilot - The installed pre-push hook passed nightly formatting, workspace checks, documentation build, and the complete stable test suite; T5 is complete.
 - 2026-09-23 15:10 UTC - GitHub Copilot - Opened implementation PR #2322 targeting `develop`; it closes #2318 when merged.
+- 2026-09-23 17:10 UTC - GitHub Copilot - Processed PR #2322 review round 1 (Copilot and da2ce7): `reply-status` now names the threads without a reply in its stderr record and keeps `thread_id`; `list` and `show` emit one object; `tests/cli.rs` compares the binary with the retired-script captures under `tests/fixtures/retired-scripts/`; skill examples pipe stdout; the parity deviations above are recorded. Audit: `docs/pr-reviews/pr-2322-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
 - [x] AC1: A workspace crate under `contrib/dev-tools/` provides `fetch`, unresolved `list`, unresolved `show`, and `reply-status` subcommands.
 - [x] AC2: `fetch` writes a JSON file whose shape is identical to the current `get-pr-review-threads.sh` output, and `resolve-all-unresolved-threads.sh` consumes it unchanged.
-- [x] AC3: Fixture tests prove each subcommand's output data matches the recorded shell output for resolved, unresolved, outdated, and multi-comment threads, including the reply-status summary and non-zero exit when a reply is missing.
+- [x] AC3: Fixture tests prove each subcommand's output data matches the recorded shell output for resolved, unresolved, outdated, and multi-comment threads, including the reply-status summary and non-zero exit when a reply is missing. Evidence: `tests/cli.rs` reads the captures under `tests/fixtures/retired-scripts/`; `fetch` is covered by the `ThreadSource` unit tests because its capture needs `gh`.
 - [x] AC4: The binary complies with the CLI output contract (`stdout-result-data`, TTY refusal, JSON diagnostics on stderr) and is listed in the ADR classification table.
 - [x] AC5: No test invokes `gh` or the network; the GraphQL call sits behind a trait with a fixture implementation.
 - [x] AC6: The four Bash scripts are deleted and `fetch-review-threads` and `resolve-review-threads` document the `cargo run --package` invocation; no live documentation references the removed paths.

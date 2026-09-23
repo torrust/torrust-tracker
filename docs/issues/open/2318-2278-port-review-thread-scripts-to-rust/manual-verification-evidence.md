@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
-last-updated-utc: "2026-09-23 14:47"
+last-updated-utc: "2026-09-23 17:10"
 ---
 
 # Manual Verification Evidence
@@ -110,3 +110,24 @@ Both container builds exited successfully. The recipe stage copied `github-revie
 #### Conclusion
 
 The workspace member is correctly integrated with the Containerfile recipe and test-archive strategy.
+
+### V6 - Re-Verification After PR #2322 Review Round 1
+
+- Goal: Confirm the review fixes keep parity and the downstream consumers working. V2 above predates these fixes: `list` and `show` now emit one object with a `threads` array, and `reply-status` keeps `thread_id` and reports the offending threads on stderr.
+- Status: `DONE`
+- Date and time (UTC): 2026-09-23 17:10; same toolchain as above.
+
+#### Steps Performed
+
+1. Ran `github-review-threads list` on the fixture, piped through `jq -c '.threads[]'`, and compared with `tests/fixtures/retired-scripts/list-unresolved.jsonl` using `diff`.
+2. Ran `github-review-threads reply-status --login author` on the fixture with stdout redirected to `/dev/null` and stderr captured, then inspected the record with `jq`.
+3. Ran `github-review-threads fetch --pr-number 2322` and `resolve-all-unresolved-threads.sh --dry-run` on the generated file.
+4. Ran `cargo test --package github-review-threads`, which now includes the process-level tests in `tests/cli.rs` that read the captures.
+
+#### Observed Result
+
+The list rows were identical apart from the capture's missing final newline. `reply-status` exited `1`, wrote nothing to stdout, and its `missing_reply` stderr record listed `THREAD_UNRESOLVED_CURRENT` as the thread without a reply with summary counts `2/1/1`. The live fetch returned `{"status":"ok","pr_number":2322,...}` and the resolver dry run listed the unresolved thread IDs. Ten tests passed.
+
+#### Conclusion
+
+The review fixes preserve data parity and the resolver contract while closing the output-contract and operator-visibility gaps reported in the review.
