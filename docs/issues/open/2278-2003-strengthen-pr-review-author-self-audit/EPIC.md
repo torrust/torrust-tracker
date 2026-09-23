@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-22"
+last-updated-utc: "2026-09-23 07:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -145,7 +145,7 @@ register; retrospective items are cited by PR.
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2295 - Single-source the audit field roster and mark copied template sections | `docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md` | DONE | F58, F77, F63. Completed by merged PR #2300; GitHub issue closed. Unblocks 2, 4, and 7. |
-| 2 | #[To be assigned] - Reconcile skill and template rule contradictions | `docs/issues/open/{number}-2278-reconcile-audit-contract-rules/ISSUE.md` | TODO | F60, F73, F76, F79, F80, F61, F62, F66. Docs only. Depends on 1. |
+| 2 | #2308 - Reconcile skill and template rule contradictions | `docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md` | TODO | F60, F73, F76, F79, F80, F61, F62, F66. Docs only. Depends on 1. |
 | 3 | #[To be assigned] - Align `fetch-review-threads` with the author workflow | `docs/issues/open/{number}-2278-fetch-all-review-threads/ISSUE.md` | TODO | F17, F32, F18. Skill and scripts. No dependencies. |
 | 4 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
 | 5 | #[To be assigned] - Make `agent-review-report-contract` state what it reads | `docs/issues/open/{number}-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
@@ -243,6 +243,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-22 09:40 UTC - GitHub Copilot - PR #2288 merged; GitHub issue #2278 relabelled `task` to `EPIC` and its body replaced with this specification. Created subissue #2295 (order 1) after maintainer approval of its specification.
 - 2026-09-22 13:16 UTC - GitHub Copilot - Implemented #2295 T1-T5 on its implementation branch; manual verification evidence recorded and the subissue is awaiting its implementation PR.
 - 2026-09-22 17:26 UTC - GitHub Copilot - PR #2300 merged and automatically closed subissue #2295. Archived its specification under `docs/issues/closed/`; subissues 2, 4, and 7 are unblocked.
+- 2026-09-23 07:24 UTC - GitHub Copilot - Created and linked subissue #2308 for the adopted audit skill/template contract rules; its spec-only PR is pending.
 
 ## Acceptance Criteria
 
