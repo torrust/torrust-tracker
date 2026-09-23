@@ -1,7 +1,7 @@
 ---
 pr-number: 2322
 pr-url: https://github.com/torrust/torrust-tracker/pull/2322
-last-updated-utc: "2026-09-23 17:15"
+last-updated-utc: "2026-09-23 17:25"
 ---
 
 # PR #2322 Review Audit
@@ -196,6 +196,7 @@ carry audit-local IDs assigned in source order with the reviewer's ID in the det
 - 2026-09-23 16:50 UTC - Started audit; fetched GraphQL review threads with `github-review-threads fetch` and the two submitted reviews. Eleven unresolved inline threads: four from Copilot review 5293086967 and seven from da2ce7 review 5293174934; the review bodies summarize the inline findings and add no independent request.
 - 2026-09-23 17:10 UTC - Normalized eleven findings; da2ce7's `F1`-`F7` collide with Copilot's IDs and were assigned `F4`-`F10` in source order. Fixed all eleven across five signed commits and appended re-verification evidence V6 to the #2318 evidence file.
 - 2026-09-23 17:20 UTC - Pushed the fixes, replied on all eleven threads, and ran `validate-audit-record.py --pr-number 2322 --base torrust/develop`: `rows: 10, failures: 0`. The validator matches only `F<n>` IDs and skipped the `PR2322-003` row; its review ID, `[Minor]` bracket, same-thread reply, and commit subject were checked by hand.
+- 2026-09-23 17:25 UTC - `github-review-threads reply-status --login josecelano` on a fresh fetch reported `11/11/0`; resolved all eleven threads with `resolve-all-unresolved-threads.sh`; a final fetch and `list` report zero unresolved threads.
 
 ## Completion Rules
 
