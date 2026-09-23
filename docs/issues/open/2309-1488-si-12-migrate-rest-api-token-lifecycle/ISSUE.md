@@ -1,0 +1,276 @@
+---
+doc-type: issue
+issue-type: task
+status: open
+priority: p1
+epic: 1488
+github-issue: 2309
+spec-path: docs/issues/open/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md
+branch: "2309-1488-si-12-migrate-rest-api-token-lifecycle-spec"
+related-pr: null
+last-updated-utc: 2026-09-23 07:19
+semantic-links:
+  skill-links:
+    - create-issue
+    - write-unit-test
+  related-artifacts:
+    - src/app.rs
+    - src/bootstrap/jobs/tracker_apis.rs
+    - packages/axum-rest-api-server/src/server.rs
+    - packages/axum-server/src/signals.rs
+    - docs/features/shutdown-process/README.md
+    - docs/features/shutdown-process/task-inventory.md
+    - docs/features/shutdown-process/shutdown-architecture-examples.md
+    - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
+    - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
+---
+
+<!-- skill-link: create-issue -->
+
+# Issue #2309 - Migrate REST API to Token Lifecycle
+
+Parent EPIC: #1488 - Overhaul: Tracker Shutdown
+
+> **EPIC position**: Roadmap step 8. One independently releasable REST API
+> vertical slice after the additive server lifecycle API and Axum drain helper.
+
+## Goal
+
+Migrate only the tracker management REST API component to the supervised
+cancellation tree. The bootstrap derives a REST API component child
+`CancellationToken` from `JobManager`; the REST API receives it, starts
+connection draining through the token-aware Axum helper, joins its server and
+drain-controller children, and reports one named `http_api` outcome to
+`JobManager`.
+
+This migration does not change the HTTP tracker, health-check API, UDP server,
+or standalone consumers. Their legacy lifecycle paths remain supported.
+
+## Current State
+
+`src/bootstrap/jobs/tracker_apis.rs` starts `ApiServer` and returns a wrapper
+`JoinHandle<()>` to `JobManager`. The wrapper already receives the manager
+token, forwards cancellation to its private `Halted::Normal` sender, and awaits
+the server task. In `packages/axum-rest-api-server`, the launcher spawns
+`graceful_shutdown(...)` and discards the drain-controller handle. The legacy
+helper observes a `Halted` channel or library-level OS signals.
+
+Consequently, the application supervisor reaches the REST API through a
+transitional bridge but cannot prove that the REST API drain controller
+completed before the `http_api` wrapper completes.
+
+## Scope
+
+### In scope
+
+- Add a REST API start path that accepts an injected component
+  `CancellationToken`.
+- Derive a REST API child token from the `JobManager` root token in `src/app.rs`.
+- Use the token-aware, joinable Axum drain helper.
+- Retain and join the REST API server task and drain-controller task within the
+  REST API component's owned task tree.
+- Report one named `http_api` outcome to `JobManager`.
+- Add deterministic tests for injected-token cancellation and unexpected
+  server-task completion/failure, without OS signals.
+- Add focused manual SIGTERM evidence after SI-1 verifies the tracker signal
+  boundary and the REST API token-driven drain path.
+
+### Out of scope
+
+- HTTP tracker, health-check API, UDP server, and standalone consumer changes.
+- Readiness behavior during shutdown; SI-21 owns Q6's approved behavior after
+  the health-check API lifecycle migration.
+- Removal or deprecation of legacy `Halted`-based REST API start/stop APIs.
+- Removal of `global_shutdown_signal()`, deadline configuration, and exit codes.
+
+## Implementation Constraints
+
+1. Existing `ApiServer::start` / `ApiServer::stop` callers remain source- and
+   behavior-compatible until migration and deprecation are complete.
+2. The new REST API path does not subscribe to `SIGINT` or `SIGTERM` in the
+   server package.
+3. The REST API component joins its server and drain-controller children before
+   returning its top-level outcome.
+4. `JobManager` receives only the `http_api` top-level handle and outcome, not
+   internal REST server task handles.
+5. A cancellation race or unexpected server completion yields an explicit
+   outcome; it must not panic or silently discard the drain controller.
+
+## Bug-Fix Process
+
+Not applicable. This is an additive lifecycle migration, not a repair of a
+reported defect.
+
+## Regression Test Strategy
+
+Not applicable as a bug-fix strategy. Deterministic REST component and bootstrap
+integration tests must protect token propagation, owned-child completion,
+ordinary drain, and unexpected server completion. Existing legacy start/stop
+coverage protects callers that remain on the compatibility API.
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID | Status | Task | Notes / Expected Output |
+| -- | ------ | ---- | ----------------------- |
+| T1 | TODO | Map current REST lifecycle ownership | Confirm `start_the_http_api` derives the component token, `tracker_apis::start_job` bridges it to `Halted`, and `Launcher::start` detaches the drain controller. Document the direct-child ownership and startup rollback paths. |
+| T2 | TODO | Add owned token-aware REST lifecycle | Add an additive `ApiServer` token-aware start path. It creates the listener and server future once, retains the drain-controller handle, and preserves all legacy start/stop APIs and startup logging contracts. |
+| T3 | TODO | Supervise REST component children | Replace the `Halted` bridge in the production REST runner with the token-aware runtime. On cancellation, independent completion, and failure, explicitly cancel and join the controller before reporting the `http_api` outcome. |
+| T4 | TODO | Add deterministic lifecycle coverage | Test injected-token drain, registration-failure listener release, legacy compatibility, independent completion, runtime failure, and bootstrap propagation. Tests must distinguish controller cancellation from controller completion. |
+| T5 | TODO | Review first passing vertical slice | Review normal, startup-failure, independent-completion, and drop/escalation paths. Confirm every awaited startup/readiness operation has a bounded deadline or is limited to local listener setup. |
+| T6 | TODO | Complete executable-boundary verification | Run the direct tracker binary with the REST API enabled; signal its exact PID, capture bounded clean exit and token-aware drain logs, then restart on the same REST binding. Record evidence. |
+| T7 | TODO | Complete acceptance and implementation review | Re-review every acceptance criterion against code and evidence. Record reusable findings or material deviations in an issue-local retrospective. |
+
+## Commit Points
+
+| Task | Coherent change set | Commit policy |
+| ---- | ------------------- | ------------- |
+| T1 | Ownership map or test-plan correction, only if it materially clarifies the migration | Record a no-change decision in issue evidence when no standalone documentation commit is warranted. |
+| T2-T3 | Additive REST server lifecycle and owned component supervision | Commit after focused compilation and lifecycle validation. |
+| T4 | One reviewed deterministic lifecycle-test increment | Use the `write-unit-test` workflow. Commit after focused validation and test-design review before another test area. |
+| T5 | Material ownership or documentation correction | Commit only substantive corrections separately. |
+| T6-T7 | Final evidence and completion review | Commit with final implementation evidence after direct-process verification succeeds. |
+
+## Test Development Loop
+
+For each test-producing increment, use the `write-unit-test` skill and make one
+behavior-focused change. Write temporary prose for Arrange, Act, and Assert;
+refactor until the test body expresses that prose; remove redundant prose; and
+record the result in issue evidence. The test must expose its one causal
+initial-state difference, keep the production Act visible, and independently
+specify the expected result. Run focused validation and complete the test-design
+review before beginning another test area or committing.
+
+## Acceptance Criteria
+
+- [ ] The REST API receives a component child `CancellationToken` derived from
+      the `JobManager` root token.
+- [ ] Token cancellation starts REST API graceful draining through the new Axum
+      helper without a library-level OS-signal subscription.
+- [ ] The REST API component joins its server and drain-controller children
+      before reporting its named `http_api` outcome to `JobManager`.
+- [ ] Legacy REST API start/stop callers compile and preserve their behavior.
+- [ ] Deterministic REST API tests cover injected-token cancellation, normal
+      drain completion, and unexpected server-task completion/failure.
+- [ ] A focused bootstrap integration test proves root-token cancellation
+      reaches the REST API without delivering an OS signal.
+- [ ] Manual SIGTERM verification records the `main()` signal-boundary event
+      followed by the REST API component's token-driven drain completion.
+- [ ] The first passing vertical slice completes a design review of ownership,
+   drop paths, named outcomes, and absolute deadlines.
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect
+   observed behavior.
+- [ ] `linter all` passes.
+
+## Dependencies
+
+- The additive token-aware server lifecycle API from SI-2 is available and
+  released.
+- The token-aware, joinable Axum drain helper is available.
+- SI-1 is required only for manual SIGTERM verification.
+
+## Rollback
+
+Restore only REST API bootstrap and server call sites to the legacy lifecycle
+path. The additive lifecycle API and helper remain available but unused; HTTP,
+health-check, UDP, and standalone consumers are unaffected.
+
+## Architectural Decisions
+
+No new ADR is planned. This task applies the existing supervised
+cancellation-tree ADR to the REST API component. Create and link an ADR if the
+work changes the established component ownership, deadline, or compatibility
+policy.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] #1488 roadmap, #2234, #2274, and completed SI-11 reviewed.
+- [x] Current REST bootstrap and server ownership path mapped.
+- [x] Draft expanded with implementation, verification, and completion-review controls.
+- [x] Draft reviewed and approved by user/maintainer.
+- [x] GitHub issue #2309 created and issue number added to this specification.
+- [ ] Spec-only PR merged into `develop` before implementation.
+- [ ] Implementation completed.
+- [ ] Automatic verification completed with toolchain-qualified evidence.
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence.
+- [ ] Evidence-based implementation completion review recorded.
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
+
+### Progress Log
+
+- 2026-09-23 UTC - GitHub Copilot - Prepared the SI-12 draft after SI-11 merged.
+  The current REST path derives a `JobManager` token but bridges cancellation to
+  legacy `Halted`; `ApiServer::Launcher::start` detaches its drain controller.
+  The planned migration retains the REST component as the owner of its server
+  and token-aware drain-controller children while `JobManager` retains only the
+  named `http_api` component.
+- 2026-09-23 UTC - GitHub Copilot - User/maintainer approved the draft. Created
+  GitHub issue #2309 and promoted this specification to its numbered open-issue
+  folder. The next workflow step is a spec-only pull request before implementation.
+
+## Verification Plan
+
+Define verification before implementation starts and execute it before closing
+this issue. Every recorded command result must identify the Rust toolchain or
+runtime when it affects behavior.
+
+### Automatic Checks
+
+- Focused `axum-rest-api-server`, `axum-server`, REST component, and bootstrap
+  lifecycle tests.
+- Legacy REST API start/stop compatibility coverage.
+- `linter all`.
+- `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh`.
+- Pre-push checks when applicable.
+
+### Manual Verification Scenarios
+
+Record commands, output, and relevant logs in issue-local
+`manual-verification-evidence.md`. Follow the EPIC executable-boundary protocol:
+signal the direct tracker-binary PID, capture bounded completion and exit status,
+and prove affected bindings are released.
+
+| ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
+| -- | -------- | ---------------------------- | --------------- | ------ | -------- |
+| M1 | Token-driven REST API shutdown | Start a configured `target/debug/torrust-tracker` with the REST API enabled, establish readiness, send `SIGTERM` to the direct binary PID, and capture bounded exit and logs. | `main()` cancels the component token; the REST API records one token-driven drain path and exits cleanly. | TODO | `manual-verification-evidence.md` V1 |
+| M2 | REST API listener release | Restart the configured tracker on the same REST API binding after M1. | The listener rebinds immediately and becomes ready. | TODO | `manual-verification-evidence.md` V2 |
+| M3 | Legacy REST lifecycle compatibility | Exercise an unchanged legacy REST API start/stop call path. | The legacy consumer compiles and retains its supported stop behavior. | TODO | Automated test evidence; the migrated binary has no legacy-path switch. |
+
+Manual verification is real interaction with the built tracker. Running
+automated tests alone does not satisfy M1 or M2.
+
+### Disposable Verification Scripts
+
+No disposable verification script is planned. If a repeatable direct-PID harness
+becomes necessary, place it in this issue directory and record why a maintained
+Rust test cannot cover the scenario, its owner, and its removal or retention
+decision.
+
+### Acceptance Verification
+
+| AC ID | Status (`TODO`/`DONE`) | Evidence |
+| ----- | ---------------------- | -------- |
+| AC1 | TODO | Bootstrap token-propagation test for `http_api`. |
+| AC2 | TODO | Token-aware REST server drain test and token-only helper code review. |
+| AC3 | TODO | Component cancellation, independent completion, and failure cleanup tests. |
+| AC4 | TODO | Existing or expanded `ApiServer::start` / `ApiServer::stop` compatibility test. |
+| AC5 | TODO | Focused REST component lifecycle tests and prose-first review entry. |
+| AC6 | TODO | Bootstrap cancellation test without an OS signal. |
+| AC7 | TODO | `manual-verification-evidence.md` V1-V2. |
+| AC8 | TODO | T5 design-review record. |
+| AC9 | TODO | Toolchain-qualified `linter all` output. |
+
+## Implementation Completion Review
+
+Before closing the issue, an independent reviewer must verify the acceptance
+criteria, child-task ownership, startup rollback, deterministic test design,
+manual evidence, and required validation. Create an issue-local
+`implementation-retrospective.md` for reusable lessons, material design changes,
+or meaningful deviations; otherwise record why no separate retrospective is
+needed in the progress log.
