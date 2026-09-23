@@ -21,6 +21,10 @@ fn json(bytes: &[u8]) -> Value {
     serde_json::from_slice(bytes).expect("the stream should hold exactly one JSON value")
 }
 
+fn text(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
 fn captured_values(capture: &str) -> Vec<Value> {
     serde_json::Deserializer::from_str(capture)
         .into_iter::<Value>()
@@ -43,7 +47,7 @@ fn it_should_list_the_threads_the_retired_script_printed() {
     // Assert: one JSON object carries the same rows in the same order, and stderr stays silent.
     assert!(output.status.success());
     assert_eq!(json(&output.stdout)["threads"], Value::Array(expected_threads));
-    assert!(output.stderr.is_empty());
+    assert_eq!(text(&output.stderr), "");
 }
 
 #[test]
@@ -86,7 +90,7 @@ fn it_should_name_the_threads_without_a_reply_and_keep_the_retired_exit_status()
 
     // Assert: stdout is empty, and the stderr diagnostic carries every row and the counts.
     assert_eq!(output.status.code(), Some(expected_exit_status));
-    assert!(output.stdout.is_empty());
+    assert_eq!(text(&output.stdout), "");
     let diagnostic = json(&output.stderr);
     assert_eq!(diagnostic["kind"], "missing_reply");
     assert_eq!(diagnostic["threads"], Value::Array(expected_rows));
@@ -106,7 +110,7 @@ fn it_should_emit_the_reply_status_result_when_every_thread_has_a_reply() {
     // Assert: the result is one JSON object on stdout with no diagnostics.
     assert!(output.status.success());
     assert_eq!(json(&output.stdout)["summary"]["without_reply"], 0);
-    assert!(output.stderr.is_empty());
+    assert_eq!(text(&output.stderr), "");
 }
 
 #[test]
@@ -119,6 +123,6 @@ fn it_should_report_help_as_a_json_usage_diagnostic() {
 
     // Assert: exit code 2, empty stdout, and a JSON record on stderr.
     assert_eq!(output.status.code(), Some(2));
-    assert!(output.stdout.is_empty());
+    assert_eq!(text(&output.stdout), "");
     assert_eq!(json(&output.stderr)["kind"], "usage_error");
 }
