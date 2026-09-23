@@ -308,11 +308,11 @@ pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
 }
 
 fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, Diagnostic> {
-    let Some(schema_version) = values.get(field_key("schema-version")) else {
+    let Some(schema_version) = values.get("schema-version") else {
         return Ok(None);
     };
     let profile_kind = values
-        .get(field_key("doc-type"))
+        .get("doc-type")
         .and_then(Value::as_str)
         .and_then(StrictProfileKind::from_doc_type);
     let Some(schema_version) = schema_version.as_i64() else {
@@ -329,7 +329,7 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
         return Ok(None);
     }
 
-    let Some(doc_type) = values.get(field_key("doc-type")) else {
+    let Some(doc_type) = values.get("doc-type") else {
         return Err(Diagnostic::new(
             DiagnosticCategory::MissingRequiredField,
             "Strict frontmatter requires `doc-type`.",
@@ -569,7 +569,7 @@ fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<()
 
 fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Result<(), Diagnostic> {
     for field in required_fields {
-        if !values.contains_key(field_key(field)) {
+        if !values.contains_key(*field) {
             return Err(Diagnostic::new(
                 DiagnosticCategory::MissingRequiredField,
                 format!("Strict frontmatter requires `{field}`."),
@@ -581,7 +581,7 @@ fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Resul
 }
 
 fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str]) -> Result<(), Diagnostic> {
-    let value = values.get(field_key(field)).expect("required fields were checked first");
+    let value = values.get(field).expect("required fields were checked first");
     let Some(value) = value.as_str() else {
         return Err(Diagnostic::new(
             DiagnosticCategory::WrongScalarType,
@@ -606,10 +606,6 @@ where
     values.retain(|key, _| !key.as_str().is_some_and(|field| field.starts_with("x-")));
     serde_yaml::from_value(Value::Mapping(values))
         .map_err(|error| Diagnostic::new(DiagnosticCategory::WrongScalarType, error.to_string()))
-}
-
-fn field_key(field: &str) -> Value {
-    Value::String(String::from(field))
 }
 
 const ISSUE_FIELDS: &[&str] = &[

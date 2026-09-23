@@ -237,7 +237,7 @@ category assertions cover it.
 
 ---
 
-### 9. [ ] Index YAML mappings by `&str` directly [LOW impact / TRIVIAL effort]
+### 9. [x] Index YAML mappings by `&str` directly [LOW impact / TRIVIAL effort]
 
 **Problem**: `field_key(field)` allocates a `serde_yaml::Value::String` for every lookup, but
 `serde_yaml::Mapping::get` and `contains_key` already accept `&str` through the sealed `Index`
@@ -286,7 +286,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 6     | [x]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
 | 7     | [x]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
 | 8     | [x]    | Unify diagnostic construction                            | Low    | Low    |
-| 9     | [ ]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
+| 9     | [x]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
 | 10    | [ ]    | Declare shared schema patterns once                      | Low    | Low    |
 
 Item 1 establishes the correct test ownership before production refactors. Item 2 makes the

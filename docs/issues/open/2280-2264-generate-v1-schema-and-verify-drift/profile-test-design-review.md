@@ -179,3 +179,19 @@ expression unchanged.
 
 The existing extraction and strict-profile tests retain their diagnostic category results. This is
 a behavior-preserving construction cleanup, so no extra test is needed.
+
+## Refactor Plan Item 9 - Direct YAML Mapping Indexing
+
+### Arrange
+
+The strict-profile recognition and structural validation tests exercise every string-key mapping
+lookup previously routed through `field_key`.
+
+### Act
+
+Use `serde_yaml::Mapping`'s native `&str` `get` and `contains_key` support in those call sites.
+
+### Assert
+
+The existing strict-profile tests retain recognition, required-field, and allowed-value behavior.
+This is a mechanical allocation removal with no contract change, so no extra test is needed.
