@@ -100,3 +100,39 @@ expression is a supported input; this was verified in the derive source before t
 `SkillName` attribute at `UTC_MINUTE_PATTERN` made the schema test fail on the `SkillName` pattern
 assertion, and the strict `-D unused` build rejected the now-unused import, before the canonical
 constant was restored.
+
+## Refactor Plan Item 5 - Single Reference-Validation Path
+
+### Arrange
+
+The five existing reference-syntax rejection tests (invalid skill name, consecutive hyphens,
+unapproved tagged artifact, backslash artifact path, and the predecessor's invalid-reference
+fixture) each supply one bad `semantic-links` entry inside an otherwise valid strict issue.
+
+### Act
+
+After structural validation, deserialize `values["semantic-links"]` into `StrictSemanticLinks`
+and map its failure to `InvalidReferenceSyntax`; delete `validate_reference_syntax` over the
+universal envelope and the `Option<&SemanticLinks>` parameter it needed.
+
+### Assert
+
+All five tests still report `InvalidReferenceSyntax`, precedence after `UnknownField` is unchanged
+(`it_should_prioritize_unknown_fields_before_reference_syntax_for_strict_profiles`), and the
+tracked schema is byte-identical.
+
+### Review
+
+The `TryFrom<String>` impls on `SkillName` and `RelatedArtifact` are now the only reference-syntax
+gate, so the newtypes' error branches are reachable through `validate`. The
+`it_should_report_a_missing_envelope_instead_of_panicking` test was deleted: it constructed a
+`Frontmatter` whose `values` held `semantic-links` while `semantic_links` was `None`, a state that
+only the second path could observe. `profile.rs` no longer reads `Frontmatter::semantic_links`;
+the universal envelope remains an extraction output for the future command adapter.
+
+Message wording changed. `serde_yaml::from_value` attaches no field path, so the diagnostic now
+reads `` `semantic-links` contains an invalid v1 reference: `Write-Markdown-Docs` must match
+[a-z0-9]+(-[a-z0-9]+)*. `` instead of naming `skill-links` or `related-artifacts`; the field
+prefix was added explicitly so the diagnostic keeps naming the offending mapping. Mutation: mapping
+the failure to `WrongScalarType` made exactly the five reference-syntax tests fail before the
+canonical category was restored.

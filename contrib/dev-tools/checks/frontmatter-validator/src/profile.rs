@@ -8,7 +8,7 @@ use crate::syntax::{
     RELATED_ARTIFACT_PATTERN, REPOSITORY_RELATIVE_PATH_PATTERN, SKILL_NAME_PATTERN, UTC_MINUTE_PATTERN, has_utc_minute_layout,
     is_related_artifact, is_repository_relative_path, is_skill_name, is_valid_utc_minute_calendar,
 };
-use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter, SemanticLinks};
+use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter};
 
 /// A recognized frontmatter profile.
 #[derive(Debug, Eq, PartialEq)]
@@ -360,38 +360,24 @@ where
     T: for<'de> Deserialize<'de>,
 {
     definition.validate_structure(&frontmatter.values)?;
-    validate_reference_syntax(frontmatter.semantic_links.as_ref())?;
+    validate_reference_syntax(&frontmatter.values)?;
     let profile = deserialize_strict(&frontmatter.values)?;
     validate_invariants(&profile, frontmatter)?;
 
     Ok(profile)
 }
 
-fn validate_reference_syntax(semantic_links: Option<&SemanticLinks>) -> Result<(), Diagnostic> {
-    let Some(semantic_links) = semantic_links else {
-        return Err(Diagnostic::new(
-            DiagnosticCategory::MissingRequiredField,
-            "Strict profiles require a `semantic-links` mapping.",
-        ));
-    };
-    for skill_link in semantic_links.skill_links.as_deref().unwrap_or_default() {
-        if !is_skill_name(skill_link) {
-            return Err(Diagnostic::new(
+/// Reference syntax is reported before any other scalar-type failure in the profile.
+fn validate_reference_syntax(values: &Mapping) -> Result<(), Diagnostic> {
+    let semantic_links = values.get("semantic-links").expect("required fields were checked first");
+    serde_yaml::from_value::<StrictSemanticLinks>(semantic_links.clone())
+        .map(drop)
+        .map_err(|error| {
+            Diagnostic::new(
                 DiagnosticCategory::InvalidReferenceSyntax,
-                format!("`skill-links` entry `{skill_link}` must match [a-z0-9]+(-[a-z0-9]+)*."),
-            ));
-        }
-    }
-    for artifact in semantic_links.related_artifacts.as_deref().unwrap_or_default() {
-        if !is_related_artifact(artifact) {
-            return Err(Diagnostic::new(
-                DiagnosticCategory::InvalidReferenceSyntax,
-                format!("`related-artifacts` entry `{artifact}` is not an approved v1 reference."),
-            ));
-        }
-    }
-
-    Ok(())
+                format!("`semantic-links` contains an invalid v1 reference: {error}"),
+            )
+        })
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
@@ -921,20 +907,6 @@ mod tests {
 
         // Assert: related artifact paths use forward-slash separators.
         assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
-    }
-
-    #[test]
-    fn it_should_report_a_missing_envelope_instead_of_panicking() {
-        // Arrange: a strict issue's retained envelope has been lost after extraction.
-        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n";
-        let mut frontmatter = extract(markdown).unwrap().unwrap();
-        frontmatter.semantic_links = None;
-
-        // Act: validate the inconsistent strict frontmatter.
-        let error = validate(&frontmatter).unwrap_err();
-
-        // Assert: validation reports the missing envelope instead of panicking.
-        assert_eq!(error.category, DiagnosticCategory::MissingRequiredField);
     }
 
     #[test]
