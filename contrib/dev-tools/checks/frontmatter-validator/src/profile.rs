@@ -767,9 +767,7 @@ mod tests {
     #[test]
     fn it_should_classify_the_accepted_issue_fixture_as_a_strict_issue_profile() {
         // Arrange: the predecessor's accepted issue fixture declares schema version one.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/accepted/issue.md"
-        );
+        let markdown = include_str!("../fixtures/accepted/issue.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: classify and structurally validate the parsed frontmatter.
@@ -782,9 +780,7 @@ mod tests {
     #[test]
     fn it_should_classify_the_accepted_epic_fixture_as_a_strict_epic_profile() {
         // Arrange: the predecessor's accepted EPIC fixture declares schema version one.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/accepted/epic.md"
-        );
+        let markdown = include_str!("../fixtures/accepted/epic.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: classify and structurally validate the parsed frontmatter.
@@ -797,9 +793,7 @@ mod tests {
     #[test]
     fn it_should_reject_the_wrong_scalar_fixture() {
         // Arrange: the predecessor fixture quotes a positive-integer issue identifier.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-wrong-scalar.md"
-        );
+        let markdown = include_str!("../fixtures/rejected/issue-wrong-scalar.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the parsed strict issue frontmatter.
@@ -812,9 +806,7 @@ mod tests {
     #[test]
     fn it_should_reject_the_unknown_field_fixture() {
         // Arrange: the predecessor fixture introduces an unprefixed strict-profile field.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-unknown-field.md"
-        );
+        let markdown = include_str!("../fixtures/rejected/issue-unknown-field.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the parsed strict issue frontmatter.
@@ -827,9 +819,7 @@ mod tests {
     #[test]
     fn it_should_reject_the_invalid_status_fixture() {
         // Arrange: the predecessor fixture uses a status outside the issue lifecycle enum.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-invalid-status.md"
-        );
+        let markdown = include_str!("../fixtures/rejected/issue-invalid-status.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the parsed strict issue frontmatter.
@@ -1029,9 +1019,7 @@ mod tests {
     #[test]
     fn it_should_reject_the_invalid_reference_fixture() {
         // Arrange: the predecessor fixture uses an absolute URL as a related artifact.
-        let markdown = include_str!(
-            "../../../../../docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-fixtures/rejected/issue-invalid-reference.md"
-        );
+        let markdown = include_str!("../fixtures/rejected/issue-invalid-reference.md");
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the parsed strict issue frontmatter.

@@ -200,6 +200,9 @@ Commits for each independently reviewed change set.
   closed issue #2265 as completed - https://github.com/torrust/torrust-tracker/pull/2273
 - 2026-09-21 16:01 UTC - GitHub Copilot - Archived this completed specification in
   `docs/issues/closed/`; manual verification remains unrecorded - This specification
+- 2026-09-23 10:42 UTC - GitHub Copilot - Moved `frontmatter-fixtures/` to
+  `contrib/dev-tools/checks/frontmatter-validator/fixtures/` under issue #2280 so the validator's
+  tests no longer depend on this archived specification - Issue #2280 crate layout refactor plan
 
 ## Acceptance Criteria
 

@@ -147,7 +147,7 @@ contrib/dev-tools/checks/frontmatter-validator/
 
 ## Items
 
-### 1. [ ] Move the Markdown fixtures into the crate [HIGH impact / LOW effort]
+### 1. [x] Move the Markdown fixtures into the crate [HIGH impact / LOW effort]
 
 **Problem**: Six `include_str!` paths in `profile.rs` (lines 770-831 and 1032) reach five
 directories up into `docs/issues/closed/2265-.../frontmatter-fixtures/`. The repository's
@@ -301,7 +301,7 @@ private models and private helpers, and `StrictProfileKind::definition` referenc
 
 | Order | Status | Item                                                | Impact | Effort |
 | ----- | ------ | --------------------------------------------------- | ------ | ------ |
-| 1     | [ ]    | Move the Markdown fixtures into the crate           | High   | Low    |
+| 1     | [x]    | Move the Markdown fixtures into the crate           | High   | Low    |
 | 2     | [ ]    | Home the diagnostic vocabulary in its own module    | Medium | Low    |
 | 3     | [ ]    | Replace the raw YAML seam with a `Frontmatter` query | Medium | Low    |
 | 4     | [ ]    | Extract the v1 value syntax into `syntax.rs`        | Medium | Medium |
