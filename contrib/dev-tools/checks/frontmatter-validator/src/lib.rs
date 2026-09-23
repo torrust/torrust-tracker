@@ -33,7 +33,7 @@ impl Frontmatter {
     pub(crate) fn has_double_quoted_scalar(&self, field: &str) -> bool {
         self.yaml
             .lines()
-            .find_map(|line| line.strip_prefix(field)?.strip_prefix(':'))
+            .find_map(|line| line.strip_prefix(field)?.trim_start().strip_prefix(':'))
             .map(str::trim)
             .map(strip_yaml_comment)
             .is_some_and(|value| value.starts_with('"') && value.ends_with('"'))
@@ -41,12 +41,33 @@ impl Frontmatter {
 }
 
 fn strip_yaml_comment(value: &str) -> &str {
+    let mut quote = None;
+    let mut escaped = false;
+
+    for (index, character) in value.char_indices() {
+        if let Some(quote_character) = quote {
+            if quote_character == '"' {
+                if escaped {
+                    escaped = false;
+                } else if character == '\\' {
+                    escaped = true;
+                } else if character == quote_character {
+                    quote = None;
+                }
+            } else if character == quote_character {
+                quote = None;
+            }
+            continue;
+        }
+
+        if matches!(character, '"' | '\'') {
+            quote = Some(character);
+        } else if character == '#' && value[..index].chars().last().is_some_and(char::is_whitespace) {
+            return value[..index].trim_end();
+        }
+    }
+
     value
-        .char_indices()
-        .find_map(|(index, character)| {
-            (character == '#' && value[..index].chars().last().is_some_and(char::is_whitespace)).then_some(index)
-        })
-        .map_or(value, |index| value[..index].trim_end())
 }
 
 /// Ownership of the document's top-level frontmatter schema.
@@ -200,6 +221,8 @@ mod tests {
             ("---\nlast-updated-utc: \"2026-09-21 20:35\"\n---\n", true),
             ("---\nlast-updated-utc: 2026-09-21 20:35\n---\n", false),
             ("---\nlast-updated-utc: \"2026-09-21 20:35\"\t# updated\n---\n", true),
+            ("---\nlast-updated-utc : \"2026-09-21 20:35\"\n---\n", true),
+            ("---\nlast-updated-utc: \"2026-09-21 20:35 # updated\"\n---\n", true),
             ("---\nlast-updated-utc-draft: \"2026-09-21 20:35\"\n---\n", false),
         ];
 

@@ -371,3 +371,26 @@ stderr cannot deterministically fail in a unit test. The adapter intentionally d
 an output protocol or a generic command framework; it preserves the current one-line human stderr
 contract. A temporary `frontmatter-schema:` to `schema:` prefix mutation made the exact usage
 diagnostic test fail; restoring the prefix returned it to green.
+
+## Copilot Review Remediation - Scalar Style Query
+
+### Arrange
+
+Two top-level `last-updated-utc` scalars retain double-quoted source style while exercising YAML
+lexical edges: whitespace before the key-value separator, and a `#` inside the quoted value.
+
+### Act
+
+Extract frontmatter and query `has_double_quoted_scalar("last-updated-utc")`.
+
+### Assert
+
+Both forms return `true`; the existing prefix-mismatch case remains `false`.
+
+### Review
+
+The lexical query must recognize legal spacing around a mapping separator and ignore comment-like
+content inside quotes before deciding source style. The table-driven scalar-style test already owns
+this boundary, so the edge rows keep the causal YAML source visible without a helper that would
+hide it. The timestamp validator remains responsible for rejecting a quoted value that does not
+match the UTC-minute contract.

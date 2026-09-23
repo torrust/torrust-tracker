@@ -99,7 +99,17 @@ impl Command {
     /// Parses the process arguments after the program name. Performs no I/O.
     fn parse(mut arguments: impl Iterator<Item = String>) -> Result<Self, Error> {
         let action = arguments.next().ok_or(Error::Usage)?;
-        let artifact = SchemaArtifact::from_arguments(&arguments.collect::<Vec<_>>())?;
+        let artifact = match arguments.next() {
+            None => SchemaArtifact::tracked()?,
+            Some(flag) if flag == "--artifact" => {
+                let path = arguments.next().ok_or(Error::Usage)?;
+                if arguments.next().is_some() {
+                    return Err(Error::Usage);
+                }
+                SchemaArtifact::at(PathBuf::from(path))
+            }
+            Some(_) => return Err(Error::Usage),
+        };
 
         match action.as_str() {
             "generate" => Ok(Self::Generate(artifact)),
@@ -133,14 +143,6 @@ enum ArtifactOrigin {
 }
 
 impl SchemaArtifact {
-    fn from_arguments(arguments: &[String]) -> Result<Self, Error> {
-        match arguments {
-            [] => Ok(Self::tracked()?),
-            [flag, path] if flag == "--artifact" => Ok(Self::at(PathBuf::from(path))),
-            _ => Err(Error::Usage),
-        }
-    }
-
     /// The artifact committed in the repository that contains this crate.
     fn tracked() -> Result<Self, Error> {
         Path::new(env!("CARGO_MANIFEST_DIR"))
