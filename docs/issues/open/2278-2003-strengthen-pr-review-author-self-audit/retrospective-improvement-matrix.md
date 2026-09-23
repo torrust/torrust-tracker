@@ -1,7 +1,7 @@
 ---
 doc-type: review-process-improvement-matrix
 issue: 2278
-last-updated-utc: 2026-09-23 12:10
+last-updated-utc: "2026-09-23 12:10"
 semantic-links:
   related-artifacts:
     - "issue #2278"

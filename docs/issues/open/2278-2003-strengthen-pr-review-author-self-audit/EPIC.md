@@ -143,7 +143,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Each subissue is one pull request. Register items are the `F<k>` numbers from the #2003 friction
 register; retrospective items are cited by PR. Orders 3 to 10 were renumbered on 2026-09-23 when
-the `fetch-review-threads` work was split into a Rust parity port and the behaviour change;
+the `fetch-review-threads` work was split into a Rust parity port and the behavior change;
 subissue specifications written before that date cite the earlier numbering (old 3-9 are now 4-10).
 
 | Order | Issue | Local Spec | Status | Notes |
