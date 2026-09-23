@@ -1,9 +1,9 @@
 ---
 doc-type: refactor-plan
-status: done
+status: in_progress
 related-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
-last-updated-utc: "2026-09-23 08:45"
+last-updated-utc: "2026-09-23 09:18"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -51,6 +51,27 @@ The strict-profile path has two smaller design debts:
 The timestamp validator is correct for existing tested cases, but its format, calendar, and YAML
 style predicates are folded into one branch. This makes boundary coverage hard to see and makes a
 future format change unnecessarily risky.
+
+### Second Series Assessment (2026-09-23)
+
+After items 1-4 the maintainer asked for a responsibility review of the remaining free functions
+and an independent complexity audit. The audit passed every function (highest cyclomatic
+complexity 10 in `strict_document_type`; no function exceeds 40 lines or nesting depth 2), so the
+second series is driven by responsibility assignment and Rust idiom, not by complexity.
+
+Responsibility mapping of the current module:
+
+| Owner today          | Behavior                                                            | Assessment                                              |
+| -------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
+| `Issue` / `Epic`     | Canonical data only                                                 | Should also own their typed invariant checks (item 5)   |
+| `StrictProfileDefinition` | Allowed fields and allowed values                              | Should own the structural stage that applies them (item 6) |
+| `StrictProfileKind`  | Closed dispatch                                                     | Should own the `doc-type` mapping and its definition (item 7) |
+| Free predicates      | Reference syntax, path, integer, identifier, UTC-minute, YAML style | Pure, single-purpose; stay as functions                 |
+| Free constructors    | `invalid_field_value`, `invalid_reference_syntax`, inline literals  | Inconsistent; unify (item 8)                            |
+| `field_key`          | `&str` to `serde_yaml::Value` key conversion                        | Redundant: `Mapping::get` already indexes by `&str` (item 9) |
+
+A `UtcMinute` value object with `TryFrom<&str>` was evaluated and deferred; see the rejected
+alternatives.
 
 ## Items
 
@@ -132,6 +153,127 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 
 ---
 
+### 5. [ ] Move typed invariant checks onto `Issue` and `Epic` [MEDIUM impact / LOW effort]
+
+**Problem**: `validate_issue_invariants(&Issue, &str)` and `validate_epic_invariants(&Epic, &str)`
+are free functions whose only input is the aggregate they inspect. The rules they encode (positive
+identifiers, repository-relative `spec-path`, non-empty `branch`/`epic-owner`, UTC-minute
+`last-updated-utc`) are invariants of those types, so the types should own them.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Replace both functions with private `fn validate_invariants(&self, yaml: &str)` methods
+in `impl Issue` and `impl Epic`, and pass `Issue::validate_invariants` / `Epic::validate_invariants`
+to the shared sequence. Keep the field-level helpers (`validate_optional_positive_integer`,
+`validate_repository_relative_path`, `validate_non_empty_string`, `validate_utc_minute_string`) as
+free functions: they are reusable pure checks parameterized by a field name. No new tests: the
+existing invariant tests already fix the observable diagnostics; confirm they still pass and that
+the schema bytes are unchanged.
+
+---
+
+### 6. [ ] Let `StrictProfileDefinition` own the structural stage [MEDIUM impact / LOW effort]
+
+**Problem**: `StrictProfileDefinition` holds the allowed fields and allowed values, but the code
+that applies them lives in `validate_strict_profile`, which reaches into `definition.fields` and
+`definition.allowed_values`. Data and the behavior that interprets it are split, and the shared
+`status` value list is duplicated between `ISSUE_PROFILE` and `EPIC_PROFILE`.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Add `fn validate_structure(&self, values: &Mapping) -> Result<(), Diagnostic>` to
+`StrictProfileDefinition` that runs known-field, required-field, and allowed-value validation in the
+current order, and have `validate_strict_profile` call it before reference syntax. Extract the
+shared lifecycle list into one `const STATUS_VALUES: &[&str]`. Keep `validate_known_fields`,
+`validate_required_fields`, and `validate_allowed_string` as free helpers or fold them into the
+method only if that stays under the complexity thresholds. The item-3 precedence test already
+guards the order; re-run its mutation (move `validate_known_fields` after reference syntax) to
+confirm it still fails.
+
+---
+
+### 7. [ ] Let `StrictProfileKind` own recognition and definition lookup [MEDIUM impact / LOW effort]
+
+**Problem**: `strict_document_type` reads `doc-type` twice (once as `Option<&str>` to decide
+whether a non-integer `schema-version` is an error, once to map it to a kind) and hard-codes the
+`"issue" | "epic"` literal set in two places. `validate` then matches the kind to pick a
+definition and a validator by hand. The kind is the natural owner of the `doc-type` mapping and of
+"which definition applies".
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Add `StrictProfileKind::from_doc_type(&str) -> Option<Self>` and use it for both the
+candidate check and the final mapping, so the literal set exists once. Add
+`fn definition(&self) -> &'static StrictProfileDefinition` so `validate` obtains the definition
+from the kind rather than from a parallel match. Keep the typed dispatch to `Issue`/`Epic` in
+`validate` because the return type differs per arm; do not introduce a trait. Preserve every
+diagnostic category and message. Extend the existing recognition tests only if a new branch
+appears; otherwise rely on the accepted-fixture and permissive tests, and repeat the item-2 swap
+mutation.
+
+---
+
+### 8. [ ] Unify diagnostic construction [LOW impact / LOW effort]
+
+**Problem**: The module builds `Diagnostic` values three ways: inline struct literals (eight
+sites), `const fn invalid_field_value`, and `const fn invalid_reference_syntax`. Readers cannot
+tell whether the difference is meaningful, and adding a category means choosing a style again.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/lib.rs`
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Add `Diagnostic::new(category: DiagnosticCategory, message: impl Into<String>)` in
+`lib.rs` beside the type, and use it everywhere in both modules. Remove the two profile-local
+constructors unless they remain clearer at their call sites. No behavior change; the existing
+category assertions cover it.
+
+---
+
+### 9. [ ] Index YAML mappings by `&str` directly [LOW impact / TRIVIAL effort]
+
+**Problem**: `field_key(field)` allocates a `serde_yaml::Value::String` for every lookup, but
+`serde_yaml::Mapping::get` and `contains_key` already accept `&str` through the sealed `Index`
+trait (`serde_yaml` 0.9.34, `mapping.rs`). The helper adds an allocation and an indirection for
+no semantic gain.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Replace `values.get(field_key("x"))` with `values.get("x")` and
+`values.contains_key(field_key(f))` with `values.contains_key(*f)` (or `f` as the loop item type
+dictates), then delete `field_key`. Pure mechanical change covered by the existing suite.
+
+---
+
+### 10. [ ] Declare shared schema patterns once [LOW impact / LOW effort]
+
+**Problem**: The repository-relative path regex appears three times (`Issue::spec_path`,
+`Epic::spec_path`, and inside the `RelatedArtifact` union pattern) and the UTC-minute regex twice.
+A future contract change must edit every copy, and `schemars_derive` 1.2.1 already accepts an
+expression for `regex(pattern = ...)`, so a literal is not required.
+
+**Files**:
+
+- `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs`
+
+**Change**: Introduce `const REPOSITORY_RELATIVE_PATH_PATTERN: &str` and
+`const UTC_MINUTE_PATTERN: &str`, reference them from the `#[schemars(regex(pattern = ...))]`
+attributes, and build the `RelatedArtifact` union pattern from the path constant with `concat!`
+only if it stays readable; otherwise keep the union literal and add a test asserting it starts
+with the path constant. The tracked artifact must remain byte-identical: run
+`frontmatter-schema check` and the deterministic schema tests after the change.
+
+---
+
 ## Order of Execution
 
 | Order | Status | Item                                                     | Impact | Effort |
@@ -140,11 +282,23 @@ the accepted `YYYY-MM-DD HH:MM` contract.
 | 2     | [x]    | Represent strict profile kind as a closed enum           | Medium | Low    |
 | 3     | [x]    | Make shared strict-profile validation order explicit     | Medium | Medium |
 | 4     | [x]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
+| 5     | [ ]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
+| 6     | [ ]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
+| 7     | [ ]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
+| 8     | [ ]    | Unify diagnostic construction                            | Low    | Low    |
+| 9     | [ ]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
+| 10    | [ ]    | Declare shared schema patterns once                      | Low    | Low    |
 
 Item 1 establishes the correct test ownership before production refactors. Item 2 makes the
 dispatch boundary explicit, so item 3 can share the validation sequence without retaining raw
 profile strings. Item 4 is independent but follows the structural work because it isolates one
 invariant inside the final typed-validation phase.
+
+Items 5-7 assign behavior to the types that already own the data it interprets; they are ordered
+from the most self-contained (`Issue`/`Epic` methods) to the one that touches `validate`'s
+dispatch (kind-owned definition lookup), so each step leaves the previous one's tests untouched.
+Items 8-10 are idiom clean-ups with no ownership change; item 9 is placed before item 10 because
+it removes code, whereas item 10 must prove schema bytes are unchanged.
 
 ## Test Design Rules
 
@@ -175,8 +329,21 @@ invariant inside the final typed-validation phase.
 - No generic validator framework, trait hierarchy, or dynamic dispatch for two strict profiles.
 - No extension of the completed #2280 schema-command plan; preserve it as an accurate historical
   record of the binary-only refactor series.
+- **Deferred: `UtcMinute` value object with `TryFrom<&str>`/`FromStr`.** A validated newtype is
+  the idiomatic Rust shape for `is_valid_utc_minute_calendar`, and the repository already uses it
+  (`SkillName`, `RelatedArtifact`, `FileName`). It is deferred because using it as the type of
+  `last_updated_utc` would (a) move calendar failures from the `InvalidFieldValue` invariant stage
+  into serde deserialization, changing the reported category to `WrongScalarType` and its
+  precedence relative to reference-syntax errors, and (b) still leave the YAML double-quote rule
+  outside the type, since that rule is about the source scalar style, not the value. Revisit if a
+  later contract needs timestamp semantics (ordering, comparison, formatting) rather than
+  validation alone, and then decide the precedence change explicitly.
+- **Deferred: `RepositoryRelativePath` newtype for `spec-path`.** Same precedence concern as the
+  timestamp: the current `InvalidFieldValue` diagnostic would become a deserialization error.
 
 ## Review Decision
 
-The maintainer approved this plan on 2026-09-23. Implement items in order, record the required
+The maintainer approved items 1-4 on 2026-09-23 and they were implemented as four signed commits.
+Items 5-10 were added on 2026-09-23 after the responsibility and complexity review and await
+maintainer approval before implementation. Implement items in order, record the required
 prose-first test-design review, and commit each item separately.
