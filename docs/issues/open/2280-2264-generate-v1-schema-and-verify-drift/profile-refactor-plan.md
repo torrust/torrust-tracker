@@ -196,7 +196,7 @@ confirm it still fails.
 
 ---
 
-### 7. [ ] Let `StrictProfileKind` own recognition and definition lookup [MEDIUM impact / LOW effort]
+### 7. [x] Let `StrictProfileKind` own recognition and definition lookup [MEDIUM impact / LOW effort]
 
 **Problem**: `strict_document_type` reads `doc-type` twice (once as `Option<&str>` to decide
 whether a non-integer `schema-version` is an error, once to map it to a kind) and hard-codes the
@@ -284,7 +284,7 @@ with the path constant. The tracked artifact must remain byte-identical: run
 | 4     | [x]    | Separate UTC-minute predicates from calendar validation  | Medium | Medium |
 | 5     | [x]    | Move typed invariant checks onto `Issue` and `Epic`      | Medium | Low    |
 | 6     | [x]    | Let `StrictProfileDefinition` own the structural stage   | Medium | Low    |
-| 7     | [ ]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
+| 7     | [x]    | Let `StrictProfileKind` own recognition and definition   | Medium | Low    |
 | 8     | [ ]    | Unify diagnostic construction                            | Low    | Low    |
 | 9     | [ ]    | Index YAML mappings by `&str` directly                   | Low    | Trivial |
 | 10    | [ ]    | Declare shared schema patterns once                      | Low    | Low    |

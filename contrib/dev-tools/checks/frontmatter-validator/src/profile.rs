@@ -23,6 +23,23 @@ enum StrictProfileKind {
     Epic,
 }
 
+impl StrictProfileKind {
+    fn from_doc_type(doc_type: &str) -> Option<Self> {
+        match doc_type {
+            "issue" => Some(Self::Issue),
+            "epic" => Some(Self::Epic),
+            _ => None,
+        }
+    }
+
+    const fn definition(&self) -> &'static StrictProfileDefinition {
+        match self {
+            Self::Issue => &ISSUE_PROFILE,
+            Self::Epic => &EPIC_PROFILE,
+        }
+    }
+}
+
 /// The strict frontmatter document profiles represented by the v1 JSON Schema.
 #[derive(JsonSchema)]
 #[schemars(title = "Torrust Tracker Frontmatter V1")]
@@ -273,12 +290,20 @@ pub fn validate(frontmatter: &Frontmatter) -> Result<Profile, Diagnostic> {
     };
 
     match doc_type {
-        StrictProfileKind::Issue => {
-            validate_issue(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Issue)
-        }
-        StrictProfileKind::Epic => {
-            validate_epic(&frontmatter.values, &frontmatter.yaml, frontmatter.semantic_links.as_ref()).map(Profile::Epic)
-        }
+        StrictProfileKind::Issue => validate_issue(
+            &frontmatter.values,
+            &frontmatter.yaml,
+            frontmatter.semantic_links.as_ref(),
+            doc_type.definition(),
+        )
+        .map(Profile::Issue),
+        StrictProfileKind::Epic => validate_epic(
+            &frontmatter.values,
+            &frontmatter.yaml,
+            frontmatter.semantic_links.as_ref(),
+            doc_type.definition(),
+        )
+        .map(Profile::Epic),
     }
 }
 
@@ -286,10 +311,12 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
     let Some(schema_version) = values.get(field_key("schema-version")) else {
         return Ok(None);
     };
-    let doc_type = values.get(field_key("doc-type")).and_then(Value::as_str);
-    let is_strict_profile_candidate = matches!(doc_type, Some("issue" | "epic"));
+    let profile_kind = values
+        .get(field_key("doc-type"))
+        .and_then(Value::as_str)
+        .and_then(StrictProfileKind::from_doc_type);
     let Some(schema_version) = schema_version.as_i64() else {
-        if is_strict_profile_candidate {
+        if profile_kind.is_some() {
             return Err(Diagnostic {
                 category: DiagnosticCategory::WrongScalarType,
                 message: String::from("`schema-version` must be a YAML integer."),
@@ -315,19 +342,25 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
         });
     };
 
-    Ok(match doc_type {
-        "issue" => Some(StrictProfileKind::Issue),
-        "epic" => Some(StrictProfileKind::Epic),
-        _ => None,
-    })
+    Ok(StrictProfileKind::from_doc_type(doc_type))
 }
 
-fn validate_issue(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Issue, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, &ISSUE_PROFILE, Issue::validate_invariants)
+fn validate_issue(
+    values: &Mapping,
+    yaml: &str,
+    semantic_links: Option<&SemanticLinks>,
+    definition: &StrictProfileDefinition,
+) -> Result<Issue, Diagnostic> {
+    validate_strict_profile(values, yaml, semantic_links, definition, Issue::validate_invariants)
 }
 
-fn validate_epic(values: &Mapping, yaml: &str, semantic_links: Option<&SemanticLinks>) -> Result<Epic, Diagnostic> {
-    validate_strict_profile(values, yaml, semantic_links, &EPIC_PROFILE, Epic::validate_invariants)
+fn validate_epic(
+    values: &Mapping,
+    yaml: &str,
+    semantic_links: Option<&SemanticLinks>,
+    definition: &StrictProfileDefinition,
+) -> Result<Epic, Diagnostic> {
+    validate_strict_profile(values, yaml, semantic_links, definition, Epic::validate_invariants)
 }
 
 fn validate_strict_profile<T>(

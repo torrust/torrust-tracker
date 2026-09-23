@@ -143,3 +143,23 @@ definition method must change the result to `InvalidReferenceSyntax`, proving th
 guards the behavior after ownership moves.
 The mutation produced `InvalidReferenceSyntax` for the cross-profile test before the original
 order was restored.
+
+## Refactor Plan Item 7 - Kind-Owned Recognition and Definition Lookup
+
+### Arrange
+
+Accepted issue and EPIC fixtures exercise each closed kind and its profile definition. A
+schema-version-one `note` record exercises the permissive unknown-kind boundary.
+
+### Act
+
+Classify those documents after moving literal-to-kind recognition and definition lookup onto
+`StrictProfileKind`.
+
+### Assert
+
+Issue and EPIC fixtures still produce their matching `Profile` variants, while `note` remains
+permissive. Swapping typed dispatch mappings must fail the two accepted-fixture tests, proving
+that centralizing lookup does not decouple a kind from its validator.
+The swapped mapping made both fixture tests fail with the opposite `doc-type` deserialization
+error before the matching typed dispatch was restored.
