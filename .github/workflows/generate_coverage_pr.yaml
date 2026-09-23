@@ -139,7 +139,7 @@ jobs:
 
       - name: Download Package Coverage Results
         if: ${{ needs.package-coverage-regression.result != 'skipped' }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: package-coverage-*
           path: package-coverage-results
