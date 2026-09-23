@@ -19,8 +19,8 @@ semantic-links:
 
 ## Purpose
 
-Record why a two-file production fix with three regression tests needed four review rounds and
-four review-response commits, why an approval was lost to a rebase whose `range-diff` was
+Record why a two-file production fix with three regression tests needed five review rounds and
+five review-response commits, why an approval was lost to a rebase whose `range-diff` was
 byte-identical, and what to change so that rebasing an open pull request stops restarting its
 review. This is a blameless review of the process, not of the reviewer or the author.
 
@@ -32,16 +32,17 @@ below are therefore derived from the GitHub API and `git log`, not from an audit
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 4 (3 human, 1 Copilot) |
-| Findings | 13 (4 Copilot, 9 human: 5 Minor, 1 Suggestion, 3 Nit) |
-| Blocking findings | 3 (F1, F2 in round 1; F9 in round 3) |
+| Review rounds | 5 (4 human, 1 Copilot) |
+| Findings | 14 (4 Copilot, 10 human: 6 Minor, 1 Suggestion, 3 Nit) |
+| Blocking findings | 4 (F1, F2 in round 1; F9 in round 3; F10 in round 4) |
 | Re-raised findings | 1 (F9 is the same defect class as F1 and F2, reintroduced by their fix) |
-| Human findings about issue-local evidence documents | 8 of 9 (the ninth, F3, is a manifest comment) |
+| Human findings about issue-local evidence documents | 8 of 10 (F3 is a manifest comment; F10 is a skill rule) |
+| Human findings about process changes made during the review | 1 (F10, on the rule added in response to F9) |
 | Human findings about production code or tests | 0 |
-| Commits on the branch | 9 (4 original, 1 CI fix, 4 review-response) |
+| Commits on the branch | 11 (4 original, 1 CI fix, 5 review-response, 1 retrospective) |
 | Rebases while the PR was open | 2 (one before the first human review, one between rounds 2 and 3) |
 | Approval lifetime | 1 h 24 min (approved 16:00 UTC, changes requested 17:24 UTC on a pure rebase) |
-| First review to last author reply | 2026-09-23 13:09 UTC to 2026-09-23 17:52 UTC |
+| First review to last author reply | 2026-09-23 13:09 UTC to the round-4 reply (see Timeline) |
 
 Derivation: review rounds, states, and timestamps from the pull request `reviews` GraphQL
 connection; finding count and severities from the first comment of each `reviewThreads` node
@@ -70,6 +71,9 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 | 17:24 | Round 3 (human), `CHANGES_REQUESTED` at head `305ddce1`: F9 blocks. The rebase itself is verified pure. |
 | 17:49 | Author fixes F8, F9 and adds the process rule in two commits; replies at 17:52. |
 | after 17:52 | Author resolves all nine human threads at the maintainer's request. |
+| 18:02 | Round 4 (human), `CHANGES_REQUESTED` at head `7e426ba2`: F8, F9 addressed; F10 blocks — the new pre-push grep returns 20 hits on this PR's own folder and its disposition list covers 10. |
+| 18:16 | Author commits this retrospective (first version, before reading round 4). |
+| after 18:16 | Author fixes F10 (fourth disposition, decimal filter, scope note), updates this retrospective, replies, resolves. |
 
 ## What Went Well
 
@@ -116,6 +120,13 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    two sibling bench packages while `0.8.2` is already in the lockfile; the policy requires the
    reason be written down, and the `add-rust-dependency` skill was not consulted because the
    dependency was "the same as next door".
+7. **A process rule shipped without being run on its own reference case (F10).** The pre-push
+   grep added for F9 was run once by the author with a *different* command (a classifying loop)
+   and the skill text was written from memory of that result. Run as written, it returned 20
+   hits on the #2314 folder: `[0-9a-f]{7,40}` matches seven-digit decimal config values, and the
+   two test info-hashes and a recorded transaction id had no disposition. The reviewer's point
+   that an info-hash and a git id are indistinguishable by pattern constrained the fix to a
+   disposition clause plus a decimal filter, not a tighter regex.
 
 ## Root Causes
 
@@ -140,6 +151,11 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 5. **Two written rules disagree about who resolves.** The skill says the author resolves after
    replying; the reviewer's stated expectation was reviewer-side resolution. Both are defensible;
    having both unstated in the same PR left the threads open.
+6. **A verification command was documented without being executed verbatim.** The author's
+   ad-hoc classification loop and the skill's one-liner differed in flags and post-processing,
+   and only the loop was run. The same gap the #2271 retrospective named ("write the
+   verification command and its output first") applies to writing a rule: a check belongs in a
+   skill only after the exact text has been run on the case that motivated it.
 
 ## What We Learnt
 
@@ -158,6 +174,9 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    change until #2298 lands; check the recipe stage stub list before pushing.
 7. Follow `add-rust-dependency` even when copying a sibling manifest; "matches the siblings" is a
    valid rationale only once written down.
+8. Before committing a command into a skill, paste the exact text into a shell and run it on the
+   artifact that motivated it; if the output needs a disposition the text does not give, the rule
+   is not finished.
 
 ## Improvements for Future Reviews
 
@@ -205,11 +224,15 @@ Owner: `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`, `.github/skills/dev/deb
 `.github/skills/dev/git-workflow/open-pull-request/SKILL.md`.
 
 Authors name PR-branch patches by Conventional Commit subject; a `git grep` for hex tokens over
-the issue folder runs before every post-rebase push.
+the issue folder runs before every post-rebase push. After F10 the check filters purely decimal
+tokens, lists four dispositions (`develop` commit, tag, external reference, non-commit data), and
+states that the PR body and review replies are outside its reach. Run as written on the #2314
+folder it returns seven tokens, each with a disposition.
 
 - Pros: zero tooling; removes the entire F1/F2/F9 class; already in place.
 - Cons: only removes one class of rebase-induced finding; a rebase still triggers a round until
-  1 or 2 is adopted.
+  1 or 2 is adopted; the check is a manual read, so an info-hash and a branch id look the same
+  until the reader classifies them.
 
 ### 4. Spec-versus-evidence reconciliation before opening the PR — `PROPOSED`
 
@@ -277,9 +300,9 @@ round if the fix is insufficient. Or the opposite, but exactly one.
 
 - Pull request: <https://github.com/torrust/torrust-tracker/pull/2320>
 - Review rounds: Copilot 13:09:22 UTC; human 15:16:12 UTC (`CHANGES_REQUESTED`), 16:00:09 UTC
-  (`APPROVED`), 17:24:16 UTC (`CHANGES_REQUESTED`), all 2026-09-23, from the `reviews` GraphQL
-  connection.
-- Findings: 4 Copilot threads plus F1-F9 from the `reviewThreads` GraphQL connection; severities
+  (`APPROVED`), 17:24:16 UTC (`CHANGES_REQUESTED`), 18:02:41 UTC (`CHANGES_REQUESTED`), all
+  2026-09-23, from the `reviews` GraphQL connection.
+- Findings: 4 Copilot threads plus F1-F10 from the `reviewThreads` GraphQL connection; severities
   from each thread's first comment.
 - Branch commits: `git log --format='%h %aI %cI %s' torrust/develop..HEAD`; the 17:08 UTC
   committer date on the first seven commits is the round-3 rebase.
