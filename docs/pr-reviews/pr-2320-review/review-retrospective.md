@@ -205,6 +205,17 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    skills take precedence exists, but it relies on the agent noticing the conflict. No review
    round flagged the missing audit record; the gap was first written down by this retrospective's
    own first version, and the maintainer acted on it after that version was committed.
+8. **Review state lives in five stores and nothing reconciles them.** GitHub threads (reply,
+   resolution), the working tree (the fix), the branch (the commit whose subject a reply cites),
+   the audit record (rows, log) and the retrospective (counts, timeline) must all agree at the
+   head that ships, and each transition between them is a separate manual act: fix, commit, push,
+   reply, resolve, record, commit again. The only thing keeping them in step is the author's memory, and the
+   maintainer's own description of the failure is exact: remembering to reply, the audit is left
+   behind; remembering the audit after a rebase, a reply or resolution is left pending. The
+   existing validator covers one edge (rows against the REST comments that back them). Thirteen of
+   the seventeen human findings (F5-F17) are one store disagreeing with another; the reviewer
+   finds them by recomputing every store from source on every round, which is the work item 9
+   proposes to give the author first.
 
 ## What We Learnt
 
@@ -239,11 +250,16 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
     it. Anchor a snapshot document with "current as of round N" so later rounds do not falsify it.
 12. Never quote a reviewer from memory; open the review by ID and copy the words, or do not use
     quotation marks.
+13. Hand-written counts in a review artifact are a liability, not a check: they are correct at the
+    keystroke and wrong at the next push. A count is useful only when a tool recomputes it at the
+    head that ships and fails the push when it disagrees with the source.
 
 ## Improvements for Future Reviews
 
 Ordered by expected return on cost, best first. Each entry states its owner artifact and
 disposition; substantial workflow changes are `PROPOSED` for maintainer decision, not applied here.
+Items 9 and 10 are written in enough detail to be turned into issue specs without re-deriving
+them from this PR; the maintainer has stated the intent to open those issues from this document.
 
 ### 1. Re-ACK protocol for pure rebases — `PROPOSED`
 
@@ -356,6 +372,121 @@ description, so the repository skill outranks a third-party one on the same phra
 - Cons: skill selection is still heuristic; it does not stop an agent that has already started
   down the third-party path.
 
+### 9. Review-state reconciler: a tool that computes every count the review artifacts claim — `PROPOSED`
+
+Owner: a new Rust check under `contrib/dev-tools/checks/` (working name `review-state-reconciler`),
+replacing and extending `.github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py`;
+wired into `process-pr-review` step 9 and into the pre-push hook when `docs/pr-reviews/pr-<N>-review/`
+is touched. The Python validator stays as the behaviour reference until the Rust port lands, per
+the repository's tooling-language policy.
+
+**Problem it solves.** Review processing keeps state in five places that must agree at the head
+that ships: GitHub threads, the working tree, the commits on the branch, the audit record, and
+(when present) the retrospective. Every human finding in this PR after round 1 — F5 through F17,
+thirteen findings — is a disagreement between two of those stores. The existing validator checks
+audit rows against the REST comments that back them and stops there; the reviewer said so
+explicitly in F13 ("nothing in it compares the row set against the thread set, so a record can
+omit an open finding and still report `failures: 0`"). The maintainer's diagnosis is the same:
+when the author remembers to reply, the audit is not updated; when the audit is updated after a
+rebase, a reply or a resolution is left pending. Human memory is the reconciler today, and it lost
+sync on every round.
+
+**Contract.** Given a PR number, a base ref and the audit record path, fetch threads and reviews
+through GraphQL (the authoritative source for thread identity and resolution state) and report
+the following, each as a computed count with the offending identifiers listed when non-zero:
+
+| Check | Source A | Source B | Blocks push |
+| ----- | -------- | -------- | ----------- |
+| Every thread has exactly one audit row (by source comment id) | `reviewThreads` | Findings table `Source URL` | yes |
+| Every audit row has a live thread or is `NON_RESOLVABLE` | Findings table | `reviewThreads` | yes |
+| `Thread state` equals GitHub `isResolved` (`RESOLVED`/`SUPERSEDED` vs resolved; `OPEN` vs unresolved) | Findings table | `reviewThreads` | yes |
+| Every resolved thread has an author reply posted on that thread, and the row cites exactly that reply URL | `reviewThreads.comments` | detail entry `Reply URL` | yes |
+| Every `FIXED` row's `Resolution reference` is a commit subject on `<base>..HEAD` | detail entry | `git log` | yes (existing) |
+| Every `FIXED` row's fix commit author date precedes its reply timestamp | `git log --format=%aI` | reply `createdAt` | warn (this PR replied one minute before committing in round 7) |
+| Every human review with a non-empty body has a Processing Log entry whose stamp equals `submittedAt` to the minute | `reviews` | Processing Log | yes |
+| Processing Log is chronological and every stamp is at or before the event it records, where the event has a source timestamp | Processing Log | `reviews`, `git log`, `createdAt` | yes (order exists; stamp-vs-event is new) |
+| Severity in the row equals the `[Severity]` bracket of the source comment | Findings table | comment body | yes (existing) |
+| No branch commit id in `docs/issues/open/<folder>/` or `docs/pr-reviews/pr-<N>-review/` (the F9/F10 grep, with the four dispositions) | worktree | `git merge-base --is-ancestor` against `<base>` | yes |
+| Retrospective `Current as of review <id>` is the latest human review id, or the retrospective is absent | retrospective | `reviews` | warn |
+| Latest review `submittedAt` is earlier than the last fetch the tool performed | `reviews` | tool clock | yes — this is the "a round landed while you were fixing" gate that was missed at 20:12 |
+
+Output is one line per check, `name=<count>` with identifiers, and a non-zero exit on any blocking
+failure. The counts the audit and retrospective currently hand-write (rows, threads, unresolved,
+rounds, findings by severity) become "as reported by the reconciler at `<commit subject>`", and the
+tool's own output is pasted under it, so the numbers in the merged artifact are the tool's, not
+the author's.
+
+**Evidence that each check would have fired in this PR.** Row set vs thread set: F13 (16 threads,
+14 rows), F13 re-raise (20 threads, 16 rows). Thread state vs `isResolved`: the round-2 body noted
+nine threads unresolved with replies while the author believed them handled. Reply on resolved
+thread: the four Copilot threads (resolved 13:3x, replied 18:27). Review in log: F14 (round 5 at
+18:26 missing), F14 re-raise (round 6 at 19:46 missing). Stamp vs event: F11 (18:16 vs 18:08),
+F14 (18:18 "posted now" vs 18:27). Branch ids: F1, F2, F9. Retrospective staleness: F12, F15.
+New-round gate: rounds 6 and 7 (the 20:12 push shipped over a 19:46 review). F16 and F17 are the
+only two the tool would not catch; both are prose.
+
+- Pros: makes the five stores mechanically consistent at every push; turns the reviewer's
+  "recomputed from the bytes" method into something the author runs first; removes the incentive
+  to hand-write counts; gives the maintainer a one-command answer to "is anything pending on this
+  PR"; the same output can be pasted as the round's consolidated reply.
+- Cons: needs `gh` and network at pre-push time, so it must degrade to a warning offline; GraphQL
+  pagination and rate limits for PRs with hundreds of threads; prose claims (`Current-tree
+  verification` sentences, misattributed quotations) remain unchecked; a Rust tool that shells out
+  to `gh` or speaks GraphQL directly is a larger first slice than a Python extension, though the
+  repository's stated direction is Rust for stateful, safety-relevant tooling.
+
+### 10. A fixed per-push processing loop in `process-pr-review` — `PROPOSED`
+
+Owner: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` (the Workflow section) and
+`docs/templates/PR-REVIEW-TEMPLATE.md` (Completion Rules).
+
+**Problem it solves.** The skill's nine steps are correct individually but are written as a
+sequence to run once. Reviews arrive while the author is mid-fix, fixes need commits before
+replies can cite them, replies need to exist before audit rows can cite them, and the audit commit
+cannot be the fix commit. Without an explicit loop with an explicit re-fetch gate, the author
+improvises the order each round and drops a step; this PR dropped a different one each round
+(replies on Copilot threads; the audit record itself; the re-fetch before the 20:12 push; the
+Processing Log entry for round 5).
+
+**Proposed order, run in full for every push to the PR branch:**
+
+1. **Fetch.** Run the reconciler (item 9) or, until it exists, the `fetch-review-threads` scripts
+   plus the `reviews` connection. Record the latest review id and the fetch time.
+2. **Rows.** Add one audit row per new thread or independently actionable review-body assertion,
+   disposition pending, `Thread state=OPEN`. Assign collision-safe IDs. Do not fix anything yet.
+3. **Fix.** One signed Conventional Commit per independent concern. Fix commits touch the product
+   or the evidence; they do not touch `docs/pr-reviews/`.
+4. **Verify.** For every row, run the verification command and write the `Current-tree
+   verification` sentence from its output. Write the `Resolution reference` as the subject now on
+   the branch.
+5. **Reconcile.** Run the reconciler. Every check must be zero except `rows_without_reply`, which
+   equals the number of rows fixed in this pass.
+6. **Re-fetch gate.** Run the reconciler's new-round check. If a review landed after step 1, go to
+   step 1 with the new findings; do not push. (This is the gate the 20:12 push skipped.)
+7. **Push** the fix commits.
+8. **Reply, then resolve.** For each fixed row, reply on its thread with the disposition, the
+   verification, and the resolution reference (which now exists on the remote); then resolve.
+   `Superseded by <FindingId>: <reason>.` verbatim for duplicates.
+9. **Record.** Fill `Reply URL` from the reply responses; append Processing Log entries whose
+   stamps come from `git log --format=%aI` and the GitHub `created_at`/`submittedAt` fields,
+   truncated to the minute; never from the clock at the time of writing.
+10. **Reconcile again.** All checks zero, including `rows_without_reply` and thread state.
+11. **Commit the audit** (and the retrospective, if present) in a separate `docs(pr-reviews)`
+    commit. Run the re-fetch gate once more. Push.
+
+The retrospective, when one exists, carries a `Current as of review <id>` line that step 9 updates
+and the reconciler checks; a retrospective is otherwise a snapshot and is not re-derived per round.
+
+- Pros: no new tooling required to adopt the order; the two reconcile points and the re-fetch gate
+  are where every drift in this PR would have surfaced; the audit-lags-fix-by-one-commit shape
+  matches what #2271 converged on in its round five; the loop is the same for Copilot, human and
+  unknown authors.
+- Cons: eleven steps per push is heavier than the current nine-once; without item 9 the reconcile
+  steps are manual and will be skipped under time pressure, which is how this PR got here;
+  reviewers who post several rounds in quick succession (rounds 5, 6 and 7 here were 18:26, 19:46
+  and 20:24) can keep the author in step 6 indefinitely, which is a reviewer-cadence question the
+  loop cannot solve.
+
 ### Alternatives considered and discarded
 
 - **GitHub merge queue / auto-merge.** Rebases and tests automatically, but the merge commit is
@@ -370,6 +501,16 @@ description, so the repository skill outranks a third-party one on the same phra
   measurement rather than by recording the deviation. Valid, but it needs release builds of two
   code states plus load-test runs on a machine that cannot run the container build; the
   microbenchmark already resolves the change. Recorded as a possible follow-up in the evidence.
+- **Hand-maintained counters in the audit and retrospective** ("21 threads, 21 rows, 0 pending")
+  as the check-before-reply the maintainer asked about. Considered and rejected as a standalone
+  measure: every hand-written count in this PR was wrong within one round (F12, F15, F17), and
+  #2271 lesson 3 already says counts and universals rot. Counters help only as the *output* of item
+  9, recomputed at the head that ships; as inputs typed by the author they add another store to
+  keep in sync.
+- **Extending the Python validator instead of writing the reconciler in Rust.** Faster first
+  slice, and acceptable as a prototype if the issue says so, but the tool is stateful (fetch time,
+  latest review id), safety-relevant (it gates pushes) and worth testing on its own, which is the
+  repository's stated threshold for Rust. Recorded here so the issue can choose deliberately.
 
 ## Avoiding Overcorrection
 
@@ -382,6 +523,10 @@ description, so the repository skill outranks a third-party one on the same phra
 - Do not relax GPG-signed maintainer merges to solve the rebase loop. Items 1 and 2 keep them.
 - Do not treat the after-the-fact audit record as equivalent to one kept during the review; the
   Processing Log says when it was written, and that is enough.
+- Do not add hand-written counter fields to the templates in response to F12, F15 and F17. The
+  reconciler (item 9) computes them; a typed counter is one more value to drift.
+- Do not make the reconciler check prose. `Current-tree verification` sentences and quotations
+  (F16) stay a human responsibility; lessons 1, 10 and 12 cover them.
 
 ## Evidence
 
