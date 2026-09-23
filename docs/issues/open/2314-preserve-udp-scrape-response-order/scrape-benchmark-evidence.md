@@ -48,8 +48,11 @@ Record once, before P1. P2 must run on the same machine; note any difference in 
 
 | Phase | Branch / commit | Notes |
 | ----- | --------------- | ----- |
-| P1 (pre-fix) | `e03b22f711156443d23be3d62a5c137f9c9f84c4` plus the then-uncommitted P0 microbenchmark | `build_response` still iterates `scrape_data.files`. The published commit with the same code state is `b6619256` (bench added, fix absent). |
-| P2 (post-fix) | working tree before committing the fix | `build_response` iterates `request.info_hashes`. The published commit with the same code state is `d38c1d2c`. |
+| P1 (pre-fix) | `e03b22f711156443d23be3d62a5c137f9c9f84c4` plus the then-uncommitted P0 microbenchmark | `build_response` still iterates `scrape_data.files`. The published patch with the same scrape-path code state is `perf(udp-server): benchmark scrape response handling` (bench added, fix absent). |
+| P2 (post-fix) | working tree before committing the fix | `build_response` iterates `request.info_hashes`. The published patch with the same scrape-path code state is `fix(udp-server): preserve scrape response order`. |
+
+PR-branch patches are named by their Conventional Commit subject rather than by commit id because
+rebases onto `develop` rewrite the ids; `e03b22f7` is a `develop` merge commit and stays reachable.
 
 ## Instrument 1 - Microbenchmark (`scrape_once`)
 
@@ -211,7 +214,8 @@ using the P1 baseline as its reference number).
   microbenchmark, which the spec names as the precise instrument, does exercise the full 74-hash
   path and its +8.72% delta matches the analysis; the end-to-end leg here only confirms no gross
   regression. A rerun with the spec's mix would sharpen the end-to-end resolution.
-- The P1 and P2 results were committed together in `b6619256` rather than split across the P1
-  and P2 Commit Points; the fix itself is in `d38c1d2c`. The history is kept as is.
+- The P1 and P2 results were committed together in the `perf(udp-server): benchmark scrape
+  response handling` patch rather than split across the P1 and P2 Commit Points; the fix itself is
+  in the `fix(udp-server): preserve scrape response order` patch. The history is kept as is.
 - The machine was not otherwise idle. No samples were excluded: the P1 median remains the
   comparison baseline and the same environment constraints apply to P2.

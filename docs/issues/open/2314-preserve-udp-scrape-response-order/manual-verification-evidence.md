@@ -158,8 +158,9 @@ representation.
 - Goal: repeat V1 unchanged against the fixed build.
 - Initial state: same as V1.
 - Artifact under test: local branch `2314-preserve-udp-scrape-response-order` at a pre-rebase
-  local commit (`aef07ca4`, since orphaned by the rebase onto `develop`); the published commit
-  carrying the same fix is `d38c1d2c`. Rebuilt with
+  local commit (since orphaned by rebases onto `develop`); the published patch carrying the same
+  fix is `fix(udp-server): preserve scrape response order`, named by subject because rebases
+  rewrite branch commit ids. Rebuilt with
   `cargo build --bin torrust-tracker` and
   `cargo build -p torrust-tracker-client --bin tracker_client`.
 - Status: `DONE`
