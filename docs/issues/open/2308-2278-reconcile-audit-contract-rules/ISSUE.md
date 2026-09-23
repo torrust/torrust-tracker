@@ -8,8 +8,8 @@ epic: 2278
 github-issue: 2308
 spec-path: docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md
 branch: "2308-2278-reconcile-audit-contract-rules"
-related-pr: null
-last-updated-utc: "2026-09-23 09:41"
+related-pr: https://github.com/torrust/torrust-tracker/pull/2313
+last-updated-utc: "2026-09-23 09:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -161,6 +161,7 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 - 2026-09-23 09:27 UTC - GitHub Copilot - Recorded M1-M4 in `manual-verification-evidence.md`, re-reviewed AC1-AC8 and AC10-AC11, and updated the parent EPIC row to `IN_PROGRESS`; no retrospective is needed because the implementation matched the approved scope without a material discovery.
 - 2026-09-23 09:29 UTC - GitHub Copilot - Ran `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`; all eight checks passed and AC9 is satisfied through its `linter all` step.
 - 2026-09-23 09:41 UTC - GitHub Copilot Task Reviewer - Independently reviewed commits `09e70c23`, `c5f57f42`, and `c52c61f7`; all AC1-AC11 and T1-T4 pass. Re-ran `linter all` and the required pre-push suite, then recorded the review in `agent-review-reports.md`.
+- 2026-09-23 09:52 UTC - GitHub Copilot - Opened implementation PR #2313 and created its audit record; initial GraphQL and PR metadata collection found no reviews, comments, or unresolved threads.
 
 ## Acceptance Criteria
 
