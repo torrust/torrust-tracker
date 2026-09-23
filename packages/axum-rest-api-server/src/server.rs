@@ -501,6 +501,7 @@ impl Launcher {
 mod tests {
     use std::net::{Ipv4Addr, TcpListener};
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -513,6 +514,8 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::server::{ApiServer, Error, Launcher};
+
+    const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
     fn initialize_global_services(configuration: &Configuration) {
         initialize_static();
@@ -605,14 +608,14 @@ mod tests {
 
         // Act
         cancellation_token.cancel();
-        let launcher = running
-            .task
+        let launcher = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task)
             .await
+            .expect("the REST API task should stop after token cancellation")
             .expect("the REST API task should not panic")
             .expect("the REST API task should stop without an error");
-        let drain_outcome = running
-            .shutdown_controller
+        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
             .await
+            .expect("the REST API drain controller should complete after token cancellation")
             .expect("the REST API drain controller should not panic");
 
         // Assert

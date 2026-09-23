@@ -153,12 +153,12 @@ where
             let server_result = server_task
                 .join()
                 .await
-                .map_err(|error| ComponentError::new(format!("tracker API failed while stopping: {error}")))?;
+                .map_err(|error| ComponentError::new(format!("tracker API server task join failed while stopping: {error}")))?;
             let drain_outcome = server_task
                 .join_shutdown_controller()
                 .await
                 .map_err(|error| ComponentError::new(format!("tracker API drain controller failed: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("tracker API runtime task failed: {error}")))?;
+            server_result.map_err(|error| ComponentError::new(format!("tracker API server runtime failed while stopping: {error}")))?;
             match drain_outcome {
                 GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Cancelled),
                 GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("tracker API graceful drain timed out")),
@@ -170,8 +170,9 @@ where
                 .join_shutdown_controller()
                 .await
                 .map_err(|error| ComponentError::new(format!("tracker API drain controller failed: {error}")))?;
-            let server_result = result.map_err(|error| ComponentError::new(format!("tracker API runtime task failed: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("tracker API runtime task failed: {error}")))?;
+            let server_result =
+                result.map_err(|error| ComponentError::new(format!("tracker API server task join failed: {error}")))?;
+            server_result.map_err(|error| ComponentError::new(format!("tracker API server runtime returned an error: {error}")))?;
             match drain_outcome {
                 GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Completed),
                 GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("tracker API graceful drain timed out")),
@@ -183,6 +184,7 @@ where
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
@@ -196,6 +198,8 @@ mod tests {
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
     use crate::bootstrap::jobs::tracker_apis::{start_job, supervise_token_aware_server};
+
+    const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
     async fn started_drain_controller(
         cancellation_token: CancellationToken,
@@ -220,8 +224,9 @@ mod tests {
                 .expect("test should release the drain controller after proving the supervisor waits");
             GracefulShutdownOutcome::Drained
         });
-        controller_started
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, controller_started)
             .await
+            .expect("the drain controller should start within the test deadline")
             .expect("the drain controller should start before the component runs");
 
         (shutdown_controller, cancellation_observed, release_sender)
@@ -291,8 +296,9 @@ mod tests {
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
         ));
-        cancellation_observed
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
+            .expect("the drain controller should observe cancellation within the test deadline")
             .expect("the component should cancel its drain controller when its REST API server stops independently");
 
         // Assert
@@ -303,7 +309,10 @@ mod tests {
         release_controller
             .send(())
             .expect("the drain controller should still be waiting for test release");
-        let completion = supervisor.await.expect("the component supervisor should not panic");
+        let completion = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, supervisor)
+            .await
+            .expect("the component supervisor should complete within the test deadline")
+            .expect("the component supervisor should not panic");
         assert_eq!(completion, Ok(ComponentCompletion::Completed));
     }
 
@@ -320,8 +329,9 @@ mod tests {
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
         ));
-        cancellation_observed
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
+            .expect("the drain controller should observe cancellation within the test deadline")
             .expect("the component should cancel its drain controller when its REST API server task fails");
 
         // Assert
@@ -332,9 +342,12 @@ mod tests {
         release_controller
             .send(())
             .expect("the drain controller should still be waiting for test release");
-        let result = supervisor.await.expect("the component supervisor should not panic");
+        let result = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, supervisor)
+            .await
+            .expect("the component supervisor should complete within the test deadline")
+            .expect("the component supervisor should not panic");
         let error = result.expect_err("a panicking REST API server task should fail the component");
-        assert!(error.to_string().contains("tracker API runtime task failed"));
+        assert!(error.to_string().contains("tracker API server task join failed"));
     }
 
     #[tokio::test]
@@ -350,8 +363,9 @@ mod tests {
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
         ));
-        cancellation_observed
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
+            .expect("the drain controller should observe cancellation within the test deadline")
             .expect("the component should cancel its drain controller when its REST API server returns an error");
 
         // Assert
@@ -362,8 +376,15 @@ mod tests {
         release_controller
             .send(())
             .expect("the drain controller should still be waiting for test release");
-        let result = supervisor.await.expect("the component supervisor should not panic");
+        let result = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, supervisor)
+            .await
+            .expect("the component supervisor should complete within the test deadline")
+            .expect("the component supervisor should not panic");
         let error = result.expect_err("a REST API server error should fail the component");
-        assert!(error.to_string().contains("REST API serving failure"));
+        assert!(
+            error
+                .to_string()
+                .contains("tracker API server runtime returned an error: REST API serving failure")
+        );
     }
 }

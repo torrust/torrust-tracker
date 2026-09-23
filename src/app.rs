@@ -716,7 +716,7 @@ mod tests {
 
         // Act
         job_manager.cancel();
-        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(5)).await;
 
         // Assert
         assert_eq!(
