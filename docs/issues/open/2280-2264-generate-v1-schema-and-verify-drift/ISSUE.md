@@ -9,7 +9,7 @@ github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-22 17:42"
+last-updated-utc: "2026-09-22 21:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -158,6 +158,12 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   output ADR, pure `Command::parse`, library-owned artifact encoding, `SchemaArtifact` with typed
   errors, documented regeneration hint). Binary tests grew from 3 to 16; the tracked artifact bytes
   are unchanged - `refactor-plan.md`, `test-design-review.md`
+- 2026-09-22 21:34 UTC - GitHub Copilot - Completed the maintainer-approved deeper refactor plan
+  review items as four additional signed commits: safe explicit-path diagnostics, atomic
+  same-directory schema replacement with an explicit symlink policy, closed artifact-origin
+  modeling, and writer-injected process reporting. Binary tests grew from 16 to 24; focused
+  red-first and mutation checks passed, as did the full pre-commit gate after every increment -
+  `refactor-plan.md`, `test-design-review.md`
 
 ## Acceptance Criteria
 
