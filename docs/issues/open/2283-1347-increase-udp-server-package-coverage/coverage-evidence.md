@@ -126,6 +126,7 @@ file completes.
 | `handlers/mod.rs` | 184 / 214 (85.98%) | 241 / 250 (96.40%) | 0 | 2 | No; remaining fixture-only and generated mock entries are not package-owned production decisions |
 | `handlers/connect.rs` | 251 / 251 (100.00%) | 212 / 212 (100.00%) | 3 | 0 | No; R1 removes duplicate test code while retaining all direct adapter contracts |
 | `handlers/announce.rs` | 781 / 800 (97.63%) | 903 / 905 (99.78%) | 2 | 2 | No; direct adapter contracts cover error routing and address-family response conversion, while the handler has no socket Act |
+| `handlers/scrape.rs` | 319 / 321 (99.38%) | 356 / 357 (99.72%) | 3 | 1 | No; direct error-routing coverage and strict test extraction cover the handler, while it has no socket Act |
 
 ## Relationship To Issue #2149
 

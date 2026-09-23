@@ -29,6 +29,7 @@ maintainer approves it.
 | 5 | [handlers-mod-tests.md](handlers-mod-tests.md) | DONE | 2 unit tests added; unit-only 85.98% → 96.40% lines |
 | 6 | [handlers-connect-tests.md](handlers-connect-tests.md) | DONE | 3 tests refactored, 1 duplicate removed; unit-only 100.00% lines |
 | 7 | [handlers-announce-tests.md](handlers-announce-tests.md) | DONE | 2 terminology corrections and 2 tests added; unit-only 97.63% → 99.78% lines |
+| 8 | [handlers-scrape-tests.md](handlers-scrape-tests.md) | DONE | 3 test cleanups and 1 test added; unit-only 99.38% → 99.72% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

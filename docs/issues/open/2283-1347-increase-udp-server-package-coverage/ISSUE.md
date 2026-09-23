@@ -254,7 +254,7 @@ inventory and every plan.
 | 5 | `handlers/mod.rs` | Probably no change | DONE | [handlers-mod-tests.md](test-refactor-plans/handlers-mod-tests.md) |
 | 6 | `handlers/connect.rs` | Probably no change | DONE | [handlers-connect-tests.md](test-refactor-plans/handlers-connect-tests.md) |
 | 7 | `handlers/announce.rs` | Probably no change | DONE | [handlers-announce-tests.md](test-refactor-plans/handlers-announce-tests.md) |
-| 8 | `handlers/scrape.rs` | Probably no change | PENDING | — |
+| 8 | `handlers/scrape.rs` | Probably no change | DONE | [handlers-scrape-tests.md](test-refactor-plans/handlers-scrape-tests.md) |
 | 9 | `handlers/error.rs` | Probably no change | PENDING | — |
 | 10 | `server/mod.rs` | Probably no change | PENDING | — |
 | 11 | `server/bound_socket.rs` | Platform boundary | PENDING | — |
@@ -304,7 +304,7 @@ plan so the ledger has no implicit exceptions.
 - [x] Complete module inventory and baseline coverage evidence recorded.
 - [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
 - [x] First file test plan reviewed and approved before test-producing work.
-- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 7 / 37).
+- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 8 / 37).
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -409,6 +409,10 @@ plan so the ledger has no implicit exceptions.
   Its plan and ledger row are `DONE`; unit-only coverage improved from 781 / 800 (97.63%) to 903
   / 905 (99.78%) lines. The next eligible file is `handlers/scrape.rs` after this file's signed
   commit.
+- 2026-09-23 - Jose Celano - Approved the completed `handlers/scrape.rs` review. Its plan and
+  ledger row are `DONE`; unit-only coverage improved from 319 / 321 (99.38%) to 356 / 357
+  (99.72%) lines. Further improvement discussion for this file is deferred until after its signed
+  commit; do not begin the next ledger file yet.
 
 ## Acceptance Criteria
 
