@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: 2278
 github-issue: 2308
 spec-path: docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md
-branch: "2308-2278-reconcile-audit-contract-rules-spec"
+branch: "2308-2278-reconcile-audit-contract-rules"
 related-pr: null
-last-updated-utc: "2026-09-23 07:24"
+last-updated-utc: "2026-09-23 09:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -119,10 +119,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Define disposition and re-raise rules | Skill and template agree on F60, F73, and F76 without changing the roster. |
-| T2 | TODO | Define log recovery and response scope | Skill and template state the F61, F62, and F79 rules. |
-| T3 | TODO | Define review-source edge cases | Skill and template state F80 and F66 handling. |
-| T4 | TODO | Record evidence and update EPIC tracking | `manual-verification-evidence.md` demonstrates AC1-AC8 and parent row becomes `IN_PROGRESS` pending the implementation PR. |
+| T1 | DONE | Define disposition and re-raise rules | Skill and template agree on F60, F73, and F76 without changing the roster. |
+| T2 | DONE | Define log recovery and response scope | Skill and template state the F61, F62, and F79 rules. |
+| T3 | DONE | Define review-source edge cases | Skill and template state F80 and F66 handling. |
+| T4 | DONE | Record evidence and update EPIC tracking | `manual-verification-evidence.md` demonstrates AC1-AC8 and parent row is `IN_PROGRESS` pending the implementation PR. |
 
 ## Commit Points
 
@@ -142,8 +142,8 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-reconcile-audit-contract-rules/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Spec-only PR #2310 merged into `develop` before implementation
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all` and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -157,20 +157,23 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 
 - 2026-09-22 18:10 UTC - GitHub Copilot - Drafted from the approved #2278 matrix entries F60, F61, F62, F66, F73, F76, F79, and F80 after #2295 established the canonical roster; awaiting maintainer review.
 - 2026-09-23 07:24 UTC - GitHub Copilot - Maintainer approved the specification; created GitHub sub-issue #2308 under EPIC #2278 and moved this specification to `docs/issues/open/2308-2278-reconcile-audit-contract-rules/`.
+- 2026-09-23 09:27 UTC - GitHub Copilot - PR #2310 merged as `56381009`; implemented T1-T3 in `docs(pr-reviews): reconcile disposition rules` and `docs(pr-reviews): define audit recovery rules`.
+- 2026-09-23 09:27 UTC - GitHub Copilot - Recorded M1-M4 in `manual-verification-evidence.md`, re-reviewed AC1-AC8 and AC10-AC11, and updated the parent EPIC row to `IN_PROGRESS`; no retrospective is needed because the implementation matched the approved scope without a material discovery.
+- 2026-09-23 09:29 UTC - GitHub Copilot - Ran `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`; all eight checks passed and AC9 is satisfied through its `linter all` step.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The skill and template agree that a fixed outdated thread is `FIXED`/`RESOLVED`; in-PR duplicate, superseded, or no-change concerns are `NO_ACTION`/`SUPERSEDED`; and a maintainer-approved post-merge decline remains `NO_ACTION` (F60).
-- [ ] AC2: The template makes the append-only Processing Log rule explicit, and the skill defines the F62 recovery sequence for an in-place rewrite.
-- [ ] AC3: The template requires a separate row and detail entry for every re-raise and uses `RE_RAISE_OF:<FindingId>` to identify its predecessor (F73).
-- [ ] AC4: The skill and template define the permitted `Resolution reference` evidence for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP` without adding an audit field, and use the separate Follow-up PR URL field for a follow-up pull request (F76).
-- [ ] AC5: The skill's completion checklist limits the consolidated-response requirement to responses that cover multiple review rounds and requires every covered review ID, finding ID, disposition, resolution reference, and durable response URL (F79).
-- [ ] AC6: The template defines `Source URL` and `Thread state=NON_RESOLVABLE` for a review-body finding (F80).
-- [ ] AC7: The skill defines the normalization decision for retrievable and non-retrievable Copilot `Suppressed comments` (F66).
-- [ ] AC8: The parent #2278 tracking records this subissue as `IN_PROGRESS` only while its implementation PR is pending, and records the verification evidence.
-- [ ] AC9: `linter all` exits with code `0`.
-- [ ] AC10: Manual verification scenarios M1-M4 are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] AC11: Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] AC1: The skill and template agree that a fixed outdated thread is `FIXED`/`RESOLVED`; in-PR duplicate, superseded, or no-change concerns are `NO_ACTION`/`SUPERSEDED`; and a maintainer-approved post-merge decline remains `NO_ACTION` (F60).
+- [x] AC2: The template makes the append-only Processing Log rule explicit, and the skill defines the F62 recovery sequence for an in-place rewrite.
+- [x] AC3: The template requires a separate row and detail entry for every re-raise and uses `RE_RAISE_OF:<FindingId>` to identify its predecessor (F73).
+- [x] AC4: The skill and template define the permitted `Resolution reference` evidence for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP` without adding an audit field, and use the separate Follow-up PR URL field for a follow-up pull request (F76).
+- [x] AC5: The skill's completion checklist limits the consolidated-response requirement to responses that cover multiple review rounds and requires every covered review ID, finding ID, disposition, resolution reference, and durable response URL (F79).
+- [x] AC6: The template defines `Source URL` and `Thread state=NON_RESOLVABLE` for a review-body finding (F80).
+- [x] AC7: The skill defines the normalization decision for retrievable and non-retrievable Copilot `Suppressed comments` (F66).
+- [x] AC8: The parent #2278 tracking records this subissue as `IN_PROGRESS` only while its implementation PR is pending, and records the verification evidence.
+- [x] AC9: `linter all` exits with code `0`.
+- [x] AC10: Manual verification scenarios M1-M4 are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] AC11: Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -188,10 +191,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Compare outdated-thread and re-raise rules | Read the skill and template sections governing dispositions, thread state, and findings. | Both documents state the same F60 and F73 behavior. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Compare resolution-reference rules | Read the skill and template resolution-reference rules for each disposition and Follow-up PR URL. | The admissible evidence is explicit for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP`; the follow-up pull request remains in its separate field. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Review append-only and response-scope rules | Read Processing Log guidance, correction recovery, and the completion checklist. | The append-only recovery and conditional consolidated-response rule, including every covered ID, disposition, resolution reference, and durable URL, are explicit and consistent. | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Review body-only and suppressed-comment handling | Inspect the template's review-body guidance and the skill's normalization rule. | The source/thread-state and suppressed-comment outcomes are unambiguous. | TODO | `manual-verification-evidence.md` section V4 |
+| M1 | Compare outdated-thread and re-raise rules | Read the skill and template sections governing dispositions, thread state, and findings. | Both documents state the same F60 and F73 behavior. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Compare resolution-reference rules | Read the skill and template resolution-reference rules for each disposition and Follow-up PR URL. | The admissible evidence is explicit for `FIXED`, `NO_ACTION`/`SUPERSEDED`, and `FOLLOW_UP`; the follow-up pull request remains in its separate field. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Review append-only and response-scope rules | Read Processing Log guidance, correction recovery, and the completion checklist. | The append-only recovery and conditional consolidated-response rule, including every covered ID, disposition, resolution reference, and durable URL, are explicit and consistent. | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Review body-only and suppressed-comment handling | Inspect the template's review-body guidance and the skill's normalization rule. | The source/thread-state and suppressed-comment outcomes are unambiguous. | DONE | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -205,17 +208,17 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | M1; skill/template review |
-| AC2 | TODO | M3; skill/template review |
-| AC3 | TODO | M1; template review |
-| AC4 | TODO | M2; skill/template review |
-| AC5 | TODO | M3; skill review |
-| AC6 | TODO | M4; template review |
-| AC7 | TODO | M4; skill review |
-| AC8 | TODO | Parent EPIC row and progress log |
-| AC9 | TODO | `linter all` output |
-| AC10 | TODO | `manual-verification-evidence.md` |
-| AC11 | TODO | Post-implementation criteria review |
+| AC1 | DONE | M1; skill/template review |
+| AC2 | DONE | M3; skill/template review |
+| AC3 | DONE | M1; template review |
+| AC4 | DONE | M2; skill/template review |
+| AC5 | DONE | M3; skill review |
+| AC6 | DONE | M4; template review |
+| AC7 | DONE | M4; skill review |
+| AC8 | DONE | Parent EPIC row and progress log |
+| AC9 | DONE | Successful full pre-commit gate, including `linter all` |
+| AC10 | DONE | `manual-verification-evidence.md` |
+| AC11 | DONE | Post-implementation criteria review |
 
 ## Risks and Trade-offs
 
@@ -228,7 +231,7 @@ Notes:
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`.
+- Retrospective: `Not needed`; the implementation matched the approved scope without a material discovery.
 - If implementation uncovers a material ambiguity not represented by F60, F61, F62, F66, F73,
   F76, F79, or F80, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue directory.
