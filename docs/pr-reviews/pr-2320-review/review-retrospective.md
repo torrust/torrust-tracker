@@ -43,7 +43,7 @@ the four Copilot findings, which came first, occupy `F1`-`F4` there.
 | Human findings about process changes made during the review | 3 (F10 on the rule added for F9; F11, F12 on this retrospective) |
 | Findings processed through `process-pr-review` while the review was open | 0 of 16 |
 | Human findings about production code or tests | 0 |
-| Commits on the branch | 15 including the commit that writes this line (4 original, 1 CI fix, 5 review-response, 5 retrospective or audit) |
+| Commits on the branch | `git rev-list --count torrust/develop..HEAD` returned 15 at the commit that writes this row (4 original, 1 CI fix, 5 review-response, 5 retrospective or audit); audit-record commits after it are not counted here |
 | Rebases while the PR was open | 2 (one before the first human review, one between rounds 2 and 3) |
 | Approval lifetime | 1 h 24 min (approved 16:00 UTC, changes requested 17:24 UTC on a pure rebase) |
 | First review to last author reply | 2026-09-23 13:09 UTC to the round-5 reply (see Timeline) |
@@ -81,7 +81,7 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 | 18:26 | Round 5 (human), `CHANGES_REQUESTED` at head `c84a224a`: F10 addressed; F11 (three timeline rows contradicted by git and API timestamps) and F12 (commit count one short) block. |
 | 18:27 | Author posts the replies the four Copilot threads never had, while creating `PR-REVIEW.md`. |
 | 18:32 | Author commits `PR-REVIEW.md` and the retrospective update recording the skipped workflow. |
-| 18:40 | Author fixes F11, F12 in this retrospective, replies, resolves. |
+| 19:43 | Author commits the F11, F12 fix to this retrospective (`docs(pr-reviews): source #2320 retrospective times and counts from git and the API`); the first signing attempt at 19:39 failed on an expired GPG agent cache and was retried at the maintainer's instruction. Replies at 19:49. The row was first written as "18:40", the editing time, and corrected before the head shipped. |
 
 ## What Went Well
 

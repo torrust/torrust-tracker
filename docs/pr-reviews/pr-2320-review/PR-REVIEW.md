@@ -67,6 +67,8 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 | F12 | `review-finding:pr-2320-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2320-f13` | Human | Minor | documentation | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2320-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2320-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2320-f16` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -296,6 +298,45 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4085766408>
 
+### F15 - Three retrospective timeline rows contradicted by git and API timestamps
+
+- PR number: 2320
+- Source review ID: 5295088674
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4085863328>
+- Concern: the retrospective dated its own first commit 18:16 when `git log` says 18:08, placed
+  events "after 18:16" that all occurred by 18:15, placed the human-thread resolution after
+  17:52 when round 4 at 18:02 shows the threads still open, and attributed that resolution to a
+  maintainer request the GitHub record does not contain.
+- Solution: rows rewritten with git author times and GitHub `created_at` minutes; the resolution
+  row is placed after 18:02 and states the request came from the editor chat session. Recorded as
+  cost item 9 and lesson 10 in the retrospective. A fresh instance (a row written as the editing
+  time rather than the event time) was caught and corrected before this head shipped.
+- Current-tree verification: `rg -n '^\| (18:08|18:13-18:15|after 18:02|19:43) ' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches four rows; `rg -n '18:16|after 17:52|18:40' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches only the cost-item and row text that quote the old values as wrong.
+- Resolution reference: `docs(pr-reviews): source #2320 retrospective times and counts from git and the API`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086635319>
+
+### F16 - Retrospective commit count one short at the head that ships it
+
+- PR number: 2320
+- Source review ID: 5295088674
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4085863338>
+- Concern: "Commits on the branch | 11 (… 1 retrospective)" while `git log a110200d..HEAD`
+  returned 12 at that head; the count omitted the commit that wrote the line.
+- Solution: the row now states the command, the value it returned at the commit that writes the
+  row (15), the breakdown, and that later audit-record commits are not counted, so it does not
+  rot when this record is committed after it.
+- Current-tree verification: `rg -n 'returned 15 at the commit that writes this row' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches line 46; `git rev-list --count torrust/develop..HEAD` at the retrospective fix commit
+  was 15.
+- Resolution reference: `docs(pr-reviews): source #2320 retrospective times and counts from git and the API`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4086635594>
+
 ## Processing Log
 
 - 2026-09-23 13:09 UTC - Copilot review 5291390450 submitted (F1-F4).
@@ -311,6 +352,10 @@ findings `F1`-`F10` across rounds 1-4; those collide with the Copilot IDs and ar
 - 2026-09-23 18:13 UTC - `docs(skills): make the branch-id pre-push check clear its reference case` authored (F14).
 - 2026-09-23 18:15 UTC - Reply posted on F14; F14 resolved.
 - 2026-09-23 18:18 UTC - Started audit. Record created after all threads were resolved; the four Copilot threads had been resolved on 2026-09-23 without replies, so replies were posted now and each states that it was posted after resolution.
+- 2026-09-23 18:26 UTC - Human review 5295088674 submitted, `CHANGES_REQUESTED` (F15, F16) against the retrospective.
+- 2026-09-23 18:32 UTC - `docs(pr-reviews): add #2320 review audit record` authored.
+- 2026-09-23 19:43 UTC - `docs(pr-reviews): source #2320 retrospective times and counts from git and the API` authored (F15, F16); a first signing attempt at 19:39 failed on an expired GPG agent cache.
+- 2026-09-23 19:49 UTC - Replies posted on F15, F16.
 
 ## Completion Rules
 
