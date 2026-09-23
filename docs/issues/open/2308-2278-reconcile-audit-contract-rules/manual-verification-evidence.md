@@ -29,7 +29,7 @@ last-updated-utc: "2026-09-23 09:27"
 #### Observed Result
 
 ```text
-The template states that a fixed outdated thread is FIXED/RESOLVED and that every re-raise has its own tracking row and matching detail entry. The skill states that every re-raise has its own tracking row and detail entry.
+The template and skill state that a fixed outdated thread is FIXED/RESOLVED. Both documents also state that every re-raise has its own tracking row and matching detail entry.
 ```
 
 #### Conclusion
@@ -44,7 +44,7 @@ The observed rules satisfy F60 and F73 without changing the audit roster.
 
 #### Steps Performed
 
-1. Ran `rg -n -A3 -B2 'FIXED` resolution|Resolution reference.*FIXED|Follow-up PR URL field' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md docs/templates/PR-REVIEW-TEMPLATE.md`.
+1. Ran `rg -n -A3 -B2 'FIXED resolution|Resolution reference.*FIXED|Follow-up PR URL field' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md docs/templates/PR-REVIEW-TEMPLATE.md`.
 2. Compared the matched skill and template guidance.
 
 #### Observed Result
