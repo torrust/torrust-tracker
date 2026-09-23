@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 2278
 github-issue: 2308
-spec-path: docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md
+spec-path: docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md
 branch: "2308-2278-reconcile-audit-contract-rules"
 related-pr: https://github.com/torrust/torrust-tracker/pull/2313
-last-updated-utc: "2026-09-23 09:52"
+last-updated-utc: "2026-09-23 11:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,8 +150,8 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 - [x] Evidence-based implementation completion review recorded: no retrospective needed, or a retrospective records a material discovery
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -162,6 +162,7 @@ Conventional Commit message with the narrow affected scope, and sign every commi
 - 2026-09-23 09:29 UTC - GitHub Copilot - Ran `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`; all eight checks passed and AC9 is satisfied through its `linter all` step.
 - 2026-09-23 09:41 UTC - GitHub Copilot Task Reviewer - Independently reviewed commits `09e70c23`, `c5f57f42`, and `c52c61f7`; all AC1-AC11 and T1-T4 pass. Re-ran `linter all` and the required pre-push suite, then recorded the review in `agent-review-reports.md`.
 - 2026-09-23 09:52 UTC - GitHub Copilot - Opened implementation PR #2313 and created its audit record; initial GraphQL and PR metadata collection found no reviews, comments, or unresolved threads.
+- 2026-09-23 11:00 UTC - GitHub Copilot - PR #2313 merged as `b27de85a`, automatically closing issue #2308; archived this completed specification under `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

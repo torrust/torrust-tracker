@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2308-2278-reconcile-audit-contract-rules/ISSUE.md
-last-updated-utc: "2026-09-23 09:27"
+issue-spec: docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md
+last-updated-utc: "2026-09-23 11:00"
 ---
 
 # Manual Verification Evidence
