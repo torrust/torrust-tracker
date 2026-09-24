@@ -1,6 +1,6 @@
 # Runner Agent Installation Log
 
-<!-- cspell:ignore installdependencies -->
+<!-- cspell:ignore installdependencies tostring -->
 
 Step-by-step record of how the GitHub Actions runner agent was installed and registered on
 `torrust-runner-01` for issue #2323 (task T3). The host preparation is in
@@ -109,11 +109,11 @@ implementation PR (T5).
 
 ```bash
 desktop$ gh api repos/torrust/torrust-tracker/actions/runners \
-  -q '.runners[] | [.name, .status, ([.labels[].name] | join(","))] | @tsv'
+  -q '.runners[] | [.name, .os, .status, (.busy | tostring), ([.labels[].name] | join(","))] | join("  ")'
 ```
 
-Result (2026-09-24):
+Result (2026-09-24), fields are name, OS, status, busy, and labels:
 
 ```text
-torrust-runner-01  Linux  online  busy=false  self-hosted,Linux,X64,torrust-hetzner
+torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner
 ```
