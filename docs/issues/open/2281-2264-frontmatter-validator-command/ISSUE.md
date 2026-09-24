@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command-spec"
 related-pr: 2337
-last-updated-utc: "2026-09-24 17:20"
+last-updated-utc: "2026-09-24 20:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,10 +17,10 @@ semantic-links:
     - write-unit-test
     - run-pre-commit-checks
   related-artifacts:
-    - issue #2264
-    - issue #2266
-    - issue #2280
-    - issue #2003
+    - "issue #2264"
+    - "issue #2266"
+    - "issue #2280"
+    - "issue #2003"
     - contrib/dev-tools/checks/frontmatter-validator
     - contrib/dev-tools/checks/clippy-allow-reasons
     - contrib/dev-tools/git/hooks/pre-commit.sh
@@ -195,7 +195,7 @@ Maintainer decisions recorded on 2026-09-24, before implementation:
   covers:
   - copying the frontmatter shape from `docs/templates/ISSUE.md` or `docs/templates/EPIC.md`;
   - prefixing or dropping fields outside the profile;
-  - quoting `last-updated-utc`;
+  - quoting `last-updated-utc` and every `issue #<n>` reference;
   - repairing stale references.
 
   The primary-spec rule closes a bypass: without it, a new `ISSUE.md` or `EPIC.md` written with no
@@ -269,7 +269,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Extend the diagnostic vocabulary | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. |
+| T1 | TODO | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
 | T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
@@ -282,7 +282,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| T1 | Diagnostic severity, field path, and category vocabulary | Commit after focused library tests and prose-first test-design review. |
+| T1 | Diagnostic severity, field path, and category vocabulary; separately, the unquoted issue-reference fix | Two commits, each after focused library tests and prose-first test-design review. The reference fix follows the `fix-bug` red/green regression proof. |
 | T2 | Binary, argument parsing, explicit-path mode, NDJSON rendering | Commit after focused command tests and the vertical-slice review. |
 | T3 | Discovery, `--staged`, `--all`, ownership dispatch, exclusions | Commit after TempDir git-repository tests. |
 | T4 | Severity policy and warning kinds | Commit after focused accepted/rejected cases per location. |
@@ -333,6 +333,10 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   User conversation
 - 2026-09-24 17:20 UTC - GitHub Copilot - Maintainer approved the specification; opened spec-only
   PR #2337 and recorded it in frontmatter - https://github.com/torrust/torrust-tracker/pull/2337
+- 2026-09-24 20:05 UTC - GitHub Copilot - Addressed `review-finding:pr-2337-f1`: quoted this
+  spec's `issue #<n>` references, which YAML parsed as `issue`. The same latent defect in the
+  #2266 accepted fixtures and strict-reference unit test is now part of T1. No other v1 draft/open
+  spec uses the unquoted form - `docs/pr-reviews/pr-2337-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
