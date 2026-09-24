@@ -127,9 +127,10 @@ pub fn start(
 /// Starts the Health Check API using an injected cancellation token.
 ///
 /// This additive path does not subscribe to operating-system signals. It
-/// registers the service and, if registration fails, stops both children and
-/// releases the listener before returning. Otherwise the caller owns the
-/// returned runtime task and drain controller.
+/// registers the service and, if registration fails, cancels
+/// `cancellation_token`, stops both children, and releases the listener before
+/// returning. Otherwise the caller owns the returned runtime task and drain
+/// controller.
 ///
 /// # Errors
 ///

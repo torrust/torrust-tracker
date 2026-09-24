@@ -1,7 +1,7 @@
 //! Health Check API job starter.
 //!
 //! The [`health_check_api::start_job`](crate::bootstrap::jobs::health_check_api::start_job)
-//! function starts the Health Check REST API as a token-aware component. The
+//! function starts the Health Check API as a token-aware component. The
 //! component owns the server task and its drain controller and joins both
 //! before reporting its outcome to the `JobManager`.
 //!
@@ -54,13 +54,10 @@ pub async fn start_job(
     )
     .await
     .map_err(|source| Error::Start { source })?;
+    let server_task = TokenAwareServerTask::new(server.task, server.shutdown_controller);
 
     Ok(async move {
-        let completion = supervise_token_aware_server(
-            TokenAwareServerTask::new(server.task, server.shutdown_controller),
-            cancellation_token,
-        )
-        .await;
+        let completion = supervise_token_aware_server(server_task, cancellation_token).await;
         tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: http://{}", bind_addr);
         completion
     })
@@ -76,14 +73,13 @@ where
     tokio::select! {
         biased;
         () = cancellation_token.cancelled() => {
-            let server_result = server_task
-                .join()
-                .await
-                .map_err(|error| ComponentError::new(format!("health check API server task join failed while stopping: {error}")))?;
+            let server_result = server_task.join().await;
             let drain_outcome = server_task
                 .join_shutdown_controller()
                 .await
                 .map_err(|error| ComponentError::new(format!("health check API drain controller failed: {error}")))?;
+            let server_result = server_result
+                .map_err(|error| ComponentError::new(format!("health check API server task join failed while stopping: {error}")))?;
             server_result.map_err(|error| ComponentError::new(format!("health check API server runtime failed while stopping: {error}")))?;
             match drain_outcome {
                 GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Cancelled),
@@ -109,16 +105,34 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, SocketAddr, TcpListener};
     use std::time::Duration;
 
     use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
+    use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
+    use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 
-    use crate::bootstrap::jobs::health_check_api::supervise_token_aware_server;
+    use crate::bootstrap::jobs::health_check_api::{start_job, supervise_token_aware_server};
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
+
+    fn available_health_check_address() -> SocketAddr {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available health-check address");
+        listener.local_addr().expect("read available health-check address")
+    }
+
+    async fn wait_until_bindable(address: SocketAddr) -> bool {
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, async {
+            while TcpListener::bind(address).is_err() {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .is_ok()
+    }
 
     async fn started_drain_controller(
         cancellation_token: CancellationToken,
@@ -154,6 +168,27 @@ mod tests {
     async fn panicking_server_task() -> Result<(), &'static str> {
         tokio::task::yield_now().await;
         panic!("health check API server task failure");
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_listener_when_the_component_is_dropped_before_it_runs() {
+        // Arrange
+        let config = HealthCheckApi {
+            bind_address: available_health_check_address(),
+        };
+        let component = start_job(&config, Registar::default(), CancellationToken::new())
+            .await
+            .expect("the health check API component should start");
+
+        // Act
+        drop(component);
+
+        // Assert
+        assert!(
+            wait_until_bindable(config.bind_address).await,
+            "dropping the unpolled health check API component must release its listener at {} within {TEST_COMPLETION_TIMEOUT:?}",
+            config.bind_address
+        );
     }
 
     #[tokio::test]
