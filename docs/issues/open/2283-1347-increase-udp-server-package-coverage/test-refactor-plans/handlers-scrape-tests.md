@@ -165,12 +165,12 @@ reads as prose; the second keeps the Act literal. Maintainer decision required.
 
 | ID | Status | Work | Boundary |
 | --- | --- | --- | --- |
-| F1 | PROPOSED | Introduce the `Tracker` fixture, `ScrapeRequestBuilder`, `scrape`, and `published_events`; delete `add_a_seeder`, `build_scrape_request`, `sample_scrape_request`, and `add_a_sample_seeder_and_scrape`; flatten `using_ipv4`/`using_ipv6`. Rewrite facts 1-6 on the new fixtures with `it_should_*` names and AAA markers. Reorganisation only: no fact added or removed. | One commit, behavior-preserving; verified by the unchanged 8-test count and unit-only coverage. |
-| F2 | PROPOSED | Replace `mockall` in the two accepted-event tests with `published_events`; build the expected `ConnectionContext` from the fixture's instance ID and the visible client/listener values; use an IPv4 listener for the IPv4 client. | Removes fixture-derived duplication and the mock DSL. |
+| F1 | DONE | Introduced the local `Tracker` scenario fixture, `ScrapeRequestBuilder`, and named strict-context `scrape` action. Removed duplicate `build_scrape_request`, `sample_scrape_request`, and the helper that hid the public scrape Act. Rewrote public and listed tracker cases with `it_should_*` names and AAA. | Behavior-preserving: 11 focused scrape tests pass after the post-#2320 baseline refactor. |
+| F2 | DONE | Replaced `mockall` event expectations with direct `Broadcaster` subscriptions, flattened the IPv4/IPv6 event modules, and generated listener bindings that match each client address family. | Each test compares the complete accepted-request event against values used by the Act; both IPv4 and IPv6 publication tests pass. |
 | F3 | PROPOSED | Add fact 7: disabled validation, invalid connection ID, strict-free `handle_scrape` call visible, assert one `Event::UdpError { kind: Some(Scrape), error: ConnectionCookie(_) }` and a returned scrape response. | Handler-owned policy decision; cookie semantics stay in `udp-core`. |
-| F4 | PROPOSED | Add fact 8 as a direct `build_response` test with one `ScrapeData` entry and a non-default transaction ID; assert the complete `ScrapeResponse`. | Pure adapter seam; one entry avoids `HashMap` order. |
+| F4 | DONE | PR #2320 added direct `build_response` coverage for a requested hash absent from `ScrapeData`, and regression coverage for duplicate and eight-hash request order. | The merged response adapter iterates `request.info_hashes` and looks up each metadata entry by key. No additional single-entry test is selected. |
 | F5 | PROPOSED | Split the saturation test into fact 9's two cases: `it_should_encode_counters_that_fit_in_i32_as_is` and `it_should_saturate_counters_above_i32_max`, each with AAA. | No new dependency; `rstest` is not in this package. |
-| F6 | BLOCKED | Treat multi-torrent response order as a defect, not a test gap. Source analysis found `tracker-core::ScrapeHandler` inserts request-order hashes into `ScrapeData.files: HashMap`; `udp-server::build_response` serializes that map's iteration order into positional `torrent_stats`. | Follow `fix-bug`: reproduce against a real UDP scrape artifact, add and prove red a two-torrent regression test, then fix the layer where order is lost. Do not add an order-insensitive test. F1-F5 wait so the refactor does not obscure red evidence. |
+| F6 | DONE | PR #2320 fixed positional scrape-response order. `build_response` now iterates `request.info_hashes` and performs keyed `ScrapeData.files` lookups. | PR #2320 includes regression coverage for duplicate requested hashes and an eight-hash request with distinct statistics. F1-F3 and F5 may resume. |
 | F7 | PROPOSED | Record design feedback: group the four listener arguments of `handle_scrape` and `handle_announce` into one context type so tests and `handlers/mod.rs` stop re-threading them. | Production change outside #2283; propose as a follow-up issue, not in this branch. |
 
 No integration candidate: every fact above is observable without a UDP socket.
@@ -201,3 +201,11 @@ tuple without duplicating `udp-core` cookie semantics or packet-to-wire error re
   request order is discarded by `ScrapeData.files: HashMap` before the UDP handler serializes
   positional scrape statistics. F6 is blocked for the repository bug-fix workflow; F1-F5 remain
   unimplemented to preserve a clear red regression investigation. No Rust code changed.
+- 2026-09-24 - GitHub Copilot - Rebasing onto `torrust/develop` incorporated merged PR #2320.
+  Its fix preserves response order by iterating `request.info_hashes`, with missing-hash,
+  duplicate-hash, and eight-hash ordering regression coverage. F4 and F6 are complete; F1-F3 and
+  F5 may resume from the post-#2320 test baseline.
+- 2026-09-24 - GitHub Copilot - Completed F1/F2. The local scenario fixture owns ordinary service,
+  listener, and event-publisher construction; tests retain their causal request/state, named Act,
+  and independently specified response or event. Replaced mock expectations with broadcaster
+  subscriptions and corrected the IPv4 listener family. Focused scrape tests pass (11 tests).
