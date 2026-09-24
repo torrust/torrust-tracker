@@ -38,7 +38,7 @@ pub enum UdpError {
         source: torrust_server_lib::registar::RegistrationError,
     },
 
-    #[error("Any error to do with starting or stopping the sever")]
+    #[error("Any error to do with starting or stopping the server")]
     FailedToStartOrStopServer(String),
 }
 
