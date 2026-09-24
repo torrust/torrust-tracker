@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
 epic: 1840
 github-issue: 2323
 spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner-spec"
 related-pr: null
-last-updated-utc: 2026-09-24 15:20
+last-updated-utc: 2026-09-24 17:05
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,8 @@ with rechecked prices.
 - Capture a reproducible baseline of PR wall-clock time and `Test (Docker)` job duration on the
   GitHub-hosted runner.
 - Register a self-hosted GitHub Actions runner on a Hetzner server for `torrust/torrust-tracker`,
-  scoped by a runner group and a dedicated label.
+  registered at repository level (custom organization runner groups require GitHub Team) with a
+  dedicated label.
 - Move the `container.yaml` `test` job to the self-hosted runner label.
 - Configure the persistent runner to keep build caches between jobs (Docker/BuildKit layers,
   Cargo registry and git caches), with a disk-usage cleanup policy.
@@ -273,8 +274,8 @@ Delivery phases:
 | ID  | Phase | Status | Task                                  | Notes / Expected Output                                                                                                         |
 | --- | ----- | ------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | 1     | DONE   | Record baseline                       | Recorded in [`benchmark-results.md`](benchmark-results.md): `Test (Docker)` median 37 min; build step median 32 min, of which workspace compile 15.5-18.6 min and GitHub cache export 5-12 min; third-party layer missed in 4 of 6 runs; cache over its 10 GB allowance; `Security Scan` (28-29 min) is the next critical path when it runs. |
-| T2  | 1     | IN_PROGRESS | Prepare Hetzner server           | Falkenstein, 8 vCPU, 16 GB RAM, 320 GB disk, €69.49/month (see Background). Hostname `torrust-runner-01`, Ubuntu 26.04.1 LTS; SSH key login configured, password login disabled, OS updated with automatic security updates. Still to record: server type, shared or dedicated vCPU, firewall, `runner` user, and Docker; host isolated from other Torrust infrastructure; no secrets in the repository. Logged in [`runner-server-setup.md`](runner-server-setup.md). |
-| T3  | 1     | TODO   | Install and register runner           | GitHub Actions runner agent installed as a service under the `runner` user, registered to this repository with a dedicated label, runner group restricted to this repository, number of runner instances recorded. Logged in an issue-local `runner-agent-installation.md`. |
+| T2  | 1     | DONE   | Prepare Hetzner server                | Falkenstein, 8 vCPU, 16 GB RAM, 320 GB disk, €69.49/month (see Background). Hostname `torrust-runner-01`, Ubuntu 26.04.1 LTS, kernel `7.0.0-34-generic`; SSH key-only login; automatic security updates; Hetzner Cloud Firewall allowing only inbound SSH; Docker Engine 29.8.1 with Buildx and Compose; host build tools; `runner` user in the `docker` group. Host holds no Torrust credentials. Server type and shared or dedicated vCPU remain open (Open Question 1). Logged in [`runner-server-setup.md`](runner-server-setup.md). |
+| T3  | 1     | DONE   | Install and register runner           | Runner `v2.337.0` (hash-verified) under `/home/runner/actions-runner`, registered at repository level as `torrust-runner-01` with label `torrust-hetzner`, running as the systemd service `actions.runner.torrust-torrust-tracker.torrust-runner-01` under `runner`, enabled at boot. GitHub reports it `online` and idle. One runner instance for now. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 | T4  | 2     | TODO   | Write ADR                             | ADR in `docs/adrs/` covering the decisions listed in Architectural Decisions.                                                   |
 | T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and read no cache produced by the self-hosted job. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
@@ -320,10 +321,10 @@ Use Conventional Commits with a narrow scope (for example `ci(container)`, `docs
 ### Workflow Checkpoints
 
 - [x] GitHub issue created (#2323, opened on GitHub before this specification)
-- [ ] Folder-style spec drafted in `docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] Issue linked as a GitHub sub-issue of EPIC #1840
-- [ ] Server prepared (T2) and runner installed and registered (T3), both logged in this folder
+- [x] Server prepared (T2) and runner installed and registered (T3), both logged in this folder
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, workflow lint, pre-push checks when applicable)
@@ -347,6 +348,7 @@ Append one line per meaningful update.
 - 2026-09-24 16:05 UTC - GitHub Copilot - Split delivery into three phases (spec PR with server and runner setup; implementation PR; scenario follow-up), made T7 a phase 3 remedy, and replaced the network checkpoint with the Post-Switch Scenarios table (A-H) - this file
 - 2026-09-24 16:15 UTC - GitHub Copilot - Completed T1 baseline from 25 recent Container runs and 6 job logs; key findings: GitHub cache export already costs 5-12 min per job on GitHub-hosted runners, the cache is over its 10 GB allowance, and `Security Scan` is the next critical path - [`benchmark-results.md`](benchmark-results.md)
 - 2026-09-24 16:25 UTC - josecelano - Decided to include local caches in this issue and to deliver all `container.yaml` changes (runner switch, local caches, publish isolation) as a single task; tasks renumbered: T5 workflow changes, T6 validation, T7 measurement, T8 runner operations docs - this file
+- 2026-09-24 17:05 UTC - josecelano, GitHub Copilot - Completed T2 (firewall, Docker, build tools, `runner` user) and T3 (runner `v2.337.0` registered at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service online and idle); no workflow uses it yet - [`runner-server-setup.md`](runner-server-setup.md), [`runner-agent-installation.md`](runner-agent-installation.md)
 
 ## Acceptance Criteria
 

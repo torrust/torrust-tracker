@@ -1,6 +1,6 @@
 # Runner Server Setup Log
 
-<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey -->
+<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey keyrings usermod -->
 
 Step-by-step record of how the self-hosted GitHub Actions runner server for issue #2323 was set
 up, so it can be reproduced or rebuilt. See [ISSUE.md](ISSUE.md) for the plan (task T2 and T3).
@@ -151,6 +151,8 @@ Expected: `Permission denied (publickey).`
 Result (2026-09-24): `root@<runner-ip>: Permission denied (publickey).` Password login is
 disabled.
 
+The root password is still needed for the Hetzner web console; keep it in the password manager.
+
 ## 6. Update the OS and Enable Automatic Security Updates
 
 ```bash
@@ -184,16 +186,106 @@ server# apt list --upgradable
 Expected: `uname -r` prints `7.0.0-34-generic`.
 
 Result after reboot (2026-09-24): key login with `ssh torrust-runner-01` works, and the login
-banner reports kernel `7.0.0-34-generic`. The held-back package is still to be identified with
-`apt list --upgradable`.
+banner reports kernel `7.0.0-34-generic`. The held-back package is `rust-coreutils`
+(`0.8.0-0ubuntu3` installed, `0.10.0-1ubuntu2~26.04.1` available in `resolute-updates`). It is
+left for `unattended-upgrades` to install; `apt-cache policy rust-coreutils` shows whether it is
+held by Ubuntu's phased updates.
 
-The root password is still needed for the Hetzner web console; keep it in the password manager.
+## 7. Restrict Inbound Traffic with a Hetzner Cloud Firewall
+
+Created in the Hetzner Cloud console on 2026-09-24.
+
+| Property  | Value                                                             |
+| --------- | ----------------------------------------------------------------- |
+| Name      | `torrust-runner-ssh-only`                                         |
+| Inbound   | TCP 22 from `0.0.0.0/0` and `::/0`                                |
+| Outbound  | No rules, which Hetzner treats as allow all                       |
+| Applied to | `torrust-runner-01`                                              |
+
+The runner only makes outbound HTTPS connections (to GitHub, crates.io, and Docker Hub); it never
+accepts inbound connections. SSH stays open to any source because password login is disabled, and
+restricting it to one IP would lock maintainers out when that IP changes.
+
+Verify from the desktop that SSH still works and another port is filtered:
+
+```bash
+desktop$ ssh torrust-runner-01 true && echo ssh-ok
+desktop$ nc -zv -w 5 <runner-ip> 80
+```
+
+Expected: `ssh-ok`, and `nc` times out instead of reporting `Connection refused`.
+
+Result (2026-09-24, first check): `ssh-ok`, but `nc` reported
+`connect to <runner-ip> port 80 (tcp) failed: Connection refused`. The server itself answered,
+so the firewall was not yet filtering traffic. The firewall had been created but not yet applied
+to the server.
+
+Result (2026-09-24, after applying the firewall to `torrust-runner-01`): `ssh-ok`, and `nc`
+reported `connect to <runner-ip> port 80 (tcp) timed out`. Inbound traffic other than SSH is
+dropped.
+
+## 8. Install Docker Engine
+
+The `Test (Docker)` job needs Docker Engine, the Buildx plugin (`docker/setup-buildx-action`),
+and the Compose plugin (qBittorrent E2E stacks). Docker's official apt repository supports Ubuntu
+26.04 (`resolute`), checked on 2026-09-24.
+
+```bash
+server# apt install -y ca-certificates curl
+server# install -m 0755 -d /etc/apt/keyrings
+server# curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+server# chmod a+r /etc/apt/keyrings/docker.asc
+server# tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+server# apt update
+server# apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+server# docker version && docker buildx version && docker compose version
+server# docker run --rm hello-world
+```
+
+Result (2026-09-24): Docker Engine client and server `29.8.1`, Buildx `v0.37.1`, Docker Compose
+`v5.5.1`; the `docker` service is `enabled`; `hello-world` printed `Hello from Docker!`.
+
+## 9. Install Host Build Tools
+
+The job also runs `cargo run` directly on the host (E2E runners), so the host needs a C toolchain
+and common CLI tools. The Rust toolchain itself is installed per job by `dtolnay/rust-toolchain`.
+
+```bash
+server# apt install -y build-essential pkg-config git jq unzip
+```
+
+Further missing tools will surface during validation (scenario F in [ISSUE.md](ISSUE.md)).
+
+Result (2026-09-24): `gcc 15.2.0`, `git 2.53.0`, `jq 1.8.1`.
+
+## 10. Create the `runner` User
+
+The GitHub runner refuses to run as `root` by default. Membership in the `docker` group is
+equivalent to root on this host; this is accepted because the host is dedicated to CI and already
+runs untrusted PR code (see the accepted risk in [ISSUE.md](ISSUE.md)).
+
+```bash
+server# useradd --create-home --shell /bin/bash runner
+server# usermod -aG docker runner
+server# id runner
+server# su - runner -c 'docker run --rm hello-world'
+```
+
+Result (2026-09-24): `uid=1000(runner) gid=1000(runner) groups=1000(runner),983(docker)`, and
+`runner` can run containers (`Hello from Docker!`).
+
+From step 8 onward the commands were run remotely from the maintainer's desktop with
+`ssh -o BatchMode=yes torrust-runner-01 '...'`. Prefix remote commands with
+`export LC_ALL=C.UTF-8` to avoid locale warnings caused by the desktop's forwarded `LC_*`
+variables.
 
 ## Next Steps
 
-- Restrict inbound traffic with a Hetzner Cloud Firewall: allow only SSH (TCP 22). The runner
-  needs outbound HTTPS only; it never accepts inbound connections from GitHub.
-- Create a non-root `runner` user; the GitHub runner refuses to run as `root` by default.
-- Install Docker and add the `runner` user to the `docker` group.
-- Install and register the GitHub Actions runner (T3), logged separately in
-  `runner-agent-installation.md`.
+- Install and register the GitHub Actions runner (T3): see
+  [`runner-agent-installation.md`](runner-agent-installation.md).
