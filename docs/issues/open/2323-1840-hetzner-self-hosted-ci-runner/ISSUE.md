@@ -237,8 +237,12 @@ ownership decisions for this infrastructure are:
 - **Credential ownership**: Docker Hub credentials stay in the `dockerhub-torrust` environment and
   are used only by the publish jobs on GitHub-hosted runners. The server stores no Torrust
   credentials other than the runner registration.
-- **Deadline**: the job keeps an explicit `timeout-minutes`; queued jobs must not wait
-  indefinitely when the runner is offline.
+- **Deadline**: `timeout-minutes` bounds only execution time, after a runner has picked up the
+  job; it does not bound time spent queued. GitHub cancels a self-hosted job only after 24 hours
+  in the queue (<https://docs.github.com/en/actions/reference/limits>, checked 2026-09-24). An
+  offline runner therefore needs explicit handling: offline detection with an alert to
+  maintainers, and a documented fallback procedure (for example, moving the job back to
+  `ubuntu-latest`). T5 and T8 define both.
 - **Network locality**: GitHub's cache and artifact services run on GitHub's own infrastructure
   (reported to be Microsoft Azure). A Hetzner runner reaches them over the public internet. The
   `test` job depends on them through `Swatinem/rust-cache` and the BuildKit `type=gha` cache
@@ -280,7 +284,7 @@ Delivery phases:
 | T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and read no cache produced by the self-hosted job. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
 | T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
-| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, fallback, and recovery steps.                            |
+| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, and recovery steps. |
 
 ### Post-Switch Scenarios
 
@@ -361,8 +365,9 @@ Append one line per meaningful update.
 - [ ] AC3: Published images are built only from GitHub-hosted runner state: the publish jobs run on
       GitHub-hosted runners, read no cache produced by the self-hosted `test` job, and the
       self-hosted job references no repository, organization, or environment secrets.
-- [ ] AC4: A documented fallback exists for when the runner is offline, and jobs do not queue
-      indefinitely.
+- [ ] AC4: A runner-offline condition is detected and alerts maintainers, and a documented
+      fallback procedure moves or reruns queued jobs; the plan does not rely on
+      `timeout-minutes`, which does not bound queue time.
 - [ ] AC5: An ADR records the decision, cost rationale, persistent-runner choice, accepted security
       risk, publish-job isolation, and cache strategy.
 - [ ] AC6: Maintainer-facing documentation describes the runner, its cache cleanup, and its
@@ -389,7 +394,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | `develop` push run           | Merge a non-documentation PR; inspect the `Container` run on `develop`                         | `test` runs on the Hetzner runner; publish job succeeds           | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no self-hosted cache      | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Runner offline               | Stop the runner service; trigger the workflow                                                  | Behavior matches the documented fallback                          | TODO   | `manual-verification-evidence.md` section V5 |
+| M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out), the offline alert fires, and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | TODO   | `benchmark-results.md`                       |
 
 Notes:
@@ -428,8 +433,9 @@ Notes:
 - **Runner concurrency becomes the new bottleneck.** With several agents opening PRs, a single
   runner instance serializes `Test (Docker)` jobs. Mitigation: size the server and the number of
   runner instances from the baseline job rate, and measure queue time in T7.
-- **Single point of failure.** One server means queued or stuck jobs when it is down. Mitigation:
-  explicit timeout and a documented fallback.
+- **Single point of failure.** One server means jobs stay queued (up to GitHub's 24-hour limit)
+  when it is down; `timeout-minutes` does not help while a job waits for a runner. Mitigation:
+  offline detection with alerting and a documented fallback procedure (AC4).
 - **Network transfer to GitHub may cancel the gain.** The baseline shows the GitHub cache export
   already takes 5-12 minutes per job inside GitHub's own network; from Hetzner it is expected to
   be slower. Outgoing traffic also counts against the server's 20 TB monthly allowance.
@@ -452,7 +458,9 @@ Notes:
    persistent `docker-container` builder, or a `type=local` cache directory? Should the job keep
    writing `type=gha` cache at all?
 5. Should `testing.yaml` `docker-e2e` (feature-branch path) also move, or stay on GitHub-hosted?
-6. Fallback preference: automatic fallback to `ubuntu-latest`, or fail fast and alert?
+6. Fallback preference: automatic fallback to `ubuntu-latest`, or fail fast and alert? Which
+   offline-detection mechanism (for example, a scheduled GitHub-hosted check of the runner status,
+   or an external uptime monitor)?
 
 ## Implementation Completion Review
 
