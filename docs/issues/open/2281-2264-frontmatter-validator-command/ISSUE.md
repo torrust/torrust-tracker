@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command-spec"
 related-pr: 2337
-last-updated-utc: "2026-09-24 20:05"
+last-updated-utc: "2026-09-24 20:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,8 +126,10 @@ Maintainer decisions recorded on 2026-09-24, before implementation:
   `github-review-threads` dev tool. Select the current compatible 4.x release under the dependency
   freshness policy. Exactly one mode is required: positional paths, `--staged`, or `--all`. No
   arguments, or a combination of modes, is a usage error. Follow the `github-review-threads`
-  precedent: call `try_parse` and never let clap write to stdout. Every clap output becomes one
-  NDJSON record on stderr. Help and version exit `0`; usage errors exit `2`.
+  precedent: call `try_parse` and never let clap write to stdout. Every clap outcome becomes one
+  D9 record on stderr: `--help` is a `help` record with exit `0`, and every parse failure is a
+  `usage_error` record with exit `2`. The command has no `--version` flag, so `--version` is an
+  ordinary usage error.
 - **D4 - Discovery.**
   - Candidates are tracked `*.md` files (`git ls-files`).
   - A directory argument expands to the tracked Markdown files under it.
@@ -175,10 +177,42 @@ Maintainer decisions recorded on 2026-09-24, before implementation:
     field in a strict profile.
   - Exit `0` when there are no errors, even if warnings were emitted; `1` for any validation error
     or runtime failure (git, I/O); `2` for invalid invocation.
-- **D9 - Diagnostic record.** Add `severity` and an optional `field_path` to the library
-  `Diagnostic`. The binary renders each diagnostic as one NDJSON line on stderr with `kind`,
-  `path`, `severity`, kebab-case `category`, optional `field_path`, and `message`. Stdout stays
-  empty in every mode, including help, usage errors, and runtime failures.
+- **D9 - NDJSON record catalog.** Add `severity` and an optional `field_path` to the library
+  `Diagnostic`. Stdout stays empty in every mode. Stderr carries only the records below, each one
+  JSON object per line. Every record has a snake_case `kind` and a `message`, like the
+  `usage_error` and `runtime_error` records of `clippy-allow-reasons`. Every listed field is always
+  present; a field marked nullable is `null` when not applicable. No other fields are emitted.
+
+  | `kind` | Fields in order | Exit status it implies |
+  | ------ | --------------- | ---------------------- |
+  | `diagnostic` | `kind`, `path`, `severity` (`error` or `warning`), `category` (kebab-case), `field_path` (nullable), `message` | `1` if any `severity` is `error`, otherwise `0` |
+  | `usage_error` | `kind`, `message`, `exit_code` (`2`) | `2` |
+  | `runtime_error` | `kind`, `path` (nullable), `message`, `exit_code` (`1`) | `1` |
+  | `help` | `kind`, `message` (the rendered clap help text) | `0` |
+
+  - `path` is the repository-relative path with `/` separators; `field_path` is a dotted YAML
+    path such as `semantic-links.related-artifacts`.
+  - Diagnostic categories are the D8/T1 category names, for example `wrong-scalar-type`,
+    `legacy-shape`, `experimental-field`, and `missing-artifact`.
+  - A `usage_error` or `help` record is the only record of its run. A `runtime_error` ends the
+    run, after any diagnostics already emitted.
+  - A successful run without warnings emits nothing.
+  - Records appear in a deterministic order: files sorted by `path`, then, within a file,
+    structural findings, warnings, and repository-aware findings.
+  - If writing to stderr fails, the command exits `1` without a record.
+
+  Examples:
+
+  ```json
+  {"kind":"diagnostic","path":"docs/issues/open/1-example/ISSUE.md","severity":"error","category":"invalid-allowed-value","field_path":"status","message":"`status` must be one of: draft, planned, in-progress, blocked, in-review, done."}
+  {"kind":"diagnostic","path":"docs/issues/open/2-example/ISSUE.md","severity":"error","category":"legacy-shape","field_path":null,"message":"Draft/open issue specs must use the v1 frontmatter; see the migration checklist."}
+  {"kind":"usage_error","message":"the argument '--staged' cannot be used with '--all'","exit_code":2}
+  {"kind":"runtime_error","path":null,"message":"`git ls-files` failed: not a git repository","exit_code":1}
+  {"kind":"help","message":"Validate Markdown frontmatter..."}
+  ```
+
+  The field names, `kind` values, and nullability are the contract; the message texts in these
+  examples are illustrative. T2 pins the catalog with tests.
 - **D10 - Progressive migration.** New issues are strict from the start, because the templates
   already produce `schema-version: 1` records. This issue does not migrate the existing legacy
   draft/open specs (50 primary `ISSUE.md`/`EPIC.md` files on 2026-09-24). Instead, `legacy-shape`
@@ -337,14 +371,19 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   spec's `issue #<n>` references, which YAML parsed as `issue`. The same latent defect in the
   #2266 accepted fixtures and strict-reference unit test is now part of T1. No other v1 draft/open
   spec uses the unquoted form - `docs/pr-reviews/pr-2337-review/PR-REVIEW.md`
+- 2026-09-24 20:15 UTC - GitHub Copilot - Addressed `review-finding:pr-2337-fm-001`: D9 now
+  defines the full NDJSON record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`)
+  with field order, nullability, ordering, and examples. D3 drops `--version`, so it is a usage
+  error - `docs/pr-reviews/pr-2337-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
 - [ ] AC1: The command supports explicit file or directory paths, `--staged`, and a documented
       `--all` whole-tree mode; exactly one mode is required.
-- [ ] AC2: The command emits no stdout in any mode, including help and usage errors. Each
-      diagnostic is one stable NDJSON record on stderr with `kind`, source `path`, `severity`,
-      `category`, `field_path` when applicable, and an actionable `message`.
+- [ ] AC2: The command emits no stdout in any mode, including help and usage errors. Stderr carries
+      only the D9 record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`), with
+      every listed field always present, nullable fields as `null`, and a deterministic order;
+      tests pin each record kind.
 - [ ] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
       runtime failure, and `2` for invalid invocation.
 - [ ] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open primary specs
@@ -389,7 +428,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors; error and warning counts recorded. | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | Invalid invocation | Run with no arguments, with `--staged --all`, with a nonexistent path, and with `--help`. | Exit `2`, `2`, `2`, `0`; stdout empty; one NDJSON record each. | TODO | `manual-verification-evidence.md` section V6 |
+| M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | TODO | `manual-verification-evidence.md` section V6 |
 | M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | TODO | `manual-verification-evidence.md` section V7 |
 
 Record the toolchain for every command result. Disposable Git worktree checkouts live under `.tmp/`
