@@ -129,13 +129,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Map health-check lifecycle ownership | Confirm `JobManager` owns `health_check_api`; the component owns its runtime and drain-controller children, including startup rollback. |
-| T2 | TODO | Add owned token-aware health-check lifecycle | Add an additive token-aware server start path while preserving legacy start/stop APIs and startup logs. |
-| T3 | TODO | Supervise health-check component children | Join runtime and drain-controller children for cancellation, independent completion, and failure before reporting one named outcome. |
-| T4 | TODO | Add deterministic lifecycle coverage | Cover token drain, registration rollback/listener release, legacy compatibility, independent completion, failure, and bootstrap propagation. |
-| T5 | TODO | Review first passing vertical slice | Review ownership, drop paths, named outcomes, readiness invariants, and absolute deadlines after focused tests pass. |
-| T6 | TODO | Complete executable-boundary verification | Capture direct tracker-binary SIGTERM, health-check token-driven drain, and immediate listener rebind evidence. |
-| T7 | TODO | Complete acceptance and implementation review | Re-review acceptance criteria against observed behavior and record the completion review. |
+| T1 | DONE | Map health-check lifecycle ownership | `JobManager` owns the named `health_check_api` component; that component owns and joins its server runtime and drain controller. Registration failure inside the package cancels, aborts, and joins unpublished children. No standalone documentation commit was warranted. |
+| T2 | DONE | Add owned token-aware health-check lifecycle | Added additive `server::start_with_cancellation`; legacy `server::start` and `environment` start/stop are unchanged and share the router. Startup log target and messages are preserved. |
+| T3 | DONE | Supervise health-check component children | The component supervisor joins both children for cancellation, independent completion, panic, and returned error before reporting one named outcome. |
+| T4 | DONE | Add deterministic lifecycle coverage | Added package registration, token drain, and registration rollback/listener release tests; component completion, panic, and returned-error tests; and a bootstrap propagation test. Legacy compatibility is covered by the existing contract tests. |
+| T5 | DONE | Review first passing vertical slice | Listener setup is local and synchronous; the only deferred drain has a 5-second absolute timeout. `TokenAwareServerTask` aborts owned children on drop/escalation. The router and handler are shared with the legacy path, so response and readiness semantics are unchanged. |
+| T6 | DONE | Complete executable-boundary verification | Two direct tracker-binary SIGTERM runs exited `0`, logged the token-aware health-check drain, and immediately rebound the listener. See `manual-verification-evidence.md`. |
+| T7 | DONE | Complete acceptance and implementation review | Independent review found an ownership gap when the unpolled component is dropped; fixed with a mutation-proven regression test. See `implementation-retrospective.md`. |
 
 ## Commit Points
 
@@ -159,22 +159,22 @@ review before beginning another test area or committing.
 
 ## Acceptance Criteria
 
-- [ ] The health-check API receives a component child `CancellationToken`
+- [x] The health-check API receives a component child `CancellationToken`
       derived from the `JobManager` root token.
-- [ ] Token cancellation starts health-check API graceful draining through the
+- [x] Token cancellation starts health-check API graceful draining through the
       new Axum helper without a library-level OS-signal subscription.
-- [ ] The component awaits its server and drain-controller children before
+- [x] The component awaits its server and drain-controller children before
       reporting the named `health_check_api` outcome to `JobManager`.
-- [ ] Legacy health-check API start/stop callers compile and preserve behavior.
-- [ ] Deterministic tests cover injected-token cancellation, normal drain, and
+- [x] Legacy health-check API start/stop callers compile and preserve behavior.
+- [x] Deterministic tests cover injected-token cancellation, normal drain, and
       unexpected server-task completion/failure without OS signals.
-- [ ] A focused bootstrap integration test proves root-token cancellation
+- [x] A focused bootstrap integration test proves root-token cancellation
       reaches the health-check API without delivering an OS signal.
-- [ ] Existing health-check response and readiness semantics are unchanged in
+- [x] Existing health-check response and readiness semantics are unchanged in
       this migration; SI-21 applies the separately approved shutdown behavior.
-- [ ] Manual SIGTERM verification records the `main()` signal event followed
+- [x] Manual SIGTERM verification records the `main()` signal event followed
       by the health-check API's token-driven drain completion.
-- [ ] `linter all` passes.
+- [x] `linter all` passes.
 
 ## Dependencies
 
@@ -207,11 +207,11 @@ compatibility policy.
 - [x] Draft reviewed and approved by user/maintainer.
 - [x] GitHub issue #2324 created and issue number added to this specification.
 - [x] Spec-only PR #2326 merged into `develop` before implementation.
-- [ ] Implementation completed.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence.
-- [ ] Evidence-based implementation completion review recorded.
+- [x] Implementation completed.
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria reviewed after implementation and updated with evidence.
+- [x] Evidence-based implementation completion review recorded.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
@@ -230,6 +230,29 @@ compatibility policy.
   Created the implementation branch from the merge result. Maintainer answered
   pre-implementation questions; decisions are recorded in
   [Implementation Decisions](#implementation-decisions).
+- 2026-09-24 UTC - GitHub Copilot - Completed the deterministic health-check
+  vertical slice. The package's additive token-aware start path registers the
+  service and rolls back unpublished children on registration failure; the
+  component supervisor joins both children before one named outcome.
+  Prose-first review: package tests own registration, token drain, and
+  rollback; component tests own child-join and outcome semantics; the
+  application test owns root-token propagation. Each test keeps its causal
+  state, production action, and observable result visible. Focused tests,
+  clippy, and the pre-commit gate passed on nightly Rust `1.100.0-nightly`.
+- 2026-09-24 16:13 UTC - GitHub Copilot - Direct tracker-binary verification
+  ran two processes on the same health-check binding. Each binary PID received
+  SIGTERM, exited `0` within the 20-second bound, and logged the main signal
+  boundary, the 5-second token-aware drain, and the `health_check_api`
+  cooperative-cancellation outcome. The second run proved immediate listener
+  rebind. See `manual-verification-evidence.md`.
+- 2026-09-24 UTC - GitHub Copilot - Independent completion review
+  (`agent-review-reports.md`) passed all acceptance criteria but found that
+  the child-task owner was created inside the returned future, so dropping an
+  unpolled component detached the server and kept its listener bound. The
+  owner is now created before `start_job` returns, the cancelled path joins
+  both children before mapping errors, and a regression test was proved by
+  mutation. The health-check rows of the shutdown task inventory were updated.
+  See `implementation-retrospective.md` and `verification.md`.
 
 ## Verification Plan
 
@@ -255,9 +278,9 @@ and prove affected bindings are released.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Token-driven health-check API shutdown | Start a configured `target/debug/torrust-tracker` with the health-check API enabled, establish readiness, send `SIGTERM` to the direct binary PID, and capture bounded exit and logs. | `main()` cancels the component token; the health-check API records one token-driven drain path and exits cleanly. | TODO | `manual-verification-evidence.md` |
-| M2 | Health-check API listener release | Restart the configured tracker on the same health-check API binding after M1. | The listener rebinds immediately and becomes ready. | TODO | `manual-verification-evidence.md` |
-| M3 | Legacy health-check lifecycle compatibility | Exercise an unchanged legacy health-check API start/stop call path. | The legacy consumer compiles and retains its supported stop behavior. | TODO | Automated test evidence; the migrated binary has no legacy-path switch. |
+| M1 | Token-driven health-check API shutdown | Start a configured `target/debug/torrust-tracker` with the health-check API enabled, establish readiness, send `SIGTERM` to the direct binary PID, and capture bounded exit and logs. | `main()` cancels the component token; the health-check API records one token-driven drain path and exits cleanly. | DONE | `manual-verification-evidence.md` M1 |
+| M2 | Health-check API listener release | Restart the configured tracker on the same health-check API binding after M1. | The listener rebinds immediately and becomes ready. | DONE | `manual-verification-evidence.md` M2 |
+| M3 | Legacy health-check lifecycle compatibility | Exercise an unchanged legacy health-check API start/stop call path. | The legacy consumer compiles and retains its supported stop behavior. | DONE | Automated test evidence; the migrated binary has no legacy-path switch. |
 
 Manual verification is real interaction with the built tracker. Running
 automated tests alone does not satisfy M1 or M2.
@@ -273,15 +296,15 @@ decision.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Focused bootstrap cancellation test. |
-| AC2 | TODO | Token-drain test and source review confirming no token-aware-path signal subscription. |
-| AC3 | TODO | Component tests that hold the drain controller after cancellation observation for cancellation, completion, and failure. |
-| AC4 | TODO | Legacy server start/stop compatibility test. |
-| AC5 | TODO | Focused lifecycle tests and prose-first test-design review. |
-| AC6 | TODO | Focused bootstrap cancellation test. |
-| AC7 | TODO | Existing response and readiness behavior test coverage plus source review. |
-| AC8 | TODO | Direct-PID SIGTERM, token-aware drain, and listener-rebind evidence. |
-| AC9 | TODO | `linter all` output. |
+| AC1 | DONE | `app::tests::it_should_cancel_the_health_check_api_component_through_the_job_manager`; `start_health_check_api` passes `new_cancellation_token().child_token()`. |
+| AC2 | DONE | `server::tests::it_should_drain_the_token_aware_health_check_api_when_its_cancellation_token_is_cancelled`; source review confirms `start_with_cancellation` has no signal subscription. |
+| AC3 | DONE | `health_check_api` completion, panic, and returned-error tests hold the controller after cancellation observation; the drop-before-run test proves no detached children; the bootstrap test covers the cancelled outcome. |
+| AC4 | DONE | `tests/server/contract.rs` exercises the unchanged `environment::Started` start/stop path over legacy `server::start`. |
+| AC5 | DONE | Focused lifecycle tests and the 2026-09-24 prose-first review entry above. |
+| AC6 | DONE | `app::tests::it_should_cancel_the_health_check_api_component_through_the_job_manager`. |
+| AC7 | DONE | Legacy and token-aware paths share `router()` and the unchanged handler; existing contract tests pass. |
+| AC8 | DONE | `manual-verification-evidence.md` M1-M2 records direct-PID SIGTERM, token-aware drain, clean exit, and listener rebind. |
+| AC9 | DONE | `linter all` passed in the pre-commit gate on nightly Rust `1.100.0-nightly`. |
 
 ## Implementation Completion Review
 
