@@ -8,8 +8,8 @@ epic: 2264
 github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command-spec"
-related-pr: null
-last-updated-utc: "2026-09-24 16:45"
+related-pr: 2337
+last-updated-utc: "2026-09-24 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -303,8 +303,8 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 
 - [x] GitHub issue #2281 created as the command/integration follow-up from #2266
 - [x] Local folder-style specification created
-- [ ] Specification reviewed and approved by user/maintainer
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Specification reviewed and approved by user/maintainer
+- [ ] Spec-only PR #2337 merged into `develop` before implementation
 - [ ] Vertical-slice design review recorded after T2
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
@@ -331,6 +331,8 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   skill-resolution checks; index existence uses the `git ls-files` list so directories resolve; a
   migration checklist is required; template-drift protection is deferred to EPIC row 3 -
   User conversation
+- 2026-09-24 17:20 UTC - GitHub Copilot - Maintainer approved the specification; opened spec-only
+  PR #2337 and recorded it in frontmatter - https://github.com/torrust/torrust-tracker/pull/2337
 
 ## Acceptance Criteria
 
