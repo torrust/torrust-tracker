@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2278
 github-issue: 2318
-spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
+spec-path: docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
 branch: "2318-2278-port-review-thread-scripts-to-rust"
 related-pr: 2322
-last-updated-utc: "2026-09-23 17:10"
+last-updated-utc: "2026-09-24 08:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,10 +185,10 @@ call is visible, and the expected output is stated independently of the code und
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -203,6 +203,9 @@ call is visible, and the expected output is stated independently of the code und
 - 2026-09-23 15:08 UTC - GitHub Copilot - The installed pre-push hook passed nightly formatting, workspace checks, documentation build, and the complete stable test suite; T5 is complete.
 - 2026-09-23 15:10 UTC - GitHub Copilot - Opened implementation PR #2322 targeting `develop`; it closes #2318 when merged.
 - 2026-09-23 17:10 UTC - GitHub Copilot - Processed PR #2322 review round 1 (Copilot and da2ce7): `reply-status` now names the threads without a reply in its stderr record and keeps `thread_id`; `list` and `show` emit one object; `tests/cli.rs` compares the binary with the retired-script captures under `tests/fixtures/retired-scripts/`; skill examples pipe stdout; the parity deviations above are recorded. Audit: `docs/pr-reviews/pr-2322-review/PR-REVIEW.md`.
+- 2026-09-23 18:03 UTC - GitHub Copilot - Processed PR #2322 review round 2 (da2ce7): fixed the nightly-only `clippy::assert_is_empty` failure in `tests/cli.rs` and corrected the audit timeline; all thirteen threads resolved.
+- 2026-09-24 07:58 UTC - GitHub Copilot - PR #2322 merged into `develop` as `d37bafd7`; GitHub closed #2318. The reviewer (da2ce7) recomputed every acceptance criterion in review 5294619694 before approval.
+- 2026-09-24 08:01 UTC - GitHub Copilot - Archived the specification to `docs/issues/closed/` after confirming the GitHub issue is `CLOSED`; EPIC #2278 order 3 marked `DONE`.
 
 ## Acceptance Criteria
 
