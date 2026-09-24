@@ -5,14 +5,14 @@ semantic-links:
     - open-pull-request
     - fix-bug
   related-artifacts:
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
-    - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-    - docs/templates/PR-REVIEW-RETROSPECTIVE.md
-    - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - contrib/dev-tools/git/github-merge.py
+      - docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
+      - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
+      - docs/templates/PR-REVIEW-RETROSPECTIVE.md
+      - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
+      - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+      - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
+      - .github/skills/dev/debugging/fix-bug/SKILL.md
+      - contrib/dev-tools/git/github-merge.py
 ---
 
 # PR Review Retrospective — PR #2320
