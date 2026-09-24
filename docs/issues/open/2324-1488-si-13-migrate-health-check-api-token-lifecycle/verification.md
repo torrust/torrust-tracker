@@ -8,7 +8,7 @@
 - Date: 2026-09-24
 - OS: Linux
 - Rust version (`rustc --version`): `rustc 1.100.0-nightly (6eeff9a52 2026-09-23)`
-- Tracker commit/branch: `2c9e1978` / `2324-1488-si-13-migrate-health-check-api-token-lifecycle`
+- Tracker commit/branch: "fix(bootstrap): [#2324] own health-check children before returning the component" / `2324-1488-si-13-migrate-health-check-api-token-lifecycle`
 
 ## Deterministic Tests
 

@@ -17,8 +17,10 @@ semantic-links:
 ### 2026-09-24 16:31 UTC - GitHub Copilot (Task Reviewer)
 
 - Invocation scope: Pre-PR task review of AC1-AC9 for branch
-  `2324-1488-si-13-migrate-health-check-api-token-lifecycle` (commits `21d90016`, `bfb567b1`,
-  `5431101a`) plus uncommitted `ISSUE.md` and `manual-verification-evidence.md` changes.
+  `2324-1488-si-13-migrate-health-check-api-token-lifecycle` (commits "docs(issues): record SI-13
+  implementation decisions for #2324", "feat(axum-health-check-api-server): [#2324] add
+  token-aware start path", and "feat(bootstrap): [#2324] migrate health-check API to token
+  lifecycle") plus uncommitted `ISSUE.md` and `manual-verification-evidence.md` changes.
 - Inputs: `ISSUE.md` (constraints, decisions, ACs, acceptance verification),
   `manual-verification-evidence.md`, `verification.md`, `git diff torrust/develop...HEAD`,
   legacy `server.rs` and `health_check_api.rs` from `torrust/develop`, SI-12 reference
