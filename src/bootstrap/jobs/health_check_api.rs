@@ -44,21 +44,20 @@ pub async fn start_job(
     registar: Registar<RuntimeServiceMetadata>,
     cancellation_token: CancellationToken,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
-    let bind_addr = config.bind_address;
-
     let server = server::start_with_cancellation(
-        bind_addr,
+        config.bind_address,
         registar,
         RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
         cancellation_token.clone(),
     )
     .await
     .map_err(|source| Error::Start { source })?;
+    let local_addr = server.local_addr;
     let server_task = TokenAwareServerTask::new(server.task, server.shutdown_controller);
 
     Ok(async move {
         let completion = supervise_token_aware_server(server_task, cancellation_token).await;
-        tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: http://{}", bind_addr);
+        tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: http://{}", local_addr);
         completion
     })
 }
