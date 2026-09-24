@@ -13,7 +13,7 @@ workspace = true
 
 [dependencies]
 # Pinned: registry 1.2.2 requires schemars_derive 1.2.2, which is not published.
-schemars = "=1.2.1"
+schemars = "=1.2.2"
 serde = { version = "1", features = [ "derive" ] }
 # Keep model-defined property order in the human-reviewed schema artifact.
 serde_json = { version = "1", features = [ "preserve_order" ] }
