@@ -460,6 +460,9 @@ findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and ar
 - 2026-09-23 20:24 UTC - Human review 5296377033 submitted, `CHANGES_REQUESTED` (F21; F17-F20 re-raised in their threads).
 - 2026-09-23 21:20 UTC - Correction: the 17:52 entry's clause "F5-F13 resolved at the maintainer's request" is wrong on time and source. Round 4 (18:02) records those threads still open; they were resolved after 18:02, and the request was made by the maintainer in the editor chat session, which no GitHub comment shows. The 18:18 entry's clause "replies were posted now" is wrong: the four Copilot replies are stamped 18:27:17Z-18:27:22Z. Both entries stand as written; this entry supersedes those clauses.
 - 2026-09-23 21:20 UTC - Rows F17-F21 added; replies posted on their threads after this commit, then resolved.
+- 2026-09-23 21:49 UTC - Human review 5297189747 submitted, `CHANGES_REQUESTED` (reviewer F18-F23, audit F22-F27).
+- 2026-09-23 21:49 UTC - Human review 5297190311 submitted: follow-up in the F19 thread, one Review Summary row still wrong.
+- 2026-09-24 05:48 UTC - Correction (F22): the two 21:20 entries above and the 19:46 entry's "Not recorded until 21:20" carry the editing time, not an event time. `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`, which wrote them, was authored at 21:27 (`git log --format=%aI`). The replies on F17-F21 were posted at 21:25 (`created_at` 21:25:25Z-21:25:32Z), before that commit, not after it; the threads were resolved after it (order from the editor session; GitHub records no resolution time). Read "21:20" in those three places as 21:27, and the last entry as "replies posted 21:25, then this commit, then resolved". The entries stand as written; this entry supersedes those clauses.
 
 ## Completion Rules
 

@@ -19,8 +19,8 @@ semantic-links:
 
 ## Purpose
 
-Record why a two-file production fix with three regression tests needed five review rounds and
-five review-response commits, why an approval was lost to a rebase whose `range-diff` was
+Record why a two-file production fix with three regression tests needed seven human review rounds
+after a Copilot round, why an approval was lost to a rebase whose `range-diff` was
 byte-identical, and what to change so that rebasing an open pull request stops restarting its
 review. This is a blameless review of the process, not of the reviewer or the author.
 
@@ -33,7 +33,8 @@ the four Copilot findings, which came first, occupy `F1`-`F4` there.
 
 Current as of round 7 (review `5296377033`, 2026-09-23 20:24 UTC). A round submitted after that
 is not reflected in the counts, the timeline, or the finding list below; the audit record's
-Processing Log is the place that tracks later rounds.
+Processing Log is the place that tracks later rounds. Corrections that round 8 (review
+`5297189747`) requested to existing text are applied in place; round 8 itself is not counted.
 
 ## Review Summary
 
@@ -42,7 +43,7 @@ Processing Log is the place that tracks later rounds.
 | Review rounds | 8 (7 human, 1 Copilot) |
 | Findings | 21 (4 Copilot, 17 human: 12 Minor, 1 Suggestion, 4 Nit) |
 | Blocking findings | 10 (F1, F2 round 1; F9 round 3; F10 round 4; F11, F12 round 5; F13-F16 round 6) |
-| Re-raised findings | 5 (F9 reintroduces the F1/F2 class; F13-F16 re-raised verbatim in round 7 after a push that did not address them) |
+| Re-raised findings | 6 (F9 reintroduces the F1/F2 class; F11 restated in its thread at 19:47 after a push that left it unchanged; F13-F16 re-raised as still open in round 7 after a push that did not address them) |
 | Human findings about issue-local evidence documents | 8 of 17 (F3 manifest comment; F10 skill rule; F11-F17 this folder) |
 | Human findings about process changes made during the review | 8 (F10 on the rule added for F9; F11-F17 on this retrospective and the audit record) |
 | Findings processed through `process-pr-review` while the review was open | 0 of 21 |
@@ -85,11 +86,11 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 | 18:26 | Round 5 (human), `CHANGES_REQUESTED` at head `c84a224a`: F10 addressed; F11 (three timeline rows contradicted by git and API timestamps) and F12 (commit count one short) block. |
 | 18:27 | Author posts the replies the four Copilot threads never had, while creating `PR-REVIEW.md`. |
 | 18:32 | Author commits `PR-REVIEW.md` and the retrospective update recording the skipped workflow. |
-| 19:43 | Author commits the F11, F12 fix to this retrospective (`docs(pr-reviews): source #2320 retrospective times and counts from git and the API`); the first signing attempt at 19:39 failed on an expired GPG agent cache and was retried at the maintainer's instruction. Replies at 19:49. The row was first written as "18:40", the editing time, and corrected before the head shipped. |
+| 19:43 | Author commits the F11, F12 fix to this retrospective (`docs(pr-reviews): source #2320 retrospective times and counts from git and the API`); the first signing attempt at 19:39 failed on an expired GPG agent cache and was retried at the maintainer's instruction, given in the editor chat session and not in any GitHub comment. Replies at 19:49. The row was first written as "18:40", the editing time, and corrected before the head shipped. |
 | 19:46 | Round 6 (human), `CHANGES_REQUESTED` at head `a1386c2f`: F13 (audit record claimed all threads resolved when two were open), F14 (two Processing Log entries wrong), F15 (this summary one round stale again), F16 (root cause 7 quoted the author's own words as the reviewer's). Not read by the author before the next push. |
 | 20:12 | Author commits `docs(pr-reviews): record round 5 in the #2320 audit and retrospective` and pushes; F11, F12 resolved. F13-F16 untouched. |
 | 20:24 | Round 7 (human), `CHANGES_REQUESTED` at head `69fc9030`: F13-F16 re-raised in their threads as still open; F17 (Nit) on the "commit that writes this row" anchor. |
-| 21:20 | Author fixes F13-F17 in both files (`docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`), replies, resolves. |
+| 21:25-21:27 | Author replies on F13-F17 (21:25), then commits their fix in both files (`docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`, 21:27), then resolves them (the resolution order is from the editor session; GitHub records no resolution time); the replies cite a subject that did not yet exist. The row was first written as "21:20", the editing time, and corrected after round 8. |
 
 ## What Went Well
 
@@ -112,7 +113,7 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    orphaned the V2 id (F2) and left the P1 row naming a `develop` commit that could not contain
    the benchmark (F1). The round-2 fix replaced them with the then-current branch ids, exactly as
    the reviewer's option A suggested; the round-3 rebase orphaned those too (F9). Three of the
-   nine human findings, including all three blocking ones, are this one defect.
+   seventeen human findings, including the three blocking ones of rounds 1-3, are this one defect.
 2. **An approval destroyed by an unrelated merge.** The PR was approved at 16:00. Because
    another PR merged first, the branch had to be rebased before the maintainer merge tool would
    accept it, and the rebased head had no approval. The reviewer performed a full byte-level
@@ -131,7 +132,8 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 5. **Thread ownership was ambiguous in practice.** The author replied to each thread but left
    resolution to the reviewer. The reviewer's round-2 body treated that as correct; the
    repository skill says the author resolves after replying. The nine threads stayed open across
-   three rounds until the maintainer asked for them to be resolved.
+   three rounds until the maintainer asked for them to be resolved (in the editor chat session; see
+   the `after 18:02` timeline row).
 6. **A dependency pin without a written reason (F3).** `criterion 0.5.1` was chosen to match the
    two sibling bench packages while `0.8.2` is already in the lockfile; the policy requires the
    reason be written down, and the `add-rust-dependency` skill was not consulted because the
@@ -164,7 +166,7 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    in the editor chat, which the GitHub record cannot show.
 10. **Pushing without re-reading the PR (F13-F16 re-raised).** Round 6 landed at 19:46 while the
     author was fixing round 5; the author replied, committed and pushed at 19:49-20:12 without
-    fetching threads again, so round 7 re-raised all four verbatim and added F17. The
+    fetching threads again, so round 7 re-raised all four as still open and added F17. The
     `process-pr-review` skill's step 9 ("refresh GraphQL thread data and show no unresolved
     actionable thread") is the check that was skipped, at the one moment it mattered. Two files in
     one folder disagreed about one event because only one was corrected. F16 was a misattribution
@@ -200,22 +202,25 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
    verification command and its output first") applies to writing a rule: a check belongs in a
    skill only after the exact text has been run on the case that motivated it.
 7. **A third-party skill shadowed the repository skill and nothing flagged it.** The editor
-   surfaces its own `address-pr-comments` skill for exactly the phrasing the maintainer used, and
+   surfaces its own `address-pr-comments` skill for exactly the phrasing the maintainer used in the
+   editor chat session, and
    its procedure (fetch threads, fix, resolve) looks complete. The repository rule that its own
    skills take precedence exists, but it relies on the agent noticing the conflict. No review
    round flagged the missing audit record; the gap was first written down by this retrospective's
-   own first version, and the maintainer acted on it after that version was committed.
+   own first version, and the maintainer acted on it after that version was committed (in the
+   editor chat session; no GitHub comment records it).
 8. **Review state lives in five stores and nothing reconciles them.** GitHub threads (reply,
    resolution), the working tree (the fix), the branch (the commit whose subject a reply cites),
    the audit record (rows, log) and the retrospective (counts, timeline) must all agree at the
    head that ships, and each transition between them is a separate manual act: fix, commit, push,
-   reply, resolve, record, commit again. The only thing keeping them in step is the author's memory, and the
-   maintainer's own description of the failure is exact: remembering to reply, the audit is left
-   behind; remembering the audit after a rebase, a reply or resolution is left pending. The
-   existing validator covers one edge (rows against the REST comments that back them). Thirteen of
-   the seventeen human findings (F5-F17) are one store disagreeing with another; the reviewer
-   finds them by recomputing every store from source on every round, which is the work item 9
-   proposes to give the author first.
+   reply, resolve, record, commit again. The only thing keeping them in step is the author's
+   memory, and the maintainer's own description of the failure, given in the editor chat session
+   and not in any GitHub comment, is exact: remembering to reply, the audit is left behind;
+   remembering the audit after a rebase, a reply or resolution is left pending. The existing
+   validator covers two edges (rows against the REST comments, resolution subjects against the
+   branch). Nine of the ten human findings after round 1 (F8-F17; F10 is the exception) are one
+   store disagreeing with another; the reviewer finds them by recomputing every store from source
+   on every round, which is the work item 9 proposes to give the author first.
 
 ## What We Learnt
 
@@ -250,8 +255,8 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
     it. Anchor a snapshot document with "current as of round N" so later rounds do not falsify it.
 12. Never quote a reviewer from memory; open the review by ID and copy the words, or do not use
     quotation marks.
-13. Hand-written counts in a review artifact are a liability, not a check: they are correct at the
-    keystroke and wrong at the next push. A count is useful only when a tool recomputes it at the
+13. Hand-written counts that move with the review are a liability, not a check: they are correct at
+    the keystroke and wrong at the next push. A count is useful only when a tool recomputes it at the
     head that ships and fails the push when it disagrees with the source.
 
 ## Improvements for Future Reviews
@@ -259,7 +264,8 @@ that later rebases rewrote; they resolve by URL, not from `develop` history.
 Ordered by expected return on cost, best first. Each entry states its owner artifact and
 disposition; substantial workflow changes are `PROPOSED` for maintainer decision, not applied here.
 Items 9 and 10 are written in enough detail to be turned into issue specs without re-deriving
-them from this PR; the maintainer has stated the intent to open those issues from this document.
+them from this PR; the maintainer stated the intent to open those issues from this document in the
+editor chat session, and no GitHub comment records it.
 
 ### 1. Re-ACK protocol for pure rebases — `PROPOSED`
 
@@ -320,7 +326,8 @@ Owner: `.github/skills/dev/git-workflow/open-pull-request/SKILL.md` checklist an
 Add a checklist item: for each config, command, Commit Point, and checklist line the spec
 prescribes, confirm the evidence either matches or records the deviation in Anomalies.
 
-- Pros: would have prevented F4, F5, F7 (three of nine findings) at the cost of a few minutes.
+- Pros: would have prevented F4, F5, F7 (three of the seventeen human findings) at the cost of a
+  few minutes.
 - Cons: a checklist item is only as good as its execution; it cannot be mechanically checked
   without structured specs.
 
@@ -350,10 +357,11 @@ round if the fix is insufficient. Or the opposite, but exactly one.
 
 Owner: `docs/pr-reviews/pr-2320-review/PR-REVIEW.md`.
 
-All fourteen findings normalized with dispositions, current-tree verification re-run at writing
-time, resolution references by commit subject, replies posted on the four Copilot threads that had
-none, and `validate-audit-record.py` passing (14 rows, 0 failures). The Processing Log states
-when the record was created relative to the threads.
+When first committed after round 4: fourteen findings normalized with dispositions, current-tree
+verification re-run at writing time, resolution references by commit subject, replies posted on
+the four Copilot threads that had none, and `validate-audit-record.py` passing (14 rows, 0
+failures). The record has been extended each round since; its Processing Log states when it was
+created relative to the threads and tracks later rounds.
 
 - Pros: the continuous-improvement purpose of the audit is served; the folder matches the README
   convention; the retrospective no longer contradicts it.
@@ -382,14 +390,15 @@ the repository's tooling-language policy.
 
 **Problem it solves.** Review processing keeps state in five places that must agree at the head
 that ships: GitHub threads, the working tree, the commits on the branch, the audit record, and
-(when present) the retrospective. Every human finding in this PR after round 1 — F5 through F17,
-thirteen findings — is a disagreement between two of those stores. The existing validator checks
-audit rows against the REST comments that back them and stops there; the reviewer said so
-explicitly in F13 ("nothing in it compares the row set against the thread set, so a record can
-omit an open finding and still report `failures: 0`"). The maintainer's diagnosis is the same:
-when the author remembers to reply, the audit is not updated; when the audit is updated after a
-rebase, a reply or a resolution is left pending. Human memory is the reconciler today, and it lost
-sync on every round.
+(when present) the retrospective. Nine of the ten human findings in this PR after round 1 (F8-F17;
+F10 is the exception) are a disagreement between two of those stores. The existing validator
+checks audit rows against the REST comments that back them, resolution subjects against the
+branch, severities against their source brackets, and the Processing Log's order; the reviewer
+named what it lacks in F13 ("nothing in it compares the row set against the thread set, so a
+record can omit an open finding and still report `failures: 0`"). The maintainer's diagnosis,
+given in the editor chat session and not in any GitHub comment, is the same: when the author
+remembers to reply, the audit is not updated; when the audit is updated after a rebase, a reply or
+a resolution is left pending. Human memory is the reconciler today, and it lost sync repeatedly.
 
 **Contract.** Given a PR number, a base ref and the audit record path, fetch threads and reviews
 through GraphQL (the authoritative source for thread identity and resolution state) and report
@@ -402,7 +411,7 @@ the following, each as a computed count with the offending identifiers listed wh
 | `Thread state` equals GitHub `isResolved` (`RESOLVED`/`SUPERSEDED` vs resolved; `OPEN` vs unresolved) | Findings table | `reviewThreads` | yes |
 | Every resolved thread has an author reply posted on that thread, and the row cites exactly that reply URL | `reviewThreads.comments` | detail entry `Reply URL` | yes |
 | Every `FIXED` row's `Resolution reference` is a commit subject on `<base>..HEAD` | detail entry | `git log` | yes (existing) |
-| Every `FIXED` row's fix commit author date precedes its reply timestamp | `git log --format=%aI` | reply `createdAt` | warn (this PR replied one minute before committing in round 7) |
+| Every `FIXED` row's fix commit author date precedes its reply timestamp | `git log --format=%aI` | reply `createdAt` | warn (the replies processing round 7 were posted 89-96 s before the commit they cite) |
 | Every human review with a non-empty body has a Processing Log entry whose stamp equals `submittedAt` to the minute | `reviews` | Processing Log | yes |
 | Processing Log is chronological and every stamp is at or before the event it records, where the event has a source timestamp | Processing Log | `reviews`, `git log`, `createdAt` | yes (order exists; stamp-vs-event is new) |
 | Severity in the row equals the `[Severity]` bracket of the source comment | Findings table | comment body | yes (existing) |
@@ -417,13 +426,14 @@ tool's own output is pasted under it, so the numbers in the merged artifact are 
 the author's.
 
 **Evidence that each check would have fired in this PR.** Row set vs thread set: F13 (16 threads,
-14 rows), F13 re-raise (20 threads, 16 rows). Thread state vs `isResolved`: the round-2 body noted
-nine threads unresolved with replies while the author believed them handled. Reply on resolved
-thread: the four Copilot threads (resolved 13:3x, replied 18:27). Review in log: F14 (round 5 at
-18:26 missing), F14 re-raise (round 6 at 19:46 missing). Stamp vs event: F11 (18:16 vs 18:08),
-F14 (18:18 "posted now" vs 18:27). Branch ids: F1, F2, F9. Retrospective staleness: F12, F15.
-New-round gate: rounds 6 and 7 (the 20:12 push shipped over a 19:46 review). F16 and F17 are the
-only two the tool would not catch; both are prose.
+14 rows), F13 re-raise (20 threads, 16 rows). Thread state vs `isResolved`: the round-4 body
+recorded F1-F9 unresolved with one reply each. Reply on resolved thread: the four Copilot threads
+(round 1 at 15:16 records all four resolved; replied 18:27). Review in log: F14 (round 5 at 18:26
+missing), F14 re-raise (round 6 at 19:46 missing). Stamp vs event: F11 (18:16 vs 18:08), F14
+(18:18 "posted now" vs 18:27). Branch ids: F2, F9. Retrospective staleness: F15. New-round gate:
+once, the 20:12 push over round 6 (19:46). Within F5-F17 the tool would not catch F5 (commit
+order against the spec's Commit Points), F6, F7, F8 ("same code state" against a git diff), F10,
+F12 (the commit count, which no check computes), F16 and F17 (prose).
 
 - Pros: makes the five stores mechanically consistent at every push; turns the reviewer's
   "recomputed from the bytes" method into something the author runs first; removes the incentive
@@ -502,8 +512,9 @@ and the reconciler checks; a retrospective is otherwise a snapshot and is not re
   code states plus load-test runs on a machine that cannot run the container build; the
   microbenchmark already resolves the change. Recorded as a possible follow-up in the evidence.
 - **Hand-maintained counters in the audit and retrospective** ("21 threads, 21 rows, 0 pending")
-  as the check-before-reply the maintainer asked about. Considered and rejected as a standalone
-  measure: every hand-written count in this PR was wrong within one round (F12, F15, F17), and
+  as the check-before-reply the maintainer asked about in the editor chat session (no GitHub
+  comment records it). Considered and rejected as a standalone measure: the hand-written counts
+  that moved with the review were wrong within one round (F12, F15), and
   #2271 lesson 3 already says counts and universals rot. Counters help only as the *output* of item
   9, recomputed at the head that ships; as inputs typed by the author they add another store to
   keep in sync.
@@ -523,20 +534,21 @@ and the reconciler checks; a retrospective is otherwise a snapshot and is not re
 - Do not relax GPG-signed maintainer merges to solve the rebase loop. Items 1 and 2 keep them.
 - Do not treat the after-the-fact audit record as equivalent to one kept during the review; the
   Processing Log says when it was written, and that is enough.
-- Do not add hand-written counter fields to the templates in response to F12, F15 and F17. The
+- Do not add hand-written counter fields to the templates in response to F12 and F15. The
   reconciler (item 9) computes them; a typed counter is one more value to drift.
 - Do not make the reconciler check prose. `Current-tree verification` sentences and quotations
-  (F16) stay a human responsibility; lessons 1, 10 and 12 cover them.
+  (F16) stay a human responsibility; lessons 8, 10 and 12 cover them.
 
 ## Evidence
 
-- Audit record: `docs/pr-reviews/pr-2320-review/PR-REVIEW.md` (created after round 4;
-  `validate-audit-record.py --pr-number 2320 --base torrust/develop` reports 14 rows, 0 failures).
+- Audit record: `docs/pr-reviews/pr-2320-review/PR-REVIEW.md` (first committed after round 4 with
+  14 rows; each later round is checked with
+  `validate-audit-record.py --pr-number 2320 --base torrust/develop`).
 - Pull request: <https://github.com/torrust/torrust-tracker/pull/2320>
 - Review rounds: Copilot 13:09:22 UTC; human 15:16:12 UTC (`CHANGES_REQUESTED`), 16:00:09 UTC
-  (`APPROVED`), 17:24:16 UTC (`CHANGES_REQUESTED`), 18:02:41 UTC (`CHANGES_REQUESTED`), all
-  2026-09-23, from the `reviews` GraphQL connection.
-- Findings: 4 Copilot threads plus F1-F10 from the `reviewThreads` GraphQL connection; severities
+  (`APPROVED`), 17:24:16 UTC, 18:02:41 UTC, 18:26:03 UTC, 19:46:44 UTC and 20:24:38 UTC (all
+  `CHANGES_REQUESTED`), all 2026-09-23, from the `reviews` GraphQL connection.
+- Findings: 4 Copilot threads plus F1-F17 from the `reviewThreads` GraphQL connection; severities
   from each thread's first comment.
 - Branch commits: `git log --format='%h %aI %cI %s' torrust/develop..HEAD`; the 17:08 UTC
   committer date on the first seven commits is the round-3 rebase.
