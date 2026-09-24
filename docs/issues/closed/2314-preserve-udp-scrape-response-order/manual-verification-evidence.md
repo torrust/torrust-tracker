@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
-last-updated-utc: "2026-09-23 12:45"
+issue-spec: docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
+last-updated-utc: "2026-09-24 06:50"
 ---
 
 # Manual Verification Evidence

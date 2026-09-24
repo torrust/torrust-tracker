@@ -2,11 +2,11 @@
 doc-type: benchmark-report
 parent-issue: 2314
 status: complete
-last-updated-utc: "2026-09-23 12:05"
+last-updated-utc: "2026-09-24 06:50"
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/manual-verification-evidence.md
+    - docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
+    - docs/issues/closed/2314-preserve-udp-scrape-response-order/manual-verification-evidence.md
     - docs/benchmarking.md
     - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
 ---

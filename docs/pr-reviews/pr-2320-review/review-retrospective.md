@@ -5,7 +5,7 @@ semantic-links:
     - open-pull-request
     - fix-bug
   related-artifacts:
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
+      - docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
     - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
     - docs/templates/PR-REVIEW-RETROSPECTIVE.md
     - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md

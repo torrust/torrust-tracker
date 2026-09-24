@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: open
+status: done
 priority: p0
 epic: null
 github-issue: 2314
-spec-path: docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
+spec-path: docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
 branch: "2314-preserve-udp-scrape-response-order"
-related-pr: 2315
-last-updated-utc: "2026-09-23 11:10"
+related-pr: 2320
+last-updated-utc: "2026-09-24 06:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,8 +19,8 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/manual-verification-evidence.md
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/scrape-benchmark-evidence.md
+    - docs/issues/closed/2314-preserve-udp-scrape-response-order/manual-verification-evidence.md
+    - docs/issues/closed/2314-preserve-udp-scrape-response-order/scrape-benchmark-evidence.md
     - packages/primitives/src/scrape.rs
     - packages/tracker-core/src/scrape_handler.rs
     - packages/udp-core/src/services/scrape.rs
@@ -387,11 +387,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md`
 - [x] Local UDP artifact reproduction recorded in `manual-verification-evidence.md` (V1)
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Source-level hypothesis reviewed with the selected implementation agent
 - [x] Red regression tests recorded
 - [x] Scrape microbenchmark added and pre-fix baseline recorded (P0, P1)
@@ -406,7 +406,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -460,6 +460,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `cargo +nightly fmt --all -- --check` passed. Re-reviewed AC1-AC7 against the recorded
   evidence. No additional retrospective is needed because the approved Option 1 positional
   adapter repair remained the causal seam without further design discovery.
+- 2026-09-24 06:50 UTC - GitHub Copilot - PR #2320 merged and GitHub issue #2314 closed. Archived
+  this completed specification folder under `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

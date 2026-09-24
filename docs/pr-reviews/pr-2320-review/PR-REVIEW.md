@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/pr-reviews/pr-2320-review/review-retrospective.md
-    - docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
+    - docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
