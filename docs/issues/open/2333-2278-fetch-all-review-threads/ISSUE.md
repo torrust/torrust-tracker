@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2278
-github-issue: null
-spec-path: docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md
-branch: "{issue-number}-2278-fetch-all-review-threads"
+github-issue: 2333
+spec-path: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
+branch: "2333-2278-fetch-all-review-threads-spec"
 related-pr: null
-last-updated-utc: "2026-09-24 08:01"
+last-updated-utc: "2026-09-24 16:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,11 +23,12 @@ semantic-links:
     - docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
     - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - contrib/dev-tools/github/github-review-threads/Cargo.toml
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Fetch All Pull Request Review Threads
+# Issue #2333 - Fetch All Pull Request Review Threads
 
 **Parent EPIC:** #2278 - Strengthen PR Review Author Self-Audit and Evidence Generation
 
@@ -45,13 +46,26 @@ actions.
 
 `process-pr-review` already requires the GraphQL thread source of truth to include resolved and
 outdated threads, because re-raise detection and the self-audit compare a new comment with what was
-resolved before. The `fetch-review-threads` helper still describes and filters to unresolved
-threads, and its GraphQL query omits `resolvedBy` and `line`, so that evidence is hidden from the
-author (F17, F32) and cheap resolver evidence is never captured (F18).
+resolved before. The `fetch-review-threads` skill still describes and filters to unresolved
+threads, the `github-review-threads` `list` and `show` subcommands return unresolved threads only,
+and the tool's GraphQL query omits `resolvedBy` and `line`, so that evidence is hidden from the
+author (F17, F32) and cheap resolver evidence is never captured (F18). The skill's inline `gh api
+graphql` fallback query has also drifted from the tool's query: it reads `path` from comments and
+omits `url`, `createdAt`, and `isCollapsed`.
 
-Subissue 3 ports the helper to a tested Rust tool with parity. This subissue changes the tool's
+Subissue 3 (#2318, merged in PR #2322) ported the helper to the tested Rust crate
+`contrib/dev-tools/github/github-review-threads` with data parity. This subissue changes the tool's
 behavior with fixture tests and updates the skill contract; it does not touch the bulk-resolve
 action guard, which is correctly unresolved-only.
+
+This subissue inherits the output shape #2318 recorded as deliberate deviations from the retired
+scripts, and does not reopen it:
+
+- `list` and `show` emit one JSON object with a `threads` array on stdout (`stdout-result-data`).
+- `reply-status --login` is required; a missing reply exits `1` with empty stdout and a
+  `missing_reply` stderr record carrying `threads` and `summary`.
+- `--help` and usage errors are JSON `usage_error` records on stderr with exit code `2`; the TTY
+  check runs first.
 
 ## Scope
 
@@ -69,6 +83,8 @@ action guard, which is correctly unresolved-only.
 - Rewrite the `fetch-review-threads` skill so it describes evidence collection over all threads,
   names `resolvedBy` and `line` as self-audit evidence, and reserves unresolved-only filtering for
   reply or resolution actions; update the completion checklist accordingly.
+- Align the skill's inline `gh api graphql` fallback query with the tool's query, including the new
+  fields, so both evidence paths return the same data.
 - Perform a real GitHub capture from a pull request with at least one resolved and one outdated
   thread and record it in issue-local manual verification evidence.
 - Update the parent EPIC's subissue table and AC2 evidence.
@@ -90,8 +106,14 @@ action guard, which is correctly unresolved-only.
 
 ## Design and Ownership Review
 
-Not applicable. The trait seam, process ownership, and failure paths are defined by subissue 3;
-this issue adds fields to the query and projection functions only.
+Not applicable. The `ThreadSource` trait seam, process ownership, and failure paths are defined by
+subissue 3; this issue adds fields to the query, the response model, and the projection functions
+only, and adds one flag to `list` and `show`.
+
+No new script, crate, or binary is created. The change extends the existing
+`github-review-threads` crate in place and does not move it into another crate or a unified
+AI-harness binary; that placement remains an EPIC #2003 decision, and the crate's library/binary
+split keeps it absorbable by whatever #2003 selects.
 
 ## Bug-Fix Process
 
@@ -111,7 +133,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | TODO | Extend the query and projections | `resolvedBy` and `line` captured; `list` and `show` return all threads with `--unresolved-only`. |
 | T2 | TODO | Add behavior fixture tests | Resolved, outdated, resolved-by, null resolver/line, and flag cases pass; `reply-status` unchanged. |
-| T3 | TODO | Rewrite the skill contract | `fetch-review-threads` states the all-thread evidence rule and the action-only filter. |
+| T3 | TODO | Rewrite the skill contract | `fetch-review-threads` states the all-thread evidence rule and the action-only filter; its fallback query matches the tool's. |
 | T4 | TODO | Verify and record completion evidence | Manual capture, automatic checks, acceptance review, parent EPIC row and AC2 updated. |
 
 ## Commit Points
@@ -131,8 +153,8 @@ the projection call is visible, and each expected field is asserted independentl
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
@@ -148,10 +170,12 @@ the projection call is visible, and each expected field is asserted independentl
 
 - 2026-09-23 10:15 UTC - GitHub Copilot - Drafted from the approved #2278 matrix entries F17, F18, and F32 as a change to the Bash scripts; local inspection confirmed that `process-pr-review` requires all threads while the helper's display scripts filter `isResolved == false`.
 - 2026-09-23 12:10 UTC - GitHub Copilot - Maintainer chose Rust for the helper; redrafted on top of the parity port in subissue 3 and renumbered as subissue 4. Awaiting maintainer review.
+- 2026-09-24 15:08 UTC - GitHub Copilot - Refreshed after #2318 merged (PR #2322): Background now names the delivered `github-review-threads` crate and the output-shape deviations this issue inherits; scope adds aligning the skill's drifted inline fallback query. The 2026-09-23 approval predates the #2318 implementation, so re-approval is requested before GitHub issue creation.
+- 2026-09-24 16:07 UTC - GitHub Copilot - Maintainer re-approved the refreshed specification, including the note that the change extends the existing crate rather than a new or unified binary. Created GitHub issue #2333, linked it as a sub-issue of #2278, and moved this specification to `docs/issues/open/`. Spec-only PR pending.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The `fetch-review-threads` skill states that evidence collection includes resolved and outdated threads and reserves unresolved-only filtering for reply or resolution actions.
+- [ ] AC1: The `fetch-review-threads` skill states that evidence collection includes resolved and outdated threads and reserves unresolved-only filtering for reply or resolution actions; its inline fallback query requests the same fields as the tool.
 - [ ] AC2: The GraphQL query records `isResolved`, `isOutdated`, `resolvedBy`, `path`, and `line` for every returned thread, and the JSON file remains a superset accepted by `resolve-all-unresolved-threads.sh`.
 - [ ] AC3: Default `list` and `show` output includes resolved, unresolved, and outdated threads; `--unresolved-only` excludes resolved ones.
 - [ ] AC4: `reply-status` still evaluates unresolved threads only.
@@ -166,7 +190,8 @@ the projection call is visible, and each expected field is asserted independentl
 
 ### Automatic Checks
 
-- `cargo test --package <crate>` and `cargo clippy --package <crate> -- -D warnings`
+- `cargo test --package github-review-threads` and
+  `cargo clippy --package github-review-threads --all-targets -- -D warnings`
 - `linter all`
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`
 - Pre-push checks before opening the implementation pull request.
@@ -218,5 +243,6 @@ planned.
 
 - Parent EPIC: #2278; grandparent EPIC: #2003.
 - Decision input: `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md` (F17, F18, F32).
-- Prerequisite: #2318, `docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md`.
+- Prerequisite: #2318 (merged in PR #2322), `docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md`.
+- Tool: `contrib/dev-tools/github/github-review-threads/`.
 - Consuming workflow: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`.
