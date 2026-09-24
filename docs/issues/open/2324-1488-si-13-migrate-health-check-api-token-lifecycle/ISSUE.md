@@ -7,9 +7,9 @@ priority: p1
 epic: 1488
 github-issue: 2324
 spec-path: docs/issues/open/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
-branch: "2324-1488-si-13-migrate-health-check-api-token-lifecycle-spec"
+branch: "2324-1488-si-13-migrate-health-check-api-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-23 18:15"
+last-updated-utc: "2026-09-24 00:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -103,6 +103,26 @@ reports completion.
 6. A cancellation race or unexpected server completion returns an explicit
    outcome; it must not panic or silently drop a drain-controller task.
 
+## Implementation Decisions
+
+Maintainer decisions recorded before implementation (2026-09-24):
+
+1. **Package-owned token-aware start**: add
+   `server::start_with_cancellation` in `axum-health-check-api-server`. Like
+   the REST API, it binds, serves, registers the service, emits the existing
+   startup logs (same target and messages, including `STARTED_ON`), and rolls
+   back (cancel and join children, release the listener) when registration
+   fails. The bootstrap job only supervises the returned children.
+2. **Drain timeout**: a package constant of 5 seconds for the token-aware
+   drain. Health-check requests are short-lived probe fan-outs, and the value
+   stays inside the current 10-second `JobManager` deadline in `main()`. SI-20
+   owns configurable budgets.
+3. **Component supervisor**: a local supervisor in
+   `src/bootstrap/jobs/health_check_api.rs`, consistent with SI-11 and SI-12.
+   Consolidating the three copies is deferred to the legacy-removal phase.
+4. **Legacy owner type**: keep `NestedServerTask::with_shutdown_controller`
+   until SI-19 so the rollback story remains a call-site revert.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -186,7 +206,7 @@ compatibility policy.
 - [x] Draft expanded with implementation, verification, and completion-review controls.
 - [x] Draft reviewed and approved by user/maintainer.
 - [x] GitHub issue #2324 created and issue number added to this specification.
-- [ ] Spec-only PR merged into `develop` before implementation.
+- [x] Spec-only PR #2326 merged into `develop` before implementation.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -206,6 +226,10 @@ compatibility policy.
   Created GitHub issue #2324 and promoted this specification to its numbered
   open-issue folder. The next workflow step is a spec-only pull request before
   implementation.
+- 2026-09-24 UTC - GitHub Copilot - Spec-only PR #2326 merged into `develop`.
+  Created the implementation branch from the merge result. Maintainer answered
+  pre-implementation questions; decisions are recorded in
+  [Implementation Decisions](#implementation-decisions).
 
 ## Verification Plan
 
