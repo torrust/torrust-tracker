@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command-spec"
 related-pr: null
-last-updated-utc: "2026-09-24 16:01"
+last-updated-utc: "2026-09-24 16:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,8 +85,10 @@ five open specs. Most repository specs are therefore legacy records.
 - Fixture, mutation, and manual portability evidence for the command boundary.
 - Documentation of the command, its temporary integration point, and how it can move into the
   architecture later selected by #2003.
-- Fixing genuine errors the first `--all` run reports in current draft/open v1 specs, in separate
-  commits.
+- Fixing genuine errors the first `--all` run reports in the existing draft/open v1 specs, in
+  separate commits.
+- Migrating any legacy draft/open spec that the implementation PR itself modifies, such as the
+  parent EPIC #2264, because the new pre-commit step rejects it (D10).
 
 ### Out of Scope
 
@@ -97,8 +99,10 @@ five open specs. Most repository specs are therefore legacy records.
 - New frontmatter fields, profiles, or semantic-link forms. Extending strict profiles to ADRs,
   skills, agents, and evidence records is EPIC #2264 row 3.
 - Existence or skill-resolution checks for legacy, unknown, or externally governed documents.
-- Migrating or rewriting legacy documents to remove warnings. Historical records are never rewritten
-  solely to silence advisory diagnostics.
+- Bulk migration of legacy draft/open specs. Under D10 each one migrates when its next change is
+  committed.
+- Rewriting closed or other historical records to remove warnings. Historical records are never
+  rewritten solely to silence advisory diagnostics.
 - Auto-fixing or formatting frontmatter.
 - Validating ordinary Markdown links, which remain Lychee's responsibility.
 
@@ -152,19 +156,35 @@ Maintainer decisions recorded on 2026-09-24, before implementation:
   - Strict v1 records under `docs/issues/closed/`: the same failures are `warning`s (advisory).
   - Strict v1 records elsewhere: structural failures are `error`s; the location check in D7 does
     not apply.
-  - Warning kinds from the contract: `legacy-shape` for a draft/open document whose `doc-type` is
-    `issue` or `epic` but lacks `schema-version: 1`; advisory closed-spec incompatibility; and
-    `experimental-field` for each `x-` field in a strict profile.
+  - `legacy-shape` is an `error` for a draft/open document whose `doc-type` is `issue` or `epic`
+    but lacks `schema-version: 1` (D10).
+  - Warning kinds: advisory closed-spec incompatibility, and `experimental-field` for each `x-`
+    field in a strict profile.
   - Exit `0` when there are no errors, even if warnings were emitted; `1` for any validation error
     or runtime failure (git, I/O); `2` for invalid invocation.
 - **D9 - Diagnostic record.** Add `severity` and an optional `field_path` to the library
   `Diagnostic`. The binary renders each diagnostic as one NDJSON line on stderr with `kind`,
   `path`, `severity`, kebab-case `category`, optional `field_path`, and `message`. Stdout stays
   empty in every mode, including help, usage errors, and runtime failures.
+- **D10 - Progressive migration.** New issues are strict from the start, because the templates
+  already produce `schema-version: 1` records. This issue does not migrate the existing legacy
+  draft/open specs (50 primary `ISSUE.md`/`EPIC.md` files on 2026-09-24). Instead, `legacy-shape`
+  is an error, so the pre-commit `--staged` step rejects a commit that changes a legacy draft/open
+  spec until its author migrates the frontmatter to v1. After this issue merges, contributors
+  whose branches edit such a spec will see this error on their next commit after rebasing onto
+  `develop`; the maintainer accepts that. Commits that do not stage a legacy spec are unaffected.
+  Archiving a spec into `docs/issues/closed/` stages it at the closed location, where only advisory
+  warnings apply, so archival never requires migration.
+
+  This deliberately tightens the approved
+  [v1 contract](../../closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md),
+  which classifies the legacy shape as a warning. The closed contract stays unchanged as the
+  historical record; this decision supersedes that one table row. The convention-split subissue
+  (EPIC #2264 row 4) carries the rule into the owned convention documents.
 - Related ADRs: [`docs/adrs/20260519000000_define_global_cli_output_contract.md`](../../../adrs/20260519000000_define_global_cli_output_contract.md).
   Register `frontmatter-validator` as `no-stdout-result` in that ADR's binary classification table.
 - ADRs to create: none expected. The temporary placement is already approved early work under
-  #2003. Create an ADR only if implementation needs a durable, repository-wide choice beyond D1-D9.
+  #2003. Create an ADR only if implementation needs a durable, repository-wide choice beyond D1-D10.
 
 ## Design and Ownership Review
 
@@ -211,9 +231,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | TODO | Extend the diagnostic vocabulary | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. |
 | T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
-| T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, `legacy-shape`, closed-spec advisory, and `experimental-field` warnings. |
+| T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
-| T6 | TODO | Run a whole-tree baseline and triage findings | Run `--all` on `develop`. Fix genuine draft/open v1 errors in separate `docs(issues)` commits. Record the warning counts, and do not rewrite legacy records. |
+| T6 | TODO | Run a whole-tree baseline and triage findings | Run `--all` on `develop`. Fix genuine errors in existing v1 draft/open specs in separate `docs(issues)` commits. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy specs (D10); migrate only the ones this PR modifies, such as EPIC #2264. |
 | T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, register the binary in the CLI output ADR table, and add usage and relocation notes to the crate. |
 | T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
@@ -226,7 +246,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | Discovery, `--staged`, `--all`, ownership dispatch, exclusions | Commit after TempDir git-repository tests. |
 | T4 | Severity policy and warning kinds | Commit after focused accepted/rejected cases per location. |
 | T5 | Repository-aware checks and resolvers | Commit after index and working-tree resolver tests. |
-| T6 | Each genuine current-tree spec fix | One `docs(issues)` commit per coherent fix; no commit if the baseline is clean. |
+| T6 | Each genuine current-tree spec fix, and each legacy spec migration this PR requires | One `docs(issues)` commit per coherent fix or migration; no commit if none is needed. |
 | T7 | Pre-commit step and documentation | Commit after the full pre-commit gate passes with the new step. |
 | T8 | Mutation and manual evidence, review records | Commit after full quality gate and review. |
 
@@ -259,6 +279,11 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - 2026-09-24 16:01 UTC - GitHub Copilot - Confirmed #2281 as the only open native sub-issue of
   #2264 and created this local specification from the GitHub issue body. Recorded maintainer
   decisions D1-D9 and added the missing #2281 row to the parent EPIC - This specification
+- 2026-09-24 16:20 UTC - Jose Celano - Chose progressive migration: new issues are strict, legacy
+  draft/open specs are not bulk-migrated, and `legacy-shape` becomes an error. Contributors
+  therefore migrate a legacy spec when they next commit a change to it, including after rebasing
+  onto `develop`. Recorded as D10, which tightens the #2265 contract's legacy-shape warning -
+  User conversation
 
 ## Acceptance Criteria
 
@@ -269,8 +294,8 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
       `category`, `field_path` when applicable, and an actionable `message`.
 - [ ] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
       runtime failure, and `2` for invalid invocation.
-- [ ] AC4: Severity follows D8, including the `legacy-shape`, closed-spec advisory, and
-      `experimental-field` warnings.
+- [ ] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open specs, and
+      closed-spec incompatibility and `experimental-field` are warnings.
 - [ ] AC5: Strict v1 records are checked for status/location, `spec-path`, related-artifact path
       existence, and skill resolution per D7. `--staged` resolves against the index.
 - [ ] AC6: Ownership dispatch (D5) and exclusions (D6) are applied in every mode.
@@ -280,7 +305,8 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
       allowed-value, reference, lifecycle, and path failures within the command boundary.
 - [ ] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
       without network access, including no-stdout behavior.
-- [ ] AC10: `--all` exits `0` on the implementation branch, with its warning counts recorded.
+- [ ] AC10: On the implementation branch, `--all` reports no errors other than `legacy-shape` for
+      the legacy draft/open specs not yet migrated. The error and warning counts are recorded.
 - [ ] AC11: The command, its temporary integration point, and its relocation path under #2003 are
       documented, and the CLI output ADR classifies the binary.
 - [ ] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
@@ -302,11 +328,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Focused validation passes | Run the command on this spec and on an open-spec directory. | Exit `0`, empty stdout, only expected warnings on stderr. | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `0`; warning counts recorded. | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | Pre-commit step | Run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid spec in a disposable worktree, then with it fixed. | The named step fails, then passes. | TODO | `manual-verification-evidence.md` section V5 |
+| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors; error and warning counts recorded. | TODO | `manual-verification-evidence.md` section V4 |
+| M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | TODO | `manual-verification-evidence.md` section V5 |
 | M6 | Invalid invocation | Run with no arguments, with `--staged --all`, with a nonexistent path, and with `--help`. | Exit `2`, `2`, `2`, `0`; stdout empty; one NDJSON record each. | TODO | `manual-verification-evidence.md` section V6 |
 | M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | TODO | `manual-verification-evidence.md` section V7 |
 
@@ -333,9 +359,15 @@ and are removed after use; the real repository index is never used for failing s
 
 - **Pre-commit latency.** `cargo run` compiles the binary on the first run. Mitigation: the crate
   is small and already built by workspace checks; `--staged` validates only staged Markdown.
-- **Warning noise.** Hundreds of legacy specs may emit `legacy-shape` warnings under `--all`.
-  Mitigation: warnings never fail the command, and `--staged` only reports on files being changed.
-  If the noise proves harmful, revisit it in the EPIC rather than rewriting historical records.
+- **Legacy specs block commits after rebase.** Contributors editing one of the 50 legacy draft/open
+  specs get a `legacy-shape` error on their next commit after this issue merges. The maintainer
+  accepts this as the migration trigger (D10). Mitigation: the error message names the file and
+  points to `docs/templates/ISSUE.md` or `docs/templates/EPIC.md` for the v1 shape.
+- **`--all` is not a clean pass/fail signal yet.** It exits `1` until every legacy draft/open spec
+  is migrated. Mitigation: `--all` is manual only, and the pre-commit gate uses `--staged`.
+- **Warning noise.** Closed specs may emit many advisory warnings under `--all`. Mitigation:
+  warnings never fail the command, and `--staged` only reports on files being changed. If the noise
+  proves harmful, revisit it in the EPIC rather than rewriting historical records.
 - **Existence checks can block unrelated commits.** Renaming a file referenced by a staged v1 spec
   could fail the hook. Mitigation: the checks apply only to strict v1 records in drafts/open, and
   the diagnostic names the missing path.
