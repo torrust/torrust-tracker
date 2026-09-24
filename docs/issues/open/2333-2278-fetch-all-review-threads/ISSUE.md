@@ -9,7 +9,7 @@ github-issue: 2333
 spec-path: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
 branch: "2333-2278-fetch-all-review-threads"
 related-pr: null
-last-updated-utc: "2026-09-24 17:28"
+last-updated-utc: "2026-09-24 18:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,7 +133,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Extend the query and projections | `resolvedBy` and `line` captured; `list` and `show` return all threads with `--unresolved-only`. |
 | T2 | DONE | Add behavior fixture tests | Resolved, outdated, resolved-by, null resolver/line, and flag cases pass; `reply-status` unchanged. |
-| T3 | TODO | Rewrite the skill contract | `fetch-review-threads` states the all-thread evidence rule and the action-only filter; its fallback query matches the tool's. |
+| T3 | DONE | Rewrite the skill contract | `fetch-review-threads` states the all-thread evidence rule and the action-only filter; its fallback query matches the tool's. |
 | T4 | TODO | Verify and record completion evidence | Manual capture, automatic checks, acceptance review, parent EPIC row and AC2 updated. |
 
 ## Commit Points
@@ -174,6 +174,7 @@ the projection call is visible, and each expected field is asserted independentl
 - 2026-09-24 16:07 UTC - GitHub Copilot - Maintainer re-approved the refreshed specification, including the note that the change extends the existing crate rather than a new or unified binary. Created GitHub issue #2333, linked it as a sub-issue of #2278, and moved this specification to `docs/issues/open/`. Spec-only PR pending.
 - 2026-09-24 17:12 UTC - GitHub Copilot - Spec-only PR #2334 merged as `a39935ca`; implementation started on the reserved `2333-2278-fetch-all-review-threads` branch.
 - 2026-09-24 17:28 UTC - GitHub Copilot - T1 and T2 done. The query requests each thread's `line` and `resolvedBy { login }`; `list` and `show` take a `ThreadSelection` (`All` by default, `UnresolvedOnly` through `--unresolved-only`) and emit `isResolved`, `resolvedBy`, and `line` as additive fields; `reply-status` still filters to unresolved threads. The retired-script fixture `tests/fixtures/review-threads.json` stays unchanged because its README pins it to the parity captures; it now also proves that files fetched before this change still parse, with `resolvedBy` and `line` as null. A new `tests/fixtures/thread-states.json` names each thread for its state (resolved by a login, resolved and outdated, resolved without a resolver, unresolved current, unresolved outdated with a null line). The CLI parity tests compare the retired-script fields under `--unresolved-only`, and new CLI tests show that `list` and `show` include a resolved thread by default. Prose-first review: each test's Arrange names the thread state or selection that changes the result, the production `list`/`show`/`reply_status` call stays visible in Act, and assertions check one field or result each; no temporary prose was kept. Proof that the tests guard the change: temporarily reverting `ThreadSelection::includes` to the unresolved-only filter in the working tree failed 5 of 13 unit tests; the filter was then restored. Evidence (stable Rust 1.98.1): `cargo test --package github-review-threads` passes 13 unit and 7 CLI tests; `cargo clippy --package github-review-threads --all-targets -- -D warnings` is clean; `cargo +nightly fmt --all -- --check` is clean. Real-query check ahead of the T4 manual capture: `fetch --pr-number 2322` returned 13 resolved threads, all resolved by `josecelano`, 8 of them outdated with `line: null`.
+- 2026-09-24 18:13 UTC - GitHub Copilot - T3 done. The `fetch-review-threads` skill (version 1.1) now: collects every thread as evidence; names `resolvedBy`, `path`, and `line` as self-audit evidence, with nulls recorded as unknown; limits unresolved-only filtering to reply or resolution actions, through `--unresolved-only` or the unchanged `reply-status`; and rewrites the completion checklist to match. The skill had listed `canResolve`, which neither query requests, so it was dropped from the collected fields. The inline `gh api graphql` fallback now carries the tool's query. A whitespace-insensitive `diff` of the two query texts is empty. Run against PR #2322, the fallback query returned the same 13 threads, resolver set (`josecelano`), and 8 null lines as the tool. The only live caller of `list` or `show` is this skill; `resolve-review-threads` uses `reply-status` and the raw file, both unchanged.
 
 ## Acceptance Criteria
 
