@@ -31,6 +31,7 @@ maintainer approves it.
 | 7 | [handlers-announce-tests.md](handlers-announce-tests.md) | DONE | 2 terminology corrections and 2 tests added; unit-only 97.63% → 99.78% lines |
 | 8 | [handlers-scrape-tests.md](handlers-scrape-tests.md) | DONE | 3 test cleanups and 1 test added; unit-only 99.38% → 99.72% lines; post-#2320 fixture refactor and 3 more tests |
 | 9 | [handlers-error-tests.md](handlers-error-tests.md) | DONE | 3 tests refactored, 2 classifier tests added; unit-only 87.08% → 100.00% lines |
+| 10 | [server-mod-tests.md](server-mod-tests.md) | DONE | 1 Tokio-owned test deleted; unit-only 99.44% → 99.28% lines (smaller denominator) |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
