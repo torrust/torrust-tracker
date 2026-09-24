@@ -1,0 +1,85 @@
+{
+    "data": {
+        "repository": {
+            "pullRequest": {
+                "reviewThreads": {
+                    "nodes": [
+                        {
+                            "id": "THREAD_RESOLVED_OUTDATED",
+                            "isResolved": true,
+                            "isOutdated": true,
+                            "path": "docs/example.md",
+                            "isCollapsed": false,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/42#discussion-1",
+                                        "body": "The original concern.",
+                                        "createdAt": "2026-09-23T00:00:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://example.test/pull/42#discussion-2",
+                                        "body": "The resolution reply.",
+                                        "createdAt": "2026-09-23T00:01:00Z",
+                                        "author": {
+                                            "login": "author"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_UNRESOLVED_CURRENT",
+                            "isResolved": false,
+                            "isOutdated": false,
+                            "path": "src/example.rs",
+                            "isCollapsed": false,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/42#discussion-3",
+                                        "body": "An unresolved current concern.",
+                                        "createdAt": "2026-09-23T00:02:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_UNRESOLVED_OUTDATED",
+                            "isResolved": false,
+                            "isOutdated": true,
+                            "path": "src/legacy.rs",
+                            "isCollapsed": true,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/42#discussion-4",
+                                        "body": "An unresolved outdated concern.",
+                                        "createdAt": "2026-09-23T00:03:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://example.test/pull/42#discussion-5",
+                                        "body": "An author reply without resolution.",
+                                        "createdAt": "2026-09-23T00:04:00Z",
+                                        "author": {
+                                            "login": "author"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

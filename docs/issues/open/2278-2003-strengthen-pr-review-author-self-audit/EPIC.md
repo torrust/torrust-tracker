@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-23 12:30"
+last-updated-utc: "2026-09-23 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,7 +150,7 @@ subissue specifications written before that date cite the earlier numbering (old
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2295 - Single-source the audit field roster and mark copied template sections | `docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md` | DONE | F58, F77, F63. Completed by merged PR #2300; GitHub issue closed. Unblocks 2, 5, and 8. |
 | 2 | #2308 - Reconcile skill and template rule contradictions | `docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md` | DONE | F60, F73, F76, F79, F80, F61, F62, F66. Completed by merged PR #2313; GitHub issue closed. Depends on 1. |
-| 3 | #2318 - Port the review-thread shell scripts to a Rust tool | `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md` | TODO | Parity port of the four `fetch-review-threads` scripts as a `contrib/dev-tools/` crate with fixture tests and `stdout-result-data` output contract; scripts removed. No dependencies. |
+| 3 | #2318 - Port the review-thread shell scripts to a Rust tool | `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md` | IN_PROGRESS | Parity port of the four `fetch-review-threads` scripts as a `contrib/dev-tools/` crate with fixture tests and `stdout-result-data` output contract; scripts removed. No dependencies. |
 | 4 | #[To be assigned] - Align `fetch-review-threads` with the author workflow | `docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md` | TODO | F17, F32, F18 on the Rust tool: all threads by default, `resolvedBy` and `line`, skill contract. Depends on 3. |
 | 5 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
 | 6 | #[To be assigned] - Make `agent-review-report-contract` state what it reads | `docs/issues/open/{number}-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
@@ -260,6 +260,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-23 11:00 UTC - GitHub Copilot - PR #2313 merged and automatically closed subissue #2308. Archived its completed specification under `docs/issues/closed/`; subissue 4 is unblocked.
 - 2026-09-23 12:10 UTC - GitHub Copilot - Maintainer chose Rust for the `fetch-review-threads` helper and approved splitting it into a parity port (new order 3) and the F17/F18/F32 change (order 4); orders 5-10 renumbered from 4-9, so the 11:00 entry's "subissue 4" is now order 5. Drafted both specs under `docs/issues/drafts/`; GitHub issues not yet created.
 - 2026-09-23 12:30 UTC - GitHub Copilot - Maintainer approved both drafts. Created and linked subissue #2318 (order 3) and moved its specification to `docs/issues/open/`; order 4 stays in `docs/issues/drafts/` until #2318 is under way. Spec-only PR pending.
+- 2026-09-23 13:02 UTC - GitHub Copilot - PR #2319 merged the #2318 specification. #2318 implementation began on its reserved branch; order 3 is `IN_PROGRESS`.
 
 ## Acceptance Criteria
 

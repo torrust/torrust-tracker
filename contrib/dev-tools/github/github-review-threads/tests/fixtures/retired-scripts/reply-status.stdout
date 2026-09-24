@@ -1,0 +1,13 @@
+{
+  "thread_id": "THREAD_UNRESOLVED_CURRENT",
+  "path": "src/example.rs",
+  "url": "https://example.test/pull/42#discussion-3",
+  "has_reply": false
+}
+{
+  "thread_id": "THREAD_UNRESOLVED_OUTDATED",
+  "path": "src/legacy.rs",
+  "url": "https://example.test/pull/42#discussion-4",
+  "has_reply": true
+}
+{"summary":true,"total":2,"with_reply":1,"without_reply":1}

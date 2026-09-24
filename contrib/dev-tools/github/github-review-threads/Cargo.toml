@@ -1,0 +1,20 @@
+[package]
+description = "Fetch pull-request review threads through the GitHub CLI."
+name = "github-review-threads"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[dependencies]
+clap = { version = "4", features = [ "derive" ] }
+serde = { version = "1", features = [ "derive" ] }
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"

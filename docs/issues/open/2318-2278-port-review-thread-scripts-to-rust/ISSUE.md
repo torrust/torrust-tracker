@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2278
 github-issue: 2318
 spec-path: docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
-branch: "2318-2278-port-review-thread-scripts-to-rust-spec"
-related-pr: null
-last-updated-utc: "2026-09-23 12:30"
+branch: "2318-2278-port-review-thread-scripts-to-rust"
+related-pr: 2322
+last-updated-utc: "2026-09-23 17:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -96,13 +96,28 @@ its own.
 
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`,
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`.
-- Placement: a non-published workspace crate under `contrib/dev-tools/github/` (proposed
-  directory for GitHub API tools; it is not a repository check, so not under `checks/`). This
-  follows the `clippy-allow-reasons` and `frontmatter-validator` precedent and does not anticipate
-  the #2266 or #2003 placement decisions for check crates.
+- Placement: the non-published `github-review-threads` workspace crate under
+  `contrib/dev-tools/github/github-review-threads/` (the proposed directory for GitHub API tools;
+  it is not a repository check, so not under `checks/`). This follows the `clippy-allow-reasons`
+  and `frontmatter-validator` precedent and does not anticipate the #2266 or #2003 placement
+  decisions for check crates.
 - Output class: `stdout-result-data`. The human-readable body listing of
   `show-unresolved-thread-bodies.sh` becomes JSON; readers use `jq` for formatting. This is a
   deliberate format deviation recorded here; data parity is the requirement, byte parity is not.
+- Further deliberate deviations from the retired scripts, all format-level and recorded so that
+  subissue 4 inherits an accurate parity record:
+  - `list` and `show` emit one JSON object with a `threads` array instead of one JSON value per
+    line, because the output contract requires exactly one JSON object on stdout.
+  - `reply-status` keeps the `thread_id`, `path`, `url`, and `has_reply` row fields but nests the
+    counts in a `summary` object instead of a trailing `{"summary":true,...}` line. When a reply
+    is missing it exits `1` with empty stdout and a `missing_reply` stderr record that carries the
+    same `threads` and `summary` fields, so the offending thread IDs remain reachable.
+  - `reply-status --login` is required. The script defaulted to the authenticated `gh` user
+    through a second network call; the explicit login keeps the guard deterministic and testable
+    without `gh`, and the `resolve-review-threads` skill documents the argument.
+  - `--help` and usage errors are JSON `usage_error` records on stderr with exit code `2`, and
+    the TTY check runs before argument parsing, so `--help` on a terminal returns `tty_refusal`.
+    The scripts printed plain-text help with exit code `0`; the skills document the subcommands.
 - ADRs to create: `None known`.
 
 ## Design and Ownership Review
@@ -137,11 +152,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Capture parity fixtures from the shell scripts | GraphQL fixture files plus the exact shell outputs for each script, committed as test data. |
-| T2 | TODO | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture test, ADR table row. |
-| T3 | TODO | Port the three read-only projections | `list`, `show`, and `reply-status` subcommands with fixture tests matching T1 outputs. |
-| T4 | TODO | Retire the scripts and update skills | Scripts deleted; `fetch-review-threads` and `resolve-review-threads` document the binary. |
-| T5 | TODO | Verify and record completion evidence | Manual capture, automatic checks, acceptance review, parent EPIC row updated. |
+| T1 | DONE | Capture parity fixtures from the shell scripts | Minimal GraphQL fixture and shell-script golden outputs are committed as test data. |
+| T2 | DONE | Add the crate with the `fetch` subcommand | Workspace member, `ThreadSource` trait, `gh` implementation, fixture tests, and ADR table row. |
+| T3 | DONE | Port the three read-only projections | `list`, `show`, and `reply-status` subcommands have fixture-tested data parity. |
+| T4 | DONE | Retire the scripts and update skills | Scripts deleted; review skills document the binary and compatible resolver file shape. |
+| T5 | DONE | Verify and record completion evidence | Manual scenarios, acceptance review, and pre-push gate recorded. |
 
 ## Commit Points
 
@@ -164,12 +179,12 @@ call is visible, and the expected output is stated independently of the code und
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-port-review-thread-scripts-to-rust/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR #2319 merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -179,19 +194,28 @@ call is visible, and the expected output is stated independently of the code und
 
 - 2026-09-23 12:10 UTC - GitHub Copilot - Drafted after the maintainer chose Rust for the `fetch-review-threads` helper and approved splitting the work into a parity port (this issue) and the F17/F18/F32 change (subissue 4); awaiting maintainer review.
 - 2026-09-23 12:30 UTC - GitHub Copilot - Maintainer approved the specification; created GitHub sub-issue #2318 under EPIC #2278 and moved this specification to `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/`. Spec-only PR pending.
+- 2026-09-23 13:02 UTC - GitHub Copilot - PR #2319 merged as `ef234623`; started implementation on branch `2318-2278-port-review-thread-scripts-to-rust` with T1, the parity-fixture baseline.
+- 2026-09-23 13:02 UTC - GitHub Copilot - T1 captured a minimal deterministic GraphQL response fixture and shell-script golden outputs. The fixture covers resolved, unresolved, outdated, multi-comment, reply-present, and reply-missing states. A fixture-backed `gh` shim captured the `fetch` script without network access.
+- 2026-09-23 14:25 UTC - GitHub Copilot - T2 added `github-review-threads fetch`, a fixture-tested `ThreadSource` seam, `GhCli` process adapter, response validation, and the ADR output-contract row. The design-review checkpoint passed after a fixture-backed command run and a real PR #2319 capture preserved the downstream GraphQL response shape.
+- 2026-09-23 14:30 UTC - GitHub Copilot - T3 added fixture-tested `list`, `show`, and `reply-status` projections. `reply-status` preserves its missing-reply exit code while following the output contract: on missing replies, stdout is empty and stderr contains a JSON diagnostic; its detailed computed summary is covered by the unit test.
+- 2026-09-23 14:42 UTC - GitHub Copilot - T4 retired the four Bash helpers and updated the review skills to invoke `github-review-threads`. Fixture checks confirmed the Rust commands and existing bulk resolver share the response-file shape.
+- 2026-09-23 14:47 UTC - GitHub Copilot - T5 recorded live fetch parity, projection, resolver, output-contract, and container integration evidence in `manual-verification-evidence.md`. The remaining completion gate is the installed pre-push hook.
+- 2026-09-23 15:08 UTC - GitHub Copilot - The installed pre-push hook passed nightly formatting, workspace checks, documentation build, and the complete stable test suite; T5 is complete.
+- 2026-09-23 15:10 UTC - GitHub Copilot - Opened implementation PR #2322 targeting `develop`; it closes #2318 when merged.
+- 2026-09-23 17:10 UTC - GitHub Copilot - Processed PR #2322 review round 1 (Copilot and da2ce7): `reply-status` now names the threads without a reply in its stderr record and keeps `thread_id`; `list` and `show` emit one object; `tests/cli.rs` compares the binary with the retired-script captures under `tests/fixtures/retired-scripts/`; skill examples pipe stdout; the parity deviations above are recorded. Audit: `docs/pr-reviews/pr-2322-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A workspace crate under `contrib/dev-tools/` provides `fetch`, unresolved `list`, unresolved `show`, and `reply-status` subcommands.
-- [ ] AC2: `fetch` writes a JSON file whose shape is identical to the current `get-pr-review-threads.sh` output, and `resolve-all-unresolved-threads.sh` consumes it unchanged.
-- [ ] AC3: Fixture tests prove each subcommand's output data matches the recorded shell output for resolved, unresolved, outdated, and multi-comment threads, including the reply-status summary and non-zero exit when a reply is missing.
-- [ ] AC4: The binary complies with the CLI output contract (`stdout-result-data`, TTY refusal, JSON diagnostics on stderr) and is listed in the ADR classification table.
-- [ ] AC5: No test invokes `gh` or the network; the GraphQL call sits behind a trait with a fixture implementation.
-- [ ] AC6: The four Bash scripts are deleted and `fetch-review-threads` and `resolve-review-threads` document the `cargo run --package` invocation; no live documentation references the removed paths.
-- [ ] `linter all` exits with code `0`.
-- [ ] Crate tests and pre-push checks pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] AC1: A workspace crate under `contrib/dev-tools/` provides `fetch`, unresolved `list`, unresolved `show`, and `reply-status` subcommands.
+- [x] AC2: `fetch` writes a JSON file whose shape is identical to the current `get-pr-review-threads.sh` output, and `resolve-all-unresolved-threads.sh` consumes it unchanged.
+- [x] AC3: Fixture tests prove each subcommand's output data matches the recorded shell output for resolved, unresolved, outdated, and multi-comment threads, including the reply-status summary and non-zero exit when a reply is missing. Evidence: `tests/cli.rs` reads the captures under `tests/fixtures/retired-scripts/`; `fetch` is covered by the `ThreadSource` unit tests because its capture needs `gh`.
+- [x] AC4: The binary complies with the CLI output contract (`stdout-result-data`, TTY refusal, JSON diagnostics on stderr) and is listed in the ADR classification table.
+- [x] AC5: No test invokes `gh` or the network; the GraphQL call sits behind a trait with a fixture implementation.
+- [x] AC6: The four Bash scripts are deleted and `fetch-review-threads` and `resolve-review-threads` document the `cargo run --package` invocation; no live documentation references the removed paths.
+- [x] `linter all` exits with code `0`.
+- [x] Crate tests and pre-push checks pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -209,10 +233,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Fetch parity on a real PR | Run the shell `get-pr-review-threads.sh` and the Rust `fetch` against the same pull request before deleting the script; `diff` the two JSON files. | No difference other than GitHub-side changes between the two calls. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Read-only projections | Run `list`, `show`, and `reply-status` on the M1 capture and compare with the shell outputs. | Same thread IDs, paths, URLs, flags, counts, and exit code. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Downstream consumer | Run `resolve-all-unresolved-threads.sh --dry-run --threads-file` on the Rust-produced file. | The script lists the same unresolved thread IDs as with the shell-produced file. | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Output contract | Run `fetch` with stdout attached to a terminal, then redirected. | TTY refusal with a JSON error on stderr; redirected run emits the summary JSON. | TODO | `manual-verification-evidence.md` section V4 |
+| M1 | Fetch parity on a real PR | Run the shell `get-pr-review-threads.sh` and the Rust `fetch` against the same pull request before deleting the script; `diff` the two JSON files. | No difference other than GitHub-side changes between the two calls. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Read-only projections | Run `list`, `show`, and `reply-status` on the M1 capture and compare with the shell outputs. | Same thread IDs, paths, URLs, flags, counts, and exit code. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Downstream consumer | Run `resolve-all-unresolved-threads.sh --dry-run --threads-file` on the Rust-produced file. | The script lists the same unresolved thread IDs as with the shell-produced file. | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Output contract | Run `fetch` with stdout attached to a terminal, then redirected. | TTY refusal with a JSON error on stderr; redirected run emits the summary JSON. | DONE | `manual-verification-evidence.md` section V4 |
 
 Record the Rust toolchain used for every command result. No disposable verification script is
 planned; parity checks are maintained crate tests.
@@ -221,12 +245,12 @@ planned; parity checks are maintained crate tests.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Crate tests; M2 |
-| AC2 | TODO | Fixture test; M1 and M3 |
-| AC3 | TODO | Fixture tests |
-| AC4 | TODO | M4; ADR table diff |
-| AC5 | TODO | Test source review |
-| AC6 | TODO | `rg` for removed script names; skill diff |
+| AC1 | DONE | Crate tests; M2 |
+| AC2 | DONE | Fixture test; M1 and M3 |
+| AC3 | DONE | Fixture tests |
+| AC4 | DONE | M4; ADR table diff |
+| AC5 | DONE | Test source review |
+| AC6 | DONE | `rg` for removed script names; skill diff |
 
 ## Risks and Trade-offs
 
@@ -242,7 +266,7 @@ planned; parity checks are maintained crate tests.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`.
+- Retrospective: Not needed. The parity fixture made the intentional JSON-only `show` deviation visible, and the existing `ThreadSource` boundary remained sufficient after the live capture.
 - Create `implementation-retrospective.md` if the parity fixtures expose behavior the shell scripts
   produced by accident, or if the trait boundary needs rework after the design-review checkpoint.
 - Otherwise, record why no retrospective was needed in the progress log.

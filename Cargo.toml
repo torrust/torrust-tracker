@@ -130,6 +130,7 @@ members = [
   "contrib/dev-tools/checks/clippy-allow-reasons",
   "contrib/dev-tools/checks/frontmatter-validator",
   "contrib/dev-tools/checks/package-coverage-check",
+  "contrib/dev-tools/github/github-review-threads",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
   "packages/rest-api-application",
