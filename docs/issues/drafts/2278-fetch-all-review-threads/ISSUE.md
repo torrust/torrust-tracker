@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md
 branch: "{issue-number}-2278-fetch-all-review-threads"
 related-pr: null
-last-updated-utc: "2026-09-23 12:30"
+last-updated-utc: "2026-09-24 08:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - "issue #2003"
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md
-    - docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
+    - docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md
     - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
 ---
@@ -218,5 +218,5 @@ planned.
 
 - Parent EPIC: #2278; grandparent EPIC: #2003.
 - Decision input: `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md` (F17, F18, F32).
-- Prerequisite: #2318, `docs/issues/open/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md`.
+- Prerequisite: #2318, `docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md`.
 - Consuming workflow: `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`.
