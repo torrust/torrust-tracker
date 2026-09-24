@@ -36,22 +36,72 @@ fn captured_lines_with_prefix<'a>(capture: &'a str, prefix: &str) -> Vec<&'a str
     capture.lines().filter_map(|line| line.strip_prefix(prefix)).collect()
 }
 
+/// Keeps only the fields the retired script printed, so added evidence fields do not break parity.
+fn with_fields_of(thread: &Value, captured_row: &Value) -> Value {
+    captured_row
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|key| (key.clone(), thread[key].clone()))
+        .collect::<serde_json::Map<_, _>>()
+        .into()
+}
+
+fn thread_ids(stdout: &[u8]) -> Vec<String> {
+    json(stdout)["threads"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|thread| thread["id"].as_str().unwrap().to_owned())
+        .collect()
+}
+
 #[test]
-fn it_should_list_the_threads_the_retired_script_printed() {
+fn it_should_list_the_threads_the_retired_script_printed_when_unresolved_only_is_selected() {
     // Arrange: the retired list script printed one JSON line per unresolved thread.
     let expected_threads = captured_values(LIST_CAPTURE);
 
     // Act: list the unresolved threads through the binary.
-    let output = run(&["list", "--threads-file", FIXTURE]);
+    let output = run(&["list", "--threads-file", FIXTURE, "--unresolved-only"]);
 
     // Assert: one JSON object carries the same rows in the same order, and stderr stays silent.
     assert!(output.status.success());
-    assert_eq!(json(&output.stdout)["threads"], Value::Array(expected_threads));
+    let threads = json(&output.stdout)["threads"].as_array().cloned().unwrap();
+    assert_eq!(threads.len(), expected_threads.len());
+    for (thread, expected) in threads.iter().zip(&expected_threads) {
+        assert_eq!(&with_fields_of(thread, expected), expected);
+    }
     assert_eq!(text(&output.stderr), "");
 }
 
 #[test]
-fn it_should_show_the_threads_and_comments_the_retired_script_printed() {
+fn it_should_list_resolved_threads_by_default() {
+    // Arrange: the fixture's first thread is resolved, so the retired script never printed it.
+    let resolved_thread_id = "THREAD_RESOLVED_OUTDATED";
+
+    // Act: list the threads without selecting unresolved-only.
+    let output = run(&["list", "--threads-file", FIXTURE]);
+
+    // Assert: the resolved thread is part of the default evidence view.
+    assert!(output.status.success());
+    assert!(thread_ids(&output.stdout).iter().any(|id| id == resolved_thread_id));
+}
+
+#[test]
+fn it_should_show_resolved_threads_by_default() {
+    // Arrange: the fixture's first thread is resolved, so the retired script never printed it.
+    let resolved_thread_id = "THREAD_RESOLVED_OUTDATED";
+
+    // Act: show the threads without selecting unresolved-only.
+    let output = run(&["show", "--threads-file", FIXTURE]);
+
+    // Assert: the resolved thread is part of the default evidence view.
+    assert!(output.status.success());
+    assert!(thread_ids(&output.stdout).iter().any(|id| id == resolved_thread_id));
+}
+
+#[test]
+fn it_should_show_the_threads_and_comments_the_retired_script_printed_when_unresolved_only_is_selected() {
     // Arrange: the retired show script printed a thread header and one URL line per comment.
     let expected_thread_ids = captured_lines_with_prefix(SHOW_CAPTURE, "=== Thread ")
         .into_iter()
@@ -60,7 +110,7 @@ fn it_should_show_the_threads_and_comments_the_retired_script_printed() {
     let expected_comment_urls = captured_lines_with_prefix(SHOW_CAPTURE, "URL:      ");
 
     // Act: show the unresolved threads through the binary.
-    let output = run(&["show", "--threads-file", FIXTURE]);
+    let output = run(&["show", "--threads-file", FIXTURE, "--unresolved-only"]);
 
     // Assert: the JSON object holds the same threads and the same comments in order.
     assert!(output.status.success());

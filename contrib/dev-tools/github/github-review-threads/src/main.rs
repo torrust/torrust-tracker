@@ -6,7 +6,7 @@ use std::process::ExitCode;
 use std::{fs, process};
 
 use clap::{Parser, Subcommand};
-use github_review_threads::{GhCli, PullRequest, ReplyStatus, fetch, list_unresolved, reply_status, show_unresolved};
+use github_review_threads::{GhCli, PullRequest, ReplyStatus, ThreadSelection, fetch, list, reply_status, show};
 use serde::Serialize;
 
 /// Fetch pull-request review threads through the GitHub CLI.
@@ -34,17 +34,23 @@ enum Commands {
         #[arg(long, default_value = "torrust-tracker")]
         repository: String,
     },
-    /// Emit unresolved threads as one JSON object with a `threads` array.
+    /// Emit every thread, including resolved and outdated ones, as one JSON object with a `threads` array.
     List {
         /// Raw GraphQL response written by `fetch`.
         #[arg(long)]
         threads_file: PathBuf,
+        /// Emit only unresolved threads, for reply or resolution triage.
+        #[arg(long)]
+        unresolved_only: bool,
     },
-    /// Emit unresolved threads with their review comments as one JSON object with a `threads` array.
+    /// Emit every thread with its review comments as one JSON object with a `threads` array.
     Show {
         /// Raw GraphQL response written by `fetch`.
         #[arg(long)]
         threads_file: PathBuf,
+        /// Emit only unresolved threads, for reply or resolution triage.
+        #[arg(long)]
+        unresolved_only: bool,
     },
     /// Verify that each unresolved thread includes a reply from the requested login.
     ReplyStatus {
@@ -102,14 +108,20 @@ fn main() -> ExitCode {
                 Err(error) => emit_diagnostic("fetch_error", &error.to_string(), 1),
             }
         }
-        Commands::List { threads_file } => read_response(&threads_file)
-            .and_then(|response| list_unresolved(&response).map_err(|error| error.to_string()))
+        Commands::List {
+            threads_file,
+            unresolved_only,
+        } => read_response(&threads_file)
+            .and_then(|response| list(&response, selection(unresolved_only)).map_err(|error| error.to_string()))
             .map_or_else(
                 |error| emit_diagnostic("list_error", &error, 1),
                 |threads| emit_json(&threads),
             ),
-        Commands::Show { threads_file } => read_response(&threads_file)
-            .and_then(|response| show_unresolved(&response).map_err(|error| error.to_string()))
+        Commands::Show {
+            threads_file,
+            unresolved_only,
+        } => read_response(&threads_file)
+            .and_then(|response| show(&response, selection(unresolved_only)).map_err(|error| error.to_string()))
             .map_or_else(
                 |error| emit_diagnostic("show_error", &error, 1),
                 |threads| emit_json(&threads),
@@ -131,6 +143,14 @@ fn main() -> ExitCode {
                     }
                 },
             ),
+    }
+}
+
+const fn selection(unresolved_only: bool) -> ThreadSelection {
+    if unresolved_only {
+        ThreadSelection::UnresolvedOnly
+    } else {
+        ThreadSelection::All
     }
 }
 

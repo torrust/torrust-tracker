@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2278
 github-issue: 2333
 spec-path: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
-branch: "2333-2278-fetch-all-review-threads-spec"
+branch: "2333-2278-fetch-all-review-threads"
 related-pr: null
-last-updated-utc: "2026-09-24 16:07"
+last-updated-utc: "2026-09-24 17:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -131,8 +131,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Extend the query and projections | `resolvedBy` and `line` captured; `list` and `show` return all threads with `--unresolved-only`. |
-| T2 | TODO | Add behavior fixture tests | Resolved, outdated, resolved-by, null resolver/line, and flag cases pass; `reply-status` unchanged. |
+| T1 | DONE | Extend the query and projections | `resolvedBy` and `line` captured; `list` and `show` return all threads with `--unresolved-only`. |
+| T2 | DONE | Add behavior fixture tests | Resolved, outdated, resolved-by, null resolver/line, and flag cases pass; `reply-status` unchanged. |
 | T3 | TODO | Rewrite the skill contract | `fetch-review-threads` states the all-thread evidence rule and the action-only filter; its fallback query matches the tool's. |
 | T4 | TODO | Verify and record completion evidence | Manual capture, automatic checks, acceptance review, parent EPIC row and AC2 updated. |
 
@@ -155,7 +155,7 @@ the projection call is visible, and each expected field is asserted independentl
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-fetch-all-review-threads/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2278, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, crate tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -172,6 +172,8 @@ the projection call is visible, and each expected field is asserted independentl
 - 2026-09-23 12:10 UTC - GitHub Copilot - Maintainer chose Rust for the helper; redrafted on top of the parity port in subissue 3 and renumbered as subissue 4. Awaiting maintainer review.
 - 2026-09-24 15:08 UTC - GitHub Copilot - Refreshed after #2318 merged (PR #2322): Background now names the delivered `github-review-threads` crate and the output-shape deviations this issue inherits; scope adds aligning the skill's drifted inline fallback query. The 2026-09-23 approval predates the #2318 implementation, so re-approval is requested before GitHub issue creation.
 - 2026-09-24 16:07 UTC - GitHub Copilot - Maintainer re-approved the refreshed specification, including the note that the change extends the existing crate rather than a new or unified binary. Created GitHub issue #2333, linked it as a sub-issue of #2278, and moved this specification to `docs/issues/open/`. Spec-only PR pending.
+- 2026-09-24 17:12 UTC - GitHub Copilot - Spec-only PR #2334 merged as `a39935ca`; implementation started on the reserved `2333-2278-fetch-all-review-threads` branch.
+- 2026-09-24 17:28 UTC - GitHub Copilot - T1 and T2 done. The query requests each thread's `line` and `resolvedBy { login }`; `list` and `show` take a `ThreadSelection` (`All` by default, `UnresolvedOnly` through `--unresolved-only`) and emit `isResolved`, `resolvedBy`, and `line` as additive fields; `reply-status` still filters to unresolved threads. The retired-script fixture `tests/fixtures/review-threads.json` stays unchanged because its README pins it to the parity captures; it now also proves that files fetched before this change still parse, with `resolvedBy` and `line` as null. A new `tests/fixtures/thread-states.json` names each thread for its state (resolved by a login, resolved and outdated, resolved without a resolver, unresolved current, unresolved outdated with a null line). The CLI parity tests compare the retired-script fields under `--unresolved-only`, and new CLI tests show that `list` and `show` include a resolved thread by default. Prose-first review: each test's Arrange names the thread state or selection that changes the result, the production `list`/`show`/`reply_status` call stays visible in Act, and assertions check one field or result each; no temporary prose was kept. Proof that the tests guard the change: temporarily reverting `ThreadSelection::includes` to the unresolved-only filter in the working tree failed 5 of 13 unit tests; the filter was then restored. Evidence (stable Rust 1.98.1): `cargo test --package github-review-threads` passes 13 unit and 7 CLI tests; `cargo clippy --package github-review-threads --all-targets -- -D warnings` is clean; `cargo +nightly fmt --all -- --check` is clean. Real-query check ahead of the T4 manual capture: `fetch --pr-number 2322` returned 13 resolved threads, all resolved by `josecelano`, 8 of them outdated with `line: null`.
 
 ## Acceptance Criteria
 
