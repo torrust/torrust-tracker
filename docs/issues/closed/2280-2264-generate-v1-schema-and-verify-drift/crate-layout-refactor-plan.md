@@ -2,8 +2,8 @@
 doc-type: refactor-plan
 status: done
 related-issue: 2280
-spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/crate-layout-refactor-plan.md
-last-updated-utc: "2026-09-23 12:22"
+spec-path: docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/crate-layout-refactor-plan.md
+last-updated-utc: "2026-09-24 09:36"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -13,9 +13,9 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator/src/lib.rs
     - contrib/dev-tools/checks/frontmatter-validator/src/profile.rs
     - contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
+    - docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
+    - docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
+    - docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
     - docs/schemas/README.md
     - issue #2280
     - issue #2281
@@ -33,7 +33,7 @@ than shared raw data, and the crate's own test inputs cannot be removed by a doc
 lifecycle step. The v1 schema contract, the tracked artifact bytes, the diagnostic categories, and
 their precedence do not change.
 
-Related issue: `docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
+Related issue: `docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
 
 Predecessors: the completed `schema-command-refactor-plan.md` (process, filesystem, and artifact
 behavior in `src/bin/frontmatter-schema.rs`) and the completed `profile-refactor-plan.md`

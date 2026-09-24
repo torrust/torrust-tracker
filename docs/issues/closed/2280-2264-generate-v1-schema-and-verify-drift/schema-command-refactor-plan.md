@@ -2,8 +2,8 @@
 doc-type: refactor-plan
 status: done
 related-issue: 2280
-spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
-last-updated-utc: "2026-09-22 21:34"
+spec-path: docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
+last-updated-utc: "2026-09-24 09:36"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -28,7 +28,7 @@ test, read, and extend by separating pure decisions (argument parsing, canonical
 comparison, exit-code mapping) from filesystem and process I/O. The generated schema contract and
 the tracked artifact bytes do not change.
 
-Related artifact: `docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
+Related artifact: `docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
 
 This plan is review-only. It does not authorize implementation and does not expand into the
 general command surface owned by #2281.
