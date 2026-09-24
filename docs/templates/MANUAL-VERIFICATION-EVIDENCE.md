@@ -15,7 +15,9 @@ do not invent commands, output, logs, or results.
 ## Environment and Prerequisites
 
 - Date and time (UTC):
-- Artifact under test:
+- Artifact under test: {Name PR-branch patches by their Conventional Commit subject, never by
+  branch commit id: rebases onto `develop` rewrite ids. Commit ids are durable only for commits
+  already on `develop`, tags, or external repositories.}
 - Operating system / environment:
 - Prerequisites and setup performed:
 

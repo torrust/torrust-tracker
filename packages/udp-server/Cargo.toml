@@ -47,6 +47,12 @@ zerocopy = "0.8"
 socket2 = "0.6.4"
 
 [dev-dependencies]
+# Pinned to match the http-core and udp-core benches; upgrade all three together.
+criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 mockall = "0"
 rand = "0.9"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
+
+[[bench]]
+harness = false
+name = "udp_tracker_server_benchmark"

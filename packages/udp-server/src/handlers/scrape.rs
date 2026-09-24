@@ -107,10 +107,11 @@ fn udp_counter_from_u32(value: u32) -> i32 {
 }
 
 fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response {
-    let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
+    let mut torrent_stats = Vec::with_capacity(request.info_hashes.len());
 
-    for file in &scrape_data.files {
-        let swarm_metadata = file.1;
+    for info_hash in &request.info_hashes {
+        let info_hash = info_hash.0.into();
+        let swarm_metadata = scrape_data.files.get(&info_hash).copied().unwrap_or_default();
 
         let scrape_entry = TorrentScrapeStatistics {
             seeders: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.complete))),
@@ -140,6 +141,7 @@ mod tests {
         use torrust_peer_id::PeerId;
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_udp_protocol::{
@@ -221,6 +223,26 @@ mod tests {
                 .await;
         }
 
+        async fn add_seeders(
+            in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
+            info_hash: &InfoHash,
+            number_of_seeders: u8,
+        ) {
+            for peer_index in 1..=number_of_seeders {
+                let peer_id = PeerId([peer_index; 20]);
+                let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, peer_index)), 6880 + u16::from(peer_index));
+                let peer = PeerBuilder::default()
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
+                    .with_peer_address(remote_addr)
+                    .with_bytes_left_to_download(0)
+                    .into();
+
+                in_memory_torrent_repository
+                    .handle_announcement(&info_hash.0.into(), &peer, None)
+                    .await;
+            }
+        }
+
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {
             let info_hashes = vec![*info_hash];
 
@@ -272,6 +294,176 @@ mod tests {
                 Response::Scrape(scrape_response) => Some(scrape_response),
                 _ => None,
             }
+        }
+
+        #[test]
+        fn it_should_return_zeroed_statistics_when_scrape_data_does_not_contain_a_requested_hash() {
+            let client_socket_addr = sample_ipv4_remote_addr();
+            let info_hash = InfoHash([0u8; 20]);
+            let request = build_scrape_request(&client_socket_addr, &info_hash);
+
+            let response = super::super::build_response(&request, &ScrapeData::empty());
+
+            assert_eq!(
+                response,
+                Response::from(ScrapeResponse {
+                    transaction_id: request.transaction_id,
+                    torrent_stats: vec![zeroed_torrent_statistics()],
+                })
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_return_an_entry_for_each_duplicate_requested_info_hash() {
+            // Arrange
+            let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                initialize_core_tracker_services_for_public_tracker().await;
+            let client_socket_addr = sample_ipv4_remote_addr();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            let info_hash = InfoHash([0u8; 20]);
+            let request = ScrapeRequest {
+                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
+                transaction_id: TransactionId(0i32.into()),
+                info_hashes: vec![info_hash, info_hash],
+            };
+            let expected_torrent_stats = vec![
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(1.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(1.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+            ];
+
+            add_a_seeder(
+                core_tracker_services.in_memory_torrent_repository.clone(),
+                &client_socket_addr,
+                &info_hash,
+            )
+            .await;
+
+            // Act
+            let response = handle_scrape(
+                &core_udp_tracker_services.scrape_service,
+                client_socket_addr,
+                server_service_binding,
+                &request,
+                &server_udp_tracker_services.udp_server_stats_event_sender,
+                sample_strict_cookie_validation(),
+            )
+            .await
+            .unwrap();
+
+            // Assert
+            assert_eq!(
+                response,
+                Response::from(ScrapeResponse {
+                    transaction_id: request.transaction_id,
+                    torrent_stats: expected_torrent_stats,
+                })
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_preserve_the_order_of_eight_requested_info_hashes() {
+            // Arrange
+            let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                initialize_core_tracker_services_for_public_tracker().await;
+            let client_socket_addr = sample_ipv4_remote_addr();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            let requested_info_hashes = vec![
+                InfoHash([8u8; 20]),
+                InfoHash([3u8; 20]),
+                InfoHash([6u8; 20]),
+                InfoHash([1u8; 20]),
+                InfoHash([7u8; 20]),
+                InfoHash([2u8; 20]),
+                InfoHash([5u8; 20]),
+                InfoHash([4u8; 20]),
+            ];
+            let expected_torrent_stats = vec![
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(8.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(3.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(6.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(1.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(7.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(2.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(5.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+                TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(4.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
+                },
+            ];
+            let request = ScrapeRequest {
+                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
+                transaction_id: TransactionId(0i32.into()),
+                info_hashes: requested_info_hashes,
+            };
+
+            for (info_hash, number_of_seeders) in request.info_hashes.iter().zip([8u8, 3, 6, 1, 7, 2, 5, 4]) {
+                add_seeders(
+                    core_tracker_services.in_memory_torrent_repository.clone(),
+                    info_hash,
+                    number_of_seeders,
+                )
+                .await;
+            }
+
+            // Act
+            let response = handle_scrape(
+                &core_udp_tracker_services.scrape_service,
+                client_socket_addr,
+                server_service_binding,
+                &request,
+                &server_udp_tracker_services.udp_server_stats_event_sender,
+                sample_strict_cookie_validation(),
+            )
+            .await
+            .unwrap();
+
+            // Assert
+            assert_eq!(
+                response,
+                Response::from(ScrapeResponse {
+                    transaction_id: request.transaction_id,
+                    torrent_stats: expected_torrent_stats,
+                })
+            );
         }
 
         mod with_a_public_tracker {

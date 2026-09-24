@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2314-preserve-udp-scrape-response-order/ISSUE.md
-last-updated-utc: "2026-09-23 10:55"
+last-updated-utc: "2026-09-23 12:45"
 ---
 
 # Manual Verification Evidence
@@ -157,7 +157,184 @@ representation.
 
 - Goal: repeat V1 unchanged against the fixed build.
 - Initial state: same as V1.
-- Status: `TODO`
+- Artifact under test: local branch `2314-preserve-udp-scrape-response-order` at a pre-rebase
+  local commit (since orphaned by rebases onto `develop`); the published patch carrying the same
+  fix is `fix(udp-server): preserve scrape response order`, named by subject because rebases
+  rewrite branch commit ids. Rebuilt with
+  `cargo build --bin torrust-tracker` and
+  `cargo build -p torrust-tracker-client --bin tracker_client`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Removed `storage/tracker/lib/database/sqlite3.db` and started the rebuilt debug tracker with
+   `share/default/config/tracker.development.sqlite3.toml`.
+2. Repeated the four UDP announces from V1 to establish `A` with one seeder and `B` with two
+   seeders and one leecher.
+3. Repeated ten UDP scrapes for `[A, B]`, ten for `[B, A]`, and one for `[A, A, B]`, using the
+   exact V1 `tracker_client` commands.
+4. Stopped the tracker after the verification.
+
+#### Observed Result
+
+All ten `[A, B]` responses were:
+
+```text
+[{"seeders":1,"completed":0,"leechers":0},{"seeders":2,"completed":0,"leechers":1}]
+```
+
+All ten `[B, A]` responses were:
+
+```text
+[{"seeders":2,"completed":0,"leechers":1},{"seeders":1,"completed":0,"leechers":0}]
+```
+
+The duplicated request `[A, A, B]` returned three ordered entries:
+
+```text
+[{"seeders":1,"completed":0,"leechers":0},{"seeders":1,"completed":0,"leechers":0},{"seeders":2,"completed":0,"leechers":1}]
+```
+
+#### Conclusion
+
+Passed. Every positional response entry aligned with its request hash and the duplicate hash
+produced a duplicate response entry. An initial V2 attempt was excluded because it used a stale
+debug tracker binary built before the fix; rebuilding both the tracker and unified client produced
+the valid results recorded above.
+
+## Regression-Test Design
+
+### B3 - Test Boundary and Prose-First Review
+
+- Date: 2026-09-23
+- Test boundary: `packages/udp-server/src/handlers/scrape.rs`, in its existing public-tracker
+   `scrape_request` collaboration tests. `handle_scrape` is the visible production Act; it reaches
+   the UDP service, tracker-core handler, and positional response builder.
+- Module decision under test: transform keyed `ScrapeData` into BEP 15's positional
+   `ScrapeResponse.torrent_stats` sequence. The response must preserve every request position;
+   authorization and swarm-state collection remain collaborator-owned.
+- Existing helpers retained: `initialize_core_tracker_services_for_public_tracker` owns ordinary
+   service wiring; cookie, socket, and event-sender construction are incidental. Helpers will be
+   extended only to seed visible swarm state and construct a request from the visible ordered hash
+   vector.
+
+#### B4 - Duplicate Entry Count
+
+- Arrange: seed torrent `A` with one visible seeder; construct the visible ordered request
+   `[A, A]`; independently specify two identical typed statistics entries as the expected vector.
+- Act: call production `handle_scrape` with that request.
+- Assert: extract the typed scrape response and compare its complete `torrent_stats` vector to
+   the expected two-entry vector. The one initial-state difference is the repeated requested hash.
+
+#### B5 - Request Order
+
+- Arrange: seed eight distinct hashes with distinguishable visible seeder counts, construct their
+   deliberately non-sorted request order, and independently specify the complete typed statistics
+   vector in that same order.
+- Act: call production `handle_scrape` with that request.
+- Assert: compare the complete typed response vector without sorting or accepting alternatives.
+   With $N = 8$, the unfixed map iteration can accidentally pass only with probability $1/8! =
+   1/40320$.
+
+### B4-B6 - Red Regression Evidence and Design Review
+
+- Date: 2026-09-23
+- Toolchain: stable Rust `cargo 1.98.1`, `rustc 1.98.1 (48a229cea 2026-09-01)`
+
+#### B4 - Duplicate Entry Count Is Red
+
+Command:
+
+```text
+cargo test -p torrust-tracker-udp-server it_should_return_an_entry_for_each_duplicate_requested_info_hash
+```
+
+Result: `FAILED` as expected. The response contained one `TorrentScrapeStatistics` entry with
+one seeder for request `[A, A]`; the independently specified expected response contained two
+identical typed entries. This deterministically demonstrates that the keyed intermediate result
+collapses the duplicate request position.
+
+#### B5 - Eight-Hash Order Is Red
+
+Command:
+
+```text
+cargo test -p torrust-tracker-udp-server it_should_preserve_the_order_of_eight_requested_info_hashes
+```
+
+Result: `FAILED` as expected. For requested distinct-seeder sequence `[8, 3, 6, 1, 7, 2, 5, 4]`,
+the response returned `[3, 1, 8, 6, 7, 2, 4, 5]`. The test uses $N = 8$, so a map iteration would
+match this deliberate request order by chance with probability about $1/8! = 1/40320$
+(`HashMap` iteration order is unspecified, not a uniform permutation, so this is a heuristic
+rather than a bound). The recorded failure above is the actual red evidence; the two sibling
+regressions (B4 duplicate `[A, A]` and the direct `build_response` empty-map test) are
+deterministic on the unfixed code.
+
+#### B6 - Completed Prose-First Review
+
+Both tests call production `handle_scrape`, rather than testing a helper or map directly. Their
+causal initial state is visible: `[A, A]` for duplicate cardinality and the explicit non-sorted
+eight-hash vector with distinct seeder counts for order. Each test independently specifies the
+complete typed expected response vector and uses a single exact-response assertion. Neither
+assertion sorts data, compares a set, or accepts an alternative order. The `add_seeders` helper
+owns only incidental peer-ID/address construction; the request, expected statistics, Act, and
+assertion remain visible in the order test.
+
+### B7-B10 - Repair and Green Focused Verification
+
+- Date: 2026-09-23
+- Toolchain: stable Rust `cargo 1.98.1`, `rustc 1.98.1 (48a229cea 2026-09-01)`
+
+#### B7 - Causal Boundary Re-confirmed
+
+The red tests isolate the causal seam to `udp-server::handlers::scrape::build_response`: the
+domain `ScrapeData.files` result remains keyed, while the UDP response is positional. No
+`ScrapeData` consumer discovered during B3-B6 needs request order, so the selected Option 1
+repair remains valid.
+
+#### B8 - Selected Repair
+
+`build_response` now iterates `request.info_hashes`, looks up each domain hash in
+`ScrapeData.files`, and allocates the response vector with the request length. Each missing map
+entry falls back to zeroed metadata; a direct response-builder test covers that defensive path.
+
+#### B9 - Regression Tests Are Green
+
+Command:
+
+```text
+cargo test -p torrust-tracker-udp-server scrape_request
+```
+
+Result: `10` scrape-request tests passed, including both maintained regressions:
+`it_should_return_an_entry_for_each_duplicate_requested_info_hash` and
+`it_should_preserve_the_order_of_eight_requested_info_hashes`.
+
+#### B10 - Affected Crates Are Green
+
+Commands:
+
+```text
+cargo test -p torrust-tracker-udp-server
+cargo test -p torrust-tracker-primitives --doc
+```
+
+Results: UDP server `170` unit tests, `11` integration tests, and `1` doctest passed. Primitives
+`2` documentation tests passed. The focused fallback command
+`cargo test -p torrust-tracker-udp-server it_should_return_zeroed_statistics_when_scrape_data_does_not_contain_a_requested_hash`
+also passed.
+
+#### AC6 - HTTP Non-regression
+
+Commands:
+
+```text
+cargo test -p torrust-tracker-http-core
+cargo test -p torrust-tracker-axum-http-server
+```
+
+Results: HTTP core `31` tests passed. Axum HTTP server `36` unit tests and `61` integration tests
+passed. The UDP-only positional adaptation did not change HTTP scrape behavior.
 
 ## Failures and Follow-up
 
