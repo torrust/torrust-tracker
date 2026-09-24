@@ -117,6 +117,7 @@ mod tests {
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
+    const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 
     fn available_health_check_address() -> SocketAddr {
         let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available health-check address");
@@ -126,7 +127,7 @@ mod tests {
     async fn wait_until_bindable(address: SocketAddr) -> bool {
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, async {
             while TcpListener::bind(address).is_err() {
-                tokio::task::yield_now().await;
+                tokio::time::sleep(BIND_RETRY_INTERVAL).await;
             }
         })
         .await
