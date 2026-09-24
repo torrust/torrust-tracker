@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: planned
+status: in-progress
 priority: p1
 epic: 2264
 github-issue: 2280
 spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-branch: "2280-frontmatter-schema-drift-spec"
+branch: "2280-frontmatter-schema-drift"
 related-pr: null
-last-updated-utc: "2026-09-22 13:41"
+last-updated-utc: "2026-09-23 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - issue #2264
     - issue #2266
-    - contrib/dev-tools/checks/frontmatter-validator/
+    - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md
     - docs/schemas/frontmatter-v1.schema.json
 ---
@@ -83,6 +83,87 @@ semantics.
 - ADRs to create: None expected; create one only for an enduring repository-wide schema ownership
   or generation decision not already approved by #2265 and #2266.
 
+### AC5 Decision: Nullable-Field Presence in the Generated Schema
+
+The final pre-PR review (2026-09-23) found two places where the generated schema is looser than
+the Rust validator and the #2265 contract:
+
+1. `epic`, `github-issue`, `related-pr`, and `epic-owner` are `Required: Yes` (null allowed) in
+   `frontmatter-v1-contract.md` and in `ISSUE_FIELDS`/`EPIC_FIELDS`, but `schemars` omits every
+   `Option<T>` field from the schema's `required` array. A document that leaves `epic:` out entirely
+   passes the schema and fails the validator with `MissingRequiredField`.
+2. `skill-links` and `related-artifacts` are `type: ["array", "null"]` in the schema, but the
+   universal envelope rejects an explicit `null` with `InvalidSemanticLinks`.
+
+The contract states that the schema "expresses field presence … nullability", and the Boundary
+decision above keeps an invariant Rust-only "unless the generated schema can express them without
+a parallel model". Two options were weighed.
+
+#### Option A: document both divergences as Rust-enforced
+
+Change: add both items to the Rust-only invariant list in `docs/schemas/README.md`. No code or
+artifact change.
+
+Pros:
+
+- Zero risk; the artifact bytes every refactor commit preserved stay unchanged.
+- Satisfies the literal text of AC5 in a few lines.
+- Keeps the model free of schema-only annotations.
+
+Cons:
+
+- Contradicts the contract's own statement that the schema expresses presence, and the Boundary
+  decision, because presence *can* be expressed without a parallel model.
+- Editors and agents validating against the schema accept documents the validator rejects; the
+  gap is exactly the "field presence" discovery this issue lists as its purpose.
+- The divergence lives only in prose, which no test can keep honest as the model evolves.
+
+#### Option B: make the schema express presence; document only what it cannot express
+
+Change: add `#[schemars(required)]` to the four nullable fields, regenerate the artifact (four
+entries added across two `required` arrays; nothing else moves), and add a test asserting that
+each profile's schema `required` set equals its `ISSUE_FIELDS`/`EPIC_FIELDS` list. Document the
+null-sequence divergence in the README as Rust-enforced.
+
+Pros:
+
+- The schema states the contract; editor and agent validation match the validator for presence.
+- Follows the Boundary decision and the contract's presence statement instead of documenting an
+  exception to them.
+- The parity test turns the duplication between the attribute and the field list into a checked
+  invariant, and would have caught this gap at generation time.
+- Still no parallel model: one attribute per field on the canonical type.
+
+Cons:
+
+- Changes tracked artifact bytes for the first time since initial generation, so the PR carries a
+  schema diff (small and reviewable; the drift check forces regeneration).
+- Presence is now declared twice (field list and attribute); mitigated, not removed, by the test.
+- `#[schemars(required)]` documents the structural rule rather than serde behavior, since serde
+  still deserializes a missing `Option` as `None`; a reader must know the structural stage runs
+  first.
+- The null-sequence divergence remains and must still be documented. Closing it would require
+  changing `Option<Vec<_>>` to `Vec<_>` with `#[serde(default)]` on `StrictSemanticLinks`, a public
+  model change that drops the absent-versus-empty distinction nothing currently uses; deferred
+  unless #2264 wants it.
+
+#### Recommendation
+
+Option B. It is the spec-compliant choice, not merely the more thorough one: the approved Boundary
+decision already resolves what to do when the schema can express an invariant without a parallel
+model. The cost is four attributes, one regeneration, and one test.
+
+Status: Option B approved by the maintainer on 2026-09-23.
+
+Implementation note (2026-09-23): `#[schemars(required)]` was tried first and rejected. In
+`schemars` 1.2.1 that attribute swaps in the field's *non-optional* schema, so the four fields lost
+their `"null"` type and the artifact became stricter than the contract (a first regeneration made
+this visible immediately). The shipped change instead attaches a `#[schemars(transform = ...)]` to
+each profile struct that writes `required` from `ISSUE_FIELDS`/`EPIC_FIELDS`, the same lists the
+validator enforces. Presence therefore has one source, nullability is untouched, and the parity test
+asserts the generated `required` set equals the field list. The artifact diff is exactly the four
+added `required` entries plus doc wording.
+
 ## Design and Ownership Review
 
 The schema module owns projection from canonical v1 Rust types. A generator owns deterministic
@@ -98,11 +179,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Design schema projection | Verify `schemars` compatibility and expose the canonical v1 schema root without duplicating validation models. |
-| T2 | TODO | Generate and track schema | Add `docs/schemas/frontmatter-v1.schema.json` with Draft 2020-12 metadata and deterministic content. |
-| T3 | TODO | Verify offline drift | Add reproducible regeneration and byte-for-byte drift checking with focused passing and failure coverage. |
-| T4 | TODO | Document schema boundary | Document unsupported invariants and generator usage beside the artifact or in its owning crate documentation. |
-| T5 | TODO | Validate and review | Run focused tests, formatter, Clippy, repository gate, manual offline regeneration, and independent review. |
+| T1 | DONE | Design schema projection | Derived a Draft 2020-12 root from canonical types using `schemars` 1.2.1. |
+| T2 | DONE | Generate and track schema | Added `docs/schemas/frontmatter-v1.schema.json` and deterministic `frontmatter-schema generate`. |
+| T3 | DONE | Verify offline drift | Added byte-for-byte `frontmatter-schema check` plus deterministic and drift-failure tests. |
+| T4 | DONE | Document schema boundary | Documented generator usage and Rust-only invariants in `docs/schemas/README.md`. |
+| T5 | DONE | Validate and review | Focused tests, manual scenarios, independent review, and the full pre-commit gate pass. |
 
 ## Commit Points
 
@@ -123,13 +204,13 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] GitHub issue #2280 created as the schema-generation follow-up from #2266
 - [x] Local folder-style specification created
 - [x] Specification reviewed and approved by user/maintainer
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded when applicable
+- [x] Spec-only PR #2299 merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded when applicable
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -138,23 +219,83 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
   the spec-first workflow and `docs/schemas/frontmatter-v1.schema.json` as the tracked generated
   artifact location - This specification
 - 2026-09-22 13:41 UTC - Maintainer - Approved the #2280 local specification - User conversation
+- 2026-09-22 16:24 UTC - GitHub Copilot - Implemented deterministic Draft 2020-12 generation,
+  tracked schema artifact, byte-for-byte drift command, focused tests, and schema-boundary
+  documentation. `schemars` is pinned to 1.2.1 because registry release 1.2.2 cannot resolve its
+  required `schemars_derive = 1.2.2` package - Focused tests, Clippy, Machete, and `linter all`
+- 2026-09-22 16:37 UTC - GitHub Copilot - Remediated independent-review findings: documented
+  `cargo run --offline` commands, added a disposable `--artifact` check seam, recorded prose-first
+  test design, and re-ran offline drift verification without modifying the tracked artifact -
+  `manual-verification-evidence.md`, `test-design-review.md`
+- 2026-09-22 16:37 UTC - GitHub Copilot - No implementation retrospective is needed: the resolved
+  dependency pin and disposable-artifact command option were local implementation details that did
+  not change schema ownership, artifact placement, or the approved generation design - This log
+- 2026-09-22 16:44 UTC - GitHub Copilot - Completed focused offline tests and schema check,
+  `linter all`, and the eight-step pre-commit gate; the independent follow-up review passed with no
+  remaining #2280 blockers - `agent-review-reports.md`
+- 2026-09-22 17:42 UTC - GitHub Copilot - Maintainer requested and approved a post-implementation
+  refactor plan for the schema command; implemented all nine items in order as separate signed
+  commits (TempDir-owned tests, full unit coverage, exit code `2` for usage errors per the CLI
+  output ADR, pure `Command::parse`, library-owned artifact encoding, `SchemaArtifact` with typed
+  errors, documented regeneration hint). Binary tests grew from 3 to 16; the tracked artifact bytes
+  are unchanged - `schema-command-refactor-plan.md`, `test-design-review.md`
+- 2026-09-22 21:34 UTC - GitHub Copilot - Completed the maintainer-approved deeper refactor plan
+  review items as four additional signed commits: safe explicit-path diagnostics, atomic
+  same-directory schema replacement with an explicit symlink policy, closed artifact-origin
+  modeling, and writer-injected process reporting. Binary tests grew from 16 to 24; focused
+  red-first and mutation checks passed, as did the full pre-commit gate after every increment -
+  `schema-command-refactor-plan.md`, `test-design-review.md`
+- 2026-09-23 08:45 UTC - GitHub Copilot - Completed the maintainer-approved profile validation
+  refactor plan as four signed commits: module-owned profile tests, closed strict-profile kinds,
+  explicit shared validation precedence, and separated UTC-minute layout/calendar predicates.
+  Library tests grew from 41 to 44; red mutations proved each new regression boundary, schema
+  drift stayed clean, and the full quality gate passed after every increment -
+  `profile-refactor-plan.md`, `profile-test-design-review.md`
+- 2026-09-23 10:02 UTC - GitHub Copilot - Completed the responsibility-driven second profile
+  refactor series as six signed commits: aggregate-owned invariants, definition-owned structural
+  validation, kind-owned recognition and definition selection, unified diagnostics, direct YAML
+  string indexing, and shared schema patterns. All 44 library tests, offline schema drift
+  verification, Clippy, Machete, and `linter all` passed; a shared-pattern mutation demonstrated
+  deterministic schema drift detection - `profile-refactor-plan.md`,
+  `profile-test-design-review.md`
+- 2026-09-23 12:07 UTC - GitHub Copilot - Completed the maintainer-approved crate layout refactor
+  plan as six signed commits: crate-owned test fixtures, a `diagnostic` module, a
+  `Frontmatter::has_double_quoted_scalar` query replacing the raw YAML seam, a `syntax` module
+  pairing each schema regex with its authoritative predicate, a single reference-validation path
+  through `StrictSemanticLinks`, and top-down ordering of `profile.rs`. The generated schema stayed
+  byte-identical, mutations proved each new boundary, and the full quality gate passed after every
+  increment - `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
+- 2026-09-23 12:22 UTC - GitHub Copilot - Corrected crate layout item 5: reference-syntax
+  diagnostics again name the failing `semantic-links.<field>`, restoring the #2266 field-path
+  requirement that #2281 will render; two rejection tests pin the prefix -
+  `crate-layout-refactor-plan.md`, `crate-layout-test-design-review.md`
+- 2026-09-23 15:09 UTC - GitHub Copilot - Final pre-PR review failed on three documentation and
+  contract blockers; fixed the spec's own frontmatter (`in-progress`, no trailing slash) and
+  implemented the approved AC5 Option B: each profile's schema `required` array is now generated
+  from the validator's field list via a `schemars` transform, the artifact was regenerated (four
+  `required` entries added, nullability preserved), a parity test pins the invariant, and
+  `docs/schemas/README.md` documents the one remaining null-sequence divergence and the `syntax.rs`
+  pattern location - `docs/schemas/`, `profile.rs`
+- 2026-09-23 15:22 UTC - GitHub Copilot - Re-ran M1-M3 plus an invalid-action case against HEAD
+  `4c58b5a9`: regeneration idempotent, drift exits `1` with the shipped shell-safe hint, unknown
+  action exits `2`, stdout empty throughout; recorded as V3 - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: The JSON Schema is generated from canonical Rust v1 types in `frontmatter-validator`,
+- [x] AC1: The JSON Schema is generated from canonical Rust v1 types in `frontmatter-validator`,
       not from an independently maintained schema model.
-- [ ] AC2: `docs/schemas/frontmatter-v1.schema.json` declares and conforms to JSON Schema Draft
+- [x] AC2: `docs/schemas/frontmatter-v1.schema.json` declares and conforms to JSON Schema Draft
       2020-12.
-- [ ] AC3: Documented regeneration and drift-verification commands are deterministic and run
+- [x] AC3: Documented regeneration and drift-verification commands are deterministic and run
       offline using the workspace Rust toolchain.
-- [ ] AC4: Focused drift coverage fails when the tracked generated artifact differs from the
+- [x] AC4: Focused drift coverage fails when the tracked generated artifact differs from the
       deterministic generator output.
-- [ ] AC5: Documentation identifies every material invariant still enforced by Rust or a later
+- [x] AC5: Documentation identifies every material invariant still enforced by Rust or a later
       command layer rather than by the JSON Schema.
-- [ ] Relevant Rust tests and `linter all` exit with code `0`.
-- [ ] Manual offline regeneration and drift verification are recorded in
+- [x] Relevant Rust tests and `linter all` exit with code `0`.
+- [x] Manual offline regeneration and drift verification are recorded in
       `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -171,9 +312,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Regenerate schema offline | Run the documented generator with network access disabled or unavailable. | It writes the canonical artifact without downloading data. | DONE | `manual-verification-evidence.md` sections V1, V3 |
+| M2 | Verify no drift | Run the documented drift command against the committed artifact. | It succeeds without modifying tracked files. | DONE | `manual-verification-evidence.md` sections V1, V3 |
+| M3 | Demonstrate drift detection | Change a disposable copy of the generated artifact, then run the drift command. | It fails with a deterministic explanation and leaves the canonical artifact unchanged. | DONE | `manual-verification-evidence.md` sections V2, V3 |
 
 ## Risks and Trade-offs
 

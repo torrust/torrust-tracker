@@ -1,11 +1,13 @@
 # Frontmatter Fixture Manifest
 
-These fixtures define v1 parser and strict-profile validator expectations for issue #2266. A fixture
+These fixtures define v1 parser and strict-profile validator expectations for issue #2266. They
+were authored under issue #2265 and moved into the `frontmatter-validator` crate under issue #2280
+so the crate's tests do not depend on archived issue documentation. A fixture
 is evaluated as a complete Markdown file, including YAML parsing, universal-envelope checks, and
 strict issue/EPIC profile checks. Repository-aware checks such as path existence, location/path
 invariants, skill discovery, and review-finding resolution are excluded: `accepted/` fixtures must
 be treated as if they lived in `docs/issues/open/`, and their `spec-path` values are not resolved
-against the repository. Whole-tree validation must exclude this `frontmatter-fixtures/` directory;
+against the repository. Whole-tree validation must exclude this `fixtures/` directory;
 otherwise the rejected fixtures would fail the gate and the accepted fixtures would fail location
 checks.
 

@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Torrust Tracker Frontmatter V1",
+  "description": "The strict frontmatter document profiles represented by the v1 JSON Schema.",
+  "anyOf": [
+    {
+      "description": "The strict issue profile.",
+      "$ref": "#/$defs/Issue"
+    },
+    {
+      "description": "The strict EPIC profile.",
+      "$ref": "#/$defs/Epic"
+    }
+  ],
+  "$defs": {
+    "Issue": {
+      "description": "The canonical strict issue frontmatter model.",
+      "type": "object",
+      "properties": {
+        "schema-version": {
+          "description": "The strict contract version.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 1,
+          "maximum": 1
+        },
+        "doc-type": {
+          "description": "The recognized issue document class.",
+          "$ref": "#/$defs/IssueDocumentType"
+        },
+        "issue-type": {
+          "description": "The issue classification.",
+          "$ref": "#/$defs/IssueType"
+        },
+        "status": {
+          "description": "The current lifecycle state.",
+          "$ref": "#/$defs/IssueStatus"
+        },
+        "priority": {
+          "description": "The issue urgency.",
+          "$ref": "#/$defs/Priority"
+        },
+        "epic": {
+          "description": "The nullable positive parent EPIC issue number.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1
+        },
+        "github-issue": {
+          "description": "The nullable positive GitHub issue number.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1
+        },
+        "spec-path": {
+          "description": "The repository-relative specification path.",
+          "type": "string",
+          "pattern": "^(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*$"
+        },
+        "branch": {
+          "description": "The development branch name.",
+          "type": "string",
+          "minLength": 1
+        },
+        "related-pr": {
+          "description": "The nullable positive related pull request number.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1
+        },
+        "last-updated-utc": {
+          "description": "The required UTC-minute update timestamp.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"
+        },
+        "semantic-links": {
+          "description": "The required strict semantic-link envelope.",
+          "$ref": "#/$defs/StrictSemanticLinks"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "schema-version",
+        "doc-type",
+        "issue-type",
+        "status",
+        "priority",
+        "epic",
+        "github-issue",
+        "spec-path",
+        "branch",
+        "related-pr",
+        "last-updated-utc",
+        "semantic-links"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      }
+    },
+    "IssueDocumentType": {
+      "description": "The fixed document type for strict issue records.",
+      "oneOf": [
+        {
+          "description": "The issue document class.",
+          "type": "string",
+          "const": "issue"
+        }
+      ]
+    },
+    "IssueType": {
+      "description": "The allowed issue classifications.",
+      "oneOf": [
+        {
+          "description": "A routine unit of planned work.",
+          "type": "string",
+          "const": "task"
+        },
+        {
+          "description": "A behavior defect.",
+          "type": "string",
+          "const": "bug"
+        },
+        {
+          "description": "A new user-visible capability.",
+          "type": "string",
+          "const": "feature"
+        },
+        {
+          "description": "An improvement to an existing capability.",
+          "type": "string",
+          "const": "enhancement"
+        }
+      ]
+    },
+    "IssueStatus": {
+      "description": "The shared issue and EPIC lifecycle values.",
+      "oneOf": [
+        {
+          "description": "Work is being drafted.",
+          "type": "string",
+          "const": "draft"
+        },
+        {
+          "description": "Work is ready to start.",
+          "type": "string",
+          "const": "planned"
+        },
+        {
+          "description": "Work is underway.",
+          "type": "string",
+          "const": "in-progress"
+        },
+        {
+          "description": "Work cannot proceed.",
+          "type": "string",
+          "const": "blocked"
+        },
+        {
+          "description": "Work awaits review.",
+          "type": "string",
+          "const": "in-review"
+        },
+        {
+          "description": "Work is complete.",
+          "type": "string",
+          "const": "done"
+        }
+      ]
+    },
+    "Priority": {
+      "description": "The allowed issue urgency levels.",
+      "oneOf": [
+        {
+          "description": "Highest urgency.",
+          "type": "string",
+          "const": "p0"
+        },
+        {
+          "description": "High urgency.",
+          "type": "string",
+          "const": "p1"
+        },
+        {
+          "description": "Normal urgency.",
+          "type": "string",
+          "const": "p2"
+        },
+        {
+          "description": "Lowest urgency.",
+          "type": "string",
+          "const": "p3"
+        }
+      ]
+    },
+    "StrictSemanticLinks": {
+      "description": "The strict semantic-link envelope with frozen v1 reference value types.",
+      "type": "object",
+      "properties": {
+        "skill-links": {
+          "description": "Optional validated repository skill names.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/SkillName"
+          }
+        },
+        "related-artifacts": {
+          "description": "Optional validated repository paths or typed references.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/RelatedArtifact"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SkillName": {
+      "description": "A validated repository skill name.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "RelatedArtifact": {
+      "description": "A validated v1 related-artifact reference.",
+      "type": "string",
+      "pattern": "^(?:(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"
+    },
+    "Epic": {
+      "description": "The canonical strict EPIC frontmatter model.",
+      "type": "object",
+      "properties": {
+        "schema-version": {
+          "description": "The strict contract version.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 1,
+          "maximum": 1
+        },
+        "doc-type": {
+          "description": "The recognized EPIC document class.",
+          "$ref": "#/$defs/EpicDocumentType"
+        },
+        "status": {
+          "description": "The current lifecycle state.",
+          "$ref": "#/$defs/IssueStatus"
+        },
+        "epic": {
+          "description": "The nullable positive parent EPIC issue number.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1
+        },
+        "github-issue": {
+          "description": "The nullable positive GitHub issue number.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 1
+        },
+        "spec-path": {
+          "description": "The repository-relative specification path.",
+          "type": "string",
+          "pattern": "^(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*$"
+        },
+        "epic-owner": {
+          "description": "The nullable owner of the EPIC.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "last-updated-utc": {
+          "description": "The required UTC-minute update timestamp.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"
+        },
+        "semantic-links": {
+          "description": "The required strict semantic-link envelope.",
+          "$ref": "#/$defs/StrictSemanticLinks"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "schema-version",
+        "doc-type",
+        "status",
+        "epic",
+        "github-issue",
+        "spec-path",
+        "epic-owner",
+        "last-updated-utc",
+        "semantic-links"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      }
+    },
+    "EpicDocumentType": {
+      "description": "The fixed document type for strict EPIC records.",
+      "oneOf": [
+        {
+          "description": "The EPIC document class.",
+          "type": "string",
+          "const": "epic"
+        }
+      ]
+    }
+  }
+}
