@@ -61,6 +61,9 @@ unexplained `None`. No scenario fixtures need restructuring.
 
 - **Unit-only coverage:** 319 / 321 (99.38%) to 356 / 357 (99.72%) lines; 27 / 28 to 30 / 30
   functions; 385 / 390 to 425 / 426 regions.
+- **Post-#2320 refactor unit-only coverage:** 506 / 508 (99.61%) lines, 52 / 52 (100%)
+  functions, and 634 / 637 (99.53%) regions. The larger denominator includes the merged ordering
+  regression tests and the F1-F5 test fixtures; this remains test-only code.
 - **Tests refactored:** two terminology corrections and strict scrape-response extraction.
 - **Tests added:** one strict service-failure routing contract.
 - **Integration selected:** No. The handler has no socket Act.
@@ -212,3 +215,5 @@ tuple without duplicating `udp-core` cookie semantics or packet-to-wire error re
 - 2026-09-24 - GitHub Copilot - Completed F3/F5. Disabled cookie validation now has an explicit
   response-and-error-event contract, and counter conversion has separate fitting and saturation
   contracts. Focused scrape tests pass (13 tests).
+- 2026-09-24 - GitHub Copilot - Refreshed unit-only coverage after merged PR #2320 and F1-F5:
+  506 / 508 lines (99.61%), 52 / 52 functions (100%), and 634 / 637 regions (99.53%).
