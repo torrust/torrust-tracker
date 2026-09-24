@@ -91,6 +91,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-24 17:01 UTC - Re-derived both claims at PR head `5b35f7c8` and replied on both threads
   with the prescribed `Superseded by F1:` form before resolution. F1 is an original no-change
   finding, so its reply names itself; the rule's `<FindingId>` has no other referent for that case.
+- 2026-09-24 17:04 UTC - After `docs(pr-reviews): add PR #2334 review audit` was pushed, resolved
+  threads `PRRT_kwDOGp2yqc6lrFnE` (F1) and `PRRT_kwDOGp2yqc6lrFoB` (F2). A refreshed GraphQL fetch
+  reports both threads `isResolved: true` with two comments each, and no unresolved thread.
 
 ## Completion Rules
 
