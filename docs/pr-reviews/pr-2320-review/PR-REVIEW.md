@@ -51,8 +51,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Audit IDs `F1`-`F4` are the Copilot round (no reviewer IDs). The human reviewer numbered their
-findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and are recorded here as
-`F5`-`F21` (reviewer `F<k>` is audit `F<k+4>`), with the reviewer's original ID in each detail entry.
+findings `F1`-`F23` across rounds 1-8; those collide with the Copilot IDs and are recorded here as
+`F5`-`F27` (reviewer `F<k>` is audit `F<k+4>`), with the reviewer's original ID in each detail entry.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -77,6 +77,12 @@ findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and ar
 | F19 | `review-finding:pr-2320-f19` | Human | Minor | documentation | RE_RAISE_OF:F16 | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2320-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | `review-finding:pr-2320-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2320-f22` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2320-f23` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | `review-finding:pr-2320-f24` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | `review-finding:pr-2320-f25` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | `review-finding:pr-2320-f26` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | `review-finding:pr-2320-f27` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -395,11 +401,17 @@ findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and ar
   shipped them without a re-check. Same drift as F16 in this record.
 - Solution: values recomputed from the `reviews` and `reviewThreads` connections at the time of
   writing; a "current as of" sentence added at the top of the retrospective naming the last round
-  it covers, so later rounds do not make it wrong.
+  it covers, so later rounds do not make it wrong. After the round-8 follow-up
+  (<https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649428>, review
+  5297190311): the `Re-raised findings` row counts the F11 restatement at 19:47 (6, not 5) and no
+  longer calls the round-7 follow-ups verbatim; replied at
+  <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090366265>.
 - Current-tree verification: `rg -n '^Current as of' docs/pr-reviews/pr-2320-review/review-retrospective.md`
   matches one line; the `Review rounds` row reads `8 (7 human, 1 Copilot)` and the `Findings` row
-  reads `21`, matching seven `da2ce7` reviews with bodies plus Copilot, and 21 threads.
-- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`
+  reads `21`, matching seven `da2ce7` reviews with bodies plus Copilot, and 21 threads. After the
+  follow-up: `rg -n '^\| Re-raised findings \| 6 ' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches line 46, and `rg -c verbatim` on the file returns 2, neither about the round-7 follow-ups.
+- Resolution reference: `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`; `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087461668>
 
@@ -436,6 +448,116 @@ findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and ar
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087462247>
 
+### F22 - Processing Log 21:20 stamps are editing times and reverse the reply-commit order
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649041>
+- Concern: the two 21:20 entries, the "Not recorded until 21:20" clause, and the retrospective's
+  21:20 timeline row carry the editing time; `b5bea3f2` was authored 21:27 and the replies it
+  describes as later were posted at 21:25, before it.
+- Solution: the Processing Log is append-only, so a dated correction entry supersedes the three
+  audit sites with sourced values (deviation from the suggested in-place edit, stated in the
+  reply); the retrospective's timeline row, which is not append-only, is fixed in place as
+  `21:25-21:27` with the reply-commit-resolve order.
+- Current-tree verification: `rg -n 'Correction \(F22\)' docs/pr-reviews/pr-2320-review/PR-REVIEW.md`
+  matches one Processing Log entry, stamped 05:48, equal to `git log --format=%aI` of its commit;
+  `rg -n '^\| 21:20 ' docs/pr-reviews/pr-2320-review/review-retrospective.md` returns nothing and
+  `rg -n '^\| 21:25-21:27 '` matches line 93.
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090365409>
+
+### F23 - Store-disagreement count wrong on round membership and classification
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649050>
+- Concern: root cause 8 and item 9 said thirteen findings F5-F17 "after round 1" were store
+  disagreements; F5-F7 were posted in round 1, and F6, F7, F10 disagree with no store.
+- Solution: both places read "Nine of the ten human findings after round 1 (F8-F17; F10 is the
+  exception)".
+- Current-tree verification: `rg -n 'Nine of the ten human findings' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches lines 221 and 393; `rg -n -i thirteen` on the file returns nothing.
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090365563>
+
+### F24 - Three claims in the reconciler evidence paragraph do not hold
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F20
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649054>
+- Concern: "nine threads" was attributed to round 2 (which says seven) with a belief clause no
+  source shows; F1 was listed under a branch-id check that passes it; "F16 and F17 are the only two the
+  tool would not catch" omits F5, F6, F7, F8, F10, F12; the new-round gate fires once, not twice.
+- Solution: "nine" attributed to round 4 and the belief clause dropped; branch ids "F2, F9";
+  staleness cites F15 only; new-round gate "once"; the uncovered findings listed. The unverifiable
+  "resolved 13:3x" was replaced with round 1's record that all four Copilot threads were resolved.
+- Current-tree verification: `rg -n 'round-4 body|Branch ids: F2, F9|once, the 20:12 push' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches lines 429, 433 and 434; `rg -n 'round-2 body noted|believed|only two|13:3x'` returns nothing;
+  round 1 (5292925383) body line 31 reads "Copilot: all four threads resolved".
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090365690>
+
+### F25 - Validator coverage understated as "one edge"
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F21
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649058>
+- Concern: root cause 8 said the validator "covers one edge" and item 9 said it "stops there";
+  `--help` also lists resolution subjects against the branch, severities, and log order.
+- Solution: "covers two edges (rows against the REST comments, resolution subjects against the
+  branch)"; item 9 lists all four checks.
+- Current-tree verification: `rg -n 'covers two edges' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  matches line 220; `rg -n 'covers one edge|stops there'` returns nothing.
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090365902>
+
+### F26 - Attributions to the maintainer do not say where the record shows them
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F22
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649064>
+- Concern: three new statements attributed to the maintainer (root cause 8, item 9, the
+  improvements preface) name no source, against lesson 10.
+- Solution: each now says the statement was made in the editor chat session and no GitHub comment
+  records it; five more unflagged instances of the same class (lines 89, 135, 205, 210, 515) were
+  fixed the same way.
+- Current-tree verification: `rg -n maintainer docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  returns attributions to the maintainer at lines 83, 89, 135, 165, 205, 210, 217, 267, 398 and
+  515, each naming the editor chat session directly or by reference to the `after 18:02` row; the
+  remaining matches are roles, tools, and item 8's generic "phrases maintainers actually use"
+  (line 375), which quotes no one.
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090366034>
+
+### F27 - F17 listed as a wrong count, "every hand-written count", wrong lesson cited
+
+- PR number: 2320
+- Source review ID: 5297189747
+- Reviewer finding ID: F23
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4087649072>
+- Concern: F17 was about a pointer, not a wrong count; several hand-written counts held;
+  lesson 1 is about commit subjects, lesson 8 covers running the exact command.
+- Solution: "the hand-written counts that moved with the review were wrong within one round (F12,
+  F15)"; the overcorrection bullet reads "F12 and F15"; "lessons 8, 10 and 12"; lesson 13 narrowed
+  to counts that move with the review; stale round-3/4 counts in Purpose, cost item 1, item 4,
+  item 7 and Evidence scoped or recomputed.
+- Current-tree verification: `rg -n 'F12, F15, F17|F12, F15 and F17|every hand-written|lessons 1, 10' docs/pr-reviews/pr-2320-review/review-retrospective.md`
+  returns nothing; `rg -n 'lessons 8, 10 and 12'` matches line 540.
+- Resolution reference: `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4090366150>
+
 ## Processing Log
 
 - 2026-09-23 13:09 UTC - Copilot review 5291390450 submitted (F1-F4).
@@ -463,6 +585,10 @@ findings `F1`-`F17` across rounds 1-7; those collide with the Copilot IDs and ar
 - 2026-09-23 21:49 UTC - Human review 5297189747 submitted, `CHANGES_REQUESTED` (reviewer F18-F23, audit F22-F27).
 - 2026-09-23 21:49 UTC - Human review 5297190311 submitted: follow-up in the F19 thread, one Review Summary row still wrong.
 - 2026-09-24 05:48 UTC - Correction (F22): the two 21:20 entries above and the 19:46 entry's "Not recorded until 21:20" carry the editing time, not an event time. `docs(pr-reviews): record rounds 6 and 7 in the #2320 audit and retrospective`, which wrote them, was authored at 21:27 (`git log --format=%aI`). The replies on F17-F21 were posted at 21:25 (`created_at` 21:25:25Z-21:25:32Z), before that commit, not after it; the threads were resolved after it (order from the editor session; GitHub records no resolution time). Read "21:20" in those three places as 21:27, and the last entry as "replies posted 21:25, then this commit, then resolved". The entries stand as written; this entry supersedes those clauses.
+- 2026-09-24 05:49 UTC - `docs(pr-reviews): correct round-8 findings in the #2320 retrospective and audit log` committed (committer date 05:49:12Z) and pushed after a fetch that showed no review after 21:49 (F22-F27 and the F19 follow-up).
+- 2026-09-24 05:50 UTC - Replies posted on F22-F27 and the F19 follow-up (`created_at` 05:50:39Z-05:50:49Z); the F26 reply was edited at 05:51 to correct its own count of extra instances from four to five.
+- 2026-09-24 05:51 UTC - F22-F27 threads resolved; the F19 thread stayed resolved throughout.
+- 2026-09-24 05:54 UTC - Rows F22-F27 added and F19 extended with the follow-up in this commit.
 
 ## Completion Rules
 
