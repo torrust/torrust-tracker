@@ -26,7 +26,8 @@ Raw API responses were kept in the git-ignored `.tmp/` directory and are not com
 | E2E steps (persistence regression, E2E, qBittorrent x3) | 203 s  | 218 s  | 311 s  | 450 s  |
 
 In minutes: the job takes 30 to 49 minutes (median 37), and `Build Tracker Image` takes 24 to 42
-minutes (median 32, about 86% of the job). All other steps together take about one minute.
+minutes (median 32, about 86% of the job). The E2E steps take 3.4 to 7.5 minutes (median 3.6).
+The remaining setup and cleanup steps take about one minute (59 s in run `35972794173`).
 
 ## Build Step Breakdown, 6 Runs
 
