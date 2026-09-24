@@ -8,7 +8,7 @@ epic: 1840
 github-issue: 2323
 spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner-spec"
-related-pr: null
+related-pr: 2335
 last-updated-utc: 2026-09-24 17:05
 semantic-links:
   skill-links:
@@ -323,7 +323,7 @@ Use Conventional Commits with a narrow scope (for example `ci(container)`, `docs
 - [x] GitHub issue created (#2323, opened on GitHub before this specification)
 - [x] Folder-style spec drafted in `docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] Issue linked as a GitHub sub-issue of EPIC #1840
+- [x] Issue linked as a GitHub sub-issue of EPIC #1840
 - [x] Server prepared (T2) and runner installed and registered (T3), both logged in this folder
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
@@ -349,6 +349,7 @@ Append one line per meaningful update.
 - 2026-09-24 16:15 UTC - GitHub Copilot - Completed T1 baseline from 25 recent Container runs and 6 job logs; key findings: GitHub cache export already costs 5-12 min per job on GitHub-hosted runners, the cache is over its 10 GB allowance, and `Security Scan` is the next critical path - [`benchmark-results.md`](benchmark-results.md)
 - 2026-09-24 16:25 UTC - josecelano - Decided to include local caches in this issue and to deliver all `container.yaml` changes (runner switch, local caches, publish isolation) as a single task; tasks renumbered: T5 workflow changes, T6 validation, T7 measurement, T8 runner operations docs - this file
 - 2026-09-24 17:05 UTC - josecelano, GitHub Copilot - Completed T2 (firewall, Docker, build tools, `runner` user) and T3 (runner `v2.337.0` registered at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service online and idle); no workflow uses it yet - [`runner-server-setup.md`](runner-server-setup.md), [`runner-agent-installation.md`](runner-agent-installation.md)
+- 2026-09-24 17:15 UTC - josecelano, GitHub Copilot - Opened spec-only PR #2335 and linked #2323 as a GitHub sub-issue of EPIC #1840 - this file
 
 ## Acceptance Criteria
 
