@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-24 17:28"
+last-updated-utc: "2026-09-24 18:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -264,6 +264,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-24 08:01 UTC - GitHub Copilot - PR #2322 merged as `d37bafd7` and closed #2318; order 3 is `DONE` and its specification is archived under `docs/issues/closed/`. Order 4 (`docs/issues/drafts/2278-fetch-all-review-threads/`) is now unblocked.
 - 2026-09-24 16:07 UTC - GitHub Copilot - Refreshed the order-4 draft against the delivered `github-review-threads` crate; maintainer re-approved it. Created and linked subissue #2333 (order 4) and moved its specification to `docs/issues/open/2333-2278-fetch-all-review-threads/`. Spec-only PR pending.
 - 2026-09-24 17:28 UTC - GitHub Copilot - PR #2334 merged the #2333 specification as `a39935ca`. #2333 implementation began on its reserved branch; order 4 is `IN_PROGRESS`.
+- 2026-09-24 18:46 UTC - GitHub Copilot - #2333 T1-T4 done on its implementation branch: `github-review-threads` returns all threads with `resolvedBy` and `line`, `--unresolved-only` selects the action view, the `fetch-review-threads` skill contract is rewritten, and M1-M4 passed against PR #2320. The AC2 evidence had still listed subissue 3 as remaining after #2318 closed; it now names PR #2322. Implementation PR pending.
 
 ## Acceptance Criteria
 
@@ -283,7 +284,7 @@ requests where possible; a fixture is used only when no real review produced the
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | `retrospective-improvement-matrix.md`; maintainer approval recorded in the 2026-09-22 06:59 UTC progress entry. |
-| AC2 | TODO | #2295 and #2308 are DONE via merged PRs #2300 and #2313; subissues 3 and 4 remain. |
+| AC2 | TODO | #2295, #2308, and #2318 are DONE via merged PRs #2300, #2313, and #2322; #2333 (order 4) is implemented with its acceptance criteria verified, and its implementation PR is pending. |
 | AC3 | TODO | Subissue 5. |
 | AC4 | TODO | Subissue 6. |
 | AC5 | TODO | Subissues 7, 8. |
