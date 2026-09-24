@@ -154,12 +154,12 @@ mod tests {
         use crate::error::Error;
         use crate::event::sender::Broadcaster;
         use crate::event::{Event, UdpRequestKind};
-        use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
             CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_listed_tracker,
             initialize_core_tracker_services_for_public_tracker, sample_ipv4_remote_addr, sample_issue_time,
             sample_strict_cookie_validation,
         };
+        use crate::handlers::{CookieValidationContext, handle_scrape};
 
         struct Tracker {
             core_tracker_services: CoreTrackerServices,
@@ -337,6 +337,49 @@ mod tests {
                         UdpRequestKind::Scrape,
                     ) if transaction_id == request.transaction_id
                 )
+            ));
+        }
+
+        #[tokio::test]
+        async fn it_should_publish_a_cookie_error_and_answer_when_cookie_validation_is_disabled() {
+            // Arrange
+            let tracker = Tracker::public().await;
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, InfoHash([0u8; 20]))
+                .with_connection_id(ConnectionId(I64::new(0)))
+                .into();
+            let cookie_validation = CookieValidationContext {
+                valid_range: crate::handlers::tests::sample_cookie_valid_range(),
+                connection_id_validation: torrust_tracker_udp_core::ConnectionIdValidationPolicy::Disabled,
+            };
+            let expected_response = Response::from(ScrapeResponse {
+                transaction_id: request.transaction_id,
+                torrent_stats: vec![zeroed_torrent_statistics()],
+            });
+            let mut receiver = tracker.udp_server_broadcaster.subscribe();
+
+            // Act
+            let response = handle_scrape(
+                &tracker.core_udp_tracker_services.scrape_service,
+                tracker.client_socket_addr,
+                tracker.server_service_binding.clone(),
+                &request,
+                &tracker.udp_server_stats_event_sender,
+                cookie_validation,
+            )
+            .await
+            .unwrap();
+
+            // Assert
+            assert_eq!(response, expected_response);
+            let _accepted_event = receiver.recv().await.expect("accepted scrape event should be published");
+            let error_event = receiver.recv().await.expect("cookie error event should be published");
+            assert!(matches!(
+                error_event,
+                Event::UdpError {
+                    kind: Some(UdpRequestKind::Scrape),
+                    error: crate::event::ErrorKind::ConnectionCookie(_),
+                    ..
+                }
             ));
         }
 
@@ -675,9 +718,30 @@ mod tests {
     }
 
     #[test]
-    fn should_saturate_large_download_counts_for_udp_protocol() {
-        assert_eq!(super::udp_counter_from_u32(u32::MAX), i32::MAX);
-        assert_eq!(super::udp_counter_from_u32((i32::MAX as u32) + 1), i32::MAX);
-        assert_eq!(super::udp_counter_from_u32(42), 42);
+    fn it_should_encode_counters_that_fit_in_i32_as_is() {
+        // Arrange
+        let counter = 42;
+        let expected_encoded_counter = i32::try_from(counter).expect("counter should fit in i32");
+
+        // Act
+        let encoded_counter = super::udp_counter_from_u32(counter);
+
+        // Assert
+        assert_eq!(encoded_counter, expected_encoded_counter);
+    }
+
+    #[test]
+    fn it_should_saturate_counters_above_i32_max() {
+        // Arrange
+        let counter_just_above_i32_max = (i32::MAX as u32) + 1;
+        let maximum_u32_counter = u32::MAX;
+
+        // Act
+        let encoded_just_above_i32_max = super::udp_counter_from_u32(counter_just_above_i32_max);
+        let encoded_maximum_u32 = super::udp_counter_from_u32(maximum_u32_counter);
+
+        // Assert
+        assert_eq!(encoded_just_above_i32_max, i32::MAX);
+        assert_eq!(encoded_maximum_u32, i32::MAX);
     }
 }

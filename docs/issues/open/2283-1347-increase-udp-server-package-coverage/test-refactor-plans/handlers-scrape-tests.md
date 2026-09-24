@@ -167,9 +167,9 @@ reads as prose; the second keeps the Act literal. Maintainer decision required.
 | --- | --- | --- | --- |
 | F1 | DONE | Introduced the local `Tracker` scenario fixture, `ScrapeRequestBuilder`, and named strict-context `scrape` action. Removed duplicate `build_scrape_request`, `sample_scrape_request`, and the helper that hid the public scrape Act. Rewrote public and listed tracker cases with `it_should_*` names and AAA. | Behavior-preserving: 11 focused scrape tests pass after the post-#2320 baseline refactor. |
 | F2 | DONE | Replaced `mockall` event expectations with direct `Broadcaster` subscriptions, flattened the IPv4/IPv6 event modules, and generated listener bindings that match each client address family. | Each test compares the complete accepted-request event against values used by the Act; both IPv4 and IPv6 publication tests pass. |
-| F3 | PROPOSED | Add fact 7: disabled validation, invalid connection ID, strict-free `handle_scrape` call visible, assert one `Event::UdpError { kind: Some(Scrape), error: ConnectionCookie(_) }` and a returned scrape response. | Handler-owned policy decision; cookie semantics stay in `udp-core`. |
+| F3 | DONE | Added fact 7: an invalid connection ID with validation disabled calls `handle_scrape` directly, publishes `Event::UdpError { kind: Some(Scrape), error: ConnectionCookie(_) }`, and returns a scrape response. | The handler-owned policy is visible; `udp-core` remains the owner of cookie semantics. |
 | F4 | DONE | PR #2320 added direct `build_response` coverage for a requested hash absent from `ScrapeData`, and regression coverage for duplicate and eight-hash request order. | The merged response adapter iterates `request.info_hashes` and looks up each metadata entry by key. No additional single-entry test is selected. |
-| F5 | PROPOSED | Split the saturation test into fact 9's two cases: `it_should_encode_counters_that_fit_in_i32_as_is` and `it_should_saturate_counters_above_i32_max`, each with AAA. | No new dependency; `rstest` is not in this package. |
+| F5 | DONE | Split fact 9 into `it_should_encode_counters_that_fit_in_i32_as_is` and `it_should_saturate_counters_above_i32_max`, each with AAA. | The saturation case covers the immediate overflow boundary and `u32::MAX`; no new dependency added. |
 | F6 | DONE | PR #2320 fixed positional scrape-response order. `build_response` now iterates `request.info_hashes` and performs keyed `ScrapeData.files` lookups. | PR #2320 includes regression coverage for duplicate requested hashes and an eight-hash request with distinct statistics. F1-F3 and F5 may resume. |
 | F7 | PROPOSED | Record design feedback: group the four listener arguments of `handle_scrape` and `handle_announce` into one context type so tests and `handlers/mod.rs` stop re-threading them. | Production change outside #2283; propose as a follow-up issue, not in this branch. |
 
@@ -209,3 +209,6 @@ tuple without duplicating `udp-core` cookie semantics or packet-to-wire error re
   listener, and event-publisher construction; tests retain their causal request/state, named Act,
   and independently specified response or event. Replaced mock expectations with broadcaster
   subscriptions and corrected the IPv4 listener family. Focused scrape tests pass (11 tests).
+- 2026-09-24 - GitHub Copilot - Completed F3/F5. Disabled cookie validation now has an explicit
+  response-and-error-event contract, and counter conversion has separate fitting and saturation
+  contracts. Focused scrape tests pass (13 tests).
