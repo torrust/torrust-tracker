@@ -161,18 +161,58 @@ mod tests {
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
+    use torrust_tracker_udp_core::event::ConnectionContext;
+    use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+    use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
     use torrust_tracker_udp_protocol::{ErrorResponse, Response, TransactionId};
     use uuid::Uuid;
     use zerocopy::byteorder::network_endian::I32;
 
-    use super::handle_error;
+    use super::{handle_error, is_connection_cookie_error};
     use crate::error::Error;
     use crate::event::{ErrorKind, Event, UdpRequestKind};
+
+    fn sample_client() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
+    }
+
+    fn sample_listener() -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
+            .expect("UDP service binding should be valid")
+    }
+
+    fn sample_configuration_instance_id() -> ConfigurationInstanceId {
+        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)
+    }
 
     fn internal_error() -> Error {
         Error::Internal {
             location: std::panic::Location::caller(),
             message: "failure".into(),
+        }
+    }
+
+    fn expired_cookie() -> ConnectionCookieError {
+        ConnectionCookieError::ValueExpired {
+            expired_value: 1.0,
+            min_value: 2.0,
+        }
+    }
+
+    fn announce_failure_with_expired_cookie() -> Error {
+        Error::AnnounceFailed {
+            source: UdpAnnounceError::ConnectionCookieError {
+                source: expired_cookie(),
+            },
+        }
+    }
+
+    fn scrape_failure_with_expired_cookie() -> Error {
+        Error::ScrapeFailed {
+            source: UdpScrapeError::ConnectionCookieError {
+                source: expired_cookie(),
+            },
         }
     }
 
@@ -187,10 +227,9 @@ mod tests {
     ) -> Response {
         handle_error(
             request_kind,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
-                .expect("UDP service binding should be valid"),
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            sample_client(),
+            sample_listener(),
+            sample_configuration_instance_id(),
             public_url,
             Uuid::nil(),
             sender,
@@ -222,60 +261,84 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_return_an_error_response_with_the_supplied_transaction_id() {
+    async fn it_should_answer_with_the_error_message_and_the_request_transaction_id() {
         // Arrange
         let transaction_id = TransactionId(I32::new(42));
-        let error = internal_error();
+        let error = scrape_failure_with_expired_cookie();
+        let expected_response = Response::from(ErrorResponse {
+            transaction_id,
+            message: "tracker scrape error: Connection cookie error: cookie value is expired: 1, expected > 2".into(),
+        });
 
         // Act
         let response = handle_error_for_response(Some(transaction_id), &error).await;
 
         // Assert
-        assert!(matches!(response, Response::Error(ErrorResponse { transaction_id: actual, .. }) if actual == transaction_id));
+        assert_eq!(response, expected_response);
     }
 
     #[tokio::test]
-    async fn it_should_publish_an_error_event_with_the_supplied_request_kind() {
+    async fn it_should_answer_with_a_zero_transaction_id_when_the_request_has_no_transaction_id() {
         // Arrange
-        let error = internal_error();
-
-        // Act
-        let event = handle_error_for_published_event(Some(UdpRequestKind::Connect), None, &error).await;
-
-        // Assert
-        assert!(matches!(
-            event,
-            Event::UdpError { kind: Some(UdpRequestKind::Connect), error: ErrorKind::InternalServer(message), .. } if message == "failure"
-        ));
-    }
-
-    #[tokio::test]
-    async fn it_should_publish_an_error_event_with_the_supplied_public_url() {
-        // Arrange
-        let public_url = "udp://tracker.example.test:6969".to_string();
-        let error = internal_error();
-
-        // Act
-        let event = handle_error_for_published_event(None, Some(public_url.clone()), &error).await;
-
-        // Assert
-        let Event::UdpError { context, .. } = event else {
-            panic!("published event should be a UDP error");
-        };
-        assert_eq!(context.public_url(), Some(public_url.as_str()));
-    }
-
-    #[tokio::test]
-    async fn it_should_return_a_zero_transaction_id_without_an_event_sender() {
-        // Arrange
-        let error = internal_error();
+        let error = scrape_failure_with_expired_cookie();
+        let expected_response = Response::from(ErrorResponse {
+            transaction_id: TransactionId(I32::new(0)),
+            message: "tracker scrape error: Connection cookie error: cookie value is expired: 1, expected > 2".into(),
+        });
 
         // Act
         let response = handle_error_for_response(None, &error).await;
 
         // Assert
+        assert_eq!(response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_an_error_event_naming_the_connection_request_kind_and_error() {
+        // Arrange
+        let public_url = "udp://tracker.example.test:6969".to_string();
+        let error = internal_error();
+        let expected_event = Event::UdpError {
+            context: ConnectionContext::new(sample_configuration_instance_id(), sample_client(), sample_listener())
+                .with_public_url(Some(public_url.clone())),
+            kind: Some(UdpRequestKind::Connect),
+            error: ErrorKind::InternalServer("failure".to_string()),
+        };
+
+        // Act
+        let event = handle_error_for_published_event(Some(UdpRequestKind::Connect), Some(public_url), &error).await;
+
+        // Assert
+        assert_eq!(event, expected_event);
+    }
+
+    #[test]
+    fn it_should_classify_announce_and_scrape_cookie_failures_as_connection_cookie_errors() {
+        // Arrange
+        let announce_failure = announce_failure_with_expired_cookie();
+        let scrape_failure = scrape_failure_with_expired_cookie();
+
+        // Act
+        let announce_is_cookie_error = is_connection_cookie_error(&announce_failure);
+        let scrape_is_cookie_error = is_connection_cookie_error(&scrape_failure);
+
+        // Assert
         assert!(
-            matches!(response, Response::Error(ErrorResponse { transaction_id: TransactionId(value), .. }) if value == I32::new(0))
+            announce_is_cookie_error,
+            "an announce cookie failure should be a cookie error"
         );
+        assert!(scrape_is_cookie_error, "a scrape cookie failure should be a cookie error");
+    }
+
+    #[test]
+    fn it_should_not_classify_an_internal_failure_as_a_connection_cookie_error() {
+        // Arrange
+        let error = internal_error();
+
+        // Act
+        let is_cookie_error = is_connection_cookie_error(&error);
+
+        // Assert
+        assert!(!is_cookie_error);
     }
 }
