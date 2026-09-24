@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: in-progress
+status: done
 priority: p1
 epic: 2264
 github-issue: 2280
-spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
+spec-path: docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
 branch: "2280-frontmatter-schema-drift"
-related-pr: null
-last-updated-utc: "2026-09-23 15:22"
+related-pr: 2325
+last-updated-utc: "2026-09-24 09:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -211,7 +211,7 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Independent reviewer reports recorded when applicable
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -279,6 +279,8 @@ prose-first Arrange-Act-Assert design review before commit. Use signed Conventio
 - 2026-09-23 15:22 UTC - GitHub Copilot - Re-ran M1-M3 plus an invalid-action case against HEAD
   `4c58b5a9`: regeneration idempotent, drift exits `1` with the shipped shell-safe hint, unknown
   action exits `2`, stdout empty throughout; recorded as V3 - `manual-verification-evidence.md`
+- 2026-09-24 09:36 UTC - GitHub Copilot - PR #2325 merged, closing GitHub issue #2280; archived
+  this completed specification and its supporting records under `docs/issues/closed/` - PR #2325
 
 ## Acceptance Criteria
 

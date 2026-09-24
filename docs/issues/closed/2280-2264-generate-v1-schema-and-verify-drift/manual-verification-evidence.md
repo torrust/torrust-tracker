@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-last-updated-utc: "2026-09-23 15:22"
+issue-spec: docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
+last-updated-utc: "2026-09-24 09:36"
 ---
 
 # Manual Verification Evidence

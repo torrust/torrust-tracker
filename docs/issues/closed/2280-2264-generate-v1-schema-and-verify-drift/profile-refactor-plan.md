@@ -2,8 +2,8 @@
 doc-type: refactor-plan
 status: done
 related-issue: 2280
-spec-path: docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
-last-updated-utc: "2026-09-23 10:02"
+spec-path: docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/profile-refactor-plan.md
+last-updated-utc: "2026-09-24 09:36"
 semantic-links:
   skill-links:
     - create-refactor-plan
@@ -12,8 +12,8 @@ semantic-links:
     - .github/skills/dev/planning/create-refactor-plan/SKILL.md
     - contrib/dev-tools/checks/frontmatter-validator/src/profile.rs
     - contrib/dev-tools/checks/frontmatter-validator/src/lib.rs
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
-    - docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
+    - docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md
+    - docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/schema-command-refactor-plan.md
     - issue #2280
 ---
 
@@ -27,7 +27,7 @@ Improve the test ownership, readability, and maintainability of strict frontmatt
 validation in `profile.rs` without changing the v1 schema contract, generated artifact bytes, or
 the public diagnostics consumed by later command work.
 
-Related issue: `docs/issues/open/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
+Related issue: `docs/issues/closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md`
 
 This plan is distinct from the completed schema-command plan. That plan refactored process,
 filesystem, and artifact behavior in `src/bin/frontmatter-schema.rs`; this plan owns only the
