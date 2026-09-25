@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-21 16:18
+last-updated-utc: 2026-09-25
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
+    - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

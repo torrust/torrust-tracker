@@ -92,6 +92,6 @@ record (`PR-REVIEW.md`) and the issue specification rather than the workflow fix
 
 ## Evidence
 
-- Issue [docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md](../../issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md)
+- Issue [docs/issues/closed/2179-fix-docker-e2e-package-flag/ISSUE.md](../../issues/closed/2179-fix-docker-e2e-package-flag/ISSUE.md)
 - Canonical audit: [PR-REVIEW.md](PR-REVIEW.md) (DOC-1, DOC-2, F1-F9)
 - PR: <https://github.com/torrust/torrust-tracker/pull/2272>

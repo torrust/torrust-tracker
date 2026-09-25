@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-23 18:15"
+last-updated-utc: 2026-09-25
 semantic-links:
   skill-links:
     - create-issue
@@ -154,11 +154,11 @@ deterministic tests, and manual evidence.
 | 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md)                            | Done       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy.               |
 | 3        | SI-4  | [Migrate torrent cleanup](../../closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                    | Done       | One periodic component adopts token cancellation.                                                    |
 | 4        | #2221 | [Migrate activity metrics](../../closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                           | Done       | One periodic component adopts token cancellation.                                                    |
-| 5        | #2234 | [Add token-aware server lifecycle API](../2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md)                         | Done       | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
-| 6        | #2274 | [Add token-aware, joinable Axum drain helper](../2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)               | Done       | Additive helper alongside existing API; no consumer breaks.                                          |
+| 5        | #2234 | [Add token-aware server lifecycle API](../../closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md)                         | Done       | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
+| 6        | #2274 | [Add token-aware, joinable Axum drain helper](../../closed/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)               | Done       | Additive helper alongside existing API; no consumer breaks.                                          |
 | 7        | #2289 | [Migrate HTTP tracker to token lifecycle](../../closed/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)      | Done       | One complete HTTP vertical slice.                                                                    |
 | 8        | #2309 | [Migrate REST API to token lifecycle](../../closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)             | Done       | One complete REST API vertical slice.                                                                |
-| 9        | #2324 | [Migrate health-check API to token lifecycle](../2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Open       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
+| 9        | #2324 | [Migrate health-check API to token lifecycle](../../closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Done       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
 | 10       | SI-14 | [Migrate UDP receive loop to token lifecycle](../../drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Draft      | Token-aware UDP stop; join receive loop; retain request abort fallback and separate managed cleanup. |
 | 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)            | Draft      | Request deadline, abort behavior, outcomes, and verification.                                        |
 | 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Draft      | One supported standalone HTTP consumer migration.                                                    |

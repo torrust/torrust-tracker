@@ -28,7 +28,7 @@ semantic-links:
 Record why the review of PR #2270 cost far more than the change it delivered, and what the
 evidence says about fixing that. This is a blameless review of the *review process*, written from
 the author/agent side using the audit record and branch history. It complements the issue-level
-[implementation retrospective](../../issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/implementation-retrospective.md),
+[implementation retrospective](../../issues/closed/2230-add-fix-bug-skill-and-bug-spec-guardrails/implementation-retrospective.md),
 which covers the deliverable; this document covers the cost of getting the deliverable merged.
 
 It proposes improvements only. Decisions about which to adopt are deferred until the PR is merged.
@@ -209,7 +209,7 @@ but are secondary.
 - Pull request: https://github.com/torrust/torrust-tracker/pull/2270
 - Validator: `.github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py`
 - Deliverable retrospective:
-  `docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/implementation-retrospective.md`
+  `docs/issues/closed/2230-add-fix-bug-skill-and-bug-spec-guardrails/implementation-retrospective.md`
 
 Reproducing the figures (run from the repository root on the PR branch):
 

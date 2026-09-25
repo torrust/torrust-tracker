@@ -8,7 +8,7 @@ github-issue: 2158
 spec-path: docs/issues/closed/2158-2003-inventory-existing-clippy-allows/ISSUE.md
 branch: "2158-2003-inventory-existing-clippy-allows"
 related-pr: 2259
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: 2026-09-25
 semantic-links:
   skill-links:
     - create-issue
@@ -274,6 +274,6 @@ explaining why no retrospective is needed.
 - Parent EPIC: #2003
 - GitHub issue: #2158
 - Prospective policy: #2157 - Require Documented Clippy Allows
-  (`docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`)
+  (`docs/issues/closed/2157-2003-require-documented-clippy-allows/ISSUE.md`)
 - Inventory artifact: `clippy-allow-inventory.md` in this issue specification folder
 - Remediation agent: `.github/agents/clippy-fixer.agent.md`

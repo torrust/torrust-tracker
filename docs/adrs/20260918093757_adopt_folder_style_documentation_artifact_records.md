@@ -44,7 +44,7 @@ family's canonical filename:
 
 | Record family | Primary filename | Example |
 | ------------- | ---------------- | ------- |
-| Issue spec | `ISSUE.md` | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md` |
+| Issue spec | `ISSUE.md` | `docs/issues/closed/2159-2003-adopt-folder-style-issue-specs/ISSUE.md` |
 | EPIC spec | `EPIC.md` | `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` |
 | Refactor plan | `REFACTOR-PLAN.md` | `docs/refactor-plans/closed/2238-refactor-native-tracker-test-fixture/REFACTOR-PLAN.md` |
 | PR-review audit | `PR-REVIEW.md` | `docs/pr-reviews/pr-2252-review/PR-REVIEW.md` |
@@ -87,4 +87,4 @@ be changed before archive migration to prevent new flat records.
 
 - Issue: #2159
 - [Place ADRs by Decision Scope](20260830124000_place_adrs_by_decision_scope.md)
-- [Migration inventory](../issues/open/2159-2003-adopt-folder-style-issue-specs/migration-inventory.md)
+- [Migration inventory](../issues/closed/2159-2003-adopt-folder-style-issue-specs/migration-inventory.md)
