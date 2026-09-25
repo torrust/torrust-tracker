@@ -104,7 +104,7 @@ Selected server (provisioning started 2026-09-24):
 | Disk                      | 320 GB local                 |
 | Included outgoing traffic | 20 TB per month              |
 | Price                     | €69.49 per month             |
-| Server type               | To be recorded in T2         |
+| Server type               | Open (Open Question 1); 8 vCPU / 16 GB at about €69 matches the shared-vCPU CPX42 line of the earlier cost table |
 
 An earlier cost analysis (2026-09-16) is kept in
 [`larger-runner-vs-self-hosted-cost-analysis.md`](larger-runner-vs-self-hosted-cost-analysis.md).
