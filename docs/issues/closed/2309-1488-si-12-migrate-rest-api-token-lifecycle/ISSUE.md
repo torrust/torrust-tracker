@@ -8,7 +8,7 @@ github-issue: 2309
 spec-path: docs/issues/closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md
 branch: "2309-1488-si-12-migrate-rest-api-token-lifecycle"
 related-pr: 2316
-last-updated-utc: 2026-09-23
+last-updated-utc: 2026-09-25
 semantic-links:
   skill-links:
     - create-issue
@@ -21,8 +21,8 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
-    - docs/issues/open/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
-    - docs/issues/open/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
+    - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
+    - docs/issues/closed/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
 ---
