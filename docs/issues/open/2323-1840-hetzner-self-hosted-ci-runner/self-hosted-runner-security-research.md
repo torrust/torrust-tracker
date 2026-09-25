@@ -294,6 +294,28 @@ project. Points to settle before committing to it:
 - **Hetzner server:** the runner was removed on 2026-09-25; the server itself becomes
   unnecessary and can be deleted.
 
+## Decision (2026-09-25)
+
+The direction above was superseded. After discussing the contribution profile with @cgbosse, the
+maintainers decided to keep the persistent self-hosted runner and accept the exposure described in
+findings 1 to 7, because unreviewed code rarely reaches it. PRs opened in the 12 months before
+2026-09-25, by author association (GitHub GraphQL API):
+
+| Author | PRs |
+| ------ | --- |
+| Organization members (`josecelano` 398, mostly AI agents; `da2ce7` 8) | 406 |
+| Dependabot | 118 |
+| External contributors (five PRs from four accounts) | 5 |
+
+Finding 3 still holds: approval limits likelihood, not impact. The decision therefore rests on
+controlling each path by which code runs on the runner without prior review, and on limiting what
+a compromise can reach. [ISSUE.md](ISSUE.md) records the controls (fork-PR risk, T5, T9, AC7):
+approval for all external contributors with a full-diff review, Dependabot and the
+`main`/`releases/**` events on GitHub-hosted runners, required 2FA for organization members
+(`two_factor_requirement_enabled` was `false` on 2026-09-25), publishing isolated from the
+self-hosted host, and a regular server rebuild. AI agents acting with a maintainer's credentials
+remain a residual path. GitHub larger runners (alternative B) remain the fallback.
+
 ## Implications for Issue #2323
 
 - The current setup (persistent host, `runner` in the `docker` group, fork PRs) does not meet the

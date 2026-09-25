@@ -29,16 +29,19 @@ semantic-links:
 
 Parent EPIC: #1840 - Improve PR Workflow Performance
 
-> **Design status (2026-09-24): under review.** Copilot finding PERSISTENT-RUNNER-PRIVILEGE and
-> reviewer finding F1 on PR #2335 showed that a
-> persistent self-hosted runner lets fork-PR code gain root on the host and persistently compromise
-> the runner. The maintainer ruled that unacceptable. The research in
-> [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md) found no
-> safe persistent-runner setup for fork PRs, and the maintainer is leaning towards GitHub larger
-> runners on GitHub Team instead. The runner on `torrust-runner-01` was stopped, then removed on
-> 2026-09-25 (service uninstalled, registration deleted, install directory removed). The plan from T4 on
-> is on hold until this specification is rewritten around the chosen approach; the sections below
-> still describe the original Hetzner design.
+> **Design decision (2026-09-25): persistent self-hosted runner, accepted with controls.**
+> Copilot finding PERSISTENT-RUNNER-PRIVILEGE and reviewer finding F1 on PR #2335 showed that fork-PR
+> code on a persistent self-hosted runner gains root on the host and can persistently compromise
+> the runner. On 2026-09-24 the maintainer ruled that unacceptable, researched alternatives
+> ([`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)), and
+> removed the runner on 2026-09-25. After reviewing the contribution profile with @cgbosse (last
+> 12 months: 406 PRs from members, 118 from Dependabot, 5 from external contributors), the
+> maintainers decided to keep the persistent runner and accept the exposure, with controls that
+> keep unreviewed code off the runner and limit what a compromise can reach (see the fork-PR risk
+> in Risks and Trade-offs, T9, and AC7). This reverses the 2026-09-24 position on the basis of
+> likelihood, not impact. GitHub larger runners remain the fallback if the contribution profile
+> changes or a control cannot be kept. The runner must be registered again (T3), and only after
+> T9 is done.
 
 ## Goal
 
@@ -202,6 +205,9 @@ with rechecked prices.
 - Keep the publish jobs on GitHub-hosted runners, isolated from state produced on the
   self-hosted runner (see Risks and Trade-offs).
 - Document the accepted security model for running fork-PR workflows on a self-hosted runner.
+- Apply the controls the accepted risk depends on: approval for all external contributors, required
+  2FA for organization members, Dependabot PRs and the `main`/`releases/**` events kept on
+  GitHub-hosted runners, and a regular rebuild of the server.
 - Define the fallback when the self-hosted runner is unavailable.
 - Measure after the switch and record the before/after comparison.
 - Document the runner for maintainers: purpose, label, operational owner, how to recover it.
@@ -213,7 +219,7 @@ with rechecked prices.
 - Moving the Docker Hub publish jobs to the self-hosted runner.
 - A self-hosted container registry, package mirrors, or other cache services beyond the local
   caches in T5 (follow-up if scenario B appears).
-- Upgrading to paid GitHub-hosted (larger) runners.
+- Upgrading to paid GitHub-hosted (larger) runners; kept as the fallback (see the design decision).
 - Changing the required-check policy or the merge tool.
 - Further Containerfile build optimizations tracked by EPIC #1840.
 - Adding a path filter to `coverage.yaml` or diagnosing the `78d7e0fe` Coverage failure raised in
@@ -229,7 +235,9 @@ with rechecked prices.
   - Adopt a self-hosted Hetzner runner for the container test job (root `docs/adrs/`, because it
     is repository-wide CI infrastructure). It must cover the cost rationale, the persistent
     runner choice, the accepted security risk, publish-job isolation, the cache strategy, and
-    the fallback.
+    the fallback. It must also record the 2026-09-24 rejection and the 2026-09-25 reversal, the
+    contribution data behind it, the controls it depends on, and the conditions for revisiting it
+    (for example a rise in external contributions or a lost control).
 
 ## Design and Ownership Review
 
@@ -290,12 +298,13 @@ Delivery phases:
 | --- | ----- | ------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | 1     | DONE   | Record baseline                       | Recorded in [`benchmark-results.md`](benchmark-results.md): `Test (Docker)` median 37 min; build step median 32 min, of which workspace compile 15.5-18.6 min and GitHub cache export 5-12 min; third-party layer missed in 4 of 6 runs; cache over its 10 GB allowance; `Security Scan` (28-29 min) is the next critical path when it runs. |
 | T2  | 1     | DONE   | Prepare Hetzner server                | Falkenstein, 8 vCPU, 16 GB RAM, 320 GB disk, €69.49/month (see Background). Hostname `torrust-runner-01`, Ubuntu 26.04.1 LTS, kernel `7.0.0-34-generic`; SSH key-only login; automatic security updates; Hetzner Cloud Firewall allowing only inbound SSH; Docker Engine 29.8.1 with Buildx and Compose; host build tools; `runner` user in the `docker` group. Host holds no Torrust credentials. Server type and shared or dedicated vCPU remain open (Open Question 1). Logged in [`runner-server-setup.md`](runner-server-setup.md). |
-| T3  | 1     | DONE   | Install and register runner           | Runner `v2.337.0` (hash-verified) under `/home/runner/actions-runner`, registered at repository level as `torrust-runner-01` with label `torrust-hetzner`, running as the systemd service `actions.runner.torrust-torrust-tracker.torrust-runner-01` under `runner`, enabled at boot. GitHub reports it `online` and idle. One runner instance for now. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
+| T3  | 1     | TODO   | Install and register runner           | First registered on 2026-09-24: runner `v2.337.0` (hash-verified) at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service under `runner`. Removed on 2026-09-25 during the design review. Register it again with the same settings only after T9 is DONE. One runner instance for now. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 | T4  | 2     | TODO   | Write ADR                             | ADR in `docs/adrs/` covering the decisions listed in Architectural Decisions.                                                   |
-| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and read no cache produced by the self-hosted job. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
+| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and read no cache produced by the self-hosted job; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the actor (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
 | T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
-| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, and recovery steps. |
+| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, recovery steps, the regular server rebuild (for example monthly and on any suspicion of compromise) from the setup logs, and the rule that approving an external PR's workflows requires reviewing its full diff. |
+| T9  | 1     | TODO   | Apply access controls                 | Before T3 is repeated: set the fork-PR approval policy to "Require approval for all external contributors" (currently `first_time_contributors`) and require two-factor authentication for organization members (currently not required). Record both settings, verified through the GitHub API, in the runner log. |
 
 ### Post-Switch Scenarios
 
@@ -325,6 +334,7 @@ plan the remedy. Scenarios can combine. Add new rows when an unexpected scenario
 | T6   | Validation evidence in `manual-verification-evidence.md`     | Commit after the runs complete.                      |
 | T7   | Updated benchmark evidence                                   | Commit after the comparison is reviewed.             |
 | T8   | Documentation                                                | Commit after maintainer review.                      |
+| T9   | Access-control evidence in the runner log                    | Commit on the spec branch after both settings are verified. |
 
 T5 is a single change set so that no published image is ever built from self-hosted cache.
 
@@ -367,11 +377,13 @@ Append one line per meaningful update.
 - 2026-09-24 17:15 UTC - josecelano, GitHub Copilot - Opened spec-only PR #2335 and linked #2323 as a GitHub sub-issue of EPIC #1840 - this file
 - 2026-09-24 21:30 UTC - josecelano, GitHub Copilot - Copilot finding F2 (fork-PR root through the `docker` group and persistent runner compromise) ruled unacceptable; researched safe alternatives; stopped and disabled `torrust-runner-01`; design under review with GitHub larger runners on Team as the leading option - [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)
 - 2026-09-25 06:23 UTC - GitHub Copilot - Review round 1 (Copilot review 5307823915, reviewer review 5310557886): rewrote the fork-PR risk to state the real exposure (root-equivalent, persistent, runner registration, later push jobs, faked publish gate). Correction: the 21:30 entry's "Copilot finding F2" means Copilot's PERSISTENT-RUNNER-PRIVILEGE, not reviewer finding F2 - audit at `docs/pr-reviews/pr-2335-review/PR-REVIEW.md`
+- 2026-09-25 16:18 UTC - josecelano, cgbosse - Decided to keep the persistent self-hosted runner and accept the exposure with controls, based on the contribution profile (5 external PRs in 12 months); added T9 (approval for all external contributors, required 2FA), T5(d) and T5(e) routing, AC7, and M7; T3 reopened for re-registration after T9 - [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)
 
 ## Acceptance Criteria
 
 - [ ] AC1: The `container.yaml` `test` job runs on the self-hosted Hetzner runner for PRs targeting
-      `develop` and for pushes to `develop`.
+      `develop` and for pushes to `develop`, except Dependabot PRs; Dependabot PRs, PRs to `main`,
+      and pushes to `main` and `releases/**` run it on GitHub-hosted runners.
 - [ ] AC2: The measured PR check wall-clock time is recorded for the baseline and after the
       workflow changes (cold and warm cache), with the 15-minute target either met or the gap
       explained.
@@ -382,9 +394,13 @@ Append one line per meaningful update.
       fallback procedure moves or reruns queued jobs; the plan does not rely on
       `timeout-minutes`, which does not bound queue time.
 - [ ] AC5: An ADR records the decision, cost rationale, persistent-runner choice, accepted security
-      risk, publish-job isolation, and cache strategy.
+      risk with its likelihood basis and the 2026-09-24 reversal, publish-job isolation, and cache
+      strategy.
 - [ ] AC6: Maintainer-facing documentation describes the runner, its cache cleanup, and its
       operation.
+- [ ] AC7: Before the runner is registered again, the fork-PR approval policy requires approval for
+      all external contributors and organization members must use two-factor authentication,
+      both verified through the GitHub API.
 - [ ] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
@@ -409,6 +425,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | TODO   | `manual-verification-evidence.md` section V4 |
 | M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out), the offline alert fires, and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | TODO   | `benchmark-results.md`                       |
+| M7  | Untrusted-code routing       | Inspect a Dependabot PR's `Test (Docker)` runner, and a PR from a non-member fork before approval | Dependabot runs on a GitHub-hosted runner; the external PR's workflows wait for maintainer approval | TODO   | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
@@ -426,16 +443,17 @@ Notes:
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
+| AC7   | TODO                   |          |
 
 ## Risks and Trade-offs
 
-- **Fork-PR code execution on a persistent runner (rejected).** All PRs to this repository come
-  from forks, and GitHub advises against self-hosted runners on public repositories because PR
-  code runs on the host. The original draft accepted this because the server holds no critical
-  data and no Torrust credentials, but that understated the exposure. With a persistent runner and
-  the `runner` user in the `docker` group, any fork-PR job that reaches the runner's labels gains
-  root-equivalent control of the host (for example with `docker run -v /:/host`), and whatever it
-  installs persists into later jobs:
+- **Fork-PR code execution on a persistent runner (accepted with controls).** All PRs to this
+  repository come from forks, and GitHub advises against self-hosted runners on public
+  repositories because PR code runs on the host. The original draft accepted this because the
+  server holds no critical data and no Torrust credentials, but that understated the exposure.
+  With a persistent runner and the `runner` user in the `docker` group, any fork-PR job that
+  reaches the runner's labels gains root-equivalent control of the host (for example with
+  `docker run -v /:/host`), and whatever it installs persists into later jobs:
   - the runner registration lives in the install directory, owned by the same uid as job code,
     so a job can read or replace it;
   - later `push` jobs on the same host (moving the `test` job also brings pushes to `develop`,
@@ -445,8 +463,25 @@ Notes:
     gate on a push.
 
   A fork PR can reach the runner even if no repository workflow targets it, by adding its own
-  workflow. The maintainer ruled this exposure unacceptable, so this design is rejected; see the
-  design-status note and
+  workflow. The maintainer first rejected this exposure (2026-09-24), then accepted it
+  (2026-09-25) because unreviewed code rarely reaches the runner: in the last 12 months only 5 PRs
+  came from external contributors. The acceptance rests on controlling each path by which code
+  can run on the runner without prior review:
+  - **external contributors:** their workflows run only after maintainer approval (T9), and
+    approving means reviewing the full diff, including the `Containerfile`, build scripts, tests,
+    `contrib/` scripts, workflows, and `Cargo.lock`;
+  - **Dependabot:** its PRs run new third-party dependency code, so they stay on GitHub-hosted
+    runners (T5(d));
+  - **maintainer accounts:** their PRs run without approval, so organization members must use
+    two-factor authentication (T9);
+  - **AI agents:** agents open most PRs with a maintainer's credentials, so an agent manipulated by
+    untrusted content could push harmful code that runs without approval. This path is a residual
+    risk.
+
+  What a compromise can reach is limited by keeping publishing and releases on GitHub-hosted
+  runners with no cache from the self-hosted host (T5(c), T5(e)), so an implant can at most fake a
+  test result, and by rebuilding the server regularly (T8). Revisit the decision, and fall back to
+  GitHub larger runners, if external contributions rise or a control cannot be kept. See
   [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md).
 - **State poisoning through the persistent cache.** Because the runner is persistent, a fork-PR job
   could leave tampered state (for example Docker layers or Cargo registry entries) that a later
@@ -487,6 +522,8 @@ Notes:
 6. Fallback preference: automatic fallback to `ubuntu-latest`, or fail fast and alert? Which
    offline-detection mechanism (for example, a scheduled GitHub-hosted check of the runner status,
    or an external uptime monitor)?
+7. Does the fork-PR approval policy also gate Dependabot runs? T5(d) keeps Dependabot PRs off the
+   self-hosted runner either way, but the answer belongs in the ADR.
 
 ## Implementation Completion Review
 
