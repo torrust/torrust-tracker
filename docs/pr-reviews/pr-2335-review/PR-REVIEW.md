@@ -227,6 +227,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
   `in_reply_to_id` is its source comment.
 - 2026-09-25 07:02 UTC - `reply-status --login josecelano` exited 0; resolved all nine threads;
   a GraphQL refresh reports 9 threads, 0 unresolved.
+- 2026-09-25 07:47 UTC - Fixed the validator gap noted at 07:00 in
+  `fix(pr-reviews): validate reviewer-provided finding IDs in audit records`. The fixed script
+  reports `{"status": "ok", "rows": 9, "log_entries": 7, "failures": 0}` for this audit, and a
+  temporary copy with a wrong OPS-001 severity and a reply URL from another thread fails with both
+  errors.
 
 ## Completion Rules
 
