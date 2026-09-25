@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: planned
+status: in-progress
 priority: p1
 epic: 2264
 github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-branch: "2281-frontmatter-validator-command-spec"
+branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-24 20:15"
+last-updated-utc: "2026-09-25 07:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -338,7 +338,7 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] GitHub issue #2281 created as the command/integration follow-up from #2266
 - [x] Local folder-style specification created
 - [x] Specification reviewed and approved by user/maintainer
-- [ ] Spec-only PR #2337 merged into `develop` before implementation
+- [x] Spec-only PR #2337 merged into `develop` before implementation
 - [ ] Vertical-slice design review recorded after T2
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
@@ -375,6 +375,9 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   defines the full NDJSON record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`)
   with field order, nullability, ordering, and examples. D3 drops `--version`, so it is a usage
   error - `docs/pr-reviews/pr-2337-review/PR-REVIEW.md`
+- 2026-09-25 07:49 UTC - GitHub Copilot - Spec-only PR #2337 merged into `develop`. Started
+  implementation on `2281-frontmatter-validator-command`; `related-pr` stays 2337 until the
+  implementation PR opens - https://github.com/torrust/torrust-tracker/pull/2337
 
 ## Acceptance Criteria
 
