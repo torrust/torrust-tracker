@@ -236,7 +236,7 @@
     "RelatedArtifact": {
       "description": "A validated v1 related-artifact reference.",
       "type": "string",
-      "pattern": "^(?:(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"
+      "pattern": "^(?:(?!issue$)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\s/:#]+(?:/[^\\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$"
     },
     "Epic": {
       "description": "The canonical strict EPIC frontmatter model.",

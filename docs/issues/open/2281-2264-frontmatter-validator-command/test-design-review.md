@@ -45,3 +45,31 @@ Prose-first comparison:
 Mutation evidence (stable Rust toolchain): changing the serde scalar-failure path back to
 `Diagnostic::new` (no field path) made `it_should_reject_the_wrong_scalar_fixture` fail (1 failed,
 46 passed); restoring the change made all 47 library tests pass.
+
+## T1b - Reject Issue References Truncated by Unquoted YAML Comments
+
+Test added:
+
+- `profile::tests::it_should_reject_an_unquoted_issue_reference_that_yaml_truncates_to_issue`
+
+Tests changed:
+
+- `profile::tests::it_should_accept_all_provisional_related_artifact_forms` and the two accepted
+  fixtures now quote their issue reference. They exercise the `issue #<n>` form for the first time.
+
+Prose-first comparison:
+
+- Arrange: a strict issue that is valid except for one `related-artifacts` entry, written as the
+  unquoted `issue #2264` an author would type. The one causal difference is the missing quotes.
+  The Arrange comment keeps the irreducible reason (YAML reads the space-prefixed `#2264` as a
+  comment), because
+  the inline Markdown alone does not reveal it.
+- Act: the production strict-profile validation, called directly.
+- Assert: one `(category, field_path)` identity. The expected values are literals, not derived
+  from production code.
+
+The test name states both the defect shape and the outcome. The full inline Markdown matches the
+style of the neighboring reference-syntax tests, so no scenario fixture was introduced for a
+single-field difference.
+
+Red/green and mutation evidence: `manual-verification-evidence.md` section B1.

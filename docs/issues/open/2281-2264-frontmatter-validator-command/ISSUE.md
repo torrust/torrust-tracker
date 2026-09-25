@@ -291,11 +291,24 @@ Record the result in the progress log.
 
 ## Bug-Fix Process
 
-Not applicable. This is new command-surface work.
+The issue is a feature, but T1b fixes a bug in the merged #2266 library found by
+`review-finding:pr-2337-f1`: an unquoted `issue #<n>` related artifact parses as `issue` and is
+accepted as a path. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+
+1. the hypothesis;
+2. the reproduction with an independent YAML parse of the accepted fixtures;
+3. a red unit regression test;
+4. the fix;
+5. the green run and a like-for-like recheck.
+
+These are recorded in `manual-verification-evidence.md` section B1.
 
 ## Regression Test Strategy
 
-Not applicable. This is not substantively a bug.
+The unit test `it_should_reject_an_unquoted_issue_reference_that_yaml_truncates_to_issue` sits at
+the causal seam, the `RelatedArtifact` value type exercised through strict-profile validation. The
+accepted-fixture tests are a second guard: they fail if a fixture reverts to the unquoted form.
+No higher boundary is needed.
 
 ## Implementation Plan
 
@@ -303,7 +316,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | IN_PROGRESS | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
+| T1 | DONE | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
 | T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
@@ -390,6 +403,15 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   rather than as unused variants now. A mutation proved the field-path assertion. 47 library
   tests, Clippy, the nightly Rust formatting check, `cargo machete`, and the schema drift check
   pass - `test-design-review.md`
+- 2026-09-25 08:40 UTC - GitHub Copilot - Completed T1b under the fix-bug workflow:
+  - reproduced that both accepted fixtures parse their issue reference as `issue`;
+  - a new regression test failed against the unfixed library;
+  - the related-artifact predicate and its generated schema pattern now reject the bare `issue`
+    value with a quoting hint;
+  - the fixtures and the accept-all-forms test now quote their references.
+
+  The regenerated schema differs by that one pattern line. 48 library tests pass - B1 in
+  `manual-verification-evidence.md`, `test-design-review.md`
 
 ## Acceptance Criteria
 

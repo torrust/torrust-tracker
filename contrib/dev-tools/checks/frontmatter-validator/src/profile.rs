@@ -7,7 +7,7 @@ use serde_yaml::{Mapping, Value};
 
 use crate::syntax::{
     RELATED_ARTIFACT_PATTERN, REPOSITORY_RELATIVE_PATH_PATTERN, SKILL_NAME_PATTERN, UTC_MINUTE_PATTERN, has_utc_minute_layout,
-    is_related_artifact, is_repository_relative_path, is_skill_name, is_valid_utc_minute_calendar,
+    is_related_artifact, is_repository_relative_path, is_skill_name, is_truncated_issue_reference, is_valid_utc_minute_calendar,
 };
 use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter};
 
@@ -494,6 +494,10 @@ impl TryFrom<String> for RelatedArtifact {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if is_related_artifact(&value) {
             Ok(Self(value))
+        } else if is_truncated_issue_reference(&value) {
+            Err(String::from(
+                "`issue` is not a v1 reference; quote issue references as \"issue #<n>\" because YAML reads an unquoted ` #` as a comment.",
+            ))
         } else {
             Err(format!("`{value}` is not an approved v1 related-artifact reference."))
         }
@@ -950,7 +954,7 @@ mod tests {
     #[test]
     fn it_should_accept_all_provisional_related_artifact_forms() {
         // Arrange: a strict issue uses a repository path, issue reference, and review finding.
-        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - write-markdown-docs\n  related-artifacts:\n    - Cargo.toml\n    - issue #2264\n    - review-finding:pr-2230-f1\n---\n# Issue\n";
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - write-markdown-docs\n  related-artifacts:\n    - Cargo.toml\n    - \"issue #2264\"\n    - review-finding:pr-2230-f1\n---\n# Issue\n";
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the strict issue frontmatter.
@@ -958,6 +962,25 @@ mod tests {
 
         // Assert: every approved provisional reference form remains accepted.
         assert!(matches!(profile, Profile::Issue(_)));
+    }
+
+    #[test]
+    fn it_should_reject_an_unquoted_issue_reference_that_yaml_truncates_to_issue() {
+        // Arrange: a strict issue writes an issue reference without quotes, so YAML reads ` #2264` as a comment.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-25 08:30\"\nsemantic-links:\n  related-artifacts:\n    - issue #2264\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let error = validate(&frontmatter).unwrap_err();
+
+        // Assert: the truncated `issue` value is rejected as a reference-syntax error on its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (
+                DiagnosticCategory::InvalidReferenceSyntax,
+                Some("semantic-links.related-artifacts")
+            )
+        );
     }
 
     #[test]
