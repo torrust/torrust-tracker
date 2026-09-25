@@ -1,0 +1,137 @@
+{
+    "data": {
+        "repository": {
+            "pullRequest": {
+                "reviewThreads": {
+                    "nodes": [
+                        {
+                            "id": "THREAD_RESOLVED_BY_MAINTAINER",
+                            "isResolved": true,
+                            "isOutdated": false,
+                            "path": "src/resolved.rs",
+                            "line": 12,
+                            "resolvedBy": {
+                                "login": "maintainer"
+                            },
+                            "isCollapsed": true,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-1",
+                                        "body": "A concern resolved on the current line.",
+                                        "createdAt": "2026-09-24T00:00:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_RESOLVED_OUTDATED",
+                            "isResolved": true,
+                            "isOutdated": true,
+                            "path": "src/rewritten.rs",
+                            "line": null,
+                            "resolvedBy": {
+                                "login": "maintainer"
+                            },
+                            "isCollapsed": true,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-2",
+                                        "body": "A concern on a line that was later rewritten.",
+                                        "createdAt": "2026-09-24T00:01:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_RESOLVED_WITHOUT_RESOLVER",
+                            "isResolved": true,
+                            "isOutdated": false,
+                            "path": "src/orphaned.rs",
+                            "line": 7,
+                            "resolvedBy": null,
+                            "isCollapsed": true,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-3",
+                                        "body": "A concern whose resolver is no longer available.",
+                                        "createdAt": "2026-09-24T00:02:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_UNRESOLVED_CURRENT",
+                            "isResolved": false,
+                            "isOutdated": false,
+                            "path": "src/current.rs",
+                            "line": 30,
+                            "resolvedBy": null,
+                            "isCollapsed": false,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-4",
+                                        "body": "An unresolved concern on the current line.",
+                                        "createdAt": "2026-09-24T00:03:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-5",
+                                        "body": "An author reply without resolution.",
+                                        "createdAt": "2026-09-24T00:04:00Z",
+                                        "author": {
+                                            "login": "author"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": "THREAD_UNRESOLVED_OUTDATED",
+                            "isResolved": false,
+                            "isOutdated": true,
+                            "path": "src/legacy.rs",
+                            "line": null,
+                            "resolvedBy": null,
+                            "isCollapsed": false,
+                            "comments": {
+                                "nodes": [
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-6",
+                                        "body": "An unresolved concern on a rewritten line.",
+                                        "createdAt": "2026-09-24T00:05:00Z",
+                                        "author": {
+                                            "login": "reviewer"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://example.test/pull/43#discussion-7",
+                                        "body": "Another author reply without resolution.",
+                                        "createdAt": "2026-09-24T00:06:00Z",
+                                        "author": {
+                                            "login": "author"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
