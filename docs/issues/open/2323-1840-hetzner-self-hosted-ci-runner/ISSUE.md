@@ -35,7 +35,8 @@ Parent EPIC: #1840 - Improve PR Workflow Performance
 > the runner. The maintainer ruled that unacceptable. The research in
 > [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md) found no
 > safe persistent-runner setup for fork PRs, and the maintainer is leaning towards GitHub larger
-> runners on GitHub Team instead. `torrust-runner-01` is stopped and disabled. The plan from T4 on
+> runners on GitHub Team instead. The runner on `torrust-runner-01` was stopped, then removed on
+> 2026-09-25 (service uninstalled, registration deleted, install directory removed). The plan from T4 on
 > is on hold until this specification is rewritten around the chosen approach; the sections below
 > still describe the original Hetzner design.
 

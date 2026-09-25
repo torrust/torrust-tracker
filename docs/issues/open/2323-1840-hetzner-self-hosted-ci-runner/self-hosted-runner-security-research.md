@@ -200,7 +200,9 @@ place.
 
 Action taken: the maintainer stopped the runner service on 2026-09-24 at 20:16 UTC, and GitHub
 reports `torrust-runner-01` as `offline`. The systemd unit was then disabled, so the runner does
-not start after a reboot. Its registration still exists on GitHub.
+not start after a reboot. On 2026-09-25 the service was uninstalled, the registration deleted from
+the repository, and the runner install directory removed from the server, so no self-hosted
+runner is attached to the repository any more.
 
 ## Alternatives to a Self-Hosted Runner
 
@@ -289,8 +291,8 @@ project. Points to settle before committing to it:
   repository.
 - **Offline risk:** GitHub operates the capacity, so the single-server failure mode behind
   Copilot finding OPS-001 no longer applies.
-- **Hetzner server:** `torrust-runner-01` and its registration become unnecessary and can be
-  removed.
+- **Hetzner server:** the runner was removed on 2026-09-25; the server itself becomes
+  unnecessary and can be deleted.
 
 ## Implications for Issue #2323
 

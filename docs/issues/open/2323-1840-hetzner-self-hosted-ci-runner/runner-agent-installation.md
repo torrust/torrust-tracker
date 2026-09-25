@@ -133,3 +133,22 @@ server# systemctl disable actions.runner.torrust-torrust-tracker.torrust-runner-
 Result (2026-09-24): the service stopped at 20:16 UTC (`Active: inactive (dead)`), GitHub reports
 the runner as `offline`, and the unit is `disabled`. The registration still exists on GitHub; remove
 it under **Settings -> Actions -> Runners** if the runner is not going to be used.
+
+## 6. Remove the Runner
+
+The maintainer decided to clean up the runner rather than keep it for later use.
+
+```bash
+server# cd /home/runner/actions-runner && ./svc.sh uninstall
+desktop$ gh api repos/torrust/torrust-tracker/actions/runners -q '.runners[] | "\(.id) \(.name)"'
+desktop$ gh api -X DELETE repos/torrust/torrust-tracker/actions/runners/<runner-id>
+server# rm -rf /home/runner/actions-runner
+```
+
+The registration is deleted through the REST API with the maintainer's own `gh` login, so no
+removal token is needed. The install directory is deleted because it holds the runner's
+registration files (`.runner`, `.credentials`).
+
+Result (2026-09-25): the systemd unit is gone (`0 unit files listed`), the repository has no
+self-hosted runners (`total_count` 0), and `/home/runner/actions-runner` no longer exists. The
+`runner` user, Docker, and the rest of the host preparation remain on the server.
