@@ -179,9 +179,25 @@ is not visible from the code.
 
 | ID | Status | Work | Boundary |
 | --- | --- | --- | --- |
-| L1 | PROPOSED | Import `ConnectionIdValidationPolicy` and `ErrorKind`; add `sample_client`, `request_from`, and the `should_discard`, `connection_context`, and `subscribe_to_events` fixture methods plus `next_published_event`. Rewrite the six admission tests on them. | Behavior-preserving: same seven tests pass; no production change. |
-| L2 | PROPOSED | Rename the decision tests to one vocabulary: `it_should_discard_a_request_whose_source_port_is_zero`, `it_should_discard_a_request_from_a_banned_client_in_strict_mode`; keep the two `it_should_admit_..` names. | Names only. |
-| L3 | PROPOSED | Split the startup test into `it_should_report_a_broken_pipe_when_the_startup_notification_receiver_is_dropped` and `it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, each with one assertion. The shared Arrange (bound socket, dropped startup receiver, unused halt channel) stays inline; a fixture would have to hand the socket and channels back out for the Act and would hide little. | Adds one test; no production change. |
+| L1 | DONE | Imported `ConnectionIdValidationPolicy`, `ErrorKind`, and the event `Receiver` alias; added `sample_client`, `request_from`, `next_published_event`, and the `should_discard`, `connection_context`, and `subscribe_to_events` fixture methods. Rewrote the six admission tests on them. | Behavior-preserving: the same uncovered production lines (81, 117-125, 245, 312) before and after. |
+| L2 | DONE | Renamed the decision tests to `it_should_discard_a_request_whose_source_port_is_zero` and `it_should_discard_a_request_from_a_banned_client_in_strict_mode`. | Names only. |
+| L3 | DONE | Split the startup test into `it_should_report_a_broken_pipe_..` and `it_should_release_the_socket_..`, one assertion each, with the Arrange inline. | Eight tests pass. |
+
+### Prose-First Review
+
+- **Arrange** now states only the causal state: a client (`sample_client()`, or the same IP on
+  port zero) and, where relevant, `with_banned_client_ip(client.ip())`. Containers, binding, log
+  target, and payload are fixture mechanics.
+- **Act** is one line naming the production decision, `launcher.should_discard(..)`, with the
+  validation policy visible because facts 2 and 4 depend on it.
+- **Assert** is one semantic assertion: the Boolean decision, or the complete published fact whose
+  only causal field, the client, is visible.
+- **Retained comments:** the source-port-zero "policy is inert" note (not expressible in code),
+  the event deadline rationale, and the `request_from` payload note.
+- **Validation:** `cargo test -p torrust-tracker-udp-server launcher::tests` passed eight tests
+  (stable Rust toolchain); nightly Rust formatting, Clippy, and `git diff --check` passed. Unit-only
+  coverage 288 / 298 lines, 38 / 40 functions, 325 / 346 regions; the lower denominator is shorter
+  test code.
 
 ## Progress Log
 
@@ -198,3 +214,4 @@ is not visible from the code.
 - 2026-09-25 - GitHub Copilot - Added the Post-Commit Readability Plan (prose specification, smell
   audit, target design, L1-L3). No Rust changed; L1-L3 await approval.
 - 2026-09-25 - Jose Celano - Approved L1-L3, including the named `should_discard` action.
+- 2026-09-25 - GitHub Copilot - Completed L1-L3. Refactor review is requested.
