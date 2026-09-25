@@ -2,7 +2,8 @@
 
 <!-- cspell:ignore passwordless reimaged Cyclenerd Kata Sandboxed Sysbox Kaniko Ubicloud -->
 
-Research for issue #2323, triggered by Copilot finding F2 on PR #2335: adding the `runner` user to
+Research for issue #2323, triggered by Copilot finding PERSISTENT-RUNNER-PRIVILEGE and reviewer
+finding F1 on PR #2335: adding the `runner` user to
 the `docker` group gives fork-PR code root-equivalent control of the host. The maintainer decision
 is that **untrusted code getting root on a runner is not acceptable**, even on ephemeral runners.
 See [ISSUE.md](ISSUE.md) for the plan this research feeds.
@@ -54,6 +55,16 @@ same Unix user, which owns `/home/runner/actions-runner`, including the runner b
 registration files (`.runner`, `.credentials`). Without root, a job can still replace the runner
 program or its configuration and control every later job on that runner, including `develop`
 pushes and the check results reported for other PRs.
+
+Reviewer finding F1 on PR #2335 adds what those later jobs expose in this repository:
+
+- `push` jobs receive their `GITHUB_TOKEN` and Actions cache token whether or not they reference a
+  secret; `container.yaml` has no `permissions:` block, so the token carries the repository default
+  (verified as `read` for this repository, see Repository Facts);
+- the `test` job gates `publish_development` and `publish_release` through `needs:`, so an implant
+  can make the gate pass on a push;
+- moving the `test` job also moves PRs to `main` and pushes to `main` and `releases/**` onto the
+  runner, not only the `develop` events named in AC1.
 
 ### 2. GitHub-hosted runners grant root, but only inside a disposable VM
 
@@ -277,7 +288,7 @@ project. Points to settle before committing to it:
 - **Access:** larger runners are assigned through runner groups, which must allow this public
   repository.
 - **Offline risk:** GitHub operates the capacity, so the single-server failure mode behind
-  Copilot finding F1 no longer applies.
+  Copilot finding OPS-001 no longer applies.
 - **Hetzner server:** `torrust-runner-01` and its registration become unnecessary and can be
   removed.
 

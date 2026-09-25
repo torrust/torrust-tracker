@@ -29,7 +29,8 @@ semantic-links:
 
 Parent EPIC: #1840 - Improve PR Workflow Performance
 
-> **Design status (2026-09-24): under review.** Copilot finding F2 on PR #2335 showed that a
+> **Design status (2026-09-24): under review.** Copilot finding PERSISTENT-RUNNER-PRIVILEGE and
+> reviewer finding F1 on PR #2335 showed that a
 > persistent self-hosted runner lets fork-PR code gain root on the host and persistently compromise
 > the runner. The maintainer ruled that unacceptable. The research in
 > [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md) found no
@@ -173,7 +174,7 @@ GitHub-hosted runners. Run volume and the per-core estimates come from
 | Concurrency          | Pro: scales with parallel jobs without sizing a server.                                         | Con: bounded by the number of runner instances; can become the new bottleneck.                                |
 | Availability         | Pro: managed by GitHub.                                                                         | Con: single point of failure unless redundant; needs a fallback.                                              |
 | Operations           | Pro: nothing to operate.                                                                        | Con: maintainers own patching, monitoring, runner upgrades, and disk cleanup.                                 |
-| Security             | Pro: fork-PR code runs on a clean GitHub VM per job; no Torrust infrastructure is exposed.      | Con: fork-PR code runs on a Torrust-paid host, and persistent state can carry tampering between jobs.         |
+| Security             | Pro: fork-PR code runs on a clean GitHub VM per job; no Torrust infrastructure is exposed.      | Con: fork-PR code gains root-equivalent control of a persistent host through the `docker` group, which persists into later jobs (see Risks). |
 | Workflow change      | Pro: `runs-on` label swap; the existing cache setup keeps working.                              | Con: `runs-on` swap plus cache reconfiguration and publish-job cache isolation.                               |
 | Network locality     | Pro: runs next to GitHub's cache and artifact services.                                         | Con: every GitHub cache import/export and artifact transfer crosses the internet from Hetzner to GitHub.     |
 
@@ -364,6 +365,7 @@ Append one line per meaningful update.
 - 2026-09-24 17:05 UTC - josecelano, GitHub Copilot - Completed T2 (firewall, Docker, build tools, `runner` user) and T3 (runner `v2.337.0` registered at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service online and idle); no workflow uses it yet - [`runner-server-setup.md`](runner-server-setup.md), [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-24 17:15 UTC - josecelano, GitHub Copilot - Opened spec-only PR #2335 and linked #2323 as a GitHub sub-issue of EPIC #1840 - this file
 - 2026-09-24 21:30 UTC - josecelano, GitHub Copilot - Copilot finding F2 (fork-PR root through the `docker` group and persistent runner compromise) ruled unacceptable; researched safe alternatives; stopped and disabled `torrust-runner-01`; design under review with GitHub larger runners on Team as the leading option - [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)
+- 2026-09-25 06:23 UTC - GitHub Copilot - Review round 1 (Copilot review 5307823915, reviewer review 5310557886): rewrote the fork-PR risk to state the real exposure (root-equivalent, persistent, runner registration, later push jobs, faked publish gate). Correction: the 21:30 entry's "Copilot finding F2" means Copilot's PERSISTENT-RUNNER-PRIVILEGE, not reviewer finding F2 - audit at `docs/pr-reviews/pr-2335-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
@@ -426,12 +428,25 @@ Notes:
 
 ## Risks and Trade-offs
 
-- **Fork-PR code execution on a persistent runner (accepted risk).** All PRs to this repository
-  come from forks, and GitHub advises against self-hosted runners on public repositories because
-  PR code runs on the host. The risk is accepted because the server holds no critical data, is
-  isolated from other Torrust infrastructure, and stores no Torrust credentials. The Docker Hub
-  credentials are already confined to the publish jobs through the `dockerhub-torrust`
-  environment, and fork-PR jobs never receive secrets.
+- **Fork-PR code execution on a persistent runner (rejected).** All PRs to this repository come
+  from forks, and GitHub advises against self-hosted runners on public repositories because PR
+  code runs on the host. The original draft accepted this because the server holds no critical
+  data and no Torrust credentials, but that understated the exposure. With a persistent runner and
+  the `runner` user in the `docker` group, any fork-PR job that reaches the runner's labels gains
+  root-equivalent control of the host (for example with `docker run -v /:/host`), and whatever it
+  installs persists into later jobs:
+  - the runner registration lives in the install directory, owned by the same uid as job code,
+    so a job can read or replace it;
+  - later `push` jobs on the same host (moving the `test` job also brings pushes to `develop`,
+    `main`, and `releases/**` and PRs to `main`) receive their `GITHUB_TOKEN` and Actions cache
+    token, which an implant can use;
+  - the `test` job gates the publish jobs through `needs:`, so an implant can fake a passing
+    gate on a push.
+
+  A fork PR can reach the runner even if no repository workflow targets it, by adding its own
+  workflow. The maintainer ruled this exposure unacceptable, so this design is rejected; see the
+  design-status note and
+  [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md).
 - **State poisoning through the persistent cache.** Because the runner is persistent, a fork-PR job
   could leave tampered state (for example Docker layers or Cargo registry entries) that a later
   `develop` push job reuses. Today the publish jobs read the `container-release` GHA cache scope
