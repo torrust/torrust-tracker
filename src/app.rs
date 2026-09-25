@@ -567,7 +567,7 @@ async fn start_health_check_api(
     let runner = health_check_api::start_job(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
-        job_manager.new_cancellation_token(),
+        job_manager.new_cancellation_token().child_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -592,8 +592,8 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{
-        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_http_instance,
-        start_peers_inactivity_update, start_the_http_api, start_torrent_cleanup,
+        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_health_check_api,
+        start_http_instance, start_peers_inactivity_update, start_the_http_api, start_torrent_cleanup,
     };
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
@@ -782,6 +782,35 @@ mod tests {
             outcomes,
             vec![JobOutcome {
                 name: "http_api".to_string(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_health_check_api_component_through_the_job_manager() {
+        // Arrange
+        let configuration = ephemeral_public();
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_health_check_api(&configuration, &app_container, &mut job_manager)
+            .await
+            .expect("health check API should start through application bootstrap");
+
+        // Act
+        job_manager.cancel();
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: "health_check_api".to_string(),
                 status: JobStatus::Cancelled,
             }]
         );

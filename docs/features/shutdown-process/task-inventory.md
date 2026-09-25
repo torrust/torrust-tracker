@@ -57,8 +57,8 @@ torrust-tracker process (Tokio runtime; main)
       │  ├─ REST API [conditional]
       │  │  └─ server task [component-owned NestedServerTask]
       │  │     └─ drain controller [currently detached]
-      │  └─ health-check API [always]
-      │     ├─ server task [component-owned NestedServerTask]
+      │  └─ health-check API [always; component child token]
+      │     ├─ server task [component-owned TokenAwareServerTask]
       │     └─ drain controller [component-owned and joined]
       ├─ Legacy registry (pre-spawned periodic jobs, not JoinSet members)
       │  ├─ peers inactivity update [conditional; direct Ctrl-C]
@@ -105,9 +105,9 @@ each row.
 | UDP request processors        | N datagrams | Component-owned  | Abort handles            | SI-15                  |
 | HTTP instances                | N bindings  | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-11     |
 | REST API                      | 0–1         | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-12     |
-| Health-check API              | 1           | Direct `JoinSet` | Token → `Halted`         | SI-13, SI-21           |
+| Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |
 | HTTP/REST drain controllers   | Per server  | Detached         | `Halted` / global signal | SI-10–SI-12            |
-| Health-check drain controller | 1           | Component-owned  | `Halted` / global signal | SI-13                  |
+| Health-check drain controller | 1           | Component-owned  | Child token, 5 s drain   | SI-13 complete         |
 | Health-check request work     | Per request | Framework-owned  | Request lifetime         | —                      |
 | Torrent cleanup               | 0–1         | Direct `JoinSet` | Root token               | SI-4 complete          |
 | Peers inactivity update       | 0–1         | Direct `JoinSet` | Root token               | SI-5 complete          |
@@ -147,9 +147,11 @@ each row.
   `Halted::Normal`, then join the server. There is one HTTP component per
   configured binding and zero or one REST component when `http_api` is
   configured.
-- **Health-check API** — an always-present direct component. It owns both the
-  server and its drain controller through `NestedServerTask`; it joins both
-  after cancellation and aborts remaining children if dropped.
+- **Health-check API** — an always-present direct component that receives a
+  child of the `JobManager` root token. It owns both the server and its
+  token-aware drain controller through `TokenAwareServerTask`; it joins both
+  after cancellation or independent server completion and aborts them if
+  dropped. The drain has a 5-second budget (SI-13).
 
 ### Component-Owned, Detached, and Framework-Owned Work
 
@@ -198,8 +200,8 @@ sole legacy job is separately conditional as shown above.
 5. HTTP and REST drain controllers remain detached, while the health-check
    component now owns its controller. HTTP/REST drain completion and timeout
    alignment remain SI-10 through SI-12.
-6. Health-check lifecycle remains on the bridge and does not yet mark readiness
-   unhealthy before draining: SI-13 and SI-21.
+6. Health-check lifecycle uses the token-aware path after SI-13 but does not
+   yet mark readiness unhealthy before draining: SI-21.
 7. UDP still aborts its receive loop and retains only request abort handles;
    SI-14 and SI-15 own those lifecycle and outcome policies.
 8. Standalone HTTP and UDP examples retain Ctrl-C-based shutdown: SI-16 and
