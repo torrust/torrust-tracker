@@ -4,7 +4,8 @@
 Usage: validate-audit-record.py --pr-number <number> [options]
 
 Checks that docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md is internally
-consistent and matches the pull request it describes:
+consistent and matches the pull request it describes. Finding IDs may be
+audit-local (F1) or reviewer-provided (OPS-001):
 
   - every tracking row has a detail entry with the same finding ID, and vice versa
   - every discussion-anchored row's Source review ID equals the source comment's
@@ -41,8 +42,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROW_RE = re.compile(r"^\| (F\d+) \| [^|]+ \| [^|]+ \| (\w+)[^|]* \|", re.M)
-DETAIL_SPLIT_RE = re.compile(r"^### (F\d+) - .*$", re.M)
+# Audit-local IDs (F1) and reviewer-provided IDs (OPS-001, PERSISTENT-RUNNER-PRIVILEGE).
+FINDING_ID = r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*"
+
+ROW_RE = re.compile(rf"^\| ({FINDING_ID}) \| [^|]+ \| [^|]+ \| (\w+)[^|]* \|", re.M)
+DETAIL_SPLIT_RE = re.compile(rf"^### ({FINDING_ID}) - .*$", re.M)
 DISCUSSION_RE = re.compile(r"discussion_r(\d+)")
 REVIEW_RE = re.compile(r"pullrequestreview-(\d+)")
 LOG_ENTRY_RE = re.compile(r"^- (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) UTC - ", re.M)
@@ -172,7 +176,7 @@ def main() -> int:
     if set(rows) != set(details):
         failures.append(f"tracking rows and detail entries differ: {sorted(set(rows) ^ set(details))}")
 
-    for fid in sorted(set(rows) & set(details), key=lambda f: int(f[1:])):
+    for fid in (f for f in rows if f in details):
         failures.extend(check_row(fid, rows[fid], details[fid], comments, subjects))
 
     log_section = text.split("## Processing Log", 1)
