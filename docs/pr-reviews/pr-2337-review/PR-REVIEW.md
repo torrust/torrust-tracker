@@ -111,6 +111,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   FM-001 was verified by hand: its source comment belongs to review 5309543110, its `[Major]`
   bracket matches, reply 4097974986 is on the same thread, and its resolution subject is on the
   branch.
+- 2026-09-24 20:18 UTC - F1 and FM-001 resolved after `reply-status` confirmed both replies; a
+  refreshed GraphQL fetch reports zero unresolved threads.
 
 ## Completion Rules
 
