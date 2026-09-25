@@ -29,6 +29,15 @@ semantic-links:
 
 Parent EPIC: #1840 - Improve PR Workflow Performance
 
+> **Design status (2026-09-24): under review.** Copilot finding F2 on PR #2335 showed that a
+> persistent self-hosted runner lets fork-PR code gain root on the host and persistently compromise
+> the runner. The maintainer ruled that unacceptable. The research in
+> [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md) found no
+> safe persistent-runner setup for fork PRs, and the maintainer is leaning towards GitHub larger
+> runners on GitHub Team instead. `torrust-runner-01` is stopped and disabled. The plan from T4 on
+> is on hold until this specification is rewritten around the chosen approach; the sections below
+> still describe the original Hetzner design.
+
 ## Goal
 
 Run the heaviest CI job, the container image build and E2E test, on a paid self-hosted runner
@@ -354,6 +363,7 @@ Append one line per meaningful update.
 - 2026-09-24 16:25 UTC - josecelano - Decided to include local caches in this issue and to deliver all `container.yaml` changes (runner switch, local caches, publish isolation) as a single task; tasks renumbered: T5 workflow changes, T6 validation, T7 measurement, T8 runner operations docs - this file
 - 2026-09-24 17:05 UTC - josecelano, GitHub Copilot - Completed T2 (firewall, Docker, build tools, `runner` user) and T3 (runner `v2.337.0` registered at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service online and idle); no workflow uses it yet - [`runner-server-setup.md`](runner-server-setup.md), [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-24 17:15 UTC - josecelano, GitHub Copilot - Opened spec-only PR #2335 and linked #2323 as a GitHub sub-issue of EPIC #1840 - this file
+- 2026-09-24 21:30 UTC - josecelano, GitHub Copilot - Copilot finding F2 (fork-PR root through the `docker` group and persistent runner compromise) ruled unacceptable; researched safe alternatives; stopped and disabled `torrust-runner-01`; design under review with GitHub larger runners on Team as the leading option - [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)
 
 ## Acceptance Criteria
 

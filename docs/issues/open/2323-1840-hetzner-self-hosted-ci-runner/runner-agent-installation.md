@@ -117,3 +117,19 @@ Result (2026-09-24), fields are name, OS, status, busy, and labels:
 ```text
 torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner
 ```
+
+## 5. Stop and Disable the Runner
+
+The persistent runner was found unsafe for fork PRs (see
+[`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)). A fork PR
+can add its own workflow targeting the runner's labels, so a registered, online runner is exposed
+even when no workflow in the repository uses it.
+
+```bash
+server# cd /home/runner/actions-runner && ./svc.sh stop
+server# systemctl disable actions.runner.torrust-torrust-tracker.torrust-runner-01.service
+```
+
+Result (2026-09-24): the service stopped at 20:16 UTC (`Active: inactive (dead)`), GitHub reports
+the runner as `offline`, and the unit is `disabled`. The registration still exists on GitHub; remove
+it under **Settings -> Actions -> Runners** if the runner is not going to be used.
