@@ -705,6 +705,57 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_admit_a_request_from_a_client_that_is_not_banned() {
+        // Arrange
+        let launcher = UdpLauncherTestContext::new().await;
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080),
+        };
+        let server_service_binding = sample_udp_service_binding();
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        )
+        .await;
+
+        // Assert
+        assert!(!should_discard);
+    }
+
+    #[tokio::test]
+    async fn it_should_admit_a_request_from_a_banned_client_when_connection_id_validation_is_disabled() {
+        // Arrange
+        let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);
+        let launcher = UdpLauncherTestContext::with_banned_client_ip(client_socket_addr.ip()).await;
+        let request = RawRequest {
+            payload: Vec::new(),
+            from: client_socket_addr,
+        };
+        let server_service_binding = sample_udp_service_binding();
+
+        // Act
+        let should_discard = Launcher::should_discard_request(
+            &request,
+            &launcher.udp_tracker_core_container,
+            &launcher.udp_tracker_server_container,
+            &server_service_binding,
+            TEST_LOG_TARGET,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Disabled,
+        )
+        .await;
+
+        // Assert
+        assert!(!should_discard);
+    }
+
+    #[tokio::test]
     async fn it_should_publish_a_request_banned_event_when_its_client_ip_is_banned_in_strict_mode() {
         // Arrange
         let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 8080);

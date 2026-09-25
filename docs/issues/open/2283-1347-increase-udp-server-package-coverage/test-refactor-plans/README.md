@@ -34,6 +34,7 @@ maintainer approves it.
 | 10 | [server-mod-tests.md](server-mod-tests.md) | DONE | 1 Tokio-owned test deleted; unit-only 99.44% → 99.28% lines (smaller denominator) |
 | 11 | [server-bound-socket-tests.md](server-bound-socket-tests.md) | DONE | 2 unit tests added; unit-only 84.62% → 89.53% lines |
 | 12 | [server-spawner-tests.md](server-spawner-tests.md) | DONE | No code or test change; unit-only 100.00% lines |
+| 13 | [server-launcher-tests.md](server-launcher-tests.md) | DONE | 2 admit-path unit tests added; unit-only 95.86% → 96.98% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
