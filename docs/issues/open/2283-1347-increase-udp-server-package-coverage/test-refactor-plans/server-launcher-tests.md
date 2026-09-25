@@ -85,6 +85,104 @@ returned `true`, every test would pass while the tracker dropped all traffic.
 
 Approved by Jose Celano on 2026-09-25.
 
+## Post-Commit Readability Plan
+
+Requested by the maintainer after the completed-file commit: re-read the `write-unit-test` skill
+and make the tests read as prose, showing only what decides the outcome. Approve the steps below
+as a separate launcher increment.
+
+### Prose Specification
+
+1. A request whose source port is zero is discarded.
+2. A request from a banned client is discarded under strict connection-ID validation.
+3. A request from a client that is not banned is admitted.
+4. A request from a banned client is admitted when connection-ID validation is disabled.
+5. Discarding a source-port-zero request publishes a "request discarded" fact naming the client.
+6. Discarding a banned client's request publishes a "request banned" fact naming the client.
+7. When nobody receives the startup notification, the launcher reports a broken pipe.
+8. When nobody receives the startup notification, the launcher releases its socket.
+
+### Smell Audit
+
+The only values that decide facts 1-6 are the client address (its port, or whether its IP is
+banned) and the validation policy. Everything else is plumbing.
+
+| Smell | Where | Effect |
+| --- | --- | --- |
+| Wide Act | Six admission tests call `should_discard_request` with six arguments; four (`udp_tracker_core_container`, `udp_tracker_server_container`, service binding, `TEST_LOG_TARGET`) never vary. | ~10 lines per test; the causal policy argument is lost among them. |
+| Irrelevant request detail | `RawRequest { payload: Vec::new(), from: .. }` in every admission test. | Payload looks meaningful but admission never reads it. |
+| Repeated full paths | `torrust_tracker_udp_core::ConnectionIdValidationPolicy::` seven times; `std::io::ErrorKind::` once. | Line noise; `AGENTS.md` prefers short imported names. |
+| Receive plumbing in Assert | `tokio::time::timeout(..).await.expect(..).expect(..)` in both event tests. | Four calls and two messages before the expected fact appears. |
+| Fixture-derived expectation built by hand | Event tests rebuild `ConnectionContext::new(instance_id, client, binding)`. | Only the client is causal; instance ID and binding come from the fixture. |
+| Inconsistent names | Decision tests say `require_discarding`; the new ones say `admit`. | A reader has to map two vocabularies to one decision. |
+| Two behaviors, one name | The startup test asserts the `BrokenPipe` error and the socket release, but its name mentions only the release. | Two reasons to fail; the error-report fact is unnamed. |
+
+### Target Design
+
+Extend the existing `UdpLauncherTestContext` scenario fixture (it already owns container setup and
+`with_banned_client_ip`). Following the accepted `handlers/error.rs` and `handlers/scrape.rs`
+precedent, add one named action that hides only the arguments no test varies:
+
+- `launcher.should_discard(&request_from(client), policy)`: calls the production
+  `should_discard_request` with the fixture's containers, service binding, and log target. The
+  policy stays a visible argument because it is causal in facts 2 and 4.
+- `launcher.connection_context(client)`: the expected event context, derived from the fixture's
+  instance ID and binding with the visible client.
+- `launcher.subscribe_to_events()` and `next_published_event(&mut events)`: the event receiver
+  and the bounded receive, keeping `EVENT_PUBLICATION_TIMEOUT` as the failure bound.
+- `request_from(client)`: a raw request whose only relevant property is its source address.
+- `sample_client()` (`203.0.113.1:8080`); the port-zero case stays visible as
+  `SocketAddr::new(sample_client().ip(), 0)`.
+
+Target shape for fact 4:
+
+```rust
+#[tokio::test]
+async fn it_should_admit_a_request_from_a_banned_client_when_connection_id_validation_is_disabled() {
+    // Arrange
+    let client = sample_client();
+    let launcher = UdpLauncherTestContext::with_banned_client_ip(client.ip()).await;
+
+    // Act
+    let should_discard = launcher.should_discard(&request_from(client), ConnectionIdValidationPolicy::Disabled).await;
+
+    // Assert
+    assert!(!should_discard);
+}
+```
+
+Target shape for fact 5:
+
+```rust
+#[tokio::test]
+async fn it_should_publish_a_request_discarded_event_when_its_source_port_is_zero() {
+    // Arrange
+    let launcher = UdpLauncherTestContext::new().await;
+    let client = SocketAddr::new(sample_client().ip(), 0);
+    let mut events = launcher.subscribe_to_events();
+
+    // Act
+    launcher.should_discard(&request_from(client), ConnectionIdValidationPolicy::Strict).await;
+
+    // Assert
+    assert_eq!(
+        next_published_event(&mut events).await,
+        Event::UdpRequestDiscarded { context: launcher.connection_context(client) }
+    );
+}
+```
+
+The source-port-zero tests keep their one-line comment that the policy is inert, because that fact
+is not visible from the code.
+
+### Steps
+
+| ID | Status | Work | Boundary |
+| --- | --- | --- | --- |
+| L1 | PROPOSED | Import `ConnectionIdValidationPolicy` and `ErrorKind`; add `sample_client`, `request_from`, and the `should_discard`, `connection_context`, and `subscribe_to_events` fixture methods plus `next_published_event`. Rewrite the six admission tests on them. | Behavior-preserving: same seven tests pass; no production change. |
+| L2 | PROPOSED | Rename the decision tests to one vocabulary: `it_should_discard_a_request_whose_source_port_is_zero`, `it_should_discard_a_request_from_a_banned_client_in_strict_mode`; keep the two `it_should_admit_..` names. | Names only. |
+| L3 | PROPOSED | Split the startup test into `it_should_report_a_broken_pipe_when_the_startup_notification_receiver_is_dropped` and `it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped`, each with one assertion. The shared Arrange (bound socket, dropped startup receiver, unused halt channel) stays inline; a fixture would have to hand the socket and channels back out for the Act and would hide little. | Adds one test; no production change. |
+
 ## Progress Log
 
 - 2026-09-24 - GitHub Copilot - Created the plan from `launcher.rs`, its five tests, the #2149
@@ -95,3 +193,8 @@ Approved by Jose Celano on 2026-09-25.
   launcher::tests` passed seven tests (stable Rust toolchain); nightly Rust formatting, Clippy, and
   `git diff --check` passed. Completed-file review is requested.
 - 2026-09-25 - Jose Celano - Approved the completed-file result.
+- 2026-09-25 - Jose Celano - Asked for a prose-first readability review against the
+  `write-unit-test` skill before the next file.
+- 2026-09-25 - GitHub Copilot - Added the Post-Commit Readability Plan (prose specification, smell
+  audit, target design, L1-L3). No Rust changed; L1-L3 await approval.
+- 2026-09-25 - Jose Celano - Approved L1-L3, including the named `should_discard` action.
