@@ -10,7 +10,7 @@ pub mod diagnostic;
 pub mod profile;
 mod syntax;
 
-pub use diagnostic::{Diagnostic, DiagnosticCategory};
+pub use diagnostic::{Diagnostic, DiagnosticCategory, Severity};
 pub use profile::{v1_schema, v1_schema_json};
 
 /// A parsed Markdown frontmatter block.
@@ -187,8 +187,9 @@ fn semantic_links_from(values: &Mapping, field_path: &str) -> Result<Option<Sema
         return Ok(None);
     };
     let semantic_links = serde_yaml::from_value::<SemanticLinks>(value.clone()).map_err(|error| {
-        Diagnostic::new(
+        Diagnostic::for_field(
             DiagnosticCategory::InvalidSemanticLinks,
+            field_path,
             format!("`{field_path}` must be a mapping with string sequences: {error}"),
         )
     })?;
@@ -274,8 +275,8 @@ mod tests {
         // Act: attempt to extract the frontmatter.
         let error = extract(markdown).unwrap_err();
 
-        // Assert: the diagnostic identifies the invalid YAML content.
-        assert_eq!(error.category, DiagnosticCategory::MalformedYaml);
+        // Assert: the diagnostic identifies the invalid YAML content, which belongs to no single field.
+        assert_eq!((error.category, error.field_path), (DiagnosticCategory::MalformedYaml, None));
     }
 
     #[test]
@@ -322,8 +323,11 @@ mod tests {
         // Act: attempt to extract the frontmatter.
         let error = extract(markdown).unwrap_err();
 
-        // Assert: the diagnostic identifies the malformed universal extension.
-        assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
+        // Assert: the diagnostic identifies the malformed universal extension by its field path.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidSemanticLinks, Some("semantic-links"))
+        );
     }
 
     #[test]
@@ -366,8 +370,11 @@ mod tests {
         // Act: extract the external-document envelope.
         let error = extract_with_ownership(markdown, DocumentOwnership::External).unwrap_err();
 
-        // Assert: external ownership still validates its owned nested extension.
-        assert_eq!(error.category, DiagnosticCategory::InvalidSemanticLinks);
+        // Assert: external ownership still validates its owned nested extension, named by its path.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidSemanticLinks, Some("metadata.semantic-links"))
+        );
     }
 
     #[test]

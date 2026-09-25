@@ -1,7 +1,12 @@
 //! The crate-wide vocabulary for deterministic frontmatter failures.
 
+use serde::Serialize;
+
 /// A category for a deterministic frontmatter extraction or validation failure.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+///
+/// The kebab-case serialized names are the stable diagnostic contract rendered by the command.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum DiagnosticCategory {
     /// An opening delimiter did not have a matching closing delimiter.
     UnclosedDelimiter,
@@ -25,11 +30,25 @@ pub enum DiagnosticCategory {
     InvalidReferenceSyntax,
 }
 
+/// Whether a diagnostic fails validation or is advisory.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Severity {
+    /// A failure that makes the command exit with a validation error.
+    Error,
+    /// An advisory finding that does not change the command's exit status.
+    Warning,
+}
+
 /// A deterministic failure found while extracting or validating frontmatter.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Diagnostic {
-    /// The stable category used by the future command adapter.
+    /// The stable category rendered by the command.
     pub category: DiagnosticCategory,
+    /// Whether the failure is an error or advisory; the library reports every failure as an error.
+    pub severity: Severity,
+    /// The dotted YAML path of the offending field, when the failure concerns one field.
+    pub field_path: Option<String>,
     /// A human-readable description of the failure.
     pub message: String,
 }
@@ -38,7 +57,62 @@ impl Diagnostic {
     pub(crate) fn new(category: DiagnosticCategory, message: impl Into<String>) -> Self {
         Self {
             category,
+            severity: Severity::Error,
+            field_path: None,
             message: message.into(),
+        }
+    }
+
+    pub(crate) fn for_field(category: DiagnosticCategory, field_path: impl Into<String>, message: impl Into<String>) -> Self {
+        Self {
+            field_path: Some(field_path.into()),
+            ..Self::new(category, message)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Owns the serialized category and severity names that form the command's diagnostic contract.
+
+    use super::{DiagnosticCategory, Severity};
+
+    #[test]
+    fn it_should_serialize_each_category_as_its_stable_kebab_case_name() {
+        // Arrange: each row pairs a category with its independently specified contract name.
+        let cases = [
+            (DiagnosticCategory::UnclosedDelimiter, "unclosed-delimiter"),
+            (DiagnosticCategory::MalformedYaml, "malformed-yaml"),
+            (DiagnosticCategory::NonMappingRoot, "non-mapping-root"),
+            (DiagnosticCategory::InvalidSemanticLinks, "invalid-semantic-links"),
+            (DiagnosticCategory::UnknownField, "unknown-field"),
+            (DiagnosticCategory::MissingRequiredField, "missing-required-field"),
+            (DiagnosticCategory::WrongScalarType, "wrong-scalar-type"),
+            (DiagnosticCategory::InvalidAllowedValue, "invalid-allowed-value"),
+            (DiagnosticCategory::InvalidFieldValue, "invalid-field-value"),
+            (DiagnosticCategory::InvalidReferenceSyntax, "invalid-reference-syntax"),
+        ];
+
+        for (category, expected) in cases {
+            // Act: serialize the category as the command will.
+            let actual = serde_json::to_value(category).unwrap();
+
+            // Assert: the rendered name is the stable contract name.
+            assert_eq!(actual, expected, "unexpected serialized name for {category:?}");
+        }
+    }
+
+    #[test]
+    fn it_should_serialize_each_severity_as_its_stable_lowercase_name() {
+        // Arrange: each row pairs a severity with its independently specified contract name.
+        let cases = [(Severity::Error, "error"), (Severity::Warning, "warning")];
+
+        for (severity, expected) in cases {
+            // Act: serialize the severity as the command will.
+            let actual = serde_json::to_value(severity).unwrap();
+
+            // Assert: the rendered name is the stable contract name.
+            assert_eq!(actual, expected, "unexpected serialized name for {severity:?}");
         }
     }
 }

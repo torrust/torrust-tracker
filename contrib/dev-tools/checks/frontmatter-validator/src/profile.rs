@@ -131,8 +131,9 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
         .and_then(StrictProfileKind::from_doc_type);
     let Some(schema_version) = schema_version.as_i64() else {
         if profile_kind.is_some() {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::WrongScalarType,
+                "schema-version",
                 "`schema-version` must be a YAML integer.",
             ));
         }
@@ -144,14 +145,16 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
     }
 
     let Some(doc_type) = values.get("doc-type") else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::MissingRequiredField,
+            "doc-type",
             "Strict frontmatter requires `doc-type`.",
         ));
     };
     let Some(doc_type) = doc_type.as_str() else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::WrongScalarType,
+            "doc-type",
             "`doc-type` must be a YAML string.",
         ));
     };
@@ -243,8 +246,9 @@ fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<()
             ));
         };
         if !allowed_fields.contains(&field) && !field.starts_with("x-") {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::UnknownField,
+                field,
                 format!("`{field}` is not allowed by this strict frontmatter profile."),
             ));
         }
@@ -256,8 +260,9 @@ fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<()
 fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Result<(), Diagnostic> {
     for field in required_fields {
         if !values.contains_key(*field) {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::MissingRequiredField,
+                *field,
                 format!("Strict frontmatter requires `{field}`."),
             ));
         }
@@ -269,14 +274,16 @@ fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Resul
 fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str]) -> Result<(), Diagnostic> {
     let value = values.get(field).expect("required fields were checked first");
     let Some(value) = value.as_str() else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::WrongScalarType,
+            field,
             format!("`{field}` must be a YAML string."),
         ));
     };
     if !allowed_values.contains(&value) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidAllowedValue,
+            field,
             format!("`{field}` has an unsupported value `{value}`."),
         ));
     }
@@ -511,10 +518,9 @@ where
         return Ok(());
     };
     serde_yaml::from_value::<Vec<T>>(value.clone()).map(drop).map_err(|error| {
-        Diagnostic::new(
-            DiagnosticCategory::InvalidReferenceSyntax,
-            format!("`semantic-links.{field}` contains an invalid v1 reference: {error}"),
-        )
+        let field_path = format!("semantic-links.{field}");
+        let message = format!("`{field_path}` contains an invalid v1 reference: {error}");
+        Diagnostic::for_field(DiagnosticCategory::InvalidReferenceSyntax, field_path, message)
     })
 }
 
@@ -524,14 +530,18 @@ where
 {
     let mut values = values.clone();
     values.retain(|key, _| !key.as_str().is_some_and(|field| field.starts_with("x-")));
-    serde_yaml::from_value(Value::Mapping(values))
-        .map_err(|error| Diagnostic::new(DiagnosticCategory::WrongScalarType, error.to_string()))
+    serde_path_to_error::deserialize(Value::Mapping(values)).map_err(|error| {
+        let field_path = error.path().to_string();
+        let message = format!("`{field_path}`: {}", error.inner());
+        Diagnostic::for_field(DiagnosticCategory::WrongScalarType, field_path, message)
+    })
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
     if value == Some(0) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must be a positive integer or null."),
         ));
     }
@@ -541,8 +551,9 @@ fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result
 
 fn validate_non_empty_string(field: &str, value: &str) -> Result<(), Diagnostic> {
     if value.is_empty() {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must not be empty."),
         ));
     }
@@ -552,8 +563,9 @@ fn validate_non_empty_string(field: &str, value: &str) -> Result<(), Diagnostic>
 
 fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Diagnostic> {
     if !is_repository_relative_path(value) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must be a repository-relative path."),
         ));
     }
@@ -563,8 +575,9 @@ fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Dia
 
 fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Diagnostic> {
     if !has_utc_minute_layout(value) || !is_valid_utc_minute_calendar(value) || !double_quoted {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            "last-updated-utc",
             "`last-updated-utc` must be a double-quoted YAML string in YYYY-MM-DD HH:MM UTC-minute format.",
         ));
     }
@@ -724,8 +737,11 @@ mod tests {
         // Act: structurally validate the parsed strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic distinguishes the exact scalar-type violation.
-        assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
+        // Assert: the diagnostic distinguishes the exact scalar-type violation and names its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::WrongScalarType, Some("github-issue"))
+        );
     }
 
     #[test]
@@ -738,7 +754,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the unsupported field.
-        assert_eq!(error.category, DiagnosticCategory::UnknownField);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::UnknownField, Some("owner"))
+        );
     }
 
     #[test]
@@ -750,8 +769,11 @@ mod tests {
         // Act: structurally validate the parsed strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic identifies the disallowed lifecycle value.
-        assert_eq!(error.category, DiagnosticCategory::InvalidAllowedValue);
+        // Assert: the diagnostic identifies the disallowed lifecycle value and its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidAllowedValue, Some("status"))
+        );
     }
 
     #[test]
@@ -948,11 +970,12 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic reserves typed forms for the approved v1 union and names the field.
-        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
-        assert!(
-            error.message.starts_with("`semantic-links.related-artifacts` "),
-            "{}",
-            error.message
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (
+                DiagnosticCategory::InvalidReferenceSyntax,
+                Some("semantic-links.related-artifacts")
+            )
         );
     }
 
@@ -979,11 +1002,9 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the frozen skill-name syntax violation and names the field.
-        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
-        assert!(
-            error.message.starts_with("`semantic-links.skill-links` "),
-            "{}",
-            error.message
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidReferenceSyntax, Some("semantic-links.skill-links"))
         );
     }
 

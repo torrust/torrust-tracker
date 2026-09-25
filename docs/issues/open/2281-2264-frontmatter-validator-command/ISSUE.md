@@ -303,7 +303,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
+| T1 | IN_PROGRESS | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
 | T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
@@ -378,6 +378,18 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - 2026-09-25 07:49 UTC - GitHub Copilot - Spec-only PR #2337 merged into `develop`. Started
   implementation on `2281-frontmatter-validator-command`; `related-pr` stays 2337 until the
   implementation PR opens - https://github.com/torrust/torrust-tracker/pull/2337
+- 2026-09-25 08:10 UTC - GitHub Copilot - Completed T1a:
+  - `Diagnostic` now carries `severity` (always `error` from the library) and `field_path`.
+  - `DiagnosticCategory` and `Severity` serialize to stable kebab-case and lowercase names.
+  - Every single-field library failure names its field. Serde scalar-type failures get their
+    path from `serde_path_to_error` 0.1.20, the latest release, already in the lockfile through
+    axum. `serde_yaml::from_value` drops paths, and without it the most common failure,
+    `wrong-scalar-type`, would have no `field_path`.
+
+  Deviation: the new command and repository categories are added with their behavior in T4/T5
+  rather than as unused variants now. A mutation proved the field-path assertion. 47 library
+  tests, Clippy, the nightly Rust formatting check, `cargo machete`, and the schema drift check
+  pass - `test-design-review.md`
 
 ## Acceptance Criteria
 
