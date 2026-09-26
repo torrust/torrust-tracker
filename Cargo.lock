@@ -1481,6 +1481,7 @@ dependencies = [
 name = "frontmatter-validator"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "rstest",
  "schemars 1.2.1",
  "serde",

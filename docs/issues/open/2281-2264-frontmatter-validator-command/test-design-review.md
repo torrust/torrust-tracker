@@ -84,3 +84,53 @@ style of the neighboring reference-syntax tests, so no scenario fixture was intr
 single-field difference.
 
 Red/green and mutation evidence: `manual-verification-evidence.md` section B1.
+
+## T2 - Command, Explicit-Path Mode, and the D9 Record Catalog
+
+Tests added in `src/bin/frontmatter-validator.rs` (14 test cases):
+
+- `it_should_exit_zero_without_records_when_every_document_is_valid` (strict v1 issue, no
+  frontmatter)
+- `it_should_report_one_diagnostic_record_and_exit_one_for_an_invalid_document`
+- `it_should_emit_a_null_field_path_when_the_failure_concerns_no_single_field`
+- `it_should_order_records_by_path_regardless_of_argument_order`
+- `it_should_validate_top_level_semantic_links_only_for_repository_owned_file_names` (`SKILL.md`,
+  `*.agent.md`, ordinary file)
+- `it_should_report_a_single_usage_error_record_and_exit_two` (no arguments, `--version`,
+  nonexistent path)
+- `it_should_render_help_as_a_single_help_record_and_exit_zero`
+- `it_should_report_a_runtime_error_record_and_exit_one_when_a_file_cannot_be_read`
+- `it_should_exit_one_when_stderr_cannot_be_written`
+
+Prose-first comparison:
+
+- **Arrange.** Each document is written into a `TempDir`, which owns and removes it. The causal
+  content is the only variable:
+  - an accepted or rejected crate fixture, included as text rather than by path, so the D6
+    fixture exclusion added in T3 cannot change these tests;
+  - one inline malformed document;
+  - identical content under different file names for ownership dispatch;
+  - a non-UTF-8 byte pair for the read failure.
+
+  Usage-error and help tests need no Arrange.
+- **Act.** `validator(&[...])` calls the production `run` with the program name prepended and an
+  in-memory stderr. That is one named action at the argument level, and it hides only the NDJSON
+  line parsing.
+- **Assert.** Each test pins the observable contract it owns:
+  - the exit code;
+  - the record's ordered key list, which is the D9 field order;
+  - the values that identify the record.
+
+  Human-readable `message` texts are not pinned, because D9 declares them illustrative. The key
+  list and the identifying values are two assertions about one record's shape. Merging them into
+  one tuple would lose the readable key-order failure.
+
+Mutation evidence (stable Rust toolchain; each mutation restored from a `.tmp` backup, verified
+byte-identical with `cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| Ownership dispatch always returns `Repository` | 2 (`agent_skill`, `agent_profile` cases) |
+| Remove `paths.sort()` | 1 (`it_should_order_records_by_path_regardless_of_argument_order`) |
+| Omit `field_path` when `None` | 1 (`it_should_emit_a_null_field_path_when_the_failure_concerns_no_single_field`) |
+| `--help` exits `2` | 1 (`it_should_render_help_as_a_single_help_record_and_exit_zero`) |

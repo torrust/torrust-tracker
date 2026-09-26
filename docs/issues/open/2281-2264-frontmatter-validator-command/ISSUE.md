@@ -317,7 +317,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
-| T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
+| T2 | DONE | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
@@ -412,6 +412,36 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 
   The regenerated schema differs by that one pattern line. 48 library tests pass - B1 in
   `manual-verification-evidence.md`, `test-design-review.md`
+- 2026-09-26 09:30 UTC - GitHub Copilot - Completed T2 (vertical slice): a new
+  `frontmatter-validator` binary with `clap` 4.6.7, the latest release and already in the
+  lockfile, with color and suggestion features disabled. It has explicit file paths, D5 ownership
+  dispatch, the four D9 record kinds, and the D8 exit codes. 14 binary test cases pass, and four
+  mutations were each caught. Two notes:
+  - The Containerfile's maintenance note asks for cargo-chef stubs for
+    `src/bin/frontmatter-schema.rs` (missed in #2280) and the new binary. Nothing breaks without
+    them, because cargo only discovers bin files that exist; T7 adds both with a recipe-stage
+    build check.
+  - `rstest` 0.27.0 was added as a dev-dependency in a separate test refactor commit.
+
+  Evidence: `test-design-review.md`.
+- 2026-09-26 09:30 UTC - GitHub Copilot - Vertical-slice design review, awaiting maintainer
+  review. The boundaries held: the library only validates text, and the binary owns arguments,
+  file reading, ownership dispatch, rendering, and exit status. Findings for T3-T5:
+  - **R1 - Policy placement.** D7/D8 severity and repository checks are pure decisions over a
+    repository-relative path, the parsed frontmatter, and a resolver. Proposal: a library
+    `repository` module with a `Resolver` trait. It holds no I/O, so the rules are unit-tested
+    without git. The binary supplies the index and working-tree resolvers.
+  - **R2 - Multiple findings per document.** Warnings and repository findings coexist with at
+    most one structural error, so the per-document result becomes a `Vec<Diagnostic>`.
+    Structural failures still short-circuit the profile.
+  - **R3 - Binary layout.** Discovery, git access, and resolvers would make one file too large.
+    Proposal: move to `src/bin/frontmatter-validator/main.rs` with sibling modules in T3, and
+    update the T7 Containerfile stub to that path.
+  - **R4 - Paths outside the repository.** D9 renders repository-relative paths, but D4 did not
+    say what happens to an explicit path outside the repository. Proposal: a `usage_error`
+    (exit `2`), because such a file has no repository location for D8 or D7 to classify.
+
+  This specification
 
 ## Acceptance Criteria
 
