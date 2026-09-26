@@ -197,6 +197,7 @@ until merge.
 - [ ] Acceptance criteria re-reviewed after implementation and updated with evidence.
 - [ ] Evidence-based implementation completion review recorded.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes.
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification.
 - [ ] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
@@ -281,6 +282,8 @@ deviations, and reusable lessons.
 - Retrospective: Not yet assessed.
 - Create `implementation-retrospective.md` only if the fix reveals a material design or workflow
   lesson; otherwise record why none is needed in the progress log.
+- When an independent reviewer receives this folder-style specification, it records its result in
+  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
 ## References
 
