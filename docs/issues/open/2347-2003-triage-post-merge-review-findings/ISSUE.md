@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings-spec"
 related-pr: null
-last-updated-utc: "2026-09-26 12:20"
+last-updated-utc: "2026-09-26 13:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -117,9 +117,11 @@ Each summary is the first line of the thread's first comment, generated from the
   `FOLLOW_UP` in a separate issue for anything larger or outside documentation.
 - Apply only the approved fixes, in signed commits grouped per owning PR.
 - After this task's pull request merges, close the loop following the PR #2276 precedent: a small
-  pull request moves the audits' `FOLLOW_UP` rows to their final disposition. Then reply on each
-  thread with that disposition and a durable reference, resolve it, and confirm through GraphQL
-  that none of the 32 threads is left unresolved.
+  pull request records the merge reference and final disposition for each finding this task fixed
+  or declined; each of those threads then gets a reply with that disposition and a durable
+  reference, and is resolved. A `FOLLOW_UP` finding keeps its thread open, with a reply naming its
+  owning issue, until that issue's fix merges; that issue then updates the audit and resolves the
+  thread.
 
 ### Out of Scope
 
@@ -162,7 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | TODO | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
 | T5 | TODO | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
 | T6 | TODO | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
-| T7 | TODO | Close the loop after merge | Close-out PR moves `FOLLOW_UP` rows to final dispositions; each thread replied to and resolved; GraphQL shows none of the 32 unresolved. |
+| T7 | TODO | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
 
 ## Commit Points
 
@@ -202,9 +204,9 @@ progress log. No test code is planned.
 ## Acceptance Criteria
 
 - [ ] AC1: Each of the 32 findings has a row in its owning PR's audit record, with a collision-safe ID, the reviewer's ID, a live-on-`develop` verification, and a maintainer-approved disposition.
-- [ ] AC2: The maintainer approval of the dispositions is recorded as a durable GitHub comment URL in each affected audit's Ownership section before any repository change or thread resolution.
+- [ ] AC2: The maintainer approval of the dispositions is recorded as a durable GitHub comment URL before any fix or thread resolution. The URL appears in the Ownership section of the #2300, #2313, and #2320 audits when their rows are added, and of the #2290 and #2293 audits when those audits are created.
 - [ ] AC3: Every approved fix is applied, and every approved `FOLLOW_UP` item links a created issue.
-- [ ] AC4: Each of the 32 threads has a finding-specific final reply and is resolved; a final GraphQL fetch shows none of them unresolved.
+- [ ] AC4: Each of the 32 threads has a finding-specific final reply. Every thread whose finding this task fixed or declined is resolved; every `FOLLOW_UP` thread stays open, its reply naming the owning issue, until that issue's fix merges. A final GraphQL fetch confirms both.
 - [ ] AC5: `validate-audit-record.py` exits `0` for PRs #2290, #2293, #2300, #2313, and #2320.
 - [ ] `linter all` exits with code `0`.
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
@@ -226,7 +228,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Tracking replies visible | Open each of the five PRs on GitHub after T1. | Every one of the 32 threads shows a reply naming this issue. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Thread inventory complete | For each PR, run `github-review-threads fetch` and `list --unresolved-only` after T7. | None of the 32 threads is unresolved. | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Thread states match dispositions | For each PR, run `github-review-threads fetch` and `list --unresolved-only` after T7. | Only `FOLLOW_UP` threads are unresolved, each with a reply naming its owning issue; every other of the 32 threads is resolved. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Live-status spot check | Re-run the recorded verification for three findings chosen at random, one per disposition kind. | Each re-run reproduces the recorded result. | TODO | `manual-verification-evidence.md` section V3 |
 
 No disposable verification script is planned.
