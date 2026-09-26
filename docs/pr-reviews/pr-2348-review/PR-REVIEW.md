@@ -108,6 +108,9 @@ recorded as `Major (inferred)` and `Minor (inferred)`.
 - 2026-09-26 13:17 UTC - Started audit for round 1: Copilot review 5325942058, three inline
   threads and a summary with no further request. Committed the F1 fix and one commit for F2 and
   F3, pushed, re-derived each fix from the pushed tree, and replied on all three threads.
+- 2026-09-26 13:26 UTC - After `docs(pr-reviews): add PR #2348 review audit` was pushed,
+  `reply-status --login josecelano` reported 3 of 3 threads replied, and the three threads were
+  resolved. A refreshed GraphQL fetch reports 3 threads, 0 unresolved.
 
 ## Completion Rules
 
