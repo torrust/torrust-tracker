@@ -74,7 +74,8 @@ Decision summary from the issue:
   month at list price, is not billed. Moving to GitHub Team would not make that usage billable:
   standard runners stay free for public repositories on every plan. Only the larger-runner minutes
   would be billed, plus the Team seats. The estimate for running only the `Container` workflow's
-  slow job on a larger runner is about 200 USD per month, well above a comparable Hetzner server.
+  slow job on a 16-core larger runner is about 290 to 330 USD per month (derived from the T1
+  baseline; see Alternatives Considered), well above a comparable Hetzner server.
 - Workflows are split: lightweight workflows stay on the free GitHub-hosted runners, and the
   bottleneck, the container image build and test run at the end of the pipeline, moves to a
   self-hosted runner on a Hetzner server.
@@ -163,16 +164,32 @@ self-hosted runner removes that limitation.
 ## Alternatives Considered
 
 Both options move only the `Test (Docker)` job; every other workflow stays on the free standard
-GitHub-hosted runners. Run volume and the per-core estimates come from
+GitHub-hosted runners. Run volume and the per-minute rates come from
 [`larger-runner-vs-self-hosted-cost-analysis.md`](larger-runner-vs-self-hosted-cost-analysis.md)
 (2026-09-16); the selected server price comes from the Hetzner console. The ADR must recheck both.
+
+The larger-runner cost is derived from the T1 baseline ([benchmark-results.md](benchmark-results.md)),
+not from that analysis's per-core job times. Its premise was wrong: the analysis priced the current
+runner as 2-core, but standard Linux runners for public repositories have 4 vCPUs and 16 GB
+([GitHub-hosted runners reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners),
+checked 2026-09-26). A 16-core runner is therefore a 4x step, and a 4-core runner adds no cores.
+The estimate, which excludes third-party dependency cache misses:
+
+- Parts that do not scale with cores, about 13.7 minutes: cache export (prepare plus upload,
+  median 546 s over the six logged runs), which remains because the cache stays remote; E2E steps
+  (median 218 s); setup and cleanup (about 60 s).
+- Workspace compile (median 1089.5 s) at a linear 4x speed-up: about 4.5 minutes.
+- Job total about 18.3 minutes at 0.042 USD per minute: about 290 USD per month for the 378 PR runs,
+  about 330 USD with the 55 push runs.
+
+Finding F9 on PR #2335 supplied this recomputation.
 
 | Aspect               | GitHub-hosted larger runner                                                                     | Self-hosted runner on Hetzner                                                                                 |
 | -------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | GitHub plan          | Con: requires GitHub Team or Enterprise Cloud, plus a per-seat cost.                            | Pro: works on the current GitHub Free plan.                                                                   |
 | Billing model        | Con: billed per minute from the first minute, even for public repos. Standard runners stay free. | Pro: GitHub does not bill self-hosted minutes. Con: flat server cost, paid even when idle.                    |
 | Cost as volume grows | Con: grows linearly with runs; agent-driven PR volume is rising (378 PR runs in 30 days).       | Pro: flat until capacity runs out, so the cost per run falls as volume grows.                                 |
-| Estimated cost       | About 200 USD per month for the `Container` job alone (maintainer estimate).                     | €69.49 per month for the selected 8 vCPU / 16 GB server, with 20 TB outgoing traffic included.                |
+| Estimated cost       | About 290 to 330 USD per month for the `Container` job alone on a 16-core runner (derived above). | €69.49 per month for the selected 8 vCPU / 16 GB server, with 20 TB outgoing traffic included.                |
 | Build caches         | Con: ephemeral VM; caches are re-downloaded from the network (`type=gha`) on every job.         | Pro: persistent host keeps Docker layers, Cargo registry and git caches, and BuildKit cache mounts.           |
 | Hardware             | Con: limited to GitHub's catalog.                                                               | Pro: choose dedicated vCPU, RAM, and disk.                                                                    |
 | Concurrency          | Pro: scales with parallel jobs without sizing a server.                                         | Con: bounded by the number of runner instances; can become the new bottleneck.                                |
@@ -182,7 +199,7 @@ GitHub-hosted runners. Run volume and the per-core estimates come from
 | Workflow change      | Pro: `runs-on` label swap; the existing cache setup keeps working.                              | Con: `runs-on` swap plus cache reconfiguration and publish-job cache isolation.                               |
 | Network locality     | Pro: runs next to GitHub's cache and artifact services.                                         | Con: every GitHub cache import/export and artifact transfer crosses the internet from Hetzner to GitHub.     |
 
-Decision: self-hosted on Hetzner. The selected server costs about a third of the estimated
+Decision: self-hosted on Hetzner. The selected server costs about a quarter of the estimated
 larger-runner bill, its cost stays flat as agent-driven volume grows, it does not require a paid
 GitHub plan, and a persistent host enables local caches that an ephemeral runner cannot keep. The
 earlier analysis found the two options roughly on par only because it priced a more expensive

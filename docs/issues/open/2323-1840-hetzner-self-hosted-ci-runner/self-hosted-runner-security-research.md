@@ -287,7 +287,7 @@ it is a custom service with a real security design (points 1 to 3), not just a s
 The fastest safe option operationally: GitHub provides a new VM per job, fork PRs get the same
 isolation as today, and nothing needs to be operated. Standard runners stay free for public
 repositories; only larger-runner minutes and Team seats are billed (see [ISSUE.md](ISSUE.md)),
-estimated at about 200 USD per month for the `Container` job. Costs grow with PR volume, and the
+estimated at about 290 to 330 USD per month for the `Container` job on a 16-core runner. Costs grow with PR volume, and the
 build cache remains remote (`type=gha`), so the cache export cost measured in the baseline remains
 unless the build is also reworked.
 

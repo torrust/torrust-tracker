@@ -4,7 +4,9 @@
 > issue folder on 2026-09-24. The content is unchanged except for blank-line fixes required by
 > markdownlint. Its **Recommendation** and **Resolution** sections were superseded by the decision
 > recorded in issue #2323 (self-hosted Hetzner runner for the container test job); see
-> [ISSUE.md](ISSUE.md).
+> [ISSUE.md](ISSUE.md). Its runner premise is also outdated: standard Linux runners for public
+> repositories have 4 vCPUs, not 2, so its per-core job times do not hold. ISSUE.md derives the
+> larger-runner cost from the T1 baseline instead.
 
 ## Environment
 
