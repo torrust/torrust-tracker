@@ -11,6 +11,7 @@ metadata:
       - .github/agents/implementer.agent.md
       - docs/templates/ISSUE.md
       - "issue #2226"
+      - "issue #2345"
 ---
 
 # Fixing Bugs
@@ -164,7 +165,7 @@ For a bug whose wrong outcome is internal and invisible to clients, metrics, and
 issue #2345: its evidence separates a trigger-only real-tracker run from a temporary event-bus
 test that observed the wrong value.
 
-Do not change that issue's implementation scope when updating this workflow.
+Do not change the implementation scope of either issue when updating this workflow.
 
 ## Skill Links
 
@@ -177,3 +178,5 @@ Review this skill when changing:
 - `.github/agents/implementer.agent.md` — bug workflow invocation by implementation agents.
 - `docs/templates/ISSUE.md` — bug-only issue sections and manual evidence requirements.
 - issue #2226 — worked example reference.
+- issue #2345 — worked example reference for an internal wrong outcome; re-check the reference
+  when its evidence is updated or moved to `docs/issues/closed/`.
