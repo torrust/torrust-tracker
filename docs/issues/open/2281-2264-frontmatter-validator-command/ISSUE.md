@@ -352,7 +352,7 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] Local folder-style specification created
 - [x] Specification reviewed and approved by user/maintainer
 - [x] Spec-only PR #2337 merged into `develop` before implementation
-- [ ] Vertical-slice design review recorded after T2
+- [x] Vertical-slice design review recorded after T2
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -442,6 +442,12 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
     (exit `2`), because such a file has no repository location for D8 or D7 to classify.
 
   This specification
+- 2026-09-26 10:40 UTC - Jose Celano - Approved R1-R4 as proposed. The binary now lives at
+  `src/bin/frontmatter-validator/main.rs`, and the record catalog is in `record.rs` (behavior
+  unchanged). Git-dependent behavior is tested through the built binary in a disposable
+  repository, following `clippy-allow-reasons/tests/cli.rs`. Those tests clear inherited
+  `GIT_*` variables so a run inside a git hook cannot touch the real repository - User
+  conversation
 
 ## Acceptance Criteria
 
