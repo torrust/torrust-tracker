@@ -269,7 +269,8 @@ Result (2026-09-24): `gcc 15.2.0`, `git 2.53.0`, `jq 1.8.1`.
 The GitHub runner refuses to run as `root` by default. Membership in the `docker` group is
 equivalent to root on this host. The original plan accepted this because the host is dedicated to
 CI; review of PR #2335 showed the exposure is wider (persistent host compromise, the runner
-registration, later push jobs), and the design was rejected. See the risks in
+registration, later push jobs), and the design was rejected, then accepted with controls on
+2026-09-25 (T9). See the risks in
 [ISSUE.md](ISSUE.md) and
 [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md).
 

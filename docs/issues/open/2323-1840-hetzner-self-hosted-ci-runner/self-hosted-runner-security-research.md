@@ -341,6 +341,10 @@ remain a residual path. GitHub larger runners (alternative B) remain the fallbac
 
 ## Implications for Issue #2323
 
+These implications follow from the 2026-09-24 position that untrusted root on a persistent
+runner is not acceptable. The [Decision](#decision-2026-09-25) above accepted that exposure with
+controls instead; the points below still describe what a design without that acceptance would need.
+
 - The current setup (persistent host, `runner` in the `docker` group, fork PRs) does not meet the
   maintainer's requirement and must not be used for fork PRs as is.
 - Meeting the requirement means a VM boundary per job, like GitHub-hosted runners: every job runs
