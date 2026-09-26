@@ -41,21 +41,29 @@ jobs:
     # stage, and share the same Debian trixie glibc as the production image. See ADR
     # 20260603000000_keep_unit_tests_inside_container_build.md.
     #
-    # Cache flow: the `build` step writes the BuildKit layer cache to the `container-release`
-    # GHA scope (mode=max, all intermediate layers). The publish_development and publish_release
-    # jobs read from this scope first, so they get a cache hit and avoid a full rebuild when
-    # running on the same commit. The cache is written during `docker build`, before the E2E
-    # steps below, so it is available to publish jobs even if E2E tests fail (though in that
-    # case the publish jobs are blocked anyway by the `needs: test` dependency chain).
+    # Cache flow: on GitHub-hosted runners the `build` step reads and writes the BuildKit layer
+    # cache in the `container-release` GHA scope. On the self-hosted runner it uses the default
+    # `docker` driver, so layers and cache mounts stay in the host's Docker store, and it writes no
+    # GHA cache. The publish jobs read no GHA cache at all.
+    #
+    # Runner: the self-hosted Hetzner runner for PRs targeting develop (except Dependabot's) and
+    # pushes to develop in this repository; ubuntu-latest otherwise. See ADR
+    # 20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md.
     #
     # When this workflow runs (push to develop/main/releases, PR targeting develop/main),
     # the docker-e2e job in testing.yaml is skipped to avoid running the same E2E suite twice.
     # For feature branch pushes where this workflow does not trigger, testing.yaml provides
     # equivalent coverage. See issue #1854.
     name: Test (Docker)
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        github.repository == 'torrust/torrust-tracker' &&
+        ((github.event_name == 'pull_request' && github.base_ref == 'develop' &&
+        github.event.pull_request.user.login != 'dependabot[bot]') ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/develop')) &&
+        fromJSON('["self-hosted", "torrust-hetzner"]') || 'ubuntu-latest'
+      }}
     timeout-minutes: 90
-
     strategy:
       matrix:
         target: [release]
@@ -78,6 +86,8 @@ jobs:
       - id: setup-buildx
         name: Setup Buildx
         uses: docker/setup-buildx-action@v4.4.1
+        with:
+          driver: ${{ runner.environment == 'self-hosted' && 'docker' || 'docker-container' }}
 
       - id: setup-toolchain
         name: Setup Toolchain
@@ -87,7 +97,14 @@ jobs:
 
       - id: cache
         name: Enable Job Cache
+        if: runner.environment == 'github-hosted'
         uses: Swatinem/rust-cache@v2.9.2
+
+      # `actions/checkout` cleans the workspace, so keep host-side Cargo builds outside it.
+      - id: persistent-target
+        name: Use Persistent Cargo Target Directory
+        if: runner.environment == 'self-hosted'
+        run: echo "CARGO_TARGET_DIR=$HOME/.cache/torrust-tracker/container-target" >> "$GITHUB_ENV"
 
       - id: fetch
         name: Download Dependencies
@@ -102,8 +119,8 @@ jobs:
           load: true
           target: ${{ matrix.target }}
           tags: torrust-tracker:local
-          cache-from: type=gha,scope=container-${{ matrix.target }}
-          cache-to: type=gha,scope=container-${{ matrix.target }},mode=max
+          cache-from: ${{ runner.environment == 'github-hosted' && format('type=gha,scope=container-{0}', matrix.target) || '' }}
+          cache-to: ${{ runner.environment == 'github-hosted' && format('type=gha,scope=container-{0},mode=max', matrix.target) || '' }}
 
       - id: run-persistence-transition-regression
         name: Run Persistence Transition Regression
@@ -228,13 +245,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
-          # Read from the test job's cache first (container-release scope) so that when
-          # the test and publish jobs run on the same commit the publish step gets a
-          # cache hit and avoids a full rebuild. Falls back to the publish-specific scope.
-          cache-from: |
-            type=gha,scope=container-release
-            type=gha,scope=container-publish-dev
-          cache-to: type=gha,scope=container-publish-dev,mode=max
+          # No GHA cache: a cache scope is a key name, not a producer identity, so a job holding a
+          # develop cache token could write any scope a publish build reads. See ADR
+          # 20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md.
 
   publish_release:
     name: Publish (Release)
@@ -280,9 +293,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
-          # Read from the test job's cache first (container-release scope) for the same
-          # reason as publish_development above.
-          cache-from: |
-            type=gha,scope=container-release
-            type=gha,scope=container-publish-release
-          cache-to: type=gha,scope=container-publish-release,mode=max
+          # No GHA cache, for the same reason as publish_development above.
