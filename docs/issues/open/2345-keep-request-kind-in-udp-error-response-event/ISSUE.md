@@ -222,8 +222,8 @@ until merge.
 - [ ] AC2: An unparsable payload still publishes
       `UdpResponseKind::Error { opt_req_kind: None }`.
 - [ ] AC3: The parsed-failure regression test was observed red before the fix and green after.
-- [ ] AC4: The post-fix recheck of V1 and V2 is recorded in `manual-verification-evidence.md`
-      next to the pre-fix reproduction.
+- [ ] AC4: The post-fix rechecks M3 and M4 are recorded in `manual-verification-evidence.md`
+      next to the pre-fix reproduction (M1, M2).
 - [ ] `cargo test -p torrust-tracker-udp-server` and `linter all` exit with code `0`.
 
 ## Verification Plan
@@ -241,12 +241,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Real tracker reaches the parsed-request error path | Run the strict-mode loopback contract listed in V1. | Error responses for parsed announces, before and after the fix. | TODO (pre-fix run DONE) | `manual-verification-evidence.md` V1 |
-| M2 | Published event keeps the request kind | Observe the processor's event bus for a parsed scrape with an invalid connection ID (V2), via the maintained regression test after the fix. | Pre-fix: `Error { opt_req_kind: None }` (observed). Post-fix: `Error { opt_req_kind: Some(Scrape) }`. | TODO (pre-fix run DONE) | `manual-verification-evidence.md` V2 |
+| M1 | Pre-fix: real tracker reaches the parsed-request error path | Run the strict-mode loopback contract listed in V1. | Error responses for the parsed announces (Trigger only). | DONE | `manual-verification-evidence.md` V1 |
+| M2 | Pre-fix: published event drops the request kind | Run the temporary event-bus test recorded in V2: a parsed scrape with `ConnectionId::new(0)`. | `UdpResponseSent` reports `Error { opt_req_kind: None }` (Reproduced). | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Post-fix recheck of M1 | Rerun the V1 contract unchanged. | Error responses for the parsed announces, as before. | TODO | `manual-verification-evidence.md` Post-Fix Recheck |
+| M4 | Post-fix recheck of M2 | Observe the same parsed scrape on the event bus through the maintained regression test. | `UdpResponseSent` reports `Error { opt_req_kind: Some(Scrape) }`. | TODO | `manual-verification-evidence.md` Post-Fix Recheck |
 
-The tracker/client artifact in M1 cannot expose the event field, because clients, metrics, and
-logs do not show published events. M2 therefore observes it at the processor's event-publishing
-boundary.
+The tracker/client artifact in M1 and M3 cannot expose the event field, because clients, metrics,
+and logs do not show published events. M2 and M4 therefore observe it at the processor's
+event-publishing boundary.
 
 ### Disposable Verification Scripts
 
