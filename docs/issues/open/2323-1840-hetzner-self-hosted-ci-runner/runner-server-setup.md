@@ -264,6 +264,16 @@ Further missing tools will surface during validation (scenario F in [ISSUE.md](I
 
 Result (2026-09-24): `gcc 15.2.0`, `git 2.53.0`, `jq 1.8.1`.
 
+The E2E tools depend on `openssl-sys` without the `vendored` feature, so compiling them on the
+host needs the system OpenSSL headers (found through `pkg-config`). `libsqlite3-sys` is built with
+its `bundled` feature and needs no system package. Installed on 2026-09-26, while implementing T5:
+
+```bash
+server# apt install -y libssl-dev
+```
+
+Result (2026-09-26): `libssl-dev 3.5.5-1ubuntu3.5`; no service restart needed.
+
 ## 10. Create the `runner` User
 
 The GitHub runner refuses to run as `root` by default. Membership in the `docker` group is
