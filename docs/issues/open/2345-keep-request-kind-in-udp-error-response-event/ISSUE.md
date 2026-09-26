@@ -122,10 +122,13 @@ Reproduced on 2026-09-26 against `develop`. The exact steps, code, commands, and
 
 `Processor` owns the response classification and event publication. `handle_packet` owns request
 parsing and already supplies the optional request kind. `BoundSocket` owns response transmission.
-The regression test owns its ephemeral loopback socket and direct event-bus receiver; every receive
-must use the existing absolute `EVENT_PUBLICATION_TIMEOUT`. The test must consume the processor
-event stream until `UdpResponseSent` because `UdpRequestAccepted` and `UdpError` are published
-first (observed in V2). Review the first passing test increment before adding the unparsable-payload complement.
+The regression test owns its ephemeral loopback socket and direct event-bus receiver. The test must
+consume the processor event stream until `UdpResponseSent` because `UdpRequestAccepted` and
+`UdpError` are published first (observed in V2). Bound that whole loop with one absolute deadline,
+as the `write-unit-test` skill requires: compute a `tokio::time::Instant` from
+`EVENT_PUBLICATION_TIMEOUT` before the loop and receive with `tokio::time::timeout_at`. The
+existing `receive_event` helper applies the timeout per receive, so each iteration would restart
+it. Review the first passing test increment before adding the unparsable-payload complement.
 
 ## Bug-Fix Process
 
@@ -147,7 +150,8 @@ Use the existing `Processor` fixture, a real loopback client socket with a nonze
 the direct event receiver.
 
 1. Send a parsable scrape with `ConnectionId::new(0)` under strict validation (the V2 request).
-   Receive events until `Event::UdpResponseSent`, then assert
+   Receive events until `Event::UdpResponseSent` under one absolute deadline (see Design and
+   Ownership Review), then assert
    `UdpResponseKind::Error { opt_req_kind: Some(UdpRequestKind::Scrape) }`. This is red before
    the fix. One parsed kind is enough: the defective arm does not depend on the kind, and scrape
    avoids the announce request's many incidental fields.
