@@ -112,7 +112,7 @@ mod tests {
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 
     use crate::bootstrap::app::initialize_global_services;
-    use crate::bootstrap::jobs::manager::{ComponentCompletion, OwnedTask};
+    use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, OwnedTask};
     use crate::bootstrap::jobs::udp_tracker::{start_job, supervise_receive_loop};
     use crate::container::AppContainer;
 
@@ -139,11 +139,18 @@ mod tests {
         panic!("UDP receive loop failure");
     }
 
+    async fn supervise_within_deadline(receive_loop: OwnedTask<Result<(), &'static str>>) -> ComponentResult {
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, supervise_receive_loop(receive_loop))
+            .await
+            .expect("the component should report its outcome within the test deadline")
+    }
+
+    // The receive loop returns `Ok(())` only from its cancellation branch.
     #[tokio::test]
-    async fn it_should_report_cancelled_when_the_receive_loop_stops_after_cancellation() {
+    async fn it_should_report_cancelled_when_the_receive_loop_returns_ok() {
         let receive_loop = tokio::spawn(async { Ok::<(), &str>(()) });
 
-        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+        let completion = supervise_within_deadline(OwnedTask::new(receive_loop)).await;
 
         assert_eq!(completion, Ok(ComponentCompletion::Cancelled));
     }
@@ -152,7 +159,7 @@ mod tests {
     async fn it_should_fail_when_the_receive_loop_stops_with_an_error() {
         let receive_loop = tokio::spawn(async { Err::<(), _>("socket closed") });
 
-        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+        let completion = supervise_within_deadline(OwnedTask::new(receive_loop)).await;
 
         let error = completion.expect_err("a receive-loop error should fail the component");
         assert!(
@@ -166,7 +173,7 @@ mod tests {
     async fn it_should_fail_when_the_receive_loop_task_panics() {
         let receive_loop = tokio::spawn(panicking_receive_loop());
 
-        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+        let completion = supervise_within_deadline(OwnedTask::new(receive_loop)).await;
 
         let error = completion.expect_err("a panicking receive loop should fail the component");
         assert!(error.to_string().contains("UDP tracker receive loop task failed"));

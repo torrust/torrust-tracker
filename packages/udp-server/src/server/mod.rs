@@ -279,14 +279,14 @@ mod tests {
         }
 
         /// Everything the UDP server needs to start on a known, currently free address.
-        struct UdpServerInputs {
+        struct StoppedUdpServerOnFreeAddress {
             bind_to: SocketAddr,
             udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
             udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
             cookie_lifetime: Duration,
         }
 
-        impl UdpServerInputs {
+        impl StoppedUdpServerOnFreeAddress {
             async fn new() -> Self {
                 let bind_to = available_udp_address();
                 let mut configuration = ephemeral_public();
@@ -333,10 +333,10 @@ mod tests {
         #[tokio::test]
         async fn it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled() {
             // Arrange
-            let inputs = UdpServerInputs::new().await;
-            let bind_to = inputs.bind_to;
+            let server = StoppedUdpServerOnFreeAddress::new().await;
+            let bind_to = server.bind_to;
             let cancellation_token = CancellationToken::new();
-            let running = inputs
+            let running = server
                 .start(&Registar::default(), cancellation_token.clone())
                 .await
                 .expect("the token-aware UDP server should start");
@@ -359,12 +359,12 @@ mod tests {
         #[tokio::test]
         async fn it_should_register_the_service_with_a_health_check_that_reaches_the_running_server() {
             // Arrange
-            let inputs = UdpServerInputs::new().await;
+            let server = StoppedUdpServerOnFreeAddress::new().await;
             let registar = Registar::default();
             let cancellation_token = CancellationToken::new();
 
             // Act
-            let running = inputs
+            let running = server
                 .start(&registar, cancellation_token.clone())
                 .await
                 .expect("the token-aware UDP server should start");
@@ -386,14 +386,14 @@ mod tests {
             );
 
             cancellation_token.cancel();
-            drop(running.task.await);
+            drop(tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task).await);
         }
 
         #[tokio::test]
         async fn it_should_release_the_socket_when_registration_fails() {
             // Arrange
-            let inputs = UdpServerInputs::new().await;
-            let bind_to = inputs.bind_to;
+            let server = StoppedUdpServerOnFreeAddress::new().await;
+            let bind_to = server.bind_to;
             let registar = Registar::default();
             registar
                 .give_form()
@@ -406,7 +406,7 @@ mod tests {
                 .expect("reserve the UDP service registration");
 
             // Act
-            let result = inputs.start(&registar, CancellationToken::new()).await;
+            let result = server.start(&registar, CancellationToken::new()).await;
 
             // Assert
             let Err(UdpError::Registration {

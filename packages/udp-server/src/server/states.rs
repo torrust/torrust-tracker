@@ -4,10 +4,11 @@
 //!
 //! Colocated tests cover deterministic `await_startup_notification` error
 //! mappings. The public `server` module owns registration-error preservation
-//! and listener-release coverage. Bind failures, halt signalling, task
-//! joining, and `Running::stop` are legacy lifecycle behavior deferred to
-//! Issue #1488 and its UDP lifecycle subissues; do not add coverage-only tests
-//! for those paths here.
+//! and listener-release coverage for both start paths, and token-aware stop
+//! coverage. The launcher owns the legacy halt and drop-path regression tests.
+//! Bind failures and `Running::stop` remain legacy lifecycle behavior slated
+//! for removal in SI-19 (Issue #1488); do not add coverage-only tests for
+//! those paths here.
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -28,7 +29,7 @@ use super::spawner::{LaunchRequest, Spawner};
 use super::{Server, UdpError};
 use crate::container::UdpTrackerServerContainer;
 use crate::server::bound_socket::BoundSocket;
-use crate::server::launcher::{Launcher, StartedReceiveLoop};
+use crate::server::launcher::{Launcher, OwnedReceiveLoop, StartedReceiveLoop};
 
 /// A UDP server instance controller with no UDP instance running.
 #[allow(
@@ -219,6 +220,7 @@ impl Server<Stopped> {
             connection_id_validation,
             cancellation_token.clone(),
         );
+        let receive_loop = OwnedReceiveLoop::new(task);
 
         if let Some(public_url) = metadata.public_url() {
             tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, public_url = %public_url, "Started UDP tracker");
@@ -231,12 +233,16 @@ impl Server<Stopped> {
             .await
         {
             cancellation_token.cancel();
+            let task = receive_loop.into_task();
             task.abort();
             drop(task.await);
             return Err(UdpError::Registration { source: error });
         }
 
-        Ok(CancellationRunning { local_addr, task })
+        Ok(CancellationRunning {
+            local_addr,
+            task: receive_loop.into_task(),
+        })
     }
 }
 

@@ -38,18 +38,32 @@ pub(crate) struct StartedReceiveLoop {
     pub task: JoinHandle<Result<(), std::io::Error>>,
 }
 
-/// Aborts the receive loop if the legacy launcher is dropped before joining it.
-struct OwnedReceiveLoop(JoinHandle<Result<(), std::io::Error>>);
+/// Aborts the receive loop if its owner is dropped before joining it or handing it on.
+pub(crate) struct OwnedReceiveLoop(Option<JoinHandle<Result<(), std::io::Error>>>);
 
 impl OwnedReceiveLoop {
+    pub(crate) const fn new(task: JoinHandle<Result<(), std::io::Error>>) -> Self {
+        Self(Some(task))
+    }
+
     async fn join(&mut self) -> Result<(), std::io::Error> {
-        (&mut self.0).await.map_err(std::io::Error::other)?
+        match &mut self.0 {
+            Some(task) => task.await.map_err(std::io::Error::other)?,
+            None => Ok(()),
+        }
+    }
+
+    /// Hands the task to a new owner without aborting it.
+    pub(crate) fn into_task(mut self) -> JoinHandle<Result<(), std::io::Error>> {
+        self.0.take().expect("the receive loop is handed on at most once")
     }
 }
 
 impl Drop for OwnedReceiveLoop {
     fn drop(&mut self) {
-        self.0.abort();
+        if let Some(task) = &self.0 {
+            task.abort();
+        }
     }
 }
 
@@ -89,7 +103,7 @@ impl Launcher {
             connection_id_validation,
             cancellation_token.clone(),
         );
-        let mut receive_loop = OwnedReceiveLoop(task);
+        let mut receive_loop = OwnedReceiveLoop::new(task);
 
         if tx_start
             .send(Started {
@@ -140,10 +154,10 @@ impl Launcher {
 
         let receiver = Receiver::new(bound_socket.into());
 
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (spawning main loop)");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::start_receive_loop (spawning main loop)");
 
         let task = tokio::task::spawn(async move {
-            tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr = local_udp_url, "Udp::run_with_graceful_shutdown::task (listening...)");
+            tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr = local_udp_url, "Udp::start_receive_loop::task (listening...)");
             Self::run_udp_server_main(
                 receiver,
                 udp_tracker_core_container,
