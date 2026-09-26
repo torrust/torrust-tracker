@@ -40,8 +40,8 @@ Parent EPIC: #1840 - Improve PR Workflow Performance
 > keep unreviewed code off the runner and limit what a compromise can reach (see the fork-PR risk
 > in Risks and Trade-offs, T9, and AC7). This reverses the 2026-09-24 position on the basis of
 > likelihood, not impact. GitHub larger runners remain the fallback if the contribution profile
-> changes or a control cannot be kept. The runner must be registered again (T3), and only after
-> T9 is done.
+> changes or a control cannot be kept. T9 was completed on 2026-09-26, and the runner was then
+> registered again (T3).
 
 ## Goal
 
