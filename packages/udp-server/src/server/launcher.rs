@@ -11,7 +11,7 @@ use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
-use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
+use torrust_server_lib::signals::{Halted, Started, global_shutdown_signal};
 use torrust_tracker_client::udp::client::check;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
@@ -38,12 +38,32 @@ pub(crate) struct StartedReceiveLoop {
     pub task: JoinHandle<Result<(), std::io::Error>>,
 }
 
+/// Aborts the receive loop if the legacy launcher is dropped before joining it.
+struct OwnedReceiveLoop(JoinHandle<Result<(), std::io::Error>>);
+
+impl OwnedReceiveLoop {
+    async fn join(&mut self) -> Result<(), std::io::Error> {
+        (&mut self.0).await.map_err(std::io::Error::other)?
+    }
+}
+
+impl Drop for OwnedReceiveLoop {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}
+
 impl Launcher {
     /// It starts the UDP server instance with graceful shutdown.
     ///
+    /// This legacy entry point adapts the token-aware receive loop: a halt
+    /// message, a dropped halt sender, or the global OS shutdown signal cancels
+    /// the loop, which is then joined. Dropping this future aborts the loop.
+    ///
     /// # Errors
     ///
-    /// Returns an error if the startup notification receiver is dropped.
+    /// Returns an error if the startup notification receiver is dropped or the
+    /// receive loop stops with an error.
     #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bound_socket, tx_start, rx_halt))]
     pub async fn run_with_graceful_shutdown(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -55,19 +75,21 @@ impl Launcher {
         rx_halt: oneshot::Receiver<Halted>,
     ) -> Result<(), std::io::Error> {
         let local_udp_url = bound_socket.url().to_string();
+        let cancellation_token = CancellationToken::new();
 
         let StartedReceiveLoop {
             service_binding,
             address,
-            task: mut running,
+            task,
         } = Self::start_receive_loop(
             udp_tracker_core_container,
             udp_tracker_server_container,
             bound_socket,
             cookie_lifetime,
             connection_id_validation,
-            CancellationToken::new(),
+            cancellation_token.clone(),
         );
+        let mut receive_loop = OwnedReceiveLoop(task);
 
         if tx_start
             .send(Started {
@@ -76,8 +98,8 @@ impl Launcher {
             })
             .is_err()
         {
-            running.abort();
-            drop(running.await);
+            cancellation_token.cancel();
+            drop(receive_loop.join().await);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::BrokenPipe,
                 "UDP startup receiver was dropped",
@@ -87,17 +109,16 @@ impl Launcher {
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
 
         select! {
-            _ = &mut running => {
+            result = receive_loop.join() => {
                 tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)");
+                result
             },
-            () = shutdown_signal_with_message(rx_halt, format!("Halting UDP Service Bound to Socket: {address}")) => {
+            () = legacy_stop_requested(rx_halt, format!("Halting UDP Service Bound to Socket: {address}")) => {
                 tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)");
-                running.abort();
-                drop(running.await);
+                cancellation_token.cancel();
+                receive_loop.join().await
             }
         }
-
-        Ok(())
     }
 
     /// Logs the listener startup and spawns the receive loop, which stops
@@ -334,6 +355,27 @@ impl Launcher {
     }
 }
 
+/// Resolves when a legacy consumer asks the UDP server to stop.
+///
+/// A dropped halt sender counts as a stop request instead of a panic. The
+/// global OS signal is still observed until the legacy API is removed (SI-19).
+async fn legacy_stop_requested(rx_halt: oneshot::Receiver<Halted>, message: String) {
+    select! {
+        () = halt_requested(rx_halt) => (),
+        () = global_shutdown_signal() => tracing::debug!("Global shutdown signal processed"),
+    }
+
+    tracing::info!("{message}");
+}
+
+async fn halt_requested(rx_halt: oneshot::Receiver<Halted>) {
+    if let Ok(signal) = rx_halt.await {
+        tracing::debug!("Halt signal processed: {signal}");
+    } else {
+        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "UDP halt sender dropped; stopping the server");
+    }
+}
+
 fn log_listener_startup(
     bind_to: std::net::SocketAddr,
     connection_id_validation: ConnectionIdValidationPolicy,
@@ -410,6 +452,8 @@ mod tests {
     // This is an absolute failure bound, not a scheduling delay. Event-publication regressions
     // must fail diagnostically instead of leaving the test process waiting indefinitely.
     const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
+    const LIFECYCLE_TIMEOUT: Duration = Duration::from_secs(5);
+    const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 
     struct UdpLauncherTestContext {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -503,6 +547,93 @@ mod tests {
             std::io::ErrorKind::BrokenPipe
         );
         BoundSocket::bind(bound_address, false).expect("UDP socket should be released after startup notification failure");
+    }
+
+    /// A legacy launcher that has sent its startup notification and is waiting for a halt.
+    struct RunningLegacyLauncher {
+        bound_address: SocketAddr,
+        halt_sender: oneshot::Sender<Halted>,
+        task: tokio::task::JoinHandle<Result<(), std::io::Error>>,
+    }
+
+    impl RunningLegacyLauncher {
+        async fn start() -> Self {
+            let launcher = UdpLauncherTestContext::new().await;
+            let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");
+            let bound_address = bound_socket.address();
+            let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
+            let (halt_sender, halt_receiver) = oneshot::channel::<Halted>();
+            let task = tokio::spawn(Launcher::run_with_graceful_shutdown(
+                launcher.udp_tracker_core_container,
+                launcher.udp_tracker_server_container,
+                bound_socket,
+                launcher.cookie_lifetime,
+                torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+                startup_notification_sender,
+                halt_receiver,
+            ));
+            tokio::time::timeout(LIFECYCLE_TIMEOUT, startup_notification_receiver)
+                .await
+                .expect("the legacy launcher should start within the test deadline")
+                .expect("the legacy launcher should send its startup notification");
+
+            Self {
+                bound_address,
+                halt_sender,
+                task,
+            }
+        }
+    }
+
+    async fn wait_until_bindable(address: SocketAddr) -> bool {
+        tokio::time::timeout(LIFECYCLE_TIMEOUT, async {
+            while std::net::UdpSocket::bind(address).is_err() {
+                tokio::time::sleep(BIND_RETRY_INTERVAL).await;
+            }
+        })
+        .await
+        .is_ok()
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_without_panicking_and_release_the_socket_when_the_legacy_halt_sender_is_dropped() {
+        // Arrange
+        let launcher = RunningLegacyLauncher::start().await;
+
+        // Act
+        drop(launcher.halt_sender);
+        let result = tokio::time::timeout(LIFECYCLE_TIMEOUT, launcher.task)
+            .await
+            .expect("the legacy launcher should stop within the test deadline");
+
+        // Assert
+        assert!(
+            matches!(result, Ok(Ok(()))),
+            "a dropped halt sender should stop the legacy launcher cleanly: {result:?}"
+        );
+        assert!(
+            wait_until_bindable(launcher.bound_address).await,
+            "the legacy launcher must release its socket at {} within {LIFECYCLE_TIMEOUT:?}",
+            launcher.bound_address
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_socket_when_the_legacy_launcher_task_is_aborted() {
+        // Arrange
+        let launcher = RunningLegacyLauncher::start().await;
+        let _halt_sender = launcher.halt_sender;
+
+        // Act
+        launcher.task.abort();
+        drop(launcher.task.await);
+
+        // Assert
+        assert!(
+            wait_until_bindable(launcher.bound_address).await,
+            "aborting the legacy launcher must release its socket at {} within {LIFECYCLE_TIMEOUT:?}",
+            launcher.bound_address
+        );
     }
 
     #[tokio::test]
