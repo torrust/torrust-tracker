@@ -58,6 +58,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F10 | `review-finding:pr-2335-f10` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2335-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2335-f12` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2335-f13` | Human | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F7-R3 | `review-finding:pr-2335-f7-r3` | Human | Minor | documentation | RE_RAISE_OF:F7 | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2335-f14` | Human | Suggestion | security | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2335-f15` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2335-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2335-f17` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2335-f18` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -349,6 +356,123 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316287>
 
+### F13 - The impact bound does not survive cache-scope writes
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433265>
+- Concern: "an implant can at most fake a test result" does not follow, because an implant holding
+  a `develop` push job's cache token can write the publish jobs' own cache scopes, which T5(c)
+  left in place.
+- Solution: T5(c), AC3, and M3 require the publish image builds to import and export no
+  `type=gha` cache; the risk bullet explains the exclusion, including that `develop` is the
+  default branch, so its entries are readable from `main` and `releases/**`; the state-poisoning
+  bullet and the research Decision summary are aligned.
+- Current-tree verification: at the PR head after the round-3 changes, ISSUE.md contains "their
+  image builds import and export no GitHub Actions (`type=gha`) cache" and "no `type=gha`
+  `cache-from`"; `gh api repos/torrust/torrust-tracker -q .default_branch` prints `develop`;
+  `deployment.yaml` and `deployment-packages.yaml` contain no cache step.
+- Resolution reference: docs(issues): keep #2323 publish builds off the GitHub Actions cache
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505490>
+
+### F7-R3 - Two more sections still state the rejected position
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433270>
+- Concern: re-raise of F7 for sections round 2 did not list: the research's Implications section
+  and `runner-server-setup.md` step 10 still stated the rejection as the standing conclusion.
+- Solution: the Implications section is scoped to the 2026-09-24 position with a pointer to the
+  Decision, and the setup log records the acceptance with controls.
+- Current-tree verification: at the PR head after the round-3 changes,
+  `self-hosted-runner-security-research.md` contains "These implications follow from the
+  2026-09-24 position" and `runner-server-setup.md` contains "then accepted with controls on
+  2026-09-25 (T9)".
+- Resolution reference: docs(issues): qualify the #2323 rejected-position sections
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505567>
+
+### F14 - Dependabot routing by `github.actor`
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433272>
+- Concern: `github.actor` becomes the maintainer when a maintainer updates a Dependabot branch, so
+  the `test` job would run Dependabot's change on the self-hosted runner.
+- Solution: T5(d) selects on the PR author (`github.event.pull_request.user.login`), and M7 adds
+  the maintainer-updated Dependabot PR case.
+- Current-tree verification: at the PR head after the round-3 changes, ISSUE.md contains
+  "`github.event.pull_request.user.login == 'dependabot[bot]'`" in T5(d) and "the same after a
+  maintainer updates the branch from `develop`" in M7.
+- Resolution reference: docs(issues): route #2323 Dependabot PRs by PR author
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505635>
+
+### F15 - The Progress Log never records the runner removal
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433273>
+- Concern: ISSUE.md's Progress Log had no entry for the 2026-09-25 removal.
+- Solution: added a 2026-09-25 07:35 UTC entry for the removal.
+- Current-tree verification: at the PR head after the round-3 changes, ISSUE.md contains
+  "2026-09-25 07:35 UTC - josecelano, GitHub Copilot - Removed `torrust-runner-01`".
+- Resolution reference: docs(issues): log the #2323 runner removal
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505681>
+
+### F16 - AC5 dates the reversal 2026-09-24
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433274>
+- Concern: AC5 dated the reversal 2026-09-24 and omitted the rejection that ADRs to create
+  requires.
+- Solution: AC5 uses the ADRs-to-create wording.
+- Current-tree verification: at the PR head after the round-3 changes, AC5 contains "the
+  2026-09-24 rejection and the 2026-09-25 reversal".
+- Resolution reference: docs(issues): date the #2323 reversal correctly in AC5
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505738>
+
+### F17 - The quoted runner output comes from neither form of the command
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433276>
+- Concern: PERSISTENT-RUNNER-PRIVILEGE's verification quoted a three-field line that neither the
+  bare command nor the recorded five-field query prints.
+- Solution: the verification cites the recorded query and quotes its actual output.
+- Current-tree verification: at the PR head after the round-3 changes, the entry quotes
+  `torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner`, which the
+  query in `runner-agent-installation.md` step 4 printed on 2026-09-26.
+- Resolution reference: docs(pr-reviews): quote the real runner query output in PR #2335 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505805>
+
+### F18 - SKILL.md's failure list omits the new check
+
+- PR number: 2335
+- Source review ID: 5325974064
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111433277>
+- Concern: the skill's "It fails when:" list did not name the unparsed-row and missing-section
+  failures that F12 added to the validator.
+- Solution: added both to the list.
+- Current-tree verification: at the PR head after the round-3 changes, `SKILL.md` contains "the
+  `## Findings` section is missing, or one of its table data rows does not parse as a tracking
+  row".
+- Resolution reference: docs(pr-reviews): list the Findings-row check in process-pr-review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111505869>
+
 ## Processing Log
 
 - 2026-09-24 17:26 UTC - Fetched Copilot review 5307823915 (four inline threads; the review body is
@@ -387,6 +511,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-26 11:30 UTC - Fetched reviewer review 5317648676 (seven inline threads, F6 to F12, all
   new findings; F7 was already fixed by the 2026-09-25 decision). Fixed F6 and F8 to F12 in
   separate commits, rebased onto `torrust/develop`, pushed, and replied on all seven threads.
+- 2026-09-26 13:31 UTC - Fetched reviewer review 5325974064 (seven inline threads). F13 to F18
+  are new; the second F7 thread re-raises F7 for two more sections and is recorded as F7-R3.
+  Fixed all seven in separate commits (F13 blocking), pushed, and replied on all seven threads.
 
 ## Completion Rules
 
