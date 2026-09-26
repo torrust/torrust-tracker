@@ -4,7 +4,7 @@ status: open
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-25
+last-updated-utc: 2026-09-26
 semantic-links:
   skill-links:
     - create-issue
@@ -159,7 +159,7 @@ deterministic tests, and manual evidence.
 | 7        | #2289 | [Migrate HTTP tracker to token lifecycle](../../closed/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)      | Done       | One complete HTTP vertical slice.                                                                    |
 | 8        | #2309 | [Migrate REST API to token lifecycle](../../closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)             | Done       | One complete REST API vertical slice.                                                                |
 | 9        | #2324 | [Migrate health-check API to token lifecycle](../../closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Done       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
-| 10       | SI-14 | [Migrate UDP receive loop to token lifecycle](../../drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Draft      | Token-aware UDP stop; join receive loop; retain request abort fallback and separate managed cleanup. |
+| 10       | #2342 | [Migrate UDP tracker to token lifecycle](../2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Open       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
 | 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)            | Draft      | Request deadline, abort behavior, outcomes, and verification.                                        |
 | 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Draft      | One supported standalone HTTP consumer migration.                                                    |
 | 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |

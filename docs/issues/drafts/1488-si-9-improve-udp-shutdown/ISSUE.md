@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-26
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
 
 # Superseded Draft SI-9 — Split UDP Lifecycle Migration
 
-> **Status**: Superseded for implementation planning. [SI-14](../1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-14](../../open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md)
 > replaces the UDP receive/reset-loop migration, followed by [SI-15](../1488-si-15-define-udp-active-request-policy/ISSUE.md)
 > for the separate active-request policy change.
 

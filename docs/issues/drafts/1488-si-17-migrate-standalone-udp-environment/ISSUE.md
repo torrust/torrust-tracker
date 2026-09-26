@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-26
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
-    - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
+    - docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---

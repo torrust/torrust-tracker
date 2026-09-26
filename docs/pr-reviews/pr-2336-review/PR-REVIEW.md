@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
+    - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
