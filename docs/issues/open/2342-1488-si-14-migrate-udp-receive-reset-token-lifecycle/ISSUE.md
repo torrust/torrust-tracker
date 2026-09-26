@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-26 15:30"
+last-updated-utc: "2026-09-26 14:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -275,9 +275,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Token-aware receive loop and start path | `run_udp_server_main` observes a pinned `cancelled()` future (biased) and returns `Result`; the pure `admit_received` decision maps receive errors and stream end to errors. `Server::start_with_cancellation` binds, logs, spawns only the loop, registers, and rolls back. Tests: token stop with socket release, registration with a working health check, registration rollback, and four admission decisions. |
 | T3 | DONE | Single-task owner and UDP component migration | `OwnedTask` in `manager.rs`; `udp_tracker::start_job` uses the token-aware path and builds the owner before returning; child token in `start_udp_instance`. Tests: Cancelled, error, and panic outcomes; drop-before-run socket release (mutation-proven); bootstrap cancellation through `JobManager`. |
 | T4 | DONE | Review first passing vertical slice | See the 2026-09-26 15:30 progress-log entry. No material correction needed. |
-| T5 | TODO | Legacy launcher adapter | D5: reimplement `run_with_graceful_shutdown` over the token-aware loop. Mutation-proven regression tests for gaps 1 and 2; existing contract and environment tests pass unchanged. |
-| T6 | TODO | Update shutdown documentation | UDP rows of `task-inventory.md`; notes in the SI-15, SI-17, and SI-19 drafts where D1/D5 change their starting point. |
-| T7 | TODO | Executable-boundary and performance verification | Direct tracker-binary SIGTERM and immediate UDP rebind (M1, M2); repeat the D6 load test on the implementation branch and compare with the baseline (M4). |
+| T5 | DONE | Legacy launcher adapter | `run_with_graceful_shutdown` owns the loop through an abort-on-drop guard and cancels it on halt, dropped halt sender, or global OS signal, then joins it. Both regression tests were written first and failed against the old launcher (panic `Failed to install stop signal`; socket still bound after launcher abort). Legacy contract and environment tests pass unchanged. |
+| T6 | DONE | Update shutdown documentation | UDP rows of `task-inventory.md`, plus the HTTP/REST rows left stale after SI-11/SI-12; notes in the SI-15, SI-17, and SI-19 drafts. |
+| T7 | DONE | Executable-boundary and performance verification | M1-M3 in `manual-verification-evidence.md`; M4 in `performance-evidence.md`. |
 | T8 | TODO | Acceptance and completion review | Independent Task Reviewer; retrospective when warranted. |
 
 ## Commit Points
@@ -307,10 +307,10 @@ review after the final test increment before final verification and the PR.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2342 created and issue number added to this spec
 - [x] Spec-only PR #2343 merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -363,34 +363,50 @@ review after the final test increment before final verification and the PR.
     own outcome mapping and drop safety; the application test owns `JobManager`
     token propagation. Each test states its causal state, keeps the production
     Act visible, and asserts an independent expected result.
+- 2026-09-26 14:40 UTC - GitHub Copilot - Maintainer approved the tested
+  slice. T5 legacy adapter and T6 documentation committed. T7:
+  - M1/M2: two direct tracker-binary runs each served a real UDP announce,
+    received `SIGTERM`, logged cooperative cancellation for
+    `udp_instance_0_127.0.0.1:16969`, exited `0`, and the second run rebound the
+    socket immediately.
+  - M3: legacy tests pass; the standalone example served an announce and
+    released its port but panicked on Ctrl-C with
+    `FailedToStartOrStopServer("Normal")`. The identical panic occurs on the
+    baseline `develop` build (double OS-signal listener), so it is pre-existing
+    and recorded in the SI-17 draft.
+  - M4: five after-implementation runs averaged 157254.83 responses/s against
+    the 148406.26 baseline; every after run is above every baseline run. No
+    regression; the literal "within the spread" wording is flagged for the
+    maintainer because the result is higher, not lower.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Each configured UDP instance receives a child `CancellationToken`
+- [x] AC1: Each configured UDP instance receives a child `CancellationToken`
       derived from the `JobManager` root token.
-- [ ] AC2: Token cancellation stops the receive loop cooperatively, with no
+- [x] AC2: Token cancellation stops the receive loop cooperatively, with no
       OS-signal subscription and no `Halted` channel on the token-aware path.
-- [ ] AC3: The component joins its receive loop before reporting its named
+- [x] AC3: The component joins its receive loop before reporting its named
       `udp_instance_<index>_<address>` outcome; the owner exists before the
       component future is returned.
-- [ ] AC4: A receive-loop error or unexpected stream end yields a failed
+- [x] AC4: A receive-loop error or unexpected stream end yields a failed
       component outcome, not `Completed`.
-- [ ] AC5: Registration failure and dropping the component (polled or not)
+- [x] AC5: Registration failure and dropping the component (polled or not)
       release the UDP socket without detached tasks.
-- [ ] AC6: Legacy `Server::start` / `Server::stop` consumers compile and keep
+- [x] AC6: Legacy `Server::start` / `Server::stop` consumers compile and keep
       their normal stop behavior; dropping a legacy `Server<Running>` no longer
       panics or detaches the receive loop.
-- [ ] AC7: `ActiveRequests` capacity and request-processor abort behavior are
+- [x] AC7: `ActiveRequests` capacity and request-processor abort behavior are
       unchanged; existing request-buffer tests pass without modification.
-- [ ] AC8: `udp_ban_cleanup` remains a separate manager-owned, token-cancellable
+- [x] AC8: `udp_ban_cleanup` remains a separate manager-owned, token-cancellable
       job.
-- [ ] AC9: Startup log target and messages are unchanged.
-- [ ] AC10: Manual SIGTERM verification records the `main()` signal event, the
+- [x] AC9: Startup log target and messages are unchanged.
+- [x] AC10: Manual SIGTERM verification records the `main()` signal event, the
       UDP component's cooperative stop, a clean exit, and immediate UDP rebind.
-- [ ] AC11: `linter all` exits with code `0` and relevant tests pass.
+- [x] AC11: `linter all` exits with code `0` and relevant tests pass.
 - [ ] AC12: UDP throughput measured after implementation is within the
       baseline's run-to-run spread on the same machine and settings; any larger
-      drop is investigated and explained before closing.
+      drop is investigated and explained before closing. (No regression; the
+      result is above the spread. Awaiting maintainer confirmation.)
 
 ## Verification Plan
 
@@ -411,10 +427,10 @@ released. Record everything in issue-local `manual-verification-evidence.md`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Token-driven UDP shutdown | Start `target/debug/torrust-tracker` with one UDP binding, confirm readiness with a `tracker_client udp announce`, send `SIGTERM` to the binary PID, and capture bounded exit and logs. | `main()` cancels the root token; the UDP component stops cooperatively and reports `Cancelled`; exit `0`. | TODO | `manual-verification-evidence.md` M1 |
-| M2 | UDP listener release | Restart the same configuration immediately after M1 and announce again. | The UDP socket rebinds immediately and serves the announce. | TODO | `manual-verification-evidence.md` M2 |
-| M3 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops as before. | TODO | Automated contract tests plus the example run. |
-| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is within the baseline's min-max spread. | IN_PROGRESS | `performance-evidence.md` (baseline recorded) |
+| M1 | Token-driven UDP shutdown | Start `target/debug/torrust-tracker` with one UDP binding, confirm readiness with a `tracker_client udp announce`, send `SIGTERM` to the binary PID, and capture bounded exit and logs. | `main()` cancels the root token; the UDP component stops cooperatively and reports `Cancelled`; exit `0`. | DONE | `manual-verification-evidence.md` M1 |
+| M2 | UDP listener release | Restart the same configuration immediately after M1 and announce again. | The UDP socket rebinds immediately and serves the announce. | DONE | `manual-verification-evidence.md` M2 |
+| M3 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops as before. | DONE | `manual-verification-evidence.md` M3: behaves as before, including a pre-existing Ctrl-C panic now tracked in SI-17. |
+| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is within the baseline's min-max spread. | DONE | `performance-evidence.md`: mean 157254.83 vs baseline 148406.26; above the spread, no regression. |
 
 ### Disposable Verification Scripts
 
@@ -425,18 +441,18 @@ this issue directory and record why a maintained Rust test cannot cover it.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Bootstrap cancellation test and source review of `start_udp_instance`. |
-| AC2 | TODO | Package token-stop test; source review for signal subscriptions. |
-| AC3 | TODO | Component tests and drop-before-run test. |
-| AC4 | TODO | Receive-error outcome test. |
-| AC5 | TODO | Registration-rollback and drop tests with socket rebind. |
-| AC6 | TODO | Contract and environment tests; mutation-proven legacy drop test. |
-| AC7 | TODO | Unmodified `request_buffer` tests; diff review. |
-| AC8 | TODO | Source review of `start_udp_ban_cleanup_job`. |
-| AC9 | TODO | Manual logs and E2E log-parser pattern. |
-| AC10 | TODO | `manual-verification-evidence.md` M1-M2. |
-| AC11 | TODO | `linter all` and test output. |
-| AC12 | TODO | `performance-evidence.md` baseline and after measurements (M4). |
+| AC1 | DONE | `app::tests::it_should_cancel_the_udp_tracker_component_through_the_job_manager`; `start_udp_instance` passes `new_cancellation_token().child_token()`. |
+| AC2 | DONE | `server::tests::token_aware_start::it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled`; only the legacy adapter references `global_shutdown_signal` in `packages/udp-server/src`. |
+| AC3 | DONE | `udp_tracker` outcome tests and `it_should_release_the_socket_when_the_component_is_dropped_before_it_runs` (fails when the owner is built inside the future). |
+| AC4 | DONE | `receive_loop_admission` tests (error, `Interrupted`, stream end) and `it_should_fail_when_the_receive_loop_stops_with_an_error`. |
+| AC5 | DONE | `token_aware_start::it_should_release_the_socket_when_registration_fails` and the drop-before-run test. |
+| AC6 | DONE | Unchanged contract and environment tests; `it_should_stop_without_panicking_and_release_the_socket_when_the_legacy_halt_sender_is_dropped` and `it_should_release_the_socket_when_the_legacy_launcher_task_is_aborted` (both red before T5). |
+| AC7 | DONE | No diff to `request_buffer.rs` or `processor.rs` against `develop`; their tests pass unmodified. |
+| AC8 | DONE | `start_udp_ban_cleanup_job` unchanged in `src/app.rs`. |
+| AC9 | DONE | M1 logs show the same `Starting on`, `Started on: udp://`, and `Started UDP tracker` lines. |
+| AC10 | DONE | `manual-verification-evidence.md` M1-M2. |
+| AC11 | DONE | `linter all` in every pre-commit run and pre-push checks on nightly Rust `1.100.0-nightly`. |
+| AC12 | TODO | `performance-evidence.md`: no regression (after mean 157254.83 vs baseline 148406.26); result above the spread, awaiting maintainer confirmation. |
 
 ## Dependencies
 

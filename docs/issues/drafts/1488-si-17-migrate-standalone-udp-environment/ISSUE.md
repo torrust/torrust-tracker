@@ -62,6 +62,14 @@ token-aware receive loop, so a dropped legacy server no longer panics or leaves
 the socket bound. Migrating the environment is therefore a call-site change to
 the token-aware path plus awaiting its receive-loop task.
 
+SI-14 manual verification also found that stopping `udp_only_public_tracker`
+with Ctrl-C panics with `Failed to stop the UDP tracker server:
+FailedToStartOrStopServer("Normal")`, identically on `develop` before SI-14.
+`SIGINT` reaches both the example's `ctrl_c()` wait and the legacy launcher's
+global OS-signal branch; the launcher stops first, so the environment's later
+`Server::stop()` cannot send its halt message. Moving the example to the
+token-aware path removes the second listener and must make this stop clean.
+
 ## Scope
 
 ### In scope

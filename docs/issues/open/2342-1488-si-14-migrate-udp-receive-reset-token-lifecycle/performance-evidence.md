@@ -83,14 +83,40 @@ Date: 2026-09-26, 13:10-13:24 local time.
 - Min-max spread: 142150.63 - 155327.06 (about 8.9% of the mean)
 - Tracker logs contained no `error` or `panic` lines.
 
-## After Implementation
+## After Implementation - implementation branch
 
-Not measured yet. Run T7 with the same method, machine, and configuration, and
-under a similar background load.
+Date: 2026-09-26, 14:15-14:20 local time. Same machine, toolchain, tracker
+configuration, and load-test configuration. The build includes every SI-14
+code change; the branch head was the commit "docs(shutdown): [#2342] update
+task inventory and follow-up drafts after SI-14". Load average 5.95 / 7.60 /
+5.38 before the runs and 7.76 / 7.76 / 5.81 after them.
 
 | Run | Responses/s | Connect/s | Announce/s | Scrape/s | Errors/s |
 | --- | ----------- | --------- | ---------- | -------- | -------- |
+| 1 | 155426.26 | 76939.83 | 76932.99 | 1553.44 | 0.00 |
+| 2 | 157439.25 | 77938.18 | 77924.33 | 1576.73 | 0.00 |
+| 3 | 159296.65 | 78844.92 | 78856.56 | 1595.17 | 0.00 |
+| 4 | 158410.78 | 78401.29 | 78422.92 | 1586.58 | 0.00 |
+| 5 | 155701.22 | 77053.40 | 77089.50 | 1558.32 | 0.00 |
+
+- Mean: 157254.83 responses/s
+- Min-max spread: 155426.26 - 159296.65 (about 2.5% of the mean)
+- Tracker logs contained no `error` or `panic` lines.
 
 ## Comparison
 
-Pending the after-implementation measurement.
+| Measurement | Mean responses/s | Min | Max |
+| ----------- | ---------------- | --- | --- |
+| Baseline (`0f1dcd28`) | 148406.26 | 142150.63 | 155327.06 |
+| After SI-14 (implementation branch) | 157254.83 | 155426.26 | 159296.65 |
+
+- The after-implementation mean is 6.0% above the baseline mean and above the
+  baseline maximum. Read literally, the pass rule ("within the baseline's
+  min-max spread") is not met, because the result is higher, not lower. The
+  rule exists to detect a regression, and the lowest after-implementation run
+  (155426.26) is above every baseline run, so there is no regression. The
+  maintainer should confirm this reading of AC12.
+- The increase is not attributed to SI-14. The change adds work to the hot
+  loop rather than removing it, and the desktop session's background load
+  varied between the two sessions. Treat the result as "no regression within
+  run-to-run noise", not as a speed-up.
