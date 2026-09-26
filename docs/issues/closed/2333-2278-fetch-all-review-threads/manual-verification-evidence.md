@@ -167,6 +167,6 @@ PR #2293 (8), #2300 (8), #2313 (7), and #2320 (2). They were only read here. Any
 falls under the post-merge review rule in `process-pr-review` and needs maintainer approval.
 
 Correction, 2026-09-26 09:35 UTC: as first merged, the V1-V4 steps omitted the pipes and `jq`
-filters that produced their observed blocks, so they could not be re-run byte for byte (PR #2339
-review finding F3). The steps now record the commands exactly as run. Re-running them verbatim
+filters that produced their observed blocks, so they could not be re-run byte for byte
+(`review-finding:pr-2339-f3`). The steps now record the commands exactly as run. Re-running them verbatim
 against PR #2320 at this time reproduced every observed block unchanged.
