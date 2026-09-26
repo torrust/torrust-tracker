@@ -60,7 +60,7 @@ has no row.
 
 - PR number: 2339
 - Source review ID: 5310586223
-- Reviewer finding ID: F1
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4098786012>
 - Concern: every projection test reads a static fixture, and `line` and `resolved_by` are `Option`
   fields that serde reads as `None` when missing. Dropping either field from
@@ -84,7 +84,7 @@ has no row.
 
 - PR number: 2339
 - Source review ID: 5310586223
-- Reviewer finding ID: F2
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4098786020>
 - Concern: `thread["resolvedBy"]` and `thread["line"]` index a `serde_json::Value`, which returns
   `Null` for a missing key, so the two tests named for explicit nulls would pass if `ShownThread`
@@ -104,7 +104,7 @@ has no row.
 
 - PR number: 2339
 - Source review ID: 5310586223
-- Reviewer finding ID: F3
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4098786022>
 - Concern: V3.1 printed a four-key array in its observed block, but the recorded command prints
   the full `threads` object; V1.2, V2, and V3.2 named `jq` or a redirect without the filter; and
