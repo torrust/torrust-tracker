@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-26 13:00"
+last-updated-utc: "2026-09-26 13:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -322,7 +322,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | DONE | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
-| T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
+| T7 | DONE | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
 | T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
 ## Commit Points
@@ -510,6 +510,22 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
     `related-pr` in #2295 and #2308), left as advisory history.
 
   Evidence: `manual-verification-evidence.md` section V4 in T8.
+- 2026-09-26 13:20 UTC - GitHub Copilot - Completed T7:
+  - Pre-commit runs the named, read-only step `Checking staged Markdown frontmatter`, which
+    takes about 1 s. The hook passed with the step validating the staged T7 files.
+  - The crate README documents usage, the D10 migration checklist named in the `legacy-shape`
+    message, and the #2003 relocation path.
+  - The CLI output ADR classifies the binary as `no-stdout-result`.
+  - The `run-pre-commit-checks` skill lists the step, and its step list was corrected: a wrong
+    formatter path, and missing nightly-fmt and hadolint steps. `docs/git-hooks.md` lists no
+    steps, so it was left unchanged rather than duplicate the skill.
+  - Containerfile: cargo-chef stubs for both frontmatter binaries, verified with `docker build
+    --target recipe`.
+  - Finding: the crate was never in the container test-archive exclusions. The new
+    `tests/cli.rs` needs `git`, which `rust:slim-trixie` lacks (checked with `docker run`), so
+    the crate is now excluded like the other dev-tool crates.
+
+  Implementation is complete; awaiting maintainer review before T8 - This specification
 
 ## Acceptance Criteria
 
