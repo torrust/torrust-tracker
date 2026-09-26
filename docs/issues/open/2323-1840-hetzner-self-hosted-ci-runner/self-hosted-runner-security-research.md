@@ -4,9 +4,12 @@
 
 Research for issue #2323, triggered by Copilot finding PERSISTENT-RUNNER-PRIVILEGE and reviewer
 finding F1 on PR #2335: adding the `runner` user to
-the `docker` group gives fork-PR code root-equivalent control of the host. The maintainer decision
-is that **untrusted code getting root on a runner is not acceptable**, even on ephemeral runners.
-See [ISSUE.md](ISSUE.md) for the plan this research feeds.
+the `docker` group gives fork-PR code root-equivalent control of the host. The maintainer's
+starting position was that **untrusted code getting root is not acceptable on any machine that
+outlives the job**. An ephemeral runner destroyed after each job is a different case, and it is
+how GitHub-hosted runners grant root safely (finding 2). The [Decision](#decision-2026-09-25)
+section records how that position was later revised. See [ISSUE.md](ISSUE.md) for the plan this
+research feeds.
 
 Status: in progress. Sources checked on 2026-09-24 unless stated otherwise. Findings 1-6 come from
 primary documentation; finding 7 adds community reports and articles supplied by the maintainer.
