@@ -1,10 +1,12 @@
 ---
+schema-version: 1
 doc-type: epic
 status: planned
+epic: null
 github-issue: 2243
 spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: "2026-09-26 12:43"
 semantic-links:
   skill-links:
     - create-issue
