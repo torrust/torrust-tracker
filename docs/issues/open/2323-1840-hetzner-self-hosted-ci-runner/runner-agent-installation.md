@@ -188,3 +188,9 @@ desktop$ gh api orgs/torrust -q .two_factor_requirement_enabled
 Result (2026-09-26): 0 members and 3 outside collaborators without 2FA;
 `two_factor_requirement_enabled` is `false`. Pending: the outside collaborators are asked to
 enable 2FA before the requirement is turned on.
+
+Result (2026-09-26, after an owner enabled the requirement): `two_factor_requirement_enabled` is
+`true`, and no member or outside collaborator lacks 2FA. All 4 members remain. The 3 outside
+collaborators without 2FA were removed by the requirement; they can be invited again once they
+enable 2FA. The organization setting also
+required the owner to disable SMS as a 2FA method on their own account.

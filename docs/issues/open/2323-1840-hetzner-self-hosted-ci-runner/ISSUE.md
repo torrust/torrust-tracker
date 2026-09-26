@@ -304,7 +304,7 @@ Delivery phases:
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
 | T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
 | T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, recovery steps, the regular server rebuild (for example monthly and on any suspicion of compromise) from the setup logs, and the rule that approving an external PR's workflows requires reviewing its full diff. |
-| T9  | 1     | IN_PROGRESS | Apply access controls            | Before T3 is repeated: set the fork-PR approval policy to "Require approval for all external contributors" (DONE 2026-09-26, was `first_time_contributors`) and require two-factor authentication for organization members (pending: enabling it removes the 3 outside collaborators who lack 2FA, so they are asked to enable it first; all 4 members already use it). Record both settings, verified through the GitHub API, in the runner log. |
+| T9  | 1     | DONE   | Apply access controls                 | Before T3 is repeated: fork-PR approval policy set to "Require approval for all external contributors" (was `first_time_contributors`) and organization 2FA required (was not required), both verified through the GitHub API on 2026-09-26. Enabling 2FA removed the 3 outside collaborators without it; all 4 members remain. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 
 ### Post-Switch Scenarios
 
@@ -379,6 +379,7 @@ Append one line per meaningful update.
 - 2026-09-25 06:23 UTC - GitHub Copilot - Review round 1 (Copilot review 5307823915, reviewer review 5310557886): rewrote the fork-PR risk to state the real exposure (root-equivalent, persistent, runner registration, later push jobs, faked publish gate). Correction: the 21:30 entry's "Copilot finding F2" means Copilot's PERSISTENT-RUNNER-PRIVILEGE, not reviewer finding F2 - audit at `docs/pr-reviews/pr-2335-review/PR-REVIEW.md`
 - 2026-09-25 16:18 UTC - josecelano, cgbosse - Decided to keep the persistent self-hosted runner and accept the exposure with controls, based on the contribution profile (5 external PRs in 12 months); added T9 (approval for all external contributors, required 2FA), T5(d) and T5(e) routing, AC7, and M7; T3 reopened for re-registration after T9 - [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md)
 - 2026-09-26 08:13 UTC - josecelano, GitHub Copilot - T9: set the fork-PR approval policy to `all_external_contributors`, verified through the API; the organization 2FA requirement is pending because it would remove 3 outside collaborators without 2FA - [`runner-agent-installation.md`](runner-agent-installation.md)
+- 2026-09-26 09:36 UTC - josecelano, GitHub Copilot - T9 DONE: an owner enabled the organization 2FA requirement (verified through the API); the 3 outside collaborators without 2FA were removed; T3 (re-registration) is unblocked - [`runner-agent-installation.md`](runner-agent-installation.md)
 
 ## Acceptance Criteria
 
@@ -399,7 +400,7 @@ Append one line per meaningful update.
       strategy.
 - [ ] AC6: Maintainer-facing documentation describes the runner, its cache cleanup, and its
       operation.
-- [ ] AC7: Before the runner is registered again, the fork-PR approval policy requires approval for
+- [x] AC7: Before the runner is registered again, the fork-PR approval policy requires approval for
       all external contributors and organization members must use two-factor authentication,
       both verified through the GitHub API.
 - [ ] `linter all` exits with code `0`
@@ -444,7 +445,7 @@ Notes:
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
+| AC7   | DONE                   | `approval_policy` = `all_external_contributors` and `two_factor_requirement_enabled` = `true` (GitHub API, 2026-09-26), recorded in `runner-agent-installation.md` step 7 |
 
 ## Risks and Trade-offs
 
