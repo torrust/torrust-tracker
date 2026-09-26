@@ -87,6 +87,15 @@ Stage `project-words.txt` and retry the commit. Run the formatter independently 
 This is an interim action related to EPIC #2003 and may be replaced or refactored after its
 automation design decision.
 
+When scripting the gate before a commit, test the hook's own exit code. Never pipe it into
+`tail`, `grep`, or another filter inside an `&&` chain: the pipeline returns the filter's status,
+so a failing gate still lets the commit run.
+
+```bash
+./contrib/dev-tools/git/hooks/pre-commit.sh > .tmp/pre-commit.log 2>&1; rc=$?
+[ "$rc" -eq 0 ] && git commit -S
+```
+
 ## Output Modes
 
 The pre-commit script supports concise human output, verbose human output, and JSON output for

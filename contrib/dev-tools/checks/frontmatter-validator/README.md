@@ -40,8 +40,10 @@ they are edited.
 
 Severity depends on where a document lives:
 
+- Malformed frontmatter and an invalid `semantic-links` envelope are errors everywhere.
 - Draft and open issue specs are strict.
-- Closed specs get advisory warnings.
+- Closed specs get advisory warnings for profile and repository findings.
+- Strict v1 records outside `docs/issues/` report structural errors but no lifecycle checks.
 - `docs/templates/` and this crate's `fixtures/` are never validated.
 
 ## Migrating a Legacy Spec to V1

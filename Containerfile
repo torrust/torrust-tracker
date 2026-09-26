@@ -136,6 +136,8 @@ COPY packages/udp-core/Cargo.toml packages/udp-core/
 #
 # MAINTENANCE: When adding a new in-repo crate or target, add the corresponding
 # stub lines below AND the Cargo.toml COPY line in the manifest-only block above.
+# If a crate's tests spawn tools the tester image lacks (for example git), add it to
+# the --exclude lists of the nextest archive commands below as well.
 RUN mkdir -p \
       src/bin \
       packages/e2e-tools/src/bin \
