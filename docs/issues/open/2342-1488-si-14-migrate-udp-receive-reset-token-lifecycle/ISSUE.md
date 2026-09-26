@@ -7,9 +7,9 @@ priority: p1
 epic: 1488
 github-issue: 2342
 spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle-spec"
+branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-26 08:30"
+last-updated-utc: "2026-09-26 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Confirm UDP ownership map and record the performance baseline | Re-verify the Background against the tree; record a no-change decision when nothing differs. Run the D6 load test on the `develop` commit the branch starts from and record it in `performance-evidence.md` before any code change. |
+| T1 | DONE | Confirm UDP ownership map and record the performance baseline | No change: no commit touched the UDP server package, `udp_tracker.rs`, `manager.rs`, or `src/app.rs` between the mapping (after PR #2336) and the branch base. Baseline of five runs recorded in `performance-evidence.md` (mean 148406.26 responses/s). |
 | T2 | TODO | Token-aware receive loop and start path | Cooperative `Result`-returning loop (D1, D3) and `Server::start_with_cancellation` with registration rollback (D2). Package tests: token stop, registration rollback/socket release, receive-error outcome. |
 | T3 | TODO | Single-task owner and UDP component migration | D4 owner in `manager.rs`; `udp_tracker::start_job` on the token-aware path; child token in `src/app.rs`. Component and bootstrap tests, including drop-before-run socket release. |
 | T4 | TODO | Review first passing vertical slice | Ownership, drop paths, outcomes, deadlines, and startup-log parity. |
@@ -306,7 +306,7 @@ review after the final test increment before final verification and the PR.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2342 created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR #2343 merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -332,6 +332,12 @@ review after the final test increment before final verification and the PR.
   including recommendations D1 and D5. Created GitHub issue #2342, linked it as
   a sub-issue of EPIC #1488, and promoted this spec to its numbered open-issue
   folder. Next step: spec-only PR before implementation.
+- 2026-09-26 13:30 UTC - GitHub Copilot - Spec-only PR #2343 merged (Copilot
+  review: no findings). Created the implementation branch from the merge
+  result. T1: the ownership map needs no change. Recorded the UDP throughput
+  baseline before any code change: five 30-second `aquatic_udp_load_test` runs
+  against a release build of `0f1dcd28`, mean 148406.26 responses/s, spread
+  142150.63-155327.06. See `performance-evidence.md`.
 
 ## Acceptance Criteria
 
@@ -383,7 +389,7 @@ released. Record everything in issue-local `manual-verification-evidence.md`.
 | M1 | Token-driven UDP shutdown | Start `target/debug/torrust-tracker` with one UDP binding, confirm readiness with a `tracker_client udp announce`, send `SIGTERM` to the binary PID, and capture bounded exit and logs. | `main()` cancels the root token; the UDP component stops cooperatively and reports `Cancelled`; exit `0`. | TODO | `manual-verification-evidence.md` M1 |
 | M2 | UDP listener release | Restart the same configuration immediately after M1 and announce again. | The UDP socket rebinds immediately and serves the announce. | TODO | `manual-verification-evidence.md` M2 |
 | M3 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops as before. | TODO | Automated contract tests plus the example run. |
-| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is within the baseline's min-max spread. | TODO | `performance-evidence.md` |
+| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is within the baseline's min-max spread. | IN_PROGRESS | `performance-evidence.md` (baseline recorded) |
 
 ### Disposable Verification Scripts
 
