@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: open
+status: planned
 priority: p2
 epic: null
 github-issue: 2298
 spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
 branch: "2298-rust-dev-tool-container-integration-spec"
 related-pr: 2293
-last-updated-utc: 2026-09-22 13:17
+last-updated-utc: "2026-09-22 13:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - Containerfile
     - .dockerignore
     - .github/skills/dev/maintenance/add-workspace-member/SKILL.md
-    - docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md
+    - docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
 ---
 
 # Issue #2298 - Eliminate Manual Container Integration for Rust Developer Tools
