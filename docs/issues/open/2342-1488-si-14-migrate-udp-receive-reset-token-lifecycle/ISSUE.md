@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-26 14:45"
+last-updated-utc: "2026-09-26 15:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -294,7 +294,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Legacy launcher adapter | `run_with_graceful_shutdown` owns the loop through an abort-on-drop guard and cancels it on halt, dropped halt sender, or global OS signal, then joins it. Both regression tests were written first and failed against the old launcher (panic `Failed to install stop signal`; socket still bound after launcher abort). Legacy contract and environment tests pass unchanged. |
 | T6 | DONE | Update shutdown documentation | UDP rows of `task-inventory.md`, plus the HTTP/REST rows left stale after SI-11/SI-12; notes in the SI-15, SI-17, and SI-19 drafts. |
 | T7 | DONE | Executable-boundary and performance verification | M1-M3 in `manual-verification-evidence.md`; M4 in `performance-evidence.md`. |
-| T8 | DONE | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; `implementation-retrospective.md` created. AC12 awaits maintainer confirmation. |
+| T8 | DONE | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; `implementation-retrospective.md` created. AC12 reworded and confirmed by the maintainer. |
 
 ## Commit Points
 
@@ -414,6 +414,14 @@ review after the final test increment before final verification and the PR.
     results (clean `Ok(())` exit, socket bindable within a bounded wait). Both
     were red before the adapter.
   - Created `implementation-retrospective.md`.
+- 2026-09-26 15:40 UTC - GitHub Copilot - AC12 decision: the maintainer noted
+  that the machine ran other workloads during both measurements, so the numbers
+  carry that noise, and does not consider the change significant or worth
+  repeating the test. AC12 was reworded from a two-sided band ("within the
+  baseline's min-max spread") to a one-sided bound ("not below the lowest
+  baseline run"), with the shared-machine limitation stated. It passes: the
+  after-implementation mean (157254.83) is above the lowest baseline run
+  (142150.63), and every after run is above every baseline run.
 
 ## Acceptance Criteria
 
@@ -439,10 +447,10 @@ review after the final test increment before final verification and the PR.
 - [x] AC10: Manual SIGTERM verification records the `main()` signal event, the
       UDP component's cooperative stop, a clean exit, and immediate UDP rebind.
 - [x] AC11: `linter all` exits with code `0` and relevant tests pass.
-- [ ] AC12: UDP throughput measured after implementation is within the
-      baseline's run-to-run spread on the same machine and settings; any larger
-      drop is investigated and explained before closing. (No regression; the
-      result is above the spread. Awaiting maintainer confirmation.)
+- [x] AC12: The mean UDP throughput after implementation is not below the
+      lowest baseline run on the same machine and settings; any drop below it
+      is investigated and explained before closing. The measurement runs on a
+      shared desktop, so it detects only large regressions.
 
 ## Verification Plan
 
@@ -466,7 +474,7 @@ released. Record everything in issue-local `manual-verification-evidence.md`.
 | M1 | Token-driven UDP shutdown | Start `target/debug/torrust-tracker` with one UDP binding, confirm readiness with a `tracker_client udp announce`, send `SIGTERM` to the binary PID, and capture bounded exit and logs. | `main()` cancels the root token; the UDP component stops cooperatively and reports `Cancelled`; exit `0`. | DONE | `manual-verification-evidence.md` M1 |
 | M2 | UDP listener release | Restart the same configuration immediately after M1 and announce again. | The UDP socket rebinds immediately and serves the announce. | DONE | `manual-verification-evidence.md` M2 |
 | M3 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops as before. | DONE | `manual-verification-evidence.md` M3: behaves as before, including a pre-existing Ctrl-C panic now tracked in SI-17. |
-| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is within the baseline's min-max spread. | DONE | `performance-evidence.md`: mean 157254.83 vs baseline 148406.26; above the spread, no regression. |
+| M4 | UDP throughput before and after | Follow the E2E UDP load test in `docs/benchmarking.md`: release build, `share/default/config/tracker.udp.benchmarking.toml`, `aquatic_udp_load_test` with one saved config. Run it at least three times on the baseline `develop` commit (T1) and three times on the implementation branch (T7) on the same machine. Record the machine, commits, toolchain, load-test config, and each run's responses per second. | The implementation's mean is not below the lowest baseline run. | DONE | `performance-evidence.md`: mean 157254.83 vs lowest baseline run 142150.63; no regression. |
 
 ### Disposable Verification Scripts
 
@@ -488,7 +496,7 @@ this issue directory and record why a maintained Rust test cannot cover it.
 | AC9 | DONE | M1 logs show the same `Starting on`, `Started on: udp://`, and `Started UDP tracker` lines. |
 | AC10 | DONE | `manual-verification-evidence.md` M1-M2. |
 | AC11 | DONE | `linter all` in every pre-commit run and pre-push checks on nightly Rust `1.100.0-nightly`. |
-| AC12 | TODO | `performance-evidence.md`: no regression (after mean 157254.83 vs baseline 148406.26); result above the spread, awaiting maintainer confirmation. |
+| AC12 | DONE | `performance-evidence.md`: after mean 157254.83 is above the lowest baseline run (142150.63); maintainer confirmation recorded in the progress log. |
 
 ## Dependencies
 

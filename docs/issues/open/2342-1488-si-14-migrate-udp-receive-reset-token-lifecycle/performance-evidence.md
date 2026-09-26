@@ -52,8 +52,10 @@ peer_seeder_probability = 0.75
 ```
 
 - Metric: `Average responses per second` over the last 20 seconds of each run.
-- Pass rule (AC12): the implementation mean is within the baseline min-max
-  spread; a larger drop is investigated before closing.
+- Pass rule (AC12): the implementation mean is not below the lowest baseline
+  run; a drop below it is investigated before closing. This one-sided rule
+  replaced the original two-sided "within the baseline min-max spread" band
+  after the measurement (see Comparison).
 
 ## Machine
 
@@ -110,12 +112,18 @@ task inventory and follow-up drafts after SI-14". Load average 5.95 / 7.60 /
 | Baseline (`0f1dcd28`) | 148406.26 | 142150.63 | 155327.06 |
 | After SI-14 (implementation branch) | 157254.83 | 155426.26 | 159296.65 |
 
-- The after-implementation mean is 6.0% above the baseline mean and above the
-  baseline maximum. Read literally, the pass rule ("within the baseline's
-  min-max spread") is not met, because the result is higher, not lower. The
-  rule exists to detect a regression, and the lowest after-implementation run
-  (155426.26) is above every baseline run, so there is no regression. The
-  maintainer should confirm this reading of AC12.
+- The after-implementation mean is 6.0% above the baseline mean, and the
+  lowest after-implementation run (155426.26) is above every baseline run, so
+  there is no regression and AC12 passes.
+- The original two-sided rule ("within the baseline min-max spread") would
+  have failed on this improvement even though its purpose was to detect a
+  regression. The maintainer confirmed the one-sided reading and decided not
+  to repeat the test.
+- Limits of this measurement: the machine is a shared desktop that ran other
+  workloads during both sessions, and the baseline runs alone varied by about
+  8.9% of their mean. The benchmark therefore rules out only large
+  regressions; it cannot resolve the expected sub-1% cost of the extra
+  cancellation branch.
 - The increase is not attributed to SI-14. The change adds work to the hot
   loop rather than removing it, and the desktop session's background load
   varied between the two sessions. Treat the result as "no regression within
