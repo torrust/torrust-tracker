@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
+issue-spec: docs/issues/closed/2333-2278-fetch-all-review-threads/ISSUE.md
 last-updated-utc: "2026-09-26 09:35"
 ---
 

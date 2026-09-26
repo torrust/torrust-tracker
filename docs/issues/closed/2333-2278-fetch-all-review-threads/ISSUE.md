@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2278
 github-issue: 2333
-spec-path: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
+spec-path: docs/issues/closed/2333-2278-fetch-all-review-threads/ISSUE.md
 branch: "2333-2278-fetch-all-review-threads"
-related-pr: null
-last-updated-utc: "2026-09-24 18:46"
+related-pr: 2339
+last-updated-utc: "2026-09-26 09:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -161,10 +161,10 @@ the projection call is visible, and each expected field is asserted independentl
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -176,6 +176,9 @@ the projection call is visible, and each expected field is asserted independentl
 - 2026-09-24 17:28 UTC - GitHub Copilot - T1 and T2 done. The query requests each thread's `line` and `resolvedBy { login }`; `list` and `show` take a `ThreadSelection` (`All` by default, `UnresolvedOnly` through `--unresolved-only`) and emit `isResolved`, `resolvedBy`, and `line` as additive fields; `reply-status` still filters to unresolved threads. The retired-script fixture `tests/fixtures/review-threads.json` stays unchanged because its README pins it to the parity captures; it now also proves that files fetched before this change still parse, with `resolvedBy` and `line` as null. A new `tests/fixtures/thread-states.json` names each thread for its state (resolved by a login, resolved and outdated, resolved without a resolver, unresolved current, unresolved outdated with a null line). The CLI parity tests compare the retired-script fields under `--unresolved-only`, and new CLI tests show that `list` and `show` include a resolved thread by default. Prose-first review: each test's Arrange names the thread state or selection that changes the result, the production `list`/`show`/`reply_status` call stays visible in Act, and assertions check one field or result each; no temporary prose was kept. Proof that the tests guard the change: temporarily reverting `ThreadSelection::includes` to the unresolved-only filter in the working tree failed 5 of 13 unit tests; the filter was then restored. Evidence (stable Rust 1.98.1): `cargo test --package github-review-threads` passes 13 unit and 7 CLI tests; `cargo clippy --package github-review-threads --all-targets -- -D warnings` is clean; `cargo +nightly fmt --all -- --check` is clean. Real-query check ahead of the T4 manual capture: `fetch --pr-number 2322` returned 13 resolved threads, all resolved by `josecelano`, 8 of them outdated with `line: null`.
 - 2026-09-24 18:13 UTC - GitHub Copilot - T3 done. The `fetch-review-threads` skill (version 1.1) now: collects every thread as evidence; names `resolvedBy`, `path`, and `line` as self-audit evidence, with nulls recorded as unknown; limits unresolved-only filtering to reply or resolution actions, through `--unresolved-only` or the unchanged `reply-status`; and rewrites the completion checklist to match. The skill had listed `canResolve`, which neither query requests, so it was dropped from the collected fields. The inline `gh api graphql` fallback now carries the tool's query. A whitespace-insensitive `diff` of the two query texts is empty. Run against PR #2322, the fallback query returned the same 13 threads, resolver set (`josecelano`), and 8 null lines as the tool. The only live caller of `list` or `show` is this skill; `resolve-review-threads` uses `reply-status` and the raw file, both unchanged.
 - 2026-09-24 18:46 UTC - GitHub Copilot - T4 done. M1-M4 were run read-only against merged PR #2320 and all passed (29 threads: 27 resolved, 2 unresolved, 21 outdated); evidence is in `manual-verification-evidence.md`. Automatic checks (stable Rust 1.98.1; nightly for the pre-push nightly steps): the pre-commit hook, which includes `linter all`, passed on both implementation commits, and `pre-push.sh --format=text` passed all 4 steps, including the full stable test suite. Acceptance criteria AC1-AC6 were re-reviewed against the current tree; see the Acceptance Verification table. Completion review: no retrospective is needed, because the implementation followed the plan without a material design change. The one deviation was dropping `canResolve` from the skill's collected fields (T3 entry). The capture's survey found five merged PRs that still hold unresolved threads (#2290, #2293, #2300, #2313, #2320); they were left untouched under the post-merge rule and reported to the maintainer.
+- 2026-09-24 20:11 UTC - GitHub Copilot - Opened implementation PR #2339 targeting `develop`; it closes #2333 when merged.
+- 2026-09-25 08:26 UTC - GitHub Copilot - PR #2339 merged into `develop` as `a20e8f3a` after a rebase onto the latest `develop`; GitHub closed #2333. The reviewer (da2ce7) recomputed the acceptance criteria in review 5310586223 before approving, and left three non-blocking inline findings.
+- 2026-09-26 09:46 UTC - GitHub Copilot - Those findings were still unprocessed at merge. With maintainer approval (<https://github.com/torrust/torrust-tracker/pull/2339#issuecomment-5844522320>), a follow-up branch from `develop` fixes the two test findings in `test(dev-tools): pin review-thread query fields and explicit nulls` and the evidence finding in `docs(issues): record the exact #2333 evidence commands`. Archived the specification to `docs/issues/closed/` after confirming the GitHub issue is `CLOSED`; EPIC #2278 order 4 marked `DONE`.
 
 ## Acceptance Criteria
 
