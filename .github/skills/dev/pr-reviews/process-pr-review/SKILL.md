@@ -208,6 +208,8 @@ subjects against `<base>..HEAD` (`--base` defaults to `develop`). It checks ever
 ID is audit-local (`F1`) or reviewer-provided (`OPS-001`: uppercase letters and digits in
 hyphen-separated groups). It fails when:
 
+- the `## Findings` section is missing, or one of its table data rows does not parse as a
+  tracking row (for example a padded or lowercase finding ID);
 - a tracking row has no detail entry, or a detail entry has no tracking row;
 - a row's `Source review ID` does not match the review that owns its `Source URL`;
 - a discussion-anchored row cites zero or several reply URLs, cites a reply that does not exist,
