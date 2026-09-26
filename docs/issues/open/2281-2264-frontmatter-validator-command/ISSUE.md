@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-25 07:49"
+last-updated-utc: "2026-09-26 13:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -321,7 +321,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | DONE | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
-| T6 | TODO | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
+| T6 | DONE | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
 | T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
 | T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
@@ -485,6 +485,31 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   Six mutations were each caught. The whole-repository smoke run reports 50 `legacy-shape` errors
   (D10/D11), 14 structural errors in non-v1 documents for T6, 3 closed-spec warnings, and no D7
   findings in the open v1 specs - `test-design-review.md`
+- 2026-09-26 12:40 UTC - Jose Celano - T6 baseline decisions:
+  - Leave #2324 for the usual archive PR. It is completed but its spec is still in `open/`
+    with `status: open`, so it is the one accepted non-`legacy-shape` error under AC10 until
+    archived.
+  - Fix the malformed YAML in four closed records, whitespace only.
+  - Move the unsupported `related-issues`/`issue-spec` keys into `related-artifacts`.
+  - Set #2283, #2298, and #2301 from `open` to `planned`.
+
+  User conversation
+- 2026-09-26 13:00 UTC - GitHub Copilot - Completed T6 in eleven signed `docs(issues)` commits:
+  - the four approved fix groups;
+  - the next errors each fix exposed: a trailing-slash artifact, two unquoted timestamps, and
+    one stale #2222 reference;
+  - seven D11 EPIC migrations, one commit each. They drop issue-only fields, map
+    `open` to `in-progress` where subissues are completed, quote timestamps and issue
+    references, and repoint three stale references.
+
+  `--all` now reports:
+  - 44 `legacy-shape` errors: 42 legacy issue specs, the unassigned draft EPIC, and one draft
+    whose envelope error had masked its legacy shape;
+  - the #2324 exception;
+  - 3 closed-spec warnings (a pre-#2281 unquoted issue reference in #2280, and URL-valued
+    `related-pr` in #2295 and #2308), left as advisory history.
+
+  Evidence: `manual-verification-evidence.md` section V4 in T8.
 
 ## Acceptance Criteria
 
@@ -511,7 +536,8 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
       without network access, including no-stdout behavior.
 - [ ] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports no
       errors other than `legacy-shape` for the legacy issue specs and the draft EPIC not yet
-      migrated. The error and warning counts are recorded.
+      migrated. The error and warning counts are recorded. Accepted exception: the completed
+      #2324 spec's `status: open` until the usual archive PR moves it to `closed/`.
 - [ ] AC11: The command, its temporary integration point, its relocation path under #2003, and
       the D10 migration checklist are documented, and the CLI output ADR classifies the binary.
 - [ ] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
