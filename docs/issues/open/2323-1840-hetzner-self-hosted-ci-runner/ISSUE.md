@@ -7,9 +7,9 @@ priority: p1
 epic: 1840
 github-issue: 2323
 spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-branch: "2323-1840-hetzner-self-hosted-ci-runner-spec"
+branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2335
-last-updated-utc: 2026-09-26 13:24
+last-updated-utc: 2026-09-26 15:36
 semantic-links:
   skill-links:
     - create-issue
@@ -109,7 +109,7 @@ Selected server (provisioning started 2026-09-24):
 | Disk                      | 320 GB local                 |
 | Included outgoing traffic | 20 TB per month              |
 | Price                     | €69.49 per month             |
-| Server type               | Open (Open Question 1); 8 vCPU / 16 GB at about €69 matches the shared-vCPU CPX42 line of the earlier cost table |
+| Server type               | Shared vCPU (CPX42 class), 8 vCPU / 16 GB, owned by the Nautilus Cyberneering organization (Open Question 1) |
 
 An earlier cost analysis (2026-09-16) is kept in
 [`larger-runner-vs-self-hosted-cost-analysis.md`](larger-runner-vs-self-hosted-cost-analysis.md).
@@ -276,9 +276,10 @@ ownership decisions for this infrastructure are:
 - **Deadline**: `timeout-minutes` bounds only execution time, after a runner has picked up the
   job; it does not bound time spent queued. GitHub cancels a self-hosted job only after 24 hours
   in the queue (<https://docs.github.com/en/actions/reference/limits>, checked 2026-09-24). An
-  offline runner therefore needs explicit handling: offline detection with an alert to
-  maintainers, and a documented fallback procedure (for example, moving the job back to
-  `ubuntu-latest`). T5 and T8 define both.
+  offline runner therefore shows up as a PR check stuck in "Waiting for a runner", which
+  maintainers and agents notice in normal PR review; there is no automatic fallback or alerting
+  service (ADR, Offline runner). T8 documents the manual fallback: restart the runner, or merge a
+  one-line change that points `runs-on` back to `ubuntu-latest`.
 - **Network locality**: GitHub's cache and artifact services run on GitHub's own infrastructure
   (reported to be Microsoft Azure). A Hetzner runner reaches them over the public internet. The
   `test` job depends on them through `Swatinem/rust-cache` and the BuildKit `type=gha` cache
@@ -316,11 +317,11 @@ Delivery phases:
 | T1  | 1     | DONE   | Record baseline                       | Recorded in [`benchmark-results.md`](benchmark-results.md): `Test (Docker)` median 37 min; build step median 32 min, of which workspace compile 15.5-18.6 min and GitHub cache export 5-12 min; third-party layer missed in 4 of 6 runs; cache over its 10 GB allowance; `Security Scan` (28-29 min) is the next critical path when it runs. |
 | T2  | 1     | DONE   | Prepare Hetzner server                | Falkenstein, 8 vCPU, 16 GB RAM, 320 GB disk, €69.49/month (see Background). Hostname `torrust-runner-01`, Ubuntu 26.04.1 LTS, kernel `7.0.0-34-generic`; SSH key-only login; automatic security updates; Hetzner Cloud Firewall allowing only inbound SSH; Docker Engine 29.8.1 with Buildx and Compose; host build tools; `runner` user in the `docker` group. Host holds no Torrust credentials. Server type and shared or dedicated vCPU remain open (Open Question 1). Logged in [`runner-server-setup.md`](runner-server-setup.md). |
 | T3  | 1     | DONE   | Install and register runner           | First registered on 2026-09-24: runner `v2.337.0` (hash-verified) at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service under `runner`. Removed on 2026-09-25 during the design review. Registered again with the same settings on 2026-09-26, after T9; GitHub reports it online and idle. One runner instance for now. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
-| T4  | 2     | TODO   | Write ADR                             | ADR in `docs/adrs/` covering the decisions listed in Architectural Decisions.                                                   |
-| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and their image builds import and export no GitHub Actions (`type=gha`) cache, because any cache scope can be written by a `develop` job holding a cache token; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the PR author (`github.event.pull_request.user.login == 'dependabot[bot]'`), not `github.actor`, which becomes the maintainer when a maintainer updates the branch (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
+| T4  | 2     | DONE   | Write ADR                             | [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md) records the decisions listed in Architectural Decisions and answers the Open Questions.                                                   |
+| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and their image builds import and export no GitHub Actions (`type=gha`) cache, because any cache scope can be written by a `develop` job holding a cache token; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the PR author (`github.event.pull_request.user.login == 'dependabot[bot]'`), not `github.actor`, which becomes the maintainer when a maintainer updates the branch (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`; (f) the `testing.yaml` `docker-e2e` job moves to the self-hosted runner under the same Dependabot rule and local-cache setup; the self-hosted jobs write no `type=gha` cache. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
 | T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
-| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, recovery steps, the regular server rebuild (for example monthly and on any suspicion of compromise) from the setup logs, and the rule that approving an external PR's workflows requires reviewing its full diff. |
+| T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, how a runner-offline condition shows up (a PR check stuck in "Waiting for a runner"), manual fallback procedure for queued jobs, recovery steps, the regular server rebuild (for example monthly and on any suspicion of compromise) from the setup logs, and the rule that approving an external PR's workflows requires reviewing its full diff. |
 | T9  | 1     | DONE   | Apply access controls                 | Before T3 is repeated: fork-PR approval policy set to "Require approval for all external contributors" (was `first_time_contributors`) and organization 2FA required (was not required), both verified through the GitHub API on 2026-09-26. Enabling 2FA removed the 3 outside collaborators without it; all 4 members remain. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 
 ### Post-Switch Scenarios
@@ -400,12 +401,14 @@ Append one line per meaningful update.
 - 2026-09-26 09:36 UTC - josecelano, GitHub Copilot - T9 DONE: an owner enabled the organization 2FA requirement (verified through the API); the 3 outside collaborators without 2FA were removed; T3 (re-registration) is unblocked - [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-26 09:46 UTC - josecelano, GitHub Copilot - T3 DONE again: runner `v2.337.0` re-registered as `torrust-runner-01` with label `torrust-hetzner`, systemd service active and enabled, GitHub reports it online and idle; no workflow targets it yet - [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-26 13:24 UTC - GitHub Copilot - Review round 3 (reviewer review 5325974064): publish image builds must import and export no GitHub Actions cache, because any scope can be written by a job holding a cache token (T5(c), AC3, M3; F13); Dependabot PRs are routed by PR author rather than `github.actor` (T5(d), M7; F14) - audit at `docs/pr-reviews/pr-2335-review/PR-REVIEW.md`
+- 2026-09-26 15:36 UTC - josecelano, GitHub Copilot - Spec PR #2335 merged; T4 DONE: ADR `docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md` approved; Open Questions answered (one instance, systemd service, default `docker` driver without `type=gha` writes, `docker-e2e` moves as T5(f), no automatic fallback or alerting); AC4, M5, T8, and the Deadline and single-point-of-failure passages now describe the queued-check visibility and manual fallback - this file
 
 ## Acceptance Criteria
 
 - [ ] AC1: The `container.yaml` `test` job runs on the self-hosted Hetzner runner for PRs targeting
       `develop` and for pushes to `develop`, except Dependabot PRs; Dependabot PRs, PRs to `main`,
-      and pushes to `main` and `releases/**` run it on GitHub-hosted runners.
+      and pushes to `main` and `releases/**` run it on GitHub-hosted runners. The `testing.yaml`
+      `docker-e2e` job runs on the self-hosted runner, except for Dependabot PRs.
 - [ ] AC2: The measured PR check wall-clock time is recorded for the baseline and after the
       workflow changes (cold and warm cache), with the 15-minute target either met or the gap
       explained.
@@ -413,10 +416,11 @@ Append one line per meaningful update.
       GitHub-hosted runners, their image builds import no GitHub Actions cache (no `type=gha`
       `cache-from`), and the self-hosted job references no repository, organization, or
       environment secrets.
-- [ ] AC4: A runner-offline condition is detected and alerts maintainers, and a documented
-      fallback procedure moves or reruns queued jobs; the plan does not rely on
-      `timeout-minutes`, which does not bound queue time.
-- [ ] AC5: An ADR records the decision, cost rationale, persistent-runner choice, accepted security
+- [ ] AC4: A runner-offline condition is visible as a queued PR check, and a documented manual
+      fallback procedure (restart the runner, or point `runs-on` back to `ubuntu-latest`)
+      unblocks queued jobs; the plan does not rely on `timeout-minutes`, which does not bound
+      queue time.
+- [x] AC5: An ADR records the decision, cost rationale, persistent-runner choice, accepted security
       risk with its likelihood basis, the 2026-09-24 rejection and the 2026-09-25 reversal,
       publish-job isolation, and cache strategy.
 - [ ] AC6: Maintainer-facing documentation describes the runner, its cache cleanup, and its
@@ -446,7 +450,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | `develop` push run           | Merge a non-documentation PR; inspect the `Container` run on `develop`                         | `test` runs on the Hetzner runner; publish job succeeds           | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no GitHub Actions cache   | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out), the offline alert fires, and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
+| M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out) as "Waiting for a runner", and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | TODO   | `benchmark-results.md`                       |
 | M7  | Untrusted-code routing       | Inspect a Dependabot PR's `Test (Docker)` runner, the same after a maintainer updates the branch from `develop`, and a PR from a non-member fork before approval | Dependabot runs on a GitHub-hosted runner in both cases; the external PR's workflows wait for maintainer approval | TODO   | `manual-verification-evidence.md` section V7 |
 
@@ -464,7 +468,7 @@ Notes:
 | AC2   | TODO                   |          |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC5   | DONE                   | [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md) |
 | AC6   | TODO                   |          |
 | AC7   | DONE                   | `approval_policy` = `all_external_contributors` and `two_factor_requirement_enabled` = `true` (GitHub API, 2026-09-26), recorded in `runner-agent-installation.md` step 7 |
 
@@ -525,7 +529,8 @@ Notes:
   runner instances from the baseline job rate, and measure queue time in T7.
 - **Single point of failure.** One server means jobs stay queued (up to GitHub's 24-hour limit)
   when it is down; `timeout-minutes` does not help while a job waits for a runner. Mitigation:
-  offline detection with alerting and a documented fallback procedure (AC4).
+  the queued PR check makes the outage visible, and a documented manual fallback procedure
+  unblocks it (AC4).
 - **Network transfer to GitHub may cancel the gain.** The baseline shows the GitHub cache export
   already takes 5-12 minutes per job inside GitHub's own network; from Hetzner it is expected to
   be slower. Outgoing traffic also counts against the server's 20 TB monthly allowance.
@@ -541,18 +546,30 @@ Notes:
 
 ## Open Questions
 
+All answered by the maintainer on 2026-09-26 and recorded in the ADR (T4).
+
 1. Who owns the Hetzner account, and what is the server type (shared or dedicated vCPU)?
+   **Answer:** the Nautilus Cyberneering organization; shared vCPU (CPX42 class).
 2. How many runner instances on the server (parallel `Test (Docker)` jobs)?
+   **Answer:** one; add a second only if T7 shows jobs waiting for the runner.
 3. Runner installation: plain `actions/runner` service, or containerized?
+   **Answer:** plain `actions/runner` systemd service, as installed.
 4. BuildKit cache mechanism on the persistent host: the default `docker` driver, a named
    persistent `docker-container` builder, or a `type=local` cache directory? Should the job keep
    writing `type=gha` cache at all?
+   **Answer:** the default `docker` driver; the self-hosted jobs stop writing `type=gha` cache.
 5. Should `testing.yaml` `docker-e2e` (feature-branch path) also move, or stay on GitHub-hosted?
+   **Answer:** it moves (T5(f)).
 6. Fallback preference: automatic fallback to `ubuntu-latest`, or fail fast and alert? Which
    offline-detection mechanism (for example, a scheduled GitHub-hosted check of the runner status,
    or an external uptime monitor)?
+   **Answer:** neither; the queued PR check makes an outage visible, and T8 documents a manual
+   fallback. Automatic routing would need a monitor workflow with an admin token and a repository
+   variable, which one runner does not justify.
 7. Does the fork-PR approval policy also gate Dependabot runs? T5(d) keeps Dependabot PRs off the
    self-hosted runner either way, but the answer belongs in the ADR.
+   **Answer:** no; the approval policy applies to PRs from forks, and Dependabot branches live in
+   the base repository, so T5(d) is the only control for Dependabot.
 
 ## Implementation Completion Review
 
