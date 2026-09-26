@@ -397,11 +397,17 @@ mod tests {
 
     use serde_json::{Value, json};
 
-    use super::{ListedThread, PullRequest, ShownThread, ThreadSelection, ThreadSource, fetch, list, reply_status, show};
+    use super::{
+        ListedThread, PullRequest, REVIEW_THREADS_QUERY, ShownThread, ThreadSelection, ThreadSource, fetch, list, reply_status,
+        show,
+    };
 
     const THREAD_STATES: &[u8] = include_bytes!("../tests/fixtures/thread-states.json");
 
     const FETCHED_BEFORE_RESOLVER_AND_LINE: &[u8] = include_bytes!("../tests/fixtures/review-threads.json");
+
+    const FETCH_REVIEW_THREADS_SKILL: &str =
+        include_str!("../../../../../.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md");
 
     struct FixtureSource;
 
@@ -428,6 +434,46 @@ mod tests {
             .iter()
             .find(|thread| thread.id == id)
             .expect("the fixture should hold the thread")
+    }
+
+    /// Splits a GraphQL selection into field names and braces, so layout differences do not matter.
+    fn graphql_tokens(query: &str) -> Vec<String> {
+        query
+            .replace('{', " { ")
+            .replace('}', " } ")
+            .split_whitespace()
+            .map(String::from)
+            .collect()
+    }
+
+    fn skill_fallback_query(skill: &str) -> &str {
+        let start = skill.find("-f query='").expect("the skill should hold a fallback query") + "-f query='".len();
+        let length = skill[start..].find('\'').expect("the fallback query should be closed");
+        &skill[start..start + length]
+    }
+
+    #[test]
+    fn it_should_request_the_line_and_resolver_of_each_thread() {
+        // Arrange: the thread-level fields that carry resolution evidence, next to `path`.
+        let evidence_fields = ["path", "line", "resolvedBy", "{", "login", "}"];
+
+        // Act: read the query sent to GitHub.
+        let tokens = graphql_tokens(REVIEW_THREADS_QUERY);
+
+        // Assert: a dropped field would otherwise read back as null, indistinguishable from unknown.
+        assert!(tokens.windows(evidence_fields.len()).any(|window| window == evidence_fields));
+    }
+
+    #[test]
+    fn it_should_document_the_same_fallback_query_the_tool_sends() {
+        // Arrange: the `gh api graphql` fallback documented in the `fetch-review-threads` skill.
+        let fallback_query = skill_fallback_query(FETCH_REVIEW_THREADS_SKILL);
+
+        // Act: compare its selection with the tool's query, ignoring layout.
+        let fallback_tokens = graphql_tokens(fallback_query);
+
+        // Assert: both evidence paths request the same fields in the same shape.
+        assert_eq!(fallback_tokens, graphql_tokens(REVIEW_THREADS_QUERY));
     }
 
     #[test]
@@ -561,7 +607,7 @@ mod tests {
         // Assert: the resolver is null in the JSON result and no login is synthesized.
         let thread = serde_json::to_value(shown(&threads.threads, thread_without_resolver)).unwrap();
         assert_eq!(thread["isResolved"], true);
-        assert_eq!(thread["resolvedBy"], Value::Null);
+        assert_eq!(thread.get("resolvedBy"), Some(&Value::Null));
     }
 
     #[test]
@@ -575,7 +621,7 @@ mod tests {
         // Assert: the line is null in the JSON result and the path still locates the thread.
         let thread = serde_json::to_value(shown(&threads.threads, outdated_thread)).unwrap();
         assert_eq!(thread["isOutdated"], true);
-        assert_eq!(thread["line"], Value::Null);
+        assert_eq!(thread.get("line"), Some(&Value::Null));
         assert_eq!(thread["path"], "src/legacy.rs");
     }
 
