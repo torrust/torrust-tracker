@@ -101,9 +101,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md contains
   "Fork-PR code execution on a persistent runner (accepted with controls)" with the full exposure
   (runner registration, later `push` jobs, the `needs:` publish gate), and T9 and AC7 are marked
-  done; `self-hosted-runner-security-research.md` records the history in Current Exposure;
-  `gh api repos/torrust/torrust-tracker/actions/runners` reports
-  `torrust-runner-01  online  self-hosted,Linux,X64,torrust-hetzner`, and
+  done; `self-hosted-runner-security-research.md` records the history in Current Exposure; the
+  runner query recorded in `runner-agent-installation.md` step 4 prints
+  `torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner`, and
   `gh api repos/torrust/torrust-tracker/actions/permissions/fork-pr-contributor-approval`
   reports `all_external_contributors` (both checked 2026-09-26).
 - Resolution reference: docs(issues): state the full fork-PR exposure of the #2323 runner; docs(issues): accept the #2323 persistent runner with controls
