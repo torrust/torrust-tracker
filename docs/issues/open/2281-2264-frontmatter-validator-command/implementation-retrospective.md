@@ -26,7 +26,7 @@ verification.
 - The binary owns discovery, git access, and rendering.
 - Pre-commit runs it as a named `--staged` step.
 
-The crate has 176 tests. Each test-producing task was proven by mutation, and manual scenarios
+The crate has 178 tests. Each test-producing task was proven by mutation, and manual scenarios
 M1-M7 were recorded in `manual-verification-evidence.md`.
 
 ## What Went Well
@@ -57,7 +57,8 @@ M1-M7 were recorded in `manual-verification-evidence.md`.
 - **Stale specs.** Two completed issues, #2324 and #2179, still have specs in `open/`. #2324
   became the one accepted AC10 exception.
 - **A pipe hid a failing gate.** One commit passed a failing `linter all` because the gate was
-  piped into `tail`. It was fixed in the next commit and recorded in agent memory.
+  piped into `tail`. It was fixed in the next commit, and the rule is now in the
+  `run-pre-commit-checks` skill.
 - **Test setups that proved nothing.** Two first attempts had to be redone: the first T5
   command-boundary snapshot test and the first reverse M3 scenario. Their setups could not
   distinguish the behavior they claimed to test.
@@ -74,14 +75,15 @@ M1-M7 were recorded in `manual-verification-evidence.md`.
 ## Improvements for Future Work
 
 1. When a crate adds process-spawning tests (git, docker, network), check the container test
-   stage's image and the `--exclude` lists in the same task. Worth a line in the Containerfile
-   maintenance comment.
+   stage's image and the `--exclude` lists in the same task. Applied: the Containerfile's
+   maintenance comment now says so.
 2. Treat a whole-tree baseline under a first-error validator as a lower bound. Re-run after each
    fix group until the result is stable, and say so in the spec.
 3. Gate commits on a captured exit code (`cmd > log 2>&1; rc=$?`), never on a pipeline in an
-   `&&` chain.
+   `&&` chain. Applied: added to the `run-pre-commit-checks` skill.
 4. For a "not A but B" test, write down what distinguishes A from B in the setup before writing
-   the assertion.
+   the assertion. The independent review caught a related slip: fixture tests carried a hidden
+   `spec-path` mismatch that a structural error happened to mask.
 
 ## Avoiding Overcorrection
 

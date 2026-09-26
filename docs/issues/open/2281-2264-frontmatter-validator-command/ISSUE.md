@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-26 13:25"
+last-updated-utc: "2026-09-26 15:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -543,6 +543,32 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 
   Evidence: `manual-verification-evidence.md`, `test-design-review.md`,
   `implementation-retrospective.md`.
+- 2026-09-26 15:10 UTC - Task Reviewer - First pre-PR review: REVIEW FAILED. All AC1-AC11 are met
+  and all gates pass, but two command-boundary tests carried a hidden `spec-path` mismatch
+  masked by the structural error, and T8 lacked a prose-first comparison and mutation evidence.
+  The review also raised minor and nit findings - `agent-review-reports.md`
+- 2026-09-26 15:29 UTC - GitHub Copilot - Remediated the review findings:
+  - **Finding 1:** the fixture tests now use the fixtures' own `spec-path`, and a
+    `relocated_fixture` helper moves the closed case. The T8 prose-first comparison and four
+    caught mutations are recorded.
+  - **Finding 2, a correction of earlier entries:** the 44 `legacy-shape` errors are 42 primary
+    `ISSUE.md` specs, the masked draft included, plus the draft EPIC and the #2230 supporting
+    sample spec that declares `doc-type: issue`. The T5 and T6 entries above miscounted this. V4
+    and the T5 test note are corrected in place, while those log entries stay as history. The
+    #2230 sample also has `status: draft` in `open/`, so migrating it will need a lifecycle fix.
+  - **Finding 3:** the README severity summary is complete.
+  - **Finding 4:** retrospective improvements 1 and 3 are applied to the Containerfile
+    maintenance comment and the `run-pre-commit-checks` skill, and the agent-memory claim is
+    removed.
+  - **Finding 5:** test isolation clears `GIT_CONFIG_PARAMETERS`/`GIT_CONFIG_COUNT`, and fixture
+    commits disable hooks.
+  - **Finding 6:** directory arguments use `:(literal)` path patterns and symlinked files keep their
+    own path, both with regression tests.
+  - **Finding 7:** "four approved fix groups" above means three fix commits plus the decision to
+    leave #2324.
+  - **Finding 8:** it predates this branch and is out of scope.
+
+  178 tests pass - `test-design-review.md`
 
 ## Acceptance Criteria
 
@@ -614,7 +640,7 @@ and are removed after use; the real repository index is never used for failing s
 | AC5 | DONE | `repository::tests` D7 tables with T5 mutations; `it_should_resolve_related_artifacts_against_the_index_only_with_staged` |
 | AC6 | DONE | Ownership and exclusion tests in every mode (`repository::tests`, `tests/cli.rs`); T2/T3 mutations |
 | AC7 | DONE | `pre-commit.sh` step `Checking staged Markdown frontmatter`; no CI or pre-push change; V5 |
-| AC8 | DONE | Library fixture and mutation tables (T1-T5); `it_should_report_each_failure_family_as_one_error_record` at the command boundary |
+| AC8 | DONE | Library fixture and mutation tables (T1-T5); `it_should_report_each_failure_family_as_one_error_record` at the command boundary, free of hidden state after the review remediation |
 | AC9 | DONE | V1-V7, including `unshare -rn` offline runs (V7) and no-stdout checks |
 | AC10 | DONE | V4: 44 `legacy-shape` errors, the accepted #2324 exception, 3 closed-spec warnings; seven EPIC migration commits |
 | AC11 | DONE | Crate `README.md` (usage, migration checklist, relocation); CLI output ADR row; `run-pre-commit-checks` skill step |

@@ -298,7 +298,10 @@ Mutation evidence (stable Rust toolchain; each mutation verified as applied, res
 
 Whole-repository run (`--all`, read-only, 0.04 s, empty stdout):
 
-- 50 `legacy-shape` errors, matching D10/D11's 42 issues plus 8 EPICs;
+- 50 `legacy-shape` errors: 42 primary `ISSUE.md` specs (including #1488's EPIC record), 7
+  `EPIC.md` specs, and the #2230 supporting sample spec that declares `doc-type: issue`. The
+  first version of this note matched the total to D10/D11's 42 issues plus 8 EPICs, which was
+  a coincidence; corrected after the independent review;
 - 14 structural errors in documents outside the v1 profiles;
 - 3 closed-spec warnings;
 - no D7 findings in the five open v1 specs.
@@ -321,3 +324,51 @@ per family:
 Each case writes one defect into an open spec, runs the built binary on it, and asserts
 `(exit code, severity, category, field_path)` against literals. Behavior is already proven by the
 T1-T5 mutation tables; this table proves the command renders each family end to end.
+
+## T8 Review Remediation
+
+The independent Task Reviewer (`agent-review-reports.md`) failed the first pre-PR review. Two
+command-boundary tests carried hidden state, and T8 had no prose-first comparison or mutation
+evidence.
+
+Hidden state: the rejected fixtures declare `spec-path: docs/issues/open/example/ISSUE.md`, but
+`it_should_report_each_failure_family_as_one_error_record` and
+`it_should_exit_one_only_when_a_record_is_an_error` wrote them to
+`docs/issues/open/1-example/ISSUE.md`. Every fixture case also carried a `spec-path-mismatch`. The
+tests passed only because a structural error stops the repository-aware checks.
+
+Changes:
+
+- `OPEN_SPEC` is now the fixtures' own `spec-path`, so a fixture written there has only its named
+  defect.
+- `relocated_fixture(fixture, spec_path, status)` moves a fixture to another location with a
+  status valid there. The closed-spec case now has exactly one defect, the quoted
+  `github-issue`.
+- Two regression tests were added for review finding 6:
+  - `it_should_treat_a_directory_argument_literally_rather_than_as_a_glob`, for a directory `d*`
+    beside a sibling the glob would match;
+  - `it_should_report_a_symlinked_file_under_its_own_path`, Unix only.
+- Test isolation now also clears `GIT_CONFIG_PARAMETERS` and `GIT_CONFIG_COUNT`, and fixture
+  commits pass `core.hooksPath=/dev/null` (review finding 5).
+
+Prose-first comparison for the failure-family table:
+
+- Arrange: an open spec whose only defect is the one each case names. With `OPEN_SPEC` equal to
+  the fixture `spec-path`, the Arrange comment is now literally true.
+- Act: run the built binary on that spec.
+- Assert: one error record whose `(exit code, severity, category, field_path)` equals the literal
+  expectations.
+
+The prose needed no extra comment once the hidden state was gone.
+
+Mutation evidence (stable Rust toolchain; each restored from a `.tmp` backup and checked with
+`cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| Directory argument passed as a glob path pattern | 1 (literal-directory test) |
+| Symlinked file resolved to its target path | 1 (symlink test), after one non-compiling first attempt |
+| `field_path` dropped when rendering a diagnostic | 7 |
+| Every diagnostic rendered as `unknown-field` | 7 |
+
+The crate now has 178 tests.

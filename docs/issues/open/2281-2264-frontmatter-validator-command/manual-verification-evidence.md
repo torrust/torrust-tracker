@@ -104,9 +104,13 @@ exit=1 stdout_bytes=0
 
 The 44 `legacy-shape` errors are:
 
-- 42 legacy issue specs;
+- 42 primary `ISSUE.md` specs (26 drafts, 16 open), including the draft
+  `increase-main-app-integration-test-coverage`, whose envelope error had masked its legacy shape;
 - the unassigned draft EPIC;
-- one draft whose envelope error had masked its legacy shape.
+- one supporting file that declares `doc-type: issue`:
+  `docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/sample-substantive-bug-spec.md`.
+
+This breakdown was corrected after the independent review; the first version miscounted it.
 
 The one other error is the accepted AC10 exception: the completed #2324 spec, still in `open/`
 with `status: open`. The warnings are advisory history in closed specs #2280, #2295, and #2308.
