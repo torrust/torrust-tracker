@@ -194,3 +194,27 @@ Result (2026-09-26, after an owner enabled the requirement): `two_factor_require
 collaborators without 2FA were removed by the requirement; they can be invited again once they
 enable 2FA. The organization setting also
 required the owner to disable SMS as a 2FA method on their own account.
+
+## 8. Register the Runner Again (T3)
+
+With T9 done, the runner was registered again with the settings above, repeating steps 1 to 4.
+
+Notes from this run:
+
+- Run `ssh`, `su - runner`, `cd`, and `config.sh` one at a time, and give `config.sh` as a single
+  line. The first attempt pasted them as one block, and `config.sh` never ran.
+- `Http response code: NotFound from 'POST https://api.github.com/actions/runner-registration'`
+  means GitHub rejected the token. Reload the repository's **New self-hosted runner** page for a
+  fresh token; each token is valid for one hour.
+- `svc.sh` only appears after `config.sh` succeeds.
+
+Result (2026-09-26): runner `v2.337.0` downloaded again and hash-verified (`OK`); `config.sh`
+reported `Connected to GitHub`, `Runner successfully added`, and `Settings Saved.`; `svc.sh install
+runner` created the unit running as `runner` (uid 1000), `active` and `enabled`; the service log
+shows `Listening for Jobs` at 09:45:57 UTC; and the runners API reports:
+
+```text
+torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner
+```
+
+No workflow targets the runner yet; that is the implementation PR (T5).
