@@ -274,6 +274,26 @@ server# apt install -y libssl-dev
 
 Result (2026-09-26): `libssl-dev 3.5.5-1ubuntu3.5`; no service restart needed.
 
+## 11. Prune Docker Storage Daily
+
+The self-hosted jobs keep Docker layers and BuildKit cache mounts on local disk (T5(b)), so the
+cache needs a bound. A root systemd timer runs daily at 04:00 UTC. It caps the build cache at
+120 GB (least recently used records go first), removes stopped containers older than a day,
+unused images older than a week, and anonymous volumes left by E2E runs. Build cache in use by a
+running job and running containers are never removed. Each file is written with a one-line
+`printf`, because pasted multi-line commands lost lines earlier.
+
+```bash
+server# printf '%s\n' '[Unit]' 'Description=Prune Docker build cache and unused objects for the CI runner' '' '[Service]' 'Type=oneshot' 'ExecStart=/usr/bin/docker builder prune --force --max-used-space 120GB' 'ExecStart=/usr/bin/docker container prune --force --filter until=24h' 'ExecStart=/usr/bin/docker image prune --force --filter until=168h' 'ExecStart=/usr/bin/docker volume prune --force' > /etc/systemd/system/docker-ci-prune.service
+server# printf '%s\n' '[Unit]' 'Description=Daily Docker prune for the CI runner' '' '[Timer]' 'OnCalendar=*-*-* 04:00:00 UTC' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > /etc/systemd/system/docker-ci-prune.timer
+server# systemctl daemon-reload && systemctl enable --now docker-ci-prune.timer
+server# systemctl start docker-ci-prune.service && systemctl list-timers docker-ci-prune.timer
+```
+
+Result (2026-09-26): the manual run exited `0/SUCCESS` for all four commands, and the timer is
+enabled with its next run at 2026-09-27 04:00 UTC. The host-side Cargo target directories under
+`/home/runner/.cache/torrust-tracker/` are not pruned; T7 measures their growth.
+
 ## 10. Create the `runner` User
 
 The GitHub runner refuses to run as `root` by default. Membership in the `docker` group is
