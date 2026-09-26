@@ -51,6 +51,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F3 | `review-finding:pr-2335-f3` | Human | Minor | documentation | RE_RAISE_OF:DOC-002 | NO_ACTION | SUPERSEDED |
 | F4 | `review-finding:pr-2335-f4` | Human | Minor | documentation | RE_RAISE_OF:DOC-001 | NO_ACTION | SUPERSEDED |
 | F5 | `review-finding:pr-2335-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2335-f6` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2335-f7` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2335-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2335-f9` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2335-f10` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2335-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2335-f12` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -214,6 +221,134 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101807073>
 
+### F6 - Runner-state text and `last-updated-utc` are stale
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515282>
+- Concern: statements about the runner's registration and state contradicted each other after the
+  removal, and ISSUE.md's `last-updated-utc` predated the changes.
+- Solution: the research doc's Current Exposure section became a dated history plus the current
+  state (registered again after T9), a note records the approval-policy change beside the
+  2026-09-24 facts table, the ISSUE.md status note says T9 and T3 are done, and
+  `last-updated-utc` was bumped.
+- Current-tree verification: at the PR head after the 2026-09-26 changes,
+  `self-hosted-runner-security-research.md` contains "History of the runner:" and "Current state
+  (2026-09-26)"; ISSUE.md contains "T9 was completed on 2026-09-26, and the runner was then
+  registered again (T3)" and `last-updated-utc: 2026-09-26 10:48`.
+- Resolution reference: docs(issues): make the #2323 runner-state history coherent; docs(issues): update the #2323 status note after re-registration
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316053>
+
+### F7 - Unchanged sections adopt the design the Risks bullet rejects
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515291>
+- Concern: Decision, In Scope, ADRs to create, AC5, Design and Ownership, and EPIC row 15 still
+  accepted the persistent-runner risk while the Risks bullet rejected it.
+- Solution: the maintainers reversed the rejection and accepted the persistent runner with
+  controls; the Risks bullet and status note were rewritten, so the listed sections and the EPIC
+  row agree with Risks again.
+- Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md contains
+  "(accepted with controls)" in the Risks bullet and no "this design is rejected"; EPIC row 15
+  still says "Moves `container.yaml` `test` to a persistent self-hosted runner".
+- Resolution reference: docs(issues): accept the #2323 persistent runner with controls
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316112>
+
+### F8 - Audit verification cites a removed head and a stale runner state
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515296>
+- Concern: all verification fields cited head `48bc2a60`, which force-pushes removed, and
+  PERSISTENT-RUNNER-PRIVILEGE's verification (`torrust-runner-01 offline`) no longer reproduced
+  after the removal, which the Processing Log did not record.
+- Solution: verification is anchored without a SHA and re-checked; PERSISTENT-RUNNER-PRIVILEGE
+  covers the removal, the decision, T9, and the re-registration; the Processing Log gains the
+  missing entries.
+- Current-tree verification: at the PR head after the 2026-09-26 changes, this record contains no
+  `48bc2a60` verification anchor, and the Processing Log has the 2026-09-25 07:35 removal entry.
+- Resolution reference: docs(pr-reviews): refresh PR #2335 audit verification
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316154>
+
+### F9 - "About 200 USD per month" does not survive the baseline
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515301>
+- Concern: the estimate came from the earlier analysis's 13-minute 16-core job, while the T1
+  baseline's core-independent parts alone take about 13.7 minutes; the analysis also priced the
+  standard runner as 2-core instead of 4 vCPU.
+- Solution: derived the estimate from the baseline (about 18.3 minutes per job; about 290 USD for
+  PR runs and 330 USD with push runs), updated the Goal bullet, comparison row, server ratio (about
+  a quarter), and research doc, and flagged the 2-core premise in the copied analysis.
+- Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md contains
+  "about 290 USD per month for the 378 PR runs" and "standard Linux runners for public repositories
+  have 4 vCPUs and 16 GB"; no "200 USD" remains outside the dated Progress Log.
+- Resolution reference: docs(issues): derive the #2323 larger-runner cost from the baseline
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316180>
+
+### F10 - Containerfile `RUN` steps cannot reach the host Docker socket
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515307>
+- Concern: research finding 1 said every PR-controlled item, including `Containerfile` `RUN` steps,
+  can run `docker run --privileged -v /:/host`, but BuildKit sandboxes `RUN` steps without the
+  host socket.
+- Solution: finding 1 now separates code the job runs on the host (E2E tools via `cargo run`,
+  `contrib/` scripts, workflow steps) from code inside the image build, which needs a BuildKit or
+  container escape.
+- Current-tree verification: at the PR head after the 2026-09-26 changes,
+  `self-hosted-runner-security-research.md` contains "BuildKit runs each `RUN` step in its own
+  sandbox without the host Docker socket".
+- Resolution reference: docs(issues): scope the #2323 root-escalation claim to host code
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316212>
+
+### F11 - "Even on ephemeral runners" contradicts finding 2
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515314>
+- Concern: the research intro ruled out untrusted root even on ephemeral runners, while finding 2
+  explains why GitHub-hosted ephemeral VMs grant root safely.
+- Solution: the intro now scopes the position to machines that outlive the job and links to the
+  Decision (2026-09-25) section that revised it.
+- Current-tree verification: at the PR head after the 2026-09-26 changes,
+  `self-hosted-runner-security-research.md` contains "not acceptable on any machine that outlives
+  the job" and no "even on ephemeral runners".
+- Resolution reference: docs(issues): reword the #2323 research root-access premise
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316267>
+
+### F12 - Validator silently skips Findings rows it cannot parse
+
+- PR number: 2335
+- Source review ID: 5317648676
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4104515324>
+- Concern: a Findings row with a padded or lowercase ID matched neither pattern, so the validator
+  skipped it and still reported `ok` with fewer rows.
+- Solution: the validator checks every data row of the `## Findings` table and fails on any row
+  that does not parse, and on a missing section.
+- Current-tree verification: at the PR head after the 2026-09-26 changes, the validator passes on
+  this record, and a temporary copy with `| F5  |` and `| copilot-1 |` fails with "Findings row does
+  not parse as a tracking row" for both.
+- Resolution reference: fix(pr-reviews): fail on unparsed audit Findings rows
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4111316287>
+
 ## Processing Log
 
 - 2026-09-24 17:26 UTC - Fetched Copilot review 5307823915 (four inline threads; the review body is
@@ -249,6 +384,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
   the 2026-09-26 changes", re-checked every verification string against the current tree, and
   brought PERSISTENT-RUNNER-PRIVILEGE's Solution and verification up to the removal, the
   decision, and the re-registration.
+- 2026-09-26 11:30 UTC - Fetched reviewer review 5317648676 (seven inline threads, F6 to F12, all
+  new findings; F7 was already fixed by the 2026-09-25 decision). Fixed F6 and F8 to F12 in
+  separate commits, rebased onto `torrust/develop`, pushed, and replied on all seven threads.
 
 ## Completion Rules
 
