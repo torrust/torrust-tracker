@@ -17,13 +17,21 @@ const UNKNOWN_FIELD_ISSUE: &str = include_str!("../fixtures/rejected/issue-unkno
 const INVALID_STATUS_ISSUE: &str = include_str!("../fixtures/rejected/issue-invalid-status.md");
 const INVALID_REFERENCE_ISSUE: &str = include_str!("../fixtures/rejected/issue-invalid-reference.md");
 const PLAIN_DOCUMENT: &str = "# Plain document\n";
-const OPEN_SPEC: &str = "docs/issues/open/1-example/ISSUE.md";
+/// The `spec-path` the crate fixtures declare, so a fixture written here carries no hidden D7 defect.
+const OPEN_SPEC: &str = "docs/issues/open/example/ISSUE.md";
 
 /// A strict v1 issue at `OPEN_SPEC`; only the status and the related-artifact line vary.
 fn open_strict_issue(status: &str, related_artifact: &str) -> String {
     format!(
         "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: {status}\npriority: p1\nepic: null\ngithub-issue: 1\nspec-path: {OPEN_SPEC}\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-26 11:30\"\nsemantic-links:\n  related-artifacts:\n    - {related_artifact}\n---\n"
     )
+}
+
+/// A crate fixture moved to `spec_path` with a `status` valid there, keeping its one defect.
+fn relocated_fixture(fixture: &str, spec_path: &str, status: &str) -> String {
+    fixture
+        .replace(&format!("spec-path: {OPEN_SPEC}"), &format!("spec-path: {spec_path}"))
+        .replace("status: planned", &format!("status: {status}"))
 }
 
 /// Inherited variables that would redirect git away from the disposable repository.
@@ -35,6 +43,8 @@ const GIT_ENVIRONMENT: &[&str] = &[
     "GIT_ALTERNATE_OBJECT_DIRECTORIES",
     "GIT_COMMON_DIR",
     "GIT_PREFIX",
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
 ];
 
 /// The exit code and the parsed NDJSON stderr records of one run. Stdout is checked to be empty.
@@ -102,6 +112,8 @@ impl Repository {
             "user.name=Test",
             "-c",
             "user.email=test@example.com",
+            "-c",
+            "core.hooksPath=/dev/null",
             "commit",
             "--quiet",
             "--no-gpg-sign",
@@ -298,6 +310,37 @@ fn it_should_validate_an_explicit_untracked_file() {
 }
 
 #[test]
+fn it_should_treat_a_directory_argument_literally_rather_than_as_a_glob() {
+    // Arrange: a directory named `d*` next to a sibling the glob `d*` would also match.
+    let repository = Repository::new();
+    repository.write("d*/inside.md", WRONG_SCALAR_ISSUE);
+    repository.write("docs/sibling.md", WRONG_SCALAR_ISSUE);
+    repository.stage("d*/inside.md");
+    repository.stage("docs/sibling.md");
+
+    // Act
+    let outcome = repository.validate(&["d*"]);
+
+    // Assert
+    assert_eq!(outcome.paths(), ["d*/inside.md"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_report_a_symlinked_file_under_its_own_path() {
+    // Arrange: `link.md` is a symlink to an invalid document elsewhere in the repository.
+    let repository = Repository::new();
+    repository.write("target/real.md", WRONG_SCALAR_ISSUE);
+    std::os::unix::fs::symlink("target/real.md", repository.root().join("link.md")).unwrap();
+
+    // Act
+    let outcome = repository.validate(&["link.md"]);
+
+    // Assert
+    assert_eq!(outcome.paths(), ["link.md"]);
+}
+
+#[test]
 fn it_should_expand_a_directory_to_its_tracked_markdown_files() {
     // Arrange: every file is invalid; only `tracked.md` is both tracked and Markdown.
     let repository = Repository::new();
@@ -442,18 +485,19 @@ fn it_should_report_each_failure_family_as_one_error_record(
 }
 
 #[rstest]
-#[case::closed_spec_finding_is_advisory("docs/issues/closed/1-example/ISSUE.md", WRONG_SCALAR_ISSUE, "warning", 0)]
-#[case::open_spec_finding_is_an_error("docs/issues/open/1-example/ISSUE.md", WRONG_SCALAR_ISSUE, "error", 1)]
-#[case::open_legacy_spec_is_an_error("docs/issues/open/1-example/ISSUE.md", PLAIN_DOCUMENT, "error", 1)]
+#[case::closed_spec_finding_is_advisory("docs/issues/closed/example/ISSUE.md", "done", WRONG_SCALAR_ISSUE, "warning", 0)]
+#[case::open_spec_finding_is_an_error(OPEN_SPEC, "planned", WRONG_SCALAR_ISSUE, "error", 1)]
+#[case::open_legacy_spec_is_an_error(OPEN_SPEC, "planned", PLAIN_DOCUMENT, "error", 1)]
 fn it_should_exit_one_only_when_a_record_is_an_error(
     #[case] path: &str,
+    #[case] status: &str,
     #[case] content: &str,
     #[case] expected_severity: &str,
     #[case] expected_exit_code: i32,
 ) {
-    // Arrange
+    // Arrange: one defect; the fixture's `spec-path` and status match where it is written.
     let repository = Repository::new();
-    repository.write(path, content);
+    repository.write(path, &relocated_fixture(content, path, status));
 
     // Act
     let outcome = repository.validate(&[path]);

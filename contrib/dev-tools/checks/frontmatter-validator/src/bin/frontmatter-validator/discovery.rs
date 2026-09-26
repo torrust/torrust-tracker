@@ -91,10 +91,8 @@ fn explicit_documents(paths: &[PathBuf], git: &Git, working_directory: &Path) ->
 
     let mut documents = Vec::new();
     for path in paths {
-        let absolute = working_directory
-            .join(path)
-            .canonicalize()
-            .map_err(|_| DiscoveryError::Usage(format!("path `{}` does not exist", path.display())))?;
+        let absolute = resolve(&working_directory.join(path))
+            .ok_or_else(|| DiscoveryError::Usage(format!("path `{}` does not exist", path.display())))?;
         let relative = absolute
             .strip_prefix(&root)
             .map_err(|_| DiscoveryError::Usage(format!("path `{}` is outside the repository", path.display())))
@@ -111,6 +109,21 @@ fn explicit_documents(paths: &[PathBuf], git: &Git, working_directory: &Path) ->
         }
     }
     Ok(documents)
+}
+
+/// A canonical path that keeps a symlinked file's own name, so it is reported where the user sees it.
+fn resolve(path: &Path) -> Option<PathBuf> {
+    if !path.exists() {
+        return None;
+    }
+    if path.is_dir() {
+        return path.canonicalize().ok();
+    }
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    Some(parent.canonicalize().ok()?.join(path.file_name()?))
 }
 
 /// Tracked Markdown whose working-tree file still exists; an unstaged deletion has nothing to check.

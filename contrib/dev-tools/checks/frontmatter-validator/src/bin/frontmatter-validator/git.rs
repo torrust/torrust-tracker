@@ -26,9 +26,10 @@ impl Git {
 
     /// Repository-relative paths of tracked files, optionally limited to one directory.
     pub fn tracked_files(&self, directory: Option<&str>) -> Result<Vec<String>, String> {
+        let literal_directory = directory.map(|directory| format!(":(literal){directory}"));
         let mut arguments = vec!["ls-files", "-z"];
-        if let Some(directory) = directory {
-            arguments.extend(["--", directory]);
+        if let Some(literal_directory) = &literal_directory {
+            arguments.extend(["--", literal_directory]);
         }
         null_separated(run_git(&self.root, &arguments)?)
     }
