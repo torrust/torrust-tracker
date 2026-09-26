@@ -3,38 +3,63 @@
 //! Output class `no-stdout-result`: stdout stays empty; exit codes are `0` for success, `1` for
 //! validation errors or runtime failures, and `2` for invalid invocation.
 
+mod discovery;
+mod git;
 mod record;
 
+use std::env;
 use std::ffi::OsString;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
-use std::{env, fs};
 
-use clap::Parser;
 use clap::error::ErrorKind;
+use clap::{ArgGroup, Parser};
+use discovery::{DiscoveryError, Mode, discover};
 use frontmatter_validator::profile::validate;
 use frontmatter_validator::{Diagnostic, DocumentOwnership, extract_with_ownership};
+use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
 /// Validate the frontmatter of Markdown files against the repository's v1 contract.
 #[derive(Debug, Parser)]
-#[command(name = "frontmatter-validator")]
+#[command(
+    name = "frontmatter-validator",
+    group(ArgGroup::new("mode").required(true).args(["paths", "staged", "all"]))
+)]
 struct Arguments {
-    /// Markdown files to validate.
-    #[arg(required = true)]
+    /// Markdown files, or directories whose tracked Markdown files are validated.
     paths: Vec<PathBuf>,
+    /// Validate the staged content of staged Markdown files.
+    #[arg(long)]
+    staged: bool,
+    /// Validate every tracked Markdown file.
+    #[arg(long)]
+    all: bool,
+}
+
+impl Arguments {
+    fn mode(self) -> Mode {
+        if self.staged {
+            Mode::Staged
+        } else if self.all {
+            Mode::All
+        } else {
+            Mode::Paths(self.paths)
+        }
+    }
 }
 
 fn main() -> ExitCode {
+    let working_directory = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let mut stderr = io::stderr().lock();
-    ExitCode::from(run(env::args_os(), &mut stderr))
+    ExitCode::from(run(env::args_os(), &working_directory, &mut stderr))
 }
 
 /// Runs the command with the program name as the first argument and returns its exit code.
-fn run(arguments: impl IntoIterator<Item = OsString>, stderr: &mut impl Write) -> u8 {
+fn run(arguments: impl IntoIterator<Item = OsString>, working_directory: &Path, stderr: &mut impl Write) -> u8 {
     let (records, exit_code) = match Arguments::try_parse_from(arguments) {
-        Ok(arguments) => validate_files(arguments.paths),
+        Ok(arguments) => validate_mode(arguments.mode(), working_directory),
         Err(error) if error.kind() == ErrorKind::DisplayHelp => (
             vec![Record::Help {
                 message: error.to_string().trim_end().to_owned(),
@@ -50,28 +75,27 @@ fn run(arguments: impl IntoIterator<Item = OsString>, stderr: &mut impl Write) -
     }
 }
 
-fn validate_files(mut paths: Vec<PathBuf>) -> (Vec<Record>, u8) {
-    if let Some(missing) = paths.iter().find(|path| !path.exists()) {
-        let message = format!("path `{}` does not exist", display_path(missing));
-        return (vec![Record::usage_error(message)], EXIT_USAGE);
-    }
-
-    paths.sort();
-    paths.dedup();
+fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
+    let git = match Git::discover(working_directory) {
+        Ok(git) => git,
+        Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
+    };
+    let documents = match discover(mode, &git, working_directory) {
+        Ok(documents) => documents,
+        Err(DiscoveryError::Usage(message)) => return (vec![Record::usage_error(message)], EXIT_USAGE),
+        Err(DiscoveryError::Runtime(message)) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
+    };
 
     let mut records = Vec::new();
-    for path in &paths {
-        match fs::read_to_string(path) {
+    for document in &documents {
+        match document.read(&git) {
             Ok(markdown) => {
                 records.extend(
-                    validate_document(path, &markdown).map(|diagnostic| Record::diagnostic(display_path(path), diagnostic)),
+                    validate_document(&document.path, &markdown).map(|diagnostic| Record::diagnostic(&document.path, diagnostic)),
                 );
             }
-            Err(error) => {
-                records.push(Record::runtime_error(
-                    Some(display_path(path)),
-                    format!("could not read the file: {error}"),
-                ));
+            Err(message) => {
+                records.push(Record::runtime_error(Some(document.path.clone()), message));
                 return (records, EXIT_FAILURE);
             }
         }
@@ -82,7 +106,7 @@ fn validate_files(mut paths: Vec<PathBuf>) -> (Vec<Record>, u8) {
 }
 
 /// The library reports the first extraction or profile failure of a document.
-fn validate_document(path: &Path, markdown: &str) -> Option<Diagnostic> {
+fn validate_document(path: &str, markdown: &str) -> Option<Diagnostic> {
     match extract_with_ownership(markdown, ownership(path)) {
         Ok(Some(frontmatter)) => validate(&frontmatter).err(),
         Ok(None) => None,
@@ -91,8 +115,8 @@ fn validate_document(path: &Path, markdown: &str) -> Option<Diagnostic> {
 }
 
 /// Agent Skills and agent profiles have an externally governed top-level schema.
-fn ownership(path: &Path) -> DocumentOwnership {
-    let file_name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+fn ownership(path: &str) -> DocumentOwnership {
+    let file_name = path.rsplit('/').next().unwrap_or(path);
     if file_name == "SKILL.md" || file_name.ends_with(".agent.md") {
         DocumentOwnership::External
     } else {
@@ -100,66 +124,32 @@ fn ownership(path: &Path) -> DocumentOwnership {
     }
 }
 
-fn display_path(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
-}
-
 #[cfg(test)]
 mod tests {
-    // Owns argument parsing, the D9 record catalog, record ordering, ownership dispatch, and exit codes.
+    // Owns argument parsing, help rendering, output failure, and ownership dispatch. Behavior that
+    // needs a repository is tested through the built binary in `tests/cli.rs`.
 
     use std::ffi::OsString;
-    use std::fs;
     use std::io::{self, Write};
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
 
+    use frontmatter_validator::DocumentOwnership;
     use rstest::rstest;
     use serde_json::{Map, Value};
-    use tempfile::TempDir;
 
-    use super::run;
+    use super::{ownership, run};
 
-    const VALID_ISSUE: &str = include_str!("../../../fixtures/accepted/issue.md");
-    const WRONG_SCALAR_ISSUE: &str = include_str!("../../../fixtures/rejected/issue-wrong-scalar.md");
-
-    /// The exit code and the parsed NDJSON records a run wrote to stderr.
-    struct Outcome {
-        exit_code: u8,
-        records: Vec<Map<String, Value>>,
-    }
-
-    impl Outcome {
-        fn only_record(&self) -> &Map<String, Value> {
-            assert_eq!(self.records.len(), 1, "expected exactly one record: {:?}", self.records);
-            &self.records[0]
-        }
-    }
-
-    fn validator(arguments: &[&str]) -> Outcome {
+    /// Records from a run that fails before any repository access.
+    fn parse_only(arguments: &[&str]) -> (u8, Vec<Map<String, Value>>) {
         let mut stderr = Vec::new();
         let arguments = std::iter::once("frontmatter-validator").chain(arguments.iter().copied());
-        let exit_code = run(arguments.map(OsString::from), &mut stderr);
+        let exit_code = run(arguments.map(OsString::from), Path::new("."), &mut stderr);
         let records = String::from_utf8(stderr)
             .unwrap()
             .lines()
             .map(|line| serde_json::from_str(line).unwrap())
             .collect();
-
-        Outcome { exit_code, records }
-    }
-
-    fn write_markdown(directory: &TempDir, name: &str, content: &str) -> PathBuf {
-        let path = directory.path().join(name);
-        fs::write(&path, content).unwrap();
-        path
-    }
-
-    fn argument(path: &Path) -> &str {
-        path.to_str().unwrap()
-    }
-
-    fn keys(record: &Map<String, Value>) -> Vec<&str> {
-        record.keys().map(String::as_str).collect()
+        (exit_code, records)
     }
 
     struct FailingWriter;
@@ -175,120 +165,20 @@ mod tests {
     }
 
     #[rstest]
-    #[case::strict_v1_issue(VALID_ISSUE)]
-    #[case::no_frontmatter("# Plain document\n")]
-    fn it_should_exit_zero_without_records_when_every_document_is_valid(#[case] content: &str) {
-        // Arrange
-        let directory = TempDir::new().unwrap();
-        let document = write_markdown(&directory, "document.md", content);
-
-        // Act
-        let outcome = validator(&[argument(&document)]);
-
-        // Assert: a clean run is silent.
-        assert_eq!((outcome.exit_code, outcome.records.len()), (0, 0));
-    }
-
-    #[test]
-    fn it_should_report_one_diagnostic_record_and_exit_one_for_an_invalid_document() {
-        // Arrange: a strict issue quotes its positive-integer `github-issue`.
-        let directory = TempDir::new().unwrap();
-        let document = write_markdown(&directory, "document.md", WRONG_SCALAR_ISSUE);
-
-        // Act
-        let outcome = validator(&[argument(&document)]);
-
-        // Assert: the record has the D9 diagnostic fields in contract order.
-        let record = outcome.only_record();
-        assert_eq!(outcome.exit_code, 1);
-        assert_eq!(
-            keys(record),
-            ["kind", "path", "severity", "category", "field_path", "message"]
-        );
-        assert_eq!(
-            (
-                &record["kind"],
-                &record["path"],
-                &record["severity"],
-                &record["category"],
-                &record["field_path"]
-            ),
-            (
-                &Value::from("diagnostic"),
-                &Value::from(argument(&document)),
-                &Value::from("error"),
-                &Value::from("wrong-scalar-type"),
-                &Value::from("github-issue"),
-            )
-        );
-    }
-
-    #[test]
-    fn it_should_emit_a_null_field_path_when_the_failure_concerns_no_single_field() {
-        // Arrange: the frontmatter is not valid YAML at all.
-        let directory = TempDir::new().unwrap();
-        let document = write_markdown(&directory, "document.md", "---\ndoc-type: [issue\n---\n");
-
-        // Act
-        let outcome = validator(&[argument(&document)]);
-
-        // Assert: the nullable field is present rather than omitted.
-        let record = outcome.only_record();
-        assert_eq!(
-            (&record["category"], record.get("field_path")),
-            (&Value::from("malformed-yaml"), Some(&Value::Null))
-        );
-    }
-
-    #[test]
-    fn it_should_order_records_by_path_regardless_of_argument_order() {
-        // Arrange: two invalid documents are passed in reverse path order.
-        let directory = TempDir::new().unwrap();
-        let first = write_markdown(&directory, "a.md", WRONG_SCALAR_ISSUE);
-        let second = write_markdown(&directory, "b.md", WRONG_SCALAR_ISSUE);
-
-        // Act
-        let outcome = validator(&[argument(&second), argument(&first)]);
-
-        // Assert
-        let paths: Vec<&Value> = outcome.records.iter().map(|record| &record["path"]).collect();
-        assert_eq!(paths, [&Value::from(argument(&first)), &Value::from(argument(&second))]);
-    }
-
-    #[rstest]
-    #[case::agent_skill("SKILL.md", 0)]
-    #[case::agent_profile("implementer.agent.md", 0)]
-    #[case::repository_document("notes.md", 1)]
-    fn it_should_validate_top_level_semantic_links_only_for_repository_owned_file_names(
-        #[case] file_name: &str,
-        #[case] expected_exit_code: u8,
-    ) {
-        // Arrange: identical content whose top-level extension is invalid; only the file name differs.
-        let directory = TempDir::new().unwrap();
-        let content = "---\nname: example\ndescription: Example.\nsemantic-links: invalid\n---\n";
-        let document = write_markdown(&directory, file_name, content);
-
-        // Act
-        let outcome = validator(&[argument(&document)]);
-
-        // Assert: externally governed files ignore the top-level extension.
-        assert_eq!(outcome.exit_code, expected_exit_code, "records: {:?}", outcome.records);
-    }
-
-    #[rstest]
-    #[case::no_arguments(&[])]
+    #[case::no_mode(&[])]
+    #[case::staged_and_all(&["--staged", "--all"])]
+    #[case::paths_and_staged(&["README.md", "--staged"])]
     #[case::unsupported_version_flag(&["--version"])]
-    #[case::nonexistent_path(&["does/not/exist.md"])]
-    fn it_should_report_a_single_usage_error_record_and_exit_two(#[case] arguments: &[&str]) {
+    fn it_should_report_a_single_usage_error_record_for_an_invalid_mode_selection(#[case] arguments: &[&str]) {
         // Act
-        let outcome = validator(arguments);
+        let (exit_code, records) = parse_only(arguments);
 
         // Assert
-        let record = outcome.only_record();
-        assert_eq!(outcome.exit_code, 2);
-        assert_eq!(keys(record), ["kind", "message", "exit_code"]);
+        assert_eq!(exit_code, 2);
+        assert_eq!(records.len(), 1, "records: {records:?}");
+        assert_eq!(records[0].keys().collect::<Vec<_>>(), ["kind", "message", "exit_code"]);
         assert_eq!(
-            (&record["kind"], &record["exit_code"]),
+            (&records[0]["kind"], &records[0]["exit_code"]),
             (&Value::from("usage_error"), &Value::from(2))
         );
     }
@@ -296,46 +186,45 @@ mod tests {
     #[test]
     fn it_should_render_help_as_a_single_help_record_and_exit_zero() {
         // Act
-        let outcome = validator(&["--help"]);
+        let (exit_code, records) = parse_only(&["--help"]);
 
         // Assert
-        let record = outcome.only_record();
-        assert_eq!(outcome.exit_code, 0);
-        assert_eq!(keys(record), ["kind", "message"]);
-        assert_eq!(record["kind"], "help");
-        assert!(record["message"].as_str().unwrap().contains("Usage: frontmatter-validator"));
-    }
-
-    #[test]
-    fn it_should_report_a_runtime_error_record_and_exit_one_when_a_file_cannot_be_read() {
-        // Arrange: the file exists but is not UTF-8 text.
-        let directory = TempDir::new().unwrap();
-        let document = directory.path().join("binary.md");
-        fs::write(&document, [0xff, 0xfe]).unwrap();
-
-        // Act
-        let outcome = validator(&[argument(&document)]);
-
-        // Assert
-        let record = outcome.only_record();
-        assert_eq!(outcome.exit_code, 1);
-        assert_eq!(keys(record), ["kind", "path", "message", "exit_code"]);
-        assert_eq!(
-            (&record["kind"], &record["path"], &record["exit_code"]),
-            (
-                &Value::from("runtime_error"),
-                &Value::from(argument(&document)),
-                &Value::from(1)
-            )
+        assert_eq!(exit_code, 0);
+        assert_eq!(records.len(), 1, "records: {records:?}");
+        assert_eq!(records[0].keys().collect::<Vec<_>>(), ["kind", "message"]);
+        assert_eq!(records[0]["kind"], "help");
+        assert!(
+            records[0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("Usage: frontmatter-validator")
         );
     }
 
     #[test]
     fn it_should_exit_one_when_stderr_cannot_be_written() {
         // Act: a usage error must be reported, but stderr rejects every write.
-        let exit_code = run(["frontmatter-validator"].map(OsString::from), &mut FailingWriter);
+        let exit_code = run(
+            ["frontmatter-validator"].map(OsString::from),
+            Path::new("."),
+            &mut FailingWriter,
+        );
 
         // Assert
         assert_eq!(exit_code, 1);
+    }
+
+    #[rstest]
+    #[case::agent_skill(".github/skills/dev/example/SKILL.md", DocumentOwnership::External)]
+    #[case::agent_profile(".github/agents/implementer.agent.md", DocumentOwnership::External)]
+    #[case::root_agent_skill("SKILL.md", DocumentOwnership::External)]
+    #[case::repository_document("docs/issues/open/1-example/ISSUE.md", DocumentOwnership::Repository)]
+    #[case::skill_named_directory("docs/SKILL.md/notes.md", DocumentOwnership::Repository)]
+    fn it_should_dispatch_ownership_by_file_name(#[case] path: &str, #[case] expected: DocumentOwnership) {
+        // Act
+        let actual = ownership(path);
+
+        // Assert
+        assert_eq!(actual, expected);
     }
 }

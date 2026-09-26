@@ -318,7 +318,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
 | T2 | DONE | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
-| T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
+| T3 | DONE | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | TODO | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
@@ -448,6 +448,17 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   repository, following `clippy-allow-reasons/tests/cli.rs`. Those tests clear inherited
   `GIT_*` variables so a run inside a git hook cannot touch the real repository - User
   conversation
+- 2026-09-26 11:01 UTC - GitHub Copilot - Completed T3:
+  - Exactly one mode is required: paths, `--staged`, or `--all`.
+  - Explicit paths resolve against the working directory. They must exist and be inside the
+    repository (R4), and are rendered repository-relative with `/`.
+  - Directories expand to tracked Markdown. `--all` covers tracked Markdown still in the working
+    tree. `--staged` validates the index content of added, copied, modified, and renamed files.
+  - D6 exclusions apply in every mode.
+  - Git runs read-only with `--no-optional-locks`, and a missing repository is a `runtime_error`
+    with a `null` path.
+
+  Five mutations were each caught. 112 crate tests pass - `test-design-review.md`
 
 ## Acceptance Criteria
 

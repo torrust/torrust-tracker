@@ -134,3 +134,61 @@ byte-identical with `cmp`):
 | Remove `paths.sort()` | 1 (`it_should_order_records_by_path_regardless_of_argument_order`) |
 | Omit `field_path` when `None` | 1 (`it_should_emit_a_null_field_path_when_the_failure_concerns_no_single_field`) |
 | `--help` exits `2` | 1 (`it_should_render_help_as_a_single_help_record_and_exit_zero`) |
+
+## T3 - Discovery, `--staged`, `--all`, and Exclusions
+
+Boundary decision: git-dependent behavior is tested through the built binary in
+`tests/cli.rs`, following the `clippy-allow-reasons/tests/cli.rs` precedent. Each test gets a
+disposable `git init` repository in a `TempDir`, which removes it on drop. Every git invocation,
+including the binary's, clears inherited `GIT_*` variables and sets `GIT_CEILING_DIRECTORIES` to
+the system temp directory. A run inside a git hook therefore cannot read or change the real
+repository. Tests that need no repository stay as unit tests in `main.rs`: mode selection, help,
+stderr failure, and ownership dispatch.
+
+T2 tests moved: the explicit-file tests from `main.rs` now run in `tests/cli.rs`. R4 makes an
+explicit path outside a repository a usage error, and D9 renders repository-relative paths. Their
+contracts are unchanged, apart from the path now being repository-relative.
+
+Tests added (20 integration and 11 unit test cases in total after the move):
+
+- mode selection usage errors: no mode, `--staged --all`, paths with `--staged`, `--version`;
+- `it_should_dispatch_ownership_by_file_name`, including a directory named `SKILL.md`;
+- repository-relative paths from a subdirectory working directory;
+- usage errors for nonexistent and outside-repository paths;
+- a runtime error with a `null` path outside any repository, and with the path for unreadable
+  content;
+- an explicit untracked file is validated;
+- directory expansion to tracked Markdown only;
+- `--all` covers tracked Markdown that still exists;
+- `--staged` uses index content in both directions, validates only staged files, and ignores a
+  staged deletion;
+- exclusions apply in every mode.
+
+Prose-first comparison:
+
+- **Arrange** names repository state with one-level actions: `write`, `stage`, `commit`, `delete`.
+  The causal difference is visible in each test body:
+  - which file is tracked, staged, deleted, or untracked;
+  - which prefix it lives under;
+  - which version is staged versus in the working copy.
+
+  Every unselected file uses the same invalid content as the selected one. A wrong selection
+  therefore shows up as an extra path, not as a silent pass.
+- **Act** is one `validate(&[...])` call with the command-line arguments a user types.
+- **Assert** compares the ordered list of reported paths, or the exit code and record identity,
+  against literals. The `Outcome` helper also asserts that stdout is empty on every run, which
+  covers the D9 no-stdout rule without a separate test per mode.
+
+Mutation evidence (stable Rust toolchain; each restored from a `.tmp` backup and verified
+byte-identical with `cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| `--staged` reads the working tree instead of the index | 2 (both staged-content cases) |
+| Empty exclusion list | 4 (all exclusion cases) |
+| `--all` keeps tracked files deleted from the working tree | 1 |
+| No `--diff-filter=ACMR` on staged discovery | 1 (staged deletion) |
+| Paths outside the repository accepted | 1 (outside-repository usage error) |
+
+The first attempt at the index mutation did not compile, because the unused index reader tripped
+`-D warnings`. It was redone with the reader still referenced, and it failed as expected.
