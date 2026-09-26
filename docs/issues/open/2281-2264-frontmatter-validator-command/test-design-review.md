@@ -304,3 +304,20 @@ Whole-repository run (`--all`, read-only, 0.04 s, empty stdout):
 - no D7 findings in the five open v1 specs.
 
 The structural errors are T6 input.
+
+## T8 - Command-Boundary Failure Families
+
+AC8 requires representative field, scalar, allowed-value, reference, lifecycle, and path failures
+*within the command boundary*. The library tests covered all six. `tests/cli.rs` covered only the
+scalar, `legacy-shape`, and snapshot-path cases.
+
+Test added: `it_should_report_each_failure_family_as_one_error_record` in `tests/cli.rs`, one case
+per family:
+
+- the four rejected crate fixtures, included as text;
+- a `done` open spec for the lifecycle case;
+- a removed related artifact for the path case.
+
+Each case writes one defect into an open spec, runs the built binary on it, and asserts
+`(exit code, severity, category, field_path)` against literals. Behavior is already proven by the
+T1-T5 mutation tables; this table proves the command renders each family end to end.

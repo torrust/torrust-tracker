@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-last-updated-utc: "2026-09-25 08:40"
+last-updated-utc: "2026-09-26 13:25"
 ---
 
 # Manual Verification Evidence
@@ -23,10 +23,178 @@ do not invent commands, output, logs, or results.
   PyYAML for the independent YAML parse.
 - Prerequisites and setup performed: none beyond a repository checkout.
 
+The `V` sections were run on 2026-09-26 13:00-13:25 UTC against the tree at
+`docs(issues): [#2281] record T7 completion`, with the stable Rust toolchain and git 2.53.0.
+`cargo run --offline` built the command. Failing scenarios ran in a disposable detached
+`git worktree` under `.tmp/`, which has its own index; the main repository's index and working tree
+stayed clean. Output lines are quoted as printed, except that the absolute binary path is shown as
+`frontmatter-validator`.
+
 ## Verification Processes
 
-Sections `V1`-`V7` are reserved for the issue's manual scenarios `M1`-`M7`. Bug-fix evidence uses
-`B` sections.
+Sections `V1`-`V7` record the issue's manual scenarios `M1`-`M7`. Bug-fix evidence uses `B`
+sections.
+
+### V1 - Focused Validation Passes (M1)
+
+- Goal: validate this issue's spec and its folder with explicit paths.
+- Status: `DONE`
+
+```text
+$ frontmatter-validator docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
+exit=0 stdout_bytes=0 stderr_records=0
+
+$ frontmatter-validator docs/issues/open/2281-2264-frontmatter-validator-command
+exit=0 stdout_bytes=0 stderr_records=0
+```
+
+Conclusion: met. Clean runs are silent on both channels.
+
+### V2 - Focused Validation Fails (M2)
+
+- Goal: corrupt one field in a disposable copy and validate it.
+- Status: `DONE`
+
+```text
+$ sed 's/^github-issue: 2281$/github-issue: "2281"/' .../ISSUE.md > .tmp/m2-corrupted-ISSUE.md
+$ frontmatter-validator .tmp/m2-corrupted-ISSUE.md
+exit=1 stdout_bytes=0 stderr_records=1
+{"kind":"diagnostic","path":".tmp/m2-corrupted-ISSUE.md","severity":"error","category":"wrong-scalar-type","field_path":"github-issue","message":"`github-issue`: invalid type: string \"2281\", expected u64"}
+```
+
+Conclusion: met. One NDJSON error names the repository-relative path, category, and field path.
+
+### V3 - Staged Mode Uses Index Content (M3)
+
+- Goal: show that `--staged` validates the index, not the working copy, in both directions.
+- Status: `DONE`
+
+```text
+# broken content staged, working copy restored to the valid version
+index: github-issue: "2281"  working tree: github-issue: 2281
+$ frontmatter-validator --staged
+exit=1 stdout_bytes=0
+{"kind":"diagnostic","path":"docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md","severity":"error","category":"wrong-scalar-type","field_path":"github-issue",...}
+
+# a valid change staged, working copy then broken
+staged files: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
+index: github-issue: 2281  working tree: github-issue: "2281"
+$ frontmatter-validator --staged
+exit=0 stdout_bytes=0
+```
+
+The first reverse-direction attempt reset the index before running, so nothing was staged and the
+pass proved nothing. It was redone with a real staged change, as shown.
+
+Conclusion: met.
+
+### V4 - Whole-Tree Mode (M4)
+
+- Goal: run `--all` on the implementation branch and record the counts.
+- Status: `DONE`
+
+```text
+$ frontmatter-validator --all
+exit=1 stdout_bytes=0
+     44 error   legacy-shape
+      2 warning wrong-scalar-type
+      1 warning invalid-reference-syntax
+      1 error   invalid-allowed-value
+```
+
+The 44 `legacy-shape` errors are:
+
+- 42 legacy issue specs;
+- the unassigned draft EPIC;
+- one draft whose envelope error had masked its legacy shape.
+
+The one other error is the accepted AC10 exception: the completed #2324 spec, still in `open/`
+with `status: open`. The warnings are advisory history in closed specs #2280, #2295, and #2308.
+
+Conclusion: met, with the recorded #2324 exception.
+
+### V5 - Pre-Commit Step (M5)
+
+- Goal: run the real `pre-commit.sh` with staged invalid and then fixed content, for a v1 spec
+  and for a legacy open spec.
+- Status: `DONE`
+- Setup: the disposable worktree shared the main `target/` through `CARGO_TARGET_DIR` and wrote
+  logs under `.tmp/` through `TORRUST_GIT_HOOKS_LOG_DIR`.
+
+```text
+# M5a: staged invalid v1 spec (quoted github-issue)
+hook exit=1
+[Step 3/9] Checking staged Markdown frontmatter ... FAIL (2s)
+{"kind":"diagnostic",...,"category":"wrong-scalar-type","field_path":"github-issue",...}
+
+# M5a: fixed (only a valid timestamp change staged)
+hook exit=0
+[Step 3/9] Checking staged Markdown frontmatter ... PASS (0s)
+SUCCESS: All pre-commit checks passed! (44s)
+
+# M5b: staged text edit to legacy open spec #2179
+hook exit=1
+[Step 3/9] Checking staged Markdown frontmatter ... FAIL (1s)
+{"kind":"diagnostic","path":"docs/issues/open/2179-fix-docker-e2e-package-flag/ISSUE.md","severity":"error","category":"legacy-shape","field_path":null,...}
+
+# M5b: same edit plus a v1 migration (schema-version, quoted branch and timestamp)
+hook exit=0
+[Step 3/9] Checking staged Markdown frontmatter ... PASS (0s)
+SUCCESS: All pre-commit checks passed! (27s)
+```
+
+The first M5b attempt appended an empty line, which made two consecutive blank lines. The
+frontmatter step passed after migration, but `linter all` failed on markdownlint MD012 for that
+throwaway edit. The case was redone with a text edit, as shown. #2179 is also closed on GitHub
+while its spec is still in `open/`: another archive candidate, recorded in the issue progress log.
+
+Conclusion: met. The named step fails and then passes in both cases.
+
+### V6 - Invalid Invocation and Help (M6)
+
+- Status: `DONE`
+
+```text
+$ frontmatter-validator
+exit=2 stdout_bytes=0 stderr_records=1
+{"kind":"usage_error","message":"error: the following required arguments were not provided:\n  <PATHS|--staged|--all>\n\nUsage: frontmatter-validator <PATHS|--staged|--all>\n\nFor more information, try '--help'.","exit_code":2}
+
+$ frontmatter-validator --staged --all
+exit=2 stdout_bytes=0 stderr_records=1
+{"kind":"usage_error","message":"error: the argument '--staged' cannot be used with '--all'...","exit_code":2}
+
+$ frontmatter-validator does/not/exist.md
+exit=2 stdout_bytes=0 stderr_records=1
+{"kind":"usage_error","message":"path `does/not/exist.md` does not exist","exit_code":2}
+
+$ frontmatter-validator --version
+exit=2 stdout_bytes=0 stderr_records=1
+{"kind":"usage_error","message":"error: unexpected argument '--version' found...","exit_code":2}
+
+$ frontmatter-validator --help
+exit=0 stdout_bytes=0 stderr_records=1
+{"kind":"help","message":"Validate the frontmatter of Markdown files against the repository's v1 contract\n\nUsage: frontmatter-validator <PATHS|--staged|--all>..."}
+```
+
+Conclusion: met. Each invocation writes exactly one D9 record and nothing on stdout.
+
+### V7 - Offline (M7)
+
+- Goal: repeat M1 and M4 without network access.
+- Status: `DONE`
+
+The commands ran inside `unshare -rn`, a user namespace with no network interfaces, with
+`cargo run --offline`:
+
+```text
+network: unavailable
+M7/M1 exit=0 stdout_bytes=0 stderr_records=0
+M7/M4 exit=1 stdout_bytes=0
+```
+
+The M4 counts matched V4 exactly.
+
+Conclusion: met. Nothing needed the network.
 
 ### B1 - Unquoted `issue #<n>` References Are Accepted as the Path `issue`
 

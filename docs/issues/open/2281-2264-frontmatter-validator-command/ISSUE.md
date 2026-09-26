@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-26 13:20"
+last-updated-utc: "2026-09-26 13:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -323,7 +323,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | DONE | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
 | T7 | DONE | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
-| T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
+| T8 | IN_PROGRESS | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
 ## Commit Points
 
@@ -353,11 +353,11 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] Specification reviewed and approved by user/maintainer
 - [x] Spec-only PR #2337 merged into `develop` before implementation
 - [x] Vertical-slice design review recorded after T2
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -526,38 +526,55 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
     the crate is now excluded like the other dev-tool crates.
 
   Implementation is complete; awaiting maintainer review before T8 - This specification
+- 2026-09-26 13:25 UTC - Jose Celano - Acknowledged the T7 report and approved continuing
+  with T8 - User conversation
+- 2026-09-26 13:25 UTC - GitHub Copilot - T8 verification, pending the independent Task
+  Reviewer:
+  - Manual scenarios M1-M7 are recorded in `manual-verification-evidence.md` V1-V7. Failing
+    cases ran in a disposable `.tmp/` worktree, and the offline runs used `unshare -rn`.
+  - Two first attempts proved nothing and were redone: the reverse M3 case had nothing staged,
+    and the first M5b edit tripped markdownlint MD012.
+  - A command-boundary failure-family table was added for AC8, bringing the crate to 176
+    tests.
+  - All acceptance criteria were reviewed against evidence. AC10 holds with the accepted #2324
+    exception.
+  - Another completed issue, #2179, still has its spec in `open/` and is an archive candidate.
+  - `implementation-retrospective.md` records the material discoveries.
+
+  Evidence: `manual-verification-evidence.md`, `test-design-review.md`,
+  `implementation-retrospective.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The command supports explicit file or directory paths, `--staged`, and a documented
+- [x] AC1: The command supports explicit file or directory paths, `--staged`, and a documented
       `--all` whole-tree mode; exactly one mode is required.
-- [ ] AC2: The command emits no stdout in any mode, including help and usage errors. Stderr carries
+- [x] AC2: The command emits no stdout in any mode, including help and usage errors. Stderr carries
       only the D9 record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`), with
       every listed field always present, nullable fields as `null`, and a deterministic order;
       tests pin each record kind.
-- [ ] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
+- [x] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
       runtime failure, and `2` for invalid invocation.
-- [ ] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open primary specs
+- [x] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open primary specs
       and `issue`/`epic` records that are not strict v1, including primary specs without
       frontmatter; closed-spec incompatibility and `experimental-field` are warnings.
-- [ ] AC5: Strict v1 records are checked for status/location, `spec-path`, related-artifact file or
+- [x] AC5: Strict v1 records are checked for status/location, `spec-path`, related-artifact file or
       directory existence, and skill resolution per D7. `--staged` resolves against the index, and
       closed specs get only status and `spec-path` warnings.
-- [ ] AC6: Ownership dispatch (D5) and exclusions (D6) are applied in every mode.
-- [ ] AC7: Pre-commit invokes the validator as a named, read-only `--staged` step. No CI or other
+- [x] AC6: Ownership dispatch (D5) and exclusions (D6) are applied in every mode.
+- [x] AC7: Pre-commit invokes the validator as a named, read-only `--staged` step. No CI or other
       integration tier is added.
-- [ ] AC8: Accepted/rejected fixtures and mutation cases cover representative field, scalar,
+- [x] AC8: Accepted/rejected fixtures and mutation cases cover representative field, scalar,
       allowed-value, reference, lifecycle, and path failures within the command boundary.
-- [ ] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
+- [x] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
       without network access, including no-stdout behavior.
-- [ ] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports no
+- [x] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports no
       errors other than `legacy-shape` for the legacy issue specs and the draft EPIC not yet
       migrated. The error and warning counts are recorded. Accepted exception: the completed
       #2324 spec's `status: open` until the usual archive PR moves it to `closed/`.
-- [ ] AC11: The command, its temporary integration point, its relocation path under #2003, and
+- [x] AC11: The command, its temporary integration point, its relocation path under #2003, and
       the D10 migration checklist are documented, and the CLI output ADR classifies the binary.
-- [ ] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -575,13 +592,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors; error and warning counts recorded. | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | TODO | `manual-verification-evidence.md` section V7 |
+| M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors, plus the accepted #2324 exception; error and warning counts recorded. | DONE | `manual-verification-evidence.md` section V4 |
+| M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | DONE | `manual-verification-evidence.md` section V5 |
+| M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | DONE | `manual-verification-evidence.md` section V6 |
+| M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | DONE | `manual-verification-evidence.md` section V7 |
 
 Record the toolchain for every command result. Disposable Git worktree checkouts live under `.tmp/`
 and are removed after use; the real repository index is never used for failing scenarios.
@@ -590,17 +607,17 @@ and are removed after use; the real repository index is never used for failing s
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | |
-| AC2 | TODO | |
-| AC3 | TODO | |
-| AC4 | TODO | |
-| AC5 | TODO | |
-| AC6 | TODO | |
-| AC7 | TODO | |
-| AC8 | TODO | |
-| AC9 | TODO | |
-| AC10 | TODO | |
-| AC11 | TODO | |
+| AC1 | DONE | Unit tests for the mode group (`main.rs`); `tests/cli.rs` explicit-file, directory, `--staged`, and `--all` tests; README usage; V1, V3, V4 |
+| AC2 | DONE | `record.rs` catalog; key-order and `null` assertions in `tests/cli.rs` and `main.rs` for all four kinds; `Outcome` asserts empty stdout on every CLI run; ordering test; V6 |
+| AC3 | DONE | `it_should_exit_one_only_when_a_record_is_an_error`; usage-error tests; V2, V6 |
+| AC4 | DONE | `repository::tests` legacy-shape, severity-by-location, and experimental-field tables with T4 mutations; V5b |
+| AC5 | DONE | `repository::tests` D7 tables with T5 mutations; `it_should_resolve_related_artifacts_against_the_index_only_with_staged` |
+| AC6 | DONE | Ownership and exclusion tests in every mode (`repository::tests`, `tests/cli.rs`); T2/T3 mutations |
+| AC7 | DONE | `pre-commit.sh` step `Checking staged Markdown frontmatter`; no CI or pre-push change; V5 |
+| AC8 | DONE | Library fixture and mutation tables (T1-T5); `it_should_report_each_failure_family_as_one_error_record` at the command boundary |
+| AC9 | DONE | V1-V7, including `unshare -rn` offline runs (V7) and no-stdout checks |
+| AC10 | DONE | V4: 44 `legacy-shape` errors, the accepted #2324 exception, 3 closed-spec warnings; seven EPIC migration commits |
+| AC11 | DONE | Crate `README.md` (usage, migration checklist, relocation); CLI output ADR row; `run-pre-commit-checks` skill step |
 
 ## Risks and Trade-offs
 
@@ -631,10 +648,9 @@ and are removed after use; the real repository index is never used for failing s
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a progress-log
-  entry explaining why no material discovery occurred.
+- Retrospective: created as `implementation-retrospective.md`. The material discoveries were the
+  container test-stage gap, masked errors under a first-error validator, out-of-spec baseline
+  findings, and a pipe-hidden gate failure.
 - The independent Task Reviewer records its result in `agent-review-reports.md` using
   `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
