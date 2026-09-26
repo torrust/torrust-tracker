@@ -47,7 +47,8 @@ event value directly on the processor's event bus.
 #### Steps Performed
 
 1. Ran the existing real-loopback contract, which starts the tracker and sends eleven announce
-   requests with `ConnectionId::new(0)` from a real UDP client socket:
+   requests with `ConnectionId::new(0)` from a real UDP client socket, each answered with an error
+   response, then a twelfth that is banned before handling:
 
    ```text
    cargo test -p torrust-tracker-udp-server --test integration should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal
