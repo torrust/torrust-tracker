@@ -67,7 +67,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   queue limit for self-hosted jobs, and made runner-offline detection with alerting and a
   documented fallback procedure explicit in the Deadline bullet, AC4, M5, T8, the risk, and Open
   Question 6.
-- Current-tree verification: at head `48bc2a60`, ISSUE.md contains "`timeout-minutes` bounds only
+- Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md contains "`timeout-minutes` bounds only
   execution time" and AC4 requires "A runner-offline condition is detected and alerts maintainers,
   and a documented fallback procedure moves or reruns queued jobs".
 - Resolution reference: docs(issues): require offline detection and fallback for #2323 runner
@@ -83,16 +83,23 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: adding the `runner` account to the `docker` group gives fork-PR code root-equivalent
   control of the persistent host, including the runner install and credentials, with changes that
   persist into later jobs. Keeping Docker Hub secrets off the host does not contain it.
-- Solution: the maintainer ruled root-equivalent access for fork-PR code unacceptable, so the
-  persistent-runner design was rejected. The risk bullet now states the full exposure and the
-  rejection, a design-status note puts the plan from T4 on hold, the security research records why
-  no persistent self-hosted runner is safe for fork PRs, and `torrust-runner-01` was stopped and
-  disabled.
-- Current-tree verification: at head `48bc2a60`, ISSUE.md contains "Fork-PR code execution on a
-  persistent runner (rejected)" and the design-status note;
-  `self-hosted-runner-security-research.md` exists; `gh api
-  repos/torrust/torrust-tracker/actions/runners` reports `torrust-runner-01 offline`.
-- Resolution reference: docs(issues): state the full fork-PR exposure of the #2323 runner
+- Solution: the maintainer first ruled root-equivalent access for fork-PR code unacceptable. The
+  risk bullet was rewritten to state the full exposure, the security research recorded the
+  alternatives, and `torrust-runner-01` was stopped, disabled, and then removed from the
+  repository (2026-09-25). After reviewing the contribution profile, the maintainers accepted the
+  persistent runner with controls (2026-09-25): approval for all external contributors, required
+  organization 2FA (T9, done 2026-09-26), Dependabot and `main`/`releases/**` events on
+  GitHub-hosted runners, and publish isolation (T5). The runner was registered again on
+  2026-09-26, after T9.
+- Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md contains
+  "Fork-PR code execution on a persistent runner (accepted with controls)" with the full exposure
+  (runner registration, later `push` jobs, the `needs:` publish gate), and T9 and AC7 are marked
+  done; `self-hosted-runner-security-research.md` records the history in Current Exposure;
+  `gh api repos/torrust/torrust-tracker/actions/runners` reports
+  `torrust-runner-01  online  self-hosted,Linux,X64,torrust-hetzner`, and
+  `gh api repos/torrust/torrust-tracker/actions/permissions/fork-pr-contributor-approval`
+  reports `all_external_contributors` (both checked 2026-09-26).
+- Resolution reference: docs(issues): state the full fork-PR exposure of the #2323 runner; docs(issues): accept the #2323 persistent runner with controls
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806067>
 
@@ -106,7 +113,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   together take about one minute" understates the non-build portion of the job.
 - Solution: stated the E2E range separately (3.4 to 7.5 minutes, median 3.6) and the remaining
   setup and cleanup steps as about one minute, measured at 59 s in run `35972794173`.
-- Current-tree verification: at head `48bc2a60`, `benchmark-results.md` contains "The E2E steps
+- Current-tree verification: at the PR head after the 2026-09-26 changes, `benchmark-results.md` contains "The E2E steps
   take 3.4 to 7.5 minutes (median 3.6)".
 - Resolution reference: docs(issues): correct non-build step durations in #2323 baseline
 - Follow-up PR URL: N/A
@@ -122,7 +129,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   output with OS and busy fields cannot be reproduced.
 - Solution: extended the query to emit all five fields joined by two spaces, re-ran it, and
   recorded its exact output.
-- Current-tree verification: at head `48bc2a60`, `runner-agent-installation.md` shows the query
+- Current-tree verification: at the PR head after the 2026-09-26 changes, `runner-agent-installation.md` shows the query
   with `.os` and `.busy` fields and the output
   `torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner`.
 - Resolution reference: docs(issues): align #2323 runner check output with its query
@@ -142,7 +149,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Solution: no separate change; it requests the same current-tree change as
   PERSISTENT-RUNNER-PRIVILEGE. That fix incorporates the exposure details listed here, and the
   research records them under finding 1.
-- Current-tree verification: the PERSISTENT-RUNNER-PRIVILEGE checks at head `48bc2a60`; the risk
+- Current-tree verification: the PERSISTENT-RUNNER-PRIVILEGE checks at the PR head after the 2026-09-26 changes; the risk
   bullet names the runner registration, later `push` jobs, the `needs:` publish gate, and the
   `main` and `releases/**` events.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806447>
@@ -158,7 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: four places tie `timeout-minutes` to the offline-runner case, but it only bounds a
   running job, and the fallback remained an open question.
 - Solution: no separate change; it requests the same current-tree change as OPS-001.
-- Current-tree verification: the OPS-001 checks at head `48bc2a60`.
+- Current-tree verification: the OPS-001 checks at the PR head after the 2026-09-26 changes.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806658>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806658>
@@ -172,7 +179,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: by the table's medians the job minus the build step is about 314 s, of which 218 s is
   E2E, so the one-minute sentence is wrong.
 - Solution: no separate change; it requests the same current-tree change as DOC-002.
-- Current-tree verification: the DOC-002 checks at head `48bc2a60`.
+- Current-tree verification: the DOC-002 checks at the PR head after the 2026-09-26 changes.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806789>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806789>
@@ -186,7 +193,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: the query emits three fields, while the recorded line has five, including `Linux` and
   `busy=false`.
 - Solution: no separate change; it requests the same current-tree change as DOC-001.
-- Current-tree verification: the DOC-001 checks at head `48bc2a60`.
+- Current-tree verification: the DOC-001 checks at the PR head after the 2026-09-26 changes.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806936>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2335#discussion_r4101806936>
@@ -201,7 +208,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   Question 1.
 - Solution: pointed the cell at Open Question 1 and noted that 8 vCPU / 16 GB at about €69
   matches the shared-vCPU CPX42 line of the earlier cost table.
-- Current-tree verification: at head `48bc2a60`, ISSUE.md's server-type cell starts with
+- Current-tree verification: at the PR head after the 2026-09-26 changes, ISSUE.md's server-type cell starts with
   "Open (Open Question 1)".
 - Resolution reference: docs(issues): point #2323 server type at open question 1
 - Follow-up PR URL: N/A
@@ -227,11 +234,21 @@ deliver findings through GitHub and have no repository-artifact obligation.
   `in_reply_to_id` is its source comment.
 - 2026-09-25 07:02 UTC - `reply-status --login josecelano` exited 0; resolved all nine threads;
   a GraphQL refresh reports 9 threads, 0 unresolved.
+- 2026-09-25 07:35 UTC - Removed `torrust-runner-01` from the repository and the server
+  (`docs(issues): record removal of the #2323 runner`). This entry and the matching update to
+  PERSISTENT-RUNNER-PRIVILEGE were added on 2026-09-26 after reviewer finding F8.
 - 2026-09-25 07:47 UTC - Fixed the validator gap noted at 07:00 in
   `fix(pr-reviews): validate reviewer-provided finding IDs in audit records`. The fixed script
   reports `{"status": "ok", "rows": 9, "log_entries": 7, "failures": 0}` for this audit, and a
   temporary copy with a wrong OPS-001 severity and a reply URL from another thread fails with both
   errors.
+- 2026-09-25 16:34 UTC - Maintainers accepted the persistent runner with controls
+  (`docs(issues): accept the #2323 persistent runner with controls`).
+- 2026-09-26 09:49 UTC - T9 controls done and `torrust-runner-01` registered again.
+- 2026-09-26 11:15 UTC - F8: replaced the `48bc2a60` verification anchors with "the PR head after
+  the 2026-09-26 changes", re-checked every verification string against the current tree, and
+  brought PERSISTENT-RUNNER-PRIVILEGE's Solution and verification up to the removal, the
+  decision, and the re-registration.
 
 ## Completion Rules
 
