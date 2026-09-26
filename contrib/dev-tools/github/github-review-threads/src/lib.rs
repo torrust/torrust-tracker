@@ -446,6 +446,7 @@ mod tests {
             .collect()
     }
 
+    /// Reads the skill's `gh api graphql -f query='...'` block; a layout change fails loudly here, never silently.
     fn skill_fallback_query(skill: &str) -> &str {
         let start = skill.find("-f query='").expect("the skill should hold a fallback query") + "-f query='".len();
         let length = skill[start..].find('\'').expect("the fallback query should be closed");
@@ -454,7 +455,7 @@ mod tests {
 
     #[test]
     fn it_should_request_the_line_and_resolver_of_each_thread() {
-        // Arrange: the thread-level fields that carry resolution evidence, next to `path`.
+        // Arrange: evidence fields adjacent to thread-only `path`; adjacency pins them at thread level, not comments.
         let evidence_fields = ["path", "line", "resolvedBy", "{", "login", "}"];
 
         // Act: read the query sent to GitHub.
