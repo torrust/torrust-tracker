@@ -2,7 +2,7 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: open
+status: planned
 priority: p3
 epic: null
 github-issue: 2345
