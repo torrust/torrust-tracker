@@ -35,15 +35,22 @@ Verified with the GitHub API on 2026-09-24:
 A `pull_request` workflow checks out the PR merge branch by default: "`GITHUB_SHA` is the SHA of
 the merge commit on the merge branch" and `actions/checkout` uses it
 ([Events that trigger workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)).
-The `Test (Docker)` job then executes code that the PR controls:
+The `Test (Docker)` job then executes code that the PR controls. Some of it runs directly on the
+host as `runner`:
 
-- the `Containerfile` and every `RUN` step in it;
-- Cargo build scripts (`build.rs`), procedural macros, and tests;
-- `cargo run` of the E2E tools and the shell scripts under `contrib/`.
+- the `cargo run -p torrust-tracker-e2e-tools` steps, which compile and run the PR's Cargo build
+  scripts (`build.rs`), procedural macros, and the E2E tools;
+- the shell scripts under `contrib/` that the workflow calls;
+- any step of the workflow file itself, which the PR can change.
 
 Any of these can run `docker run --privileged -v /:/host ...` because `runner` is in the `docker`
 group, which is root on the host. No workflow change is needed. A PR can also change the workflow
 files themselves, because `pull_request` runs the workflow definitions from the merge commit.
+
+The rest runs inside the image build: the `Containerfile`'s `RUN` steps, including the unit tests
+that run in the build. BuildKit runs each `RUN` step in its own sandbox without the host Docker
+socket, so that code reaches the host only through a BuildKit or container escape (see
+alternative A, point 2). The host-executed code above is enough to reach root.
 
 **`CODEOWNERS` does not help here.** It requests reviews and, with branch protection, can block
 merging ([About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)).
