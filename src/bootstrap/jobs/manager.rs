@@ -224,6 +224,37 @@ impl<T, U> Drop for TokenAwareServerTask<T, U> {
     }
 }
 
+/// Owns a component's single spawned task until it has been joined.
+///
+/// Dropping the outer component runner aborts the task, preventing it from
+/// outliving its component owner.
+#[derive(Debug)]
+pub struct OwnedTask<T> {
+    task: JoinHandle<T>,
+}
+
+impl<T> OwnedTask<T> {
+    #[must_use]
+    pub const fn new(task: JoinHandle<T>) -> Self {
+        Self { task }
+    }
+
+    /// Joins the owned task.
+    ///
+    /// # Errors
+    ///
+    /// Returns the task's join error when it panics or is aborted.
+    pub async fn join(&mut self) -> Result<T, JoinError> {
+        (&mut self.task).await
+    }
+}
+
+impl<T> Drop for OwnedTask<T> {
+    fn drop(&mut self) {
+        self.task.abort();
+    }
+}
+
 // issue: #1488
 // Transitional compatibility boundary. Do not register new components here.
 // SI-5 must migrate peers inactivity update to `JobManager::spawn`; UDP IP-ban

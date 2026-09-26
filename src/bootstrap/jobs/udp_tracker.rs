@@ -18,7 +18,7 @@ use torrust_tracker_udp_server::server::Server;
 use torrust_tracker_udp_server::server::spawner::Spawner;
 use tracing::instrument;
 
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, NestedServerTask};
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, OwnedTask};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -30,16 +30,12 @@ pub enum Error {
 
 /// It starts a new UDP server with the provided configuration.
 ///
-/// It spawns a new asynchronous task for the new UDP server.
+/// The receive loop stops when `cancellation_token` is cancelled. The returned
+/// component future owns and joins that loop before reporting its outcome.
 ///
 /// # Errors
 ///
 /// Returns a typed listener-start error.
-///
-/// # Panics
-///
-/// Panics if its internally created halt channel is unexpectedly closed before
-/// the starter task begins waiting for cancellation or completion.
 ///
 #[allow(
     clippy::async_yields_async,
@@ -70,44 +66,144 @@ pub async fn start_job(
     );
 
     let server = Server::new(Spawner::new(bind_to))
-        .start(
+        .start_with_cancellation(
             udp_tracker_core_container,
             udp_tracker_server_container,
             form,
             metadata,
             cookie_lifetime,
             connection_id_validation,
+            cancellation_token,
         )
         .await
         .map_err(|source| Error::Listener { source })?;
 
-    Ok(async move {
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for launcher (UDP service) to finish ...");
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
+    Ok(supervise_receive_loop(OwnedTask::new(server.task)))
+}
 
+/// Joins the receive loop and turns its result into the component outcome.
+///
+/// The loop returns `Ok(())` only after cancellation; any other exit is an error.
+async fn supervise_receive_loop<E>(mut receive_loop: OwnedTask<Result<(), E>>) -> ComponentResult
+where
+    E: std::fmt::Display,
+{
+    tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for the UDP receive loop to finish ...");
+
+    let loop_result = receive_loop
+        .join()
+        .await
+        .map_err(|error| ComponentError::new(format!("UDP tracker receive loop task failed: {error}")))?;
+
+    loop_result.map_err(|error| ComponentError::new(format!("UDP tracker receive loop stopped with an error: {error}")))?;
+
+    Ok(ComponentCompletion::Cancelled)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{SocketAddr, UdpSocket};
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio_util::sync::CancellationToken;
+    use torrust_tracker_primitives::RuntimeServiceMetadata;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
+
+    use crate::bootstrap::app::initialize_global_services;
+    use crate::bootstrap::jobs::manager::{ComponentCompletion, OwnedTask};
+    use crate::bootstrap::jobs::udp_tracker::{start_job, supervise_receive_loop};
+    use crate::container::AppContainer;
+
+    const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
+    const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
+
+    fn available_udp_address() -> SocketAddr {
+        let socket = UdpSocket::bind("127.0.0.1:0").expect("select available UDP address");
+        socket.local_addr().expect("read available UDP address")
+    }
+
+    async fn wait_until_bindable(address: SocketAddr) -> bool {
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, async {
+            while UdpSocket::bind(address).is_err() {
+                tokio::time::sleep(BIND_RETRY_INTERVAL).await;
+            }
+        })
+        .await
+        .is_ok()
+    }
+
+    async fn panicking_receive_loop() -> Result<(), &'static str> {
+        tokio::task::yield_now().await;
+        panic!("UDP receive loop failure");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_cancelled_when_the_receive_loop_stops_after_cancellation() {
+        let receive_loop = tokio::spawn(async { Ok::<(), &str>(()) });
+
+        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+
+        assert_eq!(completion, Ok(ComponentCompletion::Cancelled));
+    }
+
+    #[tokio::test]
+    async fn it_should_fail_when_the_receive_loop_stops_with_an_error() {
+        let receive_loop = tokio::spawn(async { Err::<(), _>("socket closed") });
+
+        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+
+        let error = completion.expect_err("a receive-loop error should fail the component");
         assert!(
-            !server.state.halt_task.is_closed(),
-            "Halt channel for UDP tracker should be open"
+            error
+                .to_string()
+                .contains("UDP tracker receive loop stopped with an error: socket closed")
         );
+    }
 
-        let torrust_tracker_udp_server::server::states::Running { halt_task, task, .. } = server.state;
-        let mut server_task = NestedServerTask::new(halt_task, task);
-        tokio::select! {
-            () = cancellation_token.cancelled() => {
-                let _ = server_task.signal_shutdown();
-                let result = server_task
-                    .join()
-                    .await
-                    .map_err(|error| ComponentError::new(format!("UDP tracker failed while stopping: {error}")))?;
-                result.map_err(|error| ComponentError::new(format!("UDP tracker failed while stopping: {error}")))?;
-                Ok(ComponentCompletion::Cancelled)
-            }
-            result = server_task.join() => {
-                let result = result
-                    .map_err(|error| ComponentError::new(format!("UDP tracker runtime task failed: {error}")))?;
-                result.map_err(|error| ComponentError::new(format!("UDP tracker runtime task failed: {error}")))?;
-                Ok(ComponentCompletion::Completed)
-            }
-        }
-    })
+    #[tokio::test]
+    async fn it_should_fail_when_the_receive_loop_task_panics() {
+        let receive_loop = tokio::spawn(panicking_receive_loop());
+
+        let completion = supervise_receive_loop(OwnedTask::new(receive_loop)).await;
+
+        let error = completion.expect_err("a panicking receive loop should fail the component");
+        assert!(error.to_string().contains("UDP tracker receive loop task failed"));
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_socket_when_the_component_is_dropped_before_it_runs() {
+        // Arrange
+        let udp_address = available_udp_address();
+        let mut configuration = ephemeral_public();
+        configuration.udp_trackers.as_mut().expect("test configuration enables UDP")[0].bind_address = udp_address;
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let (configuration_instance_id, udp_tracker_container) =
+            app_container.udp_tracker_container(0).expect("UDP tracker container exists");
+        let component = start_job(
+            udp_tracker_container,
+            app_container.udp_tracker_server_container(),
+            app_container.registar.give_form(),
+            RuntimeServiceMetadata::new(configuration_instance_id),
+            ConnectionIdValidationPolicy::Strict,
+            CancellationToken::new(),
+        )
+        .await
+        .expect("the UDP tracker component should start");
+
+        // Act
+        drop(component);
+
+        // Assert
+        assert!(
+            wait_until_bindable(udp_address).await,
+            "dropping the unpolled UDP tracker component must release its socket at {udp_address} within {TEST_COMPLETION_TIMEOUT:?}"
+        );
+    }
 }

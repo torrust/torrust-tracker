@@ -431,7 +431,7 @@ async fn start_udp_instance(
         RuntimeServiceMetadata::new(configuration_instance_id)
             .with_public_url(udp_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         connection_id_validation,
-        job_manager.new_cancellation_token(),
+        job_manager.new_cancellation_token().child_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -592,8 +592,9 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{
-        Error, load_data_from_database, run_after_setup, should_start_udp_tracker_services, start_health_check_api,
-        start_http_instance, start_peers_inactivity_update, start_the_http_api, start_torrent_cleanup,
+        Error, connection_id_validation_policy, load_data_from_database, run_after_setup, should_start_udp_tracker_services,
+        start_health_check_api, start_http_instance, start_peers_inactivity_update, start_the_http_api, start_torrent_cleanup,
+        start_udp_instance,
     };
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
@@ -782,6 +783,43 @@ mod tests {
             outcomes,
             vec![JobOutcome {
                 name: "http_api".to_string(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_udp_tracker_component_through_the_job_manager() {
+        // Arrange
+        let mut configuration = torrust_tracker_test_helpers::configuration::ephemeral_public();
+        configuration.udp_trackers.as_mut().expect("test configuration enables UDP")[0].bind_address = reserve_udp_address();
+        let udp_tracker_config = configuration.udp_trackers.as_ref().expect("test configuration enables UDP")[0].clone();
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_udp_instance(
+            0,
+            &udp_tracker_config,
+            connection_id_validation_policy(&configuration),
+            &app_container,
+            &mut job_manager,
+        )
+        .await
+        .expect("UDP tracker should start through application bootstrap");
+
+        // Act
+        job_manager.cancel();
+        let outcomes = job_manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: format!("udp_instance_0_{}", udp_tracker_config.bind_address),
                 status: JobStatus::Cancelled,
             }]
         );
