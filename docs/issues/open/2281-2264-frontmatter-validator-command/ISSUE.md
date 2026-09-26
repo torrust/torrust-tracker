@@ -500,7 +500,7 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
     one stale #2222 reference;
   - seven D11 EPIC migrations, one commit each. They drop issue-only fields, map
     `open` to `in-progress` where subissues are completed, quote timestamps and issue
-    references, and repoint three stale references.
+    references, and update three stale references.
 
   `--all` now reports:
   - 44 `legacy-shape` errors: 42 legacy issue specs, the unassigned draft EPIC, and one draft
