@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-26 14:40"
+last-updated-utc: "2026-09-26 14:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -188,6 +188,22 @@ their public signatures.
 | Fix only the legacy panic and detach in place | Smaller than the adapter. | Keeps two receive-loop code paths with separate stop logic until SI-19. |
 | Record only; defer to SI-17/SI-19 | Smallest SI-14. | Leaves a known panic and detached socket in supported consumers, contrary to the maintainer principle. |
 
+Observed legacy behavior changes after implementation (all are failure or
+stop-timing modes; normal start, serve, and stop are unchanged):
+
+- A dropped halt sender stops the launcher cleanly instead of panicking.
+- Aborting the launcher aborts the receive loop instead of detaching it.
+- A receive-loop error or panic surfaces as `Err` from the launcher task, so
+  `Server::stop` returns `UdpError::Launcher` instead of succeeding. This path
+  has no dedicated test: a real UDP receive error cannot be provoked
+  deterministically, the error mapping is unit-tested in `admit_received`, and
+  the launcher returns the loop result directly.
+- A halt now stops the loop at its next check between datagrams instead of
+  aborting it at any await point.
+- The "Halting UDP Service Bound to Socket" info line is now logged from the
+  UDP server launcher module instead of `torrust_server_lib::signals`, so its
+  tracing target changed; the message text is unchanged.
+
 ### D6 - Measure UDP throughput before and after
 
 D1 is the only change on the per-datagram hot path. Per wake-up the extra
@@ -278,7 +294,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Legacy launcher adapter | `run_with_graceful_shutdown` owns the loop through an abort-on-drop guard and cancels it on halt, dropped halt sender, or global OS signal, then joins it. Both regression tests were written first and failed against the old launcher (panic `Failed to install stop signal`; socket still bound after launcher abort). Legacy contract and environment tests pass unchanged. |
 | T6 | DONE | Update shutdown documentation | UDP rows of `task-inventory.md`, plus the HTTP/REST rows left stale after SI-11/SI-12; notes in the SI-15, SI-17, and SI-19 drafts. |
 | T7 | DONE | Executable-boundary and performance verification | M1-M3 in `manual-verification-evidence.md`; M4 in `performance-evidence.md`. |
-| T8 | TODO | Acceptance and completion review | Independent Task Reviewer; retrospective when warranted. |
+| T8 | DONE | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; `implementation-retrospective.md` created. AC12 awaits maintainer confirmation. |
 
 ## Commit Points
 
@@ -311,8 +327,8 @@ review after the final test increment before final verification and the PR.
 - [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -332,13 +348,13 @@ review after the final test increment before final verification and the PR.
   including recommendations D1 and D5. Created GitHub issue #2342, linked it as
   a sub-issue of EPIC #1488, and promoted this spec to its numbered open-issue
   folder. Next step: spec-only PR before implementation.
-- 2026-09-26 13:30 UTC - GitHub Copilot - Spec-only PR #2343 merged (Copilot
+- 2026-09-26 12:24 UTC - GitHub Copilot - Spec-only PR #2343 merged (Copilot
   review: no findings). Created the implementation branch from the merge
   result. T1: the ownership map needs no change. Recorded the UDP throughput
   baseline before any code change: five 30-second `aquatic_udp_load_test` runs
   against a release build of `0f1dcd28`, mean 148406.26 responses/s, spread
   142150.63-155327.06. See `performance-evidence.md`.
-- 2026-09-26 15:30 UTC - GitHub Copilot - T2 and T3 committed; T4 design
+- 2026-09-26 12:57 UTC - GitHub Copilot - T2 and T3 committed; T4 design
   review of the first passing token-aware slice:
   - Ownership: `JobManager` owns the named component; the component owns the
     receive loop through `OwnedTask`, built before the future is returned; the
@@ -363,7 +379,7 @@ review after the final test increment before final verification and the PR.
     own outcome mapping and drop safety; the application test owns `JobManager`
     token propagation. Each test states its causal state, keeps the production
     Act visible, and asserts an independent expected result.
-- 2026-09-26 14:40 UTC - GitHub Copilot - Maintainer approved the tested
+- 2026-09-26 13:26 UTC - GitHub Copilot - Maintainer approved the tested
   slice. T5 legacy adapter and T6 documentation committed. T7:
   - M1/M2: two direct tracker-binary runs each served a real UDP announce,
     received `SIGTERM`, logged cooperative cancellation for
@@ -378,6 +394,26 @@ review after the final test increment before final verification and the PR.
     the 148406.26 baseline; every after run is above every baseline run. No
     regression; the literal "within the spread" wording is flagged for the
     maintainer because the result is higher, not lower.
+  - Timeline: M1-M3 ran 13:11-13:14 UTC and the after-implementation load
+    test 13:15-13:20 UTC, so they did not overlap.
+- 2026-09-26 14:45 UTC - GitHub Copilot - T8: the independent Task Reviewer
+  (`agent-review-reports.md`) found no code blockers; AC1-AC11 pass and AC12
+  needs maintainer confirmation. Findings addressed:
+  - The token-aware start path now keeps the receive loop in its drop-safe
+    guard across the registration await; token-aware traces, the `states.rs`
+    test-ownership doc, unbounded test awaits, and a test name were fixed
+    ("fix(udp-server): [#2342] address SI-14 completion-review findings").
+  - D5 now lists every observed legacy behavior change.
+  - Progress-log times above were corrected from commit and log-file
+    timestamps; some had been written in local time (UTC+1).
+  - Prose-first review of the T5 legacy launcher tests: the
+    `RunningLegacyLauncher` fixture owns only incidental mechanics (bind,
+    spawn, wait for the startup notification); each test states its one
+    causal difference in the Act (drop the halt sender, or abort the launcher
+    while keeping the halt sender alive), and asserts independently specified
+    results (clean `Ok(())` exit, socket bindable within a bounded wait). Both
+    were red before the adapter.
+  - Created `implementation-retrospective.md`.
 
 ## Acceptance Criteria
 
@@ -472,9 +508,9 @@ unaffected.
 - **Hot-loop change (D1)**: an extra `select!` branch per receive. Mitigation:
   `biased;` token branch, one pinned `cancelled()` future (constraint 7), a
   per-instance child token, and the D6 before/after load test (AC12).
-- **Legacy behavior change (D5)**: dropped halt sender and receive errors now
-  stop or fail explicitly instead of panicking or reporting success.
-  Mitigation: regression tests, and the change is recorded for SI-17/SI-19.
+- **Legacy behavior change (D5)**: failure and stop-timing modes changed as
+  listed under D5. Mitigation: regression tests where the path is
+  deterministic, and the changes are recorded for SI-17/SI-19.
 - **Overlap with `simplify-udp-server-main-loop`**: both touch
   `run_udp_server_main`. Mitigation: keep SI-14 changes to the stop condition
   and return type; note the dependency in that draft.

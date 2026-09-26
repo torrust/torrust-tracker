@@ -8,7 +8,7 @@ last-updated-utc: 2026-09-26
 
 ## Environment
 
-- Date and time (UTC): 2026-09-26 13:11-13:25
+- Date and time (UTC): 2026-09-26 13:11-13:14
 - Artifacts: `./target/debug/torrust-tracker`, `./target/debug/tracker_client`,
   and `./target/debug/examples/udp_only_public_tracker`
 - Environment: Linux local Cargo workspace

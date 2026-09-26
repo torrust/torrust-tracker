@@ -69,7 +69,7 @@ peer_seeder_probability = 0.75
 
 ## Baseline - `develop` at `0f1dcd28`
 
-Date: 2026-09-26, 13:10-13:24 local time.
+Date: 2026-09-26, 12:19-12:24 UTC (13:19-13:24 local time).
 
 | Run | Responses/s | Connect/s | Announce/s | Scrape/s | Errors/s |
 | --- | ----------- | --------- | ---------- | -------- | -------- |
@@ -85,7 +85,7 @@ Date: 2026-09-26, 13:10-13:24 local time.
 
 ## After Implementation - implementation branch
 
-Date: 2026-09-26, 14:15-14:20 local time. Same machine, toolchain, tracker
+Date: 2026-09-26, 13:15-13:20 UTC (14:15-14:20 local time). Same machine, toolchain, tracker
 configuration, and load-test configuration. The build includes every SI-14
 code change; the branch head was the commit "docs(shutdown): [#2342] update
 task inventory and follow-up drafts after SI-14". Load average 5.95 / 7.60 /

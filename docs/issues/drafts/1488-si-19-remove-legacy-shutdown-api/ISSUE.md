@@ -83,7 +83,9 @@ Do not start implementation until every item below is complete and linked from
   types, which have no production consumer after SI-14.
 - Consolidate the three token-aware component supervisors (HTTP, REST, and
   health check) and adopt the health-check join order: join the drain
-  controller before mapping a server-task join error.
+  controller before mapping a server-task join error. Review the owner types
+  together at the same time: bootstrap `OwnedTask` and `TokenAwareServerTask`,
+  and the UDP package's private `OwnedReceiveLoop`.
 
 ### Out of scope
 
