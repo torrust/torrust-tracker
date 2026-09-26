@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-26
 semantic-links:
   skill-links:
     - create-issue
@@ -18,10 +18,12 @@ semantic-links:
     - packages/axum-health-check-api-server/src/server.rs
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/src/server/states.rs
+    - src/bootstrap/jobs/manager.rs
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
@@ -75,6 +77,13 @@ Do not start implementation until every item below is complete and linked from
   cancellation.
 - Prove the tracker and standalone binaries retain deterministic graceful
   shutdown through the token lifecycle API.
+- Remove the legacy UDP launcher adapter (`Launcher::run_with_graceful_shutdown`,
+  `Spawner::spawn_launcher`, `LaunchRequest`, and `Running`) added or kept by
+  SI-14 (#2342), and the bootstrap `NestedServerTask` and `HaltSignal` owner
+  types, which have no production consumer after SI-14.
+- Consolidate the three token-aware component supervisors (HTTP, REST, and
+  health check) and adopt the health-check join order: join the drain
+  controller before mapping a server-task join error.
 
 ### Out of scope
 

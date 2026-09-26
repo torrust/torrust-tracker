@@ -56,6 +56,13 @@ fallback. The application-level UDP IP-ban cleanup job remains separately
 manager-owned. This task may change only the active-request lifecycle after the
 component has stopped accepting new packets.
 
+After SI-14 (#2342), the receive loop observes its component token between
+datagrams and returns `Ok(())` on cancellation, then drops `ActiveRequests`.
+That return point is the seam for this task: a drain policy can replace the
+drop there without restructuring the loop. Each processor holds a clone of the
+socket `Arc`, so today the socket closes only after the runtime drops the
+aborted processors.
+
 ## Scope
 
 ### In scope

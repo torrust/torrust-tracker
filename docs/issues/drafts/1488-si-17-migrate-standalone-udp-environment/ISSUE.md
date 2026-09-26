@@ -56,6 +56,12 @@ Therefore callers cannot use a deterministic stop-and-wait path for all
 UDP-environment-owned work, and copied example applications do not handle the
 standard Unix termination signal.
 
+After SI-14 (#2342), `Server::start_with_cancellation` is available and the
+legacy `Server::start`/`Server::stop` path is an adapter over the same
+token-aware receive loop, so a dropped legacy server no longer panics or leaves
+the socket bound. Migrating the environment is therefore a call-site change to
+the token-aware path plus awaiting its receive-loop task.
+
 ## Scope
 
 ### In scope
