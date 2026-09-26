@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner-spec"
 related-pr: 2335
-last-updated-utc: 2026-09-26 10:48
+last-updated-utc: 2026-09-26 13:24
 semantic-links:
   skill-links:
     - create-issue
@@ -399,6 +399,7 @@ Append one line per meaningful update.
 - 2026-09-26 08:13 UTC - josecelano, GitHub Copilot - T9: set the fork-PR approval policy to `all_external_contributors`, verified through the API; the organization 2FA requirement is pending because it would remove 3 outside collaborators without 2FA - [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-26 09:36 UTC - josecelano, GitHub Copilot - T9 DONE: an owner enabled the organization 2FA requirement (verified through the API); the 3 outside collaborators without 2FA were removed; T3 (re-registration) is unblocked - [`runner-agent-installation.md`](runner-agent-installation.md)
 - 2026-09-26 09:46 UTC - josecelano, GitHub Copilot - T3 DONE again: runner `v2.337.0` re-registered as `torrust-runner-01` with label `torrust-hetzner`, systemd service active and enabled, GitHub reports it online and idle; no workflow targets it yet - [`runner-agent-installation.md`](runner-agent-installation.md)
+- 2026-09-26 13:24 UTC - GitHub Copilot - Review round 3 (reviewer review 5325974064): publish image builds must import and export no GitHub Actions cache, because any scope can be written by a job holding a cache token (T5(c), AC3, M3; F13); Dependabot PRs are routed by PR author rather than `github.actor` (T5(d), M7; F14) - audit at `docs/pr-reviews/pr-2335-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
