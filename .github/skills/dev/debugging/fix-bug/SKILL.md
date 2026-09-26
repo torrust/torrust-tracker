@@ -151,7 +151,8 @@ Before presenting a bug spec for review, confirm:
 - [ ] the reproduction outcome is classified and recorded in `manual-verification-evidence.md`;
 - [ ] the plan has a regression-test task that is proven red before the fix;
 - [ ] the acceptance criteria match the planned tests (same cases and inputs);
-- [ ] every verification row describes what was actually run, not an intended procedure; and
+- [ ] every verification row marked `DONE` describes what was actually run, not an intended
+      procedure; and
 - [ ] the plan follows the Required Sequence order.
 
 ## Worked Example
