@@ -1,21 +1,22 @@
 ---
+schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-09-25 07:49"
+last-updated-utc: "2026-09-26 12:43"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
-    - issue #2003
-    - issue #2233
+    - "issue #2003"
+    - "issue #2233"
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - issue #2185
+    - "issue #2185"
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - docs/external-snapshots/open-knowledge-format/0.2/SPEC.md
