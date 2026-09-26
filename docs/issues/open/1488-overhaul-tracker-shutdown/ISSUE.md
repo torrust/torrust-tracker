@@ -1,10 +1,12 @@
 ---
+schema-version: 1
 doc-type: epic
-status: open
+status: in-progress
+epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-28
+last-updated-utc: "2026-09-28 09:26"
 semantic-links:
   skill-links:
     - create-issue
