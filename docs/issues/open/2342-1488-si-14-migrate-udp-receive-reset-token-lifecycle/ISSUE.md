@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: null
-last-updated-utc: "2026-09-26 13:30"
+last-updated-utc: "2026-09-26 15:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -272,9 +272,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Confirm UDP ownership map and record the performance baseline | No change: no commit touched the UDP server package, `udp_tracker.rs`, `manager.rs`, or `src/app.rs` between the mapping (after PR #2336) and the branch base. Baseline of five runs recorded in `performance-evidence.md` (mean 148406.26 responses/s). |
-| T2 | TODO | Token-aware receive loop and start path | Cooperative `Result`-returning loop (D1, D3) and `Server::start_with_cancellation` with registration rollback (D2). Package tests: token stop, registration rollback/socket release, receive-error outcome. |
-| T3 | TODO | Single-task owner and UDP component migration | D4 owner in `manager.rs`; `udp_tracker::start_job` on the token-aware path; child token in `src/app.rs`. Component and bootstrap tests, including drop-before-run socket release. |
-| T4 | TODO | Review first passing vertical slice | Ownership, drop paths, outcomes, deadlines, and startup-log parity. |
+| T2 | DONE | Token-aware receive loop and start path | `run_udp_server_main` observes a pinned `cancelled()` future (biased) and returns `Result`; the pure `admit_received` decision maps receive errors and stream end to errors. `Server::start_with_cancellation` binds, logs, spawns only the loop, registers, and rolls back. Tests: token stop with socket release, registration with a working health check, registration rollback, and four admission decisions. |
+| T3 | DONE | Single-task owner and UDP component migration | `OwnedTask` in `manager.rs`; `udp_tracker::start_job` uses the token-aware path and builds the owner before returning; child token in `start_udp_instance`. Tests: Cancelled, error, and panic outcomes; drop-before-run socket release (mutation-proven); bootstrap cancellation through `JobManager`. |
+| T4 | DONE | Review first passing vertical slice | See the 2026-09-26 15:30 progress-log entry. No material correction needed. |
 | T5 | TODO | Legacy launcher adapter | D5: reimplement `run_with_graceful_shutdown` over the token-aware loop. Mutation-proven regression tests for gaps 1 and 2; existing contract and environment tests pass unchanged. |
 | T6 | TODO | Update shutdown documentation | UDP rows of `task-inventory.md`; notes in the SI-15, SI-17, and SI-19 drafts where D1/D5 change their starting point. |
 | T7 | TODO | Executable-boundary and performance verification | Direct tracker-binary SIGTERM and immediate UDP rebind (M1, M2); repeat the D6 load test on the implementation branch and compare with the baseline (M4). |
@@ -338,6 +338,31 @@ review after the final test increment before final verification and the PR.
   baseline before any code change: five 30-second `aquatic_udp_load_test` runs
   against a release build of `0f1dcd28`, mean 148406.26 responses/s, spread
   142150.63-155327.06. See `performance-evidence.md`.
+- 2026-09-26 15:30 UTC - GitHub Copilot - T2 and T3 committed; T4 design
+  review of the first passing token-aware slice:
+  - Ownership: `JobManager` owns the named component; the component owns the
+    receive loop through `OwnedTask`, built before the future is returned; the
+    loop owns the receiver, socket `Arc`, and `ActiveRequests`. Processors still
+    hold socket `Arc` clones and are aborted, not joined, when the loop drops
+    `ActiveRequests`, so the socket closes once the runtime drops those aborted
+    tasks. That is prompt but not awaited; joining processors is SI-15.
+  - Drop paths: component drop aborts the loop (mutation-proven test);
+    registration failure cancels, aborts, and joins before returning.
+  - Outcomes: the loop returns `Ok(())` only after cancellation, so the
+    component derives `Cancelled` from the loop result, not from the token;
+    errors and panics fail the component. UDP has no `Completed` outcome.
+  - Deadlines: no new awaited step; stop is bounded by the `JobManager`
+    deadline plus owner-drop abort.
+  - Startup logs: the same messages now come from one `log_listener_startup`
+    helper shared by both paths (split out to satisfy the cognitive-complexity
+    lint); confirm in M1.
+  - `NestedServerTask` and `HaltSignal` now have no production consumer; only
+    their own tests use them. Note for SI-19.
+  - Prose-first test review: package tests own token stop, registration, and
+    rollback; the pure admission tests own the D3 error mapping; component tests
+    own outcome mapping and drop safety; the application test owns `JobManager`
+    token propagation. Each test states its causal state, keeps the production
+    Act visible, and asserts an independent expected result.
 
 ## Acceptance Criteria
 
