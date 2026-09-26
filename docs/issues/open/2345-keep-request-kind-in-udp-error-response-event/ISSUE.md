@@ -80,11 +80,11 @@ The fix is one line: pass the received value through, `Error { opt_req_kind }`.
 Reproduced on 2026-09-26 against `develop`. The exact steps, code, commands, and output are in
 [manual-verification-evidence.md](manual-verification-evidence.md). In short:
 
-- **V1, real tracker trigger:** the existing strict-mode loopback contract sends eleven announces
+- **V1, Trigger only (real tracker):** the existing strict-mode loopback contract sends eleven announces
   with `ConnectionId::new(0)`, each answered with an error response through the affected path,
   then a twelfth that is banned before handling. The defective field is not visible there:
   clients, metrics, and logs do not expose published events.
-- **V2, event observation:** a temporary test on the processor's event bus sent a parsed scrape
+- **V2, Reproduced (event bus):** a temporary test on the processor's event bus sent a parsed scrape
   with `ConnectionId::new(0)` from a real loopback client socket. It observed
   `UdpRequestAccepted { kind: Scrape }`, `UdpError { kind: Some(Scrape), .. }`, and then
   `UdpResponseSent { kind: Error { opt_req_kind: None }, .. }`. The temporary test was reverted;

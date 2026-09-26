@@ -42,7 +42,7 @@ event value directly on the processor's event bus.
 - Goal: show that a strict-mode tracker answers a parsed request with an invalid connection ID
   through the handler-error path (the path whose event is wrong).
 - Initial state: ephemeral UDP tracker on loopback, `ConnectionIdValidationPolicy::Strict`.
-- Status: `DONE` (trigger reproduced; the event field is not observable here, see above)
+- Status: `DONE`. Outcome: **Trigger only**; the event field is not observable here, see above.
 
 #### Steps Performed
 
@@ -74,7 +74,7 @@ bug; the published event is not visible in this artifact.
 - Goal: observe `Event::UdpResponseSent` for a parsed request that fails in its handler.
 - Initial state: the existing `processor.rs` test fixture (ephemeral container, strict
   validation, direct event-bus receiver) plus a real loopback client socket with a nonzero port.
-- Status: `DONE` (bug reproduced)
+- Status: `DONE`. Outcome: **Reproduced**.
 
 #### Steps Performed
 
