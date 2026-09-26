@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md
-last-updated-utc: "2026-09-24 18:46"
+last-updated-utc: "2026-09-26 09:35"
 ---
 
 # Manual Verification Evidence
@@ -34,9 +34,22 @@ do not invent commands, output, logs, or results.
 
 #### Steps Performed
 
-1. `cargo run -q --package github-review-threads -- fetch --pr-number 2320 --output-file .tmp/pr_threads_2320.json`
-2. `cargo run -q --package github-review-threads -- list --threads-file .tmp/pr_threads_2320.json`,
-   counted with `jq`.
+The binary refuses a terminal on stdout (`tty_refusal`, exit `2`), so every step pipes or redirects
+it. The `jq` filters below are the ones that produced the observed blocks.
+
+1. Fetch the threads:
+
+   ```bash
+   cargo run -q --package github-review-threads -- fetch --pr-number 2320 \
+     --output-file .tmp/pr_threads_2320.json | jq -c .
+   ```
+
+2. Count the default `list` view:
+
+   ```bash
+   cargo run -q --package github-review-threads -- list --threads-file .tmp/pr_threads_2320.json \
+     | jq -c '{total:(.threads|length), resolved:([.threads[]|select(.isResolved)]|length), unresolved:([.threads[]|select(.isResolved|not)]|length), outdated:([.threads[]|select(.isOutdated)]|length), resolvedAndOutdated:([.threads[]|select(.isResolved and .isOutdated)]|length)}'
+   ```
 
 #### Observed Result
 
@@ -58,8 +71,13 @@ and outdated threads.
 
 #### Steps Performed
 
-1. `cargo run -q --package github-review-threads -- show --threads-file .tmp/pr_threads_2320.json`,
-   selecting the first resolved thread, the first resolved outdated thread, and summary counts with `jq`.
+1. Select the first resolved thread, the first resolved outdated thread, and summary counts from
+   the default `show` view:
+
+   ```bash
+   cargo run -q --package github-review-threads -- show --threads-file .tmp/pr_threads_2320.json \
+     | jq -c '[.threads[]|select(.isResolved)] | (first | {id, isResolved, isOutdated, resolvedBy, path, line, comments:(.comments|length)}), ([.[]|select(.isOutdated)]|first|{id, isOutdated, resolvedBy, path, line}), {resolvers:([.[].resolvedBy]|unique), nullResolver:([.[]|select(.resolvedBy==null)]|length), nullLine:([.[]|select(.line==null)]|length)}'
+   ```
 
 #### Observed Result
 
@@ -84,9 +102,21 @@ thread in this capture had a null resolver; that case is covered by the
 
 #### Steps Performed
 
-1. `cargo run -q --package github-review-threads -- list --threads-file .tmp/pr_threads_2320.json --unresolved-only`
-2. `cargo run -q --package github-review-threads -- reply-status --threads-file .tmp/pr_threads_2320.json --login josecelano`,
-   with stdout and stderr redirected to files.
+1. Project the unresolved-only `list` view to four keys per row:
+
+   ```bash
+   cargo run -q --package github-review-threads -- list --threads-file .tmp/pr_threads_2320.json \
+     --unresolved-only | jq -c '[.threads[]|{id,isResolved,isOutdated,line}]'
+   ```
+
+2. Check replies, then summarize the diagnostic:
+
+   ```bash
+   cargo run -q --package github-review-threads -- reply-status --threads-file .tmp/pr_threads_2320.json \
+     --login josecelano > .tmp/m3-reply-status.stdout 2> .tmp/m3-reply-status.stderr
+   echo "reply-status exit=$?"
+   jq -c '{kind, total:.summary.total, ids:[.threads[].thread_id]}' .tmp/m3-reply-status.stderr
+   ```
 
 #### Observed Result
 
@@ -110,7 +140,13 @@ Met. Both action views contain exactly the two unresolved threads. `reply-status
 
 #### Steps Performed
 
-1. `bash .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh --dry-run --threads-file .tmp/pr_threads_2320.json`
+1. Run the bulk resolver without mutating GitHub:
+
+   ```bash
+   bash .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh \
+     --dry-run --threads-file .tmp/pr_threads_2320.json
+   echo "script exit=$?"
+   ```
 
 #### Observed Result
 
@@ -129,3 +165,8 @@ Met. The resolver reads the extended file unchanged and lists the same two unres
 No process failed. The survey found merged PRs that still hold unresolved threads: #2290 (7),
 PR #2293 (8), #2300 (8), #2313 (7), and #2320 (2). They were only read here. Any action on them
 falls under the post-merge review rule in `process-pr-review` and needs maintainer approval.
+
+Correction, 2026-09-26 09:35 UTC: as first merged, the V1-V4 steps omitted the pipes and `jq`
+filters that produced their observed blocks, so they could not be re-run byte for byte (PR #2339
+review finding F3). The steps now record the commands exactly as run. Re-running them verbatim
+against PR #2320 at this time reproduced every observed block unchanged.
