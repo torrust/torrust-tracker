@@ -1,20 +1,20 @@
 ---
+schema-version: 1
 doc-type: epic
-issue-type: task
 status: planned
-priority: p1
+epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-15
+last-updated-utc: "2026-09-26 12:43"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/packages.md
-    - docs/issues/open/1669-overhaul-packages/
-    - docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md
-    - docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
+    - docs/issues/open/1669-overhaul-packages
+    - docs/issues/closed/1835-1669-14-decouple-http-protocol-from-tracker-primitives/ISSUE.md
+    - docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md
     - docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
