@@ -152,3 +152,39 @@ registration files (`.runner`, `.credentials`).
 Result (2026-09-25): the systemd unit is gone (`0 unit files listed`), the repository has no
 self-hosted runners (`total_count` 0), and `/home/runner/actions-runner` no longer exists. The
 `runner` user, Docker, and the rest of the host preparation remain on the server.
+
+## 7. Apply Access Controls Before Registering Again (T9)
+
+On 2026-09-25 the maintainers decided to keep the persistent runner with controls (see the design
+decision in [ISSUE.md](ISSUE.md)). Two repository and organization settings must be in place
+before the runner is registered again.
+
+### Fork-PR Approval for All External Contributors
+
+```bash
+desktop$ gh api -X PUT repos/torrust/torrust-tracker/actions/permissions/fork-pr-contributor-approval \
+  -f approval_policy=all_external_contributors
+desktop$ gh api repos/torrust/torrust-tracker/actions/permissions/fork-pr-contributor-approval \
+  -q .approval_policy
+```
+
+The equivalent UI setting is **Settings -> Actions -> General -> Approval for running fork pull
+request workflows from contributors -> Require approval for all external contributors**.
+
+Result (2026-09-26): `all_external_contributors` (previously `first_time_contributors`).
+
+### Two-Factor Authentication for Organization Members
+
+Enabled by an organization owner under **Organization settings -> Authentication security ->
+Require two-factor authentication**. Enabling it removes every member and outside collaborator
+who does not use 2FA, so check first:
+
+```bash
+desktop$ gh api "orgs/torrust/members?filter=2fa_disabled" -q length
+desktop$ gh api "orgs/torrust/outside_collaborators?filter=2fa_disabled" -q length
+desktop$ gh api orgs/torrust -q .two_factor_requirement_enabled
+```
+
+Result (2026-09-26): 0 members and 3 outside collaborators without 2FA;
+`two_factor_requirement_enabled` is `false`. Pending: the outside collaborators are asked to
+enable 2FA before the requirement is turned on.
