@@ -22,11 +22,10 @@ semantic-links:
     - docs/architecture/events.md
     - evidence.md
     - tests/metrics/fixed_ports.rs
-  related-issues:
-    - 1419
-    - 2036
-    - 2039
-    - 2041
+    - "issue #1419"
+    - "issue #2036"
+    - "issue #2039"
+    - "issue #2041"
 ---
 
 # Issue #2035 - Fix Duplicate Port-Zero Tracker Instance Bootstrap

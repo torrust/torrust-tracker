@@ -5,10 +5,10 @@ semantic-links:
   related-artifacts:
     - tests/metrics/port_zero.rs
     - tests/metrics/fixed_ports.rs
-      - tests/common/mod.rs
-      - src/app.rs
-      - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-  issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
+    - tests/common/mod.rs
+    - src/app.rs
+    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
 ---
 
 # Integration Tests — AI Agent Guidelines

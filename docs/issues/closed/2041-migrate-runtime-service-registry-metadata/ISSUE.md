@@ -20,11 +20,10 @@ semantic-links:
     - docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - src/container.rs
-  related-issues:
-    - 1419
-    - 2035
-    - 2036
-    - 2039
+    - "issue #1419"
+    - "issue #2035"
+    - "issue #2036"
+    - "issue #2039"
 ---
 
 <!-- skill-link: create-issue -->
