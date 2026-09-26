@@ -74,7 +74,8 @@ contribution profile.
    so the fork approval policy does not gate them. The jobs select `ubuntu-latest` when
    `github.event.pull_request.user.login == 'dependabot[bot]'`. The selection uses the pull request
    author, not `github.actor`, because `github.actor` becomes the maintainer who updates the
-   branch.
+   branch. Pushes to `dependabot/` branches, which trigger `testing.yaml` in this repository
+   without approval, also stay on `ubuntu-latest`.
 4. **Only `develop` traffic uses the runner.** Pull requests targeting `develop` and pushes to
    `develop` use it; pull requests to `main` and pushes to `main` and `releases/**` stay on
    `ubuntu-latest`.
