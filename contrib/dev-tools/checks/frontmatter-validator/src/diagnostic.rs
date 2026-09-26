@@ -32,6 +32,14 @@ pub enum DiagnosticCategory {
     LegacyShape,
     /// A strict profile contains an `x-` field, which carries no contract semantics.
     ExperimentalField,
+    /// A spec's `status` does not match its lifecycle folder.
+    LifecycleLocationMismatch,
+    /// A spec's `spec-path` is not its own repository path.
+    SpecPathMismatch,
+    /// A related-artifact repository path names no tracked file or directory.
+    MissingArtifact,
+    /// A skill link names no repository skill.
+    UnknownSkill,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -103,6 +111,10 @@ mod tests {
             DiagnosticCategory::InvalidReferenceSyntax => "invalid-reference-syntax",
             DiagnosticCategory::LegacyShape => "legacy-shape",
             DiagnosticCategory::ExperimentalField => "experimental-field",
+            DiagnosticCategory::LifecycleLocationMismatch => "lifecycle-location-mismatch",
+            DiagnosticCategory::SpecPathMismatch => "spec-path-mismatch",
+            DiagnosticCategory::MissingArtifact => "missing-artifact",
+            DiagnosticCategory::UnknownSkill => "unknown-skill",
         }
     }
 
@@ -119,6 +131,10 @@ mod tests {
     #[case::invalid_reference_syntax(DiagnosticCategory::InvalidReferenceSyntax)]
     #[case::legacy_shape(DiagnosticCategory::LegacyShape)]
     #[case::experimental_field(DiagnosticCategory::ExperimentalField)]
+    #[case::lifecycle_location_mismatch(DiagnosticCategory::LifecycleLocationMismatch)]
+    #[case::spec_path_mismatch(DiagnosticCategory::SpecPathMismatch)]
+    #[case::missing_artifact(DiagnosticCategory::MissingArtifact)]
+    #[case::unknown_skill(DiagnosticCategory::UnknownSkill)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

@@ -320,7 +320,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | DONE | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
 | T4 | DONE | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
-| T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
+| T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | TODO | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
 | T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
 | T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
@@ -471,6 +471,20 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 
   One mutation first survived because of a weak test; the test was strengthened and all five
   are now caught. 142 crate tests pass - `test-design-review.md`
+- 2026-09-26 12:22 UTC - GitHub Copilot - Completed T5:
+  - D7 lookups use a pure `RepositoryFiles` snapshot. The binary builds it from index entries
+    for `--staged`, or from tracked files present in the working tree.
+  - Drafts and open specs get the status, `spec-path`, related-artifact, and skill checks as
+    errors. Closed specs get only status and `spec-path`, as warnings.
+  - Adds four categories: `lifecycle-location-mismatch`, `spec-path-mismatch`,
+    `missing-artifact`, and `unknown-skill`.
+  - Clarification: D8 said only that the location check does not apply outside the lifecycle
+    folders. The implementation applies no D7 check there, because no such spec has a lifecycle
+    to check against.
+
+  Six mutations were each caught. The whole-repository smoke run reports 50 `legacy-shape` errors
+  (D10/D11), 14 structural errors in non-v1 documents for T6, 3 closed-spec warnings, and no D7
+  findings in the open v1 specs - `test-design-review.md`
 
 ## Acceptance Criteria
 

@@ -15,7 +15,7 @@ use std::process::ExitCode;
 
 use clap::error::ErrorKind;
 use clap::{ArgGroup, Parser};
-use discovery::{DiscoveryError, Mode, discover};
+use discovery::{DiscoveryError, Mode, discover, repository_files};
 use frontmatter_validator::repository::validate_document;
 use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
@@ -79,10 +79,15 @@ fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
         Ok(git) => git,
         Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
     };
+    let staged = matches!(mode, Mode::Staged);
     let documents = match discover(mode, &git, working_directory) {
         Ok(documents) => documents,
         Err(DiscoveryError::Usage(message)) => return (vec![Record::usage_error(message)], EXIT_USAGE),
         Err(DiscoveryError::Runtime(message)) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
+    };
+    let repository = match repository_files(staged, &git) {
+        Ok(repository) => repository,
+        Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
     };
 
     let mut records = Vec::new();
@@ -90,7 +95,7 @@ fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
         match document.read(&git) {
             Ok(markdown) => {
                 records.extend(
-                    validate_document(&document.path, &markdown)
+                    validate_document(&document.path, &markdown, &repository)
                         .into_iter()
                         .map(|diagnostic| Record::diagnostic(&document.path, diagnostic)),
                 );

@@ -3,6 +3,8 @@
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+use frontmatter_validator::repository::RepositoryFiles;
+
 use crate::git::Git;
 
 /// Repository-relative prefixes skipped silently in every mode.
@@ -70,6 +72,15 @@ pub fn discover(mode: Mode, git: &Git, working_directory: &Path) -> Result<Vec<D
     documents.sort_by(|left, right| left.path.cmp(&right.path));
     documents.dedup_by(|left, right| left.path == right.path);
     Ok(documents)
+}
+
+/// The files references resolve against: index entries in staged mode, otherwise tracked files
+/// that exist in the working tree.
+pub fn repository_files(staged: bool, git: &Git) -> Result<RepositoryFiles, String> {
+    let tracked = git.tracked_files(None)?;
+    Ok(RepositoryFiles::new(
+        tracked.into_iter().filter(|path| staged || git.root().join(path).is_file()),
+    ))
 }
 
 fn explicit_documents(paths: &[PathBuf], git: &Git, working_directory: &Path) -> Result<Vec<Document>, DiscoveryError> {

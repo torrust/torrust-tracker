@@ -1,12 +1,16 @@
 //! Location-dependent validation policy over repository-relative paths.
 //!
-//! These decisions are pure: they take a path and the document text, never touch the filesystem
-//! or git, and return every diagnostic for the document in contract order.
+//! These decisions are pure: they take a path, the document text, and a snapshot of repository
+//! files, never touch the filesystem or git, and return every diagnostic in contract order.
+
+use std::collections::BTreeSet;
 
 use serde_yaml::{Mapping, Value};
 
-use crate::profile::{self, Profile};
+use crate::profile::{self, Profile, SkillName, StrictSemanticLinks};
 use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Severity, extract_with_ownership};
+
+const SKILLS_DIRECTORY: &str = ".github/skills/";
 
 /// Where a document lives, as far as the issue lifecycle is concerned.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -41,6 +45,42 @@ impl Location {
     }
 }
 
+/// The repository files that references resolve against: the index in staged mode, the working
+/// tree otherwise.
+#[derive(Debug, Default)]
+pub struct RepositoryFiles {
+    files: BTreeSet<String>,
+    skills: BTreeSet<String>,
+}
+
+impl RepositoryFiles {
+    /// Builds the snapshot from repository-relative file paths with `/` separators.
+    pub fn new(files: impl IntoIterator<Item = String>) -> Self {
+        let files: BTreeSet<String> = files.into_iter().collect();
+        let skills = files
+            .iter()
+            .filter_map(|file| file.strip_prefix(SKILLS_DIRECTORY)?.strip_suffix("/SKILL.md"))
+            .map(|directory| file_name(directory).to_owned())
+            .collect();
+        Self { files, skills }
+    }
+
+    /// A tracked file, or a directory that contains a tracked file.
+    fn contains_path(&self, path: &str) -> bool {
+        let directory = format!("{path}/");
+        self.files.contains(path)
+            || self
+                .files
+                .range(directory.clone()..)
+                .next()
+                .is_some_and(|file| file.starts_with(&directory))
+    }
+
+    fn contains_skill(&self, name: &str) -> bool {
+        self.skills.contains(name)
+    }
+}
+
 /// Agent Skills and agent profiles have an externally governed top-level schema.
 #[must_use]
 pub fn ownership(path: &str) -> DocumentOwnership {
@@ -53,9 +93,9 @@ pub fn ownership(path: &str) -> DocumentOwnership {
 }
 
 /// Validates one document and returns its diagnostics: at most one structural finding, then
-/// warnings.
+/// warnings, then repository-aware findings.
 #[must_use]
-pub fn validate_document(path: &str, markdown: &str) -> Vec<Diagnostic> {
+pub fn validate_document(path: &str, markdown: &str, repository: &RepositoryFiles) -> Vec<Diagnostic> {
     let location = Location::of(path);
     let ownership = ownership(path);
     let frontmatter = match extract_with_ownership(markdown, ownership) {
@@ -67,17 +107,109 @@ pub fn validate_document(path: &str, markdown: &str) -> Vec<Diagnostic> {
     };
 
     let mut diagnostics = Vec::new();
-    match profile::validate(&frontmatter) {
-        Ok(Profile::Issue(_) | Profile::Epic(_)) => {}
+    let spec = match profile::validate(&frontmatter) {
+        Ok(Profile::Issue(issue)) => Some((issue.spec_path, issue.semantic_links)),
+        Ok(Profile::Epic(epic)) => Some((epic.spec_path, epic.semantic_links)),
         Ok(Profile::Permissive) if ownership == DocumentOwnership::External => return diagnostics,
         Ok(Profile::Permissive) => {
             diagnostics.extend(legacy_shape(path, location, Some(&frontmatter.values)));
             return diagnostics;
         }
-        Err(diagnostic) => diagnostics.push(for_location(diagnostic, location)),
-    }
+        Err(diagnostic) => {
+            diagnostics.push(for_location(diagnostic, location));
+            None
+        }
+    };
     diagnostics.extend(experimental_fields(&frontmatter.values));
+    if let Some((spec_path, links)) = spec {
+        let status = frontmatter.values.get("status").and_then(Value::as_str).unwrap_or_default();
+        diagnostics.extend(repository_findings(path, location, status, &spec_path, &links, repository));
+    }
     diagnostics
+}
+
+/// D7 applies to specs in the issue lifecycle folders. Closed specs are historical: their paths go
+/// stale by design, so they get only the advisory status and `spec-path` checks.
+fn repository_findings(
+    path: &str,
+    location: Location,
+    status: &str,
+    spec_path: &str,
+    links: &StrictSemanticLinks,
+    repository: &RepositoryFiles,
+) -> Vec<Diagnostic> {
+    if location == Location::Elsewhere {
+        return Vec::new();
+    }
+
+    let spec_path_mismatch = (spec_path != path).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SpecPathMismatch,
+            "spec-path",
+            format!("`spec-path` is `{spec_path}`, but this spec is at `{path}`."),
+        )
+    });
+    let resolves_references = location.is_draft_or_open();
+
+    lifecycle_mismatch(location, status)
+        .into_iter()
+        .chain(spec_path_mismatch)
+        .chain(missing_artifacts(links, repository).filter(|_| resolves_references))
+        .chain(unknown_skills(links, repository).filter(|_| resolves_references))
+        .map(|finding| for_location(finding, location))
+        .collect()
+}
+
+fn lifecycle_mismatch(location: Location, status: &str) -> Option<Diagnostic> {
+    let (matches, rule) = match location {
+        Location::Draft => (status == "draft", "use `draft`"),
+        Location::Open => (!matches!(status, "draft" | "done"), "not use `draft` or `done`"),
+        Location::Closed => (status == "done", "use `done`"),
+        Location::Elsewhere => (true, ""),
+    };
+
+    (!matches).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::LifecycleLocationMismatch,
+            "status",
+            format!("`status` is `{status}`, but specs in this lifecycle folder must {rule}."),
+        )
+    })
+}
+
+fn missing_artifacts<'a>(
+    links: &'a StrictSemanticLinks,
+    repository: &'a RepositoryFiles,
+) -> impl Iterator<Item = Diagnostic> + 'a {
+    links
+        .related_artifacts
+        .iter()
+        .flatten()
+        .filter_map(|artifact| artifact.repository_path())
+        .filter(|artifact| !repository.contains_path(artifact))
+        .map(|artifact| {
+            Diagnostic::for_field(
+                DiagnosticCategory::MissingArtifact,
+                "semantic-links.related-artifacts",
+                format!("`{artifact}` names no tracked file or directory."),
+            )
+        })
+}
+
+fn unknown_skills<'a>(links: &'a StrictSemanticLinks, repository: &'a RepositoryFiles) -> impl Iterator<Item = Diagnostic> + 'a {
+    links
+        .skill_links
+        .iter()
+        .flatten()
+        .map(SkillName::as_str)
+        .filter(|skill| !repository.contains_skill(skill))
+        .map(|skill| {
+            Diagnostic::for_field(
+                DiagnosticCategory::UnknownSkill,
+                "semantic-links.skill-links",
+                format!("`{skill}` names no skill under `{SKILLS_DIRECTORY}`."),
+            )
+        })
 }
 
 /// Closed specs are historical records: their strict-profile findings are advisory.
@@ -133,27 +265,43 @@ fn file_name(path: &str) -> &str {
 #[cfg(test)]
 mod tests {
     // Owns location classification, ownership dispatch, location-dependent severity, the
-    // legacy-shape rule, and experimental-field warnings. Structural profile rules are owned by
-    // `profile`.
+    // legacy-shape rule, experimental-field warnings, and the D7 repository-aware checks.
+    // Structural profile rules are owned by `profile`.
 
     use rstest::rstest;
 
-    use super::{Location, ownership, validate_document};
+    use super::{Location, RepositoryFiles, ownership, validate_document};
     use crate::{DiagnosticCategory, DocumentOwnership, Severity};
 
-    const VALID_ISSUE: &str = include_str!("../fixtures/accepted/issue.md");
     const WRONG_SCALAR_ISSUE: &str = include_str!("../fixtures/rejected/issue-wrong-scalar.md");
     const LEGACY_ISSUE: &str = "---\ndoc-type: issue\nstatus: planned\n---\n# Legacy\n";
     const LEGACY_EPIC: &str = "---\ndoc-type: epic\nstatus: planned\n---\n# Legacy\n";
     const EVIDENCE: &str = "---\ndoc-type: manual-verification-evidence\n---\n# Evidence\n";
     const PLAIN: &str = "# Plain document\n";
+    const OPEN_SPEC: &str = "docs/issues/open/1-example/ISSUE.md";
+    const NO_LINKS: &str = " {}";
 
-    /// The observable identity of each diagnostic, in order.
+    /// A strict v1 issue; `links` is the YAML that follows `semantic-links:`.
+    fn strict_issue(spec_path: &str, status: &str, links: &str) -> String {
+        format!(
+            "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: {status}\npriority: p1\nepic: null\ngithub-issue: 1\nspec-path: {spec_path}\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-26 11:30\"\nsemantic-links:{links}\n---\n# Issue\n"
+        )
+    }
+
+    /// The observable identity of each diagnostic, in order, against an empty repository.
     fn findings(path: &str, markdown: &str) -> Vec<(DiagnosticCategory, Severity)> {
-        validate_document(path, markdown)
+        findings_in(path, markdown, &RepositoryFiles::default())
+    }
+
+    fn findings_in(path: &str, markdown: &str, repository: &RepositoryFiles) -> Vec<(DiagnosticCategory, Severity)> {
+        validate_document(path, markdown, repository)
             .into_iter()
             .map(|diagnostic| (diagnostic.category, diagnostic.severity))
             .collect()
+    }
+
+    fn repository(files: &[&str]) -> RepositoryFiles {
+        RepositoryFiles::new(files.iter().map(ToString::to_string))
     }
 
     #[rstest]
@@ -193,9 +341,145 @@ mod tests {
     #[case::legacy_primary_elsewhere("docs/archive/ISSUE.md", LEGACY_ISSUE)]
     #[case::open_supporting_evidence("docs/issues/open/1-example/evidence.md", EVIDENCE)]
     #[case::open_supporting_plain("docs/issues/open/1-example/plan.md", PLAIN)]
-    #[case::open_strict_v1_primary("docs/issues/open/1-example/ISSUE.md", VALID_ISSUE)]
     fn it_should_not_require_the_v1_shape_outside_draft_and_open_specs(#[case] path: &str, #[case] markdown: &str) {
         assert_eq!(findings(path, markdown), []);
+    }
+
+    #[test]
+    fn it_should_accept_a_strict_v1_spec_that_matches_its_location() {
+        // Arrange: an open spec whose status, `spec-path`, and references are all consistent.
+        let markdown = strict_issue(
+            OPEN_SPEC,
+            "planned",
+            "\n  skill-links:\n    - create-issue\n  related-artifacts:\n    - docs/AGENTS.md\n    - \"issue #1\"",
+        );
+        let repository = repository(&["docs/AGENTS.md", ".github/skills/dev/planning/create-issue/SKILL.md"]);
+
+        // Act
+        let actual = findings_in(OPEN_SPEC, &markdown, &repository);
+
+        // Assert
+        assert_eq!(actual, []);
+    }
+
+    #[rstest]
+    #[case::draft_with_draft("docs/issues/drafts/1-example/ISSUE.md", "draft", None)]
+    #[case::draft_with_planned("docs/issues/drafts/1-example/ISSUE.md", "planned", Some(Severity::Error))]
+    #[case::open_with_in_progress(OPEN_SPEC, "in-progress", None)]
+    #[case::open_with_draft(OPEN_SPEC, "draft", Some(Severity::Error))]
+    #[case::open_with_done(OPEN_SPEC, "done", Some(Severity::Error))]
+    #[case::closed_with_done("docs/issues/closed/1-example/ISSUE.md", "done", None)]
+    #[case::closed_with_planned("docs/issues/closed/1-example/ISSUE.md", "planned", Some(Severity::Warning))]
+    fn it_should_check_the_status_against_the_lifecycle_folder(
+        #[case] path: &str,
+        #[case] status: &str,
+        #[case] expected: Option<Severity>,
+    ) {
+        // Act
+        let actual = findings(path, &strict_issue(path, status, NO_LINKS));
+
+        // Assert
+        let expected: Vec<_> = expected
+            .map(|severity| (DiagnosticCategory::LifecycleLocationMismatch, severity))
+            .into_iter()
+            .collect();
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest]
+    #[case::open(OPEN_SPEC, "planned", Severity::Error)]
+    #[case::closed("docs/issues/closed/1-example/ISSUE.md", "done", Severity::Warning)]
+    fn it_should_report_a_spec_path_that_is_not_the_spec_location(
+        #[case] path: &str,
+        #[case] status: &str,
+        #[case] expected: Severity,
+    ) {
+        // Arrange: the spec was moved but its `spec-path` still names the old location.
+        let markdown = strict_issue("docs/issues/drafts/example/ISSUE.md", status, NO_LINKS);
+
+        // Act
+        let actual = findings(path, &markdown);
+
+        // Assert
+        assert_eq!(actual, [(DiagnosticCategory::SpecPathMismatch, expected)]);
+    }
+
+    #[rstest]
+    #[case::tracked_file("docs/present.md", false)]
+    #[case::directory_with_tracked_files("docs/tree", false)]
+    #[case::untracked_file("docs/missing.md", true)]
+    #[case::sibling_with_a_shared_prefix("docs/tr", true)]
+    #[case::issue_reference("\"issue #1\"", false)]
+    #[case::review_finding("review-finding:pr-1-f1", false)]
+    fn it_should_report_a_related_artifact_path_that_names_no_tracked_file(
+        #[case] artifact: &str,
+        #[case] expected_missing: bool,
+    ) {
+        // Arrange
+        let markdown = strict_issue(OPEN_SPEC, "planned", &format!("\n  related-artifacts:\n    - {artifact}"));
+        let repository = repository(&["docs/present.md", "docs/tree/file.md"]);
+
+        // Act
+        let actual = findings_in(OPEN_SPEC, &markdown, &repository);
+
+        // Assert: issue and review-finding references are syntax-only.
+        let expected: Vec<_> = expected_missing
+            .then_some((DiagnosticCategory::MissingArtifact, Severity::Error))
+            .into_iter()
+            .collect();
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest]
+    #[case::nested_skill(".github/skills/dev/planning/create-issue/SKILL.md", false)]
+    #[case::top_level_skill(".github/skills/create-issue/SKILL.md", false)]
+    #[case::skill_outside_the_skills_directory("docs/skills/create-issue/SKILL.md", true)]
+    #[case::skill_folder_without_skill_file(".github/skills/dev/create-issue/README.md", true)]
+    fn it_should_report_a_skill_link_that_names_no_repository_skill(#[case] tracked_file: &str, #[case] expected_unknown: bool) {
+        // Arrange
+        let markdown = strict_issue(OPEN_SPEC, "planned", "\n  skill-links:\n    - create-issue");
+
+        // Act
+        let actual = findings_in(OPEN_SPEC, &markdown, &repository(&[tracked_file]));
+
+        // Assert
+        let expected: Vec<_> = expected_unknown
+            .then_some((DiagnosticCategory::UnknownSkill, Severity::Error))
+            .into_iter()
+            .collect();
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest]
+    #[case::closed("docs/issues/closed/1-example/ISSUE.md", "done")]
+    #[case::elsewhere("docs/archive/ISSUE.md", "planned")]
+    fn it_should_not_resolve_references_outside_draft_and_open_specs(#[case] path: &str, #[case] status: &str) {
+        // Arrange: stale references in a spec whose `spec-path` and status match its location.
+        let links = "\n  skill-links:\n    - retired-skill\n  related-artifacts:\n    - docs/removed.md";
+
+        // Act
+        let actual = findings(path, &strict_issue(path, status, links));
+
+        // Assert
+        assert_eq!(actual, []);
+    }
+
+    #[test]
+    fn it_should_report_warnings_before_repository_findings() {
+        // Arrange: an open spec with an `x-` field and a draft status.
+        let markdown = strict_issue(OPEN_SPEC, "draft", NO_LINKS).replace("doc-type: issue\n", "doc-type: issue\nx-note: wip\n");
+
+        // Act
+        let actual = findings(OPEN_SPEC, &markdown);
+
+        // Assert
+        assert_eq!(
+            actual,
+            [
+                (DiagnosticCategory::ExperimentalField, Severity::Warning),
+                (DiagnosticCategory::LifecycleLocationMismatch, Severity::Error),
+            ]
+        );
     }
 
     #[rstest]
@@ -229,7 +513,7 @@ mod tests {
         let markdown = format!("---\nx-reviewer: alice\nx-note: draft\n{body}");
 
         // Act
-        let diagnostics = validate_document("docs/issues/open/1-example/ISSUE.md", &markdown);
+        let diagnostics = validate_document("docs/issues/open/1-example/ISSUE.md", &markdown, &RepositoryFiles::default());
 
         // Assert: the structural error comes first, then one warning per field in source order.
         let actual: Vec<_> = diagnostics

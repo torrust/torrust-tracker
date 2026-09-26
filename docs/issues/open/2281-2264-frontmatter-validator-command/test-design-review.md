@@ -244,3 +244,63 @@ The first run of the last mutation survived: the external-file test's content ha
 an external `doc-type: issue`, which is the case the exemption exists for. Two other first
 attempts, the primary-spec and every-location mutations, did not compile under `-D warnings`.
 They were redone as mutants that compile.
+
+## T5 - Repository-Aware Checks
+
+Design: D7 lookups use a pure library value, `RepositoryFiles`, built from repository-relative
+file paths. The binary fills it with index entries for `--staged`, and otherwise with tracked files
+present in the working tree. The library derives skill names from `.github/skills/**/<name>/SKILL.md`
+entries. Every D7 rule is therefore unit-tested without git or a trait object. Only the binary's
+choice of snapshot is tested at the command boundary. D7 applies only inside the issue lifecycle
+folders: drafts and open get all four checks as errors, closed specs get only the status and
+`spec-path` checks as warnings, and other locations get none.
+
+Tests added:
+
+- `repository::tests` (unit):
+  - a consistent open spec passes;
+  - status versus lifecycle folder, 7 cases across drafts, open, and closed;
+  - `spec-path` mismatch, as an error when open and a warning when closed;
+  - related-artifact resolution: a tracked file, a directory with tracked files, a missing file,
+    a sibling sharing a name prefix, and syntax-only issue and review-finding references;
+  - skill resolution: a nested skill, a top-level skill, a `SKILL.md` outside `.github/skills/`,
+    and a skill folder without `SKILL.md`;
+  - stale references ignored in closed and other locations;
+  - warnings ordered before repository findings.
+- `tests/cli.rs`: `it_should_resolve_related_artifacts_against_the_index_only_with_staged`. A file
+  in the index but deleted from the working tree resolves in `--staged` mode and is missing in
+  path mode.
+
+Prose-first comparison:
+
+- A `strict_issue(spec_path, status, links)` builder names the only three inputs D7 reads. Each
+  test states its causal value visibly: the status, the moved `spec-path`, one related artifact, or
+  one tracked file.
+- `repository(&[...])` lists the repository snapshot literally, in the test body.
+- Expected findings are literal `(category, severity)` lists. Optional expectations are written as
+  `Option`/`bool` cases rather than branches in the test body.
+
+The first draft of the command-boundary test used an untracked working-tree file. That cannot
+distinguish the modes, because D7 requires tracked files in both. It was replaced by a tracked
+file deleted from disk, the state that actually separates index from working tree.
+
+Mutation evidence (stable Rust toolchain; each mutation verified as applied, restored from a
+`.tmp` backup, and checked with `cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| Open specs accept `done` | 1 |
+| Directory match without the trailing `/` | 1 (shared-prefix sibling) |
+| Closed specs resolve references | 1 |
+| Skills recognized outside `.github/skills/` | 1 |
+| `--staged` resolves against the working tree | 1 (command boundary) |
+| `spec-path` never checked | 2 |
+
+Whole-repository run (`--all`, read-only, 0.04 s, empty stdout):
+
+- 50 `legacy-shape` errors, matching D10/D11's 42 issues plus 8 EPICs;
+- 14 structural errors in documents outside the v1 profiles;
+- 3 closed-spec warnings;
+- no D7 findings in the five open v1 specs.
+
+The structural errors are T6 input.

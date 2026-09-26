@@ -488,6 +488,22 @@ impl TryFrom<String> for SkillName {
     }
 }
 
+impl SkillName {
+    /// The validated skill name.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl RelatedArtifact {
+    /// The repository path this artifact names, or `None` for issue and review-finding references.
+    #[must_use]
+    pub fn repository_path(&self) -> Option<&str> {
+        is_repository_relative_path(&self.0).then_some(self.0.as_str())
+    }
+}
+
 impl TryFrom<String> for RelatedArtifact {
     type Error = String;
 

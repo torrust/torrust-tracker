@@ -415,6 +415,34 @@ fn it_should_exit_one_only_when_a_record_is_an_error(
 }
 
 #[rstest]
+#[case::staged_resolves_against_the_index(&["--staged"], 0)]
+#[case::explicit_path_resolves_against_the_working_tree(&["docs/issues/open/1-example/ISSUE.md"], 1)]
+fn it_should_resolve_related_artifacts_against_the_index_only_with_staged(
+    #[case] arguments: &[&str],
+    #[case] expected_exit_code: i32,
+) {
+    // Arrange: the referenced file is in the index but deleted from the working tree.
+    let repository = Repository::new();
+    let spec = "docs/issues/open/1-example/ISSUE.md";
+    repository.write(
+        spec,
+        &format!(
+            "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 1\nspec-path: {spec}\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-26 11:30\"\nsemantic-links:\n  related-artifacts:\n    - docs/notes.md\n---\n"
+        ),
+    );
+    repository.write("docs/notes.md", PLAIN_DOCUMENT);
+    repository.stage("docs/notes.md");
+    repository.stage(spec);
+    repository.delete("docs/notes.md");
+
+    // Act
+    let outcome = repository.validate(arguments);
+
+    // Assert
+    assert_eq!(outcome.exit_code, expected_exit_code, "records: {:?}", outcome.records);
+}
+
+#[rstest]
 #[case::explicit_file(&["docs/templates/ISSUE.md"])]
 #[case::directory(&["docs"])]
 #[case::all(&["--all"])]
