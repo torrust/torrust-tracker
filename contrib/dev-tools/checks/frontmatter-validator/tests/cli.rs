@@ -13,7 +13,18 @@ use tempfile::TempDir;
 
 const VALID_ISSUE: &str = include_str!("../fixtures/accepted/issue.md");
 const WRONG_SCALAR_ISSUE: &str = include_str!("../fixtures/rejected/issue-wrong-scalar.md");
+const UNKNOWN_FIELD_ISSUE: &str = include_str!("../fixtures/rejected/issue-unknown-field.md");
+const INVALID_STATUS_ISSUE: &str = include_str!("../fixtures/rejected/issue-invalid-status.md");
+const INVALID_REFERENCE_ISSUE: &str = include_str!("../fixtures/rejected/issue-invalid-reference.md");
 const PLAIN_DOCUMENT: &str = "# Plain document\n";
+const OPEN_SPEC: &str = "docs/issues/open/1-example/ISSUE.md";
+
+/// A strict v1 issue at `OPEN_SPEC`; only the status and the related-artifact line vary.
+fn open_strict_issue(status: &str, related_artifact: &str) -> String {
+    format!(
+        "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: {status}\npriority: p1\nepic: null\ngithub-issue: 1\nspec-path: {OPEN_SPEC}\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-26 11:30\"\nsemantic-links:\n  related-artifacts:\n    - {related_artifact}\n---\n"
+    )
+}
 
 /// Inherited variables that would redirect git away from the disposable repository.
 const GIT_ENVIRONMENT: &[&str] = &[
@@ -386,6 +397,47 @@ fn it_should_ignore_a_staged_deletion_with_staged() {
         (0, 0),
         "records: {:?}",
         outcome.records
+    );
+}
+
+#[rstest]
+#[case::unknown_field(UNKNOWN_FIELD_ISSUE.to_owned(), "unknown-field", "owner")]
+#[case::wrong_scalar(WRONG_SCALAR_ISSUE.to_owned(), "wrong-scalar-type", "github-issue")]
+#[case::disallowed_value(INVALID_STATUS_ISSUE.to_owned(), "invalid-allowed-value", "status")]
+#[case::reference_syntax(INVALID_REFERENCE_ISSUE.to_owned(), "invalid-reference-syntax", "semantic-links.related-artifacts")]
+#[case::lifecycle(open_strict_issue("done", "\"issue #1\""), "lifecycle-location-mismatch", "status")]
+#[case::missing_path(
+    open_strict_issue("planned", "docs/removed.md"),
+    "missing-artifact",
+    "semantic-links.related-artifacts"
+)]
+fn it_should_report_each_failure_family_as_one_error_record(
+    #[case] content: String,
+    #[case] expected_category: &str,
+    #[case] expected_field_path: &str,
+) {
+    // Arrange: an open spec whose only defect is the one each case names.
+    let repository = Repository::new();
+    repository.write(OPEN_SPEC, &content);
+
+    // Act
+    let outcome = repository.validate(&[OPEN_SPEC]);
+
+    // Assert
+    let record = outcome.only_record();
+    assert_eq!(
+        (
+            outcome.exit_code,
+            &record["severity"],
+            &record["category"],
+            &record["field_path"]
+        ),
+        (
+            1,
+            &Value::from("error"),
+            &Value::from(expected_category),
+            &Value::from(expected_field_path)
+        )
     );
 }
 
