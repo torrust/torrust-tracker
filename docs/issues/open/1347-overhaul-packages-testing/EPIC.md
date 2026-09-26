@@ -1,10 +1,12 @@
 ---
+schema-version: 1
 doc-type: epic
-status: open
+status: in-progress
+epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-14
+last-updated-utc: "2026-09-26 12:43"
 semantic-links:
   skill-links:
     - create-issue
