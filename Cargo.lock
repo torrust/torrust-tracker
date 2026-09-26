@@ -480,7 +480,7 @@ dependencies = [
  "log",
  "num",
  "pin-project-lite",
- "rand 0.10.2",
+ "rand 0.10.3",
  "rustls",
  "rustls-native-certs",
  "rustls-pki-types",
@@ -1374,7 +1374,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee93edf3c501f0035bbeffeccfed0b79e14c311f12195ec0e661e114a0f60da4"
 dependencies = [
  "portable-atomic",
- "rand 0.10.2",
+ "rand 0.10.3",
  "web-time",
 ]
 
@@ -3150,7 +3150,7 @@ checksum = "95c589f335db0f6aaa168a7cd27b1fc6920f5e1470c804f814d9cd6e62a0f70b"
 dependencies = [
  "env_logger",
  "log",
- "rand 0.10.2",
+ "rand 0.10.3",
 ]
 
 [[package]]
@@ -3194,7 +3194,7 @@ dependencies = [
  "bytes",
  "getrandom 0.4.3",
  "lru-slab",
- "rand 0.10.2",
+ "rand 0.10.3",
  "rand_pcg",
  "ring",
  "rustc-hash",
@@ -3265,9 +3265,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7f5fa3a058cd35567ef9bfa5e75732bee0f9e4c55fa90477bef2dfcdbc4be80"
+checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
 dependencies = [
  "chacha20",
  "getrandom 0.4.3",
@@ -4886,7 +4886,7 @@ dependencies = [
  "clap",
  "nix",
  "pbkdf2",
- "rand 0.10.2",
+ "rand 0.10.3",
  "regex",
  "reqwest",
  "secrecy",
@@ -5330,7 +5330,7 @@ dependencies = [
 name = "torrust-tracker-test-helpers"
 version = "3.0.0"
 dependencies = [
- "rand 0.10.2",
+ "rand 0.9.5",
  "torrust-info-hash",
  "torrust-peer-id",
  "torrust-tracker-client-lib",
