@@ -16,8 +16,7 @@ use std::process::ExitCode;
 use clap::error::ErrorKind;
 use clap::{ArgGroup, Parser};
 use discovery::{DiscoveryError, Mode, discover};
-use frontmatter_validator::profile::validate;
-use frontmatter_validator::{Diagnostic, DocumentOwnership, extract_with_ownership};
+use frontmatter_validator::repository::validate_document;
 use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
@@ -91,7 +90,9 @@ fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
         match document.read(&git) {
             Ok(markdown) => {
                 records.extend(
-                    validate_document(&document.path, &markdown).map(|diagnostic| Record::diagnostic(&document.path, diagnostic)),
+                    validate_document(&document.path, &markdown)
+                        .into_iter()
+                        .map(|diagnostic| Record::diagnostic(&document.path, diagnostic)),
                 );
             }
             Err(message) => {
@@ -105,39 +106,20 @@ fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
     (records, if has_error { EXIT_FAILURE } else { EXIT_SUCCESS })
 }
 
-/// The library reports the first extraction or profile failure of a document.
-fn validate_document(path: &str, markdown: &str) -> Option<Diagnostic> {
-    match extract_with_ownership(markdown, ownership(path)) {
-        Ok(Some(frontmatter)) => validate(&frontmatter).err(),
-        Ok(None) => None,
-        Err(diagnostic) => Some(diagnostic),
-    }
-}
-
-/// Agent Skills and agent profiles have an externally governed top-level schema.
-fn ownership(path: &str) -> DocumentOwnership {
-    let file_name = path.rsplit('/').next().unwrap_or(path);
-    if file_name == "SKILL.md" || file_name.ends_with(".agent.md") {
-        DocumentOwnership::External
-    } else {
-        DocumentOwnership::Repository
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    // Owns argument parsing, help rendering, output failure, and ownership dispatch. Behavior that
-    // needs a repository is tested through the built binary in `tests/cli.rs`.
+    // Owns argument parsing, help rendering, and output failure. Behavior that needs a repository
+    // is tested through the built binary in `tests/cli.rs`; document policy is owned by the
+    // library's `repository` module.
 
     use std::ffi::OsString;
     use std::io::{self, Write};
     use std::path::Path;
 
-    use frontmatter_validator::DocumentOwnership;
     use rstest::rstest;
     use serde_json::{Map, Value};
 
-    use super::{ownership, run};
+    use super::run;
 
     /// Records from a run that fails before any repository access.
     fn parse_only(arguments: &[&str]) -> (u8, Vec<Map<String, Value>>) {
@@ -212,19 +194,5 @@ mod tests {
 
         // Assert
         assert_eq!(exit_code, 1);
-    }
-
-    #[rstest]
-    #[case::agent_skill(".github/skills/dev/example/SKILL.md", DocumentOwnership::External)]
-    #[case::agent_profile(".github/agents/implementer.agent.md", DocumentOwnership::External)]
-    #[case::root_agent_skill("SKILL.md", DocumentOwnership::External)]
-    #[case::repository_document("docs/issues/open/1-example/ISSUE.md", DocumentOwnership::Repository)]
-    #[case::skill_named_directory("docs/SKILL.md/notes.md", DocumentOwnership::Repository)]
-    fn it_should_dispatch_ownership_by_file_name(#[case] path: &str, #[case] expected: DocumentOwnership) {
-        // Act
-        let actual = ownership(path);
-
-        // Assert
-        assert_eq!(actual, expected);
     }
 }

@@ -390,6 +390,31 @@ fn it_should_ignore_a_staged_deletion_with_staged() {
 }
 
 #[rstest]
+#[case::closed_spec_finding_is_advisory("docs/issues/closed/1-example/ISSUE.md", WRONG_SCALAR_ISSUE, "warning", 0)]
+#[case::open_spec_finding_is_an_error("docs/issues/open/1-example/ISSUE.md", WRONG_SCALAR_ISSUE, "error", 1)]
+#[case::open_legacy_spec_is_an_error("docs/issues/open/1-example/ISSUE.md", PLAIN_DOCUMENT, "error", 1)]
+fn it_should_exit_one_only_when_a_record_is_an_error(
+    #[case] path: &str,
+    #[case] content: &str,
+    #[case] expected_severity: &str,
+    #[case] expected_exit_code: i32,
+) {
+    // Arrange
+    let repository = Repository::new();
+    repository.write(path, content);
+
+    // Act
+    let outcome = repository.validate(&[path]);
+
+    // Assert
+    let record = outcome.only_record();
+    assert_eq!(
+        (outcome.exit_code, &record["severity"]),
+        (expected_exit_code, &Value::from(expected_severity))
+    );
+}
+
+#[rstest]
 #[case::explicit_file(&["docs/templates/ISSUE.md"])]
 #[case::directory(&["docs"])]
 #[case::all(&["--all"])]

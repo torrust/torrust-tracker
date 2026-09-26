@@ -28,6 +28,10 @@ pub enum DiagnosticCategory {
     InvalidFieldValue,
     /// A strict profile reference does not use an approved provisional syntax.
     InvalidReferenceSyntax,
+    /// A draft or open issue or EPIC spec does not use the strict v1 frontmatter.
+    LegacyShape,
+    /// A strict profile contains an `x-` field, which carries no contract semantics.
+    ExperimentalField,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -69,6 +73,10 @@ impl Diagnostic {
             ..Self::new(category, message)
         }
     }
+
+    pub(crate) fn with_severity(self, severity: Severity) -> Self {
+        Self { severity, ..self }
+    }
 }
 
 #[cfg(test)]
@@ -93,6 +101,8 @@ mod tests {
             DiagnosticCategory::InvalidAllowedValue => "invalid-allowed-value",
             DiagnosticCategory::InvalidFieldValue => "invalid-field-value",
             DiagnosticCategory::InvalidReferenceSyntax => "invalid-reference-syntax",
+            DiagnosticCategory::LegacyShape => "legacy-shape",
+            DiagnosticCategory::ExperimentalField => "experimental-field",
         }
     }
 
@@ -107,6 +117,8 @@ mod tests {
     #[case::invalid_allowed_value(DiagnosticCategory::InvalidAllowedValue)]
     #[case::invalid_field_value(DiagnosticCategory::InvalidFieldValue)]
     #[case::invalid_reference_syntax(DiagnosticCategory::InvalidReferenceSyntax)]
+    #[case::legacy_shape(DiagnosticCategory::LegacyShape)]
+    #[case::experimental_field(DiagnosticCategory::ExperimentalField)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

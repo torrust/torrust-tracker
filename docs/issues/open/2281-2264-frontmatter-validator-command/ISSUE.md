@@ -319,7 +319,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
 | T2 | DONE | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
 | T3 | DONE | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
-| T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
+| T4 | DONE | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
 | T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | TODO | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
 | T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
@@ -459,6 +459,18 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
     with a `null` path.
 
   Five mutations were each caught. 112 crate tests pass - `test-design-review.md`
+- 2026-09-26 11:18 UTC - GitHub Copilot - Completed T4 in a new library module `repository`
+  (R1):
+  - Location classification, ownership dispatch (moved from the binary), and per-document
+    validation return every diagnostic in order (R2).
+  - Closed-spec profile findings become warnings, while syntax stays an error.
+  - `legacy-shape` is an error for draft and open primary specs and for `issue`/`epic` records
+    without `schema-version: 1` (D10). Externally governed files are exempt.
+  - Each `x-` field in a strict profile gets an `experimental-field` warning.
+  - Adds the `legacy-shape` and `experimental-field` categories.
+
+  One mutation first survived because of a weak test; the test was strengthened and all five
+  are now caught. 142 crate tests pass - `test-design-review.md`
 
 ## Acceptance Criteria
 

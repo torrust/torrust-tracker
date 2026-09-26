@@ -192,3 +192,55 @@ byte-identical with `cmp`):
 
 The first attempt at the index mutation did not compile, because the unused index reader tripped
 `-D warnings`. It was redone with the reader still referenced, and it failed as expected.
+
+## T4 - Location-Dependent Severity and Warnings
+
+Placement (approved R1): the policy lives in the library's `repository` module as pure functions
+over a repository-relative path and the document text. It owns:
+
+- `Location::of`;
+- `ownership`, moved from the binary together with its test;
+- `validate_document`, which returns every diagnostic for one document (R2).
+
+The binary now only discovers, reads, renders, and sets the exit code.
+
+Tests added:
+
+- `repository::tests` (unit):
+  - location classification, including `docs/issues/README.md` and a similar `opened/` prefix;
+  - ownership dispatch;
+  - `legacy-shape` errors for draft and open primary specs, with or without frontmatter, and for
+    files that declare `doc-type` `issue` or `epic`;
+  - no v1 requirement for closed specs, other locations, supporting files, or strict v1 records;
+  - strict-profile severity by location;
+  - syntax errors stay errors in closed specs;
+  - one `experimental-field` warning per `x-` field, after the structural error, in source order;
+  - externally governed files are exempt.
+- `tests/cli.rs`: `it_should_exit_one_only_when_a_record_is_an_error`. A closed-spec warning
+  exits `0`, while an open-spec error and an open legacy spec exit `1`. The exit-code rule is
+  owned by the binary, so it is tested at the command boundary.
+
+Prose-first comparison:
+
+- The path is the causal Arrange value: each `#[case]` pairs a repository-relative path with a
+  named content constant. Constants such as `LEGACY_ISSUE`, `EVIDENCE`, and `PLAIN` name the
+  document shape, so each case reads as "this kind of document at this location".
+- The Act is the production `validate_document` or `Location::of` call.
+- The Assert compares an ordered list of `(category, severity)` pairs. The experimental-field
+  test compares `(category, severity, field_path)` triples. Expected values are literals.
+
+Mutation evidence (stable Rust toolchain; restored from a `.tmp` backup, verified with `cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| Closed specs keep error severity | 1 |
+| Primary-spec rule disabled | 3 |
+| `legacy-shape` applies in every location | 2 |
+| `x-` findings reported as errors | 1 |
+| External files not exempted from `legacy-shape` | 1, after strengthening the test |
+
+The first run of the last mutation survived: the external-file test's content had no
+`doc-type: issue`, so removing the exemption changed nothing. The test now gives the Agent Skill
+an external `doc-type: issue`, which is the case the exemption exists for. Two other first
+attempts, the primary-spec and every-location mutations, did not compile under `-D warnings`.
+They were redone as mutants that compile.
