@@ -46,6 +46,17 @@ Mutation evidence (stable Rust toolchain): changing the serde scalar-failure pat
 `Diagnostic::new` (no field path) made `it_should_reject_the_wrong_scalar_fixture` fail (1 failed,
 46 passed); restoring the change made all 47 library tests pass.
 
+Maintainer review follow-up: both serialization tests were first written as a `for` loop over a
+case table. They are now `rstest` parameterized tests, following the `write-unit-test` skill's
+Phase 3. Each named `#[case]` is a separate test, so a failure names the variant and one bad row
+cannot hide the others. The Arrange comment was dropped because the cases are the Arrange.
+`rstest` 0.27.0 is the current release and was already in the lockfile.
+
+Neither the loop nor per-case literals caught a category added later without a test. The expected
+category names therefore live in a test-local `contract_name` function with an exhaustive `match`
+and no wildcard arm: a new category fails to compile until it has a contract name, and the case
+list sits beside it. The names remain literals, independent of serde and production code.
+
 ## T1b - Reject Issue References Truncated by Unquoted YAML Comments
 
 Test added:

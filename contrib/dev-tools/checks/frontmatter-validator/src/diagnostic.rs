@@ -75,44 +75,54 @@ impl Diagnostic {
 mod tests {
     // Owns the serialized category and severity names that form the command's diagnostic contract.
 
+    use rstest::rstest;
+
     use super::{DiagnosticCategory, Severity};
 
-    #[test]
-    fn it_should_serialize_each_category_as_its_stable_kebab_case_name() {
-        // Arrange: each row pairs a category with its independently specified contract name.
-        let cases = [
-            (DiagnosticCategory::UnclosedDelimiter, "unclosed-delimiter"),
-            (DiagnosticCategory::MalformedYaml, "malformed-yaml"),
-            (DiagnosticCategory::NonMappingRoot, "non-mapping-root"),
-            (DiagnosticCategory::InvalidSemanticLinks, "invalid-semantic-links"),
-            (DiagnosticCategory::UnknownField, "unknown-field"),
-            (DiagnosticCategory::MissingRequiredField, "missing-required-field"),
-            (DiagnosticCategory::WrongScalarType, "wrong-scalar-type"),
-            (DiagnosticCategory::InvalidAllowedValue, "invalid-allowed-value"),
-            (DiagnosticCategory::InvalidFieldValue, "invalid-field-value"),
-            (DiagnosticCategory::InvalidReferenceSyntax, "invalid-reference-syntax"),
-        ];
-
-        for (category, expected) in cases {
-            // Act: serialize the category as the command will.
-            let actual = serde_json::to_value(category).unwrap();
-
-            // Assert: the rendered name is the stable contract name.
-            assert_eq!(actual, expected, "unexpected serialized name for {category:?}");
+    /// The contract names, independent of serde. No wildcard arm, so a new category fails to compile
+    /// here until it has a name and a case below.
+    const fn contract_name(category: DiagnosticCategory) -> &'static str {
+        match category {
+            DiagnosticCategory::UnclosedDelimiter => "unclosed-delimiter",
+            DiagnosticCategory::MalformedYaml => "malformed-yaml",
+            DiagnosticCategory::NonMappingRoot => "non-mapping-root",
+            DiagnosticCategory::InvalidSemanticLinks => "invalid-semantic-links",
+            DiagnosticCategory::UnknownField => "unknown-field",
+            DiagnosticCategory::MissingRequiredField => "missing-required-field",
+            DiagnosticCategory::WrongScalarType => "wrong-scalar-type",
+            DiagnosticCategory::InvalidAllowedValue => "invalid-allowed-value",
+            DiagnosticCategory::InvalidFieldValue => "invalid-field-value",
+            DiagnosticCategory::InvalidReferenceSyntax => "invalid-reference-syntax",
         }
     }
 
-    #[test]
-    fn it_should_serialize_each_severity_as_its_stable_lowercase_name() {
-        // Arrange: each row pairs a severity with its independently specified contract name.
-        let cases = [(Severity::Error, "error"), (Severity::Warning, "warning")];
+    #[rstest]
+    #[case::unclosed_delimiter(DiagnosticCategory::UnclosedDelimiter)]
+    #[case::malformed_yaml(DiagnosticCategory::MalformedYaml)]
+    #[case::non_mapping_root(DiagnosticCategory::NonMappingRoot)]
+    #[case::invalid_semantic_links(DiagnosticCategory::InvalidSemanticLinks)]
+    #[case::unknown_field(DiagnosticCategory::UnknownField)]
+    #[case::missing_required_field(DiagnosticCategory::MissingRequiredField)]
+    #[case::wrong_scalar_type(DiagnosticCategory::WrongScalarType)]
+    #[case::invalid_allowed_value(DiagnosticCategory::InvalidAllowedValue)]
+    #[case::invalid_field_value(DiagnosticCategory::InvalidFieldValue)]
+    #[case::invalid_reference_syntax(DiagnosticCategory::InvalidReferenceSyntax)]
+    fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
+        // Act: serialize the category as the command will.
+        let actual = serde_json::to_value(category).unwrap();
 
-        for (severity, expected) in cases {
-            // Act: serialize the severity as the command will.
-            let actual = serde_json::to_value(severity).unwrap();
+        // Assert: the rendered name is the independently specified contract name.
+        assert_eq!(actual, contract_name(category));
+    }
 
-            // Assert: the rendered name is the stable contract name.
-            assert_eq!(actual, expected, "unexpected serialized name for {severity:?}");
-        }
+    #[rstest]
+    #[case::error(Severity::Error, "error")]
+    #[case::warning(Severity::Warning, "warning")]
+    fn it_should_serialize_each_severity_as_its_stable_lowercase_name(#[case] severity: Severity, #[case] expected: &str) {
+        // Act: serialize the severity as the command will.
+        let actual = serde_json::to_value(severity).unwrap();
+
+        // Assert: the rendered name is the independently specified contract name.
+        assert_eq!(actual, expected);
     }
 }
