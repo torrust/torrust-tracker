@@ -61,21 +61,27 @@ continue using the standard command above.
 
 The script runs these steps in order:
 
-1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
+1. `./contrib/dev-tools/checks/format-project-words.sh` - formats `project-words.txt` with
    `LC_ALL=C sort -u`
 2. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
    check for changed staged Clippy allow attributes. The command resolves the first available
    base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
-3. `cargo machete --with-metadata` - unused dependency check
-4. `cargo deny check bans` - workspace layer-boundary dependency check
-5. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-6. `cargo test --doc --workspace` - documentation tests
+3. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged` -
+   read-only v1 frontmatter check of the staged content of staged Markdown files. A staged edit
+   to a draft or open issue spec without v1 frontmatter fails with `legacy-shape`. See
+   `contrib/dev-tools/checks/frontmatter-validator/README.md` for the migration checklist.
+4. `cargo machete --with-metadata` - unused dependency check
+5. `cargo deny check bans` - workspace layer-boundary dependency check
+6. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
+7. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+8. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
+9. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:
 
 ```bash
-./contrib/dev-tools/git/format-project-words.sh
+./contrib/dev-tools/checks/format-project-words.sh
 ```
 
 This is an interim action related to EPIC #2003 and may be replaced or refactored after its

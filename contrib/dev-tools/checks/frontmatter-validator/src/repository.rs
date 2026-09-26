@@ -234,7 +234,7 @@ fn legacy_shape(path: &str, location: Location, values: Option<&Mapping>) -> Opt
             DiagnosticCategory::LegacyShape,
             "Draft and open issue specs must use the v1 frontmatter (`schema-version: 1`); copy the shape \
              from `docs/templates/ISSUE.md` or `docs/templates/EPIC.md` and follow the migration checklist \
-             in the frontmatter-validator README.",
+             in `contrib/dev-tools/checks/frontmatter-validator/README.md`.",
         )
     })
 }
