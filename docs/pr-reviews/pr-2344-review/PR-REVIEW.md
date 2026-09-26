@@ -169,6 +169,9 @@ so they are recorded as `Minor (inferred)`.
   the branch onto `develop` `0f1dcd28`, committed one fix per finding (F1 and F2 share one commit),
   force-pushed with a lease on the reviewed head, re-derived each fix from the pushed tree, and
   replied on all six threads.
+- 2026-09-26 13:09 UTC - After `docs(pr-reviews): add PR #2344 review audit` was pushed,
+  `reply-status --login josecelano` reported 6 of 6 threads replied, and the six threads were
+  resolved. A refreshed GraphQL fetch reports 6 threads, 0 unresolved, all resolved by `josecelano`.
 
 ## Completion Rules
 
