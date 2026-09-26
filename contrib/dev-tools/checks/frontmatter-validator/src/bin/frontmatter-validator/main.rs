@@ -3,6 +3,8 @@
 //! Output class `no-stdout-result`: stdout stays empty; exit codes are `0` for success, `1` for
 //! validation errors or runtime failures, and `2` for invalid invocation.
 
+mod record;
+
 use std::ffi::OsString;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -12,12 +14,8 @@ use std::{env, fs};
 use clap::Parser;
 use clap::error::ErrorKind;
 use frontmatter_validator::profile::validate;
-use frontmatter_validator::{Diagnostic, DiagnosticCategory, DocumentOwnership, Severity, extract_with_ownership};
-use serde::Serialize;
-
-const EXIT_SUCCESS: u8 = 0;
-const EXIT_FAILURE: u8 = 1;
-const EXIT_USAGE: u8 = 2;
+use frontmatter_validator::{Diagnostic, DocumentOwnership, extract_with_ownership};
+use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
 /// Validate the frontmatter of Markdown files against the repository's v1 contract.
 #[derive(Debug, Parser)]
@@ -26,58 +24,6 @@ struct Arguments {
     /// Markdown files to validate.
     #[arg(required = true)]
     paths: Vec<PathBuf>,
-}
-
-/// One NDJSON line on stderr. Field order and nullability are the command's output contract.
-#[derive(Debug, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-enum Record {
-    Diagnostic {
-        path: String,
-        severity: Severity,
-        category: DiagnosticCategory,
-        field_path: Option<String>,
-        message: String,
-    },
-    UsageError {
-        message: String,
-        exit_code: u8,
-    },
-    RuntimeError {
-        path: Option<String>,
-        message: String,
-        exit_code: u8,
-    },
-    Help {
-        message: String,
-    },
-}
-
-impl Record {
-    fn diagnostic(path: &Path, diagnostic: Diagnostic) -> Self {
-        Self::Diagnostic {
-            path: display_path(path),
-            severity: diagnostic.severity,
-            category: diagnostic.category,
-            field_path: diagnostic.field_path,
-            message: diagnostic.message,
-        }
-    }
-
-    fn usage_error(message: impl Into<String>) -> Self {
-        Self::UsageError {
-            message: message.into(),
-            exit_code: EXIT_USAGE,
-        }
-    }
-
-    fn runtime_error(path: &Path, message: impl Into<String>) -> Self {
-        Self::RuntimeError {
-            path: Some(display_path(path)),
-            message: message.into(),
-            exit_code: EXIT_FAILURE,
-        }
-    }
 }
 
 fn main() -> ExitCode {
@@ -117,24 +63,21 @@ fn validate_files(mut paths: Vec<PathBuf>) -> (Vec<Record>, u8) {
     for path in &paths {
         match fs::read_to_string(path) {
             Ok(markdown) => {
-                records.extend(validate_document(path, &markdown).map(|diagnostic| Record::diagnostic(path, diagnostic)));
+                records.extend(
+                    validate_document(path, &markdown).map(|diagnostic| Record::diagnostic(display_path(path), diagnostic)),
+                );
             }
             Err(error) => {
-                records.push(Record::runtime_error(path, format!("could not read the file: {error}")));
+                records.push(Record::runtime_error(
+                    Some(display_path(path)),
+                    format!("could not read the file: {error}"),
+                ));
                 return (records, EXIT_FAILURE);
             }
         }
     }
 
-    let has_error = records.iter().any(|record| {
-        matches!(
-            record,
-            Record::Diagnostic {
-                severity: Severity::Error,
-                ..
-            }
-        )
-    });
+    let has_error = records.iter().any(Record::is_error);
     (records, if has_error { EXIT_FAILURE } else { EXIT_SUCCESS })
 }
 
@@ -161,14 +104,6 @@ fn display_path(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }
 
-fn emit(records: &[Record], stderr: &mut impl Write) -> io::Result<()> {
-    for record in records {
-        serde_json::to_writer(&mut *stderr, record)?;
-        writeln!(stderr)?;
-    }
-    stderr.flush()
-}
-
 #[cfg(test)]
 mod tests {
     // Owns argument parsing, the D9 record catalog, record ordering, ownership dispatch, and exit codes.
@@ -184,8 +119,8 @@ mod tests {
 
     use super::run;
 
-    const VALID_ISSUE: &str = include_str!("../../fixtures/accepted/issue.md");
-    const WRONG_SCALAR_ISSUE: &str = include_str!("../../fixtures/rejected/issue-wrong-scalar.md");
+    const VALID_ISSUE: &str = include_str!("../../../fixtures/accepted/issue.md");
+    const WRONG_SCALAR_ISSUE: &str = include_str!("../../../fixtures/rejected/issue-wrong-scalar.md");
 
     /// The exit code and the parsed NDJSON records a run wrote to stderr.
     struct Outcome {
