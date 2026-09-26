@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-24 18:46"
+last-updated-utc: "2026-09-26 13:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,7 +153,7 @@ subissue specifications written before that date cite the earlier numbering (old
 | 3 | #2318 - Port the review-thread shell scripts to a Rust tool | `docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md` | DONE | Parity port of the four `fetch-review-threads` scripts as a `contrib/dev-tools/` crate with fixture tests and `stdout-result-data` output contract; scripts removed. No dependencies. |
 | 4 | #2333 - Align `fetch-review-threads` with the author workflow | `docs/issues/open/2333-2278-fetch-all-review-threads/ISSUE.md` | IN_PROGRESS | F17, F32, F18 on the Rust tool: all threads by default, `resolvedBy` and `line`, skill contract. Depends on 3. |
 | 5 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
-| 6 | #[To be assigned] - Make `agent-review-report-contract` state what it reads | `docs/issues/open/{number}-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
+| 6 | #2349 - Make `agent-review-report-contract` state what it reads | `docs/issues/open/2349-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
 | 7 | #[To be assigned] - Port the audit validator to Rust with parity fixtures | `docs/issues/open/{number}-2278-port-audit-validator-to-rust/ISSUE.md` | TODO | F7. Behaviour parity only, `no-stdout-result` output contract. Depends on #2266 recording its integration-point decision. |
 | 8 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63. Depends on 1 and 7. |
 | 9 | #[To be assigned] - Generate finding-detail skeletons from source comments | `docs/issues/open/{number}-2278-generate-finding-detail-skeleton/ISSUE.md` | TODO | PR #2270 tooling proposal 3. Consumes the thread data from 3 and the roster the validator enforces. Depends on 4 and 7. |
@@ -265,6 +265,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-24 16:07 UTC - GitHub Copilot - Refreshed the order-4 draft against the delivered `github-review-threads` crate; maintainer re-approved it. Created and linked subissue #2333 (order 4) and moved its specification to `docs/issues/open/2333-2278-fetch-all-review-threads/`. Spec-only PR pending.
 - 2026-09-24 17:28 UTC - GitHub Copilot - PR #2334 merged the #2333 specification as `a39935ca`. #2333 implementation began on its reserved branch; order 4 is `IN_PROGRESS`.
 - 2026-09-24 18:46 UTC - GitHub Copilot - #2333 T1-T4 done on its implementation branch: `github-review-threads` returns all threads with `resolvedBy` and `line`, `--unresolved-only` selects the action view, the `fetch-review-threads` skill contract is rewritten, and M1-M4 passed against PR #2320. The AC2 evidence had still listed subissue 3 as remaining after #2318 closed; it now names PR #2322. Implementation PR pending.
+- 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer set the order after Phase 1: order 6 next, then order 5 once PR #2344 merges and #2347 triage settles which audit-contract findings belong to it, because orders 5, #2344, and #2347 all edit `process-pr-review`. Maintainer approved the order 6 specification with the `no-stdout-result` output migration; created and linked subissue #2349 and moved its specification to `docs/issues/open/2349-2278-contract-checker-evidence-boundary/`. Spec-only PR pending. For order 7, #2266 recorded its placement decision (`contrib/dev-tools/checks/`, `cargo run --package`, `no-stdout-result`), so it is unblocked; the maintainer approved three decisions for its specification: keep `no-stdout-result` and record dropping the Python prototype's stdout JSON summary as a deliberate parity deviation; do not wait for #2281, adopting its NDJSON diagnostic catalog if it has merged when order 7 starts; and no pre-commit integration, because the validator needs `gh` and network access.
 
 ## Acceptance Criteria
 
