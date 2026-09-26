@@ -4,8 +4,11 @@
 Usage: validate-audit-record.py --pr-number <number> [options]
 
 Checks that docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md is internally
-consistent and matches the pull request it describes:
+consistent and matches the pull request it describes. Finding IDs may be
+audit-local (F1) or reviewer-provided (OPS-001):
 
+  - every data row of the ## Findings table parses as a tracking row (a padded
+    or lowercase finding ID fails instead of being skipped)
   - every tracking row has a detail entry with the same finding ID, and vice versa
   - every discussion-anchored row's Source review ID equals the source comment's
     pull_request_review_id
@@ -41,8 +44,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROW_RE = re.compile(r"^\| (F\d+) \| [^|]+ \| [^|]+ \| (\w+)[^|]* \|", re.M)
-DETAIL_SPLIT_RE = re.compile(r"^### (F\d+) - .*$", re.M)
+# Audit-local IDs (F1) and reviewer-provided IDs (OPS-001, PERSISTENT-RUNNER-PRIVILEGE).
+FINDING_ID = r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*"
+
+ROW_RE = re.compile(rf"^\| ({FINDING_ID}) \| [^|]+ \| [^|]+ \| (\w+)[^|]* \|", re.M)
+DETAIL_SPLIT_RE = re.compile(rf"^### ({FINDING_ID}) - .*$", re.M)
 DISCUSSION_RE = re.compile(r"discussion_r(\d+)")
 REVIEW_RE = re.compile(r"pullrequestreview-(\d+)")
 LOG_ENTRY_RE = re.compile(r"^- (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) UTC - ", re.M)
@@ -107,6 +113,15 @@ def field(body: str, name: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def findings_table_rows(text: str) -> list[str] | None:
+    """Return the data rows of the ## Findings table, or None when the section is missing."""
+    match = re.search(r"^## Findings\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+    if match is None:
+        return None
+    table = [line for line in match.group(1).splitlines() if line.startswith("|")]
+    return table[2:]  # skip the header and separator lines
+
+
 def check_row(fid: str, severity: str, body: str, comments: dict[int, dict], subjects: set[str]) -> list[str]:
     failures: list[str] = []
     source_url = field(body, "Source URL") or ""
@@ -166,13 +181,21 @@ def main() -> int:
 
     failures: list[str] = []
 
+    table_rows = findings_table_rows(text)
+    if table_rows is None:
+        failures.append("missing ## Findings section")
+    else:
+        for line in table_rows:
+            if not ROW_RE.match(line):
+                failures.append(f"Findings row does not parse as a tracking row: {line}")
+
     rows = {fid: sev for fid, sev in ROW_RE.findall(text)}
     parts = DETAIL_SPLIT_RE.split(text)[1:]
     details = {parts[i]: parts[i + 1] for i in range(0, len(parts), 2)}
     if set(rows) != set(details):
         failures.append(f"tracking rows and detail entries differ: {sorted(set(rows) ^ set(details))}")
 
-    for fid in sorted(set(rows) & set(details), key=lambda f: int(f[1:])):
+    for fid in (f for f in rows if f in details):
         failures.extend(check_row(fid, rows[fid], details[fid], comments, subjects))
 
     log_section = text.split("## Processing Log", 1)

@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, or triage review feedback submitted after merge.
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -204,8 +204,12 @@ python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-r
 ```
 
 It fetches review comments with `gh` unless `--comments-file` is given, and compares commit
-subjects against `<base>..HEAD` (`--base` defaults to `develop`). It fails when:
+subjects against `<base>..HEAD` (`--base` defaults to `develop`). It checks every row whose finding
+ID is audit-local (`F1`) or reviewer-provided (`OPS-001`: uppercase letters and digits in
+hyphen-separated groups). It fails when:
 
+- the `## Findings` section is missing, or one of its table data rows does not parse as a
+  tracking row (for example a padded or lowercase finding ID);
 - a tracking row has no detail entry, or a detail entry has no tracking row;
 - a row's `Source review ID` does not match the review that owns its `Source URL`;
 - a discussion-anchored row cites zero or several reply URLs, cites a reply that does not exist,

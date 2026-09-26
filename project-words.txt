@@ -35,6 +35,7 @@ EINVAL
 ESRCH
 Eray
 Errno
+Falkenstein
 Freebox
 Frostegård
 Garnham
@@ -175,6 +176,7 @@ canonicalized
 categorisation
 cdylib
 certbot
+cgbosse
 chihaya
 chrono
 ciphertext
