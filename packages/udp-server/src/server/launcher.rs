@@ -1,3 +1,4 @@
+use std::ops::ControlFlow;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -5,6 +6,8 @@ use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
@@ -16,6 +19,7 @@ use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_L
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
+use crate::RawRequest;
 use crate::container::UdpTrackerServerContainer;
 use crate::event::Event;
 use crate::event::sender::Sender;
@@ -26,6 +30,13 @@ use crate::server::receiver::Receiver;
 /// A UDP server instance launcher.
 #[derive(Constructor)]
 pub struct Launcher;
+
+/// A started receive loop and the binding it serves.
+pub(crate) struct StartedReceiveLoop {
+    pub service_binding: ServiceBinding,
+    pub address: std::net::SocketAddr,
+    pub task: JoinHandle<Result<(), std::io::Error>>,
+}
 
 impl Launcher {
     /// It starts the UDP server instance with graceful shutdown.
@@ -43,43 +54,20 @@ impl Launcher {
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) -> Result<(), std::io::Error> {
-        let bind_to = bound_socket.address();
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
-
-        if connection_id_validation == ConnectionIdValidationPolicy::Disabled {
-            tracing::warn!(
-                target: UDP_TRACKER_LOG_TARGET,
-                %bind_to,
-                "UDP connection ID validation is DISABLED for this listener. \
-                 Anti-spoofing and replay protection are reduced. \
-                 Ensure this listener is isolated through external network controls."
-            );
-        }
-
-        let service_binding = bound_socket.service_binding();
-        let address = bound_socket.address();
         let local_udp_url = bound_socket.url().to_string();
 
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{STARTED_ON}: {local_udp_url}");
-
-        let receiver = Receiver::new(bound_socket.into());
-
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (spawning main loop)");
-
-        let mut running = {
-            let local_addr = local_udp_url.clone();
-            tokio::task::spawn(async move {
-                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_with_graceful_shutdown::task (listening...)");
-                let () = Self::run_udp_server_main(
-                    receiver,
-                    udp_tracker_core_container,
-                    udp_tracker_server_container,
-                    cookie_lifetime,
-                    connection_id_validation,
-                )
-                .await;
-            })
-        };
+        let StartedReceiveLoop {
+            service_binding,
+            address,
+            task: mut running,
+        } = Self::start_receive_loop(
+            udp_tracker_core_container,
+            udp_tracker_server_container,
+            bound_socket,
+            cookie_lifetime,
+            connection_id_validation,
+            CancellationToken::new(),
+        );
 
         if tx_start
             .send(Started {
@@ -112,6 +100,47 @@ impl Launcher {
         Ok(())
     }
 
+    /// Logs the listener startup and spawns the receive loop, which stops
+    /// admitting datagrams and returns `Ok(())` when `cancellation_token` is
+    /// cancelled. The caller owns the returned task.
+    pub(crate) fn start_receive_loop(
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+        bound_socket: BoundSocket,
+        cookie_lifetime: Duration,
+        connection_id_validation: ConnectionIdValidationPolicy,
+        cancellation_token: CancellationToken,
+    ) -> StartedReceiveLoop {
+        let service_binding = bound_socket.service_binding();
+        let address = bound_socket.address();
+        let local_udp_url = bound_socket.url().to_string();
+
+        log_listener_startup(address, connection_id_validation, &local_udp_url);
+
+        let receiver = Receiver::new(bound_socket.into());
+
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (spawning main loop)");
+
+        let task = tokio::task::spawn(async move {
+            tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr = local_udp_url, "Udp::run_with_graceful_shutdown::task (listening...)");
+            Self::run_udp_server_main(
+                receiver,
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                cookie_lifetime,
+                connection_id_validation,
+                cancellation_token,
+            )
+            .await
+        });
+
+        StartedReceiveLoop {
+            service_binding,
+            address,
+            task,
+        }
+    }
+
     #[must_use]
     #[instrument(skip(service_binding))]
     pub fn check(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
@@ -125,14 +154,15 @@ impl Launcher {
     }
 
     // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
-    #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]
+    #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container, cancellation_token))]
     async fn run_udp_server_main(
         mut receiver: Receiver,
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
         connection_id_validation: ConnectionIdValidationPolicy,
-    ) {
+        cancellation_token: CancellationToken,
+    ) -> Result<(), std::io::Error> {
         let active_requests = &mut ActiveRequests::default();
 
         let server_socket_addr = receiver.bound_socket_address();
@@ -144,102 +174,100 @@ impl Launcher {
 
         let cookie_lifetime = cookie_lifetime.as_secs_f64();
 
+        // Created once: a per-iteration future would register a new notifier waiter for every datagram.
+        let cancelled = cancellation_token.cancelled();
+        tokio::pin!(cancelled);
+
         loop {
             let server_service_binding =
                 ServiceBinding::new(Protocol::UDP, server_socket_addr).expect("Bound socket to service binding should not fail");
 
-            if let Some(req) = {
+            let next = {
                 tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server (wait for request)");
-                receiver.next().await
-            } {
-                tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server::loop (in)");
-
-                let req = match req {
-                    Ok(req) => req,
-                    Err(e) => {
-                        if e.kind() == std::io::ErrorKind::Interrupted {
-                            tracing::warn!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %e,  "Udp::run_udp_server::loop (interrupted)");
-                            return;
-                        }
-                        tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %e,  "Udp::run_udp_server::loop break: (got error)");
-                        break;
+                select! {
+                    biased;
+                    () = &mut cancelled => {
+                        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server (cancelled: stop admitting requests)");
+                        return Ok(());
                     }
-                };
+                    next = receiver.next() => next,
+                }
+            };
 
-                let client_socket_addr = req.from;
+            let req = match admit_received(next, &local_addr) {
+                ControlFlow::Continue(req) => req,
+                ControlFlow::Break(error) => return Err(error),
+            };
+
+            tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server::loop (in)");
+
+            let client_socket_addr = req.from;
+            publish_event_if_sender_available(
+                &udp_tracker_server_container.stats_event_sender,
+                Event::UdpRequestReceived {
+                    context: ConnectionContext::new(
+                        udp_tracker_core_container.configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
+                },
+            )
+            .await;
+
+            if Self::should_discard_request(
+                &req,
+                &udp_tracker_core_container,
+                &udp_tracker_server_container,
+                &server_service_binding,
+                &local_addr,
+                connection_id_validation,
+            )
+            .await
+            {
+                continue;
+            }
+
+            let processor = Processor::new(
+                receiver.socket.clone(),
+                udp_tracker_core_container.clone(),
+                udp_tracker_server_container.clone(),
+                cookie_lifetime,
+                connection_id_validation,
+            );
+
+            /* We spawn the new task even if the active requests buffer is
+            full. This could seem counterintuitive because we are accepting
+            more request and consuming more memory even if the server is
+            already busy. However, we "force_push" the new tasks in the
+            buffer. That means, in the worst scenario we will abort a
+            running task to make place for the new task.
+
+            Once concern could be to reach an starvation point were we are
+            only adding and removing tasks without given them the chance to
+            finish. However, the buffer is yielding before aborting one
+            tasks, giving it the chance to finish. */
+            let abort_handle: tokio::task::AbortHandle = tokio::task::spawn(processor.process_request(req)).abort_handle();
+
+            if abort_handle.is_finished() {
+                continue;
+            }
+
+            let old_request_aborted = active_requests.force_push(abort_handle, &local_addr).await;
+
+            if old_request_aborted {
+                // Evicted task from active requests buffer was aborted.
+
                 publish_event_if_sender_available(
                     &udp_tracker_server_container.stats_event_sender,
-                    Event::UdpRequestReceived {
+                    Event::UdpRequestAborted {
                         context: ConnectionContext::new(
                             udp_tracker_core_container.configuration_instance_id,
                             client_socket_addr,
-                            server_service_binding.clone(),
+                            server_service_binding,
                         ),
                     },
                 )
                 .await;
-
-                if Self::should_discard_request(
-                    &req,
-                    &udp_tracker_core_container,
-                    &udp_tracker_server_container,
-                    &server_service_binding,
-                    &local_addr,
-                    connection_id_validation,
-                )
-                .await
-                {
-                    continue;
-                }
-
-                let processor = Processor::new(
-                    receiver.socket.clone(),
-                    udp_tracker_core_container.clone(),
-                    udp_tracker_server_container.clone(),
-                    cookie_lifetime,
-                    connection_id_validation,
-                );
-
-                /* We spawn the new task even if the active requests buffer is
-                full. This could seem counterintuitive because we are accepting
-                more request and consuming more memory even if the server is
-                already busy. However, we "force_push" the new tasks in the
-                buffer. That means, in the worst scenario we will abort a
-                running task to make place for the new task.
-
-                Once concern could be to reach an starvation point were we are
-                only adding and removing tasks without given them the chance to
-                finish. However, the buffer is yielding before aborting one
-                tasks, giving it the chance to finish. */
-                let abort_handle: tokio::task::AbortHandle = tokio::task::spawn(processor.process_request(req)).abort_handle();
-
-                if abort_handle.is_finished() {
-                    continue;
-                }
-
-                let old_request_aborted = active_requests.force_push(abort_handle, &local_addr).await;
-
-                if old_request_aborted {
-                    // Evicted task from active requests buffer was aborted.
-
-                    publish_event_if_sender_available(
-                        &udp_tracker_server_container.stats_event_sender,
-                        Event::UdpRequestAborted {
-                            context: ConnectionContext::new(
-                                udp_tracker_core_container.configuration_instance_id,
-                                client_socket_addr,
-                                server_service_binding,
-                            ),
-                        },
-                    )
-                    .await;
-                }
-            } else {
-                tokio::task::yield_now().await;
-
-                // the request iterator returned `None`.
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server breaking: (ran dry, should not happen in production!)");
-                break;
             }
         }
     }
@@ -303,6 +331,51 @@ impl Launcher {
         }
 
         false
+    }
+}
+
+fn log_listener_startup(
+    bind_to: std::net::SocketAddr,
+    connection_id_validation: ConnectionIdValidationPolicy,
+    local_udp_url: &str,
+) {
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
+
+    if connection_id_validation == ConnectionIdValidationPolicy::Disabled {
+        tracing::warn!(
+            target: UDP_TRACKER_LOG_TARGET,
+            %bind_to,
+            "UDP connection ID validation is DISABLED for this listener. \
+             Anti-spoofing and replay protection are reduced. \
+             Ensure this listener is isolated through external network controls."
+        );
+    }
+
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{STARTED_ON}: {local_udp_url}");
+}
+
+/// Decides whether the receive loop admits the next item or stops with an error.
+///
+/// Any receive error, including `Interrupted`, and the end of the stream stop
+/// the loop with an error so the owning component reports a failure.
+fn admit_received(next: Option<std::io::Result<RawRequest>>, local_addr: &str) -> ControlFlow<std::io::Error, RawRequest> {
+    match next {
+        Some(Ok(req)) => ControlFlow::Continue(req),
+        Some(Err(error)) if error.kind() == std::io::ErrorKind::Interrupted => {
+            tracing::warn!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %error,  "Udp::run_udp_server::loop (interrupted)");
+            ControlFlow::Break(error)
+        }
+        Some(Err(error)) => {
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %error,  "Udp::run_udp_server::loop break: (got error)");
+            ControlFlow::Break(error)
+        }
+        None => {
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server breaking: (ran dry, should not happen in production!)");
+            ControlFlow::Break(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "UDP receive stream ended",
+            ))
+        }
     }
 }
 
@@ -564,5 +637,52 @@ mod tests {
                 ),
             }
         );
+    }
+
+    mod receive_loop_admission {
+        use std::io::ErrorKind;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+        use std::ops::ControlFlow;
+
+        use super::TEST_LOG_TARGET;
+        use crate::RawRequest;
+        use crate::server::launcher::admit_received;
+
+        fn datagram() -> RawRequest {
+            RawRequest {
+                payload: vec![0u8; 16],
+                from: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6881),
+            }
+        }
+
+        #[test]
+        fn it_should_admit_a_received_datagram() {
+            let datagram = datagram();
+
+            let admission = admit_received(Some(Ok(datagram.clone())), TEST_LOG_TARGET);
+
+            assert!(matches!(admission, ControlFlow::Continue(admitted) if admitted == datagram));
+        }
+
+        #[test]
+        fn it_should_stop_with_the_receive_error_when_receiving_fails() {
+            let admission = admit_received(Some(Err(ErrorKind::ConnectionReset.into())), TEST_LOG_TARGET);
+
+            assert!(matches!(admission, ControlFlow::Break(error) if error.kind() == ErrorKind::ConnectionReset));
+        }
+
+        #[test]
+        fn it_should_stop_with_the_receive_error_when_receiving_is_interrupted() {
+            let admission = admit_received(Some(Err(ErrorKind::Interrupted.into())), TEST_LOG_TARGET);
+
+            assert!(matches!(admission, ControlFlow::Break(error) if error.kind() == ErrorKind::Interrupted));
+        }
+
+        #[test]
+        fn it_should_stop_with_an_unexpected_end_error_when_the_receive_stream_ends() {
+            let admission = admit_received(None, TEST_LOG_TARGET);
+
+            assert!(matches!(admission, ControlFlow::Break(error) if error.kind() == ErrorKind::UnexpectedEof));
+        }
     }
 }
