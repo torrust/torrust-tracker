@@ -31,6 +31,9 @@ Verified with the GitHub API on 2026-09-24:
 | Fork PR workflow approval policy                | `first_time_contributors` |
 | Self-hosted runner `torrust-runner-01`          | Persistent, repository-level, `runner` user in `docker` group |
 
+On 2026-09-26, task T9 changed the fork PR approval policy to `all_external_contributors`; see
+[Current Exposure](#current-exposure).
+
 ## Findings
 
 ### 1. Fork-PR code gets root without touching any workflow file
@@ -201,18 +204,27 @@ Other articles supplied by the maintainer:
 
 ## Current Exposure
 
-`torrust-runner-01` is registered to this public repository and online. Although no workflow in
-the repository targets it, finding 7 means any fork PR whose author does not need approval can add
-a workflow with `runs-on: [self-hosted, torrust-hetzner]` and run code on it, with root through
-the `docker` group. Under the current `first_time_contributors` policy, anyone with one merged
-contribution qualifies. The runner should stay stopped (or be removed) until a safe design is in
-place.
+State on 2026-09-24, when this research started: `torrust-runner-01` was registered to this public
+repository and online. Although no workflow in the repository targeted it, finding 7 means any fork
+PR whose author did not need approval could add a workflow with
+`runs-on: [self-hosted, torrust-hetzner]` and run code on it, with root through the `docker` group.
+Under the `first_time_contributors` policy then in force, anyone with one merged contribution
+qualified.
 
-Action taken: the maintainer stopped the runner service on 2026-09-24 at 20:16 UTC, and GitHub
-reports `torrust-runner-01` as `offline`. The systemd unit was then disabled, so the runner does
-not start after a reboot. On 2026-09-25 the service was uninstalled, the registration deleted from
-the repository, and the runner install directory removed from the server, so no self-hosted
-runner is attached to the repository any more.
+History of the runner:
+
+- 2026-09-24 20:16 UTC: the maintainer stopped the runner service (GitHub reported it `offline`)
+  and then disabled the systemd unit so it did not start after a reboot.
+- 2026-09-25: the service was uninstalled, the registration deleted from the repository, and the
+  runner install directory removed from the server.
+- 2026-09-25: the maintainers accepted the persistent runner with controls (see
+  [Decision](#decision-2026-09-25)).
+- 2026-09-26: after the T9 controls were in place (approval for all external contributors,
+  required organization 2FA), the runner was registered again and is online.
+
+Current state (2026-09-26): the runner is registered and online, and no workflow in `develop`
+targets it yet. A fork PR can still add a workflow that targets it (finding 7), but under the
+`all_external_contributors` policy that workflow runs only after a maintainer approves it.
 
 ## Alternatives to a Self-Hosted Runner
 
