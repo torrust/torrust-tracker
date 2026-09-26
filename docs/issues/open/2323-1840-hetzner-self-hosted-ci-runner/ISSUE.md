@@ -416,8 +416,8 @@ Append one line per meaningful update.
       fallback procedure moves or reruns queued jobs; the plan does not rely on
       `timeout-minutes`, which does not bound queue time.
 - [ ] AC5: An ADR records the decision, cost rationale, persistent-runner choice, accepted security
-      risk with its likelihood basis and the 2026-09-24 reversal, publish-job isolation, and cache
-      strategy.
+      risk with its likelihood basis, the 2026-09-24 rejection and the 2026-09-25 reversal,
+      publish-job isolation, and cache strategy.
 - [ ] AC6: Maintainer-facing documentation describes the runner, its cache cleanup, and its
       operation.
 - [x] AC7: Before the runner is registered again, the fork-PR approval policy requires approval for
