@@ -106,7 +106,12 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 A merged pull request is immutable delivery history. Review feedback submitted after merge is not
 authorization to create a branch, modify `develop`, or open a follow-up pull request.
 
-When a review body, inline thread, or comment arrives after the pull request merged:
+Feedback submitted before merge but not yet replied to, resolved, or audited when the pull request
+merged follows the same workflow: the merged branch can no longer carry its fixes or audit record.
+Record both the review submission time and the merge time during triage.
+
+When a review body, inline thread, or comment arrives after the pull request merged, or was still
+unprocessed when it merged:
 
 1. **Stop after read-only triage.** Verify the merge time, review submission time, current target
    branch, thread state, and whether each finding remains live on the current target branch. Do not
@@ -283,6 +288,7 @@ audit detail before resolving the finding.
       each related row
 - [ ] Final GraphQL fetch reports no unresolved actionable thread
 - [ ] Audit committed separately from product fixes
-- [ ] For feedback submitted after merge: maintainer approval recorded before any mutating action
+- [ ] For feedback submitted after merge or unprocessed at merge: maintainer approval recorded
+      before any mutating action
 - [ ] For an approved post-merge follow-up: branch based on the current target branch and original
       audit updated through follow-up merge
