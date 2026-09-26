@@ -334,8 +334,9 @@ controlling each path by which code runs on the runner without prior review, and
 a compromise can reach. [ISSUE.md](ISSUE.md) records the controls (fork-PR risk, T5, T9, AC7):
 approval for all external contributors with a full-diff review, Dependabot and the
 `main`/`releases/**` events on GitHub-hosted runners, required 2FA for organization members
-(`two_factor_requirement_enabled` was `false` on 2026-09-25), publishing isolated from the
-self-hosted host, and a regular server rebuild. AI agents acting with a maintainer's credentials
+(`two_factor_requirement_enabled` was `false` on 2026-09-25), publish image builds that use no
+GitHub Actions cache (any cache scope can be written by a job holding a cache token), and a regular
+server rebuild. AI agents acting with a maintainer's credentials
 remain a residual path. GitHub larger runners (alternative B) remain the fallback.
 
 ## Implications for Issue #2323

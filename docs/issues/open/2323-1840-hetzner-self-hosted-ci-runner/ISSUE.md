@@ -317,7 +317,7 @@ Delivery phases:
 | T2  | 1     | DONE   | Prepare Hetzner server                | Falkenstein, 8 vCPU, 16 GB RAM, 320 GB disk, €69.49/month (see Background). Hostname `torrust-runner-01`, Ubuntu 26.04.1 LTS, kernel `7.0.0-34-generic`; SSH key-only login; automatic security updates; Hetzner Cloud Firewall allowing only inbound SSH; Docker Engine 29.8.1 with Buildx and Compose; host build tools; `runner` user in the `docker` group. Host holds no Torrust credentials. Server type and shared or dedicated vCPU remain open (Open Question 1). Logged in [`runner-server-setup.md`](runner-server-setup.md). |
 | T3  | 1     | DONE   | Install and register runner           | First registered on 2026-09-24: runner `v2.337.0` (hash-verified) at repository level as `torrust-runner-01`, label `torrust-hetzner`, systemd service under `runner`. Removed on 2026-09-25 during the design review. Registered again with the same settings on 2026-09-26, after T9; GitHub reports it online and idle. One runner instance for now. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 | T4  | 2     | TODO   | Write ADR                             | ADR in `docs/adrs/` covering the decisions listed in Architectural Decisions.                                                   |
-| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and read no cache produced by the self-hosted job; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the actor (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
+| T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and their image builds import and export no GitHub Actions (`type=gha`) cache, because any cache scope can be written by a `develop` job holding a cache token; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the actor (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | TODO   | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds.                    |
 | T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
 | T8  | 2     | TODO   | Document runner operations            | Maintainer-facing documentation: purpose, label, owner, cache cleanup, runner-offline detection and alerting, fallback procedure for queued jobs, recovery steps, the regular server rebuild (for example monthly and on any suspicion of compromise) from the setup logs, and the rule that approving an external PR's workflows requires reviewing its full diff. |
@@ -408,8 +408,9 @@ Append one line per meaningful update.
       workflow changes (cold and warm cache), with the 15-minute target either met or the gap
       explained.
 - [ ] AC3: Published images are built only from GitHub-hosted runner state: the publish jobs run on
-      GitHub-hosted runners, read no cache produced by the self-hosted `test` job, and the
-      self-hosted job references no repository, organization, or environment secrets.
+      GitHub-hosted runners, their image builds import no GitHub Actions cache (no `type=gha`
+      `cache-from`), and the self-hosted job references no repository, organization, or
+      environment secrets.
 - [ ] AC4: A runner-offline condition is detected and alerts maintainers, and a documented
       fallback procedure moves or reruns queued jobs; the plan does not rely on
       `timeout-minutes`, which does not bound queue time.
@@ -441,7 +442,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ---------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | PR run on self-hosted runner | Open a non-documentation PR from a fork; inspect the `Test (Docker)` job runner name           | Job runs on the Hetzner runner and passes                         | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | `develop` push run           | Merge a non-documentation PR; inspect the `Container` run on `develop`                         | `test` runs on the Hetzner runner; publish job succeeds           | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no self-hosted cache      | TODO   | `manual-verification-evidence.md` section V3 |
+| M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no GitHub Actions cache   | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | TODO   | `manual-verification-evidence.md` section V4 |
 | M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out), the offline alert fires, and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | TODO   | `benchmark-results.md`                       |
@@ -499,18 +500,24 @@ Notes:
     risk.
 
   What a compromise can reach is limited by keeping publishing and releases on GitHub-hosted
-  runners with no cache from the self-hosted host (T5(c), T5(e)), so an implant can at most fake a
-  test result, and by rebuilding the server regularly (T8). Revisit the decision, and fall back to
+  runners whose image builds use no GitHub Actions cache (T5(c), T5(e)), so an implant can at most
+  fake test results, and by rebuilding the server regularly (T8). The cache exclusion matters
+  because an implant can use a later `develop` push job's cache token to write any cache scope,
+  and `develop` is the default branch, so its entries are readable from every branch, including
+  `main` and `releases/**` (finding F13 on PR #2335). Revisit the decision, and fall back to
   GitHub larger runners, if external contributions rise or a control cannot be kept. See
   [`self-hosted-runner-security-research.md`](self-hosted-runner-security-research.md).
 - **State poisoning through the persistent cache.** Because the runner is persistent, a fork-PR job
   could leave tampered state (for example Docker layers or Cargo registry entries) that a later
   `develop` push job reuses. Today the publish jobs read the `container-release` GHA cache scope
   written by the `test` job, so moving that job to the self-hosted runner would let such state
-  reach a published image. Mitigation: T5 removes that cache link, so publish jobs build only from
-  GitHub-hosted state. Splitting publishing into a separate workflow, as proposed during review,
+  reach a published image. Removing only that link is not enough: a GitHub cache scope is a key
+  name, not a producer identity, so an implant holding a `develop` job's cache token can also
+  write the publish jobs' own scopes (`container-publish-dev`, `container-publish-release`).
+  Mitigation: T5 makes the publish image builds import and export no GitHub Actions cache, so
+  they build only from GitHub-hosted state. Splitting publishing into a separate workflow, as proposed during review,
   is optional; the isolation comes from not sharing cache, not from the workflow boundary. Cost:
-  publish builds get less cache reuse, but they run after merge, off the PR critical path.
+  publish builds run cold, but they run after merge, off the PR critical path.
 - **Runner concurrency becomes the new bottleneck.** With several agents opening PRs, a single
   runner instance serializes `Test (Docker)` jobs. Mitigation: size the server and the number of
   runner instances from the baseline job rate, and measure queue time in T7.
