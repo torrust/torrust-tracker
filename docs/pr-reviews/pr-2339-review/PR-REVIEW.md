@@ -50,9 +50,9 @@ has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2339-f1` | Human | Suggestion | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F2 | `review-finding:pr-2339-f2` | Human | Suggestion | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F3 | `review-finding:pr-2339-f3` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F1 | `review-finding:pr-2339-f1` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2339-f2` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2339-f3` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -76,9 +76,9 @@ has no row.
   passes 15 unit and 7 CLI tests (stable Rust 1.98.1). In the working tree, deleting the
   thread-level `line` from `REVIEW_THREADS_QUERY` failed both new tests; deleting `line` from the
   skill fallback failed only the parity test; both files were restored before committing.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070029>
+- Resolution reference: `test(dev-tools): pin review-thread query fields and explicit nulls`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2344>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070029>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4114288943>
 
 ### F2 - The explicit-null assertions also pass when the key is absent
 
@@ -96,9 +96,9 @@ has no row.
   `it_should_keep_a_missing_resolver_as_an_explicit_null` and
   `it_should_keep_the_missing_line_of_an_outdated_thread_as_an_explicit_null`; the file was
   restored before committing.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070186>
+- Resolution reference: `test(dev-tools): pin review-thread query fields and explicit nulls`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2344>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070186>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4114288995>
 
 ### F3 - Evidence step V3.1 does not record the projection its observed result shows
 
@@ -116,9 +116,9 @@ has no row.
   2026-09-26 09:35 UTC reproduced every observed block unchanged (29/27/2/21 counts, the same
   resolver, path, and line examples, the two unresolved IDs, `reply-status` exit `1`, and the
   resolver's two dry-run IDs with exit `0`).
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070337>
+- Resolution reference: `docs(issues): record the exact #2333 evidence commands`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2344>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4111070337>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2339#discussion_r4114289037>
 
 ## Processing Log
 
@@ -129,6 +129,13 @@ has no row.
 - 2026-09-26 10:19 UTC - The fixes are committed on the follow-up branch and opened as PR #2344.
   Replied on all three threads with the follow-up disposition and fixing commit; the threads are
   not resolved, because the fixes are not yet on `develop`.
+- 2026-09-27 06:05 UTC - Follow-up PR #2344 merged into `develop` at `fcde51db` (06:00 UTC).
+  Re-derived each fix at `develop`: both query tests and both `Value::get` null assertions are
+  present, the V1-V4 evidence steps carry their `jq` filters, and the suite passes 15 unit and 7
+  CLI tests. Changed F1-F3 to `FIXED`, citing the merged fix commits, and replaced each Reply URL
+  with the final reply that cites the merge; the earlier `FOLLOW_UP` replies (r4111070029,
+  r4111070186, r4111070337) remain on the threads. Resolved the three threads; GraphQL confirms 3
+  threads, 0 unresolved on PR #2339.
 
 ## Completion Rules
 
