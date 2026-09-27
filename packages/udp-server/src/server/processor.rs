@@ -185,13 +185,15 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use tokio::net::UdpSocket;
+    use tokio::time::{Instant, timeout_at};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
-    use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
+    use torrust_tracker_udp_protocol::{ConnectRequest, ConnectionId, InfoHash, Request, ScrapeRequest, TransactionId};
 
     use crate::RawRequest;
-    use crate::event::Event;
     use crate::event::receiver::Receiver;
+    use crate::event::{Event, UdpRequestKind, UdpResponseKind};
     use crate::server::bound_socket::BoundSocket;
     use crate::server::processor::Processor;
     use crate::testing::environment::EnvContainer;
@@ -218,6 +220,28 @@ mod tests {
             .expect("a valid connect request should serialize");
 
         RawRequest { payload, from: addr }
+    }
+
+    fn scrape_request_from(addr: SocketAddr, connection_id: ConnectionId) -> RawRequest {
+        let scrape_request = Request::from(ScrapeRequest {
+            connection_id,
+            transaction_id: TransactionId(0i32.into()),
+            info_hashes: vec![InfoHash([0u8; 20])],
+        });
+
+        let mut payload = Vec::new();
+        scrape_request
+            .write_bytes(&mut payload)
+            .expect("a valid scrape request should serialize");
+
+        RawRequest { payload, from: addr }
+    }
+
+    /// Binds a real loopback client so the processor can deliver its response.
+    async fn bind_loopback_client() -> UdpSocket {
+        UdpSocket::bind("127.0.0.1:0")
+            .await
+            .expect("a loopback client socket should bind")
     }
 
     /// Creates an ephemeral tracker environment and returns a ready-to-use
@@ -261,6 +285,22 @@ mod tests {
             .expect("event receiver should remain connected")
     }
 
+    /// Skips the events published before the response, such as `UdpRequestAccepted` and `UdpError`.
+    async fn receive_response_sent_kind(event_receiver: &mut Receiver) -> UdpResponseKind {
+        let deadline = Instant::now() + EVENT_PUBLICATION_TIMEOUT;
+
+        loop {
+            let event = timeout_at(deadline, event_receiver.recv())
+                .await
+                .expect("processor should publish `UdpResponseSent` before the test deadline")
+                .expect("event receiver should remain connected");
+
+            if let Event::UdpResponseSent { kind, .. } = event {
+                return kind;
+            }
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
@@ -285,5 +325,48 @@ mod tests {
             receive_event(&mut event_receiver).await,
             Event::UdpRequestDiscarded { .. }
         ));
+    }
+
+    #[tokio::test]
+    async fn it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails() {
+        // Arrange
+        let (processor, mut event_receiver) = setup_processor_with_event_receiver().await;
+        let client = bind_loopback_client().await;
+        let invalid_connection_id = ConnectionId::new(0);
+        let request = scrape_request_from(client.local_addr().unwrap(), invalid_connection_id);
+
+        // Act
+        processor.process_request(request).await;
+
+        // Assert
+        assert_eq!(
+            receive_response_sent_kind(&mut event_receiver).await,
+            UdpResponseKind::Error {
+                opt_req_kind: Some(UdpRequestKind::Scrape)
+            },
+            "a scrape with an invalid connection ID was parsed, so its error-response event should keep the request kind"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable() {
+        // Arrange
+        let (processor, mut event_receiver) = setup_processor_with_event_receiver().await;
+        let client = bind_loopback_client().await;
+        let unparsable_payload = vec![0u8; 3];
+        let request = RawRequest {
+            payload: unparsable_payload,
+            from: client.local_addr().unwrap(),
+        };
+
+        // Act
+        processor.process_request(request).await;
+
+        // Assert
+        assert_eq!(
+            receive_response_sent_kind(&mut event_receiver).await,
+            UdpResponseKind::Error { opt_req_kind: None },
+            "a 3-byte payload cannot be parsed, so its error-response event has no request kind"
+        );
     }
 }

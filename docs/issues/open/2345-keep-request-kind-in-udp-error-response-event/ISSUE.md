@@ -9,7 +9,7 @@ github-issue: 2345
 spec-path: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
 branch: "2345-keep-request-kind-in-udp-error-response-event"
 related-pr: 2346
-last-updated-utc: "2026-09-27 08:45"
+last-updated-utc: "2026-09-27 08:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,7 +170,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | B1 | DONE | Confirm and record reproduction evidence | V1 and V2 recorded in `manual-verification-evidence.md` at spec time. |
-| B2 | TODO | Add the regression tests and prove them red | Parsed-scrape failure test fails with `None` before the fix; unparsable payload keeps `None`; record red output and prose-first review. |
+| B2 | DONE | Add the regression tests and prove them red | Parsed-scrape failure test fails with `None` before the fix; unparsable payload keeps `None`; record red output and prose-first review. |
 | B3 | TODO | Preserve the error-response request kind | `Response::Error` constructs `UdpResponseKind::Error { opt_req_kind }`. |
 | B4 | TODO | Verify and recheck | Run focused/package checks and repeat the B1 artifact and event-bus observations. |
 
@@ -222,6 +222,10 @@ until merge.
 - 2026-09-27 08:45 UTC - GitHub Copilot - Spec-only PR #2346 merged into `develop`. Started the
   implementation branch `2345-keep-request-kind-in-udp-error-response-event` from that merge. -
   https://github.com/torrust/torrust-tracker/pull/2346
+- 2026-09-27 08:50 UTC - GitHub Copilot - Added the parsed-request and unparsable-payload tests to
+  `processor.rs`. The parsed-request test fails with `Error { opt_req_kind: None }` before the fix;
+  the unparsable-payload test passes. Recorded the red output and the prose-first review. -
+  `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
