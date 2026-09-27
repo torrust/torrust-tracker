@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, or triage review feedback submitted after merge.
 metadata:
   author: torrust
-  version: "1.3"
+  version: "1.4"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -106,7 +106,12 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 A merged pull request is immutable delivery history. Review feedback submitted after merge is not
 authorization to create a branch, modify `develop`, or open a follow-up pull request.
 
-When a review body, inline thread, or comment arrives after the pull request merged:
+Feedback submitted before merge but not yet replied to, resolved, or audited when the pull request
+merged follows the same workflow: the merged branch can no longer carry its fixes or audit record.
+Record both the review submission time and the merge time during triage.
+
+When a review body, inline thread, or comment arrives after the pull request merged, or was still
+unprocessed when it merged:
 
 1. **Stop after read-only triage.** Verify the merge time, review submission time, current target
    branch, thread state, and whether each finding remains live on the current target branch. Do not
@@ -118,10 +123,13 @@ When a review body, inline thread, or comment arrives after the pull request mer
    comment URL in the original audit before any mutating action; chat-only approval is insufficient
    as the long-term evidence for this gate. When this rule is introduced after an approved action
    has already started, a retrospective approval record may be used only if it states the original
-   approval time and the durable comment's creation time.
+   approval time and the durable comment's creation time. When the merged PR has no audit, the
+   durable comment alone satisfies this gate until the follow-up creates the audit (step 3).
 3. **Preserve the original audit.** Normalize every late finding into the merged PR's existing
    audit, including independently actionable review-body assertions. Use collision-safe audit IDs
-   and retain reviewer-provided IDs in detail entries when reassigned.
+   and retain reviewer-provided IDs in detail entries when reassigned. When the merged PR has no
+   audit, the follow-up branch creates `docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md` with
+   the approval comment URL in its Ownership section.
 4. **Implement only the approved follow-up.** Branch from the latest target branch, not from the
    merged PR head. Keep independent fixes and audit updates in coherent signed commits. Link the
    follow-up PR to the merged PR and to the issue that owns the remaining work; use issue-closing
@@ -283,6 +291,7 @@ audit detail before resolving the finding.
       each related row
 - [ ] Final GraphQL fetch reports no unresolved actionable thread
 - [ ] Audit committed separately from product fixes
-- [ ] For feedback submitted after merge: maintainer approval recorded before any mutating action
+- [ ] For feedback submitted after merge or unprocessed at merge: maintainer approval recorded
+      before any mutating action
 - [ ] For an approved post-merge follow-up: branch based on the current target branch and original
-      audit updated through follow-up merge
+      audit (or the audit the follow-up created) updated through follow-up merge
