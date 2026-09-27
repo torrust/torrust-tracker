@@ -4,7 +4,9 @@
 
 Step-by-step record of how the GitHub Actions runner agent was installed and registered on
 `torrust-runner-01` for issue #2323 (task T3). The host preparation is in
-[`runner-server-setup.md`](runner-server-setup.md); the plan is in [ISSUE.md](ISSUE.md).
+[`runner-server-setup.md`](runner-server-setup.md); the plan is in [ISSUE.md](ISSUE.md). This log
+keeps the history; the current procedure is
+[`docs/self-hosted-runner.md`](../../../self-hosted-runner.md).
 
 Conventions:
 

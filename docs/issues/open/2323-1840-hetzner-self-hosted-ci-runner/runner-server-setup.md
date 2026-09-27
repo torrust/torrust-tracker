@@ -4,6 +4,8 @@
 
 Step-by-step record of how the self-hosted GitHub Actions runner server for issue #2323 was set
 up, so it can be reproduced or rebuilt. See [ISSUE.md](ISSUE.md) for the plan (task T2 and T3).
+This log keeps the history, including problems and their fixes; the current procedure, without
+the history, is [`docs/self-hosted-runner.md`](../../../self-hosted-runner.md).
 
 Conventions:
 
