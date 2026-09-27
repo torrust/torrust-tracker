@@ -1,0 +1,81 @@
+---
+doc-type: manual-verification-evidence
+issue-spec: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
+last-updated-utc: 2026-09-27 06:50
+---
+
+# Manual Verification Evidence
+
+<!-- cspell:ignore journalctl -->
+
+## Purpose
+
+Record real, human-oriented verification of the completed behavior. This is
+evidence from commands or interactions actually performed against the artifact;
+do not invent commands, output, logs, or results.
+
+## Environment and Prerequisites
+
+- Date and time (UTC): 2026-09-27
+- Artifact under test: PR #2352, with `ci(container): run the container test job on the Hetzner
+  runner` and `docs(adrs): cover Dependabot branch pushes in the runner ADR`
+- Operating system / environment: `torrust-runner-01` (Hetzner, 8 vCPU, 16 GB RAM, Ubuntu 26.04.1,
+  runner `v2.337.0`, labels `self-hosted,Linux,X64,torrust-hetzner`); GitHub-hosted runners for the
+  other jobs
+- Prerequisites and setup performed: `runner-server-setup.md` steps 1-12 and
+  `runner-agent-installation.md` steps 1-8
+
+## Verification Processes
+
+### V1 - PR Run on the Self-Hosted Runner (M1)
+
+- Goal: a PR targeting `develop` runs `Test (Docker)` on the Hetzner runner and passes.
+- Initial state: first job ever on the runner; no Rust toolchain, Docker layers, or Cargo caches
+  on the host.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Opened PR #2352 from `josecelano:2323-1840-hetzner-self-hosted-ci-runner` into `develop`.
+2. Inspected the jobs of `Container` run `36298632207`:
+   `gh api repos/torrust/torrust-tracker/actions/runs/36298632207/jobs`.
+3. Attempt 1 failed (see Failures and Follow-up). After the fix, re-ran the failed job:
+   `gh run rerun 36298632207 --repo torrust/torrust-tracker --failed`.
+
+#### Observed Result
+
+Attempt 2, <https://github.com/torrust/torrust-tracker/actions/runs/36298632207/job/108565752883>:
+
+```text
+Test (Docker) (release) | success | runner=torrust-runner-01 | 2026-09-27T06:24:22Z -> 2026-09-27T06:38:53Z
+Context | success | runner=GitHub Actions 1000090371
+Publish (Release) | skipped
+Publish (Development) | skipped
+  Build Tracker Image: 06:24:34Z -> 06:34:43Z
+  Run Persistence Transition Regression: 06:34:43Z -> 06:35:25Z
+  Run E2E Tests: 06:35:25Z -> 06:37:11Z
+  Run qBittorrent E2E Test (SQLite): 06:37:11Z -> 06:37:37Z
+  Run qBittorrent E2E Test (MySQL): 06:37:37Z -> 06:38:17Z
+  Run qBittorrent E2E Test (PostgreSQL): 06:38:17Z -> 06:38:46Z
+```
+
+The `Testing` workflow's `Docker E2E` job was `skipped`, as expected for a PR targeting `develop`.
+
+#### Conclusion
+
+M1 met: the job ran on `torrust-runner-01` and passed in 14 min 31 s (baseline median 37 min).
+The run was not fully cold: attempt 1 had already installed the toolchain, downloaded the crates,
+and built about six minutes of Docker layers. T7 records the warm-cache comparison.
+
+## Failures and Follow-up
+
+- Attempt 1, <https://github.com/torrust/torrust-tracker/actions/runs/36298632207/job/108562020495>,
+  failed at `Build Tracker Image` after six minutes (05:56:17Z to 06:02:25Z) with
+  "The runner has received a shutdown signal". Diagnosis from the server's kernel log: a global
+  out-of-memory kill at 06:02 UTC while about eight `rustc` processes compiled the workspace on
+  16 GB of RAM with no swap; the kernel killed processes in the runner's service cgroup
+  (`docker-buildx`, `Runner.Worker`, `Runner.Listener`), and the service stayed `failed`.
+- Remediation (`runner-server-setup.md` step 12): a 16 GB swap file and a `Restart=on-failure`
+  drop-in for the runner service; the runner was restarted and reported `online` before the
+  re-run. Attempt 2 had no out-of-memory kill (`journalctl -k` since 06:23 reports 0 `Killed
+  process` lines) and used 143 MiB of swap.
