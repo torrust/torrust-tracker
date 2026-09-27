@@ -126,3 +126,113 @@ semantic-links:
   - Findings 3-4: tighten the README severity summary; move the retrospective's
     exit-code lesson into a Git-tracked skill or record it as a follow-up.
   - Findings 5-7: optional hardening and wording fixes.
+
+### 2026-09-26 21:47 UTC - GitHub Copilot Task Reviewer
+
+<!-- cspell:ignore dirlink Magit pathspec pathspecs PATHSPECS -->
+
+- Invocation scope: Follow-up pre-PR review of issue #2281 on branch
+  `2281-frontmatter-validator-command` (29 commits over `torrust/develop`, nothing pushed).
+  It verifies the remediation of findings 1-8 from the 2026-09-26 14:23 UTC entry, which
+  recorded REVIEW FAILED, and checks the remediation for new defects. The remediation is in
+  `ec565249`, `ae65b5be`, and `ffb8b9f9`.
+- Inputs: the earlier entry; the three remediation diffs; `tests/cli.rs`; `discovery.rs`;
+  `git.rs`; `repository.rs`; the rejected and accepted fixtures; the crate `README.md`;
+  `Containerfile`; the `run-pre-commit-checks` skill; `ISSUE.md` (progress log and AC table);
+  `manual-verification-evidence.md` (V4); `test-design-review.md` (T5 note and
+  "T8 Review Remediation"); `implementation-retrospective.md`.
+- Evidence:
+  - `cargo test --package frontmatter-validator`: exit `0`; 178 tests (library 115,
+    `frontmatter-schema` 24, `frontmatter-validator` binary 6, `tests/cli.rs` 33, documentation
+    tests 0), matching the recorded count.
+  - `cargo clippy --package frontmatter-validator --all-targets -- -D warnings`: exit `0`.
+  - `cargo +nightly fmt --all -- --check`: exit `0`.
+  - `linter all > /tmp/l.log 2>&1; echo $?`: `0`.
+  - `cargo machete --with-metadata`: exit `0`.
+  - `cargo run --quiet --offline --package frontmatter-validator --bin frontmatter-validator --
+    --all`: exit `1`, stdout 0 bytes; 44 `error legacy-shape`, 1 `error invalid-allowed-value`
+    (#2324), 2 `warning wrong-scalar-type` (#2295, #2308), 1 `warning invalid-reference-syntax`
+    (#2280). Legacy-shape paths: 42 `ISSUE.md` (26 drafts, 16 open, including
+    `increase-main-app-integration-test-coverage`), 1 `EPIC.md`
+    (`docs/issues/drafts/generalize-error-events/EPIC.md`), and 1 other file
+    (`docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/sample-substantive-bug-spec.md`).
+  - T5-era baseline, reproduced by extracting `docs/` and `.github/skills/` at `37c009bd` into a
+    disposable git repository under `.tmp/` and running the built binary with `--all`: 50
+    `legacy-shape` records, split into 42 `ISSUE.md` (including
+    `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`), 7 `EPIC.md`, and the #2230
+    sample. This matches the corrected T5 note.
+  - Finding-1 check in a disposable repository under `.tmp/`: each rejected fixture, and each
+    `open_strict_issue` case written to `docs/issues/open/example/ISSUE.md`, emits exactly its
+    named record. With the named defect removed, each exits `0` with no records. The removals
+    were: a quoted `github-issue` unquoted, `owner` deleted, `completed` changed to `planned`, the
+    URL changed to `"issue #2264"`, `done` changed to `planned`, and `docs/removed.md` replaced by
+    a tracked file. The relocated closed case gives one `warning wrong-scalar-type` and exit `0`,
+    and clean once fixed. Control: the same repaired fixture at the old
+    `docs/issues/open/1-example/ISSUE.md` emits `error spec-path-mismatch`, confirming the hidden
+    defect is gone.
+  - Edge probes with the built binary in a disposable repository under `.tmp/`: `docs`, `./docs/`,
+    `docs/sub/..`, and `..`/`../b.md`/`../..` from a subdirectory resolve correctly. `d*` selects
+    only `d*/inside.md`. `link.md` and `./link.md` report `link.md`. A dangling symlink exits `2`
+    with "does not exist". `dirlink` and `dirlink/b.md` report the target `docs/...` paths. With
+    `GIT_LITERAL_PATHSPECS=1`, `frontmatter-validator docs` exits `0` with no records; see N1.
+  - `GIT_LITERAL_PATHSPECS=1 cargo test --package frontmatter-validator --test cli`: exit `101`;
+    `it_should_expand_a_directory_to_its_tracked_markdown_files` and
+    `it_should_treat_a_directory_argument_literally_rather_than_as_a_glob` fail.
+  - `git --literal-pathspecs ls-files -- 'd*' docs`, used as a candidate fix, lists the correct
+    files with or without an inherited `GIT_LITERAL_PATHSPECS=1`. With `GIT_GLOB_PATHSPECS=1` it
+    fails loudly (`fatal: global 'literal' pathspec setting is incompatible ...`, rc `128`).
+  - `ISSUE.md` diff in `ffb8b9f9`: no earlier progress-log line changed. It adds two entries and
+    changes `last-updated-utc` and the AC8 table row. V4 and the T5 note were corrected in place,
+    each with a correction note.
+  - The three remediation commits are signed (`%G?` = `U`) and carry `[#2281]`.
+    `torrust/develop` is an ancestor of `HEAD`, and the working tree was clean before this report.
+- Earlier findings, remediation status:
+  1. RESOLVED - `OPEN_SPEC` is now the fixtures' `spec-path` (`tests/cli.rs` line 21).
+     `relocated_fixture` (lines 31-35) moves the closed case with `status: done`. Both tests
+     carry only their named defect, as shown by the empirical check above. The T8 prose-first
+     comparison and four mutations are recorded in `test-design-review.md`.
+  2. RESOLVED - V4 and the T5 note match the reproduced current and T5-era classifications. The
+     T6 entry stays as history, and an appended entry corrects it.
+  3. RESOLVED - the README severity list names the errors-everywhere and outside-issue-folder
+     rules; see nit N3.
+  4. RESOLVED - the agent-memory claim is removed. Improvement 1 is in the Containerfile
+     maintenance comment and improvement 3 is in the `run-pre-commit-checks` skill.
+  5. RESOLVED - `GIT_CONFIG_PARAMETERS` and `GIT_CONFIG_COUNT` are cleared, and fixture commits
+     pass `core.hooksPath=/dev/null`.
+  6. PENDING - symlinked files now keep their own path, with a regression test. The
+     literal-directory change introduced regression N1.
+  7. RESOLVED - an appended entry clarifies the wording without rewriting history.
+  8. N/A - pre-existing and out of scope; unchanged.
+- New findings:
+  - N1. Major (blocking, regression from the finding-6 fix) - `git.rs` `tracked_files`
+    (line 29) prefixes the directory with `:(literal)` pathspec magic. When
+    `GIT_LITERAL_PATHSPECS=1` is inherited, git treats that prefix as literal text and matches
+    nothing. `frontmatter-validator <dir>` then exits `0` with no records: a silent false pass.
+    `git --literal-pathspecs` exports that variable to hooks and subprocesses, and front ends
+    such as Magit use that option by default. The same environment fails two `tests/cli.rs`
+    tests, which would break pre-push. Pre-commit (`--staged`) is unaffected.
+  - N2. Nit - `tests/cli.rs` `relocated_fixture` (lines 31-35) uses `str::replace`, which
+    silently does nothing if a fixture's `spec-path` or `status` text changes. The closed case
+    would then regain hidden state that the structural error masks. Assert that each
+    replacement matched.
+  - N3. Nit - `README.md` line 46 says strict v1 records outside `docs/issues/` get "no lifecycle
+    checks". In fact `repository_findings` skips every D7 check there (`spec-path`, artifacts,
+    skills), so "no repository-aware checks" is accurate.
+  - N4. Nit - the `ISSUE.md` progress entry at line 546 is stamped `15:10 UTC`, but the report it
+    cites is stamped `14:23 UTC`.
+  - N5. Info - an in-repository symlink to a file outside the repository is now validated. It
+    was previously rejected with "outside the repository" (exit `2`). Symlinked directories still
+    report target paths. Both are consistent with how `--all` reads tracked symlinks. Document
+    the behavior if it is intended.
+- Completion review: `implementation-retrospective.md` is updated with the review lessons and
+  applied improvements. The folder-style spec, test-design, and manual-evidence records are
+  consistent with the reproduced output. Accepted.
+- Issue-spec updates: none. No checkbox or AC row was changed, because the verdict is failed and
+  this report is the only authorized write.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - N1: in `git.rs`, drop the `:(literal)` prefix and pass the global `--literal-pathspecs`
+    option, or remove the `GIT_*_PATHSPECS` variables from the git child environment. Add a
+    `tests/cli.rs` regression test that sets `GIT_LITERAL_PATHSPECS=1` for the binary and
+    expects the directory's records. Re-run the crate tests and request a re-review.
+  - N2-N4: optional hardening and wording fixes. N5: document the behavior or leave it as is.

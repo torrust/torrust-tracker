@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2337
-last-updated-utc: "2026-09-26 15:29"
+last-updated-utc: "2026-09-26 21:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -569,6 +569,21 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   - **Finding 8:** it predates this branch and is out of scope.
 
   178 tests pass - `test-design-review.md`
+- 2026-09-26 21:57 UTC - GitHub Copilot - Follow-up review (2026-09-26 21:47 UTC): REVIEW FAILED
+  on one new Major finding. Findings 1-5 and 7 were verified as fixed. Remediated:
+  - **N1:** the finding-6 `:(literal)` prefix matched nothing under `GIT_LITERAL_PATHSPECS=1`,
+    which some git front ends export to hooks, so a directory argument silently passed. Git now
+    runs with its global `--literal-pathspecs` option. A regression test sets the variable, test
+    isolation clears the git path-pattern-mode variables, and the full CLI suite also passes with the
+    variable exported. Removing the option, and reintroducing the prefix, each failed the new
+    test.
+  - **N2:** `relocated_fixture` asserts that the fixture still declares what it replaces.
+  - **N3:** the README says outside records get no repository-aware checks.
+  - **N4, a correction:** the entry above stamped the first review at 15:10 UTC; its report is
+    stamped 14:23 UTC.
+  - **N5:** the README documents symlink handling.
+
+  179 tests pass - `agent-review-reports.md`, `test-design-review.md`
 
 ## Acceptance Criteria
 

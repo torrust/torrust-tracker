@@ -372,3 +372,27 @@ Mutation evidence (stable Rust toolchain; each restored from a `.tmp` backup and
 | Every diagnostic rendered as `unknown-field` | 7 |
 
 The crate now has 178 tests.
+
+## Follow-Up Review Remediation (N1)
+
+The follow-up review found a regression in the first remediation. The `:(literal)` prefix
+matches nothing when `GIT_LITERAL_PATHSPECS=1`, so a directory argument silently validated
+nothing. Git now runs with its global `--literal-pathspecs` option, which behaves the same with or
+without the variable.
+
+- Test added: `it_should_expand_directories_when_git_is_told_to_treat_path_patterns_literally`.
+  It runs the built binary with `GIT_LITERAL_PATHSPECS=1` set explicitly, the one causal
+  condition, and asserts the expanded path. Test isolation otherwise clears all four
+  path-pattern-mode variables, so the other tests do not depend on the caller's environment.
+- `relocated_fixture` asserts that the fixture still declares the `spec-path` and status it
+  replaces. A changed fixture now fails loudly instead of silently regaining hidden state (N2).
+- The full `tests/cli.rs` suite also passed with `GIT_LITERAL_PATHSPECS=1` exported by the caller.
+
+Mutation evidence (stable Rust toolchain; restored from a `.tmp` backup and checked with `cmp`):
+
+| Mutation | Tests failed |
+| -------- | ------------ |
+| Drop git's `--literal-pathspecs` option | 1 (literal-directory test) |
+| Reintroduce the `:(literal)` prefix without the option | 1 (the new `GIT_LITERAL_PATHSPECS` test) |
+
+The crate now has 179 tests.

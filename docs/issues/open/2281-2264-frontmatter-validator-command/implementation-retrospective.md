@@ -26,7 +26,7 @@ verification.
 - The binary owns discovery, git access, and rendering.
 - Pre-commit runs it as a named `--staged` step.
 
-The crate has 178 tests. Each test-producing task was proven by mutation, and manual scenarios
+The crate has 179 tests. Each test-producing task was proven by mutation, and manual scenarios
 M1-M7 were recorded in `manual-verification-evidence.md`.
 
 ## What Went Well
