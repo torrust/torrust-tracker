@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2345
 spec-path: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
-branch: "2345-keep-request-kind-in-udp-error-response-event-spec"
-related-pr: null
-last-updated-utc: "2026-09-26 11:01"
+branch: "2345-keep-request-kind-in-udp-error-response-event"
+related-pr: 2346
+last-updated-utc: "2026-09-27 08:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,7 +194,7 @@ until merge.
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue created and issue number added to this spec.
 - [x] Spec moved to `docs/issues/open/` with the assigned issue number.
-- [ ] Spec-only PR merged into `develop` before implementation.
+- [x] Spec-only PR merged into `develop` before implementation.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
 - [ ] Manual verification and recheck recorded in issue-local `manual-verification-evidence.md`.
@@ -219,6 +219,9 @@ until merge.
   GitHub issue #2345, and moved the specification to `docs/issues/open/`. Next step: spec-only PR,
   then implementation on branch `2345-keep-request-kind-in-udp-error-response-event`. -
   https://github.com/torrust/torrust-tracker/issues/2345
+- 2026-09-27 08:45 UTC - GitHub Copilot - Spec-only PR #2346 merged into `develop`. Started the
+  implementation branch `2345-keep-request-kind-in-udp-error-response-event` from that merge. -
+  https://github.com/torrust/torrust-tracker/pull/2346
 
 ## Acceptance Criteria
 
