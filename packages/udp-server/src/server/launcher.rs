@@ -376,15 +376,15 @@ impl Launcher {
 async fn legacy_stop_requested(rx_halt: oneshot::Receiver<Halted>, message: String) {
     select! {
         () = halt_requested(rx_halt) => (),
-        () = global_shutdown_signal() => tracing::debug!("Global shutdown signal processed"),
+        () = global_shutdown_signal() => tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Global shutdown signal processed"),
     }
 
-    tracing::info!("{message}");
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{message}");
 }
 
 async fn halt_requested(rx_halt: oneshot::Receiver<Halted>) {
     if let Ok(signal) = rx_halt.await {
-        tracing::debug!("Halt signal processed: {signal}");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Halt signal processed: {signal}");
     } else {
         tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "UDP halt sender dropped; stopping the server");
     }
