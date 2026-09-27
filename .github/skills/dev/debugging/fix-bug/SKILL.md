@@ -3,7 +3,7 @@ name: fix-bug
 description: Canonical workflow for investigating and fixing bugs in torrust-tracker. Use when work is substantively a bug, even if issue metadata or labels are missing or wrong. Requires source analysis, real-artifact reproduction or infeasibility evidence, regression-test selection, red/green validation, code fix, and like-for-like final recheck.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - .github/skills/dev/planning/create-issue/SKILL.md
@@ -11,6 +11,7 @@ metadata:
       - .github/agents/implementer.agent.md
       - docs/templates/ISSUE.md
       - "issue #2226"
+      - "issue #2345"
 ---
 
 # Fixing Bugs
@@ -113,6 +114,47 @@ The issue spec must also require issue-local `manual-verification-evidence.md` f
 reproduction and final recheck. If reproduction is not possible, the file records the attempted
 commands, blocking constraint, and strongest substitute evidence.
 
+### Explain the Bug in Plain Terms
+
+The spec background must explain the bug so a reviewer understands it without reading the code:
+
+- what happens, step by step from the input to the wrong outcome;
+- which contract, documentation, or expectation it violates; and
+- the impact, including whether anything observable is wrong today.
+
+### Reproduce Before Review
+
+Attempt the reproduction while drafting the spec, before asking the maintainer to review it, and
+record it in `manual-verification-evidence.md`. State the outcome as exactly one of:
+
+- **Reproduced**: the wrong outcome itself was observed.
+- **Trigger only**: the faulty code path was reached, but the wrong outcome was not observed. This
+  is not a reproduction. Say what prevented observing the outcome and what would observe it.
+- **Infeasible**: record the attempted commands, blocking constraint, and strongest substitute
+  evidence.
+
+When the wrong outcome is internal (a published event, cached value, or internal state) and no
+public surface (client response, metrics, logs) exposes it, a temporary test that captures the
+wrong value at the nearest observation seam counts as a reproduction. Record its code verbatim in
+the evidence file, revert it, and plan to turn it into the maintained regression test.
+
+### Plan the Regression Test Explicitly
+
+The implementation plan must contain a regression-test task whose expected output is the recorded
+red run before the fix, followed by separate fix and green-plus-recheck tasks.
+
+### Pre-Review Self-Check
+
+Before presenting a bug spec for review, confirm:
+
+- [ ] the background contains the plain-language explanation;
+- [ ] the reproduction outcome is classified and recorded in `manual-verification-evidence.md`;
+- [ ] the plan has a regression-test task that is proven red before the fix;
+- [ ] the acceptance criteria match the planned tests (same cases and inputs);
+- [ ] every verification row marked `DONE` describes what was actually run, not an intended
+      procedure; and
+- [ ] the plan follows the Required Sequence order.
+
 ## Worked Example
 
 Use the stale activity-metrics cutoff bug as a review-only worked example:
@@ -120,7 +162,11 @@ Use the stale activity-metrics cutoff bug as a review-only worked example:
 - Issue: issue #2226
 - Evidence: the issue-local evidence artifacts attached to issue #2226.
 
-Do not change that issue's implementation scope when updating this workflow.
+For a bug whose wrong outcome is internal and invisible to clients, metrics, and logs, see
+issue #2345: its evidence separates a trigger-only real-tracker run from a temporary event-bus
+test that observed the wrong value.
+
+Do not change the implementation scope of either issue when updating this workflow.
 
 ## Skill Links
 
@@ -133,3 +179,5 @@ Review this skill when changing:
 - `.github/agents/implementer.agent.md` — bug workflow invocation by implementation agents.
 - `docs/templates/ISSUE.md` — bug-only issue sections and manual evidence requirements.
 - issue #2226 — worked example reference.
+- issue #2345 — worked example reference for an internal wrong outcome; re-check the reference
+  when its evidence is updated or moved to `docs/issues/closed/`.
