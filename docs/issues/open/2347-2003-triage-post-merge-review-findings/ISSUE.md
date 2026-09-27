@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-27 18:10"
+last-updated-utc: "2026-09-27 19:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,6 +22,7 @@ semantic-links:
     - docs/pr-reviews/pr-2300-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2313-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2320-review/PR-REVIEW.md
+    - docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -159,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Record approval and acknowledge threads | Maintainer approval posted on this issue; one tracking reply on each of the 32 threads. |
-| T2 | TODO | Triage against `develop` | Per finding: live or not, with the command or inspection used; proposed disposition. |
+| T2 | DONE | Triage against `develop` | Per finding: live or not, with the command or inspection used; proposed disposition. Recorded in [`triage.md`](triage.md). |
 | T3 | TODO | Maintainer disposition review | Maintainer approves or changes each proposed disposition; the decision is recorded in the progress log with a durable comment URL. |
 | T4 | TODO | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
 | T5 | TODO | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
@@ -201,6 +202,7 @@ progress log. No test code is planned.
 - 2026-09-26 11:02 UTC - GitHub Copilot - Drafted after read-only triage of the five merged PRs. The finding inventory was generated from `github-review-threads show --unresolved-only` captures, and review and merge times from the GitHub API. The maintainer approved creating this tracking task in chat; its approval as a GitHub comment follows issue creation (T1).
 - 2026-09-26 12:20 UTC - GitHub Copilot - Maintainer approved the specification. Created GitHub issue #2347, linked it as a sub-issue of #2003 (`parent_issue_url` verified), and moved this specification to `docs/issues/open/`. T1 done ahead of the spec-only PR, as the maintainer approved: the approval record is <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5846100762>, and each of the 32 threads received one reply naming #2347 with its disposition pending. A GraphQL refetch shows all 32 threads still unresolved, each with that reply (7, 8, 8, 7, and 2 per PR). Spec-only PR pending.
 - 2026-09-27 18:10 UTC - GitHub Copilot - The spec-only PR #2348 merged on 2026-09-27 06:11 UTC (`gh pr view 2348`). Created the implementation branch `2347-2003-triage-post-merge-review-findings` from `develop` at `478516cf`. The maintainer decided in chat: T2 results go in an issue-folder `triage.md` linked from this spec; the T3 approval follows the T1 precedent (approval in chat, then an approval record posted on this issue); each approved `FOLLOW_UP` gets a folder-style draft spec, a GitHub issue, and a sub-issue link, each approved first; the branch is pushed only at T6.
+- 2026-09-27 19:05 UTC - GitHub Copilot - T2 done. Re-fetched all five PRs' threads (32 unresolved, each still with only the finding and the T1 reply) and checked each finding against `develop` at `478516cf`; results, verification commands, and proposed dispositions are in `triage.md`: 17 `FIXED`, 5 `NO_ACTION`, 10 `FOLLOW_UP` across four proposed follow-up issues and EPIC #2278 order 8. No disposition is approved yet; T3 is next.
 
 ## Acceptance Criteria
 
