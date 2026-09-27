@@ -239,12 +239,15 @@ impl<T> OwnedTask<T> {
         Self { task }
     }
 
-    /// Joins the owned task.
+    /// Joins the owned task, consuming the owner so the task is joined at most once.
+    ///
+    /// The owner lives inside the returned future, so dropping that future
+    /// before the task finishes still aborts the task.
     ///
     /// # Errors
     ///
     /// Returns the task's join error when it panics or is aborted.
-    pub async fn join(&mut self) -> Result<T, JoinError> {
+    pub async fn join(mut self) -> Result<T, JoinError> {
         (&mut self.task).await
     }
 }

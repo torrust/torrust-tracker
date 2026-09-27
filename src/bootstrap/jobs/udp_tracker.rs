@@ -84,7 +84,7 @@ pub async fn start_job(
 /// Joins the receive loop and turns its result into the component outcome.
 ///
 /// The loop returns `Ok(())` only after cancellation; any other exit is an error.
-async fn supervise_receive_loop<E>(mut receive_loop: OwnedTask<Result<(), E>>) -> ComponentResult
+async fn supervise_receive_loop<E>(receive_loop: OwnedTask<Result<(), E>>) -> ComponentResult
 where
     E: std::fmt::Display,
 {
@@ -106,6 +106,7 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_primitives::RuntimeServiceMetadata;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -177,6 +178,31 @@ mod tests {
 
         let error = completion.expect_err("a panicking receive loop should fail the component");
         assert!(error.to_string().contains("UDP tracker receive loop task failed"));
+    }
+
+    #[tokio::test]
+    async fn it_should_abort_the_receive_loop_when_the_component_is_dropped_while_waiting_for_it() {
+        // Arrange
+        let (loop_alive, loop_stopped) = oneshot::channel::<()>();
+        let receive_loop = tokio::spawn(async move {
+            let _loop_alive = loop_alive;
+            std::future::pending::<Result<(), &'static str>>().await
+        });
+        let component = tokio::spawn(supervise_receive_loop(OwnedTask::new(receive_loop)));
+        tokio::task::yield_now().await;
+
+        // Act
+        component.abort();
+        drop(component.await);
+
+        // Assert
+        let loop_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, loop_stopped)
+            .await
+            .expect("the receive loop should stop within the test deadline after its component is dropped");
+        assert!(
+            loop_outcome.is_err(),
+            "dropping the component must abort its receive loop, which drops the loop's sender"
+        );
     }
 
     #[tokio::test]
