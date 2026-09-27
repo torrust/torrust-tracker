@@ -106,6 +106,9 @@ rated them "Medium", which is not in the severity vocabulary, so they are record
   06:23 UTC), three inline threads with one concern. Rebased the branch onto `develop` `6a7f1db5`
   (PR #2350) first; the rebase was clean. Verified the no-change dispositions at that tree and
   replied on all three threads with the prescribed `Superseded by F1:` form.
+- 2026-09-27 08:30 UTC - After `docs(pr-reviews): add PR #2353 review audit` was pushed,
+  `reply-status --login josecelano` reported 3 of 3 threads replied, and the three threads were
+  resolved. A refreshed GraphQL fetch reports 3 threads, 0 unresolved.
 
 ## Completion Rules
 
