@@ -14,6 +14,7 @@ semantic-links:
   skill-links:
     - create-issue
     - process-pr-review
+    - write-unit-test
   related-artifacts:
     - "issue #2278"
     - "issue #2003"
@@ -230,4 +231,5 @@ planned.
 - Parent EPIC: #2278; grandparent EPIC: #2003.
 - Decision input: `retrospective-improvement-matrix.md` (F56, F57, PR #2271 row).
 - Output contract: `docs/adrs/20260519000000_define_global_cli_output_contract.md`.
-- Audits citing the checker: `docs/pr-reviews/pr-2271-review/`, `pr-2279-review/`, `pr-2300-review/`.
+- Audits citing the checker: `docs/pr-reviews/pr-2271-review/`, `docs/pr-reviews/pr-2279-review/`,
+  `docs/pr-reviews/pr-2300-review/`.
