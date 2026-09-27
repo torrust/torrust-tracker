@@ -200,9 +200,10 @@ stop-timing modes; normal start, serve, and stop are unchanged):
   the launcher returns the loop result directly.
 - A halt now stops the loop at its next check between datagrams instead of
   aborting it at any await point.
-- The "Halting UDP Service Bound to Socket" info line is now logged from the
-  UDP server launcher module instead of `torrust_server_lib::signals`, so its
-  tracing target changed; the message text is unchanged.
+- The "Halting UDP Service Bound to Socket" info line and the halt and
+  global-signal debug lines are now logged under the `UDP TRACKER` target
+  (`UDP_TRACKER_LOG_TARGET`) instead of `torrust_server_lib::signals`; the
+  message text is unchanged (PR #2351 review finding F1).
 
 ### D6 - Measure UDP throughput before and after
 
