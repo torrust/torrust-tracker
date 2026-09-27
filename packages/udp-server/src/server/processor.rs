@@ -119,7 +119,7 @@ impl Processor {
         };
 
         let udp_response_kind = match &response {
-            Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind: None },
+            Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind },
             _ => {
                 if let Some(req_kind) = opt_req_kind {
                     event::UdpResponseKind::Ok { req_kind }
