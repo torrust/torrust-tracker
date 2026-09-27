@@ -119,3 +119,31 @@ gh api repos/torrust/torrust-tracker/actions/cache/usage
 ```
 
 Durations are computed as `completed_at - started_at` (queue time: `started_at - created_at`).
+
+## After T5: Self-Hosted Runner (T7)
+
+`Test (Docker)` on `torrust-runner-01`, `Container` run `36298632207` for PR #2352, measured on
+2026-09-27 from the jobs API (`completed_at - started_at` per job and step). Both runs built the
+same commit.
+
+| Step                                   | Attempt 2 (partly warm) | Attempt 3 (fully warm) |
+| -------------------------------------- | ----------------------- | ---------------------- |
+| Job total                              | 871 s (14 min 31 s)     | 135 s (2 min 15 s)     |
+| `Build Tracker Image`                  | 609 s                   | 3 s                    |
+| Persistence transition regression      | 42 s                    | 42 s                   |
+| E2E tests                              | 106 s                   | 5 s                    |
+| qBittorrent E2E (SQLite, MySQL, PgSQL) | 26 s, 40 s, 29 s        | 18 s, 28 s, 22 s       |
+| Setup (toolchain, dependency download) | 3 s                     | 2 s                    |
+
+- **Attempt 2** ran after attempt 1 was killed by an out-of-memory condition six minutes into the
+  build (see `manual-verification-evidence.md`). Attempt 1 had already installed the toolchain,
+  downloaded the crates, and built part of the image, so attempt 2 is not a cold run.
+- **Attempt 3** is the best case: every Docker layer was cached, and the host-side E2E tools were
+  already compiled in the persistent `CARGO_TARGET_DIR`. The job is then bounded by the E2E suite.
+- A PR that changes application code will fall between the two: the third-party dependency
+  layers stay cached, and the workspace compile reruns (15.5 to 18.6 minutes on GitHub-hosted
+  runners; not yet measured on this host, scenario M4).
+- Both runs are under the 15-minute target, against the baseline median of 37 minutes.
+
+Host state after attempt 3 (`docker system df`, `du`, `df`): build cache 13.47 GB, images
+2.37 GB, `container-target` 2.6 GB, and 38 GB of the 301 GB root file system in use.
