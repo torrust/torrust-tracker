@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in_progress
 priority: p2
 epic: 2003
 github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-branch: "2347-2003-triage-post-merge-review-findings-spec"
+branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-26 13:13"
+last-updated-utc: "2026-09-27 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,7 +185,7 @@ progress log. No test code is planned.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-triage-post-merge-review-findings/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2003, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all` and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -200,6 +200,7 @@ progress log. No test code is planned.
 
 - 2026-09-26 11:02 UTC - GitHub Copilot - Drafted after read-only triage of the five merged PRs. The finding inventory was generated from `github-review-threads show --unresolved-only` captures, and review and merge times from the GitHub API. The maintainer approved creating this tracking task in chat; its approval as a GitHub comment follows issue creation (T1).
 - 2026-09-26 12:20 UTC - GitHub Copilot - Maintainer approved the specification. Created GitHub issue #2347, linked it as a sub-issue of #2003 (`parent_issue_url` verified), and moved this specification to `docs/issues/open/`. T1 done ahead of the spec-only PR, as the maintainer approved: the approval record is <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5846100762>, and each of the 32 threads received one reply naming #2347 with its disposition pending. A GraphQL refetch shows all 32 threads still unresolved, each with that reply (7, 8, 8, 7, and 2 per PR). Spec-only PR pending.
+- 2026-09-27 18:10 UTC - GitHub Copilot - The spec-only PR #2348 merged on 2026-09-27 06:11 UTC (`gh pr view 2348`). Created the implementation branch `2347-2003-triage-post-merge-review-findings` from `develop` at `478516cf`. The maintainer decided in chat: T2 results go in an issue-folder `triage.md` linked from this spec; the T3 approval follows the T1 precedent (approval in chat, then an approval record posted on this issue); each approved `FOLLOW_UP` gets a folder-style draft spec, a GitHub issue, and a sub-issue link, each approved first; the branch is pushed only at T6.
 
 ## Acceptance Criteria
 
