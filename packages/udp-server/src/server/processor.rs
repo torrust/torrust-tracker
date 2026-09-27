@@ -333,7 +333,10 @@ mod tests {
         let (processor, mut event_receiver) = setup_processor_with_event_receiver().await;
         let client = bind_loopback_client().await;
         let invalid_connection_id = ConnectionId::new(0);
-        let request = scrape_request_from(client.local_addr().unwrap(), invalid_connection_id);
+        let request = scrape_request_from(
+            client.local_addr().expect("the client socket should have a local address"),
+            invalid_connection_id,
+        );
 
         // Act
         processor.process_request(request).await;
@@ -356,7 +359,7 @@ mod tests {
         let unparsable_payload = vec![0u8; 3];
         let request = RawRequest {
             payload: unparsable_payload,
-            from: client.local_addr().unwrap(),
+            from: client.local_addr().expect("the client socket should have a local address"),
         };
 
         // Act
