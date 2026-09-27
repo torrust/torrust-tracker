@@ -93,6 +93,9 @@ Copilot rated both "Medium", which is not in the severity vocabulary, so they ar
   were processed after rebasing the branch onto `develop` `e8b9c1a1` (PR #2348), which resolved one
   EPIC #2278 progress-log conflict by keeping both entries in order. Committed one fix commit for
   both findings, pushed, and replied on both threads.
+- 2026-09-27 06:31 UTC - After `docs(pr-reviews): add PR #2350 review audit` was pushed,
+  `reply-status --login josecelano` reported 2 of 2 threads replied, and both threads were
+  resolved. A refreshed GraphQL fetch reports 2 threads, 0 unresolved.
 
 ## Completion Rules
 
