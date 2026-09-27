@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
-last-updated-utc: 2026-09-27 09:28
+last-updated-utc: 2026-09-27 10:15
 ---
 
 # Manual Verification Evidence
@@ -205,6 +205,7 @@ Decisions:
 ## Post-Fix Recheck
 
 - Date and time (UTC): 2026-09-27 09:28
+- Toolchain: stable `rustc 1.98.1 (48a229cea 2026-09-01)`, as in the pre-fix runs.
 - Code state: the commit `test(udp-server): [#2345] cover the request kind in the UDP
   error-response event` plus the one-line fix in `Processor::send_response`
   (`Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind }`).
@@ -227,8 +228,14 @@ test passed; none failed.
 
 ### M3 - V1 Rerun Unchanged
 
-Same command as V1. Observed eleven `WARN UDP TRACKER: response error` lines (counted with
-`grep -c`), as before the fix, then the test passed. One shown:
+Same command as V1. Observed eleven `WARN UDP TRACKER: response error` lines, as before the fix,
+then the test passed. Counted with:
+
+```text
+cargo test -p torrust-tracker-udp-server --test integration should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal 2>&1 | grep -c "response error"
+```
+
+One line shown:
 
 ```text
 WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.0000000000000000000000000000000000000000000000000000017041467023807228, expected > 1790501143.470439 client_socket_addr=127.0.0.1:50548 server_socket_addr=127.0.0.1:47897 service_binding=udp://127.0.0.1:47897 request_id=aae05de4-b3f3-48b5-aedb-81cc4e1a7bf7 transaction_id=-1318582638
@@ -237,6 +244,10 @@ test server::contract::receiving_an_announce_request::should_ban_the_client_ip_i
 
 The real tracker still reaches the parsed-request error path and behaves as before; as in V1, the
 event field is not visible in this artifact.
+
+Note on the Task Reviewer's F2 (2026-09-27 10:15 UTC): the V1 command, without `-- --nocapture`,
+does print the `WARN` lines on stdout here. Checked with `2>/dev/null | grep -c "response error"`
+(11) and `2>&1 >/dev/null | grep -c "response error"` (0). The V1 and M3 records are unchanged.
 
 ### M4 - V2 Observation Through the Maintained Test
 
