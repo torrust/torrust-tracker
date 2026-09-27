@@ -119,3 +119,56 @@ gh api repos/torrust/torrust-tracker/actions/cache/usage
 ```
 
 Durations are computed as `completed_at - started_at` (queue time: `started_at - created_at`).
+
+## After T5: Self-Hosted Runner (T7)
+
+`Test (Docker)` on `torrust-runner-01` for PR #2352, measured on 2026-09-27 from the jobs API
+(`completed_at - started_at` per job and step). Attempts 2 and 3 of `Container` run `36298632207`
+built the same commit; run `36310358131` built the branch after a rebase onto 43 new `develop`
+commits, some of them changing Rust code.
+
+| Step                                   | Attempt 2 (partly warm) | Attempt 3 (fully warm) | Code changed (`36310358131`) |
+| -------------------------------------- | ----------------------- | ---------------------- | ---------------------------- |
+| Job total                              | 871 s (14 min 31 s)     | 135 s (2 min 15 s)     | 723 s (12 min 3 s)           |
+| `Build Tracker Image`                  | 609 s                   | 3 s                    | 593 s                        |
+| Workspace compile (`build 3/3`)        | not captured            | cached                 | 561 s                        |
+| Persistence transition regression      | 42 s                    | 42 s                   | 43 s                         |
+| E2E tests                              | 106 s                   | 5 s                    | 6 s                          |
+| qBittorrent E2E (SQLite, MySQL, PgSQL) | 26 s, 40 s, 29 s        | 18 s, 28 s, 22 s       | 17 s, 27 s, 22 s             |
+| Setup (toolchain, dependency download) | 3 s                     | 2 s                    | 1 s                          |
+
+- **Attempt 2** ran after attempt 1 was killed by an out-of-memory condition six minutes into the
+  build (see `manual-verification-evidence.md`). Attempt 1 had already installed the toolchain,
+  downloaded the crates, and built part of the image, so attempt 2 is not a cold run.
+- **Attempt 3** is the best case: every Docker layer was cached, and the host-side E2E tools were
+  already compiled in the persistent `CARGO_TARGET_DIR`. The job is then bounded by the E2E suite.
+- **Code changed** is the realistic PR case (M4): the third-party dependency stages
+  (`dependencies_thirdparty 3/3`, `dependencies 4/4`) were `CACHED`, and only the workspace
+  compile reran, in 561 s against 1068 to 1119 s on GitHub-hosted runners (T1 baseline). The E2E
+  tools were reused from the persistent `CARGO_TARGET_DIR`. No cache export step remains.
+- All three runs are under the 15-minute target for the job, against the baseline median of
+  37 minutes. A truly cold run was not measured: attempt 1, the only cold start, was killed by
+  the out-of-memory condition before the fix.
+
+End-to-end PR check time on the head of run `36310358131` (16 non-skipped checks, measured as in
+the baseline section): first start 09:45:05Z, last completion 10:02:54Z, **17 min 49 s**, against
+32 to 46 minutes for the four baseline heads. `Test (Docker)` is no longer the slowest check: the
+last to finish are `Unit (nightly)` (17 min 48 s) and `Unit (stable)` (15 min 27 s), which run on
+GitHub-hosted runners in `testing.yaml`. The remaining gap to the 15-minute target is therefore
+outside this issue's scope; the next candidate is the unit test jobs.
+
+Host state after run `36310358131`: build cache 20.75 GB, images 2.37 GB, `container-target`
+2.6 GB, 45 GB of 301 GB in use, 203.5 MiB of swap used, and no out-of-memory kill.
+
+Queue time (`started_at - created_at`) was 1 to 2 seconds for all three self-hosted jobs. The data
+volume transferred per job was not measured: the GitHub cache export and import are gone, and the
+remaining network steps (checkout, dependency download) take 1 to 3 seconds, so transfer is not a
+significant share of the job.
+
+Matching post-switch scenarios (ISSUE.md): **A**, the job meets the target with the local caches,
+and **G**, the PR wall-clock time is now bounded by another workflow (`testing.yaml` unit jobs).
+The first-run out-of-memory kill was a RAM variant of **C**, resolved by adding swap rather than
+resizing the server. No phase 3 remedy is needed in this issue.
+
+Host state after attempt 3 (`docker system df`, `du`, `df`): build cache 13.47 GB, images
+2.37 GB, `container-target` 2.6 GB, and 38 GB of the 301 GB root file system in use.

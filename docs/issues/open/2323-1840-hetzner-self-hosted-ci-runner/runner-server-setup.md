@@ -1,9 +1,11 @@
 # Runner Server Setup Log
 
-<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey keyrings usermod -->
+<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey keyrings usermod fallocate swapfile swapon -->
 
 Step-by-step record of how the self-hosted GitHub Actions runner server for issue #2323 was set
 up, so it can be reproduced or rebuilt. See [ISSUE.md](ISSUE.md) for the plan (task T2 and T3).
+This log keeps the history, including problems and their fixes; the current procedure, without
+the history, is [`docs/self-hosted-runner.md`](../../../self-hosted-runner.md).
 
 Conventions:
 
@@ -264,6 +266,16 @@ Further missing tools will surface during validation (scenario F in [ISSUE.md](I
 
 Result (2026-09-24): `gcc 15.2.0`, `git 2.53.0`, `jq 1.8.1`.
 
+The E2E tools depend on `openssl-sys` without the `vendored` feature, so compiling them on the
+host needs the system OpenSSL headers (found through `pkg-config`). `libsqlite3-sys` is built with
+its `bundled` feature and needs no system package. Installed on 2026-09-26, while implementing T5:
+
+```bash
+server# apt install -y libssl-dev
+```
+
+Result (2026-09-26): `libssl-dev 3.5.5-1ubuntu3.5`; no service restart needed.
+
 ## 10. Create the `runner` User
 
 The GitHub runner refuses to run as `root` by default. Membership in the `docker` group is
@@ -288,6 +300,52 @@ From step 8 onward the commands were run remotely from the maintainer's desktop 
 `ssh -o BatchMode=yes torrust-runner-01 '...'`. Prefix remote commands with
 `export LC_ALL=C.UTF-8` to avoid locale warnings caused by the desktop's forwarded `LC_*`
 variables.
+
+## 11. Prune Docker Storage Daily
+
+The self-hosted jobs keep Docker layers and BuildKit cache mounts on local disk (T5(b)), so the
+cache needs a bound. A root systemd timer runs daily at 04:00 UTC. It caps the build cache at
+120 GB (least recently used records go first), removes stopped containers older than a day,
+unused images older than a week, and anonymous volumes left by E2E runs. Build cache in use by a
+running job and running containers are never removed. Each file is written with a one-line
+`printf`, because pasted multi-line commands lost lines earlier.
+
+```bash
+server# printf '%s\n' '[Unit]' 'Description=Prune Docker build cache and unused objects for the CI runner' '' '[Service]' 'Type=oneshot' 'ExecStart=/usr/bin/docker builder prune --force --max-used-space 120GB' 'ExecStart=/usr/bin/docker container prune --force --filter until=24h' 'ExecStart=/usr/bin/docker image prune --force --filter until=168h' 'ExecStart=/usr/bin/docker volume prune --force' > /etc/systemd/system/docker-ci-prune.service
+server# printf '%s\n' '[Unit]' 'Description=Daily Docker prune for the CI runner' '' '[Timer]' 'OnCalendar=*-*-* 04:00:00 UTC' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > /etc/systemd/system/docker-ci-prune.timer
+server# systemctl daemon-reload && systemctl enable --now docker-ci-prune.timer
+server# systemctl start docker-ci-prune.service && systemctl list-timers docker-ci-prune.timer
+```
+
+Result (2026-09-26): the manual run exited `0/SUCCESS` for all four commands, and the timer is
+enabled with its next run at 2026-09-27 04:00 UTC. The host-side Cargo target directories under
+`/home/runner/.cache/torrust-tracker/` are not pruned; T7 measures their growth.
+
+## 12. Add Swap and Restart the Runner After a Crash
+
+The first self-hosted `Test (Docker)` run (PR #2352, 2026-09-27) was cancelled after six minutes.
+The kernel log shows a global out-of-memory kill at 06:02 UTC: about eight concurrent `rustc`
+processes of the workspace compile (Cargo uses one job per vCPU, so twice the parallelism of a
+4 vCPU GitHub-hosted runner) exhausted the 16 GB of RAM on a host with no swap. The kernel killed
+processes in the runner's service cgroup (`docker-buildx`, `Runner.Worker`, `Runner.Listener`),
+the job ended with "The runner has received a shutdown signal", and the service stayed `failed`,
+so the runner was offline until restarted.
+
+Two changes: a 16 GB swap file absorbs compile peaks, and a systemd drop-in restarts the runner
+service after a crash. `Restart=on-failure` does not restart it after a deliberate
+`systemctl stop`.
+
+```bash
+server# fallocate -l 16G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab
+server# mkdir -p /etc/systemd/system/actions.runner.torrust-torrust-tracker.torrust-runner-01.service.d && printf '%s\n' '[Service]' 'Restart=on-failure' 'RestartSec=10' > /etc/systemd/system/actions.runner.torrust-torrust-tracker.torrust-runner-01.service.d/restart.conf && systemctl daemon-reload
+server# systemctl reset-failed actions.runner.torrust-torrust-tracker.torrust-runner-01.service && systemctl start actions.runner.torrust-torrust-tracker.torrust-runner-01.service
+```
+
+Result (2026-09-27): `swapon --show` lists `/swapfile` (16G), `systemctl show` reports
+`Restart=on-failure` and `RestartUSec=10s`, the service is `active (running)` with the
+`restart.conf` drop-in, and GitHub reports
+`torrust-runner-01  Linux  online  false  self-hosted,Linux,X64,torrust-hetzner`. If swap is not
+enough, the next step is to cap Cargo's build jobs in the image build.
 
 ## Next Steps
 

@@ -14,6 +14,7 @@ semantic-links:
     - docs/packages.md
     - docs/profiling.md
     - docs/release_process.md
+    - docs/self-hosted-runner.md
     - docs/testing/README.md
     - docs/adrs/README.md
     - docs/adrs/index.md
@@ -44,6 +45,7 @@ Operational and development guides for working with the tracker.
 | [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                       |
 | [release_process.md](release_process.md)                                                                                                                                           | Branch strategy, versioning, and the staging → main release pipeline       |
 | [schemas/README.md](schemas/README.md)                                                                                                                                             | Generated frontmatter JSON Schema: regeneration, drift check, Rust-only invariants |
+| [self-hosted-runner.md](self-hosted-runner.md)                                                                                                                                     | Set up and operate the self-hosted CI runner for the container test jobs   |
 | [testing.md](testing.md)                                                                                                                                                           | Test-layer selection strategy, evidence boundaries, and validation owners  |
 | [testing/README.md](testing/README.md)                                                                                                                                             | Testing guidance and a catalog of durable test-design refactoring patterns |
 | [adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md](adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md) | Governance for portable AI-agent workflows and retained context            |
