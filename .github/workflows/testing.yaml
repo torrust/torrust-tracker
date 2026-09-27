@@ -164,9 +164,11 @@ jobs:
     runs-on: >-
       ${{
         github.repository == 'torrust/torrust-tracker' &&
+        ((github.event_name == 'pull_request' &&
         github.event.pull_request.user.login != 'dependabot[bot]' &&
-        !startsWith(github.head_ref, 'dependabot/') &&
-        !startsWith(github.ref, 'refs/heads/dependabot/') &&
+        !startsWith(github.head_ref, 'dependabot/')) ||
+        (github.event_name == 'push' &&
+        !startsWith(github.ref, 'refs/heads/dependabot/'))) &&
         fromJSON('["self-hosted", "torrust-hetzner"]') || 'ubuntu-latest'
       }}
     timeout-minutes: 90
