@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: 2026-09-27 08:38
+last-updated-utc: 2026-09-27 10:20
 semantic-links:
   skill-links:
     - create-issue
@@ -320,7 +320,7 @@ Delivery phases:
 | T4  | 2     | DONE   | Write ADR                             | [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md) records the decisions listed in Architectural Decisions and answers the Open Questions.                                                   |
 | T5  | 2     | TODO   | Change the `container.yaml` workflow  | One change set: (a) the `test` job's `runs-on` uses the self-hosted label, with an adjusted timeout; (b) the job uses caches kept on the server (Docker/BuildKit layers, Cargo registry and git caches) instead of the GitHub Actions cache, with a disk cleanup policy; (c) the publish jobs stay on `ubuntu-latest` and their image builds import and export no GitHub Actions (`type=gha`) cache, because any cache scope can be written by a `develop` job holding a cache token; (d) Dependabot PRs run the `test` job on `ubuntu-latest`, selected by a `runs-on` expression on the PR author (`github.event.pull_request.user.login == 'dependabot[bot]'`), not `github.actor`, which becomes the maintainer when a maintainer updates the branch (Dependabot branches live in the base repository, so it cannot change that expression); (e) only PRs targeting `develop` and pushes to `develop` use the self-hosted runner, while PRs to `main` and pushes to `main` and `releases/**` stay on `ubuntu-latest`; (f) the `testing.yaml` `docker-e2e` job moves to the self-hosted runner under the same Dependabot rule and local-cache setup, and also keeps pushes to `dependabot/` branches (which trigger it in this repository without approval) on `ubuntu-latest`; the self-hosted jobs write no `type=gha` cache. The baseline shows the GitHub cache export already costs 5-12 min per job inside GitHub's network, so the runner switch is not measured separately with the GitHub cache. |
 | T6  | 2     | IN_PROGRESS | Validate on real runs                 | At least one fork PR and one `develop` push run green on the self-hosted runner, and a publish run succeeds. The PR run is done (M1); the `develop` push and publish runs follow the merge of PR #2352. |
-| T7  | 2, 3  | TODO   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
+| T7  | 2, 3  | DONE   | Measure and compare                   | `benchmark-results.md` records the result after T5 (cold and warm cache) and after each phase 3 remedy, against the baseline and the 15-minute target, with the same step breakdown as T1, queue time, and the data volume transferred per job. Identify the matching scenario. |
 | T8  | 2     | DONE   | Document runner setup and operations  | A standalone guide, `docs/self-hosted-runner.md`, linked from `docs/index.md`, that reproduces the final setup from an empty server to a registered runner (server, SSH hardening, firewall, Docker, host build tools, `runner` user, swap, prune timer, restart drop-in, runner agent, and the GitHub settings the controls depend on) without the history recorded in this folder's logs, and covers operations: purpose, label, owner, cache cleanup, how a runner-offline condition shows up (a PR check stuck in "Waiting for a runner"), manual fallback procedure for queued jobs, recovery steps, runner upgrades, the regular server rebuild (for example monthly and on any suspicion of compromise), and the rule that approving an external PR's workflows requires reviewing its full diff. Written after T6 and T7, so it describes the final configuration. |
 | T9  | 1     | DONE   | Apply access controls                 | Before T3 is repeated: fork-PR approval policy set to "Require approval for all external contributors" (was `first_time_contributors`) and organization 2FA required (was not required), both verified through the GitHub API on 2026-09-26. Enabling 2FA removed the 3 outside collaborators without it; all 4 members remain. Logged in [`runner-agent-installation.md`](runner-agent-installation.md). |
 
@@ -404,6 +404,7 @@ Append one line per meaningful update.
 - 2026-09-26 15:36 UTC - josecelano, GitHub Copilot - Spec PR #2335 merged; T4 DONE: ADR `docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md` approved; Open Questions answered (one instance, systemd service, default `docker` driver without `type=gha` writes, `docker-e2e` moves as T5(f), no automatic fallback or alerting); AC4, M5, T8, and the Deadline and single-point-of-failure passages now describe the queued-check visibility and manual fallback - this file
 - 2026-09-27 06:24 UTC - josecelano, GitHub Copilot - T6: the first self-hosted `Test (Docker)` run (PR #2352) was routed to `torrust-runner-01` but cancelled after six minutes by a global out-of-memory kill during the workspace compile (8 parallel `rustc` on 16 GB, no swap), which also left the runner service `failed`; added a 16 GB swap file and `Restart=on-failure` for the runner service, restarted it, and re-ran the job - [`runner-server-setup.md`](runner-server-setup.md) step 12
 - 2026-09-27 08:38 UTC - josecelano, GitHub Copilot - T7: recorded the self-hosted timings (14 min 31 s partly warm, 2 min 15 s fully warm; M4 pending a code change); T8 DONE: the maintainer approved `docs/self-hosted-runner.md`, which the setup logs now point to as the current procedure - [`benchmark-results.md`](benchmark-results.md)
+- 2026-09-27 10:20 UTC - GitHub Copilot - T7 DONE: with application code changed, `Test (Docker)` took 12 min 3 s on the runner (workspace compile 561 s, dependencies cached), and the PR checks 17 min 49 s end to end; scenarios A and G (the unit test jobs are now the critical path), no phase 3 remedy needed here; M4 and M6 DONE - [`benchmark-results.md`](benchmark-results.md)
 
 ## Acceptance Criteria
 
@@ -411,7 +412,7 @@ Append one line per meaningful update.
       `develop` and for pushes to `develop`, except Dependabot PRs; Dependabot PRs, PRs to `main`,
       and pushes to `main` and `releases/**` run it on GitHub-hosted runners. The `testing.yaml`
       `docker-e2e` job runs on the self-hosted runner, except for Dependabot PRs.
-- [ ] AC2: The measured PR check wall-clock time is recorded for the baseline and after the
+- [x] AC2: The measured PR check wall-clock time is recorded for the baseline and after the
       workflow changes (cold and warm cache), with the 15-minute target either met or the gap
       explained.
 - [ ] AC3: Published images are built only from GitHub-hosted runner state: the publish jobs run on
@@ -451,9 +452,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | PR run on self-hosted runner | Open a non-documentation PR from a fork; inspect the `Test (Docker)` job runner name           | Job runs on the Hetzner runner and passes                         | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | `develop` push run           | Merge a non-documentation PR; inspect the `Container` run on `develop`                         | `test` runs on the Hetzner runner; publish job succeeds           | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no GitHub Actions cache   | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | TODO   | `manual-verification-evidence.md` section V4 |
+| M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | DONE   | `manual-verification-evidence.md` section V4 |
 | M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out) as "Waiting for a runner", and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
-| M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | TODO   | `benchmark-results.md`                       |
+| M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | DONE   | `benchmark-results.md`                       |
 | M7  | Untrusted-code routing       | Inspect a Dependabot PR's `Test (Docker)` runner, the same after a maintainer updates the branch from `develop`, and a PR from a non-member fork before approval | Dependabot runs on a GitHub-hosted runner in both cases; the external PR's workflows wait for maintainer approval | TODO   | `manual-verification-evidence.md` section V7 |
 
 Notes:
@@ -467,7 +468,7 @@ Notes:
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
+| AC2   | DONE                   | `benchmark-results.md`, After T5: `Test (Docker)` 12 min 3 s with code changed (baseline median 37 min); PR checks 17 min 49 s end to end (baseline 32 to 46 min); the gap to 15 minutes is the `testing.yaml` unit jobs (scenario G) |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
 | AC5   | DONE                   | [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md) |

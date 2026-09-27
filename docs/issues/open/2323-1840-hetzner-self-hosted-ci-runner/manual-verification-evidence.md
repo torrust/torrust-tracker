@@ -67,6 +67,39 @@ M1 met: the job ran on `torrust-runner-01` and passed in 14 min 31 s (baseline m
 The run was not fully cold: attempt 1 had already installed the toolchain, downloaded the crates,
 and built about six minutes of Docker layers. T7 records the warm-cache comparison.
 
+### V4 - Warm Cache Reuse and Timing Comparison (M4, M6)
+
+- Goal: after application code changes, the `test` job reuses the local Docker layers and Cargo
+  caches, and its timing is recorded against the baseline.
+- Initial state: the runner had built PR #2352 before; the branch was then rebased onto 43 new
+  `develop` commits, some of them changing Rust code.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Pushed the rebased branch; `Container` run `36310358131` started.
+2. Waited for it with `gh run watch 36310358131 --repo torrust/torrust-tracker --interval 60 --exit-status`.
+3. Read the job's step timings from the jobs API and the BuildKit stage results from its log:
+   `gh api repos/torrust/torrust-tracker/actions/jobs/108594972392/logs`.
+
+#### Observed Result
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36310358131/job/108594972392>:
+
+```text
+Test (Docker) (release) | success | runner=torrust-runner-01 | 09:45:05Z -> 09:57:08Z
+#18 CACHED        (dependencies_thirdparty 3/3, cargo chef cook)
+#32 CACHED        (dependencies 4/4)
+#62 DONE 561.4s   (build 3/3, workspace compile)
+PR checks on the head commit: first start 09:45:05Z, last completion 10:02:54Z (Unit (nightly))
+```
+
+#### Conclusion
+
+M4 met: third-party layers came from the local Docker store and only the workspace compile reran.
+M6 met: the job took 12 min 3 s and the PR checks 17 min 49 s, recorded in `benchmark-results.md`
+against the baseline and the 15-minute target.
+
 ## Failures and Follow-up
 
 - Attempt 1, <https://github.com/torrust/torrust-tracker/actions/runs/36298632207/job/108562020495>,
