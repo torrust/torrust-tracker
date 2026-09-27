@@ -66,7 +66,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   lines in its log).
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388462>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388462>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116429602>
 
 ### F2 - Empty cache inputs to `docker/build-push-action` in `testing.yaml`
 
@@ -80,7 +80,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   with the same `runner.environment` expressions as `container.yaml`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388535>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388535>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116429696>
 
 ### F3 - `docker volume prune` scope in the runner guide
 
@@ -97,7 +97,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   `docs/self-hosted-runner.md` step 10 runs `docker volume prune --force` without `--all`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388589>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116388589>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2352#discussion_r4116429781>
 
 ### F4 - Make `docker-e2e` routing branch on the event name
 
@@ -124,6 +124,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   medium and low labels. Verified F1 to F3 against `action.yml` at `v7.4.0`, the self-hosted job
   log, and the runner host's Docker; fixed F4 in its own commit; rebased, pushed, and replied on
   all four threads.
+- 2026-09-27 18:22 UTC - Added the prescribed supersession replies for F1 to F3 and updated their
+  durable reply URLs before resolving the completed threads.
 
 ## Completion Rules
 
