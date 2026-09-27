@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-25
+last-updated-utc: "2026-09-26 13:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -261,6 +261,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 9     | #2233 - Tune unified PR-review process (DONE)        | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md`            | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. | #2219 PR-review workflow evidence |
 | 10    | #2264 - Refactor semantic-link and frontmatter conventions | `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` | Defines document metadata and reference semantics. Its initial read-only frontmatter validator may use pre-commit as its single integration tier but must remain replaceable by the architecture selected here. | Current Markdown conventions and templates |
 | 11    | #2278 - Strengthen PR review author self-audit and evidence generation | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md` | Child EPIC converted from a task after its improvement matrix showed several independently reviewable artifacts. Evidence-driven refinement of author self-audit, audit validation, and proportionate review evidence, split into one-PR subissues. Remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. | PR #2270, #2271, and #2272 retrospectives; #2219 and #2233; #2266 for check-crate placement |
+| 12    | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | Processes 32 review findings posted after merge through the existing `process-pr-review` post-merge workflow: audits, maintainer-approved dispositions, and documentation fixes only; workflow, CI, and Rust changes become their own issues. Selects no automation architecture. | `process-pr-review` post-merge workflow; PR #2344 for findings unprocessed at merge |
 
 ## Delivery Strategy
 
@@ -366,6 +367,9 @@ For each completed subissue in this EPIC, the default completion policy is:
   specification to `docs/issues/open/2003-overhaul-guardrails-and-automation/`
 - 2026-07-22 00:00 UTC - josecelano - Approved a narrowly scoped interim project dictionary
   formatter; it may be replaced or refactored after the EPIC design decision
+- 2026-09-26 12:20 UTC - GitHub Copilot - Maintainer approved subissue #2347 (order 12) to
+  triage 32 review findings posted after PRs #2290, #2293, #2300, #2313, and #2320 merged;
+  created and linked it under this EPIC
 
 ## Acceptance Criteria
 
