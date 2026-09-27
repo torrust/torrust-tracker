@@ -8,8 +8,8 @@ epic: null
 github-issue: 2345
 spec-path: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
 branch: "2345-keep-request-kind-in-udp-error-response-event"
-related-pr: 2346
-last-updated-utc: "2026-09-27 10:15"
+related-pr: 2354
+last-updated-utc: "2026-09-27 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -196,7 +196,7 @@ until merge.
 - [x] Spec moved to `docs/issues/open/` with the assigned issue number.
 - [x] Spec-only PR merged into `develop` before implementation.
 - [x] Implementation completed.
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
 - [x] Manual verification and recheck recorded in issue-local `manual-verification-evidence.md`.
 - [x] Acceptance criteria re-reviewed after implementation and updated with evidence.
 - [x] Evidence-based implementation completion review recorded.
@@ -235,6 +235,9 @@ until merge.
   re-review checkpoint (F3), added the toolchain and the M3 counting command (F2, F4), and used
   `expect` in the new tests (F5). F2's claim that the V1 command hides the `WARN` lines did not
   reproduce; see the evidence note. - `agent-review-reports.md`
+- 2026-09-27 18:10 UTC - GitHub Copilot - Rebased onto `develop`; the pre-push hook passed
+  (nightly checks, nightly docs, full stable test suite). Opened implementation PR #2354. -
+  https://github.com/torrust/torrust-tracker/pull/2354
 
 ## Acceptance Criteria
 
