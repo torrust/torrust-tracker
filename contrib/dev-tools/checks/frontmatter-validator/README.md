@@ -38,12 +38,17 @@ Output follows the `no-stdout-result` class of the
 `--all` currently exits `1`, because legacy draft and open specs are migrated one at a time as
 they are edited.
 
+An explicit file path is reported as given, even when it is a symlink, and its content is read
+through the link. A symlinked directory is expanded under its target's path. A dangling symlink
+is a usage error.
+
 Severity depends on where a document lives:
 
 - Malformed frontmatter and an invalid `semantic-links` envelope are errors everywhere.
 - Draft and open issue specs are strict.
 - Closed specs get advisory warnings for profile and repository findings.
-- Strict v1 records outside `docs/issues/` report structural errors but no lifecycle checks.
+- Strict v1 records outside `docs/issues/` report structural errors but no repository-aware
+  checks.
 - `docs/templates/` and this crate's `fixtures/` are never validated.
 
 ## Migrating a Legacy Spec to V1

@@ -26,10 +26,9 @@ impl Git {
 
     /// Repository-relative paths of tracked files, optionally limited to one directory.
     pub fn tracked_files(&self, directory: Option<&str>) -> Result<Vec<String>, String> {
-        let literal_directory = directory.map(|directory| format!(":(literal){directory}"));
         let mut arguments = vec!["ls-files", "-z"];
-        if let Some(literal_directory) = &literal_directory {
-            arguments.extend(["--", literal_directory]);
+        if let Some(directory) = directory {
+            arguments.extend(["--", directory]);
         }
         null_separated(run_git(&self.root, &arguments)?)
     }
@@ -48,10 +47,11 @@ impl Git {
     }
 }
 
-/// `--no-optional-locks` keeps read commands from refreshing the index.
+/// `--no-optional-locks` keeps read commands from refreshing the index; `--literal-pathspecs` keeps
+/// directory names from being expanded as globs, with or without `GIT_LITERAL_PATHSPECS`.
 fn run_git(directory: &Path, arguments: &[&str]) -> Result<Vec<u8>, String> {
     let output = Command::new("git")
-        .arg("--no-optional-locks")
+        .args(["--no-optional-locks", "--literal-pathspecs"])
         .args(arguments)
         .current_dir(directory)
         .output()

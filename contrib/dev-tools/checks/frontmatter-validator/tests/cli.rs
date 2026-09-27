@@ -29,8 +29,13 @@ fn open_strict_issue(status: &str, related_artifact: &str) -> String {
 
 /// A crate fixture moved to `spec_path` with a `status` valid there, keeping its one defect.
 fn relocated_fixture(fixture: &str, spec_path: &str, status: &str) -> String {
+    let from_spec_path = format!("spec-path: {OPEN_SPEC}");
+    assert!(
+        !fixture.starts_with("---") || (fixture.contains(&from_spec_path) && fixture.contains("status: planned")),
+        "fixture no longer declares `{from_spec_path}` and `status: planned`"
+    );
     fixture
-        .replace(&format!("spec-path: {OPEN_SPEC}"), &format!("spec-path: {spec_path}"))
+        .replace(&from_spec_path, &format!("spec-path: {spec_path}"))
         .replace("status: planned", &format!("status: {status}"))
 }
 
@@ -45,6 +50,10 @@ const GIT_ENVIRONMENT: &[&str] = &[
     "GIT_PREFIX",
     "GIT_CONFIG_PARAMETERS",
     "GIT_CONFIG_COUNT",
+    "GIT_LITERAL_PATHSPECS",
+    "GIT_GLOB_PATHSPECS",
+    "GIT_NOGLOB_PATHSPECS",
+    "GIT_ICASE_PATHSPECS",
 ];
 
 /// The exit code and the parsed NDJSON stderr records of one run. Stdout is checked to be empty.
@@ -323,6 +332,24 @@ fn it_should_treat_a_directory_argument_literally_rather_than_as_a_glob() {
 
     // Assert
     assert_eq!(outcome.paths(), ["d*/inside.md"]);
+}
+
+#[test]
+fn it_should_expand_directories_when_git_is_told_to_treat_path_patterns_literally() {
+    // Arrange: an invalid tracked document; some git front ends export this variable to hooks.
+    let repository = Repository::new();
+    repository.write("docs/inside.md", WRONG_SCALAR_ISSUE);
+    repository.stage("docs/inside.md");
+
+    // Act
+    let output = isolated(Command::new(env!("CARGO_BIN_EXE_frontmatter-validator")), repository.root())
+        .env("GIT_LITERAL_PATHSPECS", "1")
+        .arg("docs")
+        .output()
+        .unwrap();
+
+    // Assert: the directory is still expanded instead of silently matching nothing.
+    assert_eq!(Outcome::from(&output).paths(), ["docs/inside.md"]);
 }
 
 #[cfg(unix)]
