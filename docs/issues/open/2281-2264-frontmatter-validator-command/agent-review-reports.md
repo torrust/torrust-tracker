@@ -241,8 +241,9 @@ semantic-links:
 
 - Invocation scope: Final independent pre-PR re-review of issue #2281 on branch
   `2281-frontmatter-validator-command` (31 commits over `torrust/develop`, nothing pushed).
-  It verifies the N1 remediation in `89539410`, all AC1-AC11 acceptance criteria, prior-review
-  remediation, repository conventions, and completion evidence.
+  It verifies the N1 remediation in `fix(frontmatter): [#2281] expand directories under
+  GIT_LITERAL_PATHSPECS`, all AC1-AC11 acceptance criteria, prior-review remediation,
+  repository conventions, and completion evidence.
 - Inputs: `ISSUE.md`; this review log; `manual-verification-evidence.md`;
   `test-design-review.md`; `implementation-retrospective.md`; the validator crate sources and
   CLI tests; the pre-commit hook; and the branch diff from `torrust/develop`.
