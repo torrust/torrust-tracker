@@ -623,7 +623,7 @@ Rows F28 and F29 come from review 5302919075, submitted after the merge and trac
 - 2026-09-28 10:29 UTC - Posted a disposition reply on the two post-merge threads of review 5302919075 (`created_at` 10:29:52Z-10:29:54Z). #2347 had posted tracking replies on 2026-09-26 from 12:05 UTC.
 - 2026-09-28 10:54 UTC - Added rows F28 and F29 for review 5302919075 (reviewer IDs F24 and F25), as #2347 approved. Changed the Ownership section's `Post-merge workflow approval` from `N/A` to the #2347 approval record. That is the only in-place edit to earlier content besides the 09:22 F29 correction.
 - 2026-09-28 12:03 UTC - Re-wrapped the 09:22 F29 correction to two lines, as it was before the correction, so every later line of `review-retrospective.md` keeps its `develop` line number. The line citations in records F23, F24, and F26 hold again. PR #2363 review 5337742420, finding F1, raised this.
-- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F29 (`created_at` 17:07:57Z), then resolved that thread and the F28 `NO_ACTION` thread. This close-out records F29 as `FIXED`/`RESOLVED`, each citing its fixing commit with its T7 reply as Reply URL, and F28 as `RESOLVED`, keeping the disposition reply.
+- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F29 (`created_at` 17:07:57Z), then resolved that thread and the F28 `NO_ACTION` thread. This close-out records F29 as `FIXED`/`RESOLVED`, citing its fixing commit with its T7 reply as Reply URL, and F28 as `RESOLVED`, keeping the disposition reply.
 
 ## Completion Rules
 
