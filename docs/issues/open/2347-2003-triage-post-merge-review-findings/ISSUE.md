@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: 2363
-last-updated-utc: "2026-09-28 12:25"
+last-updated-utc: "2026-09-28 14:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -349,7 +349,7 @@ No disposable verification script is planned.
 
 - Retrospective: created. [`implementation-retrospective.md`](implementation-retrospective.md)
   records why 32 post-merge findings went unprocessed (nothing surfaces threads opened after a
-  merge), three recurring finding classes, and four improvement candidates for the maintainer to
+  merge), three recurring finding classes, and five improvement candidates for the maintainer to
   decide on.
 - When an independent reviewer receives this folder-style specification, record the result in
   `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
