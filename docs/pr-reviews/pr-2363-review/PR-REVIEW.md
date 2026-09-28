@@ -51,6 +51,26 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 | F2 | `review-finding:pr-2363-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2363-f3` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2363-f4` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2363-f5` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2363-f6` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2363-f7` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2363-f8` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2363-f9` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| F10 | `review-finding:pr-2363-f10` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | `review-finding:pr-2363-f11` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F12 | `review-finding:pr-2363-f12` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F13 | `review-finding:pr-2363-f13` | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+
+Round 2: F5-F9 are the reviewer's IDs from review 5338643536, at the head
+`docs(pr-reviews): [#2347] add PR #2363 review audit`. Review 5339061836 (round 3, at the head
+`docs(issues): [#2347] record the approval-timing deviation acceptance`) found nothing new and
+confirmed that F5-F9 still stood. Copilot review 5338724829 (a partial review: its full run timed
+out) left four unnumbered inline comments, which are audit F10-F13 in source order. Copilot gave
+no severity, so each is `Nit (inferred)`. Its review body only lists the four comments and adds no
+other request. F9 was fixed by editing the PR description, outside the repository, so it has no
+admissible `FIXED` resolution reference under the current contract (`review-finding:pr-2313-f6`,
+owned by #2362). It is recorded as `NO_ACTION`/`RESOLVED` with its reply URL, as #2347 did for
+`review-finding:pr-2290-f7`.
 
 ## Finding Details
 
@@ -123,12 +143,136 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4121982923>
 
+<!-- cspell:ignore undercounts -->
+
+### F5 - This sentence undercounts the #2320 citations the F29 correction moved, and misdates their fix
+
+- PR number: 2363
+- Source review ID: 5338643536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122160567>
+- Concern: The retrospective said one audit line number moved and was corrected before the pre-PR review. The F29 correction moved the citations of three #2320 entries (F23, F24, and F26), and the fix landed after that review.
+- Solution: `docs(issues): [#2347] count the three #2320 citations the F29 note moved` names the three entries, says the F28 row disclosed only F24's shift, and dates the re-wrap after the pre-PR review.
+- Current-tree verification: `implementation-retrospective.md` reads "moved the retrospective lines cited by three #2320 audit entries (F23, F24, and F26)" and "restored all three after the pre-PR review".
+- Resolution reference: `docs(issues): [#2347] count the three #2320 citations the F29 note moved`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123638432>
+
+### F6 - "Two findings were already dead": the triage record marks three
+
+- PR number: 2363
+- Source review ID: 5338643536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122160577>
+- Concern: `triage.md` marks three findings not live (#2293 F8, #2300 F8, #2313 F10), but the retrospective named two.
+- Solution: `docs(issues): [#2347] name all three findings triage found dead` names all three, and notes that triage, not the reviewer, found #2300 F8.
+- Current-tree verification: the three `triage.md` rows with Live `no` are #2293 F8, #2300 F8, and #2313 F10. The retrospective reads "Three findings were already dead (#2293 F8, #2300 F8, and #2313 F10)".
+- Resolution reference: `docs(issues): [#2347] name all three findings triage found dead`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123638758>
+
+### F7 - "four improvement candidates": the retrospective now lists five
+
+- PR number: 2363
+- Source review ID: 5338643536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122160590>
+- Concern: The spec's Implementation Completion Review said four improvement candidates, after the pre-PR correction commit added a fifth.
+- Solution: `docs(issues): [#2347] count five retrospective improvement candidates`. The dated 11:00 progress-log entry's "four" stands.
+- Current-tree verification: the retrospective's `## Improvements for Future Work` has five numbered items, and the spec reads "five improvement candidates".
+- Resolution reference: `docs(issues): [#2347] count five retrospective improvement candidates`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123639093>
+
+### F8 - The follow-up actions cite findings F1-F15, but the Findings list carries no ids
+
+- PR number: 2363
+- Source review ID: 5338643536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122160595>
+- Concern: The pre-PR task review entry's follow-up actions cite F1-F15, but its grouped findings carry no IDs.
+- Solution: `docs(issues): [#2347] map the pre-PR task review finding IDs` appends a "Finding-ID Correction" entry that maps F1-F15 and records what fixed each. The file is append-only, and the 11:41 entry is unchanged.
+- Current-tree verification: `agent-review-reports.md` has a `### 2026-09-28 14:37 UTC - GitHub Copilot Finding-ID Correction` entry listing F1 through F15.
+- Resolution reference: `docs(issues): [#2347] map the pre-PR task review finding IDs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123639421>
+
+### F9 - The PR body's Audits and validator lines do not mention this record
+
+- PR number: 2363
+- Source review ID: 5338643536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122160599>
+- Concern: The PR description's audit and validator lines listed five audits and omitted this record.
+- Solution: The PR description was edited at 14:54 UTC. The audit line now names `docs/pr-reviews/pr-2363-review/`, and the validator line adds this audit. No repository change was needed; see the Findings intro for why the row is `NO_ACTION`.
+- Current-tree verification: `gh pr view 2363 --json body` contains `pr-2363-review` twice.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123639705>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123639705>
+
+### F10 - Quote the #2361 evidence file's `last-updated-utc`
+
+- PR number: 2363
+- Source review ID: 5338724829
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122225231>
+- Concern: The unquoted `last-updated-utc` might be read as a datetime, and differs from the quoted stamps elsewhere in the PR.
+- Solution: No change. The value follows the evidence template (`last-updated-utc: YYYY-MM-DD HH:MM`, unquoted) and loads as a string. The double-quoted rule applies only to strict issue and EPIC records. Round 3 (review 5339061836) reached the same conclusion.
+- Current-tree verification: `yaml.safe_load` returns a `str` for `last-updated-utc: 2026-09-28 10:00`, and `frontmatter-validator` exits `0` for the file.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640055>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640055>
+
+### F11 - Quote the #2222 evidence file's `last-updated-utc`
+
+- PR number: 2363
+- Source review ID: 5338724829
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122225308>
+- Concern: The same as F10, for the closed #2222 evidence file.
+- Solution: No change. The stamp was unquoted on `develop` before this PR, and only its value changed here; the rest is as for F10.
+- Current-tree verification: `git show 478516cf:` of the file shows `last-updated-utc: 2026-09-22 16:40`. `yaml.safe_load` returns a `str`, and `frontmatter-validator` exits `0`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640365>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640365>
+
+### F12 - Quote the closed #2261 spec's `last-updated-utc`
+
+- PR number: 2363
+- Source review ID: 5338724829
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122225360>
+- Concern: The same as F10, for the closed #2261 spec.
+- Solution: No change. The spec has no `schema-version`, so the strict v1 profile does not apply. Its stamp was unquoted on `develop` before this PR, and only its value changed here.
+- Current-tree verification: `grep -c '^schema-version'` prints `0`. `git show torrust/develop:` of the file showed `last-updated-utc: 2026-09-22 10:18` before this PR. `frontmatter-validator` exits `0`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640634>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640634>
+
+### F13 - "Nothing record F24 asserts is false" reads as missing a word
+
+- PR number: 2363
+- Source review ID: 5338724829
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4122225399>
+- Concern: Copilot read the #2320 F28 solution sentence as ungrammatical.
+- Solution: No change. The sentence is a relative clause with the relative pronoun omitted ("Nothing [that] record F24 asserts is false"). Round 3 reached the same conclusion.
+- Current-tree verification: the #2320 audit's F28 row reads "Nothing record F24 asserts is false".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640914>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640914>
+
 ## Processing Log
 
 - 2026-09-28 12:03 UTC - Started processing round 1: review 5337742420 (da2ce7, `CHANGES_REQUESTED`, submitted 11:16 UTC at the draft head) with four inline findings. At the current head, F2, F3, and F4 were already fixed by commits pushed after that head; F1 was live (`git grep` returned 162, 430, 434, and 435).
 - 2026-09-28 12:10 UTC - Committed the F1 fix, `docs(pr-reviews): [#2347] keep the #2320 head-id note at two lines` (authored 12:05:02Z), and pushed it; the pre-push hook passed and the push finished at 12:10.
 - 2026-09-28 12:12 UTC - Posted a reply on all four threads (`created_at` 12:11:54Z-12:12:00Z), each with the fixing commit subject and the current-tree result.
 - 2026-09-28 12:17 UTC - `github-review-threads reply-status` confirmed a reply on all four threads, and I resolved them with `resolve-all-unresolved-threads.sh`. A GraphQL refetch shows zero unresolved threads on PR #2363.
+- 2026-09-28 13:53 UTC - Started processing round 2. The inputs were review 5338643536 (da2ce7, `CHANGES_REQUESTED`, submitted 12:32 UTC) with F5-F9; Copilot review 5338724829 (12:39 UTC) with four unnumbered comments; and review 5339061836 (round 3, 13:07 UTC), which reconfirmed F5-F9, added nothing new, and judged the four Copilot items not to be defects.
+- 2026-09-28 14:40 UTC - Committed the F5-F8 fixes, authored 14:35:16Z-14:38:02Z after one GPG timeout was retried with the maintainer at the terminal, and pushed them; the pre-push hook passed.
+- 2026-09-28 14:54 UTC - Edited the PR description for F9.
+- 2026-09-28 14:55 UTC - Posted a reply on all nine threads (`created_at` 14:55:25Z-14:55:39Z). The F10-F13 replies use the `Superseded by <FindingId>:` form. At 14:55:57Z the F13 reply was edited to remove a false sentence, which had claimed the #2320 F28 disposition reply used the same wording; it reads "Nothing the record asserts is false".
+- 2026-09-28 14:56 UTC - `reply-status` confirmed a reply on all nine threads, and I resolved them with `resolve-all-unresolved-threads.sh`. A GraphQL refetch shows zero unresolved threads on PR #2363.
 
 ## Completion Rules
 
