@@ -236,3 +236,36 @@ semantic-links:
     `tests/cli.rs` regression test that sets `GIT_LITERAL_PATHSPECS=1` for the binary and
     expects the directory's records. Re-run the crate tests and request a re-review.
   - N2-N4: optional hardening and wording fixes. N5: document the behavior or leave it as is.
+
+### 2026-09-28 07:00 UTC - GitHub Copilot Task Reviewer
+
+- Invocation scope: Final independent pre-PR re-review of issue #2281 on branch
+  `2281-frontmatter-validator-command` (31 commits over `torrust/develop`, nothing pushed).
+  It verifies the N1 remediation in `89539410`, all AC1-AC11 acceptance criteria, prior-review
+  remediation, repository conventions, and completion evidence.
+- Inputs: `ISSUE.md`; this review log; `manual-verification-evidence.md`;
+  `test-design-review.md`; `implementation-retrospective.md`; the validator crate sources and
+  CLI tests; the pre-commit hook; and the branch diff from `torrust/develop`.
+- Evidence:
+  - `GIT_LITERAL_PATHSPECS=1 cargo test --package frontmatter-validator --test cli`: exit `0`;
+    34 tests passed. This directly exercises the N1 condition with the inherited environment.
+  - `cargo test --package frontmatter-validator`: exit `0`; 179 tests passed.
+  - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh`: exit `0`;
+    all nine checks passed.
+  - Offline `frontmatter-validator --all`: exit `1`, zero stdout, and 48 expected diagnostics:
+    44 `legacy-shape` errors, the accepted #2324 `invalid-allowed-value` error, and three
+    warnings.
+  - `git diff --check torrust/develop...HEAD`: clean. The worktree is clean and all branch
+    commits are GPG-signed.
+- N1 remediation: PASS. `git.rs` uses Git's global `--literal-pathspecs` option rather than
+  inline pathspec magic, so explicit directories expand correctly when
+  `GIT_LITERAL_PATHSPECS=1` is inherited. The focused regression and full CLI suite passed.
+- Acceptance criteria: AC1-AC11 PASS. Mode selection, NDJSON-only stderr, exit codes,
+  repository-aware validation, ownership/exclusions, staged-hook rollout, failure-family tests,
+  manual evidence, baseline behavior, and documentation/migration work are all present and
+  verified.
+- Findings: None blocking. No non-blocking concerns were raised.
+- Completion review: PASS. The folder-style issue includes test-design, manual-verification,
+  and retrospective evidence, and records how the two previous failed reviews were remediated.
+- Issue-spec updates: None; the completed acceptance-criteria state remains unchanged.
+- Verdict: REVIEW PASSED
