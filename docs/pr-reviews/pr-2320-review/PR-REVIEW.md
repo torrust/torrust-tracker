@@ -570,7 +570,7 @@ Rows F28 and F29 come from review 5302919075, submitted after the merge and trac
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4092362605>
 - Concern: Record F24's verification says the pattern matches lines 429, 433, and 434. Run as written, it also matches line 161 (cost item 9).
 - Solution: No action, approved by the maintainer. Nothing record F24 asserts is false, so this row records the complete output instead of rewriting record F24.
-- Current-tree verification: `git grep -nE 'round-4 body|Branch ids: F2, F9|once, the 20:12 push' -- docs/pr-reviews/pr-2320-review/review-retrospective.md` matches four lines. One is cost item 9's "when the round-4 body at"; the other three are the lines record F24 names. On `develop` at `478516cf` they are lines 161, 429, 433, and 434. On the #2347 branch each is one line later, because the F29 correction adds a line above them.
+- Current-tree verification: `git grep -nE 'round-4 body|Branch ids: F2, F9|once, the 20:12 push' -- docs/pr-reviews/pr-2320-review/review-retrospective.md` matches four lines. One is cost item 9's "when the round-4 body at"; the other three are the lines record F24 names. They are lines 161, 429, 433, and 434, on `develop` at `478516cf` and on the #2347 branch alike, because the F29 correction keeps the note at two lines.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4121108568>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4121108568>
@@ -622,6 +622,7 @@ Rows F28 and F29 come from review 5302919075, submitted after the merge and trac
 - 2026-09-28 09:22 UTC - Correction (post-merge, #2347, review 5302919075 reviewer ID F25): corrected in place the Timeline note in `review-retrospective.md` that read "Head ids are quoted from the review headers and are pre-rebase ids that later rebases rewrote; they resolve by URL, not from `develop` history." `git merge-base --is-ancestor <id> develop` holds for `305ddce1`, `7e426ba2`, `c84a224a`, `a1386c2f`, and `69fc9030`, and fails for `d8c82bec` and `ae66bb69`. The note now names only the round-1 and round-2 heads as rewritten.
 - 2026-09-28 10:29 UTC - Posted a disposition reply on the two post-merge threads of review 5302919075 (`created_at` 10:29:52Z-10:29:54Z). #2347 had posted tracking replies on 2026-09-26 from 12:05 UTC.
 - 2026-09-28 10:54 UTC - Added rows F28 and F29 for review 5302919075 (reviewer IDs F24 and F25), as #2347 approved. Changed the Ownership section's `Post-merge workflow approval` from `N/A` to the #2347 approval record. That is the only in-place edit to earlier content besides the 09:22 F29 correction.
+- 2026-09-28 12:03 UTC - Re-wrapped the 09:22 F29 correction to two lines, as it was before the correction, so every later line of `review-retrospective.md` keeps its `develop` line number. The line citations in records F23, F24, and F26 hold again. PR #2363 review 5337742420, finding F1, raised this.
 
 ## Completion Rules
 
