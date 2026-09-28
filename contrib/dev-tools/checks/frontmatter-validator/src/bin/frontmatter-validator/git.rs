@@ -43,19 +43,31 @@ impl Git {
 
     /// The staged content of a repository-relative path.
     pub fn index_content(&self, path: &str) -> Result<Vec<u8>, String> {
-        run_git(&self.root, &["show", &format!(":{path}")])
+        run_git(&self.root, &["show", &format!(":0:{path}")])
     }
 }
+
+/// Variables that can redirect a Git subprocess to a different repository or index.
+const GIT_REPOSITORY_REDIRECT_ENVIRONMENT: &[&str] = &[
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+];
 
 /// `--no-optional-locks` keeps read commands from refreshing the index; `--literal-pathspecs` keeps
 /// directory names from being expanded as globs, with or without `GIT_LITERAL_PATHSPECS`.
 fn run_git(directory: &Path, arguments: &[&str]) -> Result<Vec<u8>, String> {
-    let output = Command::new("git")
-        .args(["--no-optional-locks", "--literal-pathspecs"])
-        .args(arguments)
-        .current_dir(directory)
-        .output()
-        .map_err(|error| format!("could not run `git`: {error}"))?;
+    let mut command = Command::new("git");
+    command.args(["--no-optional-locks", "--literal-pathspecs"]);
+    command.args(arguments);
+    command.current_dir(directory);
+    for variable in GIT_REPOSITORY_REDIRECT_ENVIRONMENT {
+        command.env_remove(variable);
+    }
+    let output = command.output().map_err(|error| format!("could not run `git`: {error}"))?;
 
     if output.status.success() {
         Ok(output.stdout)

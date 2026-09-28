@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: 2026-09-28
+last-updated-utc: "2026-09-28 09:26"
 semantic-links:
   skill-links:
     - create-issue

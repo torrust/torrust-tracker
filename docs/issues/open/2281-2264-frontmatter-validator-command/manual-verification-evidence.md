@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-last-updated-utc: "2026-09-26 13:25"
+last-updated-utc: "2026-09-28 09:21"
 ---
 
 # Manual Verification Evidence
@@ -116,6 +116,25 @@ The one other error is the accepted AC10 exception: the completed #2324 spec, st
 with `status: open`. The warnings are advisory history in closed specs #2280, #2295, and #2308.
 
 Conclusion: met, with the recorded #2324 exception.
+
+#### 2026-09-28 Rebase Correction
+
+The historical V4 result above was captured before the implementation branch rebased onto current
+`develop`. After that rebase, #2324 was archived, two newly introduced open specs required
+lifecycle repairs, and #2289 added one advisory closed-spec warning. After repairing the two open
+specs, the current branch was checked with the same offline command:
+
+```text
+$ cargo run --quiet --offline --package frontmatter-validator --bin frontmatter-validator -- --all
+exit=1 stdout_bytes=0
+     35 error   legacy-shape
+  1 warning invalid-field-value
+  1 warning invalid-reference-syntax
+  2 warning wrong-scalar-type
+```
+
+The four warnings are advisory closed-spec history. The current run has no non-`legacy-shape`
+errors, so the current AC10 baseline holds without an exception.
 
 ### V5 - Pre-Commit Step (M5)
 

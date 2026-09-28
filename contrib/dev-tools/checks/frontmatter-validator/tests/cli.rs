@@ -153,6 +153,17 @@ fn validate_in(directory: &Path, arguments: &[&str]) -> Outcome {
     Outcome::from(&output)
 }
 
+fn validate_with_git_repository_redirect(directory: &Path, redirected_repository: &Repository, arguments: &[&str]) -> Outcome {
+    let output = Command::new(env!("CARGO_BIN_EXE_frontmatter-validator"))
+        .current_dir(directory)
+        .env("GIT_DIR", redirected_repository.root().join(".git"))
+        .env("GIT_WORK_TREE", redirected_repository.root())
+        .args(arguments)
+        .output()
+        .unwrap();
+    Outcome::from(&output)
+}
+
 /// Every disposable repository lives below the temp directory, so git never searches above it.
 fn isolated(mut command: Command, directory: &Path) -> Command {
     for variable in GIT_ENVIRONMENT {
@@ -285,6 +296,20 @@ fn it_should_report_a_runtime_error_with_a_null_path_outside_any_repository() {
         (&record["kind"], &record["path"], &record["exit_code"]),
         (&Value::from("runtime_error"), &Value::Null, &Value::from(1))
     );
+}
+
+#[test]
+fn it_should_ignore_inherited_git_repository_redirects() {
+    // Arrange: the environment redirects git to a different repository than the current directory.
+    let repository = Repository::new();
+    let redirected_repository = Repository::new();
+    repository.write("document.md", WRONG_SCALAR_ISSUE);
+
+    // Act: validate the current repository with the redirect variables inherited.
+    let outcome = validate_with_git_repository_redirect(repository.root(), &redirected_repository, &["document.md"]);
+
+    // Assert: Git discovery and reads remain scoped to the current working directory's repository.
+    assert_eq!(outcome.paths(), ["document.md"]);
 }
 
 #[test]
@@ -468,6 +493,20 @@ fn it_should_ignore_a_staged_deletion_with_staged() {
         "records: {:?}",
         outcome.records
     );
+}
+
+#[test]
+fn it_should_read_a_root_level_staged_path_that_starts_with_an_index_stage_prefix() {
+    // Arrange: the staged path begins with syntax Git otherwise parses as an index stage selector.
+    let repository = Repository::new();
+    repository.write("1:odd.md", WRONG_SCALAR_ISSUE);
+    repository.stage("1:odd.md");
+
+    // Act
+    let outcome = repository.validate(&["--staged"]);
+
+    // Assert: staged mode reads the file rather than reporting a git runtime failure.
+    assert_eq!(outcome.paths(), ["1:odd.md"]);
 }
 
 #[rstest]

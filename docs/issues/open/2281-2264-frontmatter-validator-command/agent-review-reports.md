@@ -274,3 +274,24 @@ semantic-links:
   and retrospective evidence, and records how the two previous failed reviews were remediated.
 - Issue-spec updates: None; the completed acceptance-criteria state remains unchanged.
 - Verdict: REVIEW PASSED
+
+### 2026-09-28 09:21 UTC - GitHub Copilot Rebase Correction
+
+- Invocation scope: Correct the current-branch interpretation of the 2026-09-26 21:47 UTC and
+  2026-09-28 07:00 UTC review entries after the implementation branch rebased onto newer
+  `develop`.
+- Inputs: the rebased branch, current `develop`, `ISSUE.md`, and
+  `manual-verification-evidence.md`.
+- Evidence:
+  - The earlier reviews ran before the rebase from the then-current `develop`; their recorded
+    results remain historical observations and do not describe the rebased branch.
+  - A fresh offline `frontmatter-validator --all` run after repairing the rebased open specs exits
+    `1`, writes zero bytes to stdout, and reports 35 `legacy-shape` errors plus four advisory
+    closed-spec warnings (one `invalid-field-value`, one `invalid-reference-syntax`, and two
+    `wrong-scalar-type`).
+  - The current branch has no non-`legacy-shape` errors. #2324 is now archived, so it is no longer
+    an AC10 exception.
+- Correction: This entry supersedes the older report counts only for the rebased branch. It does
+  not alter their evidence about the pre-rebase branch.
+- Findings: None blocking after the current-baseline repairs.
+- Verdict: REVIEW PASSED

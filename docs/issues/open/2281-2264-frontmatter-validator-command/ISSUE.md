@@ -8,8 +8,8 @@ epic: 2264
 github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
-related-pr: 2337
-last-updated-utc: "2026-09-26 21:57"
+related-pr: 2357
+last-updated-utc: "2026-09-28 09:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -323,7 +323,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
 | T6 | DONE | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
 | T7 | DONE | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
-| T8 | IN_PROGRESS | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
+| T8 | DONE | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
 ## Commit Points
 
@@ -358,7 +358,7 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -584,6 +584,12 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   - **N5:** the README documents symlink handling.
 
   179 tests pass - `agent-review-reports.md`, `test-design-review.md`
+- 2026-09-28 09:21 UTC - GitHub Copilot - Opened implementation PR #2357, then rebased it onto
+  current `develop`. Addressing its review findings: corrected two rebased open-spec lifecycle
+  statuses and #2323's quoted timestamp; aligned the migrated #1669 and #1840 EPIC statuses with
+  their completed subissues; hardened Git subprocess isolation and staged root-path reading; and
+  added missing diagnostic-path coverage. The current whole-tree baseline and historical-evidence
+  correction are recorded in the issue-local evidence files - PR #2357
 
 ## Acceptance Criteria
 
@@ -608,10 +614,9 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
       allowed-value, reference, lifecycle, and path failures within the command boundary.
 - [x] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
       without network access, including no-stdout behavior.
-- [x] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports no
-      errors other than `legacy-shape` for the legacy issue specs and the draft EPIC not yet
-      migrated. The error and warning counts are recorded. Accepted exception: the completed
-      #2324 spec's `status: open` until the usual archive PR moves it to `closed/`.
+- [x] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports
+  only `legacy-shape` errors for the legacy issue specs and the draft EPIC not yet migrated.
+  The current error and warning counts are recorded.
 - [x] AC11: The command, its temporary integration point, its relocation path under #2003, and
       the D10 migration checklist are documented, and the CLI output ADR classifies the binary.
 - [x] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
@@ -636,7 +641,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | DONE | `manual-verification-evidence.md` section V1 |
 | M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | DONE | `manual-verification-evidence.md` section V2 |
 | M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | DONE | `manual-verification-evidence.md` section V3 |
-| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors, plus the accepted #2324 exception; error and warning counts recorded. | DONE | `manual-verification-evidence.md` section V4 |
+| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors and recorded warning counts. | DONE | `manual-verification-evidence.md` section V4 |
 | M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | DONE | `manual-verification-evidence.md` section V5 |
 | M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | DONE | `manual-verification-evidence.md` section V6 |
 | M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | DONE | `manual-verification-evidence.md` section V7 |
@@ -657,7 +662,7 @@ and are removed after use; the real repository index is never used for failing s
 | AC7 | DONE | `pre-commit.sh` step `Checking staged Markdown frontmatter`; no CI or pre-push change; V5 |
 | AC8 | DONE | Library fixture and mutation tables (T1-T5); `it_should_report_each_failure_family_as_one_error_record` at the command boundary, free of hidden state after the review remediation |
 | AC9 | DONE | V1-V7, including `unshare -rn` offline runs (V7) and no-stdout checks |
-| AC10 | DONE | V4: 44 `legacy-shape` errors, the accepted #2324 exception, 3 closed-spec warnings; seven EPIC migration commits |
+| AC10 | DONE | V4 current rebased baseline: 35 `legacy-shape` errors and 4 closed-spec warnings; seven EPIC migration commits |
 | AC11 | DONE | Crate `README.md` (usage, migration checklist, relocation); CLI output ADR row; `run-pre-commit-checks` skill step |
 
 ## Risks and Trade-offs

@@ -797,6 +797,43 @@ mod tests {
     }
 
     #[test]
+    fn it_should_name_every_reportable_missing_required_issue_and_epic_field() {
+        // Arrange: otherwise-valid strict profiles omit one required top-level field at a time.
+        // A missing schema version intentionally selects the permissive legacy profile.
+        let profiles = [
+            (
+                ISSUE_FIELDS,
+                "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n",
+            ),
+            (
+                EPIC_FIELDS,
+                "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# EPIC\n",
+            ),
+        ];
+
+        for (fields, profile) in profiles {
+            for field in fields.iter().copied().filter(|field| *field != "schema-version") {
+                let field_prefix = format!("{field}:");
+                let markdown = profile
+                    .lines()
+                    .filter(|line| !line.starts_with(&field_prefix))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                let frontmatter = extract(&markdown).unwrap().unwrap();
+
+                // Act: validate the profile with the selected field absent.
+                let error = validate(&frontmatter).unwrap_err();
+
+                // Assert: the required-field diagnostic identifies the missing contract field.
+                assert_eq!(
+                    (error.category, error.field_path.as_deref()),
+                    (DiagnosticCategory::MissingRequiredField, Some(field))
+                );
+            }
+        }
+    }
+
+    #[test]
     fn it_should_prioritize_unknown_fields_before_reference_syntax_for_strict_profiles() {
         // Arrange: each strict profile has an unknown field and an invalid semantic-link value.
         let issue = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - Invalid\nfuture-field: value\n---\n# Issue\n";
@@ -834,7 +871,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the positive-integer invariant.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("github-issue"))
+        );
     }
 
     #[test]
@@ -847,7 +887,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the required UTC-minute string format.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -860,7 +903,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the strict contract requires a double-quoted timestamp string.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -899,7 +945,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic rejects out-of-range date and time components.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -912,7 +961,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic requires a repository-relative specification path.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("spec-path"))
+        );
     }
 
     #[test]
@@ -925,7 +977,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: repository paths use forward-slash separators.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("spec-path"))
+        );
     }
 
     #[test]

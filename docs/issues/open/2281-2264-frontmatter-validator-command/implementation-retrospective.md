@@ -54,8 +54,10 @@ M1-M7 were recorded in `manual-verification-evidence.md`.
   a lower bound, not the work list.
 - **Scope beyond the spec.** Ten syntax and envelope errors sat in closed and unrelated
   documents that the spec did not anticipate. They needed maintainer decisions mid-task.
-- **Stale specs.** Two completed issues, #2324 and #2179, still have specs in `open/`. #2324
-  became the one accepted AC10 exception.
+- **Stale specs.** At the initial baseline, two completed issues, #2324 and #2179, still had
+  specs in `open/`, and #2324 became the accepted AC10 exception. The later rebase archived both,
+  introduced two new open specs with unsupported `open` statuses, and required a fresh baseline
+  before the PR could merge.
 - **A pipe hid a failing gate.** One commit passed a failing `linter all` because the gate was
   piped into `tail`. It was fixed in the next commit, and the rule is now in the
   `run-pre-commit-checks` skill.

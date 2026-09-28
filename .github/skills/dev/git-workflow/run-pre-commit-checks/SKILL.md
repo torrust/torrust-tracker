@@ -141,7 +141,8 @@ Because `.tmp/` is workspace-local, clean stale `pre-commit-*.log` files periodi
 
 Check ownership is intentionally split by gate:
 
-- Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
+- Pre-commit: fast local gate (the nine ordered checks above, including staged frontmatter,
+  dependency, formatting, lint, Containerfile, and documentation-test checks)
 - Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
