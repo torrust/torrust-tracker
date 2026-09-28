@@ -19,7 +19,7 @@ Source: pull-request reviews and inline review threads for
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5875119437>
 
 ## Status Values
 
@@ -61,6 +61,7 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 | F12 | `review-finding:pr-2363-f12` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F13 | `review-finding:pr-2363-f13` | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | `review-finding:pr-2363-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2363-f15` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 Round 2: F5-F9 are the reviewer's IDs from review 5338643536, at the head
 `docs(pr-reviews): [#2347] add PR #2363 review audit`. Review 5339061836 (round 3, at the head
@@ -79,6 +80,8 @@ Round 4 (review 5340437680, at the head `docs(issues): [#2347] map the pre-PR ta
 IDs`) approved that head and raised no new finding. It was dismissed automatically when the round-2
 audit commit was pushed. Round 5 (review 5340689822, at the head
 `docs(pr-reviews): [#2347] record PR #2363 review round 2`) raised F14.
+
+Round 6 (review 5341713976) approved the head `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit` and raised F15, a non-blocking suggestion to record rounds 4-6. `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5` had been pushed just before round 6 posted, and GitHub dismissed round 6 automatically at 16:43 UTC. At 16:53 UTC the maintainer replied on the F15 thread that rounds 4 and 5 were recorded at that head, with round 6 and a row for F15 left to the #2347 close-out, and resolved it. Round 7 (review 5341908562, at that head) approved it, and PR #2363 merged at 17:00 UTC. The close-out records rounds 6-7 and F15 after merge.
 
 ## Finding Details
 
@@ -283,6 +286,19 @@ audit commit was pushed. Round 5 (review 5340689822, at the head
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124584947>
 
+### F15 - The audit does not yet record rounds 4-6: F14 has no row, and the Processing Log ends at 14:56
+
+- PR number: 2363
+- Source review ID: 5341713976
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124649764>
+- Concern: at the round-6 head, the audit had no row for F14 and no Processing Log entries for rounds 4-6. `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5`, pushed just before round 6 posted, added F14 and rounds 4-5, so at the merged head F15 covered rounds 6-7 and its own row.
+- Solution: the maintainer replied on the thread at 16:53:48Z that rounds 4 and 5 were recorded at the head, left round 6 and this row to the #2347 T7 close-out so that no further commit would dismiss an approval before merge, and resolved it. `docs(pr-reviews): [#2347] close out the post-merge triage of five merged PRs` records rounds 6-7 after merge: this row, the Round 6 paragraph in Findings, and the Processing Log entries for 16:43, 16:53, 17:00 and the close-out.
+- Current-tree verification: this record holds rows F1-F15, each with a detail entry; the Findings section has the Round 6 paragraph; and the Processing Log entries are in chronological order through the close-out. The 17:19Z GraphQL capture shows the F15 thread resolved, with the maintainer's reply of 16:53:48Z.
+- Resolution reference: `docs(pr-reviews): [#2347] close out the post-merge triage of five merged PRs`
+- Follow-up PR URL: <T7_CLOSEOUT_PR_URL>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124835256>
+
 ## Processing Log
 
 - 2026-09-28 12:03 UTC - Started processing round 1: review 5337742420 (da2ce7, `CHANGES_REQUESTED`, submitted 11:16 UTC at the draft head) with four inline findings. At the current head, F2, F3, and F4 were already fixed by commits pushed after that head; F1 was live (`git grep` returned 162, 430, 434, and 435).
@@ -297,6 +313,11 @@ audit commit was pushed. Round 5 (review 5340689822, at the head
 - 2026-09-28 15:01 UTC - GitHub dismissed round 4 (review 5340437680, da2ce7 `APPROVED` at 14:51 UTC, with PR comment `ACK 068a0189b…`) as stale when the round-2 audit commit was pushed. Round 4 raised no finding.
 - 2026-09-28 16:25 UTC - Round 5 (review 5340689822, da2ce7, `CHANGES_REQUESTED` at 15:10 UTC) raised F14. Committed the F14 fix `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit` (authored 16:20:03Z) and pushed it; the pre-push hook passed.
 - 2026-09-28 16:27 UTC - Replied on the F14 thread (`created_at` 16:26:09Z), confirmed the reply with `reply-status`, and resolved it. A GraphQL refetch shows zero unresolved threads on PR #2363.
+- 2026-09-28 16:43 UTC - GitHub dismissed round 6 (review 5341713976, da2ce7 `APPROVED`, with PR comment 5874296059) as stale at 16:43:16Z. It approved the head `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit`, and `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5` had been pushed just before it posted. Round 6 raised F15 (Suggestion), asking the audit to record rounds 4-6.
+- 2026-09-28 16:53 UTC - The maintainer replied on the F15 thread (`created_at` 16:53:48Z) that rounds 4 and 5 were recorded at the head, left round 6 and a row for F15 to the #2347 T7 close-out, and resolved the thread.
+- 2026-09-28 17:00 UTC - Round 7 (review 5341908562, da2ce7 `APPROVED`, with PR comment 5874566969) approved the head `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5`, with F15 standing as non-blocking. PR #2363 merged into `develop` at 17:00:27Z.
+- 2026-09-28 17:15 UTC - #2347 T7 close-out: recorded F15, the Round 6 paragraph, and these entries, which is F15's fix in `docs(pr-reviews): [#2347] close out the post-merge triage of five merged PRs`. The F15 Reply URL is the maintainer's 16:53:48Z reply.
+- 2026-09-28 17:37 UTC - The post-merge approval reference for processing F15 after merge is the maintainer's approval comment on #2347 (<https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5875119437>, 2026-09-28 17:26 UTC), which approves recording F15 as `FIXED`/`RESOLVED` in this record, citing the close-out commit and reply r4124835256, and logging round 6 and the merge.
 
 ## Completion Rules
 
