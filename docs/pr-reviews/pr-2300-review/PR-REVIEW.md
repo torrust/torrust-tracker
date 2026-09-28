@@ -102,6 +102,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-09-22 15:10 UTC - Fetched review 5279983104 and normalized four Copilot threads; F2 is a duplicate of F1.
 - 2026-09-22 15:13 UTC - Committed fixes for F1, F3, and F4; pending replies and thread resolution.
 - 2026-09-22 15:15 UTC - Pushed the fix, replied to F1-F4, resolved all four threads, and confirmed with GraphQL that no unresolved threads remain.
+- 2026-09-28 09:00 UTC - Correction (post-merge, #2347): the 15:13 and 15:15 entries above are stamped before the events they record. Commit `docs(pr-reviews): clarify audit roster optional fields`, which carries the F1, F3, and F4 fixes, was authored at 15:20:35 UTC. The four replies were posted at 15:23:23-15:23:29 UTC, and commit `docs(pr-reviews): audit PR 2300 Copilot review` was authored at 15:24:57 UTC. The only push recorded in the PR timeline is the `head_ref_force_pushed` event at 16:12:36 UTC. No resolution time is captured for the threads. The two entries are kept unchanged.
 
 ## Completion Rules
 
