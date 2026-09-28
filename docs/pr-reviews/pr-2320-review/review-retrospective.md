@@ -61,8 +61,9 @@ review body states `git range-diff` marked all seven patches `=`.
 
 ## Timeline
 
-All times UTC, 2026-09-23. Head ids are quoted from the review headers and are pre-rebase ids
-that later rebases rewrote; they resolve by URL, not from `develop` history.
+All times UTC, 2026-09-23. Head ids are quoted from the review headers. Round-1 and round-2 head
+ids are pre-rebase ids that the 17:08 rebase rewrote and resolve by URL; later head ids are on
+`develop`.
 
 | Time | Event |
 | ---- | ----- |

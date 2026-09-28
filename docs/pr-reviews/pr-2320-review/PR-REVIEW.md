@@ -589,6 +589,7 @@ findings `F1`-`F23` across rounds 1-8; those collide with the Copilot IDs and ar
 - 2026-09-24 05:50 UTC - Replies posted on F22-F27 and the F19 follow-up (`created_at` 05:50:39Z-05:50:49Z); the F26 reply was edited at 05:51 to correct its own count of extra instances from four to five.
 - 2026-09-24 05:51 UTC - F22-F27 threads resolved; the F19 thread stayed resolved throughout.
 - 2026-09-24 05:54 UTC - Rows F22-F27 added and F19 extended with the follow-up in this commit.
+- 2026-09-28 09:22 UTC - Correction (post-merge, #2347, review 5302919075 reviewer ID F25): corrected in place the Timeline note in `review-retrospective.md` that read "Head ids are quoted from the review headers and are pre-rebase ids that later rebases rewrote; they resolve by URL, not from `develop` history." `git merge-base --is-ancestor <id> develop` holds for `305ddce1`, `7e426ba2`, `c84a224a`, `a1386c2f`, and `69fc9030`, and fails for `d8c82bec` and `ae66bb69`. The note now names only the round-1 and round-2 heads as rewritten.
 
 ## Completion Rules
 
