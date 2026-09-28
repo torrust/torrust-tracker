@@ -56,7 +56,7 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 | F7 | `review-finding:pr-2363-f7` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2363-f8` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2363-f9` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
-| F10 | `review-finding:pr-2363-f10` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F10 | `review-finding:pr-2363-f10` | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F11 | `review-finding:pr-2363-f11` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F12 | `review-finding:pr-2363-f12` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F13 | `review-finding:pr-2363-f13` | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
@@ -65,8 +65,10 @@ Round 2: F5-F9 are the reviewer's IDs from review 5338643536, at the head
 `docs(pr-reviews): [#2347] add PR #2363 review audit`. Review 5339061836 (round 3, at the head
 `docs(issues): [#2347] record the approval-timing deviation acceptance`) found nothing new and
 confirmed that F5-F9 still stood. Copilot review 5338724829 (a partial review: its full run timed
-out) left four unnumbered inline comments, which are audit F10-F13 in source order. Copilot gave
-no severity, so each is `Nit (inferred)`. Its review body only lists the four comments and adds no
+out) left four unnumbered inline comments, which are audit F10-F13 in source order. Its review
+overview rates F10 Medium and F11-F13 Low. Those labels are outside the severity vocabulary, so,
+following `pr-2352-review` and `pr-2353-review`, F10 is `Minor (inferred)` and F11-F13 are
+`Nit (inferred)`. Its review body only lists the four comments and adds no
 other request. F9 was fixed by editing the PR description, outside the repository, so it has no
 admissible `FIXED` resolution reference under the current contract (`review-finding:pr-2313-f6`,
 owned by #2362). It is recorded as `NO_ACTION`/`RESOLVED` with its reply URL, as #2347 did for
