@@ -135,7 +135,9 @@ semantic-links:
   `2281-frontmatter-validator-command` (29 commits over `torrust/develop`, nothing pushed).
   It verifies the remediation of findings 1-8 from the 2026-09-26 14:23 UTC entry, which
   recorded REVIEW FAILED, and checks the remediation for new defects. The remediation is in
-  `ec565249`, `ae65b5be`, and `ffb8b9f9`.
+  `fix(frontmatter): [#2281] address pre-PR review findings in the command`,
+  `docs(frontmatter): [#2281] apply review and retrospective guidance`, and
+  `docs(issues): [#2281] record the failed pre-PR review and its remediation`.
 - Inputs: the earlier entry; the three remediation diffs; `tests/cli.rs`; `discovery.rs`;
   `git.rs`; `repository.rs`; the rejected and accepted fixtures; the crate `README.md`;
   `Containerfile`; the `run-pre-commit-checks` skill; `ISSUE.md` (progress log and AC table);
@@ -156,8 +158,10 @@ semantic-links:
     `increase-main-app-integration-test-coverage`), 1 `EPIC.md`
     (`docs/issues/drafts/generalize-error-events/EPIC.md`), and 1 other file
     (`docs/issues/open/2230-add-fix-bug-skill-and-bug-spec-guardrails/sample-substantive-bug-spec.md`).
-  - T5-era baseline, reproduced by extracting `docs/` and `.github/skills/` at `37c009bd` into a
-    disposable git repository under `.tmp/` and running the built binary with `--all`: 50
+  - T5-era baseline, reproduced from the tree after
+    `feat(frontmatter): [#2281] add repository-aware checks for strict specs` by extracting
+    `docs/` and `.github/skills/` into a disposable git repository under `.tmp/` and running the
+    built binary with `--all`: 50
     `legacy-shape` records, split into 42 `ISSUE.md` (including
     `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`), 7 `EPIC.md`, and the #2230
     sample. This matches the corrected T5 note.
@@ -181,9 +185,9 @@ semantic-links:
   - `git --literal-pathspecs ls-files -- 'd*' docs`, used as a candidate fix, lists the correct
     files with or without an inherited `GIT_LITERAL_PATHSPECS=1`. With `GIT_GLOB_PATHSPECS=1` it
     fails loudly (`fatal: global 'literal' pathspec setting is incompatible ...`, rc `128`).
-  - `ISSUE.md` diff in `ffb8b9f9`: no earlier progress-log line changed. It adds two entries and
-    changes `last-updated-utc` and the AC8 table row. V4 and the T5 note were corrected in place,
-    each with a correction note.
+  - The `docs(issues): [#2281] record the failed pre-PR review and its remediation` diff leaves
+    earlier progress-log lines unchanged. It adds two entries and changes `last-updated-utc` and
+    the AC8 table row. V4 and the T5 note were corrected in place, each with a correction note.
   - The three remediation commits are signed (`%G?` = `U`) and carry `[#2281]`.
     `torrust/develop` is an ancestor of `HEAD`, and the working tree was clean before this report.
 - Earlier findings, remediation status:
