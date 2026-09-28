@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-28 07:50"
+last-updated-utc: "2026-09-28 09:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,8 +179,25 @@ Why we proceed this way:
 - **One fix per commit.** Each `FIXED` finding gets its own signed commit, so its
   `Resolution reference` names exactly the change that fixed it. This follows `process-pr-review`
   step 6 and avoids the defect #2300 F12 describes. Audits stay one commit per PR.
-- **Order of work.** The fix commits land first, then each PR's audit, so that `FIXED` rows can
-  cite commit subjects that exist on the branch.
+- **Order of work** (maintainer-approved 2026-09-28, following the PR #2339 / PR #2344 precedent):
+  1. Commit the fixes.
+  2. Draft, approve, and create the follow-up issues. Their specs ride in this PR as separate
+     commits.
+  3. Open this PR as a draft.
+  4. Post one disposition reply on each of the 32 threads.
+  5. Commit one audit per PR, citing those replies.
+  6. Complete T6, then mark the PR ready.
+
+  The audits come after the PR because each row cites a reply on its own thread, and a reply
+  that states the disposition needs the PR and the owning issue to exist. The T1 replies only say
+  that the disposition is pending, so they cannot serve as resolution references.
+- **Approved fixes stay `FOLLOW_UP` until merge.** `process-pr-review` "Reviews Submitted After
+  Merge" forbids claiming `FIXED` on `develop` before the follow-up merges. In this PR, the 14
+  approved fixes are therefore recorded as `FOLLOW_UP`/`OPEN`, with this PR as `Follow-up PR URL`.
+  The T7 close-out changes them to `FIXED`, citing their commit subjects, and replaces each reply
+  URL with the final one. NO_ACTION rows are final in this PR; their threads are resolved in T7.
+  Each thread therefore ends with three replies: the T1 tracking reply, the disposition reply,
+  and the T7 reply. A NO_ACTION thread needs no T7 reply.
 
 ## Design and Ownership Review
 
@@ -207,7 +224,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Triage against `develop` | Per finding: live or not, with the command or inspection used; proposed disposition. Recorded in [`triage.md`](triage.md). |
 | T3 | DONE | Maintainer disposition review | Maintainer approves or changes each proposed disposition; the decision is recorded in the progress log with a durable comment URL. See [Disposition Decisions (T3)](#disposition-decisions-t3). |
 | T4 | TODO | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
-| T5 | TODO | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
+| T5 | IN_PROGRESS | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
 | T6 | TODO | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
 | T7 | TODO | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
 
@@ -248,6 +265,7 @@ progress log. No test code is planned.
 - 2026-09-27 18:10 UTC - GitHub Copilot - The spec-only PR #2348 merged on 2026-09-27 06:11 UTC (`gh pr view 2348`). Created the implementation branch `2347-2003-triage-post-merge-review-findings` from `develop` at `478516cf`. The maintainer decided in chat: T2 results go in an issue-folder `triage.md` linked from this spec; the T3 approval follows the T1 precedent (approval in chat, then an approval record posted on this issue); each approved `FOLLOW_UP` gets a folder-style draft spec, a GitHub issue, and a sub-issue link, each approved first; the branch is pushed only at T6.
 - 2026-09-27 19:05 UTC - GitHub Copilot - T2 done. Re-fetched all five PRs' threads (32 unresolved, each still with only the finding and the T1 reply) and checked each finding against `develop` at `478516cf`; results, verification commands, and proposed dispositions are in `triage.md`: 17 `FIXED`, 5 `NO_ACTION`, 10 `FOLLOW_UP` across four proposed follow-up issues and EPIC #2278 order 8. No disposition is approved yet; T3 is next.
 - 2026-09-28 07:50 UTC - GitHub Copilot - T3 done. The maintainer approved the triage in chat with four changes (#2300 F7, #2300 F11, #2320 F28, and #2293 F6 become `NO_ACTION`), the no-backfill exception for the pre-merge Copilot threads, and one commit per fix. The approval record was posted at 2026-09-28 07:44 UTC: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>. Recorded the rationale in "Disposition Decisions (T3)" and changed the T5 commit policy from one commit per PR to one per fix. The result is 14 `FIXED`, 9 `NO_ACTION`, and 9 `FOLLOW_UP`. T5 fixes start next.
+- 2026-09-28 09:35 UTC - GitHub Copilot - T5 documentation fixes committed: 13 fix commits (#2290 F5 is fixed by its audit in T4) and one commit refreshing `last-updated-utc` stamps that three earlier fix commits left stale. The maintainer approved opening this PR as a draft before the audits, following the PR #2339 precedent, and drafting the three follow-up issues first; see "Order of work" above. Next: the FU-A draft spec.
 
 ## Acceptance Criteria
 
