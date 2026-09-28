@@ -60,9 +60,12 @@ The close-out (T7) remains.
 - **Self-inflicted defects of the kinds under review.** Two stamps were estimated and ended up
   later than the events they recorded: the #2360 draft log said 09:50 for a 09:40 draft, and the
   first amendment comment said 09:55 for a 09:51 post. Three fix commits edited documents without
-  refreshing their `last-updated-utc` (fixed by a follow-up commit). One audit line number moved
-  under this branch's own edit (#2320 F28). I corrected those before the pre-PR review. The
-  pre-PR task review (`agent-review-reports.md`) then found more of the same kind:
+  refreshing their `last-updated-utc` (fixed by a follow-up commit). I corrected those before the
+  pre-PR review. The F29 correction also moved the retrospective lines cited by three #2320 audit
+  entries (F23, F24, and F26), but the F28 row disclosed only F24's shift. Re-wrapping the note to
+  two lines restored all three after the pre-PR review, in round 1 of the PR #2363 review
+  (`docs(pr-reviews): [#2347] keep the #2320 head-id note at two lines`). The
+  pre-PR task review (`agent-review-reports.md`) also found more of the same kind:
   - three stale `last-updated-utc` stamps;
   - the spec's 2026-09-27 19:05 and 2026-09-28 07:50 entries, both estimates, one of them later
     than its own commit;
