@@ -8,8 +8,8 @@ epic: 2003
 github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
-related-pr: null
-last-updated-utc: "2026-09-28 10:20"
+related-pr: 2363
+last-updated-utc: "2026-09-28 11:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,10 @@ semantic-links:
     - docs/pr-reviews/pr-2313-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2320-review/PR-REVIEW.md
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
+    - docs/issues/open/2347-2003-triage-post-merge-review-findings/manual-verification-evidence.md
+    - docs/issues/open/2347-2003-triage-post-merge-review-findings/implementation-retrospective.md
+    - docs/pr-reviews/pr-2290-review/PR-REVIEW.md
+    - docs/pr-reviews/pr-2293-review/PR-REVIEW.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -227,9 +231,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Record approval and acknowledge threads | Maintainer approval posted on this issue; one tracking reply on each of the 32 threads. |
 | T2 | DONE | Triage against `develop` | Per finding: live or not, with the command or inspection used; proposed disposition. Recorded in [`triage.md`](triage.md). |
 | T3 | DONE | Maintainer disposition review | Maintainer approves or changes each proposed disposition; the decision is recorded in the progress log with a durable comment URL. See [Disposition Decisions (T3)](#disposition-decisions-t3). |
-| T4 | TODO | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
+| T4 | DONE | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
 | T5 | DONE | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
-| T6 | TODO | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
+| T6 | IN_PROGRESS | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
 | T7 | TODO | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
 
 ## Commit Points
@@ -253,10 +257,10 @@ progress log. No test code is planned.
 - [x] GitHub issue created, linked as a sub-issue of #2003, and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all` and pre-push checks)
+- [x] Automatic verification completed (`linter all` and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -274,17 +278,21 @@ progress log. No test code is planned.
 - 2026-09-28 09:51 UTC - GitHub Copilot - While drafting FU-B, found that open #2301 ("Review package coverage rollout", #1347) already owns #2293 F5. The T2 triage had missed it. The maintainer approved routing F5 to #2301, and narrowing FU-B to #2293 F1 as a bug issue under #1347. Amendment record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>. The #2278 register has no existing owner for #2313 F4-F7 or F9, so FU-D stands.
 - 2026-09-28 10:14 UTC - GitHub Copilot - T5 done. The maintainer approved each follow-up spec before its issue was created: #2361 (bug, #1347 order 9) for #2293 F1, and #2362 (#2278 order 11) for #2313 F4, F5, F6, F7, and F9. Both specs ride in this PR. Added pointers in the owners that already existed: #2300 F10 in the #2278 order 8 row, and #2293 F5 in the #2301 progress log, with the hosted run evidence. Next: push and open this PR as a draft.
 - 2026-09-28 10:20 UTC - GitHub Copilot - Rebased onto `develop` at `8a953724`, which had moved 84 commits. PR #2357 (#2281) had already fixed #2293 F3 in `docs(issues): [#2281] fix malformed frontmatter indentation in closed records`, so the rebase dropped this branch's now-empty F3 commit, and a follow-up commit restored the #2222 plan's stamp. The maintainer approved keeping F3 `FIXED` with that upstream subject, and resolving its thread at the reply step: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5868016556>. Resolved stamp conflicts in the #1347 EPIC and #2301 spec using `develop`'s quoted format. The new frontmatter validator rejected this spec's `status: in_progress`; it is now `in-progress`.
+- 2026-09-28 10:24 UTC - GitHub Copilot - Pushed the branch (the pre-push hook passed) and opened draft PR #2363.
+- 2026-09-28 10:29 UTC - GitHub Copilot - The maintainer reviewed the 32 drafted disposition replies, and they were posted from 10:28:56Z to 10:29:54Z. The #2293 F3 thread was resolved at 10:32 UTC.
+- 2026-09-28 10:57 UTC - GitHub Copilot - T4 done: five audit commits, one per merged PR. `validate-audit-record.py` exits `0` for each: #2290 (7 rows), #2293 (8), #2300 (12), #2313 (10), and #2320 (29), with the first parent of each PR's merge commit as `--base`.
+- 2026-09-28 11:00 UTC - GitHub Copilot - T6: M1 and M3 are recorded in `manual-verification-evidence.md`. M2 waits for T7. The acceptance criteria were re-reviewed: AC1, AC2, AC3, and AC5 are done, and AC4 waits for T7. `implementation-retrospective.md` records why 32 post-merge findings went unprocessed, and four improvement candidates for the maintainer to decide on. An independent task review comes next, before the PR is marked ready.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Each of the 32 findings has a row in its owning PR's audit record, with a collision-safe ID, the reviewer's ID, a live-on-`develop` verification, and a maintainer-approved disposition.
-- [ ] AC2: The maintainer approval of the dispositions is recorded as a durable GitHub comment URL before any fix or thread resolution. The URL appears in the Ownership section of the #2300, #2313, and #2320 audits when their rows are added, and of the #2290 and #2293 audits when those audits are created.
-- [ ] AC3: Every approved fix is applied, and every approved `FOLLOW_UP` item links a created issue.
+- [x] AC1: Each of the 32 findings has a row in its owning PR's audit record, with a collision-safe ID, the reviewer's ID, a live-on-`develop` verification, and a maintainer-approved disposition.
+- [x] AC2: The maintainer approval of the dispositions is recorded as a durable GitHub comment URL before any fix or thread resolution. The URL appears in the Ownership section of the #2300, #2313, and #2320 audits when their rows are added, and of the #2290 and #2293 audits when those audits are created.
+- [x] AC3: Every approved fix is applied, and every approved `FOLLOW_UP` item links a created issue.
 - [ ] AC4: Each of the 32 threads has a finding-specific final reply. Every thread whose finding this task fixed or declined is resolved; every `FOLLOW_UP` thread stays open, its reply naming the owning issue, until that issue's fix merges. A final GraphQL fetch confirms both.
-- [ ] AC5: `validate-audit-record.py` exits `0` for PRs #2290, #2293, #2300, #2313, and #2320.
-- [ ] `linter all` exits with code `0`.
+- [x] AC5: `validate-audit-record.py` exits `0` for PRs #2290, #2293, #2300, #2313, and #2320.
+- [x] `linter all` exits with code `0`.
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -301,9 +309,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Tracking replies visible | Open each of the five PRs on GitHub after T1. | Every one of the 32 threads shows a reply naming this issue. | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Tracking replies visible | Open each of the five PRs on GitHub after T1. | Every one of the 32 threads shows a reply naming this issue. | DONE | `manual-verification-evidence.md` section V1 (GraphQL fetch of all five PRs, 2026-09-28 10:56 UTC) |
 | M2 | Thread states match dispositions | For each PR, run `github-review-threads fetch` and `list --unresolved-only` after T7. | Only `FOLLOW_UP` threads are unresolved, each with a reply naming its owning issue; every other of the 32 threads is resolved. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Live-status spot check | Re-run the recorded verification for three findings chosen at random, one per disposition kind. | Each re-run reproduces the recorded result. | TODO | `manual-verification-evidence.md` section V3 |
+| M3 | Live-status spot check | Re-run the recorded verification for three findings chosen at random, one per disposition kind. | Each re-run reproduces the recorded result. | DONE | `manual-verification-evidence.md` section V3 (#2290 F6, #2300 F8, #2290 F4) |
 
 No disposable verification script is planned.
 
@@ -311,16 +319,16 @@ No disposable verification script is planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Audit records for the five PRs |
-| AC2 | TODO | Ownership sections; approval comment URL |
-| AC3 | TODO | Fix commits; follow-up issue links |
-| AC4 | TODO | M2; thread replies |
-| AC5 | TODO | Validator output per PR |
+| AC1 | DONE | Audit records for the five PRs: 32 new rows, each with `Reviewer finding ID`, `Current-tree verification`, and an approved disposition |
+| AC2 | DONE | Approval posted 2026-09-28 07:44 UTC, before the first fix commit; the URL is in all five Ownership sections |
+| AC3 | DONE | 13 fix commits in this PR, plus #2293 F3 fixed upstream by PR #2357; follow-up owners #2360, #2361, #2362, #2301, and EPIC #2278 order 8 |
+| AC4 | TODO | M2; thread replies (T7) |
+| AC5 | DONE | Validator output per PR in `manual-verification-evidence.md` Automatic Checks |
 
 ## Risks and Trade-offs
 
-- Thirty-two findings are a lot for one pull request. Mitigation: commits are grouped per owning PR,
-  and anything beyond documentation becomes its own issue.
+- Thirty-two findings are a lot for one pull request. Mitigation: one signed commit per fix, one
+  audit commit per owning PR, and anything beyond documentation becomes its own issue.
 - Some findings concern rules that EPIC #2278 is still reshaping (for example #2313 loop F4-F7 on
   the audit contract). Mitigation: T2 checks each one against the current `develop`, and one that an
   open #2278 subissue owns is pointed to that subissue rather than fixed twice.
@@ -329,7 +337,10 @@ No disposable verification script is planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`.
+- Retrospective: created. [`implementation-retrospective.md`](implementation-retrospective.md)
+  records why 32 post-merge findings went unprocessed (nothing surfaces threads opened after a
+  merge), three recurring finding classes, and four improvement candidates for the maintainer to
+  decide on.
 - Create `implementation-retrospective.md` if triage shows a recurring cause of unprocessed
   post-merge feedback worth a guardrail; otherwise record why none was needed.
 - When an independent reviewer receives this folder-style specification, record the result in
