@@ -11,7 +11,7 @@ github-issue: 2345
 spec-path: docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
 branch: "2345-keep-request-kind-in-udp-error-response-event"
 related-pr: 2354
-last-updated-utc: "2026-09-28 06:57"
+last-updated-utc: "2026-09-28 09:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,6 +22,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
+    - docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/agent-review-reports.md
     - docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/manual-verification-evidence.md
     - packages/udp-server/src/server/processor.rs
     - packages/udp-server/src/handlers/mod.rs
