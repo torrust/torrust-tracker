@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F9 | `review-finding:pr-2313-f9` | Human | Suggestion | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 | F10 | `review-finding:pr-2313-f10` | Human | Nit | metadata | ORIGINAL | NO_ACTION | RESOLVED |
 
-Rows F4-F10 come from review 5293099957, submitted after the merge and tracked by #2347. The reviewer numbered them `loop F4`-`loop F10` after this record's F1-F3, so no ID collides. F8 is fixed in follow-up PR #2363 and stays `FOLLOW_UP`/`OPEN` until it merges. F4, F5, F6, F7, and F9 are owned by #2362 (EPIC #2278 order 11). The F10 thread is resolved in the #2347 close-out.
+Rows F4-F10 come from review 5293099957, submitted after the merge and tracked by #2347. The reviewer numbered them `loop F4`-`loop F10` after this record's F1-F3, so no ID collides. F8 is fixed in follow-up PR #2363. PR #2363 merged on 2026-09-28, so F8 is `FIXED`/`RESOLVED`. F4, F5, F6, F7, and F9 are owned by #2362 (EPIC #2278 order 11) and stay `FOLLOW_UP`/`OPEN`. F10 is `NO_ACTION`/`RESOLVED`; its thread is resolved in the #2347 close-out.
 
 ## Finding Details
 
