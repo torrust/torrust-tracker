@@ -15,7 +15,7 @@ Triage of the 32 findings against `develop` at `478516cf`, done on 2026-09-27 on
 `2347-2003-triage-post-merge-review-findings`. Every disposition below is a **proposal** for T3;
 none is approved until the maintainer's approval record exists on #2347.
 
-The approved dispositions differ from four of these proposals; see the spec's
+The approved dispositions and routes differ from some of these proposals; see the spec's
 [Disposition Decisions (T3)](ISSUE.md#disposition-decisions-t3).
 
 ## Thread State at Triage

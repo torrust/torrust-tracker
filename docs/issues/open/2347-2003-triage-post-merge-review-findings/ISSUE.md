@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-28 09:35"
+last-updated-utc: "2026-09-28 09:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -140,15 +140,17 @@ Each summary is the first line of the thread's first comment, generated from the
 
 ## Disposition Decisions (T3)
 
-Approval record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>.
+Approval record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>,
+amended by <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>
+(#2293 F5 goes to the existing #2301, which T2 missed; #2293 F1's new issue is a bug).
 The maintainer approved the [`triage.md`](triage.md) proposal on 2026-09-28 with the changes
-below. The approval record is the authority for each finding's disposition.
+below. The approval record and its amendment are the authority for each finding's disposition.
 
 | Disposition | Findings |
 | ----------- | -------- |
 | `FIXED` (14) | #2290 F1, F2, F3, F5, F6; #2293 F2, F3, F4, F7; #2300 F5, F6, F9; #2313 F8; #2320 F29 |
 | `NO_ACTION` (9) | #2290 F7; #2293 F6, F8; #2300 F7, F8, F11, F12; #2313 F10; #2320 F28 |
-| `FOLLOW_UP` (9) | #2290 F4 (new issue, parent #2003); #2293 F1, F5 (new issue, parent #1347); #2300 F10 (#2278 order 8); #2313 F4, F5, F6, F7, F9 (new #2278 subissue) |
+| `FOLLOW_UP` (9) | #2290 F4 (#2360, parent #2003); #2293 F1 (new bug issue, parent #1347); #2293 F5 (existing #2301); #2300 F10 (#2278 order 8); #2313 F4, F5, F6, F7, F9 (new #2278 subissue) |
 
 Why we proceed this way:
 
@@ -266,6 +268,8 @@ progress log. No test code is planned.
 - 2026-09-27 19:05 UTC - GitHub Copilot - T2 done. Re-fetched all five PRs' threads (32 unresolved, each still with only the finding and the T1 reply) and checked each finding against `develop` at `478516cf`; results, verification commands, and proposed dispositions are in `triage.md`: 17 `FIXED`, 5 `NO_ACTION`, 10 `FOLLOW_UP` across four proposed follow-up issues and EPIC #2278 order 8. No disposition is approved yet; T3 is next.
 - 2026-09-28 07:50 UTC - GitHub Copilot - T3 done. The maintainer approved the triage in chat with four changes (#2300 F7, #2300 F11, #2320 F28, and #2293 F6 become `NO_ACTION`), the no-backfill exception for the pre-merge Copilot threads, and one commit per fix. The approval record was posted at 2026-09-28 07:44 UTC: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>. Recorded the rationale in "Disposition Decisions (T3)" and changed the T5 commit policy from one commit per PR to one per fix. The result is 14 `FIXED`, 9 `NO_ACTION`, and 9 `FOLLOW_UP`. T5 fixes start next.
 - 2026-09-28 09:35 UTC - GitHub Copilot - T5 documentation fixes committed: 13 fix commits (#2290 F5 is fixed by its audit in T4) and one commit refreshing `last-updated-utc` stamps that three earlier fix commits left stale. The maintainer approved opening this PR as a draft before the audits, following the PR #2339 precedent, and drafting the three follow-up issues first; see "Order of work" above. Next: the FU-A draft spec.
+- 2026-09-28 09:42 UTC - GitHub Copilot - FU-A approved and created as #2360 under #2003 (order 13 in the #2003 EPIC); its spec rides in this PR.
+- 2026-09-28 09:51 UTC - GitHub Copilot - While drafting FU-B, found that open #2301 ("Review package coverage rollout", #1347) already owns #2293 F5. The T2 triage had missed it. The maintainer approved routing F5 to #2301, and narrowing FU-B to #2293 F1 as a bug issue under #1347. Amendment record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>. The #2278 register has no existing owner for #2313 F4-F7 or F9, so FU-D stands.
 
 ## Acceptance Criteria
 
