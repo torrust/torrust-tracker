@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-    - docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/agent-review-reports.md
-    - docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/performance-evidence.md
+    - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
+    - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/agent-review-reports.md
+    - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/performance-evidence.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/implementation-retrospective.md
 ---
 

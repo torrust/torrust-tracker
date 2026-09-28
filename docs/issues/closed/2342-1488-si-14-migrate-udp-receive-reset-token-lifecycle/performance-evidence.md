@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
-issue-spec: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-last-updated-utc: 2026-09-26
+issue-spec: docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
+last-updated-utc: 2026-09-28
 ---
 
 # Performance Evidence - UDP Throughput Before and After SI-14
