@@ -52,7 +52,8 @@ behavior being checked.
 
 - `ISSUE.md` diagnostic and classification table
 - `manual-verification-evidence.md` M1
-- Commits `7e6f5425` and `d75276ff`
+- Commits `docs(quality): define Clippy exception decisions` and
+  `refactor(udp-protocol): remove Clippy baseline`
 - `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings`
 - `cargo test -p torrust-tracker-udp-protocol --all-targets --all-features`
 - `linter all`

@@ -9,7 +9,7 @@ github-issue: 2295
 spec-path: docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md
 branch: "2295-2278-single-source-audit-roster"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/2300"
-last-updated-utc: "2026-09-22"
+last-updated-utc: "2026-09-28 09:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -165,6 +165,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-09-22 13:16 UTC - GitHub Copilot - Recorded M1-M4 in `manual-verification-evidence.md`, updated the parent EPIC row to `IN_PROGRESS`, and re-reviewed AC1-AC6 and AC8-AC9. No retrospective is needed: the implementation matched the approved scope; correcting the M1 extraction boundary was a verification-command repair, not a material discovery.
 - 2026-09-22 13:19 UTC - GitHub Copilot - `linter all`, `cargo run --package agent-review-report-contract`, and the full pre-commit gate passed; AC7 is verified.
 - 2026-09-22 17:26 UTC - GitHub Copilot - PR #2300 merged and automatically closed GitHub issue #2295 as completed. Archived this specification and its evidence in `docs/issues/closed/2295-2278-single-source-audit-roster/`.
+- 2026-09-28 09:12 UTC - GitHub Copilot - Post-merge correction (#2347, raised after merge on PR #2300): AC6 and its M4 evidence were true when recorded at 13:16 UTC. They became false when the PR's own audit landed: `git diff --stat 3aeb62c5 caa6c674 -- docs/pr-reviews/` prints `docs/pr-reviews/pr-2300-review/PR-REVIEW.md | 117 +++`. The accurate criterion is "No existing file under `docs/pr-reviews/` changes", as the PR description and this spec's Out of Scope state. AC6 and M4 are kept unchanged as recorded.
 
 ## Acceptance Criteria
 

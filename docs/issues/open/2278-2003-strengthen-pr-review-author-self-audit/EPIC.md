@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-26 13:33"
+last-updated-utc: "2026-09-28 11:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -155,9 +155,10 @@ subissue specifications written before that date cite the earlier numbering (old
 | 5 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items. Docs only. Depends on 1 and 2. |
 | 6 | #2349 - Make `agent-review-report-contract` state what it reads | `docs/issues/open/2349-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
 | 7 | #[To be assigned] - Port the audit validator to Rust with parity fixtures | `docs/issues/open/{number}-2278-port-audit-validator-to-rust/ISSUE.md` | TODO | F7. Behaviour parity only, `no-stdout-result` output contract. Depends on #2266 recording its integration-point decision. |
-| 8 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63. Depends on 1 and 7. |
+| 8 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63; `review-finding:pr-2300-f10` (pin the whole roster on both sides so a rename or reorder fails). Depends on 1 and 7. |
 | 9 | #[To be assigned] - Generate finding-detail skeletons from source comments | `docs/issues/open/{number}-2278-generate-finding-detail-skeleton/ISSUE.md` | TODO | PR #2270 tooling proposal 3. Consumes the thread data from 3 and the roster the validator enforces. Depends on 4 and 7. |
 | 10 | #[To be assigned] - Decide proportionate evidence for low-risk changes | `docs/issues/open/{number}-2278-proportionate-review-evidence/ISSUE.md` | TODO | PR #2272 proposals 3 and 4; F55 as a self-audit step. Decision note first, maintainer approval, then the limited change. Depends on 5. |
+| 11 | #2362 - Reconcile the residual audit-contract rules from the PR #2313 post-merge review | `docs/issues/open/2362-2278-reconcile-residual-audit-contract-rules/ISSUE.md` | TODO | `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, `-f9`, routed by #2347. Docs plus one pinned placeholder. Depends on 2; coordinates with 6 (pins) and 8 (copied-section byte-diff). |
 
 Subissue specifications are drafted one at a time as `docs/issues/drafts/2278-{slug}/ISSUE.md`
 and created only after maintainer approval, following the `create-issue` skill.
@@ -267,6 +268,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-24 18:46 UTC - GitHub Copilot - #2333 T1-T4 done on its implementation branch: `github-review-threads` returns all threads with `resolvedBy` and `line`, `--unresolved-only` selects the action view, the `fetch-review-threads` skill contract is rewritten, and M1-M4 passed against PR #2320. The AC2 evidence had still listed subissue 3 as remaining after #2318 closed; it now names PR #2322. Implementation PR pending.
 - 2026-09-26 09:46 UTC - GitHub Copilot - PR #2339 merged as `a20e8f3a` and closed #2333; order 4 is `DONE`, its specification is archived under `docs/issues/closed/`, and AC2 is `DONE`, completing Phase 1. Three review findings on PR #2339 were still unprocessed at merge; with maintainer approval (<https://github.com/torrust/torrust-tracker/pull/2339#issuecomment-5844522320>) they are handled in a follow-up PR from `develop`, which also extends `process-pr-review`'s post-merge rule to findings unprocessed at merge. Orders 5 and 6 are unblocked.
 - 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer set the order after Phase 1: order 6 next, then order 5 once PR #2344 merges and #2347 triage settles which audit-contract findings belong to it, because orders 5, #2344, and #2347 all edit `process-pr-review`. Maintainer approved the order 6 specification with the `no-stdout-result` output migration; created and linked subissue #2349 and moved its specification to `docs/issues/open/2349-2278-contract-checker-evidence-boundary/`. Spec-only PR pending. For order 7, #2266 recorded its placement decision (`contrib/dev-tools/checks/`, `cargo run --package`, `no-stdout-result`), so it is unblocked; the maintainer approved three decisions for its specification: keep `no-stdout-result` and record dropping the Python prototype's stdout JSON summary as a deliberate parity deviation; do not wait for #2281, adopting its NDJSON diagnostic catalog if it has merged when order 7 starts; and no pre-commit integration, because the validator needs `gh` and network access.
+- 2026-09-28 10:08 UTC - GitHub Copilot - #2347 triage settled which audit-contract findings belong where. None goes to order 5. `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, and `-f9` go to the new order 11, which the maintainer approved; created and linked subissue #2362. `review-finding:pr-2300-f10` goes to order 8 (T3 approval <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>).
 
 ## Acceptance Criteria
 

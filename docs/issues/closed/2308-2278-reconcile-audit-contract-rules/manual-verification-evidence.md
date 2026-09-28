@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md
-last-updated-utc: "2026-09-23 11:00"
+last-updated-utc: "2026-09-28 09:18"
 ---
 
 # Manual Verification Evidence
@@ -35,6 +35,30 @@ The template and skill state that a fixed outdated thread is FIXED/RESOLVED. Bot
 #### Conclusion
 
 The observed rules satisfy F60 and F73 without changing the audit roster.
+
+#### Post-Merge Correction
+
+Recorded 2026-09-28 09:18 UTC on `develop` at `478516cf` (#2347, raised after merge on PR #2313).
+Step 1's pattern does not match the skill's fixed-outdated-thread rule, which reads "If a code
+or documentation change fixed the concern", so it cannot produce the Observed Result above. This
+command matches both rules in both documents:
+
+```sh
+rg -n 'If a code or documentation change fixed|outdated thread whose concern was fixed|own tracking row' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md docs/templates/PR-REVIEW-TEMPLATE.md
+```
+
+```text
+docs/templates/PR-REVIEW-TEMPLATE.md
+40:- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+53:Every re-raise has its own tracking row and matching detail entry; never collapse it into the
+119:- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+
+.github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+68:   Every re-raise has its own tracking row and detail entry; never collapse it
+87:   `resolve-review-threads` to resolve it. If a code or documentation change fixed
+```
+
+The Observed Result and Conclusion above hold for this output.
 
 ### V2 - Resolution Reference Rules
 

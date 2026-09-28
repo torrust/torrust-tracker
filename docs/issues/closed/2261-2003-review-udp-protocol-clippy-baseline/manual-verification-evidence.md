@@ -46,3 +46,37 @@ expansion across the inhabited protocol wire structs in `common.rs`, `connect.rs
 and `scrape.rs`. The crate-level A159 allowance was restored with a native reason.
 The #2158 inventory now records A159 as retained; A157-A158 and A160-A168 remain
 removed, and A156 remains owned by #2245.
+
+## M1 Post-Merge Correction
+
+**Executed:** 2026-09-28 08:31 UTC on `develop` at `478516cf` (#2347, raised after merge on
+PR #2290)
+
+The M1 Result above is superseded: A159 is retained, so it is false that the inventory marks
+all of A157-A168 as removed and that no owned suppression remains in the final source. M1's two
+commands, re-run as recorded, now print:
+
+```text
+packages/udp-protocol/src/lib.rs
+15:    clippy::empty_enums,
+```
+
+```text
+9:    clippy::cast_possible_truncation,
+10:    reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
+16:    reason = "FromBytes derives generate empty helper enums for inhabited protocol wire structs"
+```
+
+The final outcome is the revalidation's: A157-A158 and A160-A168 are removed, A159 is retained
+with a native reason, and A156 remains owned by #2245.
+
+## M1 Revalidation Post-Merge Module Correction
+
+**Executed:** 2026-09-27 on `develop` at `478516cf` with Rust `1.100.0-nightly` (2026-09-23)
+(#2347, raised after merge on PR #2290)
+
+The revalidation's module list omits `announce.rs`. With the A159 allowance removed in the
+working tree and restored afterwards, `cargo +nightly clippy -p torrust-tracker-udp-protocol
+--all-targets --all-features --message-format=short -- -D warnings` reported 18 unique
+`enum with no variants` diagnostics in four modules: `common.rs` 11, `announce.rs` 5,
+`connect.rs` 1, and `scrape.rs` 1.

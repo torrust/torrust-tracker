@@ -9,7 +9,7 @@ github-issue: 2301
 spec-path: docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md
 branch: "2301-review-package-coverage-rollout"
 related-pr: null
-last-updated-utc: "2026-09-22 13:05"
+last-updated-utc: "2026-09-28 10:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,6 +112,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 - 2026-09-22 13:05 UTC - GitHub Copilot - Drafted the deferred post-EPIC review after #2222 merged through PR #2293. The task intentionally relies on real #1347 package-testing pull requests rather than artificial coverage-regression PRs.
 - 2026-09-22 13:05 UTC - GitHub Copilot - Created GitHub issue #2301 and attached it as a subissue of #1347 after maintainer approval.
+- 2026-09-28 10:13 UTC - GitHub Copilot - #2347 routed `review-finding:pr-2293-f5` to this issue (T3 amendment <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>). The finding says the feature's comparison path was never verified on a hosted runner: M2 and M3 are `TODO` in #2222's closed folder. Evidence for the rollout review found in #2347 triage: run <https://github.com/torrust/torrust-tracker/actions/runs/36305549957> (PR #2351, `pull_request` event) ran `compare` on hosted runners and produced non-zero counts, for example `torrust-tracker-udp-server` base `5250/5378` and head `5524/5651`. That settles the reviewer's open risk that the `$GITHUB_WORKSPACE` source prefix might not match the report's file keys. The discovery-failure robustness gap is owned separately by #2361.
 
 ## Acceptance Criteria
 

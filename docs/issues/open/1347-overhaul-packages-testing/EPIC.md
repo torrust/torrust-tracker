@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-26 12:43"
+last-updated-utc: "2026-09-28 10:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -94,7 +94,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 6     | #2222 - Prevent per-package coverage regressions  | `docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md`            | DONE   | Merged through PR #2293 as a report-only CI coverage comparison; #2301 will review rollout evidence after this EPIC completes. |
 | 7     | #2283 - Increase UDP server package coverage      | `docs/issues/open/2283-1347-increase-udp-server-package-coverage/ISSUE.md`        | TODO   | Follow-up to #2149: refresh the complete module inventory, prioritize unit-only coverage, refactor one current test file at a time before coverage expansion, and use integration tests only with an explicit boundary rationale. |
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
-| 9     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
+| 10    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -213,6 +214,8 @@ For each subissue implementation, the completion policy is:
   unit-test and integration-test coverage separately. Unit tests are the default priority; an
   integration test requires evidence that a unit test is unsuitable or less readable at the chosen
   package boundary. Combined coverage reports must not be treated as proof of unit coverage.
+- 2026-09-28 10:00 UTC - GitHub Copilot - Maintainer approved bug subissue #2361 (order 9), a
+  follow-up of #2347 for `review-finding:pr-2293-f1`; created and linked it under this EPIC.
 
 ## Acceptance Criteria
 

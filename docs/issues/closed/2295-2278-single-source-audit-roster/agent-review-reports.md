@@ -1,6 +1,6 @@
 ---
 spec-path: docs/issues/closed/2295-2278-single-source-audit-roster/agent-review-reports.md
-last-updated-utc: "2026-09-22"
+last-updated-utc: "2026-09-28 09:17"
 semantic-links:
   related-artifacts:
     - docs/issues/closed/2295-2278-single-source-audit-roster/ISSUE.md
@@ -35,3 +35,16 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - The review report and checkpoint update are included in this implementation PR.
+
+### 2026-09-28 09:17 UTC - GitHub Copilot Post-Merge Citation Correction
+
+- Scope: Corrects the commit citation in the 2026-09-22 14:11 UTC Task Reviewer entry's Inputs
+  line, raised after merge on PR #2300 and tracked by #2347.
+- Evidence: The branch was force-pushed at 16:12:36 UTC before merge, so `1682aff5`, `b33e2807`,
+  and `27a57e1b` are not reachable in `torrust/torrust-tracker`. GitHub still serves the three
+  objects, and each subject names exactly one commit on `develop`.
+- Correction: Read the earlier entry's `1682aff5` as `docs(pr-reviews): single-source the audit
+  field roster`, `b33e2807` as `docs(pr-reviews): mark audit template section ownership`, and
+  `27a57e1b` as `docs(issues): record issue 2295 verification evidence`. The earlier entry is
+  unchanged; its review conclusions are unaffected.
+- Verdict: CORRECTION RECORDED

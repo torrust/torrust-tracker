@@ -66,3 +66,17 @@ semantic-links:
 - Correction: Restored only A159 at crate scope with a native reason. The inventory and completion evidence now record it as a permanent generated-code exception; A157-A158 and A160-A168 remain removed.
 - Validation: Current-nightly focused Clippy, focused tests (9 passed), formatting, and `linter all` passed.
 - Verdict: CORRECTION VALIDATED - READY FOR CI RERUN
+
+### 2026-09-28 07:58 UTC - GitHub Copilot Post-Merge Citation Correction
+
+- Scope: Corrects the commit citation in the 2026-09-22 06:31 UTC Task Reviewer entry's Inputs
+  line, raised after merge on PR #2290 and tracked by #2347.
+- Evidence: `git cat-file -t 7e6f5425` and `git cat-file -t d75276ff` both fail with
+  `fatal: Not a valid object name`; the branch was rebased before merge. GitHub still serves both
+  objects, with subjects `docs(quality): define Clippy exception decisions` and
+  `refactor(udp-protocol): remove Clippy baseline`, and each subject names exactly one commit on
+  `develop`.
+- Correction: Read the earlier entry's `7e6f5425` as `docs(quality): define Clippy exception
+  decisions` and `d75276ff` as `refactor(udp-protocol): remove Clippy baseline`. The earlier
+  entry is unchanged; its review conclusions are unaffected.
+- Verdict: CORRECTION RECORDED
