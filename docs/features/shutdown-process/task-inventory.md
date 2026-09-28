@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-15
+last-updated-utc: 2026-09-26
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -47,21 +47,20 @@ torrust-tracker process (Tokio runtime; main)
       ├─ Direct JoinSet components
       │  ├─ seven token-aware event-listener categories [conditional as listed below]
       │  ├─ torrent cleanup [conditional]
-      │  ├─ UDP instance [N configured public bindings]
-      │  │  └─ launcher task [component-owned NestedServerTask]
-      │  │     ├─ receive loop [launcher-owned; abort and join on halt]
+      │  ├─ peers inactivity update [conditional]
+      │  ├─ UDP instance [N configured public bindings; component child token]
+      │  │  └─ receive loop [component-owned OwnedTask; stops cooperatively on cancellation]
       │  │     └─ request processors [N datagrams; bounded AbortHandle buffer]
-      │  ├─ HTTP instance [N configured bindings]
-      │  │  └─ server task [component-owned NestedServerTask]
-      │  │     └─ drain controller [currently detached]
-      │  ├─ REST API [conditional]
-      │  │  └─ server task [component-owned NestedServerTask]
-      │  │     └─ drain controller [currently detached]
+      │  ├─ HTTP instance [N configured bindings; component child token]
+      │  │  ├─ server task [component-owned TokenAwareServerTask]
+      │  │  └─ drain controller [component-owned and joined]
+      │  ├─ REST API [conditional; component child token]
+      │  │  ├─ server task [component-owned TokenAwareServerTask]
+      │  │  └─ drain controller [component-owned and joined]
       │  └─ health-check API [always; component child token]
       │     ├─ server task [component-owned TokenAwareServerTask]
       │     └─ drain controller [component-owned and joined]
       ├─ Legacy registry (pre-spawned periodic jobs, not JoinSet members)
-      │  ├─ peers inactivity update [conditional; direct Ctrl-C]
       │  └─ UDP IP-ban cleanup [conditional; CancellationToken]
       └─ Axum/Hyper connection and request work [framework-owned]
 ```
@@ -74,12 +73,12 @@ flowchart TD
     direct --> cleanup["Torrent cleanup (conditional)"]
     direct --> inactivity["Peers inactivity update (conditional)"]
     direct --> udp["UDP instances (N)"]
-    udp --> udpLauncher["Owned launcher and receive loop"]
-    udpLauncher --> udpRequests["Request processors: AbortHandle buffer"]
+    udp --> udpLoop["Owned receive loop: cooperative stop"]
+    udpLoop --> udpRequests["Request processors: AbortHandle buffer"]
     direct --> http["HTTP instances (N)"]
-    http --> httpController["Detached drain controller"]
+    http --> httpController["Owned, joined drain controller"]
     direct --> rest["REST API (optional)"]
-    rest --> restController["Detached drain controller"]
+    rest --> restController["Owned, joined drain controller"]
     direct --> health["Health-check API"]
     health --> healthController["Owned, joined drain controller"]
     direct --> framework["Axum/Hyper framework-owned work"]
@@ -101,12 +100,12 @@ each row.
 | HTTP-core listener            | 1           | Direct `JoinSet` | Root token               | —                      |
 | UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
 | UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
-| UDP instances                 | N bindings  | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-14, SI-15     |
+| UDP instances                 | N bindings  | Direct `JoinSet` | Child token              | SI-14 complete         |
 | UDP request processors        | N datagrams | Component-owned  | Abort handles            | SI-15                  |
-| HTTP instances                | N bindings  | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-11     |
-| REST API                      | 0–1         | Direct `JoinSet` | Token → `Halted`         | SI-2, SI-10, SI-12     |
+| HTTP instances                | N bindings  | Direct `JoinSet` | Child token              | SI-11 complete         |
+| REST API                      | 0–1         | Direct `JoinSet` | Child token              | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |
-| HTTP/REST drain controllers   | Per server  | Detached         | `Halted` / global signal | SI-10–SI-12            |
+| HTTP/REST drain controllers   | Per server  | Component-owned  | Child token, 90 s drain  | SI-11, SI-12 complete  |
 | Health-check drain controller | 1           | Component-owned  | Child token, 5 s drain   | SI-13 complete         |
 | Health-check request work     | Per request | Framework-owned  | Request lifetime         | —                      |
 | Torrent cleanup               | 0–1         | Direct `JoinSet` | Root token               | SI-4 complete          |
@@ -137,16 +136,17 @@ each row.
 - **UDP-server statistics and banning listeners** — each starts when UDP
   services are enabled: the tracker is public and the UDP configuration is
   non-empty. Both are token-aware direct components.
-- **UDP instances** — one direct component per enabled UDP binding. The
-  component owns its launcher in `NestedServerTask`; cancellation sends
-  private `Halted::Normal` and joins it. On drop, the owner sends halt and
-  aborts the child to prevent detachment. The launcher owns its receive-loop
-  `JoinHandle`, which it awaits normally or aborts and awaits on halt.
-- **HTTP instances and REST API** — direct components own their server task in
-  `NestedServerTask` and forward token cancellation to private
-  `Halted::Normal`, then join the server. There is one HTTP component per
-  configured binding and zero or one REST component when `http_api` is
-  configured.
+- **UDP instances** — one direct component per enabled UDP binding, each with
+  a child of the `JobManager` root token. The component owns the receive loop
+  through `OwnedTask`, created before the component future is returned, and
+  aborts it if dropped. The loop observes the token between datagrams and
+  returns `Ok(())`, so the component reports cooperative cancellation; a
+  receive error or panic fails the component (SI-14).
+- **HTTP instances and REST API** — direct components with a child token each.
+  They own their server task and token-aware drain controller through
+  `TokenAwareServerTask` and join both after cancellation or independent
+  server completion. There is one HTTP component per configured binding and
+  zero or one REST component when `http_api` is configured (SI-11, SI-12).
 - **Health-check API** — an always-present direct component that receives a
   child of the `JobManager` root token. It owns both the server and its
   token-aware drain controller through `TokenAwareServerTask`; it joins both
@@ -157,12 +157,13 @@ each row.
 
 - **UDP request processors** — the receive loop spawns one per datagram and
   retains only a bounded `AbortHandle` buffer. Eviction and buffer drop abort
-  unfinished processors, but no processor terminal result is collected.
-- **HTTP and REST drain controllers** — each server library spawns a
-  controller and discards its handle. The controller waits for private halt or
-  the legacy global signal, then applies a 90-second drain and 95-second
-  maximum wait. These detached controllers conflict with the manager's shared
-  ten-second deadline.
+  unfinished processors, but no processor terminal result is collected. Each
+  processor holds a clone of the socket `Arc`, so the socket closes once the
+  runtime drops the aborted processors (SI-15).
+- **HTTP and REST drain controllers** — each token-aware server spawns a
+  controller that waits for its component token, then drains for up to 90
+  seconds. The component joins it before reporting its outcome; the 90-second
+  budget still exceeds the manager's shared ten-second deadline (SI-20).
 - **Health-check request work** — request-scoped aggregation awaits with
   `join_all`; protocol probes are spawned inside service checks. Axum/Hyper
   own connection and request topology, so none of this work is manager-owned.
@@ -194,16 +195,17 @@ sole legacy job is separately conditional as shown above.
 3. `peers_inactivity_update` is a direct token-aware component after SI-5. It
   observes `jobs.cancel()` and reports cooperative cancellation; torrent
   cleanup is a direct token-aware component after SI-4.
-4. Server libraries still combine private `Halted` channels with
-   `global_shutdown_signal` behavior. The additive lifecycle API belongs to
-   SI-2; supported-consumer deprecation/removal follows in SI-18 and SI-19.
-5. HTTP and REST drain controllers remain detached, while the health-check
-   component now owns its controller. HTTP/REST drain completion and timeout
-   alignment remain SI-10 through SI-12.
+4. The production tracker no longer uses private `Halted` channels or
+   library-level OS signals for any server component. The legacy `Halted` APIs
+   remain for standalone consumers (SI-16, SI-17) until deprecation and
+   removal in SI-18 and SI-19. The legacy UDP launcher is now an adapter over
+   the token-aware receive loop, so it can no longer panic or detach it.
+5. HTTP, REST, and health-check drain controllers are component-owned and
+   joined. Aligning their drain budgets with the manager deadline is SI-20.
 6. Health-check lifecycle uses the token-aware path after SI-13 but does not
    yet mark readiness unhealthy before draining: SI-21.
-7. UDP still aborts its receive loop and retains only request abort handles;
-   SI-14 and SI-15 own those lifecycle and outcome policies.
+7. UDP stops its receive loop cooperatively after SI-14 but still aborts
+   request processors without joining them or reporting their outcomes: SI-15.
 8. Standalone HTTP and UDP examples retain Ctrl-C-based shutdown: SI-16 and
    SI-17. Final process outcome-to-exit-code and configured-deadline policy is
    SI-20.
