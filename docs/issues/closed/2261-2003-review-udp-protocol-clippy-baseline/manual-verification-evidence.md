@@ -69,3 +69,14 @@ packages/udp-protocol/src/lib.rs
 
 The final outcome is the revalidation's: A157-A158 and A160-A168 are removed, A159 is retained
 with a native reason, and A156 remains owned by #2245.
+
+## M1 Revalidation Post-Merge Module Correction
+
+**Executed:** 2026-09-27 on `develop` at `478516cf` with Rust `1.100.0-nightly` (2026-09-23)
+(#2347, raised after merge on PR #2290)
+
+The revalidation's module list omits `announce.rs`. With the A159 allowance removed in the
+working tree and restored afterwards, `cargo +nightly clippy -p torrust-tracker-udp-protocol
+--all-targets --all-features --message-format=short -- -D warnings` reported 18 unique
+`enum with no variants` diagnostics in four modules: `common.rs` 11, `announce.rs` 5,
+`connect.rs` 1, and `scrape.rs` 1.
