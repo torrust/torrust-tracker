@@ -296,7 +296,7 @@ Round 6 (review 5341713976) approved the head `docs(pr-reviews): [#2347] record 
 - Solution: the maintainer replied on the thread at 16:53:48Z that rounds 4 and 5 were recorded at the head, left round 6 and this row to the #2347 T7 close-out so that no further commit would dismiss an approval before merge, and resolved it. `docs(pr-reviews): [#2347] close out the post-merge triage of five merged PRs` records rounds 6-7 after merge: this row, the Round 6 paragraph in Findings, and the Processing Log entries for 16:43, 16:53, 17:00 and the close-out.
 - Current-tree verification: this record holds rows F1-F15, each with a detail entry; the Findings section has the Round 6 paragraph; and the Processing Log entries are in chronological order through the close-out. The 17:19Z GraphQL capture shows the F15 thread resolved, with the maintainer's reply of 16:53:48Z.
 - Resolution reference: `docs(pr-reviews): [#2347] close out the post-merge triage of five merged PRs`
-- Follow-up PR URL: <T7_CLOSEOUT_PR_URL>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2367>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124835256>
 
 ## Processing Log
