@@ -33,6 +33,13 @@ is actually executed.
 The commands and package name above are historical evidence captured before the rename. Reproduce
 them by checking out the recorded commits; use `package-coverage-check` for current commands.
 
+Post-merge correction (2026-09-28, #2347, raised after merge on PR #2293): the recorded commits
+`88822c5c` and `aa026584` are pre-rebase ids that are not reachable in `torrust/torrust-tracker`.
+Check out their merged equivalents instead: `feat(ci): add package coverage discovery tool` for
+the base and `feat(ci): add package coverage regression report` for the head. At both, the
+`package-coverage-regression` package is byte-identical to the recorded commits; only
+`Cargo.lock` differs, from the rebase onto a later `develop`.
+
 Hosted GitHub Actions runtime, artifact transfer, matrix rendering, and fork execution are not
 represented by this local evidence. Their scenarios remain pending below.
 
