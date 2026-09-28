@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2357
-last-updated-utc: "2026-09-28 09:21"
+last-updated-utc: "2026-09-28 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -590,6 +590,18 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   their completed subissues; hardened Git subprocess isolation and staged root-path reading; and
   added missing diagnostic-path coverage. The current whole-tree baseline and historical-evidence
   correction are recorded in the issue-local evidence files - PR #2357
+- 2026-09-28 10:02 UTC - GitHub Copilot - Second PR #2357 review round:
+  - **F8, a regression from the previous round:** removing `GIT_INDEX_FILE` made `--staged` read
+    `.git/index` instead of the index git hands the pre-commit hook. `commit --all` then accepted
+    an invalid working copy, and `commit --only` was refused over uncommitted staged files. The
+    variable is honoured again, and only repository-location variables are removed. Two CLI tests
+    install the built binary as the pre-commit hook, and both failed before the fix.
+  - **F9:** the stage-prefix test now asserts a `wrong-scalar-type` diagnostic. It fails with the
+    old `:<path>` form, which yields a `runtime_error` for the same path.
+  - **F10, a correction of the entry above:** the `in-review` statuses for #2323 and #2342 did not
+    survive the rebase. #2358 archived both specs as `done`, and the rebase kept those values.
+
+  184 tests pass - PR #2357
 
 ## Acceptance Criteria
 

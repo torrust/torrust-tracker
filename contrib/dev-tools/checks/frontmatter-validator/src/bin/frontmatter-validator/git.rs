@@ -47,11 +47,12 @@ impl Git {
     }
 }
 
-/// Variables that can redirect a Git subprocess to a different repository or index.
+/// Variables that can redirect a Git subprocess to a different repository.
+///
+/// `GIT_INDEX_FILE` is kept: a pre-commit hook receives it for the index `commit --all`/`--only` prepared.
 const GIT_REPOSITORY_REDIRECT_ENVIRONMENT: &[&str] = &[
     "GIT_DIR",
     "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
     "GIT_OBJECT_DIRECTORY",
     "GIT_ALTERNATE_OBJECT_DIRECTORIES",
     "GIT_COMMON_DIR",

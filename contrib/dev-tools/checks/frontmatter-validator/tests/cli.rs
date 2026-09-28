@@ -4,6 +4,8 @@
 //! ceiling directory, so a test run from a git hook can never read or change the real repository.
 
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::{Command, Output};
 
@@ -133,6 +135,28 @@ impl Repository {
 
     fn delete(&self, path: &str) {
         fs::remove_file(self.root().join(path)).unwrap();
+    }
+
+    /// Runs `git commit` with a pre-commit hook that runs the built validator in `--staged` mode.
+    #[cfg(unix)]
+    fn commit_through_the_validator_hook(&self, arguments: &[&str]) -> Output {
+        let hooks = self.root().join(".git/hooks");
+        let hook = hooks.join("pre-commit");
+        fs::create_dir_all(&hooks).unwrap();
+        fs::write(
+            &hook,
+            format!("#!/bin/sh\nexec '{}' --staged\n", env!("CARGO_BIN_EXE_frontmatter-validator")),
+        )
+        .unwrap();
+        fs::set_permissions(&hook, fs::Permissions::from_mode(0o755)).unwrap();
+
+        isolated(Command::new("git"), self.root())
+            .args(["-c", "user.name=Test", "-c", "user.email=test@example.com", "-c"])
+            .arg(format!("core.hooksPath={}", hooks.display()))
+            .args(["commit", "--quiet", "--no-gpg-sign", "--message", "change"])
+            .args(arguments)
+            .output()
+            .unwrap()
     }
 
     fn validate(&self, arguments: &[&str]) -> Outcome {
@@ -505,8 +529,60 @@ fn it_should_read_a_root_level_staged_path_that_starts_with_an_index_stage_prefi
     // Act
     let outcome = repository.validate(&["--staged"]);
 
-    // Assert: staged mode reads the file rather than reporting a git runtime failure.
-    assert_eq!(outcome.paths(), ["1:odd.md"]);
+    // Assert: the staged content was read and validated; a failed read is a `runtime_error` for the
+    // same path.
+    let record = outcome.only_record();
+    assert_eq!(
+        (&record["kind"], &record["path"], &record["category"]),
+        (
+            &Value::from("diagnostic"),
+            &Value::from("1:odd.md"),
+            &Value::from("wrong-scalar-type")
+        )
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_validate_the_index_git_prepares_for_commit_all_in_the_pre_commit_hook() {
+    // Arrange: a committed valid document whose working copy is now invalid and unstaged.
+    let repository = Repository::new();
+    repository.write("document.md", VALID_ISSUE);
+    repository.stage("document.md");
+    repository.commit();
+    repository.write("document.md", WRONG_SCALAR_ISSUE);
+
+    // Act: `commit --all` hands the hook a temporary index holding the working copy.
+    let output = repository.commit_through_the_validator_hook(&["--all"]);
+
+    // Assert: the hook validates the content being committed and refuses it.
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "commit succeeded: {stderr}");
+    assert!(stderr.contains(r#""category":"wrong-scalar-type""#), "stderr: {stderr}");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_validate_only_the_paths_selected_by_commit_only_in_the_pre_commit_hook() {
+    // Arrange: a valid and an invalid document are both staged.
+    let repository = Repository::new();
+    repository.write("base.md", VALID_ISSUE);
+    repository.stage("base.md");
+    repository.commit();
+    repository.write("selected.md", VALID_ISSUE);
+    repository.write("other.md", WRONG_SCALAR_ISSUE);
+    repository.stage("selected.md");
+    repository.stage("other.md");
+
+    // Act: `commit --only` hands the hook a temporary index holding only the selected document.
+    let output = repository.commit_through_the_validator_hook(&["--only", "selected.md"]);
+
+    // Assert: the staged but uncommitted invalid document does not block the commit.
+    assert!(
+        output.status.success(),
+        "commit refused: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 #[rstest]
