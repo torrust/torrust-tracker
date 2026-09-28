@@ -3,7 +3,7 @@ doc-type: refactor-plan
 status: in-progress
 related-issue: 2222
 spec-path: docs/issues/closed/2222-1347-package-coverage-regression-ci/workflow-portability-refactor-plan.md
-last-updated-utc: 2026-09-22 16:40
+last-updated-utc: 2026-09-28 09:23
 semantic-links:
   related-artifacts:
     - .github/workflows/generate_coverage_pr.yaml
