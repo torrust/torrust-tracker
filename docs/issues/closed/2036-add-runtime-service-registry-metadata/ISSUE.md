@@ -21,8 +21,7 @@ semantic-links:
     - packages/primitives/src/configuration_instance_id.rs
     - packages/primitives/src/service_role.rs
     - packages/udp-server/src/server/launcher.rs
-  related-issues:
-    - 1419
+    - "issue #1419"
 ---
 
 # Issue #2036 - Define Canonical Runtime Service Identity

@@ -32,11 +32,10 @@ semantic-links:
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md
-  related-issues:
-    - "https://github.com/torrust/torrust-tracker/issues/1488"
-    - "https://github.com/torrust/torrust-tracker/issues/1588"
-    - "https://github.com/torrust/torrust-tracker/issues/1477"
-    - "https://github.com/torrust/torrust-tracker/issues/1405"
+    - "issue #1488"
+    - "issue #1588"
+    - "issue #1477"
+    - "issue #1405"
 ---
 
 # Shutdown Process Analysis

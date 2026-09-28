@@ -7,7 +7,7 @@ use serde_yaml::{Mapping, Value};
 
 use crate::syntax::{
     RELATED_ARTIFACT_PATTERN, REPOSITORY_RELATIVE_PATH_PATTERN, SKILL_NAME_PATTERN, UTC_MINUTE_PATTERN, has_utc_minute_layout,
-    is_related_artifact, is_repository_relative_path, is_skill_name, is_valid_utc_minute_calendar,
+    is_related_artifact, is_repository_relative_path, is_skill_name, is_truncated_issue_reference, is_valid_utc_minute_calendar,
 };
 use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Frontmatter};
 
@@ -131,8 +131,9 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
         .and_then(StrictProfileKind::from_doc_type);
     let Some(schema_version) = schema_version.as_i64() else {
         if profile_kind.is_some() {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::WrongScalarType,
+                "schema-version",
                 "`schema-version` must be a YAML integer.",
             ));
         }
@@ -144,14 +145,16 @@ fn strict_document_type(values: &Mapping) -> Result<Option<StrictProfileKind>, D
     }
 
     let Some(doc_type) = values.get("doc-type") else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::MissingRequiredField,
+            "doc-type",
             "Strict frontmatter requires `doc-type`.",
         ));
     };
     let Some(doc_type) = doc_type.as_str() else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::WrongScalarType,
+            "doc-type",
             "`doc-type` must be a YAML string.",
         ));
     };
@@ -243,8 +246,9 @@ fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<()
             ));
         };
         if !allowed_fields.contains(&field) && !field.starts_with("x-") {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::UnknownField,
+                field,
                 format!("`{field}` is not allowed by this strict frontmatter profile."),
             ));
         }
@@ -256,8 +260,9 @@ fn validate_known_fields(values: &Mapping, allowed_fields: &[&str]) -> Result<()
 fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Result<(), Diagnostic> {
     for field in required_fields {
         if !values.contains_key(*field) {
-            return Err(Diagnostic::new(
+            return Err(Diagnostic::for_field(
                 DiagnosticCategory::MissingRequiredField,
+                *field,
                 format!("Strict frontmatter requires `{field}`."),
             ));
         }
@@ -269,14 +274,16 @@ fn validate_required_fields(values: &Mapping, required_fields: &[&str]) -> Resul
 fn validate_allowed_string(values: &Mapping, field: &str, allowed_values: &[&str]) -> Result<(), Diagnostic> {
     let value = values.get(field).expect("required fields were checked first");
     let Some(value) = value.as_str() else {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::WrongScalarType,
+            field,
             format!("`{field}` must be a YAML string."),
         ));
     };
     if !allowed_values.contains(&value) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidAllowedValue,
+            field,
             format!("`{field}` has an unsupported value `{value}`."),
         ));
     }
@@ -481,12 +488,32 @@ impl TryFrom<String> for SkillName {
     }
 }
 
+impl SkillName {
+    /// The validated skill name.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl RelatedArtifact {
+    /// The repository path this artifact names, or `None` for issue and review-finding references.
+    #[must_use]
+    pub fn repository_path(&self) -> Option<&str> {
+        is_repository_relative_path(&self.0).then_some(self.0.as_str())
+    }
+}
+
 impl TryFrom<String> for RelatedArtifact {
     type Error = String;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if is_related_artifact(&value) {
             Ok(Self(value))
+        } else if is_truncated_issue_reference(&value) {
+            Err(String::from(
+                "`issue` is not a v1 reference; quote issue references as \"issue #<n>\" because YAML reads an unquoted ` #` as a comment.",
+            ))
         } else {
             Err(format!("`{value}` is not an approved v1 related-artifact reference."))
         }
@@ -511,10 +538,9 @@ where
         return Ok(());
     };
     serde_yaml::from_value::<Vec<T>>(value.clone()).map(drop).map_err(|error| {
-        Diagnostic::new(
-            DiagnosticCategory::InvalidReferenceSyntax,
-            format!("`semantic-links.{field}` contains an invalid v1 reference: {error}"),
-        )
+        let field_path = format!("semantic-links.{field}");
+        let message = format!("`{field_path}` contains an invalid v1 reference: {error}");
+        Diagnostic::for_field(DiagnosticCategory::InvalidReferenceSyntax, field_path, message)
     })
 }
 
@@ -524,14 +550,18 @@ where
 {
     let mut values = values.clone();
     values.retain(|key, _| !key.as_str().is_some_and(|field| field.starts_with("x-")));
-    serde_yaml::from_value(Value::Mapping(values))
-        .map_err(|error| Diagnostic::new(DiagnosticCategory::WrongScalarType, error.to_string()))
+    serde_path_to_error::deserialize(Value::Mapping(values)).map_err(|error| {
+        let field_path = error.path().to_string();
+        let message = format!("`{field_path}`: {}", error.inner());
+        Diagnostic::for_field(DiagnosticCategory::WrongScalarType, field_path, message)
+    })
 }
 
 fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result<(), Diagnostic> {
     if value == Some(0) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must be a positive integer or null."),
         ));
     }
@@ -541,8 +571,9 @@ fn validate_optional_positive_integer(field: &str, value: Option<u64>) -> Result
 
 fn validate_non_empty_string(field: &str, value: &str) -> Result<(), Diagnostic> {
     if value.is_empty() {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must not be empty."),
         ));
     }
@@ -552,8 +583,9 @@ fn validate_non_empty_string(field: &str, value: &str) -> Result<(), Diagnostic>
 
 fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Diagnostic> {
     if !is_repository_relative_path(value) {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            field,
             format!("`{field}` must be a repository-relative path."),
         ));
     }
@@ -563,8 +595,9 @@ fn validate_repository_relative_path(field: &str, value: &str) -> Result<(), Dia
 
 fn validate_utc_minute_string(value: &str, double_quoted: bool) -> Result<(), Diagnostic> {
     if !has_utc_minute_layout(value) || !is_valid_utc_minute_calendar(value) || !double_quoted {
-        return Err(Diagnostic::new(
+        return Err(Diagnostic::for_field(
             DiagnosticCategory::InvalidFieldValue,
+            "last-updated-utc",
             "`last-updated-utc` must be a double-quoted YAML string in YYYY-MM-DD HH:MM UTC-minute format.",
         ));
     }
@@ -724,8 +757,11 @@ mod tests {
         // Act: structurally validate the parsed strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic distinguishes the exact scalar-type violation.
-        assert_eq!(error.category, DiagnosticCategory::WrongScalarType);
+        // Assert: the diagnostic distinguishes the exact scalar-type violation and names its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::WrongScalarType, Some("github-issue"))
+        );
     }
 
     #[test]
@@ -738,7 +774,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the unsupported field.
-        assert_eq!(error.category, DiagnosticCategory::UnknownField);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::UnknownField, Some("owner"))
+        );
     }
 
     #[test]
@@ -750,8 +789,48 @@ mod tests {
         // Act: structurally validate the parsed strict issue frontmatter.
         let error = validate(&frontmatter).unwrap_err();
 
-        // Assert: the diagnostic identifies the disallowed lifecycle value.
-        assert_eq!(error.category, DiagnosticCategory::InvalidAllowedValue);
+        // Assert: the diagnostic identifies the disallowed lifecycle value and its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidAllowedValue, Some("status"))
+        );
+    }
+
+    #[test]
+    fn it_should_name_every_reportable_missing_required_issue_and_epic_field() {
+        // Arrange: otherwise-valid strict profiles omit one required top-level field at a time.
+        // A missing schema version intentionally selects the permissive legacy profile.
+        let profiles = [
+            (
+                ISSUE_FIELDS,
+                "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# Issue\n",
+            ),
+            (
+                EPIC_FIELDS,
+                "---\nschema-version: 1\ndoc-type: epic\nstatus: planned\nepic: null\ngithub-issue: 2264\nspec-path: docs/issues/open/example/EPIC.md\nepic-owner: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links: {}\n---\n# EPIC\n",
+            ),
+        ];
+
+        for (fields, profile) in profiles {
+            for field in fields.iter().copied().filter(|field| *field != "schema-version") {
+                let field_prefix = format!("{field}:");
+                let markdown = profile
+                    .lines()
+                    .filter(|line| !line.starts_with(&field_prefix))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                let frontmatter = extract(&markdown).unwrap().unwrap();
+
+                // Act: validate the profile with the selected field absent.
+                let error = validate(&frontmatter).unwrap_err();
+
+                // Assert: the required-field diagnostic identifies the missing contract field.
+                assert_eq!(
+                    (error.category, error.field_path.as_deref()),
+                    (DiagnosticCategory::MissingRequiredField, Some(field))
+                );
+            }
+        }
     }
 
     #[test]
@@ -792,7 +871,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the positive-integer invariant.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("github-issue"))
+        );
     }
 
     #[test]
@@ -805,7 +887,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the required UTC-minute string format.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -818,7 +903,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the strict contract requires a double-quoted timestamp string.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -857,7 +945,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic rejects out-of-range date and time components.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("last-updated-utc"))
+        );
     }
 
     #[test]
@@ -870,7 +961,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic requires a repository-relative specification path.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("spec-path"))
+        );
     }
 
     #[test]
@@ -883,7 +977,10 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: repository paths use forward-slash separators.
-        assert_eq!(error.category, DiagnosticCategory::InvalidFieldValue);
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidFieldValue, Some("spec-path"))
+        );
     }
 
     #[test]
@@ -928,7 +1025,7 @@ mod tests {
     #[test]
     fn it_should_accept_all_provisional_related_artifact_forms() {
         // Arrange: a strict issue uses a repository path, issue reference, and review finding.
-        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - write-markdown-docs\n  related-artifacts:\n    - Cargo.toml\n    - issue #2264\n    - review-finding:pr-2230-f1\n---\n# Issue\n";
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-21 18:30\"\nsemantic-links:\n  skill-links:\n    - write-markdown-docs\n  related-artifacts:\n    - Cargo.toml\n    - \"issue #2264\"\n    - review-finding:pr-2230-f1\n---\n# Issue\n";
         let frontmatter = extract(markdown).unwrap().unwrap();
 
         // Act: structurally validate the strict issue frontmatter.
@@ -936,6 +1033,25 @@ mod tests {
 
         // Assert: every approved provisional reference form remains accepted.
         assert!(matches!(profile, Profile::Issue(_)));
+    }
+
+    #[test]
+    fn it_should_reject_an_unquoted_issue_reference_that_yaml_truncates_to_issue() {
+        // Arrange: a strict issue writes an issue reference without quotes, so YAML reads ` #2264` as a comment.
+        let markdown = "---\nschema-version: 1\ndoc-type: issue\nissue-type: task\nstatus: planned\npriority: p1\nepic: null\ngithub-issue: 2266\nspec-path: docs/issues/open/example/ISSUE.md\nbranch: example\nrelated-pr: null\nlast-updated-utc: \"2026-09-25 08:30\"\nsemantic-links:\n  related-artifacts:\n    - issue #2264\n---\n# Issue\n";
+        let frontmatter = extract(markdown).unwrap().unwrap();
+
+        // Act: structurally validate the strict issue frontmatter.
+        let error = validate(&frontmatter).unwrap_err();
+
+        // Assert: the truncated `issue` value is rejected as a reference-syntax error on its field.
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (
+                DiagnosticCategory::InvalidReferenceSyntax,
+                Some("semantic-links.related-artifacts")
+            )
+        );
     }
 
     #[test]
@@ -948,11 +1064,12 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic reserves typed forms for the approved v1 union and names the field.
-        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
-        assert!(
-            error.message.starts_with("`semantic-links.related-artifacts` "),
-            "{}",
-            error.message
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (
+                DiagnosticCategory::InvalidReferenceSyntax,
+                Some("semantic-links.related-artifacts")
+            )
         );
     }
 
@@ -979,11 +1096,9 @@ mod tests {
         let error = validate(&frontmatter).unwrap_err();
 
         // Assert: the diagnostic identifies the frozen skill-name syntax violation and names the field.
-        assert_eq!(error.category, DiagnosticCategory::InvalidReferenceSyntax);
-        assert!(
-            error.message.starts_with("`semantic-links.skill-links` "),
-            "{}",
-            error.message
+        assert_eq!(
+            (error.category, error.field_path.as_deref()),
+            (DiagnosticCategory::InvalidReferenceSyntax, Some("semantic-links.skill-links"))
         );
     }
 

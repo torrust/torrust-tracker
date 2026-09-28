@@ -1,7 +1,8 @@
 ---
+schema-version: 1
 doc-type: epic
-issue-type: task
 status: planned
+epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
@@ -10,14 +11,14 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/
-    - .github/agents/
-    - .github/workflows/
+    - .github/skills
+    - .github/agents
+    - .github/workflows
     - .github/workflows/testing.yaml
-    - .githooks/
-    - contrib/dev-tools/git/hooks/
+    - .githooks
+    - contrib/dev-tools/git/hooks
     - contrib/dev-tools/git/install-git-hooks.sh
-    - contrib/dev-tools/analysis/workspace-coupling/
+    - contrib/dev-tools/analysis/workspace-coupling
     - deny.toml
     - project-words.txt
     - AGENTS.md
@@ -28,7 +29,7 @@ semantic-links:
     - docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md
-    - issue #2264
+    - "issue #2264"
 ---
 
 <!-- skill-link: create-issue -->

@@ -11,7 +11,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - issue #2003
+    - "issue #2003"
     - docs/templates/EPIC.md
 ---
 

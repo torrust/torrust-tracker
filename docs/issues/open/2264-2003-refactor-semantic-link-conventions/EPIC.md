@@ -1,21 +1,22 @@
 ---
+schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-09-24 16:45"
+last-updated-utc: "2026-09-26 12:43"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/skills/semantic-skill-link-convention.md
-    - issue #2003
-    - issue #2233
+    - "issue #2003"
+    - "issue #2233"
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-analysis.md
     - docs/issues/closed/2233-2003-tune-unified-pr-review-process/code-span-path-case-inventory.tsv
-    - issue #2185
+    - "issue #2185"
     - docs/issues/closed/2185-2003-triage-advisory-external-link-check-findings/external-link-baseline.md
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md
     - docs/external-snapshots/open-knowledge-format/0.2/SPEC.md
@@ -339,7 +340,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 1 | Frontmatter | [#2265 - Inventory and resolve Markdown frontmatter contracts](../../closed/2265-2264-inventory-markdown-frontmatter-contracts/ISSUE.md) | Map current prose, templates, skills, fields, scalar forms, document classes, and provisional reference values; classify each variation and approve the v1 contract. | DONE |
 | 2 | Frontmatter | [#2266 - Implement the Rust frontmatter model and initial validator](../../closed/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md) | Implement the canonical universal envelope and strict issue/EPIC profiles, provisional reference union, fixtures, stable diagnostics, and replaceable progressive validator. | DONE |
 | 2.1 | Frontmatter | [#2280 - Generate v1 schema and verify drift](../../closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md) | Generate a Draft 2020-12 projection from the canonical v1 Rust model and verify deterministic offline artifact drift. | DONE |
-| 2.2 | Frontmatter | [#2281 - Add frontmatter validator command and pre-commit rollout](../2281-2264-frontmatter-validator-command/ISSUE.md) | Read-only command for explicit paths, `--staged`, and whole-tree validation with NDJSON diagnostics, location-dependent severity, repository-aware checks for strict v1 specs, and a pre-commit step. | TODO |
+| 2.2 | Frontmatter | [#2281 - Add frontmatter validator command and pre-commit rollout](../2281-2264-frontmatter-validator-command/ISSUE.md) | Read-only command for explicit paths, `--staged`, and whole-tree validation with NDJSON diagnostics, location-dependent severity, repository-aware checks for strict v1 specs, and a pre-commit step. | IN_PROGRESS |
 | 3 | Frontmatter | Extend strict profiles and author guidance | Add approved profiles for ADRs, skills, agents, evidence records, and other known classes; keep prose and editor/agent discovery derived from the canonical Rust model. Protect `docs/templates/` against drift from the v1 contract, which #2281 excludes from validation. | TODO |
 | 4 | Conventions | Split convention ownership and migration policy | Move mixed normative content to clearly owned convention documents without a repository-wide document migration. | TODO |
 | 5 | Semantic links | Normalize the semantic-link model | Canonical relation and target types, graph semantics, accepted/rejected fixtures, and compatibility rules represented by the shared Rust model. | TODO |

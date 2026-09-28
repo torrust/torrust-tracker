@@ -2,7 +2,7 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p2
 epic: 1347
 github-issue: 2283
@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/implementation-retrospective.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/mutation-evidence.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/manual-verification-evidence.md
-    - packages/udp-server/
+    - packages/udp-server
 ---
 
 <!-- skill-link: create-issue -->

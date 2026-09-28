@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: 2351
-last-updated-utc: 2026-09-28
+last-updated-utc: "2026-09-28 09:26"
 semantic-links:
   skill-links:
     - create-issue

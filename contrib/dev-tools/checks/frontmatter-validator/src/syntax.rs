@@ -9,10 +9,17 @@ pub fn is_skill_name(value: &str) -> bool {
     is_lowercase_identifier(value)
 }
 
-pub const RELATED_ARTIFACT_PATTERN: &str = r"^(?:(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$";
+pub const RELATED_ARTIFACT_PATTERN: &str = r"^(?:(?!issue$)(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*|issue #[1-9][0-9]*|review-finding:pr-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*)$";
 
 pub fn is_related_artifact(value: &str) -> bool {
-    is_repository_relative_path(value) || is_issue_reference(value) || is_review_finding(value)
+    (is_repository_relative_path(value) && !is_truncated_issue_reference(value))
+        || is_issue_reference(value)
+        || is_review_finding(value)
+}
+
+/// YAML reads an unquoted `issue #<n>` as `issue` followed by a comment.
+pub fn is_truncated_issue_reference(value: &str) -> bool {
+    value == "issue"
 }
 
 pub const REPOSITORY_RELATIVE_PATH_PATTERN: &str = r"^(?!.*(?:^|/)\.{1,2}(?:/|$))[^\s/:#]+(?:/[^\s/:#]+)*$";

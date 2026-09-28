@@ -167,9 +167,15 @@ Mandatory quality gate before every commit:
 
 Pre-commit defaults to concise text output and runs the fast local profile:
 
-1. `cargo machete`
-2. `linter all`
-3. `cargo test --doc --workspace`
+1. Format `project-words.txt`
+2. Check documented Clippy allows
+3. Check staged Markdown frontmatter
+4. Run `cargo machete --with-metadata`
+5. Run `cargo deny check bans`
+6. Check nightly Rust formatting
+7. Run `linter all`
+8. Lint the `Containerfile` with hadolint
+9. Run `cargo test --doc --workspace`
 
 Use `--format=text --verbosity=verbose` for full streaming output, or `--format=json` for a
 single structured JSON payload.

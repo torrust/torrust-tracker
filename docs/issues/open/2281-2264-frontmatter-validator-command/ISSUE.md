@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: planned
+status: in-progress
 priority: p1
 epic: 2264
 github-issue: 2281
 spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-branch: "2281-frontmatter-validator-command-spec"
-related-pr: 2337
-last-updated-utc: "2026-09-24 20:15"
+branch: "2281-frontmatter-validator-command"
+related-pr: 2357
+last-updated-utc: "2026-09-28 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -291,11 +291,24 @@ Record the result in the progress log.
 
 ## Bug-Fix Process
 
-Not applicable. This is new command-surface work.
+The issue is a feature, but T1b fixes a bug in the merged #2266 library found by
+`review-finding:pr-2337-f1`: an unquoted `issue #<n>` related artifact parses as `issue` and is
+accepted as a path. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+
+1. the hypothesis;
+2. the reproduction with an independent YAML parse of the accepted fixtures;
+3. a red unit regression test;
+4. the fix;
+5. the green run and a like-for-like recheck.
+
+These are recorded in `manual-verification-evidence.md` section B1.
 
 ## Regression Test Strategy
 
-Not applicable. This is not substantively a bug.
+The unit test `it_should_reject_an_unquoted_issue_reference_that_yaml_truncates_to_issue` sits at
+the causal seam, the `RelatedArtifact` value type exercised through strict-profile validation. The
+accepted-fixture tests are a second guard: they fail if a fixture reverts to the unquoted form.
+No higher boundary is needed.
 
 ## Implementation Plan
 
@@ -303,14 +316,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
-| T2 | TODO | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
-| T3 | TODO | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
-| T4 | TODO | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
-| T5 | TODO | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
-| T6 | TODO | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
-| T7 | TODO | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
-| T8 | TODO | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
+| T1 | DONE | Extend the diagnostic vocabulary and fix unquoted issue references | Add `Severity` and optional `field_path` to `Diagnostic`, stable kebab-case category names, and the new command/repository categories. Existing library tests keep their outcomes; field paths are populated where the library already knows the field. Also fix the latent #2266 defect found by `review-finding:pr-2337-f1`. YAML treats `#` after whitespace as a comment, so an unquoted `issue #2264` entry parses as the path `issue`. The accepted fixtures and the strict-reference unit test in `profile.rs` therefore never exercise the issue-reference form. Quote those references, and add an `invalid-reference-syntax` diagnostic, with a regression test, for a `related-artifacts` entry that the source shows as unquoted `issue #<n>`. |
+| T2 | DONE | Add the command and explicit-path mode | New `frontmatter-validator` binary with `clap` (D3), explicit file paths, NDJSON rendering (D9), and exit codes. Stop for the vertical-slice checkpoint. |
+| T3 | DONE | Add discovery, `--staged`, and `--all` | Directory expansion, tracked-file discovery, index-content sourcing, ownership dispatch (D5), and exclusions (D6). |
+| T4 | DONE | Apply location-dependent severity and warnings | D8 severity policy, the `legacy-shape` error (D10), and the closed-spec advisory and `experimental-field` warnings. |
+| T5 | DONE | Add repository-aware checks | D7 status/location, `spec-path`, artifact existence, and skill resolution through index and working-tree resolvers. |
+| T6 | DONE | Run a whole-tree baseline, migrate open EPICs, and triage findings | Run `--all` on `develop`. Migrate the seven D11 EPIC records. Fix genuine errors in existing v1 draft/open specs. Record the `legacy-shape` error count and the warning counts. Do not bulk-migrate legacy issue specs (D10). |
+| T7 | DONE | Integrate with pre-commit and document | Add the named `--staged` step to `pre-commit.sh`. Update the `run-pre-commit-checks` skill and `docs/git-hooks.md`, and register the binary in the CLI output ADR table. Add usage, relocation notes, and the D10 migration checklist to the crate. |
+| T8 | DONE | Prove failures and portability | Command-boundary accepted/rejected fixtures and mutation cases, manual scenarios M1-M7, acceptance review, and independent Task Reviewer report. |
 
 ## Commit Points
 
@@ -338,14 +351,14 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] GitHub issue #2281 created as the command/integration follow-up from #2266
 - [x] Local folder-style specification created
 - [x] Specification reviewed and approved by user/maintainer
-- [ ] Spec-only PR #2337 merged into `develop` before implementation
-- [ ] Vertical-slice design review recorded after T2
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Spec-only PR #2337 merged into `develop` before implementation
+- [x] Vertical-slice design review recorded after T2
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-commit gate)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -375,37 +388,251 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
   defines the full NDJSON record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`)
   with field order, nullability, ordering, and examples. D3 drops `--version`, so it is a usage
   error - `docs/pr-reviews/pr-2337-review/PR-REVIEW.md`
+- 2026-09-25 07:49 UTC - GitHub Copilot - Spec-only PR #2337 merged into `develop`. Started
+  implementation on `2281-frontmatter-validator-command`; `related-pr` stays 2337 until the
+  implementation PR opens - https://github.com/torrust/torrust-tracker/pull/2337
+- 2026-09-25 08:10 UTC - GitHub Copilot - Completed T1a:
+  - `Diagnostic` now carries `severity` (always `error` from the library) and `field_path`.
+  - `DiagnosticCategory` and `Severity` serialize to stable kebab-case and lowercase names.
+  - Every single-field library failure names its field. Serde scalar-type failures get their
+    path from `serde_path_to_error` 0.1.20, the latest release, already in the lockfile through
+    axum. `serde_yaml::from_value` drops paths, and without it the most common failure,
+    `wrong-scalar-type`, would have no `field_path`.
+
+  Deviation: the new command and repository categories are added with their behavior in T4/T5
+  rather than as unused variants now. A mutation proved the field-path assertion. 47 library
+  tests, Clippy, the nightly Rust formatting check, `cargo machete`, and the schema drift check
+  pass - `test-design-review.md`
+- 2026-09-25 08:40 UTC - GitHub Copilot - Completed T1b under the fix-bug workflow:
+  - reproduced that both accepted fixtures parse their issue reference as `issue`;
+  - a new regression test failed against the unfixed library;
+  - the related-artifact predicate and its generated schema pattern now reject the bare `issue`
+    value with a quoting hint;
+  - the fixtures and the accept-all-forms test now quote their references.
+
+  The regenerated schema differs by that one pattern line. 48 library tests pass - B1 in
+  `manual-verification-evidence.md`, `test-design-review.md`
+- 2026-09-26 09:30 UTC - GitHub Copilot - Completed T2 (vertical slice): a new
+  `frontmatter-validator` binary with `clap` 4.6.7, the latest release and already in the
+  lockfile, with color and suggestion features disabled. It has explicit file paths, D5 ownership
+  dispatch, the four D9 record kinds, and the D8 exit codes. 14 binary test cases pass, and four
+  mutations were each caught. Two notes:
+  - The Containerfile's maintenance note asks for cargo-chef stubs for
+    `src/bin/frontmatter-schema.rs` (missed in #2280) and the new binary. Nothing breaks without
+    them, because cargo only discovers bin files that exist; T7 adds both with a recipe-stage
+    build check.
+  - `rstest` 0.27.0 was added as a dev-dependency in a separate test refactor commit.
+
+  Evidence: `test-design-review.md`.
+- 2026-09-26 09:30 UTC - GitHub Copilot - Vertical-slice design review, awaiting maintainer
+  review. The boundaries held: the library only validates text, and the binary owns arguments,
+  file reading, ownership dispatch, rendering, and exit status. Findings for T3-T5:
+  - **R1 - Policy placement.** D7/D8 severity and repository checks are pure decisions over a
+    repository-relative path, the parsed frontmatter, and a resolver. Proposal: a library
+    `repository` module with a `Resolver` trait. It holds no I/O, so the rules are unit-tested
+    without git. The binary supplies the index and working-tree resolvers.
+  - **R2 - Multiple findings per document.** Warnings and repository findings coexist with at
+    most one structural error, so the per-document result becomes a `Vec<Diagnostic>`.
+    Structural failures still short-circuit the profile.
+  - **R3 - Binary layout.** Discovery, git access, and resolvers would make one file too large.
+    Proposal: move to `src/bin/frontmatter-validator/main.rs` with sibling modules in T3, and
+    update the T7 Containerfile stub to that path.
+  - **R4 - Paths outside the repository.** D9 renders repository-relative paths, but D4 did not
+    say what happens to an explicit path outside the repository. Proposal: a `usage_error`
+    (exit `2`), because such a file has no repository location for D8 or D7 to classify.
+
+  This specification
+- 2026-09-26 10:40 UTC - Jose Celano - Approved R1-R4 as proposed. The binary now lives at
+  `src/bin/frontmatter-validator/main.rs`, and the record catalog is in `record.rs` (behavior
+  unchanged). Git-dependent behavior is tested through the built binary in a disposable
+  repository, following `clippy-allow-reasons/tests/cli.rs`. Those tests clear inherited
+  `GIT_*` variables so a run inside a git hook cannot touch the real repository - User
+  conversation
+- 2026-09-26 11:01 UTC - GitHub Copilot - Completed T3:
+  - Exactly one mode is required: paths, `--staged`, or `--all`.
+  - Explicit paths resolve against the working directory. They must exist and be inside the
+    repository (R4), and are rendered repository-relative with `/`.
+  - Directories expand to tracked Markdown. `--all` covers tracked Markdown still in the working
+    tree. `--staged` validates the index content of added, copied, modified, and renamed files.
+  - D6 exclusions apply in every mode.
+  - Git runs read-only with `--no-optional-locks`, and a missing repository is a `runtime_error`
+    with a `null` path.
+
+  Five mutations were each caught. 112 crate tests pass - `test-design-review.md`
+- 2026-09-26 11:18 UTC - GitHub Copilot - Completed T4 in a new library module `repository`
+  (R1):
+  - Location classification, ownership dispatch (moved from the binary), and per-document
+    validation return every diagnostic in order (R2).
+  - Closed-spec profile findings become warnings, while syntax stays an error.
+  - `legacy-shape` is an error for draft and open primary specs and for `issue`/`epic` records
+    without `schema-version: 1` (D10). Externally governed files are exempt.
+  - Each `x-` field in a strict profile gets an `experimental-field` warning.
+  - Adds the `legacy-shape` and `experimental-field` categories.
+
+  One mutation first survived because of a weak test; the test was strengthened and all five
+  are now caught. 142 crate tests pass - `test-design-review.md`
+- 2026-09-26 12:22 UTC - GitHub Copilot - Completed T5:
+  - D7 lookups use a pure `RepositoryFiles` snapshot. The binary builds it from index entries
+    for `--staged`, or from tracked files present in the working tree.
+  - Drafts and open specs get the status, `spec-path`, related-artifact, and skill checks as
+    errors. Closed specs get only status and `spec-path`, as warnings.
+  - Adds four categories: `lifecycle-location-mismatch`, `spec-path-mismatch`,
+    `missing-artifact`, and `unknown-skill`.
+  - Clarification: D8 said only that the location check does not apply outside the lifecycle
+    folders. The implementation applies no D7 check there, because no such spec has a lifecycle
+    to check against.
+
+  Six mutations were each caught. The whole-repository smoke run reports 50 `legacy-shape` errors
+  (D10/D11), 14 structural errors in non-v1 documents for T6, 3 closed-spec warnings, and no D7
+  findings in the open v1 specs - `test-design-review.md`
+- 2026-09-26 12:40 UTC - Jose Celano - T6 baseline decisions:
+  - Leave #2324 for the usual archive PR. It is completed but its spec is still in `open/`
+    with `status: open`, so it is the one accepted non-`legacy-shape` error under AC10 until
+    archived.
+  - Fix the malformed YAML in four closed records, whitespace only.
+  - Move the unsupported `related-issues`/`issue-spec` keys into `related-artifacts`.
+  - Set #2283, #2298, and #2301 from `open` to `planned`.
+
+  User conversation
+- 2026-09-26 13:00 UTC - GitHub Copilot - Completed T6 in eleven signed `docs(issues)` commits:
+  - the four approved fix groups;
+  - the next errors each fix exposed: a trailing-slash artifact, two unquoted timestamps, and
+    one stale #2222 reference;
+  - seven D11 EPIC migrations, one commit each. They drop issue-only fields, map
+    `open` to `in-progress` where subissues are completed, quote timestamps and issue
+    references, and update three stale references.
+
+  `--all` now reports:
+  - 44 `legacy-shape` errors: 42 legacy issue specs, the unassigned draft EPIC, and one draft
+    whose envelope error had masked its legacy shape;
+  - the #2324 exception;
+  - 3 closed-spec warnings (a pre-#2281 unquoted issue reference in #2280, and URL-valued
+    `related-pr` in #2295 and #2308), left as advisory history.
+
+  Evidence: `manual-verification-evidence.md` section V4 in T8.
+- 2026-09-26 13:20 UTC - GitHub Copilot - Completed T7:
+  - Pre-commit runs the named, read-only step `Checking staged Markdown frontmatter`, which
+    takes about 1 s. The hook passed with the step validating the staged T7 files.
+  - The crate README documents usage, the D10 migration checklist named in the `legacy-shape`
+    message, and the #2003 relocation path.
+  - The CLI output ADR classifies the binary as `no-stdout-result`.
+  - The `run-pre-commit-checks` skill lists the step, and its step list was corrected: a wrong
+    formatter path, and missing nightly-fmt and hadolint steps. `docs/git-hooks.md` lists no
+    steps, so it was left unchanged rather than duplicate the skill.
+  - Containerfile: cargo-chef stubs for both frontmatter binaries, verified with `docker build
+    --target recipe`.
+  - Finding: the crate was never in the container test-archive exclusions. The new
+    `tests/cli.rs` needs `git`, which `rust:slim-trixie` lacks (checked with `docker run`), so
+    the crate is now excluded like the other dev-tool crates.
+
+  Implementation is complete; awaiting maintainer review before T8 - This specification
+- 2026-09-26 13:25 UTC - Jose Celano - Acknowledged the T7 report and approved continuing
+  with T8 - User conversation
+- 2026-09-26 13:25 UTC - GitHub Copilot - T8 verification, pending the independent Task
+  Reviewer:
+  - Manual scenarios M1-M7 are recorded in `manual-verification-evidence.md` V1-V7. Failing
+    cases ran in a disposable `.tmp/` worktree, and the offline runs used `unshare -rn`.
+  - Two first attempts proved nothing and were redone: the reverse M3 case had nothing staged,
+    and the first M5b edit tripped markdownlint MD012.
+  - A command-boundary failure-family table was added for AC8, bringing the crate to 176
+    tests.
+  - All acceptance criteria were reviewed against evidence. AC10 holds with the accepted #2324
+    exception.
+  - Another completed issue, #2179, still has its spec in `open/` and is an archive candidate.
+  - `implementation-retrospective.md` records the material discoveries.
+
+  Evidence: `manual-verification-evidence.md`, `test-design-review.md`,
+  `implementation-retrospective.md`.
+- 2026-09-26 15:10 UTC - Task Reviewer - First pre-PR review: REVIEW FAILED. All AC1-AC11 are met
+  and all gates pass, but two command-boundary tests carried a hidden `spec-path` mismatch
+  masked by the structural error, and T8 lacked a prose-first comparison and mutation evidence.
+  The review also raised minor and nit findings - `agent-review-reports.md`
+- 2026-09-26 15:29 UTC - GitHub Copilot - Remediated the review findings:
+  - **Finding 1:** the fixture tests now use the fixtures' own `spec-path`, and a
+    `relocated_fixture` helper moves the closed case. The T8 prose-first comparison and four
+    caught mutations are recorded.
+  - **Finding 2, a correction of earlier entries:** the 44 `legacy-shape` errors are 42 primary
+    `ISSUE.md` specs, the masked draft included, plus the draft EPIC and the #2230 supporting
+    sample spec that declares `doc-type: issue`. The T5 and T6 entries above miscounted this. V4
+    and the T5 test note are corrected in place, while those log entries stay as history. The
+    #2230 sample also has `status: draft` in `open/`, so migrating it will need a lifecycle fix.
+  - **Finding 3:** the README severity summary is complete.
+  - **Finding 4:** retrospective improvements 1 and 3 are applied to the Containerfile
+    maintenance comment and the `run-pre-commit-checks` skill, and the agent-memory claim is
+    removed.
+  - **Finding 5:** test isolation clears `GIT_CONFIG_PARAMETERS`/`GIT_CONFIG_COUNT`, and fixture
+    commits disable hooks.
+  - **Finding 6:** directory arguments use `:(literal)` path patterns and symlinked files keep their
+    own path, both with regression tests.
+  - **Finding 7:** "four approved fix groups" above means three fix commits plus the decision to
+    leave #2324.
+  - **Finding 8:** it predates this branch and is out of scope.
+
+  178 tests pass - `test-design-review.md`
+- 2026-09-26 21:57 UTC - GitHub Copilot - Follow-up review (2026-09-26 21:47 UTC): REVIEW FAILED
+  on one new Major finding. Findings 1-5 and 7 were verified as fixed. Remediated:
+  - **N1:** the finding-6 `:(literal)` prefix matched nothing under `GIT_LITERAL_PATHSPECS=1`,
+    which some git front ends export to hooks, so a directory argument silently passed. Git now
+    runs with its global `--literal-pathspecs` option. A regression test sets the variable, test
+    isolation clears the git path-pattern-mode variables, and the full CLI suite also passes with the
+    variable exported. Removing the option, and reintroducing the prefix, each failed the new
+    test.
+  - **N2:** `relocated_fixture` asserts that the fixture still declares what it replaces.
+  - **N3:** the README says outside records get no repository-aware checks.
+  - **N4, a correction:** the entry above stamped the first review at 15:10 UTC; its report is
+    stamped 14:23 UTC.
+  - **N5:** the README documents symlink handling.
+
+  179 tests pass - `agent-review-reports.md`, `test-design-review.md`
+- 2026-09-28 09:21 UTC - GitHub Copilot - Opened implementation PR #2357, then rebased it onto
+  current `develop`. Addressing its review findings: corrected two rebased open-spec lifecycle
+  statuses and #2323's quoted timestamp; aligned the migrated #1669 and #1840 EPIC statuses with
+  their completed subissues; hardened Git subprocess isolation and staged root-path reading; and
+  added missing diagnostic-path coverage. The current whole-tree baseline and historical-evidence
+  correction are recorded in the issue-local evidence files - PR #2357
+- 2026-09-28 10:02 UTC - GitHub Copilot - Second PR #2357 review round:
+  - **F8, a regression from the previous round:** removing `GIT_INDEX_FILE` made `--staged` read
+    `.git/index` instead of the index git hands the pre-commit hook. `commit --all` then accepted
+    an invalid working copy, and `commit --only` was refused over uncommitted staged files. The
+    variable is honoured again, and only repository-location variables are removed. Two CLI tests
+    install the built binary as the pre-commit hook, and both failed before the fix.
+  - **F9:** the stage-prefix test now asserts a `wrong-scalar-type` diagnostic. It fails with the
+    old `:<path>` form, which yields a `runtime_error` for the same path.
+  - **F10, a correction of the entry above:** the `in-review` statuses for #2323 and #2342 did not
+    survive the rebase. #2358 archived both specs as `done`, and the rebase kept those values.
+
+  184 tests pass - PR #2357
 
 ## Acceptance Criteria
 
-- [ ] AC1: The command supports explicit file or directory paths, `--staged`, and a documented
+- [x] AC1: The command supports explicit file or directory paths, `--staged`, and a documented
       `--all` whole-tree mode; exactly one mode is required.
-- [ ] AC2: The command emits no stdout in any mode, including help and usage errors. Stderr carries
+- [x] AC2: The command emits no stdout in any mode, including help and usage errors. Stderr carries
       only the D9 record catalog (`diagnostic`, `usage_error`, `runtime_error`, `help`), with
       every listed field always present, nullable fields as `null`, and a deterministic order;
       tests pin each record kind.
-- [ ] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
+- [x] AC3: Exit codes are `0` for success with or without warnings, `1` for validation errors or
       runtime failure, and `2` for invalid invocation.
-- [ ] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open primary specs
+- [x] AC4: Severity follows D8 and D10: `legacy-shape` is an error for draft/open primary specs
       and `issue`/`epic` records that are not strict v1, including primary specs without
       frontmatter; closed-spec incompatibility and `experimental-field` are warnings.
-- [ ] AC5: Strict v1 records are checked for status/location, `spec-path`, related-artifact file or
+- [x] AC5: Strict v1 records are checked for status/location, `spec-path`, related-artifact file or
       directory existence, and skill resolution per D7. `--staged` resolves against the index, and
       closed specs get only status and `spec-path` warnings.
-- [ ] AC6: Ownership dispatch (D5) and exclusions (D6) are applied in every mode.
-- [ ] AC7: Pre-commit invokes the validator as a named, read-only `--staged` step. No CI or other
+- [x] AC6: Ownership dispatch (D5) and exclusions (D6) are applied in every mode.
+- [x] AC7: Pre-commit invokes the validator as a named, read-only `--staged` step. No CI or other
       integration tier is added.
-- [ ] AC8: Accepted/rejected fixtures and mutation cases cover representative field, scalar,
+- [x] AC8: Accepted/rejected fixtures and mutation cases cover representative field, scalar,
       allowed-value, reference, lifecycle, and path failures within the command boundary.
-- [ ] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
+- [x] AC9: Manual portability evidence demonstrates focused, staged, whole-tree, and pre-commit use
       without network access, including no-stdout behavior.
-- [ ] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports no
-      errors other than `legacy-shape` for the legacy issue specs and the draft EPIC not yet
-      migrated. The error and warning counts are recorded.
-- [ ] AC11: The command, its temporary integration point, its relocation path under #2003, and
+- [x] AC10: On the implementation branch, the seven D11 EPIC records are v1, and `--all` reports
+  only `legacy-shape` errors for the legacy issue specs and the draft EPIC not yet migrated.
+  The current error and warning counts are recorded.
+- [x] AC11: The command, its temporary integration point, its relocation path under #2003, and
       the D10 migration checklist are documented, and the CLI output ADR classifies the binary.
-- [ ] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Focused tests, `linter all`, and the pre-commit gate exit with code `0`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
 
@@ -423,13 +650,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors; error and warning counts recorded. | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | TODO | `manual-verification-evidence.md` section V7 |
+| M1 | Focused validation passes | Run the command on this spec and on its directory. | Exit `0`, empty stdout, no error records on stderr. | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Focused validation fails | Copy an open spec to a disposable path, corrupt a field, run the command on it. | Exit `1`, empty stdout, one NDJSON error naming path, category, and field path. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Staged mode uses index content | In a disposable worktree, stage an invalid spec, then fix only the working copy and run `--staged`. | Exit `1` from the staged content, and the working copy is ignored. | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Whole-tree mode | Run `--all` on the implementation branch. | Exit `1` with only `legacy-shape` errors and recorded warning counts. | DONE | `manual-verification-evidence.md` section V4 |
+| M5 | Pre-commit step | In a disposable worktree, run `./contrib/dev-tools/git/hooks/pre-commit.sh` with a staged invalid v1 spec, then with it fixed. Repeat with a staged edit to a legacy open spec, then with its frontmatter migrated. | The named step fails, then passes, in both cases. | DONE | `manual-verification-evidence.md` section V5 |
+| M6 | Invalid invocation and help | Run with no arguments, with `--staged --all`, with a nonexistent path, with `--version`, and with `--help`. | Exit `2`, `2`, `2`, `2`, `0`; stdout empty; exactly one D9 `usage_error` or `help` record each. | DONE | `manual-verification-evidence.md` section V6 |
+| M7 | Offline | Repeat M1 and M4 with `cargo run --offline` and no network. | Same outcomes; nothing is downloaded. | DONE | `manual-verification-evidence.md` section V7 |
 
 Record the toolchain for every command result. Disposable Git worktree checkouts live under `.tmp/`
 and are removed after use; the real repository index is never used for failing scenarios.
@@ -438,17 +665,17 @@ and are removed after use; the real repository index is never used for failing s
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | |
-| AC2 | TODO | |
-| AC3 | TODO | |
-| AC4 | TODO | |
-| AC5 | TODO | |
-| AC6 | TODO | |
-| AC7 | TODO | |
-| AC8 | TODO | |
-| AC9 | TODO | |
-| AC10 | TODO | |
-| AC11 | TODO | |
+| AC1 | DONE | Unit tests for the mode group (`main.rs`); `tests/cli.rs` explicit-file, directory, `--staged`, and `--all` tests; README usage; V1, V3, V4 |
+| AC2 | DONE | `record.rs` catalog; key-order and `null` assertions in `tests/cli.rs` and `main.rs` for all four kinds; `Outcome` asserts empty stdout on every CLI run; ordering test; V6 |
+| AC3 | DONE | `it_should_exit_one_only_when_a_record_is_an_error`; usage-error tests; V2, V6 |
+| AC4 | DONE | `repository::tests` legacy-shape, severity-by-location, and experimental-field tables with T4 mutations; V5b |
+| AC5 | DONE | `repository::tests` D7 tables with T5 mutations; `it_should_resolve_related_artifacts_against_the_index_only_with_staged` |
+| AC6 | DONE | Ownership and exclusion tests in every mode (`repository::tests`, `tests/cli.rs`); T2/T3 mutations |
+| AC7 | DONE | `pre-commit.sh` step `Checking staged Markdown frontmatter`; no CI or pre-push change; V5 |
+| AC8 | DONE | Library fixture and mutation tables (T1-T5); `it_should_report_each_failure_family_as_one_error_record` at the command boundary, free of hidden state after the review remediation |
+| AC9 | DONE | V1-V7, including `unshare -rn` offline runs (V7) and no-stdout checks |
+| AC10 | DONE | V4 current rebased baseline: 35 `legacy-shape` errors and 4 closed-spec warnings; seven EPIC migration commits |
+| AC11 | DONE | Crate `README.md` (usage, migration checklist, relocation); CLI output ADR row; `run-pre-commit-checks` skill step |
 
 ## Risks and Trade-offs
 
@@ -479,10 +706,9 @@ and are removed after use; the real repository index is never used for failing s
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a progress-log
-  entry explaining why no material discovery occurred.
+- Retrospective: created as `implementation-retrospective.md`. The material discoveries were the
+  container test-stage gap, masked errors under a first-error validator, out-of-spec baseline
+  findings, and a pipe-hidden gate failure.
 - The independent Task Reviewer records its result in `agent-review-reports.md` using
   `docs/templates/AGENT-REVIEW-REPORTS.md`.
 

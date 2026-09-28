@@ -14,7 +14,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - issue #2264
+    - "issue #2264"
     - docs/templates/ISSUE.md
     - review-finding:pr-2230-f1
 ---

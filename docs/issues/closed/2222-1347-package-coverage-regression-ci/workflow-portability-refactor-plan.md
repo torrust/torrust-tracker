@@ -7,10 +7,10 @@ last-updated-utc: 2026-09-22 16:40
 semantic-links:
   related-artifacts:
     - .github/workflows/generate_coverage_pr.yaml
-   - contrib/dev-tools/checks/package-coverage-check/
+    - contrib/dev-tools/checks/package-coverage-check/
     - AGENTS.md
-      - .github/workflows/AGENTS.md
-      - .github/skills/dev/ci/implement-workflow/SKILL.md
+    - .github/workflows/AGENTS.md
+    - .github/skills/dev/ci/implement-workflow/SKILL.md
 ---
 
 # Workflow Portability Refactor Plan

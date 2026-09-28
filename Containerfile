@@ -77,6 +77,8 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 #   - workspace-coupling (analysis/coupling tool, no production value)
 #   - agent-review-report-contract (documentation contract check, no production value)
 #   - clippy-allow-reasons (prospective source-quality check, no production value)
+#   - frontmatter-validator (Markdown frontmatter check; its CLI tests need git, which the
+#     tester image does not install)
 #   - package-coverage-check (pull-request coverage report check, no production value)
 #   - github-review-threads (GitHub review workflow tool, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
@@ -134,6 +136,8 @@ COPY packages/udp-core/Cargo.toml packages/udp-core/
 #
 # MAINTENANCE: When adding a new in-repo crate or target, add the corresponding
 # stub lines below AND the Cargo.toml COPY line in the manifest-only block above.
+# If a crate's tests spawn tools the tester image lacks (for example git), add it to
+# the --exclude lists of the nextest archive commands below as well.
 RUN mkdir -p \
       src/bin \
       packages/e2e-tools/src/bin \
@@ -141,7 +145,7 @@ RUN mkdir -p \
       contrib/dev-tools/analysis/workspace-coupling/src \
       contrib/dev-tools/checks/agent-review-report-contract/src \
       contrib/dev-tools/checks/clippy-allow-reasons/src \
-      contrib/dev-tools/checks/frontmatter-validator/src \
+      contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-validator \
       contrib/dev-tools/checks/package-coverage-check/src \
       contrib/dev-tools/github/github-review-threads/src \
       console/tracker-client/src/bin \
@@ -185,6 +189,8 @@ RUN mkdir -p \
       contrib/dev-tools/checks/clippy-allow-reasons/src/lib.rs \
       contrib/dev-tools/checks/clippy-allow-reasons/src/main.rs \
       contrib/dev-tools/checks/frontmatter-validator/src/lib.rs \
+      contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs \
+      contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-validator/main.rs \
       contrib/dev-tools/checks/package-coverage-check/src/lib.rs \
       contrib/dev-tools/checks/package-coverage-check/src/main.rs \
       contrib/dev-tools/github/github-review-threads/src/lib.rs \
@@ -249,7 +255,8 @@ COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
 # exposes `--workspace` and `--package`, not `--exclude`). The excluded workspace
 # members (workspace-coupling, torrust-tracker-torrent-repository-benchmarking,
-# agent-review-report-contract, clippy-allow-reasons, package-coverage-check,
+# agent-review-report-contract, clippy-allow-reasons, frontmatter-validator,
+# package-coverage-check,
 # github-review-threads,
 # torrust-tracker-client,
 # torrust-tracker-contrib-bencode, torrust-tracker-e2e-tools,
@@ -267,6 +274,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude frontmatter-validator \
     --exclude package-coverage-check \
     --exclude github-review-threads \
     --exclude torrust-tracker-torrent-repository-benchmarking \
@@ -297,6 +305,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude frontmatter-validator \
     --exclude package-coverage-check \
     --exclude github-review-threads \
     --exclude torrust-tracker-torrent-repository-benchmarking \
@@ -315,6 +324,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude frontmatter-validator \
     --exclude package-coverage-check \
     --exclude github-review-threads \
     --exclude torrust-tracker-torrent-repository-benchmarking \
@@ -332,6 +342,7 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude agent-review-report-contract \
     --exclude clippy-allow-reasons \
+    --exclude frontmatter-validator \
     --exclude package-coverage-check \
     --exclude github-review-threads \
     --exclude torrust-tracker-torrent-repository-benchmarking \

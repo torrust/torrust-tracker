@@ -15,9 +15,8 @@ semantic-links:
     - tests/stats.rs
     - tests/AGENTS.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-  related-issues:
-    - 1347
-    - 1419
+    - "issue #1347"
+    - "issue #1419"
 ---
 
 # Draft Issue - Increase Main Application-Level Integration Test Coverage

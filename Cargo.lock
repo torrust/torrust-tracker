@@ -1481,9 +1481,12 @@ dependencies = [
 name = "frontmatter-validator"
 version = "0.1.0"
 dependencies = [
+ "clap",
+ "rstest",
  "schemars 1.2.1",
  "serde",
  "serde_json",
+ "serde_path_to_error",
  "serde_yaml",
  "tempfile",
  "thiserror 2.0.20",

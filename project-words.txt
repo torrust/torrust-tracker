@@ -1,3 +1,4 @@
+ACMR
 ASMS
 AUTOINCREMENT
 Abdurazzoqov
@@ -45,6 +46,7 @@ Graphviz
 Grcov
 HDRINCL
 Hydranode
+ICASE
 IPPROTO
 IPV6
 Icelake
@@ -66,11 +68,13 @@ MSRV
 Mbps
 Mebibytes
 NOASSERTION
+NOGLOB
 NOSYSTEM
 Naim
 Naur
 Norberg
 Oaep
+PATHSPECS
 PGID
 PRRT
 PUID
@@ -376,6 +380,7 @@ parallelisable
 parallelise
 parallelised
 parseable
+pathspecs
 peekable
 peerlist
 peersld

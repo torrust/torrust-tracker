@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p3
 epic: 1347
 github-issue: 2301
 spec-path: docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md
 branch: "2301-review-package-coverage-rollout"
 related-pr: null
-last-updated-utc: 2026-09-22 13:05
+last-updated-utc: "2026-09-22 13:05"
 semantic-links:
   skill-links:
     - create-issue
