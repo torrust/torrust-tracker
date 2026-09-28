@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 epic: 1840
 github-issue: 2323
-spec-path: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
+spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: 2026-09-27 10:20
+last-updated-utc: 2026-09-28
 semantic-links:
   skill-links:
     - create-issue
@@ -377,7 +377,7 @@ Use Conventional Commits with a narrow scope (for example `ci(container)`, `docs
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -405,6 +405,7 @@ Append one line per meaningful update.
 - 2026-09-27 06:24 UTC - josecelano, GitHub Copilot - T6: the first self-hosted `Test (Docker)` run (PR #2352) was routed to `torrust-runner-01` but cancelled after six minutes by a global out-of-memory kill during the workspace compile (8 parallel `rustc` on 16 GB, no swap), which also left the runner service `failed`; added a 16 GB swap file and `Restart=on-failure` for the runner service, restarted it, and re-ran the job - [`runner-server-setup.md`](runner-server-setup.md) step 12
 - 2026-09-27 08:38 UTC - josecelano, GitHub Copilot - T7: recorded the self-hosted timings (14 min 31 s partly warm, 2 min 15 s fully warm; M4 pending a code change); T8 DONE: the maintainer approved `docs/self-hosted-runner.md`, which the setup logs now point to as the current procedure - [`benchmark-results.md`](benchmark-results.md)
 - 2026-09-27 10:20 UTC - GitHub Copilot - T7 DONE: with application code changed, `Test (Docker)` took 12 min 3 s on the runner (workspace compile 561 s, dependencies cached), and the PR checks 17 min 49 s end to end; scenarios A and G (the unit test jobs are now the critical path), no phase 3 remedy needed here; M4 and M6 DONE - [`benchmark-results.md`](benchmark-results.md)
+- 2026-09-28 UTC - GitHub Copilot - Archived this closed GitHub issue specification in `docs/issues/closed/`; remaining unchecked verification and acceptance records are preserved as written.
 
 ## Acceptance Criteria
 

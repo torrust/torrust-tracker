@@ -4,7 +4,7 @@ status: planned
 github-issue: 1840
 spec-path: docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-09 00:00
+last-updated-utc: 2026-09-28
 semantic-links:
   skill-links:
     - create-issue
@@ -81,7 +81,7 @@ Ordering policy:
 | 12    | #[To be assigned] - Pass Cargo registry/git caches into BuildKit cook stages                 | `docs/issues/drafts/1840-workflow-performance-buildkit-cargo-cache-mounts/ISSUE.md`               | TODO       | Adds `--mount=type=cache` for registry/git to cook stages. Local benefit: saves ~7 s download per cook rebuild (cold fetch 6.9 s → warm 0.16 s; registry 823 MB). CI benefit: none with ephemeral GitHub Actions runners (`type=gha` layer cache does not persist cache mount volumes). Evaluate target-dir cache mount variant as T5.                                                      |
 | 13    | #[To be assigned] - Apply Profile-Guided Optimization (PGO) to the tracker release binary    | `docs/issues/drafts/1840-workflow-performance-pgo-optimization/ISSUE.md`                                | TODO       | Deferred. Instrumentation PGO requires a double-compile pass which adds CI time — a direct cost against this EPIC's goals. Must measure CI overhead (T4/T5 in spec) and weigh against binary performance gains before enabling. Prerequisites: LTO already enabled in `[profile.release]`. Tooling: `cargo-pgo`. Training workload to be defined against realistic announce/scrape traffic. |
 | 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`                                    | IN_REVIEW  | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). The issue removes the development-profile override and retains release fat LTO; PR #2013 is under review.                                                                                                                                                                       |
-| 15    | #2323 - Offload the container test job to a self-hosted Hetzner runner                       | `docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`                               | TODO       | Moves `container.yaml` `test` to a persistent self-hosted runner so Docker layers and Cargo caches survive between jobs; publish jobs stay on GitHub-hosted runners and stop reading self-hosted cache. Target: PR checks from about 40 to about 15 minutes.                                                                                 |
+| 15    | #2323 - Offload the container test job to a self-hosted Hetzner runner                       | `docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`                             | DONE       | Moves `container.yaml` `test` to a persistent self-hosted runner so Docker layers and Cargo caches survive between jobs; publish jobs stay on GitHub-hosted runners and stop reading self-hosted cache. Target: PR checks from about 40 to about 15 minutes.                                                                                 |
 
 ## Delivery Strategy
 

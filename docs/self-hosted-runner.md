@@ -4,8 +4,8 @@ semantic-links:
     - docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
-    - docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/runner-server-setup.md
-    - docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/runner-agent-installation.md
+    - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/runner-server-setup.md
+    - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/runner-agent-installation.md
 ---
 
 # Self-Hosted CI Runner
@@ -17,8 +17,8 @@ test jobs. The decision, its cost rationale, and the security controls it depend
 [ADR 20260926142648](adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md).
 The record of how the current runner was actually built, including the problems found on the
 way, is in issue #2323's
-[server setup log](issues/open/2323-1840-hetzner-self-hosted-ci-runner/runner-server-setup.md) and
-[runner agent log](issues/open/2323-1840-hetzner-self-hosted-ci-runner/runner-agent-installation.md).
+[server setup log](issues/closed/2323-1840-hetzner-self-hosted-ci-runner/runner-server-setup.md) and
+[runner agent log](issues/closed/2323-1840-hetzner-self-hosted-ci-runner/runner-agent-installation.md).
 
 ## What Runs on the Runner
 

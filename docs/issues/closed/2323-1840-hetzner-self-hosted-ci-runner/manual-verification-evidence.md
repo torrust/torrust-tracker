@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-last-updated-utc: 2026-09-27 06:50
+issue-spec: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
+last-updated-utc: 2026-09-28
 ---
 
 # Manual Verification Evidence

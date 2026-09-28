@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 epic: 1488
 github-issue: 2342
-spec-path: docs/issues/open/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
+spec-path: docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
-related-pr: null
-last-updated-utc: "2026-09-26 15:40"
+related-pr: 2351
+last-updated-utc: 2026-09-28
 semantic-links:
   skill-links:
     - create-issue
@@ -330,7 +330,7 @@ review after the final test increment before final verification and the PR.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -423,6 +423,7 @@ review after the final test increment before final verification and the PR.
   baseline run"), with the shared-machine limitation stated. It passes: the
   after-implementation mean (157254.83) is above the lowest baseline run
   (142150.63), and every after run is above every baseline run.
+- 2026-09-28 UTC - GitHub Copilot - PR #2351 merged and closed GitHub issue #2342; archived this specification in `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

@@ -6,9 +6,9 @@ semantic-links:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
-    - docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-    - docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/self-hosted-runner-security-research.md
-    - docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/benchmark-results.md
+    - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
+    - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/self-hosted-runner-security-research.md
+    - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/benchmark-results.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -49,7 +49,7 @@ is in the `docker` group, that code gains root-equivalent control of the host an
 later jobs, including `develop` push jobs and their tokens. A fork pull request can reach any
 registered runner by adding its own workflow, even if no repository workflow targets it. On
 2026-09-24 the maintainers rejected that exposure and removed the runner. The analysis is in
-[`self-hosted-runner-security-research.md`](../issues/open/2323-1840-hetzner-self-hosted-ci-runner/self-hosted-runner-security-research.md).
+[`self-hosted-runner-security-research.md`](../issues/closed/2323-1840-hetzner-self-hosted-ci-runner/self-hosted-runner-security-research.md).
 
 On 2026-09-25 the maintainers reviewed who actually opens pull requests. In the 12 months before
 that date, organization members opened 406, Dependabot 118, and external contributors 5 (from four
@@ -149,12 +149,12 @@ if any control above cannot be kept, or if the runner is compromised.
 ## References
 
 - Issue #2323 and its spec:
-  [`ISSUE.md`](../issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md)
+  [`ISSUE.md`](../issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md)
 - EPIC #1840: [`EPIC.md`](../issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md)
 - Spec pull request #2335 and its review audit:
   [`PR-REVIEW.md`](../pr-reviews/pr-2335-review/PR-REVIEW.md)
 - Baseline:
-  [`benchmark-results.md`](../issues/open/2323-1840-hetzner-self-hosted-ci-runner/benchmark-results.md)
+  [`benchmark-results.md`](../issues/closed/2323-1840-hetzner-self-hosted-ci-runner/benchmark-results.md)
 - [GitHub-hosted runners reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
 - [Approving workflow runs from forks](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/approve-runs-from-forks)
 - Related ADRs:
