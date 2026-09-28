@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in_progress
+status: in-progress
 priority: p2
 epic: 2003
 github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-28 10:14"
+last-updated-utc: "2026-09-28 10:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -142,13 +142,15 @@ Each summary is the first line of the thread's first comment, generated from the
 
 Approval record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>,
 amended by <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>
-(#2293 F5 goes to the existing #2301, which T2 missed; #2293 F1's new issue is a bug).
+(#2293 F5 goes to the existing #2301, which T2 missed; #2293 F1's new issue is a bug) and by
+<https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5868016556> (PR #2357
+fixed #2293 F3 upstream).
 The maintainer approved the [`triage.md`](triage.md) proposal on 2026-09-28 with the changes
-below. The approval record and its amendment are the authority for each finding's disposition.
+below. The approval record and its amendments are the authority for each finding's disposition.
 
 | Disposition | Findings |
 | ----------- | -------- |
-| `FIXED` (14) | #2290 F1, F2, F3, F5, F6; #2293 F2, F3, F4, F7; #2300 F5, F6, F9; #2313 F8; #2320 F29 |
+| `FIXED` (14) | #2290 F1, F2, F3, F5, F6; #2293 F2, F4, F7; #2300 F5, F6, F9; #2313 F8; #2320 F29; and #2293 F3, fixed upstream by PR #2357 |
 | `NO_ACTION` (9) | #2290 F7; #2293 F6, F8; #2300 F7, F8, F11, F12; #2313 F10; #2320 F28 |
 | `FOLLOW_UP` (9) | #2290 F4 (#2360, parent #2003); #2293 F1 (#2361, bug, parent #1347); #2293 F5 (existing #2301); #2300 F10 (#2278 order 8); #2313 F4, F5, F6, F7, F9 (#2362, #2278 order 11) |
 
@@ -271,6 +273,7 @@ progress log. No test code is planned.
 - 2026-09-28 09:42 UTC - GitHub Copilot - FU-A approved and created as #2360 under #2003 (order 13 in the #2003 EPIC); its spec rides in this PR.
 - 2026-09-28 09:51 UTC - GitHub Copilot - While drafting FU-B, found that open #2301 ("Review package coverage rollout", #1347) already owns #2293 F5. The T2 triage had missed it. The maintainer approved routing F5 to #2301, and narrowing FU-B to #2293 F1 as a bug issue under #1347. Amendment record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>. The #2278 register has no existing owner for #2313 F4-F7 or F9, so FU-D stands.
 - 2026-09-28 10:14 UTC - GitHub Copilot - T5 done. The maintainer approved each follow-up spec before its issue was created: #2361 (bug, #1347 order 9) for #2293 F1, and #2362 (#2278 order 11) for #2313 F4, F5, F6, F7, and F9. Both specs ride in this PR. Added pointers in the owners that already existed: #2300 F10 in the #2278 order 8 row, and #2293 F5 in the #2301 progress log, with the hosted run evidence. Next: push and open this PR as a draft.
+- 2026-09-28 10:20 UTC - GitHub Copilot - Rebased onto `develop` at `8a953724`, which had moved 84 commits. PR #2357 (#2281) had already fixed #2293 F3 in `docs(issues): [#2281] fix malformed frontmatter indentation in closed records`, so the rebase dropped this branch's now-empty F3 commit, and a follow-up commit restored the #2222 plan's stamp. The maintainer approved keeping F3 `FIXED` with that upstream subject, and resolving its thread at the reply step: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5868016556>. Resolved stamp conflicts in the #1347 EPIC and #2301 spec using `develop`'s quoted format. The new frontmatter validator rejected this spec's `status: in_progress`; it is now `in-progress`.
 
 ## Acceptance Criteria
 
