@@ -4,8 +4,8 @@ semantic-links:
     - write-markdown-docs
     - process-pr-review
   related-artifacts:
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/triage.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
 ---
 
@@ -128,7 +128,7 @@ The close-out (T7) remains.
 
 ## Evidence
 
-- Spec: `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md`, including its
+- Spec: `docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md`, including its
   "Disposition Decisions (T3)" section and progress log.
 - Triage: `triage.md`. Verification: `manual-verification-evidence.md` V1 and V3.
 - Approval and amendments:

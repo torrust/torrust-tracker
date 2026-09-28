@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2347
-spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
+spec-path: docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: 2363
-last-updated-utc: "2026-09-28 17:40"
+last-updated-utc: "2026-09-28 17:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,9 +22,9 @@ semantic-links:
     - docs/pr-reviews/pr-2300-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2313-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2320-review/PR-REVIEW.md
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/manual-verification-evidence.md
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/implementation-retrospective.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/triage.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/manual-verification-evidence.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/implementation-retrospective.md
     - docs/pr-reviews/pr-2290-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2293-review/PR-REVIEW.md
 ---
@@ -266,7 +266,7 @@ progress log. No test code is planned.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -296,6 +296,7 @@ progress log. No test code is planned.
 - 2026-09-28 16:29 UTC - GitHub Copilot - Round 4 of the PR #2363 review approved `docs(issues): [#2347] map the pre-PR task review finding IDs` (da2ce7 ACK); GitHub dismissed it when the round-2 audit was pushed. Round 5 raised F14: the audit had recorded the Copilot severity labels wrongly. F14 is fixed in `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit`, and its thread was replied to and resolved. The maintainer hands EPIC #2003 to da2ce7: <https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520>.
 - 2026-09-28 17:00 UTC - GitHub Copilot - Round 6 (da2ce7 review 5341713976, 16:32:35Z) approved `d5bb52f33` and raised F15, a non-blocking request to record rounds 4-6 in the #2363 audit. GitHub dismissed that approval as stale when the rounds 4-5 audit commit was pushed. F15 was replied to and resolved at 16:53:48Z, and the four `CHANGES_REQUESTED` reviews were dismissed at 16:54 UTC. da2ce7 and the maintainer ACKed `30f7419c4`, and PR #2363 merged into `develop` at `bc90cde1b` (17:00:27Z). This PR does not close #2347; the T7 close-out does.
 - 2026-09-28 17:40 UTC - GitHub Copilot - T7 done, following the PR #2353 close-out precedent. `develop`'s tree at `bc90cde1b` is identical to the reviewed head `30f7419c4`. Each of the 13 fixes was re-checked on `develop`. Each fixed thread received a final reply citing the merge and its fix commit (17:07:36Z-17:07:57Z). Those 13 threads and the 9 `NO_ACTION` threads were resolved at 17:11 UTC; the 9 `FOLLOW_UP` threads stay open. The maintainer approved recording F15 in the #2363 audit after merge: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5875119437>. The close-out commit changes the 13 rows to `FIXED`/`RESOLVED`, the 9 `NO_ACTION` threads to `RESOLVED`, and adds #2363 F15. M2 passes (`manual-verification-evidence.md` V2), and AC4 is done.
+- 2026-09-28 17:41 UTC - GitHub Copilot - Archived this spec to `docs/issues/closed/` in the T7 close-out PR, as the maintainer approved, so the issue closes and its spec moves in one merge; the PR closes #2347. Updated the live references: the EPIC #2003 subissue row and the `related-artifacts` of the #2290, #2293, #2348, and #2363 audits.
 
 ## Acceptance Criteria
 

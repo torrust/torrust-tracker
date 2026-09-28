@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md
     - docs/issues/closed/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md
 ---
 

@@ -1,9 +1,9 @@
 ---
-spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
-last-updated-utc: "2026-09-28 11:48"
+spec-path: docs/issues/closed/2347-2003-triage-post-merge-review-findings/triage.md
+last-updated-utc: "2026-09-28 17:41"
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
+    - docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
 ---
 

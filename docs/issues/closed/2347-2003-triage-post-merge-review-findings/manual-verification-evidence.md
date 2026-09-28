@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-last-updated-utc: "2026-09-28 17:36"
+issue-spec: docs/issues/closed/2347-2003-triage-post-merge-review-findings/ISSUE.md
+last-updated-utc: "2026-09-28 17:41"
 ---
 
 # Manual Verification Evidence
