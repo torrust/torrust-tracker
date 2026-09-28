@@ -67,6 +67,66 @@ M1 met: the job ran on `torrust-runner-01` and passed in 14 min 31 s (baseline m
 The run was not fully cold: attempt 1 had already installed the toolchain, downloaded the crates,
 and built about six minutes of Docker layers. T7 records the warm-cache comparison.
 
+### V2 - Develop Push Run (M2)
+
+- Goal: a merge into `develop` runs `Test (Docker)` on the Hetzner runner and publishes the
+  development image successfully.
+- Initial state: PR #2352 merged into `develop` as `432d4e69`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Merged PR #2352 into `develop`.
+2. Waited for `Container` run `36345987166` with
+  `gh run watch 36345987166 --repo torrust/torrust-tracker --interval 60 --exit-status`.
+3. Inspected its jobs with
+  `gh api repos/torrust/torrust-tracker/actions/runs/36345987166/jobs`.
+
+#### Observed Result
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36345987166>:
+
+```text
+Test (Docker) (release) | success | runner=torrust-runner-01 | 19:53:18Z -> 19:55:35Z
+Publish (Development) | success | runner=GitHub Actions 1000090528 | 19:55:42Z -> 20:24:46Z
+Publish (Release) | skipped
+```
+
+#### Conclusion
+
+M2 met: the `develop` push ran the test job on the self-hosted runner and completed the
+development-image publish job successfully.
+
+### V3 - Publish Isolation (M3)
+
+- Goal: the development publish job runs on a GitHub-hosted runner and imports no GitHub Actions
+  cache.
+- Initial state: the successful `develop` push run from V2.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Retrieved the `Publish (Development)` job log:
+  `gh run view 36345987166 --repo torrust/torrust-tracker --job 108695500749 --log`.
+2. Searched that log for `--cache-from=type=gha` and `--cache-to=type=gha`.
+3. Inspected `container.yaml` to confirm both publish jobs use `ubuntu-latest` and omit GitHub
+  Actions cache inputs.
+
+#### Observed Result
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36345987166/job/108695500749>:
+
+```text
+Publish (Development) | success | runner=GitHub Actions 1000090528
+github_runner_environment=github-hosted
+No type=gha cache flags found in the Publish (Development) job log.
+```
+
+#### Conclusion
+
+M3 met: the publish job ran on a GitHub-hosted runner and its build log contains no GitHub Actions
+cache import or export flag.
+
 ### V4 - Warm Cache Reuse and Timing Comparison (M4, M6)
 
 - Goal: after application code changes, the `test` job reuses the local Docker layers and Cargo
