@@ -60,6 +60,7 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 | F11 | `review-finding:pr-2363-f11` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F12 | `review-finding:pr-2363-f12` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F13 | `review-finding:pr-2363-f13` | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | `review-finding:pr-2363-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 Round 2: F5-F9 are the reviewer's IDs from review 5338643536, at the head
 `docs(pr-reviews): [#2347] add PR #2363 review audit`. Review 5339061836 (round 3, at the head
@@ -73,6 +74,11 @@ other request. F9 was fixed by editing the PR description, outside the repositor
 admissible `FIXED` resolution reference under the current contract (`review-finding:pr-2313-f6`,
 owned by #2362). It is recorded as `NO_ACTION`/`RESOLVED` with its reply URL, as #2347 did for
 `review-finding:pr-2290-f7`.
+
+Round 4 (review 5340437680, at the head `docs(issues): [#2347] map the pre-PR task review finding
+IDs`) approved that head and raised no new finding. It was dismissed automatically when the round-2
+audit commit was pushed. Round 5 (review 5340689822, at the head
+`docs(pr-reviews): [#2347] record PR #2363 review round 2`) raised F14.
 
 ## Finding Details
 
@@ -264,6 +270,19 @@ owned by #2362). It is recorded as `NO_ACTION`/`RESOLVED` with its reply URL, as
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123640914>
 
+### F14 - "Copilot gave no severity": the Copilot review overview labels each comment, one Medium and three Low
+
+- PR number: 2363
+- Source review ID: 5340689822
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4123802356>
+- Concern: The Round 2 paragraph said Copilot gave no severity and recorded all four Copilot rows as `Nit (inferred)`. Copilot's review overview rates F10 Medium and F11-F13 Low.
+- Solution: `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit` states the labels and records F10 as `Minor (inferred)` and F11-F13 as `Nit (inferred)`, as `pr-2352-review` and `pr-2353-review` do. The cause was stripping the review body's HTML before reading it, which removed the `<picture>` severity badges.
+- Current-tree verification: the raw body of review 5338724829 contains `alt="Medium severity"` and `alt="Low severity"`. The F10 row reads `Minor (inferred)`, and the Round 2 paragraph reads "Its review overview rates F10 Medium and F11-F13 Low".
+- Resolution reference: `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124584947>
+
 ## Processing Log
 
 - 2026-09-28 12:03 UTC - Started processing round 1: review 5337742420 (da2ce7, `CHANGES_REQUESTED`, submitted 11:16 UTC at the draft head) with four inline findings. At the current head, F2, F3, and F4 were already fixed by commits pushed after that head; F1 was live (`git grep` returned 162, 430, 434, and 435).
@@ -275,6 +294,9 @@ owned by #2362). It is recorded as `NO_ACTION`/`RESOLVED` with its reply URL, as
 - 2026-09-28 14:54 UTC - Edited the PR description for F9.
 - 2026-09-28 14:55 UTC - Posted a reply on all nine threads (`created_at` 14:55:25Z-14:55:39Z). The F10-F13 replies use the `Superseded by <FindingId>:` form. At 14:55:57Z the F13 reply was edited to remove a false sentence, which had claimed the #2320 F28 disposition reply used the same wording; it reads "Nothing the record asserts is false".
 - 2026-09-28 14:56 UTC - `reply-status` confirmed a reply on all nine threads, and I resolved them with `resolve-all-unresolved-threads.sh`. A GraphQL refetch shows zero unresolved threads on PR #2363.
+- 2026-09-28 15:01 UTC - GitHub dismissed round 4 (review 5340437680, da2ce7 `APPROVED` at 14:51 UTC, with PR comment `ACK 068a0189b…`) as stale when the round-2 audit commit was pushed. Round 4 raised no finding.
+- 2026-09-28 16:25 UTC - Round 5 (review 5340689822, da2ce7, `CHANGES_REQUESTED` at 15:10 UTC) raised F14. Committed the F14 fix `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit` (authored 16:20:03Z) and pushed it; the pre-push hook passed.
+- 2026-09-28 16:27 UTC - Replied on the F14 thread (`created_at` 16:26:09Z), confirmed the reply with `reply-status`, and resolved it. A GraphQL refetch shows zero unresolved threads on PR #2363.
 
 ## Completion Rules
 
