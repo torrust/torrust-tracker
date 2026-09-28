@@ -34,10 +34,10 @@ The close-out (T7) remains.
 
 ## What Went Well
 
-1. Triage against the current tree before proposing dispositions. Two findings were already dead
-   (#2293 F8 and #2313 F10). One had been fixed upstream by the time the branch was rebased
-   (#2293 F3). The approval record was built on facts, not on the reviewer's liveness column
-   alone.
+1. Triage against the current tree before proposing dispositions. Three findings were already
+   dead (#2293 F8, #2300 F8, and #2313 F10). The reviewer had flagged two of them; triage found
+   #2300 F8. One had been fixed upstream by the time the branch was rebased (#2293 F3). The
+   approval record was built on facts, not on the reviewer's liveness column alone.
 2. One commit per fix. Each `FIXED` row can cite exactly the change that fixed it, which avoids
    the defect #2300 F12 describes.
 3. Reproducing before routing. The working-tree Clippy experiments (#2290 F4) and the empty
