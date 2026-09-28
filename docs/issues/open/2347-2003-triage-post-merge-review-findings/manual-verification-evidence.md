@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-last-updated-utc: "2026-09-28 11:48"
+last-updated-utc: "2026-09-28 17:36"
 ---
 
 # Manual Verification Evidence
@@ -70,8 +70,48 @@ that of #2293 F3, whose fix was already on `develop` (T3 amendment 2). M1 passes
 ### V2 - Thread States Match Dispositions (M2)
 
 - Goal: After T7, only `FOLLOW_UP` threads are unresolved.
-- Initial state: Not reached; T7 runs after PR #2363 merges.
-- Status: `TODO`
+- Initial state: PR #2363 merged into `develop` at `bc90cde1b` (17:00:27Z). T7 final replies were
+  posted on the 13 fixed threads (17:07:36Z-17:07:57Z), and those 13 threads plus the 9
+  `NO_ACTION` threads were resolved at 17:11 UTC.
+- Status: `DONE`
+
+#### Steps Performed
+
+Run at 2026-09-28 17:35:36 UTC on the close-out branch, cut from `develop` at `bc90cde1b`, with
+the audits already changed to their final dispositions.
+
+1. For each PR, `fetch` and `show` as in V1.
+2. Took the PR's source comment IDs from this spec's Finding Inventory, and printed the resolved
+   count and, for each unresolved thread, the owning issues named in the `josecelano` replies:
+
+   ```sh
+   ids=$(sed -n '/^### Finding Inventory/,/^## Scope/p' "$spec" | grep -oE "pull/$pr#discussion_r[0-9]+" | sed 's/.*_r//')
+   jq -r --arg pr "$pr" --rawfile ids <(printf '%s\n' $ids) '($ids|split("\n")|map(select(length>0))) as $want
+     | [.threads[]|select((.comments[0].url|split("_r")[1]) as $c | $want|index($c))]
+     | "\($pr): threads=\(length) resolved=\([.[]|select(.isResolved)]|length) unresolved=\([.[]|select(.isResolved|not)|"r\(.comments[0].url|split("_r")[1])->\([.comments[1:][]|select(.author=="josecelano")|.body|scan("#(?:2278|2301|2360|2361|2362)")]|unique|join("+"))"]|join(","))"' ".tmp/show_$pr.json"
+   ```
+
+3. Listed the audit rows recorded as `FOLLOW_UP`/`OPEN`:
+   `grep -E '^\| F[0-9]+ .*\| FOLLOW_UP \| OPEN \|$' docs/pr-reviews/pr-<PR>-review/PR-REVIEW.md`.
+
+#### Observed Result
+
+```text
+2290: threads=7 resolved=6 unresolved=r4076700056->#2360
+2293: threads=8 resolved=6 unresolved=r4076532667->#2361,r4076532690->#2301
+2300: threads=8 resolved=7 unresolved=r4076706673->#2278
+2313: threads=7 resolved=2 unresolved=r4084224040->#2278+#2362,r4084224052->#2278+#2362,r4084224062->#2278+#2362,r4084224083->#2278+#2362,r4084224101->#2278+#2362
+2320: threads=2 resolved=2 unresolved=
+expected unresolved (audit FOLLOW_UP rows with an OPEN thread):
+2290 F4;2293 F1;2293 F5;2300 F10;2313 F4;2313 F5;2313 F6;2313 F7;2313 F9;
+```
+
+#### Conclusion
+
+Of the 32 threads, 23 are resolved: 14 `FIXED` and 9 `NO_ACTION`. The 9 unresolved threads are
+exactly the audits' `FOLLOW_UP` rows, #2290 F4, #2293 F1 and F5, #2300 F10, and #2313 F4-F7 and
+F9. Each has a reply naming its owner: #2360, #2361, #2301, EPIC #2278 order 8, and #2362, a
+subissue of #2278. M2 passes.
 
 ### V3 - Live-Status Spot Check (M3)
 

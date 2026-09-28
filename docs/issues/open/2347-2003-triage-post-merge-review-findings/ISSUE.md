@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: 2363
-last-updated-utc: "2026-09-28 16:29"
+last-updated-utc: "2026-09-28 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -235,8 +235,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Maintainer disposition review | Maintainer approves or changes each proposed disposition; the decision is recorded in the progress log with a durable comment URL. See [Disposition Decisions (T3)](#disposition-decisions-t3). |
 | T4 | DONE | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
 | T5 | DONE | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
-| T6 | IN_PROGRESS | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
-| T7 | TODO | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
+| T6 | DONE | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
+| T7 | DONE | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
 
 ## Commit Points
 
@@ -258,9 +258,9 @@ progress log. No test code is planned.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2003, and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [x] Automatic verification completed (`linter all` and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -294,16 +294,18 @@ progress log. No test code is planned.
 - 2026-09-28 12:25 UTC - GitHub Copilot - The maintainer accepted the approval-URL timing deviation in the #2300, #2313, and #2320 audits, without rewriting them: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5869786394>. The proposed `process-pr-review` clarification stays in `implementation-retrospective.md` for a future skill change.
 - 2026-09-28 14:58 UTC - GitHub Copilot - Processed round 2 of the PR #2363 review (da2ce7 review 5338643536, F5-F9, reconfirmed by round-3 review 5339061836) and Copilot review 5338724829 (four comments, audit F10-F13) in `docs/pr-reviews/pr-2363-review/PR-REVIEW.md`. F5-F8 are fixed in one signed commit each. F9 is fixed by the PR description edit. F10-F13 have no change: the three unquoted stamps are string-typed and follow their folders' convention, and the F28 sentence is grammatical. All nine threads were replied to and resolved.
 - 2026-09-28 16:29 UTC - GitHub Copilot - Round 4 of the PR #2363 review approved `docs(issues): [#2347] map the pre-PR task review finding IDs` (da2ce7 ACK); GitHub dismissed it when the round-2 audit was pushed. Round 5 raised F14: the audit had recorded the Copilot severity labels wrongly. F14 is fixed in `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit`, and its thread was replied to and resolved. The maintainer hands EPIC #2003 to da2ce7: <https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520>.
+- 2026-09-28 17:00 UTC - GitHub Copilot - Round 6 (da2ce7 review 5341713976, 16:32:35Z) approved `d5bb52f33` and raised F15, a non-blocking request to record rounds 4-6 in the #2363 audit. GitHub dismissed that approval as stale when the rounds 4-5 audit commit was pushed. F15 was replied to and resolved at 16:53:48Z, and the four `CHANGES_REQUESTED` reviews were dismissed at 16:54 UTC. da2ce7 and the maintainer ACKed `30f7419c4`, and PR #2363 merged into `develop` at `bc90cde1b` (17:00:27Z). This PR does not close #2347; the T7 close-out does.
+- 2026-09-28 17:40 UTC - GitHub Copilot - T7 done, following the PR #2353 close-out precedent. `develop`'s tree at `bc90cde1b` is identical to the reviewed head `30f7419c4`. Each of the 13 fixes was re-checked on `develop`. Each fixed thread received a final reply citing the merge and its fix commit (17:07:36Z-17:07:57Z). Those 13 threads and the 9 `NO_ACTION` threads were resolved at 17:11 UTC; the 9 `FOLLOW_UP` threads stay open. The maintainer approved recording F15 in the #2363 audit after merge: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5875119437>. The close-out commit changes the 13 rows to `FIXED`/`RESOLVED`, the 9 `NO_ACTION` threads to `RESOLVED`, and adds #2363 F15. M2 passes (`manual-verification-evidence.md` V2), and AC4 is done.
 
 ## Acceptance Criteria
 
 - [x] AC1: Each of the 32 findings has a row in its owning PR's audit record, with a collision-safe ID, the reviewer's ID, a live-on-`develop` verification, and a maintainer-approved disposition.
 - [x] AC2: The maintainer approval of the dispositions is recorded as a durable GitHub comment URL before any fix or thread resolution. The URL appears in the Ownership section of the #2300, #2313, and #2320 audits when their rows are added, and of the #2290 and #2293 audits when those audits are created.
 - [x] AC3: Every approved fix is applied, and every approved `FOLLOW_UP` item links a created issue.
-- [ ] AC4: Each of the 32 threads has a finding-specific final reply. Every thread whose finding this task fixed or declined is resolved; every `FOLLOW_UP` thread stays open, its reply naming the owning issue, until that issue's fix merges. A final GraphQL fetch confirms both.
+- [x] AC4: Each of the 32 threads has a finding-specific final reply. Every thread whose finding this task fixed or declined is resolved; every `FOLLOW_UP` thread stays open, its reply naming the owning issue, until that issue's fix merges. A final GraphQL fetch confirms both.
 - [x] AC5: `validate-audit-record.py` exits `0` for PRs #2290, #2293, #2300, #2313, and #2320.
 - [x] `linter all` exits with code `0`.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 
 ## Verification Plan
@@ -322,7 +324,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Tracking replies visible | Open each of the five PRs on GitHub after T1. | Every one of the 32 threads shows a reply naming this issue. | DONE | `manual-verification-evidence.md` section V1 (GraphQL fetch of all five PRs, 2026-09-28 10:56 UTC) |
-| M2 | Thread states match dispositions | For each PR, run `github-review-threads fetch` and `list --unresolved-only` after T7. | Only `FOLLOW_UP` threads are unresolved, each with a reply naming its owning issue; every other of the 32 threads is resolved. | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Thread states match dispositions | For each PR, run `github-review-threads fetch` and `list --unresolved-only` after T7. | Only `FOLLOW_UP` threads are unresolved, each with a reply naming its owning issue; every other of the 32 threads is resolved. | DONE | `manual-verification-evidence.md` section V2 (GraphQL fetch of all five PRs, 2026-09-28 17:35 UTC) |
 | M3 | Live-status spot check | Re-run the recorded verification for three findings chosen at random, one per disposition kind. | Each re-run reproduces the recorded result. | DONE | `manual-verification-evidence.md` section V3 (#2290 F6, #2300 F8, #2290 F4) |
 
 No disposable verification script is planned.
@@ -334,7 +336,7 @@ No disposable verification script is planned.
 | AC1 | DONE | Audit records for the five PRs: 32 new rows, each with `Reviewer finding ID`, `Current-tree verification`, and an approved disposition |
 | AC2 | DONE | Approved in chat at 07:44 UTC; the approval record was posted at 07:45:06Z, before the first fix commit (authored 08:30:39 UTC). The URL is in all five Ownership sections, but the three existing audits received it only at T4; see the retrospective. |
 | AC3 | DONE | 12 fix commits in this PR plus the #2290 audit (F5); #2293 F3 fixed upstream by PR #2357; follow-up owners #2360, #2361, #2362, #2301, and EPIC #2278 order 8 |
-| AC4 | TODO | M2; thread replies (T7) |
+| AC4 | DONE | T7 final replies on the 13 fixed threads (after the disposition replies on all 32); 23 threads resolved and the 9 `FOLLOW_UP` threads open, each naming its owner (M2, `manual-verification-evidence.md` V2) |
 | AC5 | DONE | Validator output per PR in `manual-verification-evidence.md` Automatic Checks |
 
 ## Risks and Trade-offs
