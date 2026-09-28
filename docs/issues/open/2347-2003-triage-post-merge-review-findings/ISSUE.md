@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: 2363
-last-updated-utc: "2026-09-28 11:48"
+last-updated-utc: "2026-09-28 12:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -290,6 +290,7 @@ progress log. No test code is planned.
   - The 10:29 entry also records the #2293 F3 resolution, which happened at 10:32, after its stamp.
 
   The approval URL reached the #2300, #2313, and #2320 audits only at T4, after their first #2347 edits and replies. The retrospective records this deviation for the maintainer.
+- 2026-09-28 12:17 UTC - GitHub Copilot - Processed da2ce7's round-1 review of PR #2363 (review 5337742420, four findings) in `docs/pr-reviews/pr-2363-review/PR-REVIEW.md`. F2, F3, and F4 were already fixed by the pre-PR-review correction commit and the #2290 audit commit. F1 was live: the #2320 F29 correction had shifted the retrospective's later lines. It is fixed in `docs(pr-reviews): [#2347] keep the #2320 head-id note at two lines`. All four threads were replied to and resolved.
 
 ## Acceptance Criteria
 
