@@ -9,7 +9,7 @@ Rust model and two binaries:
 
 The contract and its decisions are specified in
 [issue #2266](../../../../docs/issues/closed/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md)
-and [issue #2281](../../../../docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md).
+and [issue #2281](../../../../docs/issues/closed/2281-2264-frontmatter-validator-command/ISSUE.md).
 
 ## Running the Validator
 
