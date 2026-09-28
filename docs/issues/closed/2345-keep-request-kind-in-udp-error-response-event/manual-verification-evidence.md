@@ -1,7 +1,9 @@
+<!-- markdownlint-disable MD003 MD022 -->
+
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
-last-updated-utc: 2026-09-27 10:15
+issue-spec: docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
+last-updated-utc: 2026-09-28 06:57
 ---
 
 # Manual Verification Evidence

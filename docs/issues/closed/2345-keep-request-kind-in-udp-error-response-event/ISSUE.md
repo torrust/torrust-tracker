@@ -1,15 +1,17 @@
+<!-- markdownlint-disable MD003 MD022 -->
+
 ---
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: null
 github-issue: 2345
-spec-path: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
+spec-path: docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
 branch: "2345-keep-request-kind-in-udp-error-response-event"
 related-pr: 2354
-last-updated-utc: "2026-09-27 18:10"
+last-updated-utc: "2026-09-28 06:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +22,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
-    - docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/manual-verification-evidence.md
+    - docs/issues/closed/2345-keep-request-kind-in-udp-error-response-event/manual-verification-evidence.md
     - packages/udp-server/src/server/processor.rs
     - packages/udp-server/src/handlers/mod.rs
     - packages/udp-server/src/event.rs
@@ -202,8 +204,8 @@ until merge.
 - [x] Evidence-based implementation completion review recorded.
 - [x] Reviewer validated acceptance criteria and updated checkboxes.
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification.
-- [ ] Committer verified spec progress is up to date before commit.
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
+- [x] Committer verified spec progress is up to date before commit.
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -237,6 +239,9 @@ until merge.
   reproduce; see the evidence note. - `agent-review-reports.md`
 - 2026-09-27 18:10 UTC - GitHub Copilot - Rebased onto `develop`; the pre-push hook passed
   (nightly checks, nightly docs, full stable test suite). Opened implementation PR #2354. -
+  https://github.com/torrust/torrust-tracker/pull/2354
+- 2026-09-28 06:57 UTC - GitHub Copilot - PR #2354 merged as `e1b0fa7e`; GitHub closed #2345.
+  Archived this completed specification under `docs/issues/closed/`. -
   https://github.com/torrust/torrust-tracker/pull/2354
 
 ## Acceptance Criteria
