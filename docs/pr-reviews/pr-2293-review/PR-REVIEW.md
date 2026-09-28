@@ -63,13 +63,13 @@ not land are F2, F3, and F4 below.
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2293-f1` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F2 | `review-finding:pr-2293-f2` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F2 | `review-finding:pr-2293-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2293-f3` | Human | Minor | formatting | ORIGINAL | FIXED | RESOLVED |
-| F4 | `review-finding:pr-2293-f4` | Human | Minor | link-integrity | ORIGINAL | FOLLOW_UP | OPEN |
+| F4 | `review-finding:pr-2293-f4` | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2293-f5` | Human | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | `review-finding:pr-2293-f6` | Human | Suggestion | security | ORIGINAL | NO_ACTION | OPEN |
-| F7 | `review-finding:pr-2293-f7` | Human | Suggestion | metadata | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | `review-finding:pr-2293-f8` | Human | Nit | metadata | ORIGINAL | NO_ACTION | OPEN |
+| F6 | `review-finding:pr-2293-f6` | Human | Suggestion | security | ORIGINAL | NO_ACTION | RESOLVED |
+| F7 | `review-finding:pr-2293-f7` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2293-f8` | Human | Nit | metadata | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -105,9 +105,9 @@ not land are F2, F3, and F4 below.
 - Current-tree verification: `.github/workflows/generate_coverage_pr.yaml` begins
   `name: Generate Coverage Reports (PR)`. On `develop` at `478516cf`, `docs/testing.md` reads
   ``The `Generate Coverage Report (PR)` workflow``.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121102107>
+- Resolution reference: `docs(testing): [#2347] name the PR coverage workflow correctly`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121102107>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4124957650>
 
 ### F3 - The `semantic-links.related-artifacts` list is mis-indented
 
@@ -142,9 +142,9 @@ not land are F2, F3, and F4 below.
   `git diff` against `feat(ci): add package coverage discovery tool` and
   `feat(ci): add package coverage regression report` shows the `package-coverage-regression`
   package byte-identical; only `Cargo.lock` differs.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121102703>
+- Resolution reference: `docs(issues): [#2347] map #2222 evidence commits to merged subjects`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121102703>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4124957952>
 
 ### F5 - The feature's central path was never verified on a hosted runner
 
@@ -195,9 +195,9 @@ not land are F2, F3, and F4 below.
   `Skill Links` section to the skill.
 - Current-tree verification: on `develop` at `478516cf`, `git grep 'skill-link: implement-workflow'`
   returns nothing.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121103559>
+- Resolution reference: `docs(skills): [#2347] link implement-workflow to its workflow artifacts`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4121103559>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2293#discussion_r4124958211>
 
 ### F8 - Stale `last-updated-utc` in both issue-folder docs (not live on `develop`)
 
@@ -225,6 +225,7 @@ not land are F2, F3, and F4 below.
 - 2026-09-28 10:32 UTC - Resolved the F3 thread; the other seven stay unresolved until the close-out, or until their owning issue's fix merges.
 - 2026-09-28 10:38 UTC - Started this audit. Copilot review 5275981836 (eight threads, resolved before merge without replies) is recorded as context only, without rows, as the maintainer approved.
 - 2026-09-28 11:48 UTC - Correction: the 2026-09-26 12:04 UTC entry is stamped at the first tracking reply; the last was posted at 12:05:10Z.
+- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F2, F4, and F7 (`created_at` 17:07:44Z-17:07:48Z), then resolved those threads and the F6, and F8 `NO_ACTION` threads. This close-out records F2, F4, and F7 as `FIXED`/`RESOLVED`, each citing its fixing commit with its T7 reply as Reply URL, and F6, and F8 as `RESOLVED`, keeping the disposition replies. F1 stays `FOLLOW_UP`/`OPEN` (#2361); F5 stays `FOLLOW_UP`/`OPEN` (#2301).
 
 ## Completion Rules
 
