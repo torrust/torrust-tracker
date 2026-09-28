@@ -52,3 +52,35 @@ semantic-links:
     pushes, and updates the PR body.
   - The maintainer decides whether the F10 approval-timing deviation needs a durable acceptance
     comment. It is recorded in `implementation-retrospective.md`.
+
+### 2026-09-28 14:37 UTC - GitHub Copilot Finding-ID Correction
+
+- Scope: Names the earlier conclusion. The 2026-09-28 11:41 UTC Task Reviewer entry's follow-up
+  actions cite F1-F15, but its Findings list carries no IDs. Raised as
+  `review-finding:pr-2363-f8`.
+- Evidence: The reviewer's full report numbered its findings F1-F15. The earlier entry condensed
+  them into grouped bullets without those numbers.
+- Correction: The earlier entry's F1-F15 are:
+  - F1 (Minor): the #2313 audit's stale `last-updated-utc`.
+  - F2 (Minor): the stale `triage.md` stamp.
+  - F3 (Nit): the #2278 EPIC stamp, which predates its last edit.
+  - F4 (Minor): the spec's 07:50 entry, which is later than its commit, and the approval time
+    (07:45:06Z, not 07:44).
+  - F5 (Minor): the spec's 10:29 entry, which records the 10:32 resolution.
+  - F6 (Nit): the #2290 and #2293 batch entries, stamped at the batch's first event.
+  - F7 (Minor): the stale PR body.
+  - F8 (Minor): the evidence file's claim that the audits were pushed.
+  - F9 (Minor): the "14 approved fixes are FOLLOW_UP/OPEN" paragraph.
+  - F10 (Minor, process): the approval URL reached the #2300, #2313, and #2320 audits only at T4.
+  - F11 (Nit): "13 fix commits" against 12.
+  - F12 (Nit): "each was caught before merge".
+  - F13 (Nit): the #2300 F7 row verified on the branch instead of `develop`.
+  - F14 (Nit): the leftover template instruction.
+  - F15 (Suggestion): the git-ignored `.tmp` capture named as the source.
+
+  F1-F6, F8, F9, and F11-F15 were fixed in
+  `docs(issues): [#2347] correct stamps and stale claims found by the pre-PR review`. F7 was
+  fixed by the PR body edit. The maintainer accepted F10 in
+  <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5869786394>. The earlier
+  entry is unchanged.
+- Verdict: CORRECTION RECORDED
