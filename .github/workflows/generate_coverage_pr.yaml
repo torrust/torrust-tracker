@@ -1,6 +1,7 @@
 name: Generate Coverage Reports (PR)
 
 # skill-link: update-github-workflow-actions
+# skill-link: implement-workflow
 # Path policy: skip this workflow when every changed file is documentation.
 # See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:

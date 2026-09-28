@@ -1,3 +1,9 @@
+---
+semantic-links:
+  skill-links:
+    - implement-workflow
+---
+
 # GitHub Actions Workflows
 
 Follow the canonical [workflow implementation skill](../skills/dev/ci/implement-workflow/SKILL.md)

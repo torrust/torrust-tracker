@@ -65,6 +65,11 @@ For repository tooling, also run its focused formatter, tests, and strict
 linting. Before committing, run the repository pre-commit gate. Record hosted
 workflow evidence separately when it cannot be reproduced locally.
 
+## Skill Links
+
+- `.github/workflows/AGENTS.md`
+- `.github/workflows/generate_coverage_pr.yaml`
+
 ## Related Guidance
 
 - [Root repository instructions](../../../../../AGENTS.md) define the
