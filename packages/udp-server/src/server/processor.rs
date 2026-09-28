@@ -189,6 +189,7 @@ mod tests {
     use tokio::time::{Instant, timeout_at};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
+    use torrust_tracker_udp_core::event::ConnectionContext;
     use torrust_tracker_udp_protocol::{ConnectRequest, ConnectionId, InfoHash, Request, ScrapeRequest, TransactionId};
 
     use crate::RawRequest;
@@ -286,7 +287,7 @@ mod tests {
     }
 
     /// Skips the events published before the response, such as `UdpRequestAccepted` and `UdpError`.
-    async fn receive_response_sent_kind(event_receiver: &mut Receiver) -> UdpResponseKind {
+    async fn receive_response_sent(event_receiver: &mut Receiver) -> (ConnectionContext, UdpResponseKind) {
         let deadline = Instant::now() + EVENT_PUBLICATION_TIMEOUT;
 
         loop {
@@ -295,8 +296,8 @@ mod tests {
                 .expect("processor should publish `UdpResponseSent` before the test deadline")
                 .expect("event receiver should remain connected");
 
-            if let Event::UdpResponseSent { kind, .. } = event {
-                return kind;
+            if let Event::UdpResponseSent { context, kind, .. } = event {
+                return (context, kind);
             }
         }
     }
@@ -316,15 +317,48 @@ mod tests {
         // Arrange
         let (processor, mut event_receiver) = setup_processor_with_event_receiver().await;
         let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+        let expected_context = ConnectionContext::new(
+            processor.udp_tracker_core_container.configuration_instance_id,
+            client_with_port_0,
+            processor.server_service_binding.clone(),
+        );
 
         // Act
         processor.process_request(connect_request_from(client_with_port_0)).await;
 
         // Assert
-        assert!(matches!(
+        assert_eq!(
             receive_event(&mut event_receiver).await,
-            Event::UdpRequestDiscarded { .. }
-        ));
+            Event::UdpRequestDiscarded {
+                context: expected_context
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_response_sent_event_when_it_answers_a_connect_request() {
+        // Arrange
+        let (processor, mut event_receiver) = setup_processor_with_event_receiver().await;
+        let client = bind_loopback_client().await;
+        let client_socket_addr = client.local_addr().expect("the client socket should have a local address");
+        let expected_context = ConnectionContext::new(
+            processor.udp_tracker_core_container.configuration_instance_id,
+            client_socket_addr,
+            processor.server_service_binding.clone(),
+        );
+
+        // Act
+        processor.process_request(connect_request_from(client_socket_addr)).await;
+
+        // Assert
+        let (context, kind) = receive_response_sent(&mut event_receiver).await;
+        assert_eq!(context, expected_context);
+        assert_eq!(
+            kind,
+            UdpResponseKind::Ok {
+                req_kind: UdpRequestKind::Connect
+            }
+        );
     }
 
     #[tokio::test]
@@ -343,7 +377,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            receive_response_sent_kind(&mut event_receiver).await,
+            receive_response_sent(&mut event_receiver).await.1,
             UdpResponseKind::Error {
                 opt_req_kind: Some(UdpRequestKind::Scrape)
             },
@@ -367,7 +401,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            receive_response_sent_kind(&mut event_receiver).await,
+            receive_response_sent(&mut event_receiver).await.1,
             UdpResponseKind::Error { opt_req_kind: None },
             "a 3-byte payload cannot be parsed, so its error-response event has no request kind"
         );

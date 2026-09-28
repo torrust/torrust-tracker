@@ -36,7 +36,7 @@ maintainer approves it.
 | 12 | [server-spawner-tests.md](server-spawner-tests.md) | DONE | No code or test change; unit-only 100.00% lines |
 | 13 | [server-launcher-tests.md](server-launcher-tests.md) | DONE | 2 admit-path unit tests added; unit-only 95.86% → 96.98% lines; post-commit readability refactor and 1 test split |
 | 14 | [server-receiver-tests.md](server-receiver-tests.md) | DONE | No code or test change; unit-only 98.21% lines |
-| 15 | [server-processor-tests.md](server-processor-tests.md) | IN_PROGRESS | Paused on a separate bug fix (error-response request kind); unit-only 84.71% lines |
+| 15 | [server-processor-tests.md](server-processor-tests.md) | DONE | Discard assertion completed; connect response event covered; #2354 covers error classification; unit-only 100.00% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
