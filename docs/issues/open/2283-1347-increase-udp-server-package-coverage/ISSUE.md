@@ -263,7 +263,7 @@ inventory and every plan.
 | 14 | `server/receiver.rs` | Probably no change | DONE | [server-receiver-tests.md](test-refactor-plans/server-receiver-tests.md) |
 | 15 | `server/processor.rs` | Probably no change | DONE | [server-processor-tests.md](test-refactor-plans/server-processor-tests.md) |
 | 16 | `server/request_buffer.rs` | Lifecycle (#1488 SI-15) | DONE | [server-request-buffer-tests.md](test-refactor-plans/server-request-buffer-tests.md) |
-| 17 | `server/states.rs` | Lifecycle (#1488) | PENDING | — |
+| 17 | `server/states.rs` | Lifecycle (#1488) | IN_PROGRESS | [server-states-tests.md](test-refactor-plans/server-states-tests.md) |
 | 18 | `banning/mod.rs` | Wiring only | PENDING | — |
 | 19 | `banning/event/mod.rs` | Wiring only | PENDING | — |
 | 20 | `banning/event/handler.rs` | Probably no change | PENDING | — |
