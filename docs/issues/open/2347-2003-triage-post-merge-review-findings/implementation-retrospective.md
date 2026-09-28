@@ -23,7 +23,8 @@ All 32 post-merge findings on PRs #2290, #2293, #2300, #2313, and #2320 have a
 maintainer-approved disposition, a disposition reply on their own thread, and a row in the owning
 PR's audit record. Every audit passes `validate-audit-record.py`.
 
-- 13 documentation fixes land in PR #2363, one signed commit each.
+- 13 fixes land in PR #2363: 12 documentation fix commits, and the #2290 audit, which is itself
+  the fix for #2290 F5.
 - One fix (#2293 F3) landed upstream in PR #2357.
 - 9 findings were declined.
 - 9 are owned by other issues: the new #2360, #2361, and #2362; the existing #2301; and #2278
@@ -60,7 +61,23 @@ The close-out (T7) remains.
   later than the events they recorded: the #2360 draft log said 09:50 for a 09:40 draft, and the
   first amendment comment said 09:55 for a 09:51 post. Three fix commits edited documents without
   refreshing their `last-updated-utc` (fixed by a follow-up commit). One audit line number moved
-  under this branch's own edit (#2320 F28). Each was caught before merge and corrected.
+  under this branch's own edit (#2320 F28). I corrected those before the pre-PR review. The
+  pre-PR task review (`agent-review-reports.md`) then found more of the same kind:
+  - three stale `last-updated-utc` stamps;
+  - the spec's 2026-09-27 19:05 and 2026-09-28 07:50 entries, both estimates, one of them later
+    than its own commit;
+  - two batch log entries stamped at the batch's first event;
+  - claims in the evidence file and PR body that the later commits had made stale.
+
+  All were corrected by appended entries or in-place edits of this branch's unmerged text,
+  before the PR was marked ready.
+- **Approval URL timing in the existing audits.** `process-pr-review` step 2 asks for the
+  approval URL in the original audit before any mutating action. The approval existed as a
+  durable comment from 07:45 UTC. But the #2300 and #2320 audits received #2347 edits (the F5 log
+  correction and the F29 note) at 09:00 and 09:22, and all 32 threads received replies at 10:29.
+  The URL reached the #2300, #2313, and #2320 Ownership sections only in the T4 audit commits
+  (10:44-10:54). The reply-first order made the audit commits come last, and the approval line
+  moved with them instead of being written first.
 
 ## Root Cause
 
@@ -91,7 +108,10 @@ The close-out (T7) remains.
 3. In `process-pr-review` post-merge triage, search for an existing owner in the affected folder's
    parent EPIC (the `NNNN-EPIC-slug` prefix), not only in the EPIC the reviewer's topic suggests.
 4. Take every log or comment stamp from `date -u` at writing time, or from the event's
-   `created_at`. Never estimate.
+   `created_at`. Never estimate. For a batch, stamp the entry at the batch's last event.
+5. In `process-pr-review` "Reviews Submitted After Merge", say that when disposition replies
+   must precede the audit rows, the Ownership approval line is still committed to each existing
+   audit first, as its own commit.
 
 ## Avoiding Overcorrection
 

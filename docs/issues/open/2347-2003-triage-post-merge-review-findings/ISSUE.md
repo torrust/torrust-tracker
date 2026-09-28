@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: 2363
-last-updated-utc: "2026-09-28 11:00"
+last-updated-utc: "2026-09-28 11:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,12 +200,14 @@ Why we proceed this way:
   that states the disposition needs the PR and the owning issue to exist. The T1 replies only say
   that the disposition is pending, so they cannot serve as resolution references.
 - **Approved fixes stay `FOLLOW_UP` until merge.** `process-pr-review` "Reviews Submitted After
-  Merge" forbids claiming `FIXED` on `develop` before the follow-up merges. In this PR, the 14
-  approved fixes are therefore recorded as `FOLLOW_UP`/`OPEN`, with this PR as `Follow-up PR URL`.
-  The T7 close-out changes them to `FIXED`, citing their commit subjects, and replaces each reply
-  URL with the final one. NO_ACTION rows are final in this PR; their threads are resolved in T7.
-  Each thread therefore ends with three replies: the T1 tracking reply, the disposition reply,
-  and the T7 reply. A NO_ACTION thread needs no T7 reply.
+  Merge" forbids claiming `FIXED` on `develop` before the follow-up merges. In this PR, the 13
+  approved fixes that land here are therefore recorded as `FOLLOW_UP`/`OPEN`, with this PR as
+  `Follow-up PR URL`. The T7 close-out changes them to `FIXED`, citing their commit subjects, and
+  replaces each reply URL with the final one. #2293 F3 is the exception: PR #2357 fixed it upstream,
+  so it is already `FIXED`/`RESOLVED`, and its thread was resolved after the disposition reply.
+  NO_ACTION rows are final in this PR; their threads are resolved in T7. A thread fixed here
+  therefore ends with three replies: the T1 tracking reply, the disposition reply, and the T7
+  reply. NO_ACTION and #2293 F3 threads need no T7 reply.
 
 ## Design and Ownership Review
 
@@ -262,7 +264,7 @@ progress log. No test code is planned.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -282,6 +284,12 @@ progress log. No test code is planned.
 - 2026-09-28 10:29 UTC - GitHub Copilot - The maintainer reviewed the 32 drafted disposition replies, and they were posted from 10:28:56Z to 10:29:54Z. The #2293 F3 thread was resolved at 10:32 UTC.
 - 2026-09-28 10:57 UTC - GitHub Copilot - T4 done: five audit commits, one per merged PR. `validate-audit-record.py` exits `0` for each: #2290 (7 rows), #2293 (8), #2300 (12), #2313 (10), and #2320 (29), with the first parent of each PR's merge commit as `--base`.
 - 2026-09-28 11:00 UTC - GitHub Copilot - T6: M1 and M3 are recorded in `manual-verification-evidence.md`. M2 waits for T7. The acceptance criteria were re-reviewed: AC1, AC2, AC3, and AC5 are done, and AC4 waits for T7. `implementation-retrospective.md` records why 32 post-merge findings went unprocessed, and four improvement candidates for the maintainer to decide on. An independent task review comes next, before the PR is marked ready.
+- 2026-09-28 11:48 UTC - GitHub Copilot - The independent task review (`agent-review-reports.md`) failed on documentation defects only. Corrections to earlier entries, which are kept:
+  - The 2026-09-27 19:05 entry and `triage.md`'s original stamp were estimates. `docs(issues): [#2347] record T2 triage of post-merge findings` was authored at 20:06:33 UTC.
+  - The 07:50 entry is later than the commit that carries it: `docs(issues): [#2347] record T3 disposition decisions` was authored at 07:46:57 UTC. Its approval record was posted at 07:45:06Z; 07:44 is the chat approval time.
+  - The 10:29 entry also records the #2293 F3 resolution, which happened at 10:32, after its stamp.
+
+  The approval URL reached the #2300, #2313, and #2320 audits only at T4, after their first #2347 edits and replies. The retrospective records this deviation for the maintainer.
 
 ## Acceptance Criteria
 
@@ -320,8 +328,8 @@ No disposable verification script is planned.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Audit records for the five PRs: 32 new rows, each with `Reviewer finding ID`, `Current-tree verification`, and an approved disposition |
-| AC2 | DONE | Approval posted 2026-09-28 07:44 UTC, before the first fix commit; the URL is in all five Ownership sections |
-| AC3 | DONE | 13 fix commits in this PR, plus #2293 F3 fixed upstream by PR #2357; follow-up owners #2360, #2361, #2362, #2301, and EPIC #2278 order 8 |
+| AC2 | DONE | Approved in chat at 07:44 UTC; the approval record was posted at 07:45:06Z, before the first fix commit (authored 08:30:39 UTC). The URL is in all five Ownership sections, but the three existing audits received it only at T4; see the retrospective. |
+| AC3 | DONE | 12 fix commits in this PR plus the #2290 audit (F5); #2293 F3 fixed upstream by PR #2357; follow-up owners #2360, #2361, #2362, #2301, and EPIC #2278 order 8 |
 | AC4 | TODO | M2; thread replies (T7) |
 | AC5 | DONE | Validator output per PR in `manual-verification-evidence.md` Automatic Checks |
 
@@ -341,8 +349,6 @@ No disposable verification script is planned.
   records why 32 post-merge findings went unprocessed (nothing surfaces threads opened after a
   merge), three recurring finding classes, and four improvement candidates for the maintainer to
   decide on.
-- Create `implementation-retrospective.md` if triage shows a recurring cause of unprocessed
-  post-merge feedback worth a guardrail; otherwise record why none was needed.
 - When an independent reviewer receives this folder-style specification, record the result in
   `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 

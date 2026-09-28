@@ -224,6 +224,7 @@ not land are F2, F3, and F4 below.
 - 2026-09-28 10:29 UTC - Posted a disposition reply on each of the eight threads (`created_at` 10:29:08Z-10:29:21Z).
 - 2026-09-28 10:32 UTC - Resolved the F3 thread; the other seven stay unresolved until the close-out, or until their owning issue's fix merges.
 - 2026-09-28 10:38 UTC - Started this audit. Copilot review 5275981836 (eight threads, resolved before merge without replies) is recorded as context only, without rows, as the maintainer approved.
+- 2026-09-28 11:48 UTC - Correction: the 2026-09-26 12:04 UTC entry is stamped at the first tracking reply; the last was posted at 12:05:10Z.
 
 ## Completion Rules
 

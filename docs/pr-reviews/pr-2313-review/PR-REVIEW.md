@@ -1,7 +1,7 @@
 ---
 pr-number: 2313
 pr-url: https://github.com/torrust/torrust-tracker/pull/2313
-last-updated-utc: "2026-09-23 10:41"
+last-updated-utc: "2026-09-28 11:48"
 ---
 
 # PR #2313 Review Audit

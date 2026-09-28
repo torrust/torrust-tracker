@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-last-updated-utc: "2026-09-28 11:00"
+last-updated-utc: "2026-09-28 11:48"
 ---
 
 # Manual Verification Evidence
@@ -18,13 +18,15 @@ do not invent commands, output, logs, or results.
 
 - Date and time (UTC): 2026-09-28 10:56-10:57
 - Artifact under test: the review threads of PRs #2290, #2293, #2300, #2313, and #2320 on GitHub,
-  and the #2347 branch as pushed to PR #2363, rebased on `develop` at `8a953724`, with the five
-  audit commits (`docs(pr-reviews): [#2347] add PR #2290 post-merge review audit` through
-  `docs(pr-reviews): [#2347] record PR #2320 post-merge findings`).
+  and the local #2347 branch at `docs(pr-reviews): [#2347] record PR #2320 post-merge findings`,
+  rebased on `develop` at `8a953724`. It includes the five audit commits, from
+  `docs(pr-reviews): [#2347] add PR #2290 post-merge review audit` through that one. They were
+  pushed to PR #2363 after this verification.
 - Operating system / environment: Linux local development workspace; `gh` authenticated as
   `josecelano`; stable Rust `1.98.1`, nightly Rust `1.100.0-nightly` (2026-09-23).
-- Prerequisites and setup performed: `.tmp/c1e-replies.tsv` lists each finding's source comment
-  id. It is the T1 capture, and the IDs are also in the spec's Finding Inventory.
+- Prerequisites and setup performed: the source comment IDs come from the spec's Finding
+  Inventory, which is the source of record. `.tmp/c1e-replies.tsv`, the git-ignored T1 capture,
+  held the same IDs.
 
 ## Verification Processes
 

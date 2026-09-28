@@ -141,7 +141,7 @@ Rows F5-F12 come from review 5284011916, submitted after the merge and tracked b
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4076706639>
 - Concern: V2 records the pinned roster sentence at line 167, which moved after `docs(pr-reviews): clarify audit roster optional fields`, and M2 was not re-run after that round.
 - Solution: No action, approved by the maintainer. Only the line number moved and the check still passes, so this row records the current output instead of editing closed evidence. The un-repeated verification is recorded as a recurring cause in the #2347 triage.
-- Current-tree verification: on the #2347 branch, `grep -nF 'tracking row plus one matching detail entry carrying the remaining narrative and' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md` prints `185:`, and `cargo run --package agent-review-report-contract` prints `Agent review report contract check passed.`
+- Current-tree verification: on `develop` at `8a953724` (the #2347 branch does not change the skill), `grep -nF 'tracking row plus one matching detail entry carrying the remaining narrative and' .github/skills/dev/pr-reviews/process-pr-review/SKILL.md` prints `185:`, and `cargo run --package agent-review-report-contract` prints `Agent review report contract check passed.`
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104659>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104659>

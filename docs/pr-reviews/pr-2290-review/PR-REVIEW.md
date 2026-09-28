@@ -208,6 +208,7 @@ replies, and they get no rows here, by maintainer decision (approval record abov
 - 2026-09-28 10:24 UTC - Follow-up PR #2363 opened as a draft with the F1, F2, F3, and F6 fix commits.
 - 2026-09-28 10:28 UTC - Posted a disposition reply on each of the seven threads (`created_at` 10:28:56Z-10:29:07Z). Threads stay unresolved until the close-out.
 - 2026-09-28 10:33 UTC - Started this audit, fixing F5. Copilot review 5275400698 (three threads, resolved before merge without replies) is recorded as context only, without rows, as the maintainer approved.
+- 2026-09-28 11:48 UTC - Correction: the 10:28 UTC entry is stamped at the first disposition reply; the last was posted at 10:29:07Z.
 
 ## Completion Rules
 

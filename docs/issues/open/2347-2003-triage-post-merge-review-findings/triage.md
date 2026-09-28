@@ -1,6 +1,6 @@
 ---
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
-last-updated-utc: "2026-09-27 19:05"
+last-updated-utc: "2026-09-28 11:48"
 semantic-links:
   related-artifacts:
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
