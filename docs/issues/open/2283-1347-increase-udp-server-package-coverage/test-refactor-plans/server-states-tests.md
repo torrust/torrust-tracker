@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2283
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/states.rs
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/states.rs
@@ -58,14 +58,13 @@ Conclusion: clean. No test refactor proposed.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | PROPOSED | Record the prose-first review and no-change conclusion. | This plan. |
-| R2 | PROPOSED | Do not add bind, registration, stop, or representation tests. | Ownership rationale above. |
+| R1 | DONE | Record the prose-first review and no-change conclusion. | This plan. |
+| R2 | DONE | Do not add bind, registration, stop, or representation tests. | Ownership rationale above. |
 | R3 | DONE | Re-run unit-only coverage. | 72 / 77 lines, 16 / 20 functions, 91 / 102 regions. |
 
-## Approval Required
+## Completed-File Review
 
-This plan proposes no Rust changes. Maintainer approval is required before recording its
-completed-file conclusion and moving to the next ledger file.
+Approved by Jose Celano on 2026-09-28. No Rust change is selected.
 
 ## Progress Log
 

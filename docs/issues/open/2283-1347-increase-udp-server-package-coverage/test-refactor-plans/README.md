@@ -38,7 +38,7 @@ maintainer approves it.
 | 14 | [server-receiver-tests.md](server-receiver-tests.md) | DONE | No code or test change; unit-only 98.21% lines |
 | 15 | [server-processor-tests.md](server-processor-tests.md) | DONE | Discard assertion completed; connect response event covered; #2354 covers error classification; unit-only 100.00% lines |
 | 16 | [server-request-buffer-tests.md](server-request-buffer-tests.md) | DONE | No Rust change; current admission, eviction, and drop contracts remain sufficient; unit-only 93.10% lines |
-| 17 | [server-states-tests.md](server-states-tests.md) | IN_PROGRESS | Proposed no-change conclusion; unit-only 93.51% lines |
+| 17 | [server-states-tests.md](server-states-tests.md) | DONE | No Rust change; startup-notification mappings are complete and lifecycle behavior remains #1488-owned; unit-only 93.51% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
