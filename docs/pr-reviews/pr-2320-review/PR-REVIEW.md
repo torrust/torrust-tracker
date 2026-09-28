@@ -83,8 +83,8 @@ findings `F1`-`F23` across rounds 1-8; those collide with the Copilot IDs and ar
 | F25 | `review-finding:pr-2320-f25` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | `review-finding:pr-2320-f26` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | `review-finding:pr-2320-f27` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F28 | `review-finding:pr-2320-f28` | Human | Nit | documentation | ORIGINAL | NO_ACTION | OPEN |
-| F29 | `review-finding:pr-2320-f29` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F28 | `review-finding:pr-2320-f28` | Human | Nit | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| F29 | `review-finding:pr-2320-f29` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 Rows F28 and F29 come from review 5302919075, submitted after the merge and tracked by #2347. The reviewer's IDs `F24` and `F25` collide with this record's F24 and F25, which are different findings, so they are recorded as audit `F28` and `F29`. Each detail entry keeps the reviewer's ID. F29 is fixed in follow-up PR #2363 and stays `FOLLOW_UP`/`OPEN` until it merges. The F28 thread is resolved in the #2347 close-out.
 
@@ -584,9 +584,9 @@ Rows F28 and F29 come from review 5302919075, submitted after the merge and trac
 - Concern: The retrospective's Timeline note says every quoted head id is a rewritten pre-rebase id. Only the round-1 and round-2 heads are; the other five are on `develop`.
 - Solution: `docs(pr-reviews): [#2347] correct the #2320 retrospective head-id note` corrects the note in place to the reviewer's wording, and records the edit in this log.
 - Current-tree verification: `git merge-base --is-ancestor <id> develop` holds for `305ddce1`, `7e426ba2`, `c84a224a`, `a1386c2f`, and `69fc9030`, and fails for `d8c82bec` and `ae66bb69`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4121108859>
+- Resolution reference: `docs(pr-reviews): [#2347] correct the #2320 retrospective head-id note`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4121108859>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2320#discussion_r4124959621>
 
 ## Processing Log
 
@@ -623,6 +623,8 @@ Rows F28 and F29 come from review 5302919075, submitted after the merge and trac
 - 2026-09-28 10:29 UTC - Posted a disposition reply on the two post-merge threads of review 5302919075 (`created_at` 10:29:52Z-10:29:54Z). #2347 had posted tracking replies on 2026-09-26 from 12:05 UTC.
 - 2026-09-28 10:54 UTC - Added rows F28 and F29 for review 5302919075 (reviewer IDs F24 and F25), as #2347 approved. Changed the Ownership section's `Post-merge workflow approval` from `N/A` to the #2347 approval record. That is the only in-place edit to earlier content besides the 09:22 F29 correction.
 - 2026-09-28 12:03 UTC - Re-wrapped the 09:22 F29 correction to two lines, as it was before the correction, so every later line of `review-retrospective.md` keeps its `develop` line number. The line citations in records F23, F24, and F26 hold again. PR #2363 review 5337742420, finding F1, raised this.
+- 2026-09-28 17:07 UTC - Follow-up PR #2363 merged into `develop` at `bc90cde1b` (17:00 UTC); its tree is identical to the reviewed head `30f7419c4`. Re-derived the fix on `develop`, changed F29 to `FIXED`/`RESOLVED` with its commit subject as resolution reference, and posted a final reply (`created_at` 17:07:57Z).
+- 2026-09-28 17:11 UTC - Resolved the fixed thread and the F28 (`NO_ACTION`) thread. A GraphQL refetch at 17:12 UTC shows 29 threads, 0 unresolved.
 
 ## Completion Rules
 

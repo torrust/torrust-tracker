@@ -19,7 +19,7 @@ Source: pull-request reviews and inline review threads for
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5875119437>
 
 ## Status Values
 
@@ -61,6 +61,7 @@ F2, F3, and F4 were already fixed by commits pushed after that head.
 | F12 | `review-finding:pr-2363-f12` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F13 | `review-finding:pr-2363-f13` | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | `review-finding:pr-2363-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2363-f15` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 Round 2: F5-F9 are the reviewer's IDs from review 5338643536, at the head
 `docs(pr-reviews): [#2347] add PR #2363 review audit`. Review 5339061836 (round 3, at the head
@@ -283,6 +284,19 @@ audit commit was pushed. Round 5 (review 5340689822, at the head
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124584947>
 
+### F15 - The audit does not yet record rounds 4-6: F14 has no row, and the Processing Log ends at 14:56
+
+- PR number: 2363
+- Source review ID: 5341713976
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124649764>
+- Concern: At `d5bb52f33`, this record had no row for F14 and no Processing Log entries for rounds 4-6. The reviewer marked it non-blocking and left it to the #2347 close-out.
+- Solution: `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5` (merged in PR #2363) added row F14 and the round 4 and round 5 entries. The rest is left to the #2347 close-out, as approved after merge (Ownership section): `docs(pr-reviews): [#2347] close the post-merge review audits after PR #2363 merge` adds this row and logs round 6 and the merge.
+- Current-tree verification: this record holds rows F1-F15, each with a detail entry, and its Processing Log runs from round 1 to the merge at `bc90cde1b`.
+- Resolution reference: `docs(pr-reviews): [#2347] close the post-merge review audits after PR #2363 merge`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2363#discussion_r4124835256>
+
 ## Processing Log
 
 - 2026-09-28 12:03 UTC - Started processing round 1: review 5337742420 (da2ce7, `CHANGES_REQUESTED`, submitted 11:16 UTC at the draft head) with four inline findings. At the current head, F2, F3, and F4 were already fixed by commits pushed after that head; F1 was live (`git grep` returned 162, 430, 434, and 435).
@@ -297,6 +311,10 @@ audit commit was pushed. Round 5 (review 5340689822, at the head
 - 2026-09-28 15:01 UTC - GitHub dismissed round 4 (review 5340437680, da2ce7 `APPROVED` at 14:51 UTC, with PR comment `ACK 068a0189b…`) as stale when the round-2 audit commit was pushed. Round 4 raised no finding.
 - 2026-09-28 16:25 UTC - Round 5 (review 5340689822, da2ce7, `CHANGES_REQUESTED` at 15:10 UTC) raised F14. Committed the F14 fix `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit` (authored 16:20:03Z) and pushed it; the pre-push hook passed.
 - 2026-09-28 16:27 UTC - Replied on the F14 thread (`created_at` 16:26:09Z), confirmed the reply with `reply-status`, and resolved it. A GraphQL refetch shows zero unresolved threads on PR #2363.
+- 2026-09-28 16:43 UTC - Round 6 (review 5341713976, da2ce7 `APPROVED` at 16:32:35Z on `d5bb52f33`, with PR comment `ACK d5bb52f33…`) raised F15. GitHub dismissed it as stale when `docs(pr-reviews): [#2347] record PR #2363 review rounds 4 and 5` was pushed.
+- 2026-09-28 16:54 UTC - Replied on the F15 thread (`created_at` 16:53:48Z), deferring round 6 and the F15 row to the #2347 close-out, and resolved it. Dismissed the four `CHANGES_REQUESTED` reviews 5337742420, 5338643536, 5339061836, and 5340689822 (16:54:24Z-16:54:29Z); each finding they raised is fixed and resolved.
+- 2026-09-28 17:00 UTC - da2ce7 (16:50:04Z) and the maintainer (16:58:14Z) posted `ACK 30f7419c4…`. PR #2363 merged into `develop` at `bc90cde1b` (17:00:27Z) with F15 unaudited.
+- 2026-09-28 17:26 UTC - The maintainer approved recording F15 after merge (Ownership section). The #2347 close-out adds row F15 as `FIXED`/`RESOLVED`; its thread was already resolved.
 
 ## Completion Rules
 

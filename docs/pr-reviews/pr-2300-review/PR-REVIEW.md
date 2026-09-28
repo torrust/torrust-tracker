@@ -42,14 +42,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | `review-finding:pr-2300-f2` | Copilot | Major (inferred) | documentation | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
 | F3 | `review-finding:pr-2300-f3` | Copilot | Major (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2300-f4` | Copilot | Major (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F5 | `review-finding:pr-2300-f5` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | `review-finding:pr-2300-f6` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F7 | `review-finding:pr-2300-f7` | Human | Minor | testing | ORIGINAL | NO_ACTION | OPEN |
-| F8 | `review-finding:pr-2300-f8` | Human | Minor | correctness | ORIGINAL | NO_ACTION | OPEN |
-| F9 | `review-finding:pr-2300-f9` | Human | Minor | link-integrity | ORIGINAL | FOLLOW_UP | OPEN |
+| F5 | `review-finding:pr-2300-f5` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2300-f6` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2300-f7` | Human | Minor | testing | ORIGINAL | NO_ACTION | RESOLVED |
+| F8 | `review-finding:pr-2300-f8` | Human | Minor | correctness | ORIGINAL | NO_ACTION | RESOLVED |
+| F9 | `review-finding:pr-2300-f9` | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2300-f10` | Human | Suggestion | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
-| F11 | `review-finding:pr-2300-f11` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | OPEN |
-| F12 | `review-finding:pr-2300-f12` | Human | Minor | maintainability | ORIGINAL | NO_ACTION | OPEN |
+| F11 | `review-finding:pr-2300-f11` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| F12 | `review-finding:pr-2300-f12` | Human | Minor | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
 
 Rows F5-F12 come from review 5284011916, submitted after the merge and tracked by #2347. The reviewer numbered them `loop F5`-`loop F12` after this record's F1-F4, so no ID collides. F5, F6, and F9 are fixed in follow-up PR #2363 and stay `FOLLOW_UP`/`OPEN` until it merges. F10 is owned by EPIC #2278 order 8. The `NO_ACTION` threads are resolved in the #2347 close-out.
 
@@ -116,9 +116,9 @@ Rows F5-F12 come from review 5284011916, submitted after the merge and tracked b
 - Concern: The 15:13 and 15:15 UTC log entries are stamped before the commit, replies, and push they record.
 - Solution: `docs(pr-reviews): [#2347] correct PR #2300 audit log stamps` appends a correction entry that names both stamps and the re-derived event times, keeping the entries.
 - Current-tree verification: `git log -1 --format=%aI` gives 15:20:35Z for `docs(pr-reviews): clarify audit roster optional fields` and 15:24:57Z for `docs(pr-reviews): audit PR 2300 Copilot review`. The replies' `created_at` values are 15:23:23Z-15:23:29Z, and the PR timeline's only push is `head_ref_force_pushed` at 16:12:36Z.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104102>
+- Resolution reference: `docs(pr-reviews): [#2347] correct PR #2300 audit log stamps`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104102>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4124958505>
 
 ### F6 - AC6 is checked but false at the head it ships in
 
@@ -129,9 +129,9 @@ Rows F5-F12 come from review 5284011916, submitted after the merge and tracked b
 - Concern: #2295's AC6, "No file under `docs/pr-reviews/` changes", is checked, but the PR added its own audit record.
 - Solution: `docs(issues): [#2347] correct #2295 AC6 after the PR audit landed` appends a progress-log correction to the #2295 spec, keeping AC6 and M4 as recorded.
 - Current-tree verification: `git diff --stat 3aeb62c5 caa6c674 -- docs/pr-reviews/` prints `docs/pr-reviews/pr-2300-review/PR-REVIEW.md | 117 +++`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104348>
+- Resolution reference: `docs(issues): [#2347] correct #2295 AC6 after the PR audit landed`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121104348>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4124958728>
 
 ### F7 - V2's recorded grep output no longer reproduces, and M2 was not repeated after the review round that invalidated it
 
@@ -168,9 +168,9 @@ Rows F5-F12 come from review 5284011916, submitted after the merge and tracked b
 - Concern: The #2295 agent-review-reports Inputs line cites `1682aff5`, `b33e2807`, and `27a57e1b`, which the pre-merge force-push made unreachable.
 - Solution: `docs(issues): [#2347] cite #2295 review inputs by commit subject` appends a correction entry that maps each id to its subject, keeping the 14:11 entry.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/commits/<sha>` still serves the three objects, with subjects `docs(pr-reviews): single-source the audit field roster`, `docs(pr-reviews): mark audit template section ownership`, and `docs(issues): record issue 2295 verification evidence`. Each subject names exactly one commit on `develop`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121105265>
+- Resolution reference: `docs(issues): [#2347] cite #2295 review inputs by commit subject`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4121105265>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2300#discussion_r4124958998>
 
 ### F10 - The new pins cover 3 of the 19 roster names, so the skill's "must match exactly" rule stays largely unenforced
 
@@ -219,6 +219,8 @@ Rows F5-F12 come from review 5284011916, submitted after the merge and tracked b
 - 2026-09-28 09:00 UTC - Correction (post-merge, #2347): the 15:13 and 15:15 entries above are stamped before the events they record. Commit `docs(pr-reviews): clarify audit roster optional fields`, which carries the F1, F3, and F4 fixes, was authored at 15:20:35 UTC. The four replies were posted at 15:23:23-15:23:29 UTC, and commit `docs(pr-reviews): audit PR 2300 Copilot review` was authored at 15:24:57 UTC. The only push recorded in the PR timeline is the `head_ref_force_pushed` event at 16:12:36 UTC. No resolution time is captured for the threads. The two entries are kept unchanged.
 - 2026-09-28 10:29 UTC - Posted a disposition reply on each of the eight post-merge threads of review 5284011916 (`created_at` 10:29:23Z-10:29:37Z). #2347 had posted tracking replies on 2026-09-26 from 12:05 UTC.
 - 2026-09-28 10:44 UTC - Added rows F5-F12 for review 5284011916, as #2347 approved. Changed the Ownership section's `Post-merge workflow approval` from `N/A` to the #2347 approval record; that is the only in-place edit to earlier content.
+- 2026-09-28 17:07 UTC - Follow-up PR #2363 merged into `develop` at `bc90cde1b` (17:00 UTC); its tree is identical to the reviewed head `30f7419c4`. Re-derived each fix on `develop`, changed F5, F6, and F9 to `FIXED`/`RESOLVED` with their commit subjects as resolution references, and posted a final reply on each (`created_at` 17:07:50Z-17:07:53Z).
+- 2026-09-28 17:11 UTC - Resolved the fixed threads and the F7, F8, F11, and F12 (`NO_ACTION`) threads. A GraphQL refetch at 17:12 UTC shows 12 threads, 1 unresolved: F10, owned by EPIC #2278 order 8.
 
 ## Completion Rules
 

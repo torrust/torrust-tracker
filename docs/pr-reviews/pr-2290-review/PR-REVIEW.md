@@ -56,13 +56,13 @@ replies, and they get no rows here, by maintainer decision (approval record abov
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2290-f1` | Human | Minor | link-integrity | ORIGINAL | FOLLOW_UP | OPEN |
-| F2 | `review-finding:pr-2290-f2` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F3 | `review-finding:pr-2290-f3` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F1 | `review-finding:pr-2290-f1` | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2290-f2` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2290-f3` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2290-f4` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F5 | `review-finding:pr-2290-f5` | Human | Minor | other | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | `review-finding:pr-2290-f6` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F7 | `review-finding:pr-2290-f7` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | OPEN |
+| F5 | `review-finding:pr-2290-f5` | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2290-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2290-f7` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -83,9 +83,9 @@ replies, and they get no rows here, by maintainer decision (approval record abov
   `docs(quality): define Clippy exception decisions` and
   `refactor(udp-protocol): remove Clippy baseline`. Each subject names exactly one commit on
   `develop`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121099913>
+- Resolution reference: `docs(issues): [#2347] cite #2261 evidence commits by subject`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121099913>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4124956431>
 
 ### F2 - The M1 PASS result is false at the head it ships in, and its recorded output does not reproduce
 
@@ -101,9 +101,9 @@ replies, and they get no rows here, by maintainer decision (approval record abov
 - Current-tree verification: M1's first command, re-run as recorded on `develop` at `478516cf`,
   prints `packages/udp-protocol/src/lib.rs` and `15:    clippy::empty_enums,`. Its second
   command prints lines 9, 10, and 16.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121100201>
+- Resolution reference: `docs(issues): [#2347] correct the #2261 M1 result for retained A159`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121100201>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4124956636>
 
 ### F3 - Copilot's action-3 finding was fixed in the test name only; this prose still claims the opposite
 
@@ -119,9 +119,9 @@ replies, and they get no rows here, by maintainer decision (approval record abov
   `for action in 0i32..4` in
   `it_should_not_panic_when_parsing_all_action_codes_at_all_packet_lengths`, and
   `_ => Err(RequestParseError::unsendable_text("Invalid action"))`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121100539>
+- Resolution reference: `docs(issues): [#2347] describe the #2261 parser test action codes`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121100539>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4124956882>
 
 ### F4 - AC2 is checked, but A159's actual outcome matches none of AC2's three permitted outcomes
 
@@ -159,9 +159,9 @@ replies, and they get no rows here, by maintainer decision (approval record abov
 - Current-tree verification: before this record, `docs/pr-reviews/pr-2290-review/` was absent
   on `develop` at `478516cf`. `github-review-threads show` lists the three Copilot threads as
   resolved, each with one comment.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121101106>
+- Resolution reference: `docs(pr-reviews): [#2347] add PR #2290 post-merge review audit`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121101106>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4124957142>
 
 ### F6 - The module list for the `empty_enums` diagnostics omits `announce.rs`
 
@@ -175,9 +175,9 @@ replies, and they get no rows here, by maintainer decision (approval record abov
   with the per-module counts.
 - Current-tree verification: the same nightly Clippy run as F4 reports `common.rs` 11,
   `announce.rs` 5, `connect.rs` 1, and `scrape.rs` 1 unique diagnostics.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121101378>
+- Resolution reference: `docs(issues): [#2347] name all four #2261 empty_enums modules`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4121101378>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2290#discussion_r4124957429>
 
 <!-- cspell:ignore misattributes -->
 
@@ -209,6 +209,8 @@ replies, and they get no rows here, by maintainer decision (approval record abov
 - 2026-09-28 10:28 UTC - Posted a disposition reply on each of the seven threads (`created_at` 10:28:56Z-10:29:07Z). Threads stay unresolved until the close-out.
 - 2026-09-28 10:33 UTC - Started this audit, fixing F5. Copilot review 5275400698 (three threads, resolved before merge without replies) is recorded as context only, without rows, as the maintainer approved.
 - 2026-09-28 11:48 UTC - Correction: the 10:28 UTC entry is stamped at the first disposition reply; the last was posted at 10:29:07Z.
+- 2026-09-28 17:07 UTC - Follow-up PR #2363 merged into `develop` at `bc90cde1b` (17:00 UTC); its tree is identical to the reviewed head `30f7419c4`. Re-derived each fix on `develop`, changed F1, F2, F3, F5, and F6 to `FIXED`/`RESOLVED` with their commit subjects as resolution references, and posted a final reply on each (`created_at` 17:07:36Z-17:07:42Z).
+- 2026-09-28 17:11 UTC - Resolved the fixed threads and the F7 (`NO_ACTION`) thread. A GraphQL refetch at 17:12 UTC shows 10 threads, 1 unresolved: F4, owned by #2360.
 
 ## Completion Rules
 
