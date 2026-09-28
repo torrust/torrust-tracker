@@ -225,7 +225,7 @@ not land are F2, F3, and F4 below.
 - 2026-09-28 10:32 UTC - Resolved the F3 thread; the other seven stay unresolved until the close-out, or until their owning issue's fix merges.
 - 2026-09-28 10:38 UTC - Started this audit. Copilot review 5275981836 (eight threads, resolved before merge without replies) is recorded as context only, without rows, as the maintainer approved.
 - 2026-09-28 11:48 UTC - Correction: the 2026-09-26 12:04 UTC entry is stamped at the first tracking reply; the last was posted at 12:05:10Z.
-- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F2, F4, and F7 (`created_at` 17:07:44Z-17:07:48Z), then resolved those threads and the F6, and F8 `NO_ACTION` threads. This close-out records F2, F4, and F7 as `FIXED`/`RESOLVED`, each citing its fixing commit with its T7 reply as Reply URL, and F6, and F8 as `RESOLVED`, keeping the disposition replies. F1 stays `FOLLOW_UP`/`OPEN` (#2361); F5 stays `FOLLOW_UP`/`OPEN` (#2301).
+- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F2, F4, and F7 (`created_at` 17:07:44Z-17:07:48Z), then resolved those threads and the F6 and F8 `NO_ACTION` threads. This close-out records F2, F4, and F7 as `FIXED`/`RESOLVED`, each citing its fixing commit with its T7 reply as Reply URL, and F6 and F8 as `RESOLVED`, keeping the disposition replies. F1 stays `FOLLOW_UP`/`OPEN` (#2361); F5 stays `FOLLOW_UP`/`OPEN` (#2301).
 
 ## Completion Rules
 
