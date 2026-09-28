@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
-last-updated-utc: 2026-09-26 10:52
+last-updated-utc: 2026-09-27 10:15
 ---
 
 # Manual Verification Evidence
@@ -139,11 +139,122 @@ Bug reproduced. For the same parsed scrape request, `UdpRequestAccepted` and `Ud
 carry `Scrape`, but `UdpResponseSent` reports `Error { opt_req_kind: None }`. The documented
 contract requires `Error { opt_req_kind: Some(Scrape) }`.
 
+## Regression Tests Before the Fix (B2)
+
+- Date and time (UTC): 2026-09-27 09:25 (recorded earlier as 08:50 by mistake)
+- Code state: the commit `docs(issues): start implementation of #2345` plus the two new tests in
+  `packages/udp-server/src/server/processor.rs`; production code unchanged.
+
+Added to the `processor.rs` tests module:
+
+- `it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails`: the
+  maintained form of V2 (a scrape with `ConnectionId::new(0)` from a real loopback client).
+- `it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable`:
+  the valid unknown-kind case (a 3-byte payload). It guards the fix against over-correction and is
+  expected to pass before and after the fix.
+- `receive_response_sent_kind`: skips `UdpRequestAccepted` and `UdpError` until
+  `UdpResponseSent`, bounded by one `tokio::time::Instant` deadline with `timeout_at`.
+
+Command:
+
+```text
+cargo test -p torrust-tracker-udp-server --lib server::processor::tests
+```
+
+Observed result (red, as expected):
+
+```text
+test server::processor::tests::it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable ... ok
+test server::processor::tests::it_should_publish_a_discard_event_when_a_client_uses_port_zero ... ok
+test server::processor::tests::it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails ... FAILED
+
+assertion `left == right` failed: a scrape with an invalid connection ID was parsed, so its error-response event should keep the request kind
+  left: Error { opt_req_kind: None }
+ right: Error { opt_req_kind: Some(Scrape) }
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 170 filtered out; finished in 0.03s
+```
+
+### Prose-First Arrange-Act-Assert Review
+
+Parsed-request test:
+
+- Arrange: "A processor with a direct event receiver gets a scrape request, from a real loopback
+  client, whose connection ID is invalid." The code states this: `scrape_request_from` names the
+  request kind and `invalid_connection_id` names the causal value. The client exists only so the
+  response can be delivered and the event published; `bind_loopback_client` names that.
+- Act: "The processor processes the request." `processor.process_request(request)` is visible.
+- Assert: "The response event reports an error that keeps the scrape kind." The expected value is
+  written out independently, not derived through production code.
+
+Unparsable-payload test: same structure; `unparsable_payload` names the causal state and the
+expected value is `Error { opt_req_kind: None }`.
+
+Decisions:
+
+- The temporary prose was removed; the code expresses it. No comments were kept.
+- The ID is invalid only because the shared fixture uses strict validation. The fixture was left
+  unchanged, as the spec asks, to keep the #2283 rebase small; `invalid_connection_id` states the
+  consequence in the test body.
+- The deadline lives in `receive_response_sent_kind`, not in `receive_event`, because the helper
+  loops over several receives and the existing helper restarts its timeout per receive.
+- Both tests were written in one increment instead of reviewing the first before adding the
+  second, a small deviation from the spec's Design and Ownership Review. Reviewing them together
+  afterwards found the fixture and helpers coherent for both tests, so no change followed.
+
 ## Post-Fix Recheck
 
-`TODO` during implementation: rerun V1 unchanged, and rerun V2's observation through the
-maintained regression test (expected `Error { opt_req_kind: Some(Scrape) }`). Record red and green
-regression-test output here.
+- Date and time (UTC): 2026-09-27 09:28
+- Toolchain: stable `rustc 1.98.1 (48a229cea 2026-09-01)`, as in the pre-fix runs.
+- Code state: the commit `test(udp-server): [#2345] cover the request kind in the UDP
+  error-response event` plus the one-line fix in `Processor::send_response`
+  (`Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind }`).
+
+### Regression Tests After the Fix (Green)
+
+```text
+cargo test -p torrust-tracker-udp-server --lib server::processor::tests
+```
+
+```text
+test server::processor::tests::it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable ... ok
+test server::processor::tests::it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails ... ok
+test server::processor::tests::it_should_publish_a_discard_event_when_a_client_uses_port_zero ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 170 filtered out; finished in 0.03s
+```
+
+Package tests, `cargo test -p torrust-tracker-udp-server`: 173 library, 11 integration, and 1 other
+test passed; none failed.
+
+### M3 - V1 Rerun Unchanged
+
+Same command as V1. Observed eleven `WARN UDP TRACKER: response error` lines, as before the fix,
+then the test passed. Counted with:
+
+```text
+cargo test -p torrust-tracker-udp-server --test integration should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal 2>&1 | grep -c "response error"
+```
+
+One line shown:
+
+```text
+WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.0000000000000000000000000000000000000000000000000000017041467023807228, expected > 1790501143.470439 client_socket_addr=127.0.0.1:50548 server_socket_addr=127.0.0.1:47897 service_binding=udp://127.0.0.1:47897 request_id=aae05de4-b3f3-48b5-aedb-81cc4e1a7bf7 transaction_id=-1318582638
+test server::contract::receiving_an_announce_request::should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal ... ok
+```
+
+The real tracker still reaches the parsed-request error path and behaves as before; as in V1, the
+event field is not visible in this artifact.
+
+Note on the Task Reviewer's F2 (2026-09-27 10:15 UTC): the V1 command, without `-- --nocapture`,
+does print the `WARN` lines on stdout here. Checked with `2>/dev/null | grep -c "response error"`
+(11) and `2>&1 >/dev/null | grep -c "response error"` (0). The V1 and M3 records are unchanged.
+
+### M4 - V2 Observation Through the Maintained Test
+
+`it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails` sends
+the V2 request (a scrape with `ConnectionId::new(0)` from a real loopback client) and asserts the
+`UdpResponseSent` kind. It failed before the fix with `left: Error { opt_req_kind: None }` and
+passes after it (output above), so the event now reports `Error { opt_req_kind: Some(Scrape) }`.
 
 ## Failures and Follow-up
 

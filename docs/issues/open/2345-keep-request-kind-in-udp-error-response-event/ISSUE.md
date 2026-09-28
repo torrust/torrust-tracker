@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2345
 spec-path: docs/issues/open/2345-keep-request-kind-in-udp-error-response-event/ISSUE.md
-branch: "2345-keep-request-kind-in-udp-error-response-event-spec"
-related-pr: null
-last-updated-utc: "2026-09-26 11:01"
+branch: "2345-keep-request-kind-in-udp-error-response-event"
+related-pr: 2354
+last-updated-utc: "2026-09-27 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,9 +170,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | B1 | DONE | Confirm and record reproduction evidence | V1 and V2 recorded in `manual-verification-evidence.md` at spec time. |
-| B2 | TODO | Add the regression tests and prove them red | Parsed-scrape failure test fails with `None` before the fix; unparsable payload keeps `None`; record red output and prose-first review. |
-| B3 | TODO | Preserve the error-response request kind | `Response::Error` constructs `UdpResponseKind::Error { opt_req_kind }`. |
-| B4 | TODO | Verify and recheck | Run focused/package checks and repeat the B1 artifact and event-bus observations. |
+| B2 | DONE | Add the regression tests and prove them red | Parsed-scrape failure test fails with `None` before the fix; unparsable payload keeps `None`; record red output and prose-first review. |
+| B3 | DONE | Preserve the error-response request kind | `Response::Error` constructs `UdpResponseKind::Error { opt_req_kind }`. |
+| B4 | DONE | Verify and recheck | Run focused/package checks and repeat the B1 artifact and event-bus observations. |
 
 ## Commit Points
 
@@ -194,14 +194,14 @@ until merge.
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue created and issue number added to this spec.
 - [x] Spec moved to `docs/issues/open/` with the assigned issue number.
-- [ ] Spec-only PR merged into `develop` before implementation.
-- [ ] Implementation completed.
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
-- [ ] Manual verification and recheck recorded in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria re-reviewed after implementation and updated with evidence.
-- [ ] Evidence-based implementation completion review recorded.
-- [ ] Reviewer validated acceptance criteria and updated checkboxes.
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification.
+- [x] Spec-only PR merged into `develop` before implementation.
+- [x] Implementation completed.
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
+- [x] Manual verification and recheck recorded in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria re-reviewed after implementation and updated with evidence.
+- [x] Evidence-based implementation completion review recorded.
+- [x] Reviewer validated acceptance criteria and updated checkboxes.
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification.
 - [ ] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
@@ -219,17 +219,36 @@ until merge.
   GitHub issue #2345, and moved the specification to `docs/issues/open/`. Next step: spec-only PR,
   then implementation on branch `2345-keep-request-kind-in-udp-error-response-event`. -
   https://github.com/torrust/torrust-tracker/issues/2345
+- 2026-09-27 08:45 UTC - GitHub Copilot - Spec-only PR #2346 merged into `develop`. Started the
+  implementation branch `2345-keep-request-kind-in-udp-error-response-event` from that merge. -
+  https://github.com/torrust/torrust-tracker/pull/2346
+- 2026-09-27 09:25 UTC (first recorded as 08:50 by mistake) - GitHub Copilot - Added the parsed-request and unparsable-payload tests to
+  `processor.rs`. The parsed-request test fails with `Error { opt_req_kind: None }` before the fix;
+  the unparsable-payload test passes. Recorded the red output and the prose-first review. -
+  `manual-verification-evidence.md`
+- 2026-09-27 09:28 UTC - GitHub Copilot - Fixed `Processor::send_response` to pass `opt_req_kind`
+  into `UdpResponseKind::Error`. Both regression tests and the package tests pass. Reran V1
+  unchanged (M3) and observed V2 through the maintained test (M4). - `manual-verification-evidence.md`
+- 2026-09-27 10:15 UTC - GitHub Copilot - Task Reviewer review failed on the missing completion
+  review (F1). Recorded the completion review: no retrospective is needed because the fix matched
+  the spec and the two small deviations change neither design nor workflow. Ticked the AC
+  re-review checkpoint (F3), added the toolchain and the M3 counting command (F2, F4), and used
+  `expect` in the new tests (F5). F2's claim that the V1 command hides the `WARN` lines did not
+  reproduce; see the evidence note. - `agent-review-reports.md`
+- 2026-09-27 18:10 UTC - GitHub Copilot - Rebased onto `develop`; the pre-push hook passed
+  (nightly checks, nightly docs, full stable test suite). Opened implementation PR #2354. -
+  https://github.com/torrust/torrust-tracker/pull/2354
 
 ## Acceptance Criteria
 
-- [ ] AC1: A parsed request whose handler fails (a scrape with an invalid connection ID) publishes
+- [x] AC1: A parsed request whose handler fails (a scrape with an invalid connection ID) publishes
       `UdpResponseKind::Error { opt_req_kind: Some(UdpRequestKind::Scrape) }`.
-- [ ] AC2: An unparsable payload still publishes
+- [x] AC2: An unparsable payload still publishes
       `UdpResponseKind::Error { opt_req_kind: None }`.
-- [ ] AC3: The parsed-failure regression test was observed red before the fix and green after.
-- [ ] AC4: The post-fix rechecks M3 and M4 are recorded in `manual-verification-evidence.md`
+- [x] AC3: The parsed-failure regression test was observed red before the fix and green after.
+- [x] AC4: The post-fix rechecks M3 and M4 are recorded in `manual-verification-evidence.md`
       next to the pre-fix reproduction (M1, M2).
-- [ ] `cargo test -p torrust-tracker-udp-server` and `linter all` exit with code `0`.
+- [x] `cargo test -p torrust-tracker-udp-server` and `linter all` exit with code `0`.
 
 ## Verification Plan
 
@@ -248,8 +267,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --- | --- | --- | --- | --- |
 | M1 | Pre-fix: real tracker reaches the parsed-request error path | Run the strict-mode loopback contract listed in V1. | Error responses for the parsed announces (Trigger only). | DONE | `manual-verification-evidence.md` V1 |
 | M2 | Pre-fix: published event drops the request kind | Run the temporary event-bus test recorded in V2: a parsed scrape with `ConnectionId::new(0)`. | `UdpResponseSent` reports `Error { opt_req_kind: None }` (Reproduced). | DONE | `manual-verification-evidence.md` V2 |
-| M3 | Post-fix recheck of M1 | Rerun the V1 contract unchanged. | Error responses for the parsed announces, as before. | TODO | `manual-verification-evidence.md` Post-Fix Recheck |
-| M4 | Post-fix recheck of M2 | Observe the same parsed scrape on the event bus through the maintained regression test. | `UdpResponseSent` reports `Error { opt_req_kind: Some(Scrape) }`. | TODO | `manual-verification-evidence.md` Post-Fix Recheck |
+| M3 | Post-fix recheck of M1 | Rerun the V1 contract unchanged. | Error responses for the parsed announces, as before. | DONE | `manual-verification-evidence.md` Post-Fix Recheck |
+| M4 | Post-fix recheck of M2 | Observe the same parsed scrape on the event bus through the maintained regression test. | `UdpResponseSent` reports `Error { opt_req_kind: Some(Scrape) }`. | DONE | `manual-verification-evidence.md` Post-Fix Recheck |
 
 The tracker/client artifact in M1 and M3 cannot expose the event field, because clients, metrics,
 and logs do not show published events. M2 and M4 therefore observe it at the processor's
@@ -264,10 +283,10 @@ verbatim in V2 and reverted); B2 replaces it with the maintained regression test
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Focused processor regression test and `manual-verification-evidence.md`. |
-| AC2 | TODO | Focused processor regression test. |
-| AC3 | TODO | Recorded red and green command output. |
-| AC4 | TODO | `manual-verification-evidence.md`. |
+| AC1 | DONE | `it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails`; `manual-verification-evidence.md` M4. |
+| AC2 | DONE | `it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable`. |
+| AC3 | DONE | `manual-verification-evidence.md`: Regression Tests Before the Fix, and Post-Fix Recheck. |
+| AC4 | DONE | `manual-verification-evidence.md` Post-Fix Recheck (M3, M4). |
 
 ## Risks and Trade-offs
 
@@ -283,7 +302,11 @@ verbatim in V2 and reverted); B2 replaces it with the maintained regression test
 After implementation, compare the result with this specification and record material discoveries,
 deviations, and reusable lessons.
 
-- Retrospective: Not yet assessed.
+- Retrospective: Assessed 2026-09-27; no `implementation-retrospective.md` is needed. The fix
+  matched the spec: one line in `send_response` and two processor tests at the planned seam. Two
+  small deviations are recorded in `manual-verification-evidence.md`: both tests were written in
+  one increment, and the B2 timestamp was first recorded wrongly. Neither changes the design or
+  the workflow.
 - Create `implementation-retrospective.md` only if the fix reveals a material design or workflow
   lesson; otherwise record why none is needed in the progress log.
 - When an independent reviewer receives this folder-style specification, it records its result in
