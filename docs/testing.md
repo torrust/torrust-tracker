@@ -76,7 +76,7 @@ respective responsibilities:
 
 ## Pull-Request Package Coverage
 
-The `Generate Coverage Report (PR)` workflow reports source-line coverage changes for directly
+The `Generate Coverage Reports (PR)` workflow reports source-line coverage changes for directly
 changed workspace packages. It discovers packages from Cargo metadata and the pull-request diff,
 runs package-scoped `cargo llvm-cov` coverage at the pull request base and head revisions, and
 reports the exact covered/instrumented line counts in the workflow summary.
