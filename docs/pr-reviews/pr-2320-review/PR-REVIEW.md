@@ -86,7 +86,7 @@ findings `F1`-`F23` across rounds 1-8; those collide with the Copilot IDs and ar
 | F28 | `review-finding:pr-2320-f28` | Human | Nit | documentation | ORIGINAL | NO_ACTION | RESOLVED |
 | F29 | `review-finding:pr-2320-f29` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
-Rows F28 and F29 come from review 5302919075, submitted after the merge and tracked by #2347. The reviewer's IDs `F24` and `F25` collide with this record's F24 and F25, which are different findings, so they are recorded as audit `F28` and `F29`. Each detail entry keeps the reviewer's ID. F29 is fixed in follow-up PR #2363 and stays `FOLLOW_UP`/`OPEN` until it merges. The F28 thread is resolved in the #2347 close-out.
+Rows F28 and F29 come from review 5302919075, submitted after the merge and tracked by #2347. The reviewer's IDs `F24` and `F25` collide with this record's F24 and F25, which are different findings, so they are recorded as audit `F28` and `F29`. Each detail entry keeps the reviewer's ID. F29 is fixed in follow-up PR #2363. PR #2363 merged on 2026-09-28, so F29 is `FIXED`/`RESOLVED`. F28 is `NO_ACTION`/`RESOLVED`; its thread is resolved in the #2347 close-out.
 
 ## Finding Details
 
