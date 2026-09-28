@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-last-updated-utc: "2026-09-28 09:21"
+issue-spec: docs/issues/closed/2281-2264-frontmatter-validator-command/ISSUE.md
+last-updated-utc: "2026-09-28 10:53"
 ---
 
 # Manual Verification Evidence

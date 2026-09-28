@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.7"
+  version: "1.9"
 ---
 
 # Cleaning Up Completed Issues
@@ -106,6 +106,28 @@ to a GitHub issue:
 
 Use the GitHub state check in Step 1 before choosing either destination. Do not assume a draft is
 unopened merely because it is still filed below `docs/issues/drafts/`.
+
+### Step 0.7: Block EPIC Closure While Draft Subissues Remain (Mandatory)
+
+Do not close or archive an EPIC merely because all currently created GitHub child issues are
+closed. Before treating an EPIC as a closure candidate, run this check after reconciling linked
+drafts in Step 0.6. It detects both the EPIC-number-prefixed draft-directory convention and
+explicit parent declarations or links:
+
+```bash
+EPIC_NUMBER=1669
+{
+  find docs/issues/drafts -maxdepth 1 -mindepth 1 -type d -printf '%p\n' | rg "/${EPIC_NUMBER}(-|$)"
+  rg -l -i "(^epic: ${EPIC_NUMBER}$|epic.*\\[#${EPIC_NUMBER}\\]|\\[#${EPIC_NUMBER}\\].*epic)" \
+    docs/issues/drafts --glob '*.md'
+} | sort -u
+```
+
+If it finds any draft specifications, the EPIC remains open. Do not close its GitHub issue or move
+its specification to `docs/issues/closed/` until every listed draft has been resolved: create or
+link its GitHub issue and move the draft according to Step 0.6, or explicitly remove its parent
+EPIC relationship because it no longer belongs there. Record that resolution in the affected
+documents before rerunning this check.
 
 ### Step 1: Verify Issue is Closed on GitHub
 

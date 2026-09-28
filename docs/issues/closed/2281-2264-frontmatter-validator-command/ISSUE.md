@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: in-progress
+status: done
 priority: p1
 epic: 2264
 github-issue: 2281
-spec-path: docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
+spec-path: docs/issues/closed/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2357
-last-updated-utc: "2026-09-28 10:02"
+last-updated-utc: "2026-09-28 10:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -359,11 +359,14 @@ request. Use signed Conventional Commits with the `frontmatter` scope and the `[
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
+- 2026-09-28 10:53 UTC - GitHub Copilot - Verified GitHub issue #2281 is closed and archived this
+  specification in `docs/issues/closed/`; updated the parent EPIC and live documentation references -
+  https://github.com/torrust/torrust-tracker/issues/2281
 - 2026-09-24 16:01 UTC - GitHub Copilot - Confirmed #2281 as the only open native sub-issue of
   #2264 and created this local specification from the GitHub issue body. Recorded maintainer
   decisions D1-D9 and added the missing #2281 row to the parent EPIC - This specification

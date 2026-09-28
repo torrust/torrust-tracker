@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2281-2264-frontmatter-validator-command/ISSUE.md
-    - docs/issues/open/2281-2264-frontmatter-validator-command/test-design-review.md
-    - docs/issues/open/2281-2264-frontmatter-validator-command/manual-verification-evidence.md
+    - docs/issues/closed/2281-2264-frontmatter-validator-command/ISSUE.md
+    - docs/issues/closed/2281-2264-frontmatter-validator-command/test-design-review.md
+    - docs/issues/closed/2281-2264-frontmatter-validator-command/manual-verification-evidence.md
 ---
 
 # Implementation Retrospective — Issue #2281 Frontmatter Validator Command
