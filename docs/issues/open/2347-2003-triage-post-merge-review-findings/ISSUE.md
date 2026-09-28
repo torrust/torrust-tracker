@@ -9,7 +9,7 @@ github-issue: 2347
 spec-path: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
 branch: "2347-2003-triage-post-merge-review-findings"
 related-pr: null
-last-updated-utc: "2026-09-28 09:51"
+last-updated-utc: "2026-09-28 10:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,7 +150,7 @@ below. The approval record and its amendment are the authority for each finding'
 | ----------- | -------- |
 | `FIXED` (14) | #2290 F1, F2, F3, F5, F6; #2293 F2, F3, F4, F7; #2300 F5, F6, F9; #2313 F8; #2320 F29 |
 | `NO_ACTION` (9) | #2290 F7; #2293 F6, F8; #2300 F7, F8, F11, F12; #2313 F10; #2320 F28 |
-| `FOLLOW_UP` (9) | #2290 F4 (#2360, parent #2003); #2293 F1 (new bug issue, parent #1347); #2293 F5 (existing #2301); #2300 F10 (#2278 order 8); #2313 F4, F5, F6, F7, F9 (new #2278 subissue) |
+| `FOLLOW_UP` (9) | #2290 F4 (#2360, parent #2003); #2293 F1 (#2361, bug, parent #1347); #2293 F5 (existing #2301); #2300 F10 (#2278 order 8); #2313 F4, F5, F6, F7, F9 (#2362, #2278 order 11) |
 
 Why we proceed this way:
 
@@ -226,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Triage against `develop` | Per finding: live or not, with the command or inspection used; proposed disposition. Recorded in [`triage.md`](triage.md). |
 | T3 | DONE | Maintainer disposition review | Maintainer approves or changes each proposed disposition; the decision is recorded in the progress log with a durable comment URL. See [Disposition Decisions (T3)](#disposition-decisions-t3). |
 | T4 | TODO | Normalize into audits | Five audits hold all 32 findings with approved dispositions; `validate-audit-record.py` exits `0` for each PR. |
-| T5 | IN_PROGRESS | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
+| T5 | DONE | Apply approved fixes | Approved documentation fixes applied; follow-up issues created for approved `FOLLOW_UP` items. |
 | T6 | TODO | Verify and record completion | Automatic checks, evidence, and acceptance review recorded; implementation PR opened. |
 | T7 | TODO | Close the loop after merge | Close-out PR records final dispositions for findings fixed or declined here; those threads are replied to and resolved; each `FOLLOW_UP` thread stays open with a reply naming its owning issue. |
 
@@ -270,6 +270,7 @@ progress log. No test code is planned.
 - 2026-09-28 09:35 UTC - GitHub Copilot - T5 documentation fixes committed: 13 fix commits (#2290 F5 is fixed by its audit in T4) and one commit refreshing `last-updated-utc` stamps that three earlier fix commits left stale. The maintainer approved opening this PR as a draft before the audits, following the PR #2339 precedent, and drafting the three follow-up issues first; see "Order of work" above. Next: the FU-A draft spec.
 - 2026-09-28 09:42 UTC - GitHub Copilot - FU-A approved and created as #2360 under #2003 (order 13 in the #2003 EPIC); its spec rides in this PR.
 - 2026-09-28 09:51 UTC - GitHub Copilot - While drafting FU-B, found that open #2301 ("Review package coverage rollout", #1347) already owns #2293 F5. The T2 triage had missed it. The maintainer approved routing F5 to #2301, and narrowing FU-B to #2293 F1 as a bug issue under #1347. Amendment record: <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5867552349>. The #2278 register has no existing owner for #2313 F4-F7 or F9, so FU-D stands.
+- 2026-09-28 10:14 UTC - GitHub Copilot - T5 done. The maintainer approved each follow-up spec before its issue was created: #2361 (bug, #1347 order 9) for #2293 F1, and #2362 (#2278 order 11) for #2313 F4, F5, F6, F7, and F9. Both specs ride in this PR. Added pointers in the owners that already existed: #2300 F10 in the #2278 order 8 row, and #2293 F5 in the #2301 progress log, with the hosted run evidence. Next: push and open this PR as a draft.
 
 ## Acceptance Criteria
 
