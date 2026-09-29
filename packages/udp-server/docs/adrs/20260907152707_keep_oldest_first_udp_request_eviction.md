@@ -5,6 +5,7 @@ semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/src/server/launcher.rs
+    - packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
     - issue #2149
     - issue #2370
 ---
@@ -18,6 +19,9 @@ semantic-links:
 This is a package-local decision in `packages/udp-server/docs/adrs/`. It governs only the
 extractable UDP server's bounded normal-operation request buffer. It does not define cross-package
 protocol behavior, tracker-domain rules, or shutdown policy.
+
+It refines the broader [UDP request-concurrency ADR](20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md),
+which records the task-per-request design and its shutdown-ownership boundary.
 
 ## Description
 

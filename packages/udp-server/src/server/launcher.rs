@@ -188,6 +188,8 @@ impl Launcher {
         ServiceHealthCheckJob::new(info, job)
     }
 
+    // ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
+    // issue: #2370
     // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container, cancellation_token))]
     async fn run_udp_server_main(

@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-29 18:03"
+last-updated-utc: "2026-09-29 18:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/src/server/processor.rs
     - packages/udp-server/src/server/states.rs
+    - packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
     - packages/udp-server/docs/adrs/index.md
     - packages/udp-server/README.md
@@ -249,61 +250,10 @@ whose handles the ring drops, in the `JoinSet` so shutdown can await, count,
 and abort it. SI-15 does not change the bound, the eviction algorithm, or the
 ring. Any redesign is out of scope for SI-15 and for EPIC #1488.
 
-**Design history** (Git history and the linked GitHub discussions):
-
-- [PR #644](https://github.com/torrust/torrust-tracker/pull/644) (Cameron
-  Garnham, January 2024, commit `72c83485`) made UDP requests concurrent: one
-  Tokio task per datagram, with a hard-coded limit of 50. Stated reasons: the
-  main concern is memory; UDP handling is non-blocking, so each request should
-  finish quickly; the real limit is lock contention in the tracker data
-  structures and kernel packet sending, so little is gained above about five
-  concurrent requests. He preferred light Tokio tasks over a dedicated worker
-  pool. He named `yield_now` as the only costly part: when the pool is full it
-  briefly pauses admission so older tasks can finish. He noted that
-  deliberately filling the pool could force repeated pauses, and proposed a
-  two-level pool grouped by client as the answer. In the same PR, the
-  maintainer proposed dynamically limiting concurrency from measured core
-  latency (issue #566); it was left as a possible later change on top.
-- Commit `9e01f7fa` (May 2024) fixed the first ring, which effectively ran
-  one task at a time; its message notes that a plain vector could replace the
-  ring with the same effect.
-- [PR #873](https://github.com/torrust/torrust-tracker/pull/873) (commit
-  `84cc1a1d`, June 2024) reimplemented the loop on a request stream with the
-  current `force_push`; benchmarks showed a much higher average throughput
-  than the previous version.
-- Issue #918 measured production aborts on the demo tracker (17 aborts in
-  22,271 requests over two minutes) and proposed a pending-request queue in
-  front of the active buffer. [PR #921](https://github.com/torrust/torrust-tracker/pull/921)
-  recorded Cameron's answers instead: the yield gives an old task a fair
-  chance, and spawning immediately is intended because the new task always
-  gets a slot. [PR #922](https://github.com/torrust/torrust-tracker/pull/922)
-  tried to evict one task and then clean all finished ones; it regressed
-  performance and was dropped. The package ADR records the result.
-
-In short, the design trades exact accounting for a cheap hot path: normal
-admission is one ring push, extra work happens only when the ring is full, and
-no lock, allocation, or measurement is added per request. Orphaned handles are
-a side effect of that trade, not the goal; SI-15 contains them through
-ownership without changing the trade.
-
-**Alternatives for a future overload redesign** (not proposed for this EPIC):
-
-| Alternative | Idea | Trade-off |
-| ----------- | ---- | --------- |
-| Semaphore admission | `try_acquire_owned` before spawning; the permit moves into the task. When full, drop the datagram or stop reading the socket. | Exact bound, no scan, no yield, no orphans. Changes overload semantics: new requests wait or are shed instead of evicting old ones. |
-| Kernel backpressure | Stop reading the socket while full; the kernel's receive buffer absorbs bursts and drops the excess. | Cheapest admission. Load shedding becomes invisible to tracker metrics unless measured from socket statistics. |
-| `JoinSet` as the bound | Use the SI-15 `JoinSet` length as the live count and drop the ring. | One owner, exact count. Oldest-first eviction needs task-ID ordering; must be benchmarked against the ring. |
-| Adaptive limit | Adjust the limit from measured request latency, such as additive-increase/multiplicative-decrease or a gradient limiter (the maintainer's issue #566 idea). | Adapts to hardware and core load. Adds per-request timing and tuning; needs careful benchmarks. |
-| Per-client fairness | Cameron's two-level pool: tasks grouped by client, each with its own small pool. | Resists one client exhausting capacity. Most complex; per-client state on the hot path. |
-| Fixed worker pool | N long-lived tasks read the socket directly, with no per-request spawn. | No spawn cost and a natural bound. Head-of-line blocking inside a worker; large restructuring. |
-
-If the maintainer wants to pursue one, open a separate research issue or
-EPIC outside #1488, starting from a baseline benchmark and the ADR.
-
-T2 moves this history, its evidence, and these alternatives into the new
-request-handling ADR (see Architectural Decisions), where they stay
-discoverable after this issue closes. D8 then keeps only the decision and a
-link to that ADR.
+The [request-concurrency ADR](../../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
+is the canonical record of this design's history, evidence, alternatives, and
+re-evaluation triggers. Future overload redesign work starts from that ADR in a
+separate issue or EPIC outside #1488.
 
 ### D9 - Test strategy without production test hooks
 
@@ -511,7 +461,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Analyze and reproduce the orphaned-processor bug; record benchmark B0 | Confirmed the receive-loop, ring, and processor facts on the branch base. The direct-artifact run reached the eviction trigger 94 times but cannot expose lost handles, so it is `Trigger only`; evidence is in `manual-verification-evidence.md`. Recorded isolated, nonpersistent B0: mean 159413.39 responses/s, median 158734.29, range 152965.92-165129.04. |
-| T2 | TODO | Request-handling ADR and semantic links | Create the package-local ADR described in Architectural Decisions from D8 and its linked evidence; register it in the package ADR index; link the eviction ADR to it; apply the Semantic Link Map to existing code and documentation; reduce D8 to the decision plus a link. Validate with the frontmatter validator, `linter markdown`, `linter cspell`, and `linter lychee`. Later tasks add the links for code they create or change. |
+| T2 | DONE | Request-handling ADR and semantic links | Created `20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md`, registered it in the package index, linked it bidirectionally with the eviction ADR, and added high-signal source, README, inventory, and issue links. Targeted frontmatter validation plus Markdown, spelling, and local-link checks pass. Later tasks add links for newly created code. |
 | T3 | TODO | Drain primitive and red orphaned-processor regression test | Package-private drain function over a `JoinSet` and a deadline, returning counts. D9 level 1 tests: all complete before the deadline; blocked tasks aborted and joined at the deadline; a panic or `Err` counted as `failed` while the drain continues; a task already aborted before the drain counted as `evicted`, not `aborted`; an empty set returns immediately. Add the D9 level-2 orphaned-processor collaboration test and prove it red against the ring-only owner; record the command and output in `manual-verification-evidence.md`. |
 | T4 | TODO | Processor returns `Result` (D7) and benchmark B1 | `process_request` returns `Result<(), ProcessorError>` for encode and send failures; the receive loop still discards it. Processor tests assert `Ok` for handled requests, including UDP error responses. Record B1 and compare it with B0; stop for the maintainer if it misses the bound. |
 | T5 | TODO | Wire the drain into the receive loop, green regression, and benchmark B2 | Spawn processors into the loop-owned `JoinSet`; pass its `AbortHandle` to `force_push`; reap finished tasks without blocking; on cancellation, drain with the D1 constant and log the D4 summary. On an unexpected receive error, immediately abort and join every processor before returning the original error. D9 level 2 tests: a gated real processor completes before the loop returns; a gated processor still active at the deadline is aborted and counted; the socket is released when the loop returns; the orphaned-processor regression is green and mutation-proven. Record B2 and compare it with B1 and B0, then repeat T1's artifact scenario or strongest substitute evidence. |
@@ -572,6 +522,7 @@ Sign every commit with GPG and use the `udp-server` scope.
 - 2026-09-29 13:15 UTC - GitHub Copilot - Addressed PR #2372 Copilot findings F1-F7: adopted the semantic bug-fix workflow and evidence, require immediate abort-and-join before a receive-error return, reconcile rather than assume an idle summary is zero, distinguish panic and returned-error logs, include the `evicted` goal counter, and replace movable issue paths in the long-lived eviction ADR.
 - 2026-09-29 17:07 UTC - GitHub Copilot - Started implementation on branch `2370-1488-si-15-define-udp-active-request-policy`. T1 is in progress: release tracker build passed; B0 will use the saved 30-second `b0-load-test.toml` configuration and the clean Aquatic `master` checkout recorded in `performance-evidence.md`.
 - 2026-09-29 18:03 UTC - GitHub Copilot - Completed T1. The direct release-binary traffic attempt reached the `force_push` overload eviction log 94 times, but no public artifact exposes whether a later live handle was orphaned; recorded `Trigger only` and deferred proof to the T3/T5 collaboration regression test. Replaced the initial shared-SQLite benchmark attempt, which accumulated state and invalidated later runs, with isolated nonpersistent tracker processes. B0 five-run baseline: mean 159413.39 responses/s, median 158734.29, range 152965.92-165129.04.
+- 2026-09-29 18:14 UTC - GitHub Copilot - Completed T2. Created the package-local request-concurrency ADR, moved D8 history and alternatives into it, registered it in the package index, and added the planned high-signal semantic links. Targeted frontmatter validation, Markdown, spelling, local-link, whitespace, and Rust-format checks pass.
 
 ## Acceptance Criteria
 

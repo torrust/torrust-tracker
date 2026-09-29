@@ -48,6 +48,8 @@ impl Processor {
         }
     }
 
+    // ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
+    // issue: #2370
     // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
     #[instrument(skip(self, request))]
     pub async fn process_request(self, request: RawRequest) {

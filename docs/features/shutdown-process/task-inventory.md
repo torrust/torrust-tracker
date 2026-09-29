@@ -15,6 +15,7 @@ semantic-links:
     - src/main.rs
     - packages/axum-server/src/signals.rs
     - packages/udp-server/src/server/launcher.rs
+    - packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 ---
 
 # Task Inventory
@@ -101,7 +102,7 @@ each row.
 | UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
 | UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
 | UDP instances                 | N bindings  | Direct `JoinSet` | Child token              | SI-14 complete         |
-| UDP request processors        | N datagrams | Component-owned  | Abort handles            | SI-15                  |
+| UDP request processors        | N datagrams | Component-owned  | Abort handles            | issue #2370            |
 | HTTP instances                | N bindings  | Direct `JoinSet` | Child token              | SI-11 complete         |
 | REST API                      | 0–1         | Direct `JoinSet` | Child token              | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |
@@ -159,7 +160,9 @@ each row.
   retains only a bounded `AbortHandle` buffer. Eviction and buffer drop abort
   unfinished processors, but no processor terminal result is collected. Each
   processor holds a clone of the socket `Arc`, so the socket closes once the
-  runtime drops the aborted processors (SI-15).
+  runtime drops the aborted processors (issue #2370). The package-local
+  [request-concurrency ADR](../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
+  records the normal-operation admission and eviction design.
 - **HTTP and REST drain controllers** — each token-aware server spawns a
   controller that waits for its component token, then drains for up to 90
   seconds. The component joins it before reporting its outcome; the 90-second

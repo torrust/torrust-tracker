@@ -11,4 +11,5 @@ semantic-links:
 
 | ADR | Date | Title | Short Description |
 | --- | --- | --- | --- |
+| [20260929181216](20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md) | 2026-09-29 | Bound UDP request concurrency with a task-per-request ring | Keep bounded task-per-request admission and oldest-first overload shedding; separate shutdown ownership into a `JoinSet`. |
 | [20260907152707](20260907152707_keep_oldest_first_udp_request_eviction.md) | 2026-09-07 | Keep oldest-first UDP request eviction | Preserve the bounded, oldest-first overload decision instead of scanning all request handles before evicting active work. |
