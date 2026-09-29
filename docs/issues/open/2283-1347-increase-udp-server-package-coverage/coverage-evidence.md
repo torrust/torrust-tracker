@@ -146,6 +146,7 @@ file completes.
 | `statistics/event/listener.rs` | 164 / 172 (95.35%) | 164 / 172 (95.35%) | 0 | 0 | No; direct dispatch is covered, while spawned lifecycle is #1488-owned and event-context accessor arms are representation-only |
 | `statistics/event/handler/error.rs` | 131 / 151 (86.75%) | 131 / 151 (86.75%) | 1 renamed | 0 | No; observable general and connection-cookie routing remains covered, while peer-client representation and repository-error logging have separate owners |
 | `statistics/event/handler/request_received.rs` | 33 / 34 (97.06%) | 33 / 34 (97.06%) | 1 renamed | 0 | No; observable received-request metric routing remains covered, while repository counter-write failure is logging-only |
+| `statistics/event/handler/request_accepted.rs` | 162 / 163 (99.39%) | 162 / 163 (99.39%) | 6 renamed | 0 | No; observable protocol-family and request-kind routing remains covered, while repository counter-write failure is logging-only |
 
 ## Relationship To Issue #2149
 

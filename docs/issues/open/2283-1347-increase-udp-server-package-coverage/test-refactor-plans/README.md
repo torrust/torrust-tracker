@@ -52,6 +52,7 @@ maintainer approves it.
 | 28 | [statistics-event-handler-mod-tests.md](statistics-event-handler-mod-tests.md) | DONE | No Rust change; routing-only dispatcher has no independent observable seam |
 | 29 | [statistics-event-handler-error-tests.md](statistics-event-handler-error-tests.md) | DONE | Renamed the general-error test; focused metric routing remains sufficient |
 | 30 | [statistics-event-handler-request-received-tests.md](statistics-event-handler-request-received-tests.md) | DONE | Renamed the received-request test; focused metric routing remains sufficient |
+| 31 | [statistics-event-handler-request-accepted-tests.md](statistics-event-handler-request-accepted-tests.md) | DONE | Renamed six accepted-request tests; focused metric routing remains sufficient |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
