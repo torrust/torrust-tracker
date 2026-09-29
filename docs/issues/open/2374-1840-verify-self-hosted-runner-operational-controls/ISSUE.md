@@ -9,7 +9,7 @@ github-issue: 2374
 spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
 related-pr: null
-last-updated-utc: "2026-09-29 16:02"
+last-updated-utc: "2026-09-29 16:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,7 +132,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                   | Notes / Expected Output                                                                                                                                                                  |
 | --- | ------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Record existing M7 Dependabot evidence | V7 part 1 in the #2323 evidence file: PRs #2369 and #2338, run and job URLs, runner names.                                                                                             |
+| T1  | DONE   | Record existing M7 Dependabot evidence | V7 part 1 in the #2323 evidence file: PRs #2369 and #2338, run and job URLs, runner names.                                                                                             |
 | T2  | TODO   | Observe a maintainer branch update     | Needs maintainer action: update an open Dependabot PR (for example #2369) from `develop` in the GitHub UI; record that `Test (Docker)` stays GitHub-hosted and the `triggering_actor`. |
 | T3  | TODO   | Observe the external-contributor gate  | A harmless PR from `josecelano-bot` (not a member, collaborator, or previous contributor; checked 2026-09-29). Record `action_required` before approval and the runner after approval. |
 | T4  | TODO   | Run M5                                 | Needs a maintainer-approved quiet window. Follow the M5 Plan: queued state, fallback on the disposable branch, restart recovery.                                                      |
@@ -221,6 +221,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 14:59 UTC - GitHub Copilot - Drafted from the #2323 operational-verification hand-off; recorded existing Dependabot routing evidence (PRs #2369, #2338) and the static secrets check - this file
 - 2026-09-29 15:30 UTC - GitHub Copilot - Maintainer answers applied: M5 uses a 2-minute `timeout-minutes` on a disposable branch and checks the fallback there; `josecelano-bot` provides the external PR for M7; evidence goes to the #2323 file; T6 added the Security section to `docs/self-hosted-runner.md` - this file
 - 2026-09-29 16:02 UTC - GitHub Copilot - Maintainer approved the spec; created #2374, linked it as a sub-issue of #1840, and moved the spec to `docs/issues/open/` - this file
+- 2026-09-29 16:15 UTC - GitHub Copilot - T1 DONE: Dependabot PRs #2369 and #2338 ran `Test (Docker)` and their branch-push `Docker E2E` jobs on GitHub-hosted runners - #2323 `manual-verification-evidence.md` V7 part 1
 
 ## Acceptance Criteria
 
@@ -259,7 +260,7 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 | ID      | Scenario                    | Human-oriented command/steps                                                                                             | Expected Result                                                                   | Status | Evidence                                    |
 | ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
 | M5      | Runner offline              | M5 Plan above; `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs` and the runners API during the window | Job stays `queued` past its 2-minute limit; fallback run is GitHub-hosted; queued job runs after restart | TODO   | #2323 `manual-verification-evidence.md` V5 |
-| M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | TODO   | #2323 `manual-verification-evidence.md` V7 |
+| M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | DONE   | #2323 `manual-verification-evidence.md` V7 |
 | M7 (2)  | Maintainer updates branch   | **Update branch** on a Dependabot PR; jobs API for the new run                                                           | Still GitHub-hosted; `triggering_actor` is the maintainer                        | TODO   | #2323 `manual-verification-evidence.md` V7 |
 | M7 (3)  | External contributor        | PR from `josecelano-bot`; runs API before and after approval                                                             | Runs are `action_required` until approved                                        | TODO   | #2323 `manual-verification-evidence.md` V7 |
 

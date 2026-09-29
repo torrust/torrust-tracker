@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-last-updated-utc: 2026-09-28
+last-updated-utc: 2026-09-29
 ---
 
 # Manual Verification Evidence
@@ -159,6 +159,61 @@ PR checks on the head commit: first start 09:45:05Z, last completion 10:02:54Z (
 M4 met: third-party layers came from the local Docker store and only the workspace compile reran.
 M6 met: the job took 12 min 3 s and the PR checks 17 min 49 s, recorded in `benchmark-results.md`
 against the baseline and the 15-minute target.
+
+### V7 - Untrusted-Code Routing (M7)
+
+Recorded under follow-up issue #2374, which completes the scenarios this issue left open.
+
+- Goal: Dependabot jobs run on GitHub-hosted runners, also after a maintainer updates the branch,
+  and a PR from a non-member fork waits for approval before any job runs.
+- Initial state: routing merged in PR #2352 (`432d4e69`); fork-PR approval policy
+  `all_external_contributors`.
+- Status: `IN_PROGRESS` (part 1 done; parts 2 and 3 pending)
+
+#### Part 1 - Dependabot PRs
+
+Steps performed (2026-09-29 16:15 UTC, read-only):
+
+1. Listed the Dependabot PRs opened or re-run after the routing change: #2369 and #2338, both
+   authored by `app/dependabot`.
+2. Inspected their `Container` and `Testing` runs:
+   `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>` and
+   `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs`.
+
+Observed result (`labels` is the job's resolved `runs-on` value):
+
+```text
+PR #2369, head 5055ba63, branch dependabot/github_actions/develop/github/codeql-action-4.38.2
+  run 36474323310 Container pull_request actor=dependabot[bot] triggering=dependabot[bot]
+    Test (Docker) (release) | success | runner=GitHub Actions 1000091160 | labels=ubuntu-latest
+  run 36474314420 Testing push actor=dependabot[bot] triggering=dependabot[bot]
+    Docker E2E | success | runner=GitHub Actions 1000091147 | labels=ubuntu-latest
+PR #2338, head cd518a79, branch dependabot/cargo/develop/schemars-1.2.2
+  run 36408286110 Container pull_request actor=dependabot[bot] triggering=dependabot[bot]
+    Test (Docker) (release) | failure | runner=GitHub Actions 1000090762 | labels=ubuntu-latest
+  run 36408280318 Testing push actor=dependabot[bot] triggering=dependabot[bot]
+    Docker E2E | success | runner=GitHub Actions 1000090777 | labels=ubuntu-latest
+```
+
+Job links:
+
+- <https://github.com/torrust/torrust-tracker/actions/runs/36474323310/job/109104118212>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36474314420/job/109104090790>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36408286110/job/108882141096>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36408280318/job/108882121591>
+
+Conclusion: part 1 met. Both Dependabot PRs ran `Test (Docker)` on GitHub-hosted runners, and the
+`Docker E2E` jobs of the pushes to their `dependabot/` branches did too. The #2338 failure is in
+the job itself, not in routing. The PR `Docker E2E` jobs were `skipped`, as expected for PRs
+targeting `develop`.
+
+#### Part 2 - After a Maintainer Updates the Branch
+
+Pending: a maintainer updates a Dependabot PR from `develop`.
+
+#### Part 3 - PR From a Non-Member Fork
+
+Pending: a harmless PR from `josecelano-bot`.
 
 ## Failures and Follow-up
 
