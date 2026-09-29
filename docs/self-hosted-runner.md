@@ -46,12 +46,41 @@ Actions cache.
 | Labels       | `self-hosted`, `Linux`, `X64`, `torrust-hetzner`                   |
 | Service      | `actions.runner.torrust-torrust-tracker.torrust-runner-01.service` |
 
-## Security Rules
+## Security
 
 The runner is persistent and job code gets root-equivalent access to it through the `docker`
 group, so a compromised job can control later jobs. The ADR accepts that on the condition that
-unreviewed code rarely reaches the runner. Keep these rules; if one cannot be kept, stop the runner
-and fall back to GitHub-hosted runners.
+unreviewed code rarely reaches the runner, and that the runner holds nothing worth stealing.
+
+### Secrets and Credentials
+
+No job that can run on the self-hosted runner references a secret. The Docker Hub credentials are
+used only by the publish jobs, which always run on GitHub-hosted runners:
+
+| Workflow         | Job                     | Runner                                     | Secrets and environment                                                                         |
+| ---------------- | ----------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `container.yaml` | `Test (Docker)`         | Self-hosted (see What Runs on the Runner)  | None                                                                                            |
+| `testing.yaml`   | `Docker E2E`            | Self-hosted (see What Runs on the Runner)  | None                                                                                            |
+| `container.yaml` | `Publish (Development)` | `ubuntu-latest`                            | Environment `dockerhub-torrust`: `DOCKER_HUB_USERNAME`, `DOCKER_HUB_ACCESS_TOKEN`, `DOCKER_HUB_REPOSITORY_NAME` |
+| `container.yaml` | `Publish (Release)`     | `ubuntu-latest`                            | Same as `Publish (Development)`                                                                 |
+
+What a self-hosted job can still reach: the run's automatic `GITHUB_TOKEN` and its GitHub Actions
+cache token, and, on the host, the runner registration in the install directory. The server stores
+no other Torrust credentials.
+
+To re-check after changing a workflow, list every secret and environment reference in the two
+workflows that target the runner. Every match must belong to a publish job:
+
+```bash
+desktop$ grep -nE 'secrets\.|environment:' .github/workflows/container.yaml .github/workflows/testing.yaml
+desktop$ grep -rln 'torrust-hetzner' .github/workflows/
+```
+
+The second command must list only `container.yaml` and `testing.yaml`.
+
+### Rules
+
+Keep these rules; if one cannot be kept, stop the runner and fall back to GitHub-hosted runners.
 
 - **Review before approving.** Fork pull requests from external contributors wait for approval.
   Approve a run only after reviewing the full diff, including `.github/workflows/`, `build.rs`
@@ -60,7 +89,7 @@ and fall back to GitHub-hosted runners.
 - **Keep Dependabot, `main`, `releases/**`, and publishing off the runner.** Do not change the
   `runs-on` expressions or the publish jobs' cache settings without revisiting the ADR.
 - **Never give the runner secrets.** The self-hosted jobs must not reference repository,
-  organization, or environment secrets.
+  organization, or environment secrets (see Secrets and Credentials).
 - **Rebuild the server regularly** (see Operations).
 
 ## Set Up a New Runner
