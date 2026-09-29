@@ -12,7 +12,7 @@ semantic-links:
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
     - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
-    - docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 ---
 
 # UDP Request Buffer Test Refactor Plan

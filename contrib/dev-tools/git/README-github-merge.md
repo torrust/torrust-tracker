@@ -17,6 +17,23 @@ and recovery steps, follow the canonical
 The tool is intentionally not a replacement for maintainer review or explicit approval to sign
 and push.
 
+## Push Failure Troubleshooting
+
+The tool creates and signs a local merge before its final upstream push. A failure at that final
+step does not mean the pull request needs a rebase: the stale-base check ran before the local merge
+was constructed. Preserve the signed local result, fetch the upstream remote, and inspect the pull
+request before deciding whether anything must be retried.
+
+Use the repository-local wrapper rather than an external `github-merge.py` copy or alias. The
+tracked `contrib/dev-tools/git/github-merge.py` may have repository-specific fixes, while a personal
+copy can be an older snapshot with different behavior.
+
+For SSH host-key verification failures, public-key authorization failures, branch-policy rejection,
+or transient GitHub `5xx` errors, follow the canonical skill's
+[Push Failure Diagnosis and Recovery](../../../.github/skills/dev/git-workflow/merge-pull-request/SKILL.md#push-failure-diagnosis-and-recovery)
+section. It defines the required remote-state checks and the narrowly authorized single-push retry
+after a transient failure.
+
 ## Declared Symbolic Links
 
 The merge tool refuses a merge that introduces a symbolic link, because a link is a way to make a reviewed path resolve somewhere else. A repository that carries a link on purpose declares it in a JSON file it commits, and the tool exempts exactly the declared links. The tool has no notion of that file's name or location: it reads whatever tree path the `--symlinks` argument names, and no name is special to it. The mechanism is opt-in per invocation: the tool holds no declaration path of its own, so a run that passes no `--symlinks` argument reads no declaration and refuses every link it finds, whatever the merged tree contains. `merge-pull-request.sh` passes `--symlinks .symlinks.json` unconditionally, and that line is the only place this repository's declaration path is stated.

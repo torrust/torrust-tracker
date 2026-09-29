@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: superseded
+status: draft
 priority: p2
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-6-align-grace-periods/ISSUE.md
-branch: null
+branch: "1488-si-6-align-grace-periods"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-09-29 11:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,6 +30,11 @@ semantic-links:
 > [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
 > draft because it requires direct `JoinSet` ownership rather than wrapping
 > already-spawned handles.
+>
+> **Retention**: This draft was never opened as a GitHub issue. It is kept only
+> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
+> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
+> section). Git history preserves it afterwards.
 
 ## Why This Draft Is Superseded
 
