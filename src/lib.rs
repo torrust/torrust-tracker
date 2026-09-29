@@ -1,6 +1,5 @@
 //! **Torrust Tracker** is a modern and feature-rich (private) [`BitTorrent`](https://www.bittorrent.org/) tracker.
 //!
-//!
 //! [`BitTorrent`](https://en.wikipedia.org/wiki/BitTorrent) is a protocol for distributing files using a peer-to-peer network.
 //!
 //! Peers in the networks need to know where they can find other peers with the files they are looking for.
