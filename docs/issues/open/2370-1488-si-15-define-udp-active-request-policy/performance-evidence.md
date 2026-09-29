@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-last-updated-utc: "2026-09-29 19:05"
+last-updated-utc: "2026-09-29 21:09"
 ---
 
 # UDP Performance Evidence
@@ -69,4 +69,27 @@ measurable cost; the difference is within this shared machine's noise.
 
 ## B2 - `JoinSet` Drain Wiring
 
-Pending T5.
+Source: the T5 change on top of T4. The receive loop now spawns every
+processor into a `JoinSet`, reaps finished processors with `try_join_next`
+before each spawn, and drains the set on shutdown. The overload ring is
+unchanged. Same machine, toolchain, tracker configuration, load-test tool, and
+settings as B0. Each run used a fresh tracker process stopped with `SIGTERM`;
+all five load tests and tracker processes exited with status 0.
+
+| Run | Average responses per second | Notes |
+| --- | ---------------------------- | ----- |
+| 1 | 169580.45 | Fresh nonpersistent tracker process |
+| 2 | 167329.09 | Fresh nonpersistent tracker process |
+| 3 | 167005.40 | Fresh nonpersistent tracker process |
+| 4 | 167587.93 | Fresh nonpersistent tracker process |
+| 5 | 167078.13 | Fresh nonpersistent tracker process |
+
+### B2 Result
+
+Mean: 167716.20 responses/s. Median: 167329.09 responses/s. Range:
+167005.40-169580.45 responses/s.
+
+AC11 for B2 passes. The B2 mean is above the lowest B0 run (152965.92), and
+every B2 run is above both the B0 and B1 means. The extra `JoinSet`
+bookkeeping on the request path shows no measurable cost. The gain over B0 and
+B1 is within this shared machine's noise and is not claimed as an improvement.
