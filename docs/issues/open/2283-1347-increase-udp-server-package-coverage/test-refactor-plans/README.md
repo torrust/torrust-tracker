@@ -53,6 +53,7 @@ maintainer approves it.
 | 29 | [statistics-event-handler-error-tests.md](statistics-event-handler-error-tests.md) | DONE | Renamed the general-error test; focused metric routing remains sufficient |
 | 30 | [statistics-event-handler-request-received-tests.md](statistics-event-handler-request-received-tests.md) | DONE | Renamed the received-request test; focused metric routing remains sufficient |
 | 31 | [statistics-event-handler-request-accepted-tests.md](statistics-event-handler-request-accepted-tests.md) | DONE | Renamed six accepted-request tests; focused metric routing remains sufficient |
+| 32 | [statistics-event-handler-request-discarded-tests.md](statistics-event-handler-request-discarded-tests.md) | DONE | Retained the clean discarded-request metric routing test |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
