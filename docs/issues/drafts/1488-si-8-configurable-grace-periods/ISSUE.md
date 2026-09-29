@@ -1,18 +1,20 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: superseded
+status: draft
 priority: p3
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
-branch: null
+branch: "1488-si-8-configurable-grace-periods"
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: "2026-09-29 11:47"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - packages/configuration/src/v3_0_0/
+    - packages/configuration/src/v3_0_0/mod.rs
     - src/main.rs
     - src/bootstrap/jobs/manager.rs
     - packages/axum-server/src/signals.rs
@@ -27,6 +29,11 @@ semantic-links:
 > **Status**: Superseded for implementation planning. [SI-20](../1488-si-20-configure-shutdown-policy/ISSUE.md)
 > replaces this draft after Q3 and Q4 defined the final outcome and deadline
 > semantics.
+>
+> **Retention**: This draft was never opened as a GitHub issue. It is kept only
+> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
+> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
+> section). Git history preserves it afterwards.
 
 ## Why This Draft Is Superseded
 

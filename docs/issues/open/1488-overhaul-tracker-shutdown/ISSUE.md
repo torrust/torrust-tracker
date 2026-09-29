@@ -175,6 +175,21 @@ deterministic tests, and manual evidence.
 | —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
 | —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
 
+### Superseded Draft Retention
+
+The superseded drafts SI-3, SI-6, SI-7, SI-8, and SI-9 were never opened as
+GitHub issues, so they have no closed-issue folder. They stay in
+`docs/issues/drafts/` while this EPIC is open because they record why the
+original plan was split or replaced, and several active and closed specs link
+to them.
+
+Cleanup happens once, in the EPIC close-out, after every active work item is
+done: delete the five draft folders, replace live links to them with the
+replacement item or a plain-text mention, and keep links in immutable
+historical records only when they describe the path at that time. Git history
+preserves the deleted drafts. Do not delete them earlier; a draft that becomes
+superseded later gets the same retention note and joins this cleanup.
+
 ### Release and Review Requirements
 
 - Each work item must preserve a supported shutdown path for the tracker and

@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: superseded
+status: draft
 priority: p2
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
-branch: null
+branch: "1488-si-3-fix-environment-stop"
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: "2026-09-29 11:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,6 +30,11 @@ semantic-links:
 > replaces the standalone HTTP environment/example and [SI-17](../1488-si-17-migrate-standalone-udp-environment/ISSUE.md)
 > replaces the standalone UDP environment/example, after the additive server
 > lifecycle API is available.
+>
+> **Retention**: This draft was never opened as a GitHub issue. It is kept only
+> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
+> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
+> section). Git history preserves it afterwards.
 
 ## Why This Draft Is Superseded
 
