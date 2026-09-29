@@ -160,6 +160,51 @@ M4 met: third-party layers came from the local Docker store and only the workspa
 M6 met: the job took 12 min 3 s and the PR checks 17 min 49 s, recorded in `benchmark-results.md`
 against the baseline and the 15-minute target.
 
+### V5 - Runner-Offline Recovery (M5)
+
+Recorded under follow-up issue #2374.
+
+- Goal: prove that `timeout-minutes` does not expire a queued self-hosted job, then prove restart
+  recovery and the GitHub-hosted fallback.
+- Initial state: `torrust-runner-01` online and idle; no queued or active `Container` or `Testing`
+  runs. The disposable PR #2378 changed only `Test (Docker)` from `timeout-minutes: 90` to `2`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Stopped `actions.runner.torrust-torrust-tracker.torrust-runner-01.service` at 18:03:34 UTC.
+  The service was `inactive`; GitHub reported the runner `offline` before the PR was opened.
+2. Opened disposable PR #2378 at 18:09 UTC. Its Container run `36610063594` created job
+  `109548900765` at 18:09:40 UTC.
+3. The job remained queued until 18:14:33 UTC, when the restarted runner picked it up. The queue
+  duration was 293 seconds (4 min 53 s), longer than its 2-minute `timeout-minutes`. It was
+  cancelled at 18:16:40 UTC only after execution had begun, as expected for the execution limit.
+4. A second queued run (`36610612944`, job `109550759376`) also started on
+  `torrust-runner-01` after recovery, confirming the service resumed the backlog.
+5. Pushed a fallback commit only to #2378 that set the test job's `runs-on` to `ubuntu-latest`.
+  Its run `36611356707` started job `109553292706` on `GitHub Actions 1000091271` two seconds
+  after creation (18:20:31 UTC -> 18:20:33 UTC). It was cancelled at its 2-minute execution cap.
+6. Verified `torrust-runner-01` online and idle, then closed #2378 and deleted its fork branch.
+
+Observed result:
+
+```text
+run 36610063594 | self-hosted | created 18:09:40Z | started 18:14:33Z | queue 293 s | cancelled 18:16:40Z
+run 36610612944 | self-hosted | created 18:14:13Z | started 18:16:42Z | queue 149 s | cancelled 18:18:49Z
+run 36611356707 | ubuntu-latest | created 18:20:31Z | started 18:20:33Z | queue 2 s | cancelled 18:23:12Z
+```
+
+Job links:
+
+- <https://github.com/torrust/torrust-tracker/actions/runs/36610063594/job/109548900765>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36610612944/job/109550759376>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36611356707/job/109553292706>
+
+Conclusion: M5 met. A queued job waited past its two-minute timeout and ran only after the runner
+recovered, proving that `timeout-minutes` does not limit queue time. The fallback started on a
+GitHub-hosted runner without changing `develop`. The five-minute wait in the plan was not needed:
+the 293-second observation already exceeds the two-minute claim under test.
+
 ### V7 - Untrusted-Code Routing (M7)
 
 Recorded under follow-up issue #2374, which completes the scenarios this issue left open.
