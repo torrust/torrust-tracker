@@ -1,72 +1,49 @@
-# .dockerignore — paths excluded from the Docker build context
+# .dockerignore — allow-list of the Docker build context
 #
-# Intentionally INCLUDED (required by one or more Containerfile stages):
-#   .cargo/                    — Cargo config (rustflags, build settings)
-#   Cargo.toml, Cargo.lock     — workspace manifest and dependency lockfile
-#   Containerfile              — read by BuildKit as the build definition
-#   console/                   — workspace member crates
-#   contrib/bencode/           — workspace member crate
-#   contrib/dev-tools/su-exec/ — C source compiled in the gcc stage
-#   packages/                  — workspace member crates
-#   share/                     — app data (COPY ./share/) and container entry script
-#   src/                       — main crate source
-#   tests/                     — integration tests
+# semantic-links:
+#   skill-links:
+#     - add-workspace-member
+#   related-artifacts:
+#     - Containerfile  # every COPY from the build context must be admitted below
+#     - Cargo.toml  # every workspace member must be reachable for `cargo metadata`
+#
+# Policy (issue #2298): default-deny. Everything is excluded unless a rule below
+# re-includes it. Forgetting a path fails the container build visibly; including
+# a path by accident could ship unintended content, so no broad negations are used.
+# The `recipe` stage runs `cargo chef prepare`, which calls `cargo metadata`; that
+# requires every workspace member's manifest and declared target files to be
+# present, so member crates are admitted whole.
 
-# ── Git metadata ──────────────────────────────────────────────────────────────
-/.git
-/.git-blame-ignore
-/.gitignore
-/.githooks/
+*
 
-# ── CI / developer tooling ────────────────────────────────────────────────────
-/.github/
-/.coverage/
-/.tmp/
-/.vscode/
-/codecov.yaml
-/compose.*.yaml
-/cspell.json
-/.markdownlint.json
-/.taplo.toml
-/.yamllint-ci.yml
-/project-words.txt
-/rustfmt.toml
+# ── Cargo workspace ───────────────────────────────────────────────────────────
+!/.cargo/
+!/Cargo.toml
+!/Cargo.lock
+!/src/
+!/tests/
+!/packages/
+!/console/
 
-# ── Documentation and project metadata ───────────────────────────────────────
-/docs/
-/AGENTS.md
+# ── Runtime data and container entry script (COPY ./share/) ───────────────────
+!/share/
+
+# ── C source compiled in the gcc stage (COPY ./contrib/dev-tools/su-exec/) ────
+!/contrib/dev-tools/su-exec/
+
+# ── Interim: AI-harness workspace members ─────────────────────────────────────
+# These crates are explicit workspace members with no tracker dependency. They
+# must be visible to `cargo metadata` but are not default members, so they are
+# never compiled into container test archives. Remove each entry when the crate
+# leaves the tracker workspace (EPIC #2003 harness-workspace sub-issue).
+!/contrib/dev-tools/analysis/workspace-coupling/
+!/contrib/dev-tools/checks/agent-review-report-contract/
+!/contrib/dev-tools/checks/clippy-allow-reasons/
+!/contrib/dev-tools/checks/frontmatter-validator/
+!/contrib/dev-tools/checks/package-coverage-check/
+!/contrib/dev-tools/github/github-review-threads/
+
+# ── Re-exclusions inside admitted directories ─────────────────────────────────
 /packages/AGENTS.md
 /src/AGENTS.md
-/README.md
-/NOTICE
-/SECURITY.md
-/LICENSE
-
-# ── Dev tooling (not needed in any build stage) ───────────────────────────────
-# su-exec is compiled in the gcc stage: COPY ./contrib/dev-tools/su-exec/
-# workspace-coupling/Cargo.toml is copied in the recipe stage for cargo chef prepare
-# agent-review-report-contract/Cargo.toml is copied in the recipe stage for cargo chef prepare
-# clippy-allow-reasons/Cargo.toml is copied in the recipe stage for cargo chef prepare
-# frontmatter-validator/Cargo.toml is copied in the recipe stage for cargo chef prepare
-# package-coverage-check/Cargo.toml is copied in the recipe stage for cargo chef prepare
-# github-review-threads/Cargo.toml is copied in the recipe stage for cargo chef prepare
-/contrib/dev-tools/
-!/contrib/dev-tools/su-exec/
-!/contrib/dev-tools/analysis/workspace-coupling/Cargo.toml
-!/contrib/dev-tools/checks/agent-review-report-contract/Cargo.toml
-!/contrib/dev-tools/checks/clippy-allow-reasons/Cargo.toml
-!/contrib/dev-tools/checks/frontmatter-validator/Cargo.toml
-!/contrib/dev-tools/checks/package-coverage-check/Cargo.toml
-!/contrib/dev-tools/github/github-review-threads/Cargo.toml
-
-# ── Build artifacts and runtime state ─────────────────────────────────────────
-/bin/
-/docker/bin/
-/etc/
-/storage/
-/target/
-
-# ── Test and runtime data files ───────────────────────────────────────────────
-/data.db
-/integration_tests_sqlite3.db
-/tracker.*
+/tests/AGENTS.md

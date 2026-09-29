@@ -121,8 +121,11 @@ nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 
 [workspace]
 # skill-link: add-workspace-member
-# related-artifact: Containerfile — when adding or removing an explicit member,
-# review its cargo-chef manifest/stub lists and nextest archive exclusions.
+# related-artifact: .dockerignore — every member must be admitted to the Docker
+# build context so `cargo chef prepare` can run `cargo metadata`.
+# Every in-repo crate is listed explicitly (not left to path-dependency
+# auto-discovery) so that the cargo-chef `--external-only` skeleton, which strips
+# path dependencies, still resolves the same membership and `default-members`.
 members = [
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
@@ -131,12 +134,58 @@ members = [
   "contrib/dev-tools/checks/frontmatter-validator",
   "contrib/dev-tools/checks/package-coverage-check",
   "contrib/dev-tools/github/github-review-threads",
+  "packages/axum-health-check-api-server",
+  "packages/axum-http-server",
+  "packages/axum-rest-api-server",
+  "packages/axum-server",
+  "packages/configuration",
   "packages/e2e-tools",
+  "packages/events",
+  "packages/http-core",
+  "packages/http-protocol",
   "packages/persistence-benchmark",
+  "packages/primitives",
   "packages/rest-api-application",
+  "packages/rest-api-client",
   "packages/rest-api-protocol",
   "packages/rest-api-runtime-adapter",
+  "packages/swarm-coordination-registry",
+  "packages/test-helpers",
   "packages/torrent-repository-benchmarking",
+  "packages/tracker-client",
+  "packages/tracker-core",
+  "packages/udp-core",
+  "packages/udp-protocol",
+  "packages/udp-server",
+]
+# Positive list of what is compiled and tested inside the container image
+# (`cargo nextest archive` runs without `--workspace` in the Containerfile).
+# Developer tools, benchmarks, CLI clients, host-only E2E runners, and the
+# AI-harness crates are members but not default members, so they never enter
+# the container test archives. Also selects what a bare `cargo build`/`cargo
+# test` at the repository root operates on.
+default-members = [
+  ".",
+  "packages/axum-health-check-api-server",
+  "packages/axum-http-server",
+  "packages/axum-rest-api-server",
+  "packages/axum-server",
+  "packages/configuration",
+  "packages/events",
+  "packages/http-core",
+  "packages/http-protocol",
+  "packages/primitives",
+  "packages/rest-api-application",
+  "packages/rest-api-client",
+  "packages/rest-api-protocol",
+  "packages/rest-api-runtime-adapter",
+  "packages/swarm-coordination-registry",
+  "packages/test-helpers",
+  "packages/tracker-client",
+  "packages/tracker-core",
+  "packages/udp-core",
+  "packages/udp-protocol",
+  "packages/udp-server",
 ]
 
 [workspace.lints.rust]
