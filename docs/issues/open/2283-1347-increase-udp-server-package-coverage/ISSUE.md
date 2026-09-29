@@ -154,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests were changed. |
 | T2  | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index. The first plan, [error-tests.md](test-refactor-plans/error-tests.md), was created for `error.rs`. No tests were changed. |
 | T3  | DONE | Review and approve the processing order | Maintainer approved starting with `error.rs`. The processing order for the remaining files is the order column of the [ledger](#source-file-ledger); the maintainer may reorder it at any time. |
-| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. Files 1-19 are done; 18 files remain. See [Per-File Workflow](#per-file-workflow). |
+| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. Files 1-20 are done; 17 files remain. See [Per-File Workflow](#per-file-workflow). |
 | T5  | TODO | Implement integration-test increments selected by file test plans | Only for files whose plan selected a 3B integration increment because the real UDP loopback boundary is clearer or necessary. One integration-test file at a time; record why the integration boundary was chosen. Close with an explicit note if no plan selected one. |
 | T6  | TODO | Perform bounded mutation assessment | Sample one changed high-risk seam after test increments are complete. Record configuration, timeout, outcome, limitations, and behavior-relevant survivors in `mutation-evidence.md`. |
 | T7  | TODO | Reconcile evidence and progress state | Verify that the ledger (37 rows, all `DONE`), every file test plan, coverage evidence per-file results, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed plans, and rebase-unstable commit SHA citations. |
@@ -266,7 +266,7 @@ inventory and every plan.
 | 17 | `server/states.rs` | Lifecycle (#1488) | DONE | [server-states-tests.md](test-refactor-plans/server-states-tests.md) |
 | 18 | `banning/mod.rs` | Wiring only | DONE | [banning-mod-tests.md](test-refactor-plans/banning-mod-tests.md) |
 | 19 | `banning/event/mod.rs` | Wiring only | DONE | [banning-event-mod-tests.md](test-refactor-plans/banning-event-mod-tests.md) |
-| 20 | `banning/event/handler.rs` | Probably no change | PENDING | — |
+| 20 | `banning/event/handler.rs` | Probably no change | DONE | [banning-event-handler-tests.md](test-refactor-plans/banning-event-handler-tests.md) |
 | 21 | `banning/event/listener.rs` | Lifecycle (#1488) | PENDING | — |
 | 22 | `statistics/mod.rs` | Probably no change | PENDING | — |
 | 23 | `statistics/metrics.rs` | Probably no change | PENDING | — |
@@ -304,7 +304,7 @@ plan so the ledger has no implicit exceptions.
 - [x] Complete module inventory and baseline coverage evidence recorded.
 - [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
 - [x] First file test plan reviewed and approved before test-producing work.
-- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 19 / 37).
+- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 20 / 37).
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
@@ -419,6 +419,9 @@ plan so the ledger has no implicit exceptions.
 - 2026-09-29 11:14 UTC - Jose Celano - Approved the completed `banning/event/mod.rs` review. Its
   plan and ledger row are `DONE` with no Rust change; the file has no executable entries. The next
   file is `banning/event/handler.rs`.
+- 2026-09-29 11:31 UTC - Jose Celano - Approved the completed `banning/event/handler.rs` review.
+  Its plan and ledger row are `DONE` with no Rust change; the current focused contracts cover its
+  package-owned orchestration. The next file is `banning/event/listener.rs`.
 
 ## Acceptance Criteria
 
