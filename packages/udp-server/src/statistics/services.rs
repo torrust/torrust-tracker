@@ -89,12 +89,11 @@ mod tests {
     use crate::statistics::services::{TrackerMetrics, get_metrics};
 
     #[tokio::test]
-    async fn the_statistics_service_should_return_the_tracker_metrics() {
+    async fn it_should_return_aggregate_torrent_and_protocol_metrics() {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-
         let stats_repository = Arc::new(Repository::new());
 
-        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), stats_repository.clone()).await;
+        let tracker_metrics = get_metrics(in_memory_torrent_repository, stats_repository).await;
 
         assert_eq!(
             tracker_metrics,

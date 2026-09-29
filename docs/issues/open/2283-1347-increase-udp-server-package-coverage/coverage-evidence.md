@@ -142,6 +142,7 @@ file completes.
 | `statistics/mod.rs` | 52 / 52 (100.00%) | 52 / 52 (100.00%) | 0 | 0 | No; repository initialization owns the observable metric-collection contract |
 | `statistics/metrics.rs` | 827 / 834 (99.16%) | 827 / 834 (99.16%) | 0 | 0 | No; label projections and moving-average calculation are directly covered, while metric-collection write failures and multi-listener aggregation have separate owners |
 | `statistics/repository.rs` | 547 / 549 (99.64%) | 523 / 523 (100.00%) | 3 consolidated, 2 removed | 2 | No; synchronized snapshots and metric updates are directly unit-tested, while multi-listener aggregation is root-owned |
+| `statistics/services.rs` | 32 / 32 (100.00%) | 32 / 32 (100.00%) | 1 renamed | 0 | No; direct service aggregation covers the complete returned value |
 
 ## Relationship To Issue #2149
 
