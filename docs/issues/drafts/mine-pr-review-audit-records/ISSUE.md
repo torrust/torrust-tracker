@@ -240,7 +240,8 @@ the narrow affected scope, and sign every commit with GPG.
 
 - `linter all`
 - `cargo test` for `frontmatter-validator` and for the crate that owns the audit parser and export
-- `frontmatter-validator --all` (confirms that historical records still pass)
+- `frontmatter-validator docs/pr-reviews` (confirms that historical records still pass; `--all`
+  is unsuitable because it exits `1` on unrelated legacy issue specs)
 - Pre-push checks
 
 ### Manual Verification Scenarios
