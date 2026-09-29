@@ -75,6 +75,8 @@ const REQUEST_DRAIN_DEADLINE: Duration = Duration::from_secs(5);
 /// Waits up to `deadline` for every request processor, then aborts and joins the rest.
 ///
 /// Cancellations seen before the deadline come from overload eviction, not from this drain.
+// ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
+// issue: #2370
 async fn drain_request_processors<E>(tasks: &mut JoinSet<Result<(), E>>, deadline: Duration) -> RequestDrainOutcome
 where
     E: 'static,

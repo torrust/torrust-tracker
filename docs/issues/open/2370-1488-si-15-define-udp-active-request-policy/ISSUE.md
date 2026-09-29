@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-29 21:12"
+last-updated-utc: "2026-09-29 21:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -465,7 +465,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Drain primitive and red orphaned-processor regression test | Added package-private `drain_request_processors` and `RequestDrainOutcome` in `launcher.rs`, generic over the processor error so T4 can supply `ProcessorError`. Five paused-time unit tests cover completion, deadline abort, `Err` and panic as `failed` with the drain continuing, pre-drain cancellation as `evicted`, and an empty set. The receive-loop collaboration test is red 10 of 10 runs with 48 orphans, committed with `#[ignore]` until T5. Named the ring capacity `ACTIVE_REQUESTS_CAPACITY` without changing behavior. Tokio `time` is now a regular feature because the drain uses `tokio::time::timeout`; `test-util` is a dev-dependency only. |
 | T4 | DONE | Processor returns `Result` (D7) and benchmark B1 | `process_request` returns `Result<(), ProcessorError>`, with `EncodeResponse` and `SendResponse` variants; the receive loop still discards it. Existing log messages are unchanged. Processor tests assert `Ok` for a discarded request and for UDP error responses, and a new test proves a failed send returns `SendResponse` (IPv4 socket answering an IPv6 client). B1 mean 164634.37 responses/s, above the lowest B0 run (152965.92). |
 | T5 | DONE | Wire the drain into the receive loop, green regression, and benchmark B2 | The receive loop spawns every processor into a loop-owned `JoinSet<Result<(), ProcessorError>>`, passes the `AbortHandle` to the unchanged `force_push`, and reaps finished tasks with `try_join_next` before each spawn. On cancellation it drains with the private 5-second `REQUEST_DRAIN_DEADLINE` and logs the D4 summary: `warn` if any processor failed or was aborted, otherwise `info`. On a receive error it calls `JoinSet::shutdown` before returning the original error. The deadline is injected through the package-private `start_receive_loop_with_request_drain_deadline`, and production passes the constant. Regression is green 10 of 10 runs and mutation-proven; a companion test proves a released processor answers before the loop returns. B2 mean 167716.20 responses/s passes AC11. The T1 artifact recheck drained `completed=6` after 408 evictions. |
-| T6 | TODO | Review the first passing vertical slice | Check ownership, drop paths, the receive-error path decision, log levels, the component outcome against D3, and the semantic links for new code. Record the review in the progress log; commit only material corrections. |
+| T6 | DONE | Review the first passing vertical slice | No ownership, drop-path, receive-error, log-level, or component-outcome correction needed. Two semantic-link corrections were committed: ADR/issue markers on the drain primitive, and the ADR's Affected Code entry, which no longer calls the shutdown owner "future". |
 | T7 | TODO | Update shutdown documentation | UDP request-processor rows and notes in `task-inventory.md`; the feature README where it describes UDP shutdown; the EPIC roadmap row. |
 | T8 | TODO | Executable-boundary verification | M1-M4 in `manual-verification-evidence.md`. |
 | T9 | TODO | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; retrospective decision recorded. |
@@ -537,6 +537,13 @@ Sign every commit with GPG and use the `udp-server` scope.
   - B2 (five isolated runs, same settings): mean 167716.20, median 167329.09, range 167005.40-169580.45 responses/s. This passes AC11 against B0 and B1.
   - Artifact recheck of T1 at info level: after 408 evictions, the `SIGTERM` drain reported `active=6 completed=6 failed=0 aborted=0 evicted=0`, and the tracker logged a successful shutdown.
   - Validation (nightly Rust toolchain): `cargo test -p torrust-tracker-udp-server` 190 passed, 0 ignored; `cargo test -p torrust-tracker --lib udp` 11 passed; `cargo +nightly fmt --all`; `linter clippy`.
+- 2026-09-29 21:19 UTC - GitHub Copilot - Completed T6 (design review of the T5 slice).
+  - Ownership: every processor is spawned into the loop-owned `JoinSet`; `ActiveRequests` keeps only `AbortHandle`s for overload eviction, and dropping those handles does not abort anything. No spawn path bypasses the set.
+  - Drop paths: if the receive-loop task is aborted, for example because the `OwnedReceiveLoop`/`OwnedTask` owner is dropped, the `JoinSet` is dropped and aborts every processor. No task is detached.
+  - Receive-error path: `JoinSet::shutdown` aborts and joins every processor before the original error is returned, without the graceful deadline, as the design review requires.
+  - Log levels match D3/D4: drain start at `debug`/`info`, a panic `error` per task, a deadline `warn` with the remaining count, and one summary at `warn` when `failed` or `aborted` is non-zero, otherwise `info`. Processors reaped by `try_join_next` during normal operation are discarded silently, as the detached tasks were before; Tokio's panic hook still prints panics. No change.
+  - Component outcome: `udp_tracker::start_job` still maps `Ok(())` to `Cancelled` and a loop error or panic to a component error; its existing tests pass unchanged (AC9).
+  - Semantic links: added `// ADR:` and `// issue: #2370` markers to `drain_request_processors`. The drain lives in `launcher.rs`, not a separate module, so these are item comments rather than `//!` module comments. Updated the ADR's Affected Code entry for `launcher.rs`, which still called the shutdown owner "future" wiring.
 
 ## Acceptance Criteria
 

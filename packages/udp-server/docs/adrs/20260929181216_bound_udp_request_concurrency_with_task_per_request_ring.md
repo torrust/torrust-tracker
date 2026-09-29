@@ -137,7 +137,7 @@ Reassess this decision when any of these occur:
 - `packages/udp-server/src/server/request_buffer.rs`: bounded handle ring and
   oldest-first eviction.
 - `packages/udp-server/src/server/launcher.rs`: processor spawn, ring admission,
-  and future shutdown owner wiring.
+  the `JoinSet` shutdown owner, and the bounded request-processor drain.
 - `packages/udp-server/src/server/processor.rs`: per-request task boundary.
 
 ## Date
