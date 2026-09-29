@@ -9,7 +9,7 @@ github-issue: 2374
 spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
 related-pr: null
-last-updated-utc: "2026-09-29 21:15"
+last-updated-utc: "2026-09-29 21:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -207,11 +207,11 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Issue linked as a GitHub sub-issue of EPIC #1840
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, pre-commit checks)
-- [ ] Manual verification scenarios executed and recorded in the #2323 `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, pre-commit checks)
+- [x] Manual verification scenarios executed and recorded in the #2323 `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -228,6 +228,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 18:59 UTC - GitHub Copilot - T5 DONE: #2323 AC1, AC3, and AC4 reviewed against V1-V7 and static routing checks; no retrospective or operations-guide correction is needed because every observed control behaved as documented - #2323 `ISSUE.md`
 - 2026-09-29 19:48 UTC - GitHub Copilot - Corrected `docs/self-hosted-runner.md`: approved fork PRs targeting `develop` can select the self-hosted runner. The maintainer update created no Dependabot branch-push run, so the post-update `Docker E2E` observation remains pending; reopened AC2 and the completion review - #2323 evidence V7
 - 2026-09-29 21:12 UTC - GitHub Copilot - M7 DONE: temporary signed trigger and revert commits on the updated Dependabot branch produced `Docker E2E` job `109621539097` on GitHub Actions with `ubuntu-latest`; source content restored - #2323 evidence V7
+- 2026-09-29 21:16 UTC - GitHub Copilot - Final full pre-commit gate passed, including `linter all`, staged Markdown frontmatter, dependency checks, formatting, Containerfile linting, and documentation tests - `contrib/dev-tools/git/hooks/pre-commit.sh`
 
 ## Acceptance Criteria
 
