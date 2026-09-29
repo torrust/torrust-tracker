@@ -154,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests were changed. |
 | T2  | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index. The first plan, [error-tests.md](test-refactor-plans/error-tests.md), was created for `error.rs`. No tests were changed. |
 | T3  | DONE | Review and approve the processing order | Maintainer approved starting with `error.rs`. The processing order for the remaining files is the order column of the [ledger](#source-file-ledger); the maintainer may reorder it at any time. |
-| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. Files 1-28 are done; 9 files remain. See [Per-File Workflow](#per-file-workflow). |
+| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. Files 1-29 are done; 8 files remain. See [Per-File Workflow](#per-file-workflow). |
 | T5  | TODO | Implement integration-test increments selected by file test plans | Only for files whose plan selected a 3B integration increment because the real UDP loopback boundary is clearer or necessary. One integration-test file at a time; record why the integration boundary was chosen. Close with an explicit note if no plan selected one. |
 | T6  | TODO | Perform bounded mutation assessment | Sample one changed high-risk seam after test increments are complete. Record configuration, timeout, outcome, limitations, and behavior-relevant survivors in `mutation-evidence.md`. |
 | T7  | TODO | Reconcile evidence and progress state | Verify that the ledger (37 rows, all `DONE`), every file test plan, coverage evidence per-file results, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed plans, and rebase-unstable commit SHA citations. |
@@ -275,7 +275,7 @@ inventory and every plan.
 | 26 | `statistics/event/mod.rs` | Wiring only | DONE | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) |
 | 27 | `statistics/event/listener.rs` | Lifecycle (#1488) | DONE | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | 28 | `statistics/event/handler/mod.rs` | Probably no change | DONE | [statistics-event-handler-mod-tests.md](test-refactor-plans/statistics-event-handler-mod-tests.md) |
-| 29 | `statistics/event/handler/error.rs` | Probably no change | PENDING | — |
+| 29 | `statistics/event/handler/error.rs` | Probably no change | DONE | [statistics-event-handler-error-tests.md](test-refactor-plans/statistics-event-handler-error-tests.md) |
 | 30 | `statistics/event/handler/request_received.rs` | Probably no change | PENDING | — |
 | 31 | `statistics/event/handler/request_accepted.rs` | Probably no change | PENDING | — |
 | 32 | `statistics/event/handler/request_discarded.rs` | Probably no change | PENDING | — |
@@ -304,7 +304,7 @@ plan so the ledger has no implicit exceptions.
 - [x] Complete module inventory and baseline coverage evidence recorded.
 - [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
 - [x] First file test plan reviewed and approved before test-producing work.
-- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 28 / 37).
+- [ ] Every ledger row is `DONE` with its own file test plan (37 / 37; currently 29 / 37).
 - [ ] Implementation completed.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.

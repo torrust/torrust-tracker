@@ -50,6 +50,7 @@ maintainer approves it.
 | 26 | [statistics-event-mod-tests.md](statistics-event-mod-tests.md) | DONE | No Rust change; declaration wiring has no independent observable contract |
 | 27 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | No Rust change; direct dispatch contracts retained and spawned lifecycle deferred to #1488 |
 | 28 | [statistics-event-handler-mod-tests.md](statistics-event-handler-mod-tests.md) | DONE | No Rust change; routing-only dispatcher has no independent observable seam |
+| 29 | [statistics-event-handler-error-tests.md](statistics-event-handler-error-tests.md) | DONE | Renamed the general-error test; focused metric routing remains sufficient |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
