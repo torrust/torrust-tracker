@@ -32,7 +32,7 @@ do not invent commands, output, logs, or results.
 - Goal: a PR targeting `develop` runs `Test (Docker)` on the Hetzner runner and passes.
 - Initial state: first job ever on the runner; no Rust toolchain, Docker layers, or Cargo caches
   on the host.
-- Status: `DONE`
+- Status: `IN_PROGRESS` (parts 1 and 3 done; the post-update `Docker E2E` observation is pending)
 
 #### Steps Performed
 
@@ -270,8 +270,11 @@ Test (Docker) (release) | in_progress | runner=GitHub Actions 1000091297 |
 
 <https://github.com/torrust/torrust-tracker/actions/runs/36615722101/job/109568077764>
 
-Conclusion: part 2 met. Although the maintainer triggered the merge commit, #2369 remained a
-Dependabot PR and its container test started on a GitHub-hosted runner.
+Conclusion: the Container portion of part 2 met. Although the maintainer triggered the merge
+commit, #2369 remained a Dependabot PR and its container test started on a GitHub-hosted runner.
+The associated pull-request `Docker E2E` job was skipped because its target is `develop`, and no
+push workflow was created for the updated head. A post-update `Docker E2E` observation remains
+pending.
 
 #### Part 3 - PR From a Non-Member Fork
 
@@ -303,9 +306,9 @@ and is not evidence of self-hosted-runner routing after approval.
 Conclusion: part 3 met. No workflow run existed before the maintainer approved the first-time
 external contributor's PR; the approved workflow then started. This proves the approval gate.
 
-Conclusion: M7 met. Dependabot jobs routed to GitHub-hosted runners both before and after a
-maintainer updated a Dependabot branch, and the first-time external contributor could not start a
-workflow before approval.
+Conclusion: M7 parts 1 and 3 met. The Container portion of part 2 confirms that a maintainer
+update does not move a Dependabot PR to the self-hosted runner. The post-update `Docker E2E`
+observation remains pending because GitHub did not create a branch-push run for the merge update.
 
 ## Failures and Follow-up
 

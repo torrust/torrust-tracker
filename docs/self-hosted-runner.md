@@ -27,10 +27,11 @@ way, is in issue #2323's
 | `container.yaml` | `Test (Docker)` | PR targeting `develop` (not opened by Dependabot), or push to `develop`          | `ubuntu-latest` |
 | `testing.yaml`   | `Docker E2E`    | Any run in `torrust/torrust-tracker`, except Dependabot PRs and `dependabot/` branch pushes | `ubuntu-latest` |
 
-Runs in forks always use `ubuntu-latest`. The publish jobs always run on GitHub-hosted runners and
-use no GitHub Actions cache. On the self-hosted runner the jobs use the default `docker` Buildx
-driver, keep host-side Cargo builds in `~runner/.cache/torrust-tracker/`, and write no GitHub
-Actions cache.
+Fork PRs targeting `develop` can select the self-hosted runner after their workflows are approved;
+the approval policy for all external contributors is the gate. The publish jobs always run on
+GitHub-hosted runners and use no GitHub Actions cache. On the self-hosted runner the jobs use the
+default `docker` Buildx driver, keep host-side Cargo builds in
+`~runner/.cache/torrust-tracker/`, and write no GitHub Actions cache.
 
 ## Current Runner
 

@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: "2026-09-29 18:59"
+last-updated-utc: "2026-09-29 19:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -371,7 +371,7 @@ Use Conventional Commits with a narrow scope (for example `ci(container)`, `docs
 - [ ] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed (T5 merged in PR #2352)
 - [ ] Automatic verification completed (`linter all`, workflow lint, pre-push checks when applicable)
-- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -407,7 +407,8 @@ Append one line per meaningful update.
 - 2026-09-27 10:20 UTC - GitHub Copilot - T7 DONE: with application code changed, `Test (Docker)` took 12 min 3 s on the runner (workspace compile 561 s, dependencies cached), and the PR checks 17 min 49 s end to end; scenarios A and G (the unit test jobs are now the critical path), no phase 3 remedy needed here; M4 and M6 DONE - [`benchmark-results.md`](benchmark-results.md)
 - 2026-09-27 20:24 UTC - GitHub Copilot - T6 DONE after PR #2352 merged: `develop` Container run 36345987166 passed; `Test (Docker)` ran on `torrust-runner-01` (M2), and `Publish (Development)` succeeded on a GitHub-hosted runner with no `type=gha` cache flag in its build log (M3) - [`manual-verification-evidence.md`](manual-verification-evidence.md)
 - 2026-09-28 UTC - GitHub Copilot - Archived this closed GitHub issue specification in `docs/issues/closed/`; remaining unchecked verification and acceptance records are preserved as written.
-- 2026-09-29 18:59 UTC - GitHub Copilot - Follow-up #2374 completed M5 and M7. AC1, AC3, and AC4 are DONE using V1-V7 evidence and explicitly named static checks for unobserved `main` and release paths. No retrospective is needed: no control failed and the observed behavior matched the ADR and operations guide - [`manual-verification-evidence.md`](manual-verification-evidence.md), #2374
+- 2026-09-29 18:59 UTC - GitHub Copilot - Follow-up #2374 completed M5 and reviewed AC1, AC3, and AC4 using V1-V7 evidence and explicitly named static checks for unobserved `main` and release paths - [`manual-verification-evidence.md`](manual-verification-evidence.md), #2374
+- 2026-09-29 19:48 UTC - GitHub Copilot - Independent review found the post-update Dependabot `Docker E2E` observation still pending: the merge update created no push run, while the PR run skipped `Docker E2E` for its `develop` target. It also corrected the guide's inaccurate claim that fork PRs always use GitHub-hosted runners - #2374, `docs/self-hosted-runner.md`
 
 ## Acceptance Criteria
 
@@ -458,7 +459,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | DONE   | `manual-verification-evidence.md` section V4 |
 | M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job queued 293 seconds past its 2-minute limit, recovered after restart, and fallback was GitHub-hosted | DONE   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | DONE   | `benchmark-results.md`                       |
-| M7  | Untrusted-code routing       | Inspect Dependabot before and after a maintainer update, and a non-member fork before approval | Dependabot stayed GitHub-hosted in both cases; no external workflow ran before approval | DONE   | `manual-verification-evidence.md` section V7 |
+| M7  | Untrusted-code routing       | Inspect Dependabot before and after a maintainer update, and a non-member fork before approval | Dependabot stayed GitHub-hosted in both cases; no external workflow ran before approval | IN_PROGRESS | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
@@ -579,8 +580,8 @@ All answered by the maintainer on 2026-09-26 and recorded in the ADR (T4).
 
 ## Implementation Completion Review
 
-- Retrospective: not needed. The M5 and M7 follow-up evidence confirmed the documented controls;
-  no control failed and no material procedure changed.
+- Retrospective: pending M7 completion. The M5 evidence confirmed the offline control; the guide
+  needed correction because fork PRs can select the self-hosted runner after approval.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
