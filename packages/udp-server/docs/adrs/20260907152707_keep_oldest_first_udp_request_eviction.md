@@ -6,7 +6,7 @@ semantic-links:
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/src/server/launcher.rs
     - issue #2149
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - issue #2370
 ---
 
 <!-- skill-link: create-adr -->
@@ -106,4 +106,4 @@ joining, and outcome reporting are separately owned by the planned SI-15 work.
   (<https://github.com/torrust/torrust-tracker/pull/921>)
 - Rejected performance-regression experiment: PR #922
   (<https://github.com/torrust/torrust-tracker/pull/922>)
-- Planned shutdown policy: issue #2370, `docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md`
+- Planned shutdown policy: issue #2370

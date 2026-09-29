@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy-spec"
 related-pr: null
-last-updated-utc: "2026-09-29 11:56"
+last-updated-utc: "2026-09-29 13:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,8 @@ Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-track
 When a UDP tracker instance is cancelled, it must stop admitting datagrams,
 wait up to five seconds for request processors it has already accepted, then
 deliberately abort and join any that remain. It logs one summary with
-completed, failed, and aborted counts before the receive loop returns.
+completed, failed, aborted, and overload-evicted counts before the receive
+loop returns.
 
 The policy keeps BitTorrent UDP's best-effort semantics while making shutdown
 bounded, observable, deterministic, and safe to report upward.
@@ -180,7 +181,8 @@ Classify each processor joined by the drain:
 | Processor result during the drain | Counter | Log |
 | --------------------------------- | ------- | --- |
 | Finished normally | `completed` | none per task |
-| Panicked (`JoinError::is_panic`), or returned `Err` (D7) | `failed` | one `error` per task |
+| Panicked (`JoinError::is_panic`) | `failed` | one new drain-level `error` per task |
+| Returned `Err` (D7) | `failed` | existing processor-level `warn`; no duplicate drain-level log |
 | Aborted by the drain at the deadline | `aborted` | included in the deadline `warn` |
 | Aborted earlier by overload eviction and joined during the drain | `evicted` | none per task; already reported by the `UdpRequestAborted` event |
 
@@ -451,9 +453,12 @@ unchanged; they point to another draft.
   drain waits up to five seconds -> deadline aborts -> join all -> summary ->
   loop returns `Ok(())` -> component reports `Cancelled`.
 - **Failure paths**: processor panic or `Err` -> counted and logged, drain
-  continues. Receive error -> loop returns the error as today; the dropped
-  `JoinSet` aborts remaining processors. Whether the error path should also
-  drain is decided at the T6 review and recorded.
+  continues. Receive error -> immediately abort every remaining processor,
+  join each termination, then return the original receive error. It does not
+  use the five-second graceful deadline, because admission has failed rather
+  than received a normal cancellation request. Dropping a `JoinSet` is only
+  outer-task-abort escalation; it is not a substitute for joining on a normal
+  receive-error return.
 - **Startup failure**: retain SI-14's registration rollback: cancel and abort
   the receive loop, join it, release the socket, and return the registration
   error before returning a component future.
@@ -468,19 +473,36 @@ unchanged; they point to another draft.
 
 ## Bug-Fix Process
 
-Not applicable as a standalone bug: this is a lifecycle policy change. The
-orphaned-processor ownership gap (Background fact 1) is closed as part of D2.
-T5 proves it with a regression test that fails against the current ring-only
-tracking, following the write-unit-test "Prove a Regression Test Guards the
-Bug" rule.
+This issue is substantively a bug fix as well as a lifecycle policy change:
+the current full-buffer path can drop the only `AbortHandle` for live processor
+tasks, so they can outlive their receive-loop owner and keep its socket alive.
+Use the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md)
+workflow.
+
+1. T1 records the current code-path analysis, real-artifact reproduction
+  attempt, environment, and outcome in `manual-verification-evidence.md`.
+  The bug is internal: a real UDP client cannot observe a lost task handle.
+  If the direct tracker run reaches the trigger but cannot observe the orphan,
+  record `Trigger only`; if that is infeasible, record the attempted command,
+  constraint, and strongest substitute evidence.
+2. T3 adds the smallest maintained regression test at the receive-loop and
+  processor-owner collaboration boundary. It must fail against the current
+  ring-only owner before the production fix. Record the red command and
+  output in the evidence file.
+3. T5 implements the owner and drain, records green focused-test output, and
+  repeats the T1 artifact scenario or its documented strongest substitute.
 
 ## Regression Test Strategy
 
-- Detached processors: fill the ring so `force_push` drops an active handle
-  after earlier completed handles free capacity, cancel the loop, and assert
-  that processor is joined or aborted before the loop returns.
-- Prove it by mutating the fix in the working tree (never staged), confirming
-  the failure, then restoring it.
+The causal defect is not a `request_buffer` unit decision: it is observable
+only when `force_push` drops a live handle and the receive loop later exits.
+The smallest maintained boundary is therefore the D9 level-2 receive-loop and
+processor-owner collaboration test. It fills the ring into the orphaning
+ordering, keeps the affected real processor gated, cancels the loop, and
+asserts that the loop does not return until that processor is joined or
+deliberately aborted. T3 first proves the test red against the current code;
+T5 proves it green after ownership wiring. Mutate the fix in the working tree
+without staging it, observe the failure, then restore it.
 
 ## Implementation Plan
 
@@ -488,11 +510,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Confirm the seam and record benchmark B0 | Confirm the receive-loop, ring, and processor facts in Background still hold on the branch base. Record B0 (D6) on `develop` in `performance-evidence.md` before any code change. |
+| T1 | TODO | Analyze and reproduce the orphaned-processor bug; record benchmark B0 | Confirm the receive-loop, ring, and processor facts in Background still hold on the branch base. Attempt the real-artifact reproduction and record its `Reproduced`, `Trigger only`, or `Infeasible` outcome in `manual-verification-evidence.md`. Record B0 (D6) on `develop` in `performance-evidence.md` before any code change. |
 | T2 | TODO | Request-handling ADR and semantic links | Create the package-local ADR described in Architectural Decisions from D8 and its linked evidence; register it in the package ADR index; link the eviction ADR to it; apply the Semantic Link Map to existing code and documentation; reduce D8 to the decision plus a link. Validate with the frontmatter validator, `linter markdown`, `linter cspell`, and `linter lychee`. Later tasks add the links for code they create or change. |
-| T3 | TODO | Drain primitive with unit tests | Package-private drain function over a `JoinSet` and a deadline, returning counts. D9 level 1 tests: all complete before the deadline; blocked tasks aborted and joined at the deadline; a panic or `Err` counted as `failed` while the drain continues; a task already aborted before the drain counted as `evicted`, not `aborted`; an empty set returns immediately. |
+| T3 | TODO | Drain primitive and red orphaned-processor regression test | Package-private drain function over a `JoinSet` and a deadline, returning counts. D9 level 1 tests: all complete before the deadline; blocked tasks aborted and joined at the deadline; a panic or `Err` counted as `failed` while the drain continues; a task already aborted before the drain counted as `evicted`, not `aborted`; an empty set returns immediately. Add the D9 level-2 orphaned-processor collaboration test and prove it red against the ring-only owner; record the command and output in `manual-verification-evidence.md`. |
 | T4 | TODO | Processor returns `Result` (D7) and benchmark B1 | `process_request` returns `Result<(), ProcessorError>` for encode and send failures; the receive loop still discards it. Processor tests assert `Ok` for handled requests, including UDP error responses. Record B1 and compare it with B0; stop for the maintainer if it misses the bound. |
-| T5 | TODO | Wire the drain into the receive loop and benchmark B2 | Spawn processors into the loop-owned `JoinSet`; pass its `AbortHandle` to `force_push`; reap finished tasks without blocking; on cancellation, drain with the D1 constant and log the D4 summary. D9 level 2 tests: a gated real processor completes before the loop returns; a gated processor still active at the deadline is aborted and counted; the socket is released when the loop returns; the orphaned-processor ownership regression (red before the fix). Record B2 and compare it with B1 and B0. |
+| T5 | TODO | Wire the drain into the receive loop, green regression, and benchmark B2 | Spawn processors into the loop-owned `JoinSet`; pass its `AbortHandle` to `force_push`; reap finished tasks without blocking; on cancellation, drain with the D1 constant and log the D4 summary. On an unexpected receive error, immediately abort and join every processor before returning the original error. D9 level 2 tests: a gated real processor completes before the loop returns; a gated processor still active at the deadline is aborted and counted; the socket is released when the loop returns; the orphaned-processor regression is green and mutation-proven. Record B2 and compare it with B1 and B0, then repeat T1's artifact scenario or strongest substitute evidence. |
 | T6 | TODO | Review the first passing vertical slice | Check ownership, drop paths, the receive-error path decision, log levels, the component outcome against D3, and the semantic links for new code. Record the review in the progress log; commit only material corrections. |
 | T7 | TODO | Update shutdown documentation | UDP request-processor rows and notes in `task-inventory.md`; the feature README where it describes UDP shutdown; the EPIC roadmap row. |
 | T8 | TODO | Executable-boundary verification | M1-M4 in `manual-verification-evidence.md`. |
@@ -502,9 +524,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| T1 | Benchmark B0 in `performance-evidence.md` | Commit before any code change. |
+| T1 | Bug reproduction evidence and benchmark B0 | Commit before any code change. |
 | T2 | Request-handling ADR, index row, and semantic links | One `docs(adrs)` commit; code comments only, no behavior change. |
-| T3 | Drain primitive and its unit tests | Commit after focused validation and test-design review. |
+| T3 | Drain primitive, its unit tests, and red regression evidence | Commit after focused validation and test-design review. |
 | T4 | D7 processor `Result`, its tests, and B1 | Separate commit, so D7 can be measured and reverted on its own. |
 | T5 | Receive-loop wiring, its tests, and B2 | Separate commit, so the wiring can be reverted without the primitive or D7. |
 | T6 | Material ownership correction only | Commit substantive corrections separately; otherwise record a no-change decision. |
@@ -547,6 +569,7 @@ Sign every commit with GPG and use the `udp-server` scope.
 - 2026-09-29 11:10 UTC - GitHub Copilot - Maintainer approved adding a package-local ADR for the UDP request-handling design as task T2, because this algorithm is critical to the tracker, and asked for semantic links between ADRs, implementation, and docs. Added the ADR scope, the Semantic Link Map, AC15-AC16, and renumbered later tasks. Maintainer approved creating the GitHub issue and spec-only PR.
 - 2026-09-29 11:15 UTC - GitHub Copilot - Created GitHub issue #2370 and linked it as a sub-issue of EPIC #1488. Renamed the local branch to `2370-1488-si-15-define-udp-active-request-policy-spec`, promoted this spec to `docs/issues/open/`, removed the superseded `verification.md` placeholder, and updated live references. Next step: spec-only PR.
 - 2026-09-29 11:17 UTC - GitHub Copilot - Compared the prior SI-15 hand-off with this specification. Preserved its explicit SI-14 `OwnedTask` and registration-rollback guarantees, and corrected D2 to own `Result<(), ProcessorError>` in the `JoinSet`, which is required for D7 error classification.
+- 2026-09-29 13:15 UTC - GitHub Copilot - Addressed PR #2372 Copilot findings F1-F7: adopted the semantic bug-fix workflow and evidence, require immediate abort-and-join before a receive-error return, reconcile rather than assume an idle summary is zero, distinguish panic and returned-error logs, include the `evicted` goal counter, and replace movable issue paths in the long-lived eviction ADR.
 
 ## Acceptance Criteria
 
@@ -556,7 +579,7 @@ Sign every commit with GPG and use the `udp-server` scope.
 - [ ] AC4: Processors still running at the deadline are deliberately aborted, joined, and counted as `aborted`.
 - [ ] AC5: Panicked processors and processors returning `Err` are counted as `failed` and logged; the drain continues and joins every remaining processor.
 - [ ] AC6: Processors aborted earlier by overload eviction are counted as `evicted`, never as `aborted`.
-- [ ] AC7: The receive loop returns only after every processor is joined, and the UDP socket is released when it returns.
+- [ ] AC7: On cancellation or a receive error, the receive loop returns only after every processor is joined, and the UDP socket is released when it returns.
 - [ ] AC8: One `tracing` summary reports `completed`, `failed`, `aborted`, `evicted`, and elapsed time; no metrics or domain events are added.
 - [ ] AC9: The UDP component reports `Cancelled` after a drain that finishes within its deadline; a receive-loop error still fails it.
 - [ ] AC10: `ActiveRequests::force_push` eviction behavior is unchanged and its existing tests pass without modification.
@@ -594,7 +617,7 @@ is released. Record everything in issue-local `manual-verification-evidence.md`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Idle UDP shutdown | Start `target/release/torrust-tracker` with one UDP binding, confirm readiness with `tracker_client udp announce`, wait for the request to finish, then send `SIGTERM` to the binary PID. | The drain summary reports zero processors; the component reports `Cancelled`; exit `0`. | TODO | `manual-verification-evidence.md` M1 |
+| M1 | Idle UDP shutdown | Start `target/release/torrust-tracker` with one UDP binding, confirm readiness with `tracker_client udp announce`, wait for the request to finish, then send `SIGTERM` to the binary PID. | The drain summary reconciles every processor observed at shutdown; it may count the completed readiness request if no later datagram reaped it. The component reports `Cancelled`; exit `0`. | TODO | `manual-verification-evidence.md` M1 |
 | M2 | Shutdown under UDP load | Run `aquatic_udp_load_test` against the tracker, send `SIGTERM` to the binary PID during the run, and capture bounded exit and logs. | `main()` logs the signal; the summary reports non-zero processors and reconciles its counts; the process exits within the drain deadline plus shutdown overhead. | TODO | `manual-verification-evidence.md` M2 |
 | M3 | Listener release | Restart the same configuration immediately after M2 and announce again. | The UDP socket rebinds immediately and serves the announce. | TODO | `manual-verification-evidence.md` M3 |
 | M4 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops; any stop delay is bounded by the drain deadline. The known SI-17 Ctrl-C panic is recorded, not fixed. | TODO | `manual-verification-evidence.md` M4 |
@@ -615,11 +638,11 @@ in this issue directory and record why a maintained Rust test cannot cover it.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | T5 orphaned-processor regression test |
+| AC1 | TODO | T3 red and T5 green orphaned-processor regression test |
 | AC2 | TODO | T5 receive-loop test; SI-14 admission tests |
 | AC3 | TODO | T3 completion test |
 | AC4 | TODO | T3 deadline-abort test; T5 gated real-processor deadline test |
-| AC5 | TODO | T3 panic and `Err` tests |
+| AC5 | TODO | T3 panic and `Err` tests; D4 log review |
 | AC6 | TODO | T3 pre-aborted-task test |
 | AC7 | TODO | T5 loop-return and socket-release tests |
 | AC8 | TODO | Code review; M1-M2 logs |
