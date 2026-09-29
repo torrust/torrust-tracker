@@ -48,6 +48,7 @@ maintainer approves it.
 | 24 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Refactored repository tests and added initialized collection snapshot contracts |
 | 25 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | Refactored the fully covered service aggregation test |
 | 26 | [statistics-event-mod-tests.md](statistics-event-mod-tests.md) | DONE | No Rust change; declaration wiring has no independent observable contract |
+| 27 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | No Rust change; direct dispatch contracts retained and spawned lifecycle deferred to #1488 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
