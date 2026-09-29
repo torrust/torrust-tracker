@@ -51,6 +51,7 @@ maintainer approves it.
 | 27 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | No Rust change; direct dispatch contracts retained and spawned lifecycle deferred to #1488 |
 | 28 | [statistics-event-handler-mod-tests.md](statistics-event-handler-mod-tests.md) | DONE | No Rust change; routing-only dispatcher has no independent observable seam |
 | 29 | [statistics-event-handler-error-tests.md](statistics-event-handler-error-tests.md) | DONE | Renamed the general-error test; focused metric routing remains sufficient |
+| 30 | [statistics-event-handler-request-received-tests.md](statistics-event-handler-request-received-tests.md) | DONE | Renamed the received-request test; focused metric routing remains sufficient |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
