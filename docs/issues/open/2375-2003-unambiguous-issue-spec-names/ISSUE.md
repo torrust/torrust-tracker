@@ -22,8 +22,8 @@ semantic-links:
     - docs/issues/drafts/README.md
     - docs/issues/open/README.md
     - docs/issues/closed/README.md
-    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
+    - "issue #2003"
+    - "issue #2264"
 ---
 
 <!-- skill-link: create-issue -->
