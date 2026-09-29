@@ -138,6 +138,7 @@ file completes.
 | `server/states.rs` | 72 / 77 (93.51%) | 72 / 77 (93.51%) | 0 | 0 | No; bind, stop, and task paths are socket and #1488 lifecycle boundaries |
 | `banning/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; namespace declaration has no runtime boundary |
 | `banning/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declarations have no runtime boundary |
+| `banning/event/listener.rs` | 147 / 150 (98.00%) | 147 / 150 (98.00%) | 0 | 0 | No; direct dispatch contracts remain sufficient, while spawned task ownership is #1488-owned |
 
 ## Relationship To Issue #2149
 
