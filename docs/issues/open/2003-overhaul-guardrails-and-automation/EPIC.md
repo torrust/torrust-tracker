@@ -5,8 +5,8 @@ status: planned
 epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-epic-owner: josecelano
-last-updated-utc: "2026-09-28 09:42"
+epic-owner: da2ce7
+last-updated-utc: "2026-09-29 16:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -264,6 +264,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 11    | #2278 - Strengthen PR review author self-audit and evidence generation | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md` | Child EPIC converted from a task after its improvement matrix showed several independently reviewable artifacts. Evidence-driven refinement of author self-audit, audit validation, and proportionate review evidence, split into one-PR subissues. Remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. | PR #2270, #2271, and #2272 retrospectives; #2219 and #2233; #2266 for check-crate placement |
 | 12    | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | Processes 32 review findings posted after merge through the existing `process-pr-review` post-merge workflow: audits, maintainer-approved dispositions, and documentation fixes only; workflow, CI, and Rust changes become their own issues. Selects no automation architecture. | `process-pr-review` post-merge workflow; PR #2344 for findings unprocessed at merge |
 | 13    | #2360 - Resolve the crate-level scope of the UDP protocol `empty_enums` allowance | `docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md` | Follow-up of #2347 (`review-finding:pr-2290-f4`): brings one retained Clippy allowance into line with the #2158 exception framework, by a lint-scope change or a maintainer-reviewed framework amendment. Selects no automation architecture. | #2158 exception framework |
+| 14    | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264. | #2264 frontmatter and semantic-link conventions |
 
 ## Delivery Strategy
 
@@ -374,6 +375,8 @@ For each completed subissue in this EPIC, the default completion policy is:
   created and linked it under this EPIC
 - 2026-09-28 09:42 UTC - GitHub Copilot - Maintainer approved subissue #2360 (order 13), follow-up
   FU-A of #2347 for `review-finding:pr-2290-f4`; created and linked it under this EPIC
+- 2026-09-29 16:29 UTC - GitHub Copilot - Maintainer approved subissue #2375 (order 14),
+  unambiguous issue specification directory names; created and linked it under this EPIC
 
 ## Acceptance Criteria
 
