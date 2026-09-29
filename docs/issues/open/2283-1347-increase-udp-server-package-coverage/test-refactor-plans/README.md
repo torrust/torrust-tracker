@@ -39,6 +39,7 @@ maintainer approves it.
 | 15 | [server-processor-tests.md](server-processor-tests.md) | DONE | Discard assertion completed; connect response event covered; #2354 covers error classification; unit-only 100.00% lines |
 | 16 | [server-request-buffer-tests.md](server-request-buffer-tests.md) | DONE | No Rust change; current admission, eviction, and drop contracts remain sufficient; unit-only 93.10% lines |
 | 17 | [server-states-tests.md](server-states-tests.md) | DONE | No Rust change; startup-notification mappings are complete and lifecycle behavior remains #1488-owned; unit-only 93.51% lines |
+| 18 | [banning-mod-tests.md](banning-mod-tests.md) | DONE | No Rust change; namespace wiring has no executable entries |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
