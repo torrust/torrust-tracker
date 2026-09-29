@@ -272,9 +272,18 @@ Test (Docker) (release) | in_progress | runner=GitHub Actions 1000091297 |
 
 Conclusion: the Container portion of part 2 met. Although the maintainer triggered the merge
 commit, #2369 remained a Dependabot PR and its container test started on a GitHub-hosted runner.
-The associated pull-request `Docker E2E` job was skipped because its target is `develop`, and no
-push workflow was created for the updated head. A post-update `Docker E2E` observation remains
-pending.
+The associated pull-request `Docker E2E` job was skipped because its target is `develop`, and the
+merge update created no push workflow. To observe the post-update push path, the maintainer pushed
+a signed empty commit (`7e810339`), which path filtering did not run, then a signed temporary Rust
+doc-comment commit (`11180ff9`). The latter triggered `Testing` push run `36631486290`; its
+`Docker E2E` job `109621539097` started on `GitHub Actions 1000091340` with
+`labels=ubuntu-latest` at 21:10:31 UTC. The signed revert commit `cd4cdfba` immediately restored
+the source file, leaving no net source-content change from this observation.
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36631486290/job/109621539097>
+
+Conclusion: part 2 met. Both the maintainer-updated Container PR run and the subsequent
+Dependabot-branch `Docker E2E` push run selected GitHub-hosted runners.
 
 #### Part 3 - PR From a Non-Member Fork
 
@@ -306,9 +315,9 @@ and is not evidence of self-hosted-runner routing after approval.
 Conclusion: part 3 met. No workflow run existed before the maintainer approved the first-time
 external contributor's PR; the approved workflow then started. This proves the approval gate.
 
-Conclusion: M7 parts 1 and 3 met. The Container portion of part 2 confirms that a maintainer
-update does not move a Dependabot PR to the self-hosted runner. The post-update `Docker E2E`
-observation remains pending because GitHub did not create a branch-push run for the merge update.
+Conclusion: M7 met. Dependabot jobs routed to GitHub-hosted runners both before and after a
+maintainer updated the branch, and the first-time external contributor could not start a workflow
+before approval.
 
 ## Failures and Follow-up
 

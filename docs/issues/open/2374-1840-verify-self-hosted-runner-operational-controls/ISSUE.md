@@ -9,7 +9,7 @@ github-issue: 2374
 spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
 related-pr: null
-last-updated-utc: "2026-09-29 19:48"
+last-updated-utc: "2026-09-29 21:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -227,6 +227,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 18:57 UTC - GitHub Copilot - T2 DONE: maintainer updated #2369 with a merge commit; its Dependabot PR head started `Test (Docker)` on GitHub Actions with `ubuntu-latest` - #2323 `manual-verification-evidence.md` V7 part 2
 - 2026-09-29 18:59 UTC - GitHub Copilot - T5 DONE: #2323 AC1, AC3, and AC4 reviewed against V1-V7 and static routing checks; no retrospective or operations-guide correction is needed because every observed control behaved as documented - #2323 `ISSUE.md`
 - 2026-09-29 19:48 UTC - GitHub Copilot - Corrected `docs/self-hosted-runner.md`: approved fork PRs targeting `develop` can select the self-hosted runner. The maintainer update created no Dependabot branch-push run, so the post-update `Docker E2E` observation remains pending; reopened AC2 and the completion review - #2323 evidence V7
+- 2026-09-29 21:12 UTC - GitHub Copilot - M7 DONE: temporary signed trigger and revert commits on the updated Dependabot branch produced `Docker E2E` job `109621539097` on GitHub Actions with `ubuntu-latest`; source content restored - #2323 evidence V7
 
 ## Acceptance Criteria
 
@@ -234,7 +235,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
       offline, is not ended by its `timeout-minutes`, and runs after the restart; that the
       `runs-on: ubuntu-latest` fallback starts a GitHub-hosted run; and that the runner ends online
       and idle.
-- [ ] AC2: M7 shows that Dependabot `Test (Docker)` and `Docker E2E` jobs run on GitHub-hosted
+- [x] AC2: M7 shows that Dependabot `Test (Docker)` and `Docker E2E` jobs run on GitHub-hosted
       runners, both as opened by Dependabot and after a maintainer updates the branch.
 - [x] AC3: M7 shows that a PR from a non-member fork (`josecelano-bot`) waits for maintainer
       approval before any job runs.
@@ -242,9 +243,9 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
       with static workflow evidence named as such where a path could not be observed.
 - [x] AC5: `docs/self-hosted-runner.md` states which jobs use secrets and how to re-check that no
       self-hosted job does.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in the #2323 `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in the #2323 `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated if observed behavior differs from `docs/self-hosted-runner.md`
 
 ## Verification Plan
@@ -266,7 +267,7 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 | ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
 | M5      | Runner offline              | M5 Plan above; `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs` and the runners API during the window | Job queued 293 seconds past its 2-minute limit; fallback GitHub-hosted; job ran after restart | DONE   | #2323 `manual-verification-evidence.md` V5 |
 | M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | DONE   | #2323 `manual-verification-evidence.md` V7 |
-| M7 (2)  | Maintainer updates branch   | **Update branch** on Dependabot PR #2369; inspect `Container` and `Testing` runs                                      | Container GitHub-hosted; post-update `Docker E2E` branch-push run pending       | IN_PROGRESS | #2323 `manual-verification-evidence.md` V7 |
+| M7 (2)  | Maintainer updates branch   | **Update branch** on #2369; signed branch trigger after update; jobs API                                                | Container and `Docker E2E` GitHub-hosted; `triggering_actor=josecelano`         | DONE   | #2323 `manual-verification-evidence.md` V7 |
 | M7 (3)  | External contributor        | PR from `josecelano-bot`; inspect runs before and after approval                                                         | No workflow run before approval; run starts after approval                       | DONE   | #2323 `manual-verification-evidence.md` V7 |
 
 ### Acceptance Verification
@@ -274,16 +275,15 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
 | AC1   | DONE   | #2323 `manual-verification-evidence.md` V5 |
-| AC2   | TODO   | V7 parts 1 and 3 done; post-update Dependabot `Docker E2E` branch-push observation pending |
+| AC2   | DONE   | #2323 `manual-verification-evidence.md` V7 parts 1-3; post-update `Docker E2E` job `109621539097` |
 | AC3   | DONE   | #2323 `manual-verification-evidence.md` V7 part 3 |
 | AC4   | DONE   | #2323 `ISSUE.md` acceptance verification: observed V1-V7 evidence and static routing checks |
 | AC5   | DONE   | `docs/self-hosted-runner.md` Security section; re-check commands run on 2026-09-29: every `secrets.`/`environment:` match is in a publish job, and only `container.yaml` and `testing.yaml` use `torrust-hetzner` |
 
 ## Implementation Completion Review
 
-The M5 evidence needs no retrospective. M7 completion remains pending because the maintainer's
-merge update did not create the expected Dependabot branch-push run; the guide correction is
-recorded in the 19:48 UTC progress entry.
+No retrospective is needed: M5 and M7 confirmed the runtime controls. The only finding was the
+fork-routing guide correction recorded at 19:48 UTC.
 
 ## Related Work
 
