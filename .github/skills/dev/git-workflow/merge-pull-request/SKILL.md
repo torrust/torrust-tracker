@@ -189,9 +189,11 @@ server-side failures before changing the source branch or rebuilding the signed 
 
 When a push fails after the tool has signed and reset local `develop` to the inspected merge:
 
-1. Stop. Do not start a second merge attempt, force-push `develop`, or discard the signed local
-   merge.
-2. Fetch the upstream remote and inspect the remote branch and PR state:
+**Step 1: Stop.** Do not start a second merge attempt, force-push `develop`, or discard the
+signed local merge.
+
+**Step 2: Inspect remote state.** Fetch the upstream remote and inspect the remote branch and PR
+state:
 
 ```sh
 git fetch <upstream-remote>
@@ -203,17 +205,17 @@ If the remote tip is the signed merge commit or the pull request is merged, the 
 despite its client-side error. Do not retry anything; fast-forward local `develop` only after
 reviewing the remote result.
 
-1. Classify an unchanged remote tip from the failed output:
+**Step 3: Classify an unchanged remote tip.** Use the failed output:
 
 | Failure                                                 | Meaning                                                                                                   | Recovery                                                                                                                                                              |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Host key verification failed`                          | The SSH host identity is not trusted locally. It is neither a rebase nor a repository-permission failure. | Stop and verify the host key against GitHub's published fingerprints before updating the maintainer machine's SSH configuration.                                      |
-| Permission denied for the public key                    | The key or SSH-agent identity is not authorized for the upstream push. It is not a stale branch.          | Verify the maintainer's SSH identity and upstream access; do not substitute a token or expose a credential in chat.                                                   |
+| Permission denied for an SSH public key                 | The key or SSH-agent identity is not authorized for the upstream push. It is not a stale branch.          | Verify the maintainer's SSH identity and upstream access; do not substitute a token or expose a credential in chat.                                                   |
 | `GH013` / "Changes must be made through a pull request" | Repository policy rejected a direct merge push.                                                           | Follow the stale-base guidance above, then obtain approval for a branch-protection-compatible merge workflow if the source branch is current.                         |
 | Remote `Internal Server Error` / HTTP `5xx`             | GitHub or its Git service rejected the request transiently; the remote branch may still be unchanged.     | Re-fetch and recheck the PR. With explicit maintainer approval, retry the same final push once; if it fails again, stop and report GitHub's request ID and timestamp. |
 
-1. Only after the remote remains unchanged and an authorized maintainer explicitly approves, retry
-   the exact final push the tool attempted:
+**Step 4: Retry only with approval.** Only after the remote remains unchanged and an authorized
+maintainer explicitly approves, retry the exact final push the tool attempted:
 
 ```sh
 git push <upstream-remote> develop
