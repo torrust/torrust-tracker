@@ -213,7 +213,7 @@ Recorded under follow-up issue #2374, which completes the scenarios this issue l
   and a PR from a non-member fork waits for approval before any job runs.
 - Initial state: routing merged in PR #2352 (`432d4e69`); fork-PR approval policy
   `all_external_contributors`.
-- Status: `IN_PROGRESS` (parts 1 and 3 done; part 2 pending)
+- Status: `DONE`
 
 #### Part 1 - Dependabot PRs
 
@@ -254,7 +254,24 @@ targeting `develop`.
 
 #### Part 2 - After a Maintainer Updates the Branch
 
-Pending: a maintainer updates a Dependabot PR from `develop`.
+Steps performed (2026-09-29 18:57 UTC):
+
+1. The maintainer selected **Update with merge commit** for Dependabot PR #2369. The PR author
+   remained `app/dependabot` and its new head was `7b3a3245`.
+2. Inspected the new Container run `36615722101` and its `Test (Docker)` job `109568077764`.
+
+Observed result:
+
+```text
+Container pull_request | actor=josecelano | triggering_actor=josecelano | head=7b3a3245
+Test (Docker) (release) | in_progress | runner=GitHub Actions 1000091297 |
+  labels=ubuntu-latest | 2026-09-29T18:57:03Z -> 2026-09-29T18:57:05Z
+```
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36615722101/job/109568077764>
+
+Conclusion: part 2 met. Although the maintainer triggered the merge commit, #2369 remained a
+Dependabot PR and its container test started on a GitHub-hosted runner.
 
 #### Part 3 - PR From a Non-Member Fork
 
@@ -285,6 +302,10 @@ and is not evidence of self-hosted-runner routing after approval.
 
 Conclusion: part 3 met. No workflow run existed before the maintainer approved the first-time
 external contributor's PR; the approved workflow then started. This proves the approval gate.
+
+Conclusion: M7 met. Dependabot jobs routed to GitHub-hosted runners both before and after a
+maintainer updated a Dependabot branch, and the first-time external contributor could not start a
+workflow before approval.
 
 ## Failures and Follow-up
 

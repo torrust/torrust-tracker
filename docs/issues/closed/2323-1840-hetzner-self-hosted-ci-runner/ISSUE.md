@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: "2026-09-28 09:26"
+last-updated-utc: "2026-09-29 18:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -371,9 +371,9 @@ Use Conventional Commits with a narrow scope (for example `ci(container)`, `docs
 - [ ] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed (T5 merged in PR #2352)
 - [ ] Automatic verification completed (`linter all`, workflow lint, pre-push checks when applicable)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -407,21 +407,22 @@ Append one line per meaningful update.
 - 2026-09-27 10:20 UTC - GitHub Copilot - T7 DONE: with application code changed, `Test (Docker)` took 12 min 3 s on the runner (workspace compile 561 s, dependencies cached), and the PR checks 17 min 49 s end to end; scenarios A and G (the unit test jobs are now the critical path), no phase 3 remedy needed here; M4 and M6 DONE - [`benchmark-results.md`](benchmark-results.md)
 - 2026-09-27 20:24 UTC - GitHub Copilot - T6 DONE after PR #2352 merged: `develop` Container run 36345987166 passed; `Test (Docker)` ran on `torrust-runner-01` (M2), and `Publish (Development)` succeeded on a GitHub-hosted runner with no `type=gha` cache flag in its build log (M3) - [`manual-verification-evidence.md`](manual-verification-evidence.md)
 - 2026-09-28 UTC - GitHub Copilot - Archived this closed GitHub issue specification in `docs/issues/closed/`; remaining unchecked verification and acceptance records are preserved as written.
+- 2026-09-29 18:59 UTC - GitHub Copilot - Follow-up #2374 completed M5 and M7. AC1, AC3, and AC4 are DONE using V1-V7 evidence and explicitly named static checks for unobserved `main` and release paths. No retrospective is needed: no control failed and the observed behavior matched the ADR and operations guide - [`manual-verification-evidence.md`](manual-verification-evidence.md), #2374
 
 ## Acceptance Criteria
 
-- [ ] AC1: The `container.yaml` `test` job runs on the self-hosted Hetzner runner for PRs targeting
+- [x] AC1: The `container.yaml` `test` job runs on the self-hosted Hetzner runner for PRs targeting
       `develop` and for pushes to `develop`, except Dependabot PRs; Dependabot PRs, PRs to `main`,
       and pushes to `main` and `releases/**` run it on GitHub-hosted runners. The `testing.yaml`
       `docker-e2e` job runs on the self-hosted runner, except for Dependabot PRs.
 - [x] AC2: The measured PR check wall-clock time is recorded for the baseline and after the
       workflow changes (cold and warm cache), with the 15-minute target either met or the gap
       explained.
-- [ ] AC3: Published images are built only from GitHub-hosted runner state: the publish jobs run on
+- [x] AC3: Published images are built only from GitHub-hosted runner state: the publish jobs run on
       GitHub-hosted runners, their image builds import no GitHub Actions cache (no `type=gha`
       `cache-from`), and the self-hosted job references no repository, organization, or
       environment secrets.
-- [ ] AC4: A runner-offline condition is visible as a queued PR check, and a documented manual
+- [x] AC4: A runner-offline condition is visible as a queued PR check, and a documented manual
       fallback procedure (restart the runner, or point `runs-on` back to `ubuntu-latest`)
       unblocks queued jobs; the plan does not rely on `timeout-minutes`, which does not bound
       queue time.
@@ -434,8 +435,8 @@ Append one line per meaningful update.
       all external contributors and organization members must use two-factor authentication,
       both verified through the GitHub API.
 - [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -455,9 +456,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | `develop` push run           | Merge a non-documentation PR; inspect the `Container` run on `develop`                         | `test` runs on the Hetzner runner; publish job succeeds           | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Publish isolation            | Inspect the publish job's runner and build log for cache imports                               | Runs on a GitHub-hosted runner; imports no GitHub Actions cache   | DONE   | `manual-verification-evidence.md` section V3 |
 | M4  | Warm cache reuse             | Run the `test` job twice on the same runner with only application code changed                | Second run reuses local Docker layers and Cargo caches            | DONE   | `manual-verification-evidence.md` section V4 |
-| M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job stays queued (not timed out) as "Waiting for a runner", and the documented fallback procedure unblocks the PR | TODO   | `manual-verification-evidence.md` section V5 |
+| M5  | Runner offline               | Stop the runner service; trigger the workflow; wait past the job's `timeout-minutes`           | Job queued 293 seconds past its 2-minute limit, recovered after restart, and fallback was GitHub-hosted | DONE   | `manual-verification-evidence.md` section V5 |
 | M6  | Timing comparison            | `gh run list --workflow container.yaml` and job timings for cold-cache and warm-cache runs     | Durations recorded against the baseline and the 15-minute target  | DONE   | `benchmark-results.md`                       |
-| M7  | Untrusted-code routing       | Inspect a Dependabot PR's `Test (Docker)` runner, the same after a maintainer updates the branch from `develop`, and a PR from a non-member fork before approval | Dependabot runs on a GitHub-hosted runner in both cases; the external PR's workflows wait for maintainer approval | TODO   | `manual-verification-evidence.md` section V7 |
+| M7  | Untrusted-code routing       | Inspect Dependabot before and after a maintainer update, and a non-member fork before approval | Dependabot stayed GitHub-hosted in both cases; no external workflow ran before approval | DONE   | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
@@ -469,10 +470,10 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
+| AC1   | DONE                   | M1 and M2 show self-hosted `develop` routing; V7 parts 1-2 show Dependabot GitHub-hosted routing, including a maintainer update; `container.yaml` statically routes `main` and `releases/**` to `ubuntu-latest`, while `testing.yaml` statically routes eligible non-Dependabot events self-hosted and Dependabot events GitHub-hosted |
 | AC2   | DONE                   | `benchmark-results.md`, After T5: `Test (Docker)` 12 min 3 s with code changed (baseline median 37 min); PR checks 17 min 49 s end to end (baseline 32 to 46 min); the gap to 15 minutes is the `testing.yaml` unit jobs (scenario G) |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC3   | DONE                   | V3: publish ran GitHub-hosted with no `type=gha` cache; static workflow and `docs/self-hosted-runner.md` Security checks show only GitHub-hosted publish jobs reference secrets or an environment |
+| AC4   | DONE                   | V5: self-hosted job queued 293 seconds beyond its 2-minute execution limit, ran after restart, and the `ubuntu-latest` fallback started in 2 seconds; runner ended online and idle |
 | AC5   | DONE                   | [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md) |
 | AC6   | DONE                   | [`docs/self-hosted-runner.md`](../../../self-hosted-runner.md), approved by the maintainer on 2026-09-27 |
 | AC7   | DONE                   | `approval_policy` = `all_external_contributors` and `two_factor_requirement_enabled` = `true` (GitHub API, 2026-09-26), recorded in `runner-agent-installation.md` step 7 |
@@ -578,7 +579,8 @@ All answered by the maintainer on 2026-09-26 and recorded in the ADR (T4).
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The M5 and M7 follow-up evidence confirmed the documented controls;
+  no control failed and no material procedure changed.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
