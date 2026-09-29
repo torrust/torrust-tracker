@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/mine-pr-review-audit-records/ISSUE.md
 branch: "chore/pr-review-data-mining-spec"
 related-pr: null
-last-updated-utc: "2026-09-29 11:55"
+last-updated-utc: "2026-09-29 14:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,8 +62,11 @@ Three things block that today:
    `PR-REVIEW.md` files use the unified `Finding ID` table. The rest use older formats: Copilot
    suggestion tables and `-copilot-suggestions-legacy` directories. A tool can only guess a
    record's format from its headings.
-2. **No preventability field.** `Category` says what a finding is about, not whether it could
-   have been prevented, or how. That is the main question the analysis has to answer.
+2. **No preventability classification.** `Category` says what a finding is about, not whether it
+   could have been prevented, or how. That is the main question the analysis has to answer. The
+   audit roster cannot grow to hold it: EPIC #2278 fixes "no new per-finding fields". The
+   analysis therefore classifies findings in its own artifact, keyed by each finding's immutable
+   `review-finding:` reference.
 3. **No export.** The Python prototype validator checks one record against GitHub data. No tool
    turns records into structured data for aggregation.
 
@@ -91,8 +94,6 @@ created in the new format from now on.
   permanent data, not lifecycle documents to archive or delete.
 - A frontmatter marker in the PR review template that identifies the record type and its body
   format version, and a strict frontmatter profile that validates it.
-- A preventability classification for each finding, added to the template, to the canonical field
-  roster in the `process-pr-review` skill, and to the audit validator.
 - A read-only, offline Rust export that validates every marked record, then writes one JSON
   result object holding all their findings, following the CLI output contract ADR.
 - Usage documentation for the export, including one worked aggregation example.
@@ -102,6 +103,8 @@ created in the new format from now on.
 - Migrating, backfilling, or re-marking historical records, including the 43 records in the
   unified format.
 - Moving records into lifecycle subdirectories, or archiving or deleting records.
+- New per-finding audit fields, including a preventability field. EPIC #2278 fixes that the roster
+  does not grow; see [Input for the Analysis Follow-up](#input-for-the-analysis-follow-up).
 - The analysis itself: aggregation reports, ranked prevention proposals, and the linters or
   checks they lead to. Each is follow-up work that needs maintainer approval.
 - Dashboards, CI integration of the export, and model-based (LLM) classification of findings.
@@ -125,10 +128,15 @@ contributors need to understand.
 
 - **#2264 (semantic-link and frontmatter conventions)** owns frontmatter key naming. T2 must use
   its conventions for the record-type marker. It must not invent a parallel scheme.
-- **#2278 (author self-audit)** owns the audit validator and its Rust port (orders 7 and 8). The
-  T3 validator change and the T4 export parser must reuse that parser, so each record format is
-  parsed in one place. If order 7 has not merged when this issue starts, T3's validator step and
-  T4 are `BLOCKED` on it. Do not add a second Markdown parser for the same format.
+- **#2264 (semantic-link and frontmatter conventions)** also owns frontmatter validation of audit
+  records and any new marker syntax, as EPIC #2278 records. T2 is delivered through #2264 or with
+  its owner's agreement.
+- **#2278 (author self-audit)** owns the audit validator, its Rust port (order 7), and the pinned
+  field roster (order 8). Its fixed decisions include "no new per-finding fields", so this issue
+  adds none. The T3 export must reuse the order 7 parser, so each record format is parsed in one
+  place. If order 7 has not merged when this issue starts, T3 is `BLOCKED` on it. Do not add a
+  second Markdown parser for the same format. Because the roster does not change, T3 does not
+  depend on order 8; if order 8 has merged, the export reads fields through its roster pin.
 
 ## Design and Ownership Review
 
@@ -141,7 +149,7 @@ Not applicable. This is new capability, not a defect.
 
 ## Regression Test Strategy
 
-Not applicable. This is not bug work. T2 through T4 use fixture tests as described below.
+Not applicable. This is not bug work. T2 and T3 use fixture tests as described below.
 
 ## Implementation Plan
 
@@ -151,13 +159,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Record the layout and retention decision    | `docs/pr-reviews/README.md` states that the directory is flat, that records are permanent, and why. Maintainer decides between a README statement and a root ADR.                                                                                                       |
 | T2  | TODO   | Add a minable-record marker                 | The template's frontmatter declares the record type and a body format version, using #2264 conventions. `frontmatter-validator` gets a strict profile for it, with fixture tests. Unmarked records stay valid and are ignored by the export.                          |
-| T3  | TODO   | Add a preventability classification         | A `Prevention` field with a fixed value list (proposal below) in the template tracking table, in the skill's canonical roster, and in the audit validator's accepted values. Validator step depends on #2278 order 7.                                                 |
-| T4  | TODO   | Export marked records as one JSON result    | A read-only, offline Rust command, reusing the #2278 audit parser. It parses and validates every marked record before writing anything, then writes exactly one JSON object to stdout with a `findings` array; each finding carries the PR number, finding reference, every classification field, and format version. Any malformed marked record leaves stdout empty and is reported as NDJSON diagnostics on stderr with exit code `1`. Fixture tests cover marked, unmarked, and malformed records. |
-| T5  | TODO   | Document export usage and one aggregation   | The tool README documents the command, output fields, and exit codes. It includes one worked example that counts findings by `Category` and `Prevention`. `docs/pr-reviews/README.md` links to it and does not repeat it.                                               |
+| T3  | TODO   | Export marked records as one JSON result    | A read-only, offline Rust command, reusing the #2278 audit parser. It parses and validates every marked record before writing anything, then writes exactly one JSON object to stdout with a `findings` array; each finding carries the PR number, finding reference, every classification field, and format version. Any malformed marked record leaves stdout empty and is reported as NDJSON diagnostics on stderr with exit code `1`. Fixture tests cover marked, unmarked, and malformed records. |
+| T4  | TODO   | Document export usage and one aggregation   | The tool README documents the command, output fields, and exit codes. It includes one worked example that counts findings by `Category` and `Severity`. `docs/pr-reviews/README.md` links to it and does not repeat it.                                                 |
 
-### Proposed `Prevention` Values
+### Input for the Analysis Follow-up
 
-Maintainer review settles the list in T3. Proposal:
+The analysis follow-up, not the PR author, classifies preventability. It records the
+classification in its own artifact under `docs/analysis/`, one entry per `review-finding:`
+reference, so audit records stay unchanged. One analyst classifying a batch is also more
+consistent than many authors classifying one PR each. Proposed values, for that follow-up to
+settle:
 
 | Value                 | Meaning                                                                                               |
 | --------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -165,9 +176,13 @@ Maintainer review settles the list in T3. Proposal:
 | `NEW_CHECK_CANDIDATE` | The concern is an objective rule. A new linter, test, or validator could catch it before review.         |
 | `GUIDANCE_GAP`        | A skill, template, or agent instruction was missing, ambiguous, or contradictory.                       |
 | `JUDGMENT`            | The concern needs reviewer judgment and cannot reasonably be prevented deterministically.              |
-| `UNASSESSED`          | The author has not classified the finding yet.                                                          |
+| `UNASSESSED`          | The analyst has not classified the finding yet.                                                         |
 
-The author classifies each finding against the concern, not the fix, as for `Category`.
+Classify each finding against the concern, not the fix, as for `Category`.
+
+The alternative, a `Prevention` field in the audit roster filled in by the PR author, needs a
+maintainer decision that changes #2278's fixed "no new per-finding fields" decision, recorded in
+that EPIC's progress log. It would then also depend on #2278 order 8, which pins the roster.
 
 ## Commit Points
 
@@ -175,9 +190,8 @@ The author classifies each finding against the concern, not the fix, as for `Cat
 | ---- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
 | T1   | `docs/pr-reviews/README.md` layout and retention statement, or the ADR               | Commit after focused validation and required review. |
 | T2   | Template frontmatter marker plus the strict frontmatter profile and its fixture tests | Commit after focused validation and required review. |
-| T3   | `Prevention` field in the template, the skill roster, and the validator               | Commit after focused validation and required review. |
-| T4   | Export command and its fixture tests                                                 | Commit after focused validation and required review. |
-| T5   | Export usage documentation and README link                                           | Commit after focused validation and required review. |
+| T3   | Export command and its fixture tests                                                 | Commit after focused validation and required review. |
+| T4   | Export usage documentation and README link                                           | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -214,6 +228,9 @@ the narrow affected scope, and sign every commit with GPG.
 - 2026-09-29 11:55 UTC - GitHub Copilot - Drafted from the maintainer discussion on the
   `docs/pr-reviews/` layout: keep it flat, keep records permanently, make new records minable, and
   do not migrate historical records. No parent EPIC assigned; #2003 suggested.
+- 2026-09-29 14:09 UTC - GitHub Copilot - PR #2371 review: dropped the planned `Prevention` audit
+  field because EPIC #2278 fixes "no new per-finding fields"; preventability moves to the
+  analysis follow-up, keyed by `review-finding:` references. Tasks renumbered T1-T4.
 
 ## Acceptance Criteria
 
@@ -221,14 +238,13 @@ the narrow affected scope, and sign every commit with GPG.
   permanent, and why. If the maintainer chose an ADR in T1, the ADR exists and is linked.
 - [ ] AC2: New records created from the template carry a record-type and body-format marker, and
   `frontmatter-validator` rejects a marked record whose marker is malformed.
-- [ ] AC3: The template, the `process-pr-review` canonical roster, and the audit validator all
-  define the same `Prevention` value list. The validator rejects values outside the list.
-- [ ] AC4: The export reads only marked records and, under the CLI output contract, writes exactly
+- [ ] AC3: The export reads only marked records and, under the CLI output contract, writes exactly
   one JSON result object to stdout on success. When any marked record is malformed, stdout stays
   empty, stderr carries NDJSON diagnostics, and the exit code is `1`. It never writes to the
-  repository or contacts GitHub.
-- [ ] AC5: The export parses records with the same parser as the audit validator.
-- [ ] AC6: Historical records are unchanged and do not fail any new check.
+  repository or contacts GitHub. Every exported finding carries its `review-finding:` reference.
+- [ ] AC4: The export parses records with the same parser as the audit validator.
+- [ ] AC5: Historical records are unchanged and do not fail any new check, and the audit field
+  roster is unchanged.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -251,10 +267,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                             | Human-oriented command/steps                                                                                                 | Expected Result                                                                  | Status | Evidence                                     |
 | --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Create a record from the template    | Start an audit for a real PR from the updated template and fill in at least two findings with `Prevention` values            | The marker is present, and the frontmatter and audit validators both pass        | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Create a record from the template    | Start an audit for a real PR from the updated template and fill in at least two findings                                     | The marker is present, and the frontmatter and audit validators both pass        | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Export the whole directory           | Run the export over `docs/pr-reviews/`                                                                                        | One result object whose `findings` array holds every finding from marked records only; historical records are skipped | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Aggregate the export                 | Pipe the export through the documented aggregation example                                                                    | Counts by `Category` and `Prevention` match a hand count of the marked records   | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Reject a malformed marked record     | Copy a marked record to a scratch path, corrupt a `Prevention` value, and run the export and validator on it                  | Both report an actionable diagnostic on stderr and exit `1`; the export's stdout is empty; no repository file changes | TODO   | `manual-verification-evidence.md` section V4 |
+| M3  | Aggregate the export                 | Pipe the export through the documented aggregation example                                                                    | Counts by `Category` and `Severity` match a hand count of the marked records     | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | Reject a malformed marked record     | Copy a marked record to a scratch path, corrupt a `Category` value, and run the export and validator on it                    | Both report an actionable diagnostic on stderr and exit `1`; the export's stdout is empty; no repository file changes | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -275,20 +291,15 @@ None planned.
 | AC3   | TODO                   | {test/log/PR link} |
 | AC4   | TODO                   | {test/log/PR link} |
 | AC5   | TODO                   | {test/log/PR link} |
-| AC6   | TODO                   | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
 - **The dataset starts empty.** Because historical records are not migrated, only records created
-  after T2 and T3 count. Useful aggregates need weeks of PRs. The maintainer accepted this in
+  after T2 count. Useful aggregates need weeks of PRs. The maintainer accepted this in
   exchange for not rewriting history. A later issue can backfill the unified-format records if the
   wait proves too long.
-- **Classification burden on authors.** A new field adds work to every audit. Mitigation: a short
-  value list, an `UNASSESSED` escape value, and classification against the concern, like
-  `Category`.
-- **Inconsistent classification.** Different authors may classify the same concern differently.
-  Mitigation: precise value definitions in the skill roster. Recurring disagreements are
-  themselves a mining signal.
+- **Preventability arrives later.** The main question needs the analysis follow-up, not just this
+  issue. Accepted: it keeps the audit roster stable and puts the judgment with one analyst.
 - **Dependency on #2278 order 7.** The export waits for the Rust validator. The alternative, a
   separate parser, would let two parsers of one format drift apart.
 - **Frontmatter convention churn.** #2264 may still change key naming. Mitigation: T2 follows
