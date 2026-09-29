@@ -120,18 +120,13 @@ mod tests {
     use crate::CurrentClock;
     use crate::statistics::*;
 
-    #[test]
-    fn it_should_implement_default() {
+    #[tokio::test]
+    async fn it_should_initialize_metrics_when_constructed_with_default() {
         let repo = Repository::default();
-        let new_repo = Repository::new();
-        assert!(!std::ptr::eq(&raw const repo.stats, &raw const new_repo.stats));
-    }
 
-    #[test]
-    fn it_should_be_cloneable() {
-        let repo = Repository::new();
-        let cloned_repo = repo.clone();
-        assert!(!std::ptr::eq(&raw const repo.stats, &raw const cloned_repo.stats));
+        let metrics_collection = UdpServerStatsRepository::get_metrics_collection(&repo).await;
+
+        assert!(metrics_collection.contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL)));
     }
 
     #[tokio::test]
@@ -191,6 +186,15 @@ mod tests {
                 .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
         );
         drop(stats);
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_snapshot_of_the_initialized_metrics_collection() {
+        let repo = Repository::new();
+
+        let metrics_collection = UdpServerStatsRepository::get_metrics_collection(&repo).await;
+
+        assert!(metrics_collection.contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL)));
     }
 
     #[tokio::test]
@@ -369,12 +373,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_recalculate_the_udp_average_connect_processing_time_in_nanoseconds_using_moving_average() {
+    async fn it_should_recalculate_separate_moving_averages_for_each_request_kind() {
         let repo = Repository::new();
         let now = CurrentClock::now();
 
-        // Set initial average to 1000ns
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
+        let announce_labels = LabelSet::from([("request_kind", "announce")]);
+        let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
+
+        // Arrange
         repo.set_gauge(
             &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
             &connect_labels,
@@ -384,30 +391,6 @@ mod tests {
         .await
         .unwrap();
 
-        // Calculate new average with processing time of 2000ns
-        // This will increment the processed requests counter from 0 to 1
-        let processing_time = Duration::from_micros(2);
-        let new_avg = repo
-            .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
-            .await;
-
-        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
-        // With processed_requests_total = 1 (incremented during the call):
-        // 1000 + (2000 - 1000) / 1 = 1000 + 1000 = 2000
-        let expected_avg = 1000.0 + (2000.0 - 1000.0) / 1.0;
-        assert!(
-            (new_avg - expected_avg).abs() < 0.01,
-            "Expected {expected_avg}, got {new_avg}"
-        );
-    }
-
-    #[tokio::test]
-    async fn it_should_recalculate_the_udp_average_announce_processing_time_in_nanoseconds_using_moving_average() {
-        let repo = Repository::new();
-        let now = CurrentClock::now();
-
-        // Set initial average to 500ns
-        let announce_labels = LabelSet::from([("request_kind", "announce")]);
         repo.set_gauge(
             &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
             &announce_labels,
@@ -417,30 +400,6 @@ mod tests {
         .await
         .unwrap();
 
-        // Calculate new average with processing time of 1500ns
-        // This will increment the processed requests counter from 0 to 1
-        let processing_time = Duration::from_nanos(1500);
-        let new_avg = repo
-            .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
-            .await;
-
-        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
-        // With processed_requests_total = 1 (incremented during the call):
-        // 500 + (1500 - 500) / 1 = 500 + 1000 = 1500
-        let expected_avg = 500.0 + (1500.0 - 500.0) / 1.0;
-        assert!(
-            (new_avg - expected_avg).abs() < 0.01,
-            "Expected {expected_avg}, got {new_avg}"
-        );
-    }
-
-    #[tokio::test]
-    async fn it_should_recalculate_the_udp_average_scrape_processing_time_in_nanoseconds_using_moving_average() {
-        let repo = Repository::new();
-        let now = CurrentClock::now();
-
-        // Set initial average to 800ns
-        let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
         repo.set_gauge(
             &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
             &scrape_labels,
@@ -450,21 +409,21 @@ mod tests {
         .await
         .unwrap();
 
-        // Calculate new average with processing time of 1200ns
-        // This will increment the processed requests counter from 0 to 1
-        let processing_time = Duration::from_nanos(1200);
-        let new_avg = repo
-            .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
+        // Act
+        let connect_average = repo
+            .recalculate_udp_avg_processing_time_ns(Duration::from_micros(2), &connect_labels, now)
+            .await;
+        let announce_average = repo
+            .recalculate_udp_avg_processing_time_ns(Duration::from_nanos(1500), &announce_labels, now)
+            .await;
+        let scrape_average = repo
+            .recalculate_udp_avg_processing_time_ns(Duration::from_nanos(1200), &scrape_labels, now)
             .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
-        // With processed_requests_total = 1 (incremented during the call):
-        // 800 + (1200 - 800) / 1 = 800 + 400 = 1200
-        let expected_avg = 800.0 + (1200.0 - 800.0) / 1.0;
-        assert!(
-            (new_avg - expected_avg).abs() < 0.01,
-            "Expected {expected_avg}, got {new_avg}"
-        );
+        // Assert
+        assert!((connect_average - 2000.0).abs() < f64::EPSILON);
+        assert!((announce_average - 1500.0).abs() < f64::EPSILON);
+        assert!((scrape_average - 1200.0).abs() < f64::EPSILON);
     }
 
     #[tokio::test]
