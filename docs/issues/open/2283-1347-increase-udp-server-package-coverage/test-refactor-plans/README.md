@@ -47,6 +47,7 @@ maintainer approves it.
 | 23 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | No Rust change; metric projections and moving-average behavior remain extensively covered |
 | 24 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Refactored repository tests and added initialized collection snapshot contracts |
 | 25 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | Refactored the fully covered service aggregation test |
+| 26 | [statistics-event-mod-tests.md](statistics-event-mod-tests.md) | DONE | No Rust change; declaration wiring has no independent observable contract |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
