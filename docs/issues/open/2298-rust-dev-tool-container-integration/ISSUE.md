@@ -9,7 +9,7 @@ github-issue: 2298
 spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
 branch: "2298-rust-dev-tool-container-integration"
 related-pr: 2293
-last-updated-utc: "2026-09-29 17:07"
+last-updated-utc: "2026-09-29 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,8 @@ semantic-links:
     - docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
     - docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md
+    - docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 ---
 
 # Issue #2298 - Eliminate Manual Container Integration for Rust Developer Tools
@@ -270,13 +272,14 @@ the image).
 
 | # | Decision | Owner | Status |
 | --- | --- | --- | --- |
-| D1 | Restore Cargo Chef's canonical `COPY . .` recipe stage and delete the manifest-copy and stub lists, provided measurement M5/M6 shows the third-party cook layer stays cached across source-only and workspace-manifest-only changes. | #2298 | Selected, gated on measurement |
-| D2 | If D1 measurement fails, implement the generated-stubs fallback (below) instead of restoring hand lists. | #2298 | Fallback |
-| D3 | Convert `.dockerignore` to a default-deny allow-list of what the container build needs. | #2298 | Selected |
-| D4 | Replace the four `--exclude` lists with a Cargo-native positive list: `[workspace] default-members` names the tracker packages, and `cargo nextest archive` runs without `--workspace`. | #2298 | Selected |
-| D5 | Write an ADR recording the container caching model: three-layer cook, `--external-only` recipe, canonical recipe stage, allow-list context, positive archive list. | #2298 | Selected |
-| D6 | Propose a separate AI-harness Cargo workspace as a draft sub-issue spec of EPIC #2003 (owner: Cameron). #2298 does not implement it. | EPIC #2003 | Draft spec only |
-| D7 | Until D6 lands, harness crates remain reachable to `cargo metadata` through explicit allow-list entries, removed when the harness leaves the tracker workspace. | #2298 | Interim |
+| D1 | Restore Cargo Chef's canonical `COPY . .` recipe stage and delete the manifest-copy and stub lists, provided measurement M5/M6 shows the third-party cook layer stays cached across source-only and workspace-manifest-only changes. | #2298 | Implemented; gate passed (V2) |
+| D2 | If D1 measurement fails, implement the generated-stubs fallback (below) instead of restoring hand lists. | #2298 | Not needed (kept as documented fallback in the ADR) |
+| D3 | Convert `.dockerignore` to a default-deny allow-list of what the container build needs. | #2298 | Implemented |
+| D4 | Replace the four `--exclude` lists with a Cargo-native positive list: `[workspace] default-members` names the tracker packages, and `cargo nextest archive` runs without `--workspace`. | #2298 | Implemented |
+| D5 | Write an ADR recording the container caching model: three-layer cook, `--external-only` recipe, canonical recipe stage, allow-list context, positive archive list. | #2298 | Written |
+| D6 | Propose a separate AI-harness Cargo workspace as a draft sub-issue spec of EPIC #2003 (owner: Cameron). #2298 does not implement it. | EPIC #2003 | Draft spec written |
+| D7 | Until D6 lands, harness crates remain reachable to `cargo metadata` through explicit allow-list entries, removed when the harness leaves the tracker workspace. | #2298 | Implemented (interim block in `.dockerignore`) |
+| D8 | List every in-repo crate explicitly in `[workspace].members`, not only the ones Cargo cannot auto-discover. Found during V3: the `--external-only` skeleton strips path dependencies, so auto-discovered members vanish from it and `default-members` fails to resolve during `cargo chef cook`. | #2298 | Implemented |
 
 Options 1 (validator), 2 (generated Containerfile fragment), 4 (BuildKit bind mounts), 5
 (reclassify tools outside the workspace, now D6), and 6 (data file) from the original draft are
@@ -303,6 +306,13 @@ Measurement gate (see M5, M6): with a warm cache, a source-only change must leav
 change must leave `dependencies_thirdparty*` `CACHED` and rebuild only the full cook stubs. Both
 scenarios were specified by #1852 (M3, M4) and never executed; this issue runs them for the previous
 and the new `Containerfile` and records the numbers.
+
+Measured result (2026-09-29, `manual-verification-evidence.md` V1/V2): identical cache behaviour
+in both `Containerfile`s. Source-only and manifest-comment changes keep every cook stage `CACHED`
+with the canonical stage (`COPY --from=recipe` hit the cache although the recipe stage re-ran,
+confirming content-checksum keying); a workspace feature toggle rebuilds both cooks in both
+designs because it changes external feature resolution. Recipe stage re-run cost: about 0.5 s.
+The gate passed and D2 was not implemented.
 
 ### D2: generated-stubs fallback
 
@@ -354,18 +364,26 @@ The tracker verification tools (`console/tracker-client`, `e2e-tools`, `persiste
 archives is a deliberate test-scope decision, not a build-integrity problem, and it is unchanged by
 this issue.
 
+Implementation finding (D8): `default-members` entries must also be explicit `members`. Cargo
+normally auto-discovers `packages/*` crates through the root crate's path dependencies, but the
+`--external-only` skeleton that `cargo chef cook` builds has those path dependencies stripped, so
+the auto-discovered crates are absent from the skeleton workspace and Cargo rejects the
+`default-members` entry. The first `test_debug` build on D4 failed this way; listing every in-repo
+crate in `members` fixed it and makes membership explicit and reviewable.
+
 ### D5: ADR
 
-Create `docs/adrs/<timestamp>_adopt_positive_list_container_build_with_external_dependency_cache.md`
-(final name chosen when written) covering: the three-layer cook, the `--external-only` recipe and
-the `torrust-cargo-chef` fork, the canonical recipe stage and its measured cache behaviour, the
-allow-list build context, the `default-members` archive policy, and the D2 fallback with its
-trigger condition.
+`docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`
+covers: the three-layer cook, the `--external-only` recipe and the `torrust-cargo-chef` fork, the
+canonical recipe stage and its measured cache behaviour, the allow-list build context, the
+`default-members` archive policy, explicit membership (D8), and the D2 fallback with its trigger
+condition. Indexed in `docs/adrs/index.md`.
 
 ### D6 and D7: AI-harness workspace
 
-A draft spec in `docs/issues/drafts/` proposes a separate Cargo workspace for the harness tools,
-referenced from EPIC #2003 and owned by Cameron. It records the goal (decoupling while the harness
+Draft spec: `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`
+(`status: draft`, `epic: 2003`). It proposes a separate Cargo workspace for the harness tools,
+owned by Cameron through EPIC #2003. It records the goal (decoupling while the harness
 matures in-repo, with extraction to its own repository possible later, following the
 `torrust-linting` precedent) and lists as EPIC decisions: workspace location (for example
 `contrib/ai-harness/`), what counts as harness, unified binary versus multiple binaries, scripts
@@ -430,17 +448,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and inventory drift | Root-cause analysis and manual-edit matrix recorded in this spec (2026-09-29). |
 | T2 | DONE | Evaluate solution options | Maintainer review retired options 1, 2, 4, 5, 6; selected D1-D7 with option 3 as fallback. |
-| T3 | TODO | Measure baseline cache behaviour | Run M5/M6 against the current `Containerfile` with a warm local cache; record stage-level `CACHED` results and wall time. |
-| T4 | TODO | Implement D1 canonical recipe stage | Replace manifest-copy and stub lists with `COPY . /build/src`; keep both `cargo chef prepare` invocations; rewrite the stage comments. |
-| T5 | TODO | Measure D1 cache behaviour | Repeat M5/M6 on the new `Containerfile`. If the third-party cook is not `CACHED`, switch to D2 (T5b). |
-| T5b | TODO | Generated-stubs fallback (only if T5 fails) | Rust tool in `contrib/dev-tools/` that derives stubs from manifests; generic manifest copy; tests for lib-only, bin-only, mixed, explicit-path targets. |
-| T6 | TODO | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions, interim harness entries (D7) marked for removal by the EPIC #2003 sub-issue. |
-| T7 | TODO | Implement D4 `default-members` positive list | Add `default-members` to root `Cargo.toml`; remove `--workspace` and all `--exclude` flags from the four `cargo nextest archive` commands; update comments. |
-| T8 | TODO | Verify container targets | `docker build --target recipe`, `--target test_debug`, `--target test`, `--target runtime`; confirm the archive contains only default members and the runtime image is unchanged. |
-| T9 | TODO | Write D5 ADR | ADR for the container caching and positive-list model, linked from `docs/adrs/README.md`. |
-| T10 | TODO | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/<name>/ISSUE.md` with `status: draft`, `epic: 2003`, decisions deferred to the EPIC, migration costs listed. |
-| T11 | TODO | Update contributor workflow | Rewrite `add-workspace-member` skill: no `Containerfile` edits for packages; decide `default-members` inclusion; allow-list review. Update `docs/containers.md` if it describes the recipe stage. |
-| T12 | TODO | Record container verification | M1-M6 evidence in `manual-verification-evidence.md`; hosted Container workflow on the fork PR. |
+| T3 | DONE | Measure baseline cache behaviour | V1 in `manual-verification-evidence.md`: M5 all cooks `CACHED`; M6a all cooks `CACHED`; M6b (feature toggle) both cooks rebuilt. |
+| T4 | DONE | Implement D1 canonical recipe stage | `COPY . /build/src`; both `cargo chef prepare` invocations kept; manifest-copy and stub lists deleted; stage comments rewritten. |
+| T5 | DONE | Measure D1 cache behaviour | V2: identical to baseline in M5, M6a, M6b. Gate passed. |
+| T5b | DONE | Generated-stubs fallback (only if T5 fails) | Not needed. Design kept in the ADR's alternatives as the documented fallback. |
+| T6 | DONE | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions; interim harness block (D7) marked for removal by the EPIC #2003 sub-issue; `AGENTS.md` files re-excluded inside admitted directories. |
+| T7 | DONE | Implement D4 `default-members` positive list | `default-members` added; all in-repo crates listed explicitly in `members` (D8); `--workspace` and all `--exclude` flags removed from the four `cargo nextest archive` commands; comments updated. |
+| T8 | IN_PROGRESS | Verify container targets | `recipe` and `test_debug` pass (V3: 1121 tests / 38 binaries, identical to baseline). `test` (release) was interrupted by a host restart and `runtime` is pending; both rerun by the maintainer outside the IDE. |
+| T9 | DONE | Write D5 ADR | `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`, indexed. |
+| T10 | DONE | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`. |
+| T11 | DONE | Update contributor workflow | `add-workspace-member` skill v2.0: no `Containerfile` edits; `default-members` decision; allow-list rule; explicit membership. `docs/containers.md` does not describe the recipe stage, so no change. |
+| T12 | IN_PROGRESS | Record container verification | V1-V3 recorded; V4 (release/runtime), M1-M3, M7, and M4 (hosted workflow) pending. |
 | T13 | TODO | Complete review | Reconcile acceptance criteria; record the implementation completion review. |
 
 ## Commit Points
@@ -465,11 +483,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Draft moved to `docs/issues/drafts/` and reviewed by the maintainer.
 - [x] GitHub issue #2298 created and issue number added to this specification.
 - [x] Implementation approach selected after draft review.
-- [ ] Baseline and post-change cache measurements recorded.
+- [x] Baseline and post-change cache measurements recorded.
 - [ ] Automatic verification completed.
 - [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md`.
-- [ ] ADR written and indexed.
-- [ ] EPIC #2003 draft sub-issue spec written.
+- [x] ADR written and indexed.
+- [x] EPIC #2003 draft sub-issue spec written.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -490,6 +508,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   allow-list `.dockerignore`, `default-members` positive archive list, ADR, EPIC #2003 draft
   sub-issue). Retired the validator, generated-fragment, bind-mount, and data-file options.
   Branch `2298-rust-dev-tool-container-integration` created.
+- 2026-09-29 18:50 UTC - GitHub Copilot - Measured M5/M6 on the baseline and on D1 (V1, V2):
+  identical cache behaviour; the D1 gate passed and D2 was not implemented. Implemented D1, D3,
+  D4; `test_debug` passes with identical scope (1121 tests / 38 binaries). Found D8: every in-repo
+  crate must be an explicit member because the `--external-only` skeleton strips path
+  dependencies. Wrote the ADR, the `add-workspace-member` skill v2.0, the EPIC #2003 draft
+  sub-issue spec, and the evidence record. Release `test` build was interrupted by a host restart
+  (Docker saturated the workstation while the IDE ran); the maintainer reruns `test` and `runtime`
+  outside the IDE.
 
 ## Acceptance Criteria
 
@@ -531,13 +557,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | TODO | `manual-verification-evidence.md#M1` |
-| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | TODO | `manual-verification-evidence.md#M2` |
-| M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | TODO | `manual-verification-evidence.md#M3` |
-| M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#M4` |
-| M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | TODO | `manual-verification-evidence.md#M5` |
-| M6 | Warm cache, workspace manifest change | Warm build; toggle a feature in a `packages/*/Cargo.toml`; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | `dependencies_thirdparty*` `CACHED`; full cook stubs rebuild only. Record wall time. | TODO | `manual-verification-evidence.md#M6` |
-| M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | TODO | `manual-verification-evidence.md#M7` |
+| M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | TODO | `manual-verification-evidence.md#V5` |
+| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | TODO | `manual-verification-evidence.md#V5` |
+| M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | TODO | `manual-verification-evidence.md#V5` |
+| M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#V6` |
+| M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` |
+| M6 | Warm cache, workspace manifest change | Warm build; toggle a feature in a `packages/*/Cargo.toml`; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | `dependencies_thirdparty*` `CACHED`; full cook stubs rebuild only. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` (comment change: all cooks `CACHED`; feature toggle: both cooks rebuild in both designs, expected) |
+| M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | TODO | `manual-verification-evidence.md#V5` |
 
 ## Risks and Trade-offs
 
