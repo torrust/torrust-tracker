@@ -137,6 +137,7 @@ file completes.
 | `server/request_buffer.rs` | 162 / 174 (93.10%) | 162 / 174 (93.10%) | 0 | 0 | No; completion races and active-request policy are #1488 SI-15 |
 | `server/states.rs` | 72 / 77 (93.51%) | 72 / 77 (93.51%) | 0 | 0 | No; bind, stop, and task paths are socket and #1488 lifecycle boundaries |
 | `banning/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; namespace declaration has no runtime boundary |
+| `banning/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declarations have no runtime boundary |
 
 ## Relationship To Issue #2149
 
