@@ -139,6 +139,7 @@ file completes.
 | `banning/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; namespace declaration has no runtime boundary |
 | `banning/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declarations have no runtime boundary |
 | `banning/event/listener.rs` | 147 / 150 (98.00%) | 147 / 150 (98.00%) | 0 | 0 | No; direct dispatch contracts remain sufficient, while spawned task ownership is #1488-owned |
+| `statistics/mod.rs` | 52 / 52 (100.00%) | 52 / 52 (100.00%) | 0 | 0 | No; repository initialization owns the observable metric-collection contract |
 
 ## Relationship To Issue #2149
 

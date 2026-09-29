@@ -43,6 +43,7 @@ maintainer approves it.
 | 19 | [banning-event-mod-tests.md](banning-event-mod-tests.md) | DONE | No Rust change; module declarations have no executable entries |
 | 20 | [banning-event-handler-tests.md](banning-event-handler-tests.md) | DONE | No Rust change; current focused contracts cover the handler's orchestration |
 | 21 | [banning-event-listener-tests.md](banning-event-listener-tests.md) | DONE | No Rust change; direct dispatch contracts retained and spawned lifecycle deferred to #1488 |
+| 22 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | No Rust change; metric composition remains fully covered through repository initialization |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
