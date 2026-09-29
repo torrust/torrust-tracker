@@ -168,7 +168,7 @@ Recorded under follow-up issue #2374, which completes the scenarios this issue l
   and a PR from a non-member fork waits for approval before any job runs.
 - Initial state: routing merged in PR #2352 (`432d4e69`); fork-PR approval policy
   `all_external_contributors`.
-- Status: `IN_PROGRESS` (part 1 done; parts 2 and 3 pending)
+- Status: `IN_PROGRESS` (parts 1 and 3 done; part 2 pending)
 
 #### Part 1 - Dependabot PRs
 
@@ -213,7 +213,33 @@ Pending: a maintainer updates a Dependabot PR from `develop`.
 
 #### Part 3 - PR From a Non-Member Fork
 
-Pending: a harmless PR from `josecelano-bot`.
+Steps performed (2026-09-29 16:50 UTC):
+
+1. `josecelano-bot` opened #2376 from its fork, `josecelano-bot/torrust-tracker`.
+  GitHub classified the author as `FIRST_TIME_CONTRIBUTOR`. The PR adds only `test.md` (three
+  lines), and no workflow or executable file changed.
+2. Before approval, inspected the PR head `696b0f63`: the combined status was `pending`, with no
+  check runs and no Actions workflow runs. The maintainer then approved the workflows in GitHub.
+3. After approval, Docs Lint run `36599032618` started at 16:38:45 UTC on `GitHub Actions
+  1000091230`, showing that work began only after approval.
+
+Observed result:
+
+```text
+Before approval: status=pending; check_runs=[]; workflow_runs=[]
+After approval: Docs Lint | failure | runner=GitHub Actions 1000091230 |
+           2026-09-29T16:38:45Z -> 2026-09-29T16:39:24Z
+```
+
+<https://github.com/torrust/torrust-tracker/pull/2376>
+<https://github.com/torrust/torrust-tracker/actions/runs/36599032618/job/109511966141>
+
+The job failed only because the test file contains a spelling error identified by cspell. It is
+unrelated to the approval gate. As a documentation-only PR, #2376 did not trigger `Test (Docker)`
+and is not evidence of self-hosted-runner routing after approval.
+
+Conclusion: part 3 met. No workflow run existed before the maintainer approved the first-time
+external contributor's PR; the approved workflow then started. This proves the approval gate.
 
 ## Failures and Follow-up
 
