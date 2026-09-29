@@ -63,7 +63,7 @@ jobs:
         (github.event_name == 'push' && github.ref == 'refs/heads/develop')) &&
         fromJSON('["self-hosted", "torrust-hetzner"]') || 'ubuntu-latest'
       }}
-    timeout-minutes: 90
+    timeout-minutes: 2
     strategy:
       matrix:
         target: [release]
