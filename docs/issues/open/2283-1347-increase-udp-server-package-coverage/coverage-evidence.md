@@ -127,6 +127,15 @@ file completes.
 | `handlers/connect.rs` | 251 / 251 (100.00%) | 212 / 212 (100.00%) | 3 | 0 | No; R1 removes duplicate test code while retaining all direct adapter contracts |
 | `handlers/announce.rs` | 781 / 800 (97.63%) | 903 / 905 (99.78%) | 2 | 2 | No; direct adapter contracts cover error routing and address-family response conversion, while the handler has no socket Act |
 | `handlers/scrape.rs` | 319 / 321 (99.38%) | 356 / 357 (99.72%) | 3 | 1 | No; direct error-routing coverage and strict test extraction cover the handler, while it has no socket Act |
+| `handlers/error.rs` | 155 / 178 (87.08%) | 218 / 218 (100.00%) | 3 | 2 | No; the handler has no socket Act |
+| `server/mod.rs` | 176 / 177 (99.44%) | 137 / 138 (99.28%) | 0 | 0 | No; one Tokio-owned test deleted (smaller denominator); start/stop lifecycle is #1488-owned |
+| `server/bound_socket.rs` | 55 / 65 (84.62%) | 77 / 86 (89.53%) | 0 | 2 | No; the `using_ipv6_v6only` integration test already covers the real-listener boundary |
+| `server/spawner.rs` | 17 / 17 (100.00%) | 17 / 17 (100.00%) | 0 | 0 | No; thin task-spawn wrapper with task lifecycle owned by #1488 |
+| `server/launcher.rs` | 278 / 290 (95.86%) | 288 / 298 (96.64%) | 6 rewritten, 1 split | 2 | No; "after" is the post-commit readability result; the six rewritten admission tests include the two added; residual lines are #1488 lifecycle or `Launcher::check` |
+| `server/receiver.rs` | 55 / 56 (98.21%) | 55 / 56 (98.21%) | 0 | 0 | No; the only uncovered line needs socket fault injection |
+| `server/processor.rs` | 72 / 85 (84.71%) | 180 / 180 (100.00%) | 1 | 1 | No; "before" is the original T1 inventory value (the inventory row now shows the later result); the file also gained the two #2354 regression tests |
+| `server/request_buffer.rs` | 162 / 174 (93.10%) | 162 / 174 (93.10%) | 0 | 0 | No; completion races and active-request policy are #1488 SI-15 |
+| `server/states.rs` | 72 / 77 (93.51%) | 72 / 77 (93.51%) | 0 | 0 | No; bind, stop, and task paths are socket and #1488 lifecycle boundaries |
 | `banning/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; namespace declaration has no runtime boundary |
 
 ## Relationship To Issue #2149
