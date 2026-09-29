@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: superseded
+status: draft
 priority: p3
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-7-observable-shutdown-progress/ISSUE.md
-branch: null
+branch: "1488-si-7-observable-shutdown-progress"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-09-29 11:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,6 +28,11 @@ semantic-links:
 > requirement is part of issue [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md);
 > optional periodic progress is a later additive presentation task after
 > operational feedback.
+>
+> **Retention**: This draft was never opened as a GitHub issue. It is kept only
+> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
+> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
+> section). Git history preserves it afterwards.
 
 ## Why This Draft Is Superseded
 

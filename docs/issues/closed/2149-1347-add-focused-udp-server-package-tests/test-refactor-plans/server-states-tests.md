@@ -14,7 +14,7 @@ semantic-links:
     - packages/udp-server/src/testing/environment.rs
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-    - docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md

@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: superseded
+status: draft
 priority: p3
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md
-branch: null
+branch: "1488-si-9-improve-udp-shutdown"
 related-pr: null
-last-updated-utc: 2026-09-28
+last-updated-utc: "2026-09-29 11:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,8 +25,13 @@ semantic-links:
 # Superseded Draft SI-9 — Split UDP Lifecycle Migration
 
 > **Status**: Superseded for implementation planning. [SI-14](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md)
-> replaces the UDP receive/reset-loop migration, followed by [SI-15](../1488-si-15-define-udp-active-request-policy/ISSUE.md)
+> replaces the UDP receive/reset-loop migration, followed by [SI-15](../../open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)
 > for the separate active-request policy change.
+>
+> **Retention**: This draft was never opened as a GitHub issue. It is kept only
+> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
+> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
+> section). Git history preserves it afterwards.
 
 ## Why This Draft Is Superseded
 

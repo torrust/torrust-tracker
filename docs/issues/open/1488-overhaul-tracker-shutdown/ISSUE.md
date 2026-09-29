@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-28 09:26"
+last-updated-utc: "2026-09-29 10:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -162,7 +162,7 @@ deterministic tests, and manual evidence.
 | 8        | #2309 | [Migrate REST API to token lifecycle](../../closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)             | Done       | One complete REST API vertical slice.                                                                |
 | 9        | #2324 | [Migrate health-check API to token lifecycle](../../closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Done       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
 | 10       | #2342 | [Migrate UDP tracker to token lifecycle](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Done       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
-| 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)            | Draft      | Request deadline, abort behavior, outcomes, and verification.                                        |
+| 11       | #2370 | [Define UDP active-request shutdown policy](../2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)            | Open       | Request deadline, abort behavior, outcomes, and verification.                                        |
 | 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Draft      | One supported standalone HTTP consumer migration.                                                    |
 | 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |
 | 14       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
@@ -174,6 +174,21 @@ deterministic tests, and manual evidence.
 | —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
 | —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
 | —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
+
+### Superseded Draft Retention
+
+The superseded drafts SI-3, SI-6, SI-7, SI-8, and SI-9 were never opened as
+GitHub issues, so they have no closed-issue folder. They stay in
+`docs/issues/drafts/` while this EPIC is open because they record why the
+original plan was split or replaced, and several active and closed specs link
+to them.
+
+Cleanup happens once, in the EPIC close-out, after every active work item is
+done: delete the five draft folders, replace live links to them with the
+replacement item or a plain-text mention, and keep links in immutable
+historical records only when they describe the path at that time. Git history
+preserves the deleted drafts. Do not delete them earlier; a draft that becomes
+superseded later gets the same retention note and joins this cleanup.
 
 ### Release and Review Requirements
 
