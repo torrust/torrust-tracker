@@ -114,7 +114,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event() {
+    async fn it_should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -146,7 +146,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp6_response_counter_when_it_receives_a_udp6_response_event() {
+    async fn it_should_increase_the_udp6_response_counter_when_it_receives_a_udp6_response_event() {
         let stats_repository = Repository::new();
 
         handle_event(

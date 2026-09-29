@@ -56,6 +56,7 @@ maintainer approves it.
 | 32 | [statistics-event-handler-request-discarded-tests.md](statistics-event-handler-request-discarded-tests.md) | DONE | Retained the clean discarded-request metric routing test |
 | 33 | [statistics-event-handler-request-banned-tests.md](statistics-event-handler-request-banned-tests.md) | DONE | Removed one duplicate test and renamed the retained banned-request metric contract |
 | 34 | [statistics-event-handler-request-aborted-tests.md](statistics-event-handler-request-aborted-tests.md) | DONE | Removed one duplicate test and renamed the retained aborted-request metric contract |
+| 35 | [statistics-event-handler-response-sent-tests.md](statistics-event-handler-response-sent-tests.md) | DONE | Renamed two response-counter tests; focused response metrics remain sufficient |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
