@@ -55,14 +55,7 @@ jobs:
     # For feature branch pushes where this workflow does not trigger, testing.yaml provides
     # equivalent coverage. See issue #1854.
     name: Test (Docker)
-    runs-on: >-
-      ${{
-        github.repository == 'torrust/torrust-tracker' &&
-        ((github.event_name == 'pull_request' && github.base_ref == 'develop' &&
-        github.event.pull_request.user.login != 'dependabot[bot]') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/develop')) &&
-        fromJSON('["self-hosted", "torrust-hetzner"]') || 'ubuntu-latest'
-      }}
+    runs-on: ubuntu-latest
     timeout-minutes: 2
     strategy:
       matrix:
