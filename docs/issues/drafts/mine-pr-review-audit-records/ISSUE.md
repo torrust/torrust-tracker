@@ -93,8 +93,8 @@ created in the new format from now on.
   format version, and a strict frontmatter profile that validates it.
 - A preventability classification for each finding, added to the template, to the canonical field
   roster in the `process-pr-review` skill, and to the audit validator.
-- A read-only, offline Rust export that turns every marked record into JSON Lines, one line per
-  finding, following the CLI output contract ADR.
+- A read-only, offline Rust export that validates every marked record, then writes one JSON
+  result object holding all their findings, following the CLI output contract ADR.
 - Usage documentation for the export, including one worked aggregation example.
 
 ### Out of Scope
@@ -152,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Record the layout and retention decision    | `docs/pr-reviews/README.md` states that the directory is flat, that records are permanent, and why. Maintainer decides between a README statement and a root ADR.                                                                                                       |
 | T2  | TODO   | Add a minable-record marker                 | The template's frontmatter declares the record type and a body format version, using #2264 conventions. `frontmatter-validator` gets a strict profile for it, with fixture tests. Unmarked records stay valid and are ignored by the export.                          |
 | T3  | TODO   | Add a preventability classification         | A `Prevention` field with a fixed value list (proposal below) in the template tracking table, in the skill's canonical roster, and in the audit validator's accepted values. Validator step depends on #2278 order 7.                                                 |
-| T4  | TODO   | Export marked records as JSON Lines         | A read-only, offline Rust command, reusing the #2278 audit parser, that emits one JSON object per finding. Each object carries the PR number, finding reference, every classification field, and format version. Fixture tests cover marked, unmarked, and malformed records. |
+| T4  | TODO   | Export marked records as one JSON result    | A read-only, offline Rust command, reusing the #2278 audit parser. It parses and validates every marked record before writing anything, then writes exactly one JSON object to stdout with a `findings` array; each finding carries the PR number, finding reference, every classification field, and format version. Any malformed marked record leaves stdout empty and is reported as NDJSON diagnostics on stderr with exit code `1`. Fixture tests cover marked, unmarked, and malformed records. |
 | T5  | TODO   | Document export usage and one aggregation   | The tool README documents the command, output fields, and exit codes. It includes one worked example that counts findings by `Category` and `Prevention`. `docs/pr-reviews/README.md` links to it and does not repeat it.                                               |
 
 ### Proposed `Prevention` Values
@@ -223,9 +223,10 @@ the narrow affected scope, and sign every commit with GPG.
   `frontmatter-validator` rejects a marked record whose marker is malformed.
 - [ ] AC3: The template, the `process-pr-review` canonical roster, and the audit validator all
   define the same `Prevention` value list. The validator rejects values outside the list.
-- [ ] AC4: The export reads only marked records and emits one JSON Lines object per finding under
-  the CLI output contract. It reports malformed marked records as diagnostics with a nonzero exit
-  code. It never writes to the repository or contacts GitHub.
+- [ ] AC4: The export reads only marked records and, under the CLI output contract, writes exactly
+  one JSON result object to stdout on success. When any marked record is malformed, stdout stays
+  empty, stderr carries NDJSON diagnostics, and the exit code is `1`. It never writes to the
+  repository or contacts GitHub.
 - [ ] AC5: The export parses records with the same parser as the audit validator.
 - [ ] AC6: Historical records are unchanged and do not fail any new check.
 - [ ] `linter all` exits with code `0`
@@ -251,9 +252,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                             | Human-oriented command/steps                                                                                                 | Expected Result                                                                  | Status | Evidence                                     |
 | --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Create a record from the template    | Start an audit for a real PR from the updated template and fill in at least two findings with `Prevention` values            | The marker is present, and the frontmatter and audit validators both pass        | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Export the whole directory           | Run the export over `docs/pr-reviews/`                                                                                        | Output has one line per finding from marked records only; historical records are skipped | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | Export the whole directory           | Run the export over `docs/pr-reviews/`                                                                                        | One result object whose `findings` array holds every finding from marked records only; historical records are skipped | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Aggregate the export                 | Pipe the export through the documented aggregation example                                                                    | Counts by `Category` and `Prevention` match a hand count of the marked records   | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Reject a malformed marked record     | Copy a marked record to a scratch path, corrupt a `Prevention` value, and run the export and validator on it                  | Both report an actionable diagnostic and exit nonzero; no repository file changes | TODO   | `manual-verification-evidence.md` section V4 |
+| M4  | Reject a malformed marked record     | Copy a marked record to a scratch path, corrupt a `Prevention` value, and run the export and validator on it                  | Both report an actionable diagnostic on stderr and exit `1`; the export's stdout is empty; no repository file changes | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
