@@ -3,6 +3,9 @@ use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
+/// The number of UDP requests handled simultaneously.
+pub(crate) const ACTIVE_REQUESTS_CAPACITY: usize = 50;
+
 // ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 // ADR: packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 // issue: #2370
@@ -14,7 +17,7 @@ use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 /// by removing finished or oldest unfinished tasks.
 #[derive(Default)]
 pub struct ActiveRequests {
-    rb: StaticRb<AbortHandle, 50>, // The number of requests handled simultaneously.
+    rb: StaticRb<AbortHandle, ACTIVE_REQUESTS_CAPACITY>,
 }
 
 impl std::fmt::Debug for ActiveRequests {

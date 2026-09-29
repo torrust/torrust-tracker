@@ -6,7 +6,8 @@ use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
-use tokio::task::JoinHandle;
+use tokio::task::{JoinHandle, JoinSet};
+use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
@@ -56,6 +57,73 @@ impl OwnedReceiveLoop {
     /// Hands the task to a new owner without aborting it.
     pub(crate) fn into_task(mut self) -> JoinHandle<Result<(), std::io::Error>> {
         self.0.take().expect("the receive loop is handed on at most once")
+    }
+}
+
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "issue #2370 wires the drain into the receive loop in T5")
+)]
+#[derive(Debug, Default, PartialEq, Eq)]
+struct RequestDrainOutcome {
+    completed: u64,
+    failed: u64,
+    aborted: u64,
+    evicted: u64,
+}
+
+/// Waits up to `deadline` for every request processor, then aborts and joins the rest.
+///
+/// Cancellations seen before the deadline come from overload eviction, not from this drain.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "issue #2370 wires the drain into the receive loop in T5")
+)]
+async fn drain_request_processors<E>(tasks: &mut JoinSet<Result<(), E>>, deadline: Duration) -> RequestDrainOutcome
+where
+    E: 'static,
+{
+    let mut outcome = RequestDrainOutcome::default();
+
+    let drained_before_deadline = timeout(deadline, async {
+        while let Some(result) = tasks.join_next().await {
+            record_request_processor_outcome(result, &mut outcome, false);
+        }
+    })
+    .await;
+
+    if drained_before_deadline.is_err() {
+        while let Some(result) = tasks.try_join_next() {
+            record_request_processor_outcome(result, &mut outcome, false);
+        }
+        tasks.abort_all();
+        while let Some(result) = tasks.join_next().await {
+            record_request_processor_outcome(result, &mut outcome, true);
+        }
+    }
+
+    outcome
+}
+
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "issue #2370 wires the drain into the receive loop in T5")
+)]
+fn record_request_processor_outcome<E>(
+    result: Result<Result<(), E>, tokio::task::JoinError>,
+    outcome: &mut RequestDrainOutcome,
+    aborted_by_drain: bool,
+) {
+    match result {
+        Ok(Ok(())) => outcome.completed += 1,
+        // A returned error was already logged by the processor.
+        Ok(Err(_)) => outcome.failed += 1,
+        Err(error) if error.is_cancelled() && aborted_by_drain => outcome.aborted += 1,
+        Err(error) if error.is_cancelled() => outcome.evicted += 1,
+        Err(error) => {
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, %error, "UDP request processor failed during shutdown drain");
+            outcome.failed += 1;
+        }
     }
 }
 
@@ -870,6 +938,302 @@ mod tests {
             let admission = admit_received(None, TEST_LOG_TARGET);
 
             assert!(matches!(admission, ControlFlow::Break(error) if error.kind() == ErrorKind::UnexpectedEof));
+        }
+    }
+
+    mod request_drain {
+        use std::time::Duration;
+
+        use tokio::task::JoinSet;
+        use tokio::time::Instant;
+
+        use crate::server::launcher::{RequestDrainOutcome, drain_request_processors};
+
+        const DRAIN_DEADLINE: Duration = Duration::from_secs(5);
+
+        type ProcessorResult = Result<(), &'static str>;
+
+        async fn panicking_processor() -> ProcessorResult {
+            tokio::task::yield_now().await;
+            panic!("request processor panic under test");
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_count_processors_that_finish_before_the_deadline_as_completed() {
+            // Arrange
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            processors.spawn(async { Ok(()) });
+            processors.spawn(async { Ok(()) });
+
+            // Act
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+
+            // Assert
+            assert_eq!(
+                outcome,
+                RequestDrainOutcome {
+                    completed: 2,
+                    ..RequestDrainOutcome::default()
+                }
+            );
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_abort_and_join_processors_still_running_at_the_deadline() {
+            // Arrange
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            processors.spawn(std::future::pending());
+
+            // Act
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+
+            // Assert
+            assert_eq!(
+                outcome,
+                RequestDrainOutcome {
+                    aborted: 1,
+                    ..RequestDrainOutcome::default()
+                }
+            );
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_count_failed_processors_and_keep_draining_the_rest() {
+            // Arrange
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            processors.spawn(async { Err("the response could not be sent") });
+            processors.spawn(panicking_processor());
+            processors.spawn(async { Ok(()) });
+
+            // Act
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+
+            // Assert
+            assert_eq!(
+                outcome,
+                RequestDrainOutcome {
+                    completed: 1,
+                    failed: 2,
+                    ..RequestDrainOutcome::default()
+                }
+            );
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_count_a_processor_aborted_before_the_drain_as_evicted() {
+            // Arrange
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            let evicted_by_overload = processors.spawn(std::future::pending());
+            evicted_by_overload.abort();
+
+            // Act
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+
+            // Assert
+            assert_eq!(
+                outcome,
+                RequestDrainOutcome {
+                    evicted: 1,
+                    ..RequestDrainOutcome::default()
+                }
+            );
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_return_immediately_when_there_are_no_processors() {
+            // Arrange
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            let started = Instant::now();
+
+            // Act
+            drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+
+            // Assert
+            assert_eq!(
+                started.elapsed(),
+                Duration::ZERO,
+                "draining no processors must not wait for the {DRAIN_DEADLINE:?} deadline"
+            );
+        }
+    }
+
+    mod receive_loop_shutdown {
+        use std::net::SocketAddr;
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        use futures::future::BoxFuture;
+        use tokio::net::UdpSocket;
+        use tokio::sync::mpsc;
+        use tokio::task::JoinHandle;
+        use tokio_util::sync::CancellationToken;
+        use torrust_tracker_events::sender::{SendError, Sender};
+        use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
+        use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
+
+        use super::{LIFECYCLE_TIMEOUT, UdpLauncherTestContext};
+        use crate::container::UdpTrackerServerContainer;
+        use crate::event::Event;
+        use crate::server::bound_socket::BoundSocket;
+        use crate::server::launcher::{Launcher, StartedReceiveLoop};
+        use crate::server::request_buffer::ACTIVE_REQUESTS_CAPACITY;
+
+        /// Holds every processor at its `UdpRequestAccepted` publication, except the released client's.
+        struct HoldAcceptedRequestsSender {
+            released_client: SocketAddr,
+            running_held_processors: Arc<AtomicUsize>,
+            held: mpsc::UnboundedSender<()>,
+        }
+
+        /// Counts a held processor until its future is dropped by completion or abort.
+        struct RunningHeldProcessor(Arc<AtomicUsize>);
+
+        impl Drop for RunningHeldProcessor {
+            fn drop(&mut self) {
+                self.0.fetch_sub(1, Ordering::SeqCst);
+            }
+        }
+
+        impl Sender for HoldAcceptedRequestsSender {
+            type Event = Event;
+
+            fn send(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>> {
+                let is_held = matches!(
+                    &event,
+                    Event::UdpRequestAccepted { context, .. } if context.client_socket_addr() != self.released_client
+                );
+                if !is_held {
+                    return Box::pin(async { None });
+                }
+
+                self.running_held_processors.fetch_add(1, Ordering::SeqCst);
+                let running = RunningHeldProcessor(self.running_held_processors.clone());
+                self.held
+                    .send(())
+                    .expect("the held-processor receiver should outlive the scenario");
+
+                Box::pin(async move {
+                    let _running = running;
+                    std::future::pending().await
+                })
+            }
+        }
+
+        /// A receive loop whose full request ring has dropped the only handles of held processors.
+        struct ReceiveLoopWithOrphanedProcessors {
+            cancellation_token: CancellationToken,
+            receive_loop: JoinHandle<Result<(), std::io::Error>>,
+            running_held_processors: Arc<AtomicUsize>,
+            _held: mpsc::UnboundedReceiver<()>,
+        }
+
+        impl ReceiveLoopWithOrphanedProcessors {
+            async fn start() -> Self {
+                let context = UdpLauncherTestContext::new().await;
+                let released_client = bind_loopback_client().await;
+                let held_client = bind_loopback_client().await;
+                let running_held_processors = Arc::new(AtomicUsize::new(0));
+                let (held_sender, mut held) = mpsc::unbounded_channel();
+                let server_container = Arc::new(UdpTrackerServerContainer {
+                    event_bus: context.udp_tracker_server_container.event_bus.clone(),
+                    stats_event_sender: Some(Arc::new(HoldAcceptedRequestsSender {
+                        released_client: released_client
+                            .local_addr()
+                            .expect("the released client should have an address"),
+                        running_held_processors: running_held_processors.clone(),
+                        held: held_sender,
+                    })),
+                    stats_repository: context.udp_tracker_server_container.stats_repository.clone(),
+                });
+                let cancellation_token = CancellationToken::new();
+                let StartedReceiveLoop { address, task, .. } = Launcher::start_receive_loop(
+                    context.udp_tracker_core_container,
+                    server_container,
+                    BoundSocket::bind(context.bind_address, false).expect("UDP socket should bind"),
+                    context.cookie_lifetime,
+                    ConnectionIdValidationPolicy::Strict,
+                    cancellation_token.clone(),
+                );
+
+                // The released request finishes first, so it is the oldest handle when the ring fills.
+                send_connect_request(&released_client, address).await;
+                wait_for_response(&released_client).await;
+
+                for _ in 1..ACTIVE_REQUESTS_CAPACITY {
+                    send_connect_request(&held_client, address).await;
+                }
+                wait_until_held(&mut held, ACTIVE_REQUESTS_CAPACITY - 1).await;
+
+                // Inserting into the full ring keeps only the last live handle it traverses.
+                send_connect_request(&held_client, address).await;
+                wait_until_held(&mut held, 1).await;
+
+                Self {
+                    cancellation_token,
+                    receive_loop: task,
+                    running_held_processors,
+                    _held: held,
+                }
+            }
+        }
+
+        async fn bind_loopback_client() -> UdpSocket {
+            UdpSocket::bind("127.0.0.1:0")
+                .await
+                .expect("a loopback client socket should bind")
+        }
+
+        async fn send_connect_request(client: &UdpSocket, tracker: SocketAddr) {
+            let mut payload = Vec::new();
+            Request::from(ConnectRequest {
+                transaction_id: TransactionId(0i32.into()),
+            })
+            .write_bytes(&mut payload)
+            .expect("a connect request should serialize");
+
+            client
+                .send_to(&payload, tracker)
+                .await
+                .expect("the connect request should be sent");
+        }
+
+        async fn wait_for_response(client: &UdpSocket) {
+            let mut buffer = [0u8; 1024];
+
+            tokio::time::timeout(LIFECYCLE_TIMEOUT, client.recv(&mut buffer))
+                .await
+                .expect("the released request should be answered within the test deadline")
+                .expect("the released client should receive its response");
+        }
+
+        async fn wait_until_held(held: &mut mpsc::UnboundedReceiver<()>, processors: usize) {
+            tokio::time::timeout(LIFECYCLE_TIMEOUT, async {
+                for _ in 0..processors {
+                    held.recv().await.expect("the held-processor channel should stay open");
+                }
+            })
+            .await
+            .expect("the requests should reach their processors within the test deadline");
+        }
+
+        #[tokio::test]
+        #[ignore = "issue #2370: red until T5 makes the receive loop own and join every processor"]
+        async fn it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running() {
+            // Arrange
+            let scenario = ReceiveLoopWithOrphanedProcessors::start().await;
+
+            // Act
+            scenario.cancellation_token.cancel();
+            let result = tokio::time::timeout(LIFECYCLE_TIMEOUT, scenario.receive_loop)
+                .await
+                .expect("the receive loop should stop within the test deadline");
+
+            // Assert
+            let running = scenario.running_held_processors.load(Ordering::SeqCst);
+            assert_eq!(
+                running, 0,
+                "the receive loop returned {result:?} while {running} request processors it spawned were still running"
+            );
         }
     }
 }
