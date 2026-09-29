@@ -140,6 +140,7 @@ file completes.
 | `banning/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declarations have no runtime boundary |
 | `banning/event/listener.rs` | 147 / 150 (98.00%) | 147 / 150 (98.00%) | 0 | 0 | No; direct dispatch contracts remain sufficient, while spawned task ownership is #1488-owned |
 | `statistics/mod.rs` | 52 / 52 (100.00%) | 52 / 52 (100.00%) | 0 | 0 | No; repository initialization owns the observable metric-collection contract |
+| `statistics/metrics.rs` | 827 / 834 (99.16%) | 827 / 834 (99.16%) | 0 | 0 | No; label projections and moving-average calculation are directly covered, while metric-collection write failures and multi-listener aggregation have separate owners |
 
 ## Relationship To Issue #2149
 
