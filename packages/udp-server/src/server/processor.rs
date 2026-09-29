@@ -17,6 +17,18 @@ use crate::event::{self, Event, UdpRequestKind};
 use crate::handlers::CookieTimeValues;
 use crate::{RawRequest, handlers};
 
+/// Why a request processor could not deliver its response.
+///
+/// A UDP error response is a handled request, not a processor error.
+#[derive(Debug, thiserror::Error)]
+pub enum ProcessorError {
+    #[error("failed to encode the UDP response: {source}")]
+    EncodeResponse { source: std::io::Error },
+
+    #[error("failed to send the UDP response: {source}")]
+    SendResponse { source: std::io::Error },
+}
+
 pub struct Processor {
     socket: Arc<BoundSocket>,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -51,8 +63,13 @@ impl Processor {
     // ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
     // issue: #2370
     // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
+    /// Handles one UDP request and sends its response.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the response cannot be encoded or sent.
     #[instrument(skip(self, request))]
-    pub async fn process_request(self, request: RawRequest) {
+    pub async fn process_request(self, request: RawRequest) -> Result<(), ProcessorError> {
         let client_socket_addr = request.from;
 
         // Guard: discard requests from clients with port 0.
@@ -81,7 +98,7 @@ impl Processor {
                     .await;
             }
 
-            return;
+            return Ok(());
         }
 
         let start_time = Instant::now();
@@ -99,7 +116,7 @@ impl Processor {
         let elapsed_time = start_time.elapsed();
 
         self.send_response(client_socket_addr, response, opt_req_kind, elapsed_time)
-            .await;
+            .await
     }
 
     #[instrument(skip(self))]
@@ -109,7 +126,7 @@ impl Processor {
         response: Response,
         opt_req_kind: Option<UdpRequestKind>,
         req_processing_time: Duration,
-    ) {
+    ) -> Result<(), ProcessorError> {
         tracing::debug!("send response");
 
         let response_type = match &response {
@@ -134,42 +151,43 @@ impl Processor {
 
         let mut writer = Cursor::new(Vec::with_capacity(200));
 
-        match response.write_bytes(&mut writer) {
-            Ok(()) => {
-                let bytes_count = writer.get_ref().len();
-                let payload = writer.get_ref();
-
-                let () = match self.send_packet(&client_socket_addr, payload).await {
-                    Ok(sent_bytes) => {
-                        if tracing::event_enabled!(Level::TRACE) {
-                            tracing::debug!(%bytes_count, %sent_bytes, ?payload, "sent {response_type}");
-                        } else {
-                            tracing::debug!(%bytes_count, %sent_bytes, "sent {response_type}");
-                        }
-
-                        if let Some(udp_server_stats_event_sender) =
-                            self.udp_tracker_server_container.stats_event_sender.as_deref()
-                        {
-                            udp_server_stats_event_sender
-                                .send(Event::UdpResponseSent {
-                                    context: ConnectionContext::new(
-                                        self.udp_tracker_core_container.configuration_instance_id,
-                                        client_socket_addr,
-                                        self.server_service_binding,
-                                    ),
-                                    kind: udp_response_kind,
-                                    req_processing_time,
-                                })
-                                .await;
-                        }
-                    }
-                    Err(error) => tracing::warn!(%bytes_count, %error, ?payload, "failed to send"),
-                };
-            }
-            Err(e) => {
-                tracing::error!(%e, "error");
-            }
+        if let Err(source) = response.write_bytes(&mut writer) {
+            tracing::error!(e = %source, "error");
+            return Err(ProcessorError::EncodeResponse { source });
         }
+
+        let bytes_count = writer.get_ref().len();
+        let payload = writer.get_ref();
+
+        let sent_bytes = match self.send_packet(&client_socket_addr, payload).await {
+            Ok(sent_bytes) => sent_bytes,
+            Err(source) => {
+                tracing::warn!(%bytes_count, error = %source, ?payload, "failed to send");
+                return Err(ProcessorError::SendResponse { source });
+            }
+        };
+
+        if tracing::event_enabled!(Level::TRACE) {
+            tracing::debug!(%bytes_count, %sent_bytes, ?payload, "sent {response_type}");
+        } else {
+            tracing::debug!(%bytes_count, %sent_bytes, "sent {response_type}");
+        }
+
+        if let Some(udp_server_stats_event_sender) = self.udp_tracker_server_container.stats_event_sender.as_deref() {
+            udp_server_stats_event_sender
+                .send(Event::UdpResponseSent {
+                    context: ConnectionContext::new(
+                        self.udp_tracker_core_container.configuration_instance_id,
+                        client_socket_addr,
+                        self.server_service_binding,
+                    ),
+                    kind: udp_response_kind,
+                    req_processing_time,
+                })
+                .await;
+        }
+
+        Ok(())
     }
 
     #[instrument(skip(self))]
@@ -183,7 +201,7 @@ impl Processor {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
     use std::time::Duration;
 
@@ -198,7 +216,7 @@ mod tests {
     use crate::event::receiver::Receiver;
     use crate::event::{Event, UdpRequestKind, UdpResponseKind};
     use crate::server::bound_socket::BoundSocket;
-    use crate::server::processor::Processor;
+    use crate::server::processor::{Processor, ProcessorError};
     use crate::testing::environment::EnvContainer;
 
     const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
@@ -326,9 +344,13 @@ mod tests {
         );
 
         // Act
-        processor.process_request(connect_request_from(client_with_port_0)).await;
+        let result = processor.process_request(connect_request_from(client_with_port_0)).await;
 
         // Assert
+        assert!(
+            result.is_ok(),
+            "a discarded request is handled, not a processor error: {result:?}"
+        );
         assert_eq!(
             receive_event(&mut event_receiver).await,
             Event::UdpRequestDiscarded {
@@ -350,9 +372,13 @@ mod tests {
         );
 
         // Act
-        processor.process_request(connect_request_from(client_socket_addr)).await;
+        let result = processor.process_request(connect_request_from(client_socket_addr)).await;
 
         // Assert
+        assert!(
+            result.is_ok(),
+            "an answered connect request is not a processor error: {result:?}"
+        );
         let (context, kind) = receive_response_sent(&mut event_receiver).await;
         assert_eq!(context, expected_context);
         assert_eq!(
@@ -375,9 +401,13 @@ mod tests {
         );
 
         // Act
-        processor.process_request(request).await;
+        let result = processor.process_request(request).await;
 
         // Assert
+        assert!(
+            result.is_ok(),
+            "a UDP error response is a handled request, not a processor error: {result:?}"
+        );
         assert_eq!(
             receive_response_sent(&mut event_receiver).await.1,
             UdpResponseKind::Error {
@@ -399,13 +429,34 @@ mod tests {
         };
 
         // Act
-        processor.process_request(request).await;
+        let result = processor.process_request(request).await;
 
         // Assert
+        assert!(
+            result.is_ok(),
+            "an error response to an unparsable payload is a handled request: {result:?}"
+        );
         assert_eq!(
             receive_response_sent(&mut event_receiver).await.1,
             UdpResponseKind::Error { opt_req_kind: None },
             "a 3-byte payload cannot be parsed, so its error-response event has no request kind"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_send_error_when_the_response_cannot_be_sent() {
+        // Arrange
+        let (processor, _event_receiver) = setup_processor_with_event_receiver().await;
+        // The processor socket is IPv4-only, so it cannot send to an IPv6 client.
+        let unreachable_ipv6_client = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 6881);
+
+        // Act
+        let result = processor.process_request(connect_request_from(unreachable_ipv6_client)).await;
+
+        // Assert
+        assert!(
+            matches!(result, Err(ProcessorError::SendResponse { .. })),
+            "an IPv4 socket cannot answer {unreachable_ipv6_client}, so processing should fail to send: {result:?}"
         );
     }
 }

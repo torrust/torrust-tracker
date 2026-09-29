@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-last-updated-utc: "2026-09-29 18:03"
+last-updated-utc: "2026-09-29 19:05"
 ---
 
 # UDP Performance Evidence
@@ -46,7 +46,26 @@ configuration above instead.
 
 ## B1 - Processor `Result` Only
 
-Pending T4.
+Source: the T4 change ("feat(udp-server): return a Result from UDP request
+processors") on top of T3; the receive loop still discards the result. Same
+machine, toolchain, tracker configuration, load-test tool, and settings as B0.
+
+| Run | Average responses per second | Notes |
+| --- | ---------------------------- | ----- |
+| 1 | 165488.27 | Fresh nonpersistent tracker process |
+| 2 | 165152.68 | Fresh nonpersistent tracker process |
+| 3 | 164598.75 | Fresh nonpersistent tracker process |
+| 4 | 163440.01 | Fresh nonpersistent tracker process |
+| 5 | 164492.15 | Fresh nonpersistent tracker process |
+
+### B1 Result
+
+Mean: 164634.37 responses/s. Median: 164598.75 responses/s. Range:
+163440.01-165488.27 responses/s.
+
+AC11 for B1 passes: the B1 mean is above the lowest B0 run (152965.92). Every
+B1 run is also above the B0 mean, so the `Result` return type shows no
+measurable cost; the difference is within this shared machine's noise.
 
 ## B2 - `JoinSet` Drain Wiring
 
