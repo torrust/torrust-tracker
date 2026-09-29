@@ -13,10 +13,14 @@ then the executable-boundary scenarios from the issue specification.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): To be recorded with each executed scenario.
-- Artifact under test: To be recorded by Conventional Commit subject.
-- Operating system / environment: To be recorded with each executed scenario.
-- Prerequisites and setup performed: To be recorded with each executed scenario.
+- Date and time (UTC): 2026-09-29 18:03.
+- Artifact under test: `develop` at `02c026c0`, before SI-15 code changes.
+- Operating system / environment: Linux 7.0.0-34-generic x86_64 GNU/Linux;
+  `rustc 1.101.0-nightly (c1070d693 2026-09-28)`.
+- Prerequisites and setup performed: Built the release tracker with `cargo build
+  --release`. Started it with the nonpersistent B0 configuration, changing only
+  `trace_filter` from `error` to `warn` for this trigger attempt. Used Aquatic
+  `a2ddc4b3` and [b0-load-test.toml](b0-load-test.toml).
 
 ## Bug Evidence
 
@@ -24,23 +28,28 @@ then the executable-boundary scenarios from the issue specification.
 
 - Goal: Observe the current full-buffer path losing a live processor handle.
 - Initial state: Current ring-only processor ownership before the T5 fix.
-- Status: `TODO`
+- Status: `Trigger only`
 
 #### Steps Performed
 
-1. Attempt a direct tracker run that reaches the full-buffer ordering.
-2. Record `Reproduced`, `Trigger only`, or `Infeasible`, including exact command, toolchain, output, and logs.
-3. When the public artifact cannot expose the lost internal handle, record the temporary nearest-seam observation test verbatim, revert it, and use its maintained successor for the red regression proof.
+1. Started `./target/release/torrust-tracker --config-toml-path .tmp/si15-trigger-tracker.toml`, where the temporary configuration is the committed B0 tracker configuration with warning-level logging.
+2. Ran `/home/josecelano/Documents/git/greatest-ape/aquatic/target/release/aquatic_udp_load_test -c b0-load-test.toml` for 30 seconds.
+3. Sent `SIGTERM` to the direct tracker PID and counted its captured warning log.
 
 #### Observed Result
 
 ```text
-Not yet executed.
+Average responses per second: 149546.55
+aborting request: (no finished tasks) count: 94
 ```
 
 #### Conclusion
 
-Not yet assessed.
+Trigger only. The real tracker reached `ActiveRequests::force_push` overload
+eviction, but its public logs and UDP responses do not expose whether a later
+live task lost its only handle. T3/T5's receive-loop collaboration test is the
+smallest maintained observation boundary; it will prove the defect red and the
+fix green.
 
 ### V2 - Red and Green Regression Evidence
 

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-branch: "2370-1488-si-15-define-udp-active-request-policy-spec"
+branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-29 13:15"
+last-updated-utc: "2026-09-29 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -510,7 +510,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Analyze and reproduce the orphaned-processor bug; record benchmark B0 | Confirm the receive-loop, ring, and processor facts in Background still hold on the branch base. Attempt the real-artifact reproduction and record its `Reproduced`, `Trigger only`, or `Infeasible` outcome in `manual-verification-evidence.md`. Record B0 (D6) on `develop` in `performance-evidence.md` before any code change. |
+| T1 | DONE | Analyze and reproduce the orphaned-processor bug; record benchmark B0 | Confirmed the receive-loop, ring, and processor facts on the branch base. The direct-artifact run reached the eviction trigger 94 times but cannot expose lost handles, so it is `Trigger only`; evidence is in `manual-verification-evidence.md`. Recorded isolated, nonpersistent B0: mean 159413.39 responses/s, median 158734.29, range 152965.92-165129.04. |
 | T2 | TODO | Request-handling ADR and semantic links | Create the package-local ADR described in Architectural Decisions from D8 and its linked evidence; register it in the package ADR index; link the eviction ADR to it; apply the Semantic Link Map to existing code and documentation; reduce D8 to the decision plus a link. Validate with the frontmatter validator, `linter markdown`, `linter cspell`, and `linter lychee`. Later tasks add the links for code they create or change. |
 | T3 | TODO | Drain primitive and red orphaned-processor regression test | Package-private drain function over a `JoinSet` and a deadline, returning counts. D9 level 1 tests: all complete before the deadline; blocked tasks aborted and joined at the deadline; a panic or `Err` counted as `failed` while the drain continues; a task already aborted before the drain counted as `evicted`, not `aborted`; an empty set returns immediately. Add the D9 level-2 orphaned-processor collaboration test and prove it red against the ring-only owner; record the command and output in `manual-verification-evidence.md`. |
 | T4 | TODO | Processor returns `Result` (D7) and benchmark B1 | `process_request` returns `Result<(), ProcessorError>` for encode and send failures; the receive loop still discards it. Processor tests assert `Ok` for handled requests, including UDP error responses. Record B1 and compare it with B0; stop for the maintainer if it misses the bound. |
@@ -570,6 +570,8 @@ Sign every commit with GPG and use the `udp-server` scope.
 - 2026-09-29 11:15 UTC - GitHub Copilot - Created GitHub issue #2370 and linked it as a sub-issue of EPIC #1488. Renamed the local branch to `2370-1488-si-15-define-udp-active-request-policy-spec`, promoted this spec to `docs/issues/open/`, removed the superseded `verification.md` placeholder, and updated live references. Next step: spec-only PR.
 - 2026-09-29 11:17 UTC - GitHub Copilot - Compared the prior SI-15 hand-off with this specification. Preserved its explicit SI-14 `OwnedTask` and registration-rollback guarantees, and corrected D2 to own `Result<(), ProcessorError>` in the `JoinSet`, which is required for D7 error classification.
 - 2026-09-29 13:15 UTC - GitHub Copilot - Addressed PR #2372 Copilot findings F1-F7: adopted the semantic bug-fix workflow and evidence, require immediate abort-and-join before a receive-error return, reconcile rather than assume an idle summary is zero, distinguish panic and returned-error logs, include the `evicted` goal counter, and replace movable issue paths in the long-lived eviction ADR.
+- 2026-09-29 17:07 UTC - GitHub Copilot - Started implementation on branch `2370-1488-si-15-define-udp-active-request-policy`. T1 is in progress: release tracker build passed; B0 will use the saved 30-second `b0-load-test.toml` configuration and the clean Aquatic `master` checkout recorded in `performance-evidence.md`.
+- 2026-09-29 18:03 UTC - GitHub Copilot - Completed T1. The direct release-binary traffic attempt reached the `force_push` overload eviction log 94 times, but no public artifact exposes whether a later live handle was orphaned; recorded `Trigger only` and deferred proof to the T3/T5 collaboration regression test. Replaced the initial shared-SQLite benchmark attempt, which accumulated state and invalidated later runs, with isolated nonpersistent tracker processes. B0 five-run baseline: mean 159413.39 responses/s, median 158734.29, range 152965.92-165129.04.
 
 ## Acceptance Criteria
 
