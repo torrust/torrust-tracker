@@ -149,6 +149,7 @@ file completes.
 | `statistics/event/handler/request_accepted.rs` | 162 / 163 (99.39%) | 162 / 163 (99.39%) | 6 renamed | 0 | No; observable protocol-family and request-kind routing remains covered, while repository counter-write failure is logging-only |
 | `statistics/event/handler/request_discarded.rs` | 33 / 34 (97.06%) | 33 / 34 (97.06%) | 0 | 0 | No; observable discarded-request metric routing remains covered, while repository counter-write failure is logging-only |
 | `statistics/event/handler/request_banned.rs` | 56 / 57 (98.25%) | 33 / 34 (97.06%) | 1 renamed, 1 removed | 0 | No; observable banned-request metric routing remains covered, while repository counter-write failure is logging-only; the smaller after denominator excludes deleted duplicated test code |
+| `statistics/event/handler/request_aborted.rs` | 56 / 57 (98.25%) | 33 / 34 (97.06%) | 1 renamed, 1 removed | 0 | No; observable aborted-request metric routing remains covered, while repository counter-write failure is logging-only; the smaller after denominator excludes deleted duplicated test code |
 
 ## Relationship To Issue #2149
 

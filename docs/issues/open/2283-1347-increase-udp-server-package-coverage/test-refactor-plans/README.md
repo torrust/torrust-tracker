@@ -55,6 +55,7 @@ maintainer approves it.
 | 31 | [statistics-event-handler-request-accepted-tests.md](statistics-event-handler-request-accepted-tests.md) | DONE | Renamed six accepted-request tests; focused metric routing remains sufficient |
 | 32 | [statistics-event-handler-request-discarded-tests.md](statistics-event-handler-request-discarded-tests.md) | DONE | Retained the clean discarded-request metric routing test |
 | 33 | [statistics-event-handler-request-banned-tests.md](statistics-event-handler-request-banned-tests.md) | DONE | Removed one duplicate test and renamed the retained banned-request metric contract |
+| 34 | [statistics-event-handler-request-aborted-tests.md](statistics-event-handler-request-aborted-tests.md) | DONE | Removed one duplicate test and renamed the retained aborted-request metric contract |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
