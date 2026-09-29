@@ -181,6 +181,53 @@ block, but verify it after every failure. If a failure happens after local `deve
 the signed merge, use `git reflog` to identify the pre-merge tip and ask an authorized maintainer
 before changing it.
 
+## Push Failure Diagnosis and Recovery
+
+A failed final push is not evidence that the pull request needs a rebase. Distinguish a stale
+merge base (which the tool detects before constructing the merge) from SSH authentication and
+server-side failures before changing the source branch or rebuilding the signed merge.
+
+When a push fails after the tool has signed and reset local `develop` to the inspected merge:
+
+**Step 1: Stop.** Do not start a second merge attempt, force-push `develop`, or discard the
+signed local merge.
+
+**Step 2: Inspect remote state.** Fetch the upstream remote and inspect the remote branch and PR
+state:
+
+```sh
+git fetch <upstream-remote>
+git log -1 --oneline <upstream-remote>/develop
+gh pr view <pull-request-number> --repo torrust/torrust-tracker --json state,mergedAt,mergeCommit
+```
+
+If the remote tip is the signed merge commit or the pull request is merged, the push completed
+despite its client-side error. Do not retry anything; fast-forward local `develop` only after
+reviewing the remote result.
+
+**Step 3: Classify an unchanged remote tip.** Use the failed output:
+
+| Failure                                                 | Meaning                                                                                                   | Recovery                                                                                                                                                              |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Host key verification failed`                          | The SSH host identity is not trusted locally. It is neither a rebase nor a repository-permission failure. | Stop and verify the host key against GitHub's published fingerprints before updating the maintainer machine's SSH configuration.                                      |
+| Permission denied for an SSH public key                 | The key or SSH-agent identity is not authorized for the upstream push. It is not a stale branch.          | Verify the maintainer's SSH identity and upstream access; do not substitute a token or expose a credential in chat.                                                   |
+| `GH013` / "Changes must be made through a pull request" | Repository policy rejected a direct merge push.                                                           | Follow the stale-base guidance above, then obtain approval for a branch-protection-compatible merge workflow if the source branch is current.                         |
+| Remote `Internal Server Error` / HTTP `5xx`             | GitHub or its Git service rejected the request transiently; the remote branch may still be unchanged.     | Re-fetch and recheck the PR. With explicit maintainer approval, retry the same final push once; if it fails again, stop and report GitHub's request ID and timestamp. |
+
+**Step 4: Retry only with approval.** Only after the remote remains unchanged and an authorized
+maintainer explicitly approves, retry the exact final push the tool attempted:
+
+```sh
+git push <upstream-remote> develop
+```
+
+This publishes the already inspected and signed merge. It is a recovery continuation of the
+maintainer-approved tool invocation, not a new merge or permission to push unrelated commits.
+
+The repository-local wrapper and `contrib/dev-tools/git/github-merge.py` are authoritative. Do
+not invoke a personal copy or alias merely because it was once identical: the tracked tool can
+contain repository-specific fixes and the current workflow documentation applies only to it.
+
 ## Signing and Push Confirmation
 
 After successful inspection and validation, the tool prompts for `s` or `x`. Enter `x` unless
