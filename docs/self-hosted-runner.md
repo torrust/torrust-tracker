@@ -396,7 +396,7 @@ old server, including its caches.
 
 Only if measured queue time shows pull requests waiting for the runner. The decision to keep one
 runner, and when to recheck it, is recorded in the
-[capacity specification](issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md).
+[capacity specification](issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md).
 
 Add capacity as a **second server** with one runner instance: follow
 [Set Up a New Runner](#set-up-a-new-runner) from "Create the Server" through "Verify", with a new
