@@ -157,7 +157,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T4  | DONE | Process every source file through the per-file workflow | All 37 ledger files have a completed plan, recorded coverage result, completed-file review, and signed per-file commit. See [Per-File Workflow](#per-file-workflow). |
 | T5  | DONE | Implement integration-test increments selected by file test plans | No completed file plan selected a 3B integration increment: direct unit boundaries were clearer where new coverage was selected, and existing loopback coverage or #1488 ownership covered the remaining UDP lifecycle boundaries. |
 | T6  | DONE | Perform bounded mutation assessment | Completed a bounded `handle_packet` sample: one viable mutant was caught, two generated default-response mutants were unviable, and there were no survivors. [mutation-evidence.md](mutation-evidence.md) records configuration, timeout, scope, and limitations. |
-| T7  | TODO | Reconcile evidence and progress state | Verify that the ledger (37 rows, all `DONE`), every file test plan, coverage evidence per-file results, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed plans, and rebase-unstable commit SHA citations. |
+| T7  | IN_PROGRESS | Reconcile evidence and progress state | The ledger has 37 `DONE` rows and 37 plans. Reconciliation restored three omitted per-file result rows and normalized the processor-plan status; final package measurements and EPIC tables remain to be updated. |
 | T8  | TODO | Complete verification and acceptance review | Run final automatic checks, manual verification, acceptance-criteria review, and implementation completion review. Stop for maintainer review after the final test-producing increment before final verification, committing, or opening an implementation PR. |
 
 ## Commit Points
@@ -316,6 +316,11 @@ plan so the ledger has no implicit exceptions.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
+
+- 2026-09-30 07:03 UTC - GitHub Copilot - Began T7 reconciliation. Confirmed 37 `DONE` ledger
+  rows and 37 file plans; restored three omitted per-file result rows and normalized the completed
+  processor-plan frontmatter from `complete` to `done`. Baseline/historical SHA mentions are not
+  branch commit citations. Final package coverage and EPIC-table reconciliation remain pending.
 
 - 2026-09-30 06:21 UTC - GitHub Copilot - Completed T6 with a bounded
   `handlers::handle_packet` mutation sample. The invalid-request transaction-ID extraction-arm

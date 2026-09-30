@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2283
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/processor.rs
-status: complete
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/processor.rs

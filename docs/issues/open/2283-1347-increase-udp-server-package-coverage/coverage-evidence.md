@@ -138,12 +138,15 @@ file completes.
 | `server/states.rs` | 72 / 77 (93.51%) | 72 / 77 (93.51%) | 0 | 0 | No; bind, stop, and task paths are socket and #1488 lifecycle boundaries |
 | `banning/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; namespace declaration has no runtime boundary |
 | `banning/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declarations have no runtime boundary |
+| `banning/event/handler.rs` | 81 / 82 (98.78%) | 81 / 82 (98.78%) | 0 | 0 | No; existing client-IP forwarding and post-update gauge contracts remain sufficient |
 | `banning/event/listener.rs` | 147 / 150 (98.00%) | 147 / 150 (98.00%) | 0 | 0 | No; direct dispatch contracts remain sufficient, while spawned task ownership is #1488-owned |
 | `statistics/mod.rs` | 52 / 52 (100.00%) | 52 / 52 (100.00%) | 0 | 0 | No; repository initialization owns the observable metric-collection contract |
 | `statistics/metrics.rs` | 827 / 834 (99.16%) | 827 / 834 (99.16%) | 0 | 0 | No; label projections and moving-average calculation are directly covered, while metric-collection write failures and multi-listener aggregation have separate owners |
 | `statistics/repository.rs` | 547 / 549 (99.64%) | 523 / 523 (100.00%) | 3 consolidated, 2 removed | 2 | No; synchronized snapshots and metric updates are directly unit-tested, while multi-listener aggregation is root-owned |
 | `statistics/services.rs` | 32 / 32 (100.00%) | 32 / 32 (100.00%) | 1 renamed | 0 | No; direct service aggregation covers the complete returned value |
+| `statistics/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declaration wiring has no runtime boundary |
 | `statistics/event/listener.rs` | 164 / 172 (95.35%) | 164 / 172 (95.35%) | 0 | 0 | No; direct dispatch is covered, while spawned lifecycle is #1488-owned and event-context accessor arms are representation-only |
+| `statistics/event/handler/mod.rs` | 19 / 21 (90.48%) | 21 / 21 (100.00%) | 0 | 0 | No; routing-only dispatcher has no independent observable seam |
 | `statistics/event/handler/error.rs` | 131 / 151 (86.75%) | 131 / 151 (86.75%) | 1 renamed | 0 | No; observable general and connection-cookie routing remains covered, while peer-client representation and repository-error logging have separate owners |
 | `statistics/event/handler/request_received.rs` | 33 / 34 (97.06%) | 33 / 34 (97.06%) | 1 renamed | 0 | No; observable received-request metric routing remains covered, while repository counter-write failure is logging-only |
 | `statistics/event/handler/request_accepted.rs` | 162 / 163 (99.39%) | 162 / 163 (99.39%) | 6 renamed | 0 | No; observable protocol-family and request-kind routing remains covered, while repository counter-write failure is logging-only |
@@ -166,6 +169,6 @@ inventory trigger, not proof that prior no-change decisions remain correct.
 ## Next Evidence
 
 - One `test-refactor-plans/<module>-tests.md` per source file, created when that file starts.
-- `mutation-evidence.md`, `manual-verification-evidence.md`, and
-  `implementation-retrospective.md` are created when their corresponding implementation stages
-  produce evidence.
+- [mutation-evidence.md](mutation-evidence.md) records the completed bounded mutation assessment.
+  `manual-verification-evidence.md` and `implementation-retrospective.md` are created when their
+  corresponding implementation stages produce evidence.
