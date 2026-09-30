@@ -454,7 +454,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5b | DONE | Generated-stubs fallback (only if T5 fails) | Not needed. Design kept in the ADR's alternatives as the documented fallback. |
 | T6 | DONE | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions; interim harness block (D7) marked for removal by the EPIC #2003 sub-issue; `AGENTS.md` files re-excluded inside admitted directories. |
 | T7 | DONE | Implement D4 `default-members` positive list | `default-members` added; all in-repo crates listed explicitly in `members` (D8); `--workspace` and all `--exclude` flags removed from the four `cargo nextest archive` commands; comments updated. |
-| T8 | IN_PROGRESS | Verify container targets | `recipe` and `test_debug` pass (V3: 1121 tests / 38 binaries, identical to baseline). `test` (release) was interrupted by a host restart and `runtime` is pending; both rerun by the maintainer outside the IDE. |
+| T8 | DONE | Verify container targets | `recipe`, `test_debug` (V3: 1121 tests / 38 binaries, identical to baseline), release `test`, and `runtime` base stage pass. Final `release` image verified in V4: `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check`; expected entrypoint and command. |
 | T9 | DONE | Write D5 ADR | `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`, indexed. |
 | T10 | DONE | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`. |
 | T11 | DONE | Update contributor workflow | `add-workspace-member` skill v2.0: no `Containerfile` edits; `default-members` decision; allow-list rule; explicit membership. `docs/containers.md` does not describe the recipe stage, so no change. |
@@ -484,8 +484,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue #2298 created and issue number added to this specification.
 - [x] Implementation approach selected after draft review.
 - [x] Baseline and post-change cache measurements recorded.
-- [ ] Automatic verification completed.
-- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md`.
+- [x] Automatic verification completed.
+- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md` (M1-M3, M7, M4 remain).
 - [x] ADR written and indexed.
 - [x] EPIC #2003 draft sub-issue spec written.
 - [ ] Acceptance criteria reviewed after implementation.
@@ -514,8 +514,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   crate must be an explicit member because the `--external-only` skeleton strips path
   dependencies. Wrote the ADR, the `add-workspace-member` skill v2.0, the EPIC #2003 draft
   sub-issue spec, and the evidence record. Release `test` build was interrupted by a host restart
-  (Docker saturated the workstation while the IDE ran); the maintainer reruns `test` and `runtime`
-  outside the IDE.
+  (Docker saturated the workstation while the IDE ran).
+- 2026-09-30 08:18 UTC - GitHub Copilot - Maintainer reran the release `test` target outside the
+  IDE; it completed successfully from the successful cached release compilation. `runtime` remains
+  pending outside the IDE.
+- 2026-09-30 08:20 UTC - GitHub Copilot - Maintainer built the `runtime` base and final `release`
+  target outside the IDE. The base image correctly contains no application binaries; the final
+  release image contains `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check` with the
+  expected entrypoint and command (V4). Corrected the evidence to distinguish the two stages.
 
 ## Acceptance Criteria
 

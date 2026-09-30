@@ -130,30 +130,60 @@ Stage durations: `thirdparty` cook 46.5 s (rebuilt: `Cargo.toml` membership chan
 Met. Identical test scope (1121 tests / 38 binaries) with no `--exclude` list; the positive list
 selects exactly what the negative lists used to leave in.
 
-### V4 - Release `test` target and `runtime` image (M2/M3 release path)
+### V4 - Release `test` target and final `release` image
 
-- Goal: the release archive builds and runs; the final `runtime` image builds and contains only
+- Goal: the release archive builds and runs; the final `release` image builds and contains only
   tracker binaries.
 - Initial state: same as V3.
-- Status: `IN_PROGRESS`
+- Status: `DONE`
 
 #### Steps Performed
 
-1. `docker build --target test --file Containerfile .` — first attempt (`d4-test-release.log`) was
-   interrupted by a host restart during the release compile; to be rerun by the maintainer
-   outside the IDE.
-2. `docker build --target runtime --tag torrust-tracker:2298-local --file Containerfile .` — pending.
-3. Image content inspection — pending.
+1. `docker build --target test --file Containerfile .` — first attempt was interrupted by a host
+  restart during the release compile. Reran outside the IDE on 2026-09-30; output is in
+  `d4-test-release.log`.
+2. `docker build --target runtime --tag torrust-tracker:2298-local --file Containerfile .` —
+  completed on 2026-09-30; output is in `d4-runtime.log`.
+3. `docker run --rm --entrypoint /bin/ls torrust-tracker:2298-local -la /app/bin` — failed:
+  `/app/bin` does not exist in the `runtime` target.
+4. `docker build --target release --tag torrust-tracker:2298-release-local --file Containerfile .`
+  — completed on 2026-09-30; output is in `d4-release.log`. This is the final production image:
+  `release` copies `/app/` from `test` to `/usr/`.
+5. `docker run --rm --entrypoint /bin/ls torrust-tracker:2298-release-local -la /usr/bin`.
 
 #### Observed Result
 
 ```text
-pending
+#39 exporting to image
+#39 writing image sha256:3be0a637e044d401c8bed97f04802552e21bcd54a65272c9535119402c24b06d done
+#39 DONE 0.0s
+
+runtime image configuration:
+Entrypoint: ["/usr/local/bin/entry.sh"]
+User: "0"
+
+ls: /app/bin: No such file or directory
+
+#50 writing image sha256:f2a579437bd6f6507eb8139a055211c96d479bf8f48662dce92fe44d9a5e0c4f done
+#50 naming to docker.io/library/torrust-tracker:2298-release-local done
+
+/usr/bin:
+http_health_check (28463408 bytes)
+torrust-tracker (138496632 bytes)
+
+release image configuration:
+Entrypoint: ["/usr/local/bin/entry.sh"]
+Cmd: ["/usr/bin/torrust-tracker"]
 ```
 
 #### Conclusion
 
-Pending rerun.
+The release `test` target completed successfully. On the resumed build, every stage was `CACHED`,
+including the release `cargo nextest run` stage; this reused the successful release compilation
+from the interrupted first attempt. The `runtime` target also builds successfully, but it is a
+deliberate base stage and does not contain tracker binaries. The final-image assertion must target
+`release`, not `runtime`. The final `release` image built successfully and contains exactly the
+expected tracker binaries plus the intentionally included BusyBox links and `su-exec` helper.
 
 ### V5 - M1, M2, M3, M7 (disposable package and context probe)
 
@@ -173,4 +203,7 @@ Pending rerun.
   dependencies. Remediation: list all in-repo crates explicitly in `[workspace].members` (recorded
   as ADR agreement 5). Rerun passed.
 - V4: interrupted by a host restart (the Docker build saturated the workstation while the IDE was
-  running). Rerun scheduled outside the IDE.
+  running). The release `test` target was rerun outside the IDE and passed.
+- V4: the original runtime-image inspection expected `/app/bin`, but `runtime` is intentionally a
+  base stage. The final `release` stage copies `/app/` from `test` to `/usr/`; verification is
+  corrected to target `release`.
