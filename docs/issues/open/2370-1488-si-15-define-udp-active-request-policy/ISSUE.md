@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: 2382
-last-updated-utc: "2026-09-30 10:18"
+last-updated-utc: "2026-09-30 11:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -578,6 +578,7 @@ Sign every commit with GPG and use the `udp-server` scope.
   - Rebased onto `develop`: the only conflict was upstream's processor test changes, resolved by keeping upstream's assertions and adding the D7 `Ok` checks.
   - Validation (nightly Rust toolchain for formatting and docs): `cargo test -p torrust-tracker-udp-server` 209 passed; `linter clippy`; `linter all`; pre-push checks passed.
 - 2026-09-30 10:18 UTC - GitHub Copilot - Maintainer decision: `related-pr` records implementation PR #2382, following SI-14 (`related-pr: 2351`). Spec-only PR #2372 stays in this log because the v1 field holds one value. The maintainer asked for a schema follow-up to allow several related PRs; it is drafted as a #2264 subissue in `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md`.
+- 2026-09-30 11:03 UTC - GitHub Copilot - Maintainer decision on the mixed UDP listener field names left by Copilot finding F4: this PR keeps them, because constraint 9 forbids changing existing receive-loop logs. A standalone follow-up, issue #2387, reviews all startup and shutdown logs for coherence and missing operator information, with a verbatim baseline capture. It is postponed until EPIC #1488 is complete, and its spec merges with this PR.
 
 ## Acceptance Criteria
 
