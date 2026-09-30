@@ -154,8 +154,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1  | DONE | Create refreshed coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global, unit-only, and integration-only commands and totals. The inventory lists every `packages/udp-server/src/` file, its unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests were changed. |
 | T2  | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index. The first plan, [error-tests.md](test-refactor-plans/error-tests.md), was created for `error.rs`. No tests were changed. |
 | T3  | DONE | Review and approve the processing order | Maintainer approved starting with `error.rs`. The processing order for the remaining files is the order column of the [ledger](#source-file-ledger); the maintainer may reorder it at any time. |
-| T4  | IN_PROGRESS | Process every source file through the per-file workflow | One file at a time, in ledger order. For each file: create its file test plan, review and refactor its current tests, analyse coverage, add approved unit tests (or select an integration increment for T5), record the resulting coverage, and obtain completed-file review. All 37 files are done. See [Per-File Workflow](#per-file-workflow). |
-| T5  | TODO | Implement integration-test increments selected by file test plans | Only for files whose plan selected a 3B integration increment because the real UDP loopback boundary is clearer or necessary. One integration-test file at a time; record why the integration boundary was chosen. Close with an explicit note if no plan selected one. |
+| T4  | DONE | Process every source file through the per-file workflow | All 37 ledger files have a completed plan, recorded coverage result, completed-file review, and signed per-file commit. See [Per-File Workflow](#per-file-workflow). |
+| T5  | DONE | Implement integration-test increments selected by file test plans | No completed file plan selected a 3B integration increment: direct unit boundaries were clearer where new coverage was selected, and existing loopback coverage or #1488 ownership covered the remaining UDP lifecycle boundaries. |
 | T6  | TODO | Perform bounded mutation assessment | Sample one changed high-risk seam after test increments are complete. Record configuration, timeout, outcome, limitations, and behavior-relevant survivors in `mutation-evidence.md`. |
 | T7  | TODO | Reconcile evidence and progress state | Verify that the ledger (37 rows, all `DONE`), every file test plan, coverage evidence per-file results, acceptance verification, and the EPIC tables agree. Grep for stale `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed plans, and rebase-unstable commit SHA citations. |
 | T8  | TODO | Complete verification and acceptance review | Run final automatic checks, manual verification, acceptance-criteria review, and implementation completion review. Stop for maintainer review after the final test-producing increment before final verification, committing, or opening an implementation PR. |
@@ -316,6 +316,10 @@ plan so the ledger has no implicit exceptions.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
+
+- 2026-09-30 06:17 UTC - GitHub Copilot - Completed T4 after the row-37
+  `testing/environment.rs` result was approved and committed. Completed all T5 queue checks: no
+  file plan selected a 3B integration increment, so no additional integration test is required.
 
 - 2026-09-29 21:21 UTC - GitHub Copilot - Created the file-local plan for `testing/mod.rs`, marked
   row 36 `IN_PROGRESS`, and requested approval before reviewing its declaration-only source.
