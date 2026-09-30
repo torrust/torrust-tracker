@@ -9,7 +9,7 @@ github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 branch: "1840-record-runner-capacity-decision"
 related-pr: 2383
-last-updated-utc: "2026-09-30 10:35"
+last-updated-utc: "2026-09-30 10:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,7 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Measure both sizes            | Measurement Method in a maintainer-approved window; results in `manual-verification-evidence.md` V1 and V2; runner restored (V4).   |
 | T2  | TODO   | Record the load evidence      | Self-hosted queue times from 2026-09-28 to the measurement date in `manual-verification-evidence.md` V3.                            |
 | T3  | TODO   | Record the capacity decision  | Maintainer decision on server size, runner count, resilience, and recheck triggers, in a Decision section of this specification.    |
-| T4  | IN_PROGRESS | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands. Done except the queue-time recheck command. |
+| T4  | DONE   | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands for queue time and run volume. |
 | T5  | DONE   | Update EPIC #1840             | Row 16 for #2374 (DONE) and row 17 for #2386 (IN_PROGRESS).                                                                                      |
 
 ## Commit Points
@@ -223,6 +223,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 09:41 UTC - josecelano, GitHub Copilot - Changed the scope to determining the minimum capacity, with documentation as the output: the maintainer chose to open and close an issue instead of keeping a deferred draft; added a measurement of the 4 vCPU size; the multi-instance plan moves to a future test-isolation EPIC - this file
 - 2026-09-30 10:26 UTC - josecelano, GitHub Copilot - Maintainer approved the spec; created #2386, linked it as a sub-issue of #1840, and moved the spec to `docs/issues/open/`. The work continues in PR #2383, which already carries this spec and the guide changes; its branch keeps the name `1840-record-runner-capacity-decision` because it was opened before the issue existed - #2386, PR #2383
 - 2026-09-30 10:35 UTC - GitHub Copilot - Checked the daily Docker prune, suspected of not bounding the build cache. It works as configured: `--max-used-space 120GB` means 120 GiB, the 04:00 run on 2026-09-29 reclaimed 50.29 GB, and a manual run of the same command reclaimed 62.08 GB (187.6 GB to 125.5 GB). The 0 B run on 2026-09-30 found the cache below the cap. The guide said "caps" and now says the timer trims once a day and the cache overshoots between runs. The manual run started while a Container job for PR #2382 was building: the idle check and the prune ran in one command, and the runner picked up that job between them - guide "Prune Docker Storage Daily", run `36702472251`
+- 2026-09-30 10:52 UTC - GitHub Copilot - T4 DONE: added the queue-time recheck command to the guide's "Add Runner Capacity" section. Its first run shows a busier morning than the Background window: from 08:03 to 10:27 UTC, 9 self-hosted jobs, 4 of them queued for 124 to 760 s; T2 records the full window after T1 - guide "Add Runner Capacity"
 
 ## Acceptance Criteria
 

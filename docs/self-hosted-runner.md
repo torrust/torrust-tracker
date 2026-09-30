@@ -10,7 +10,7 @@ semantic-links:
 
 # Self-Hosted CI Runner
 
-<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey keyrings usermod fallocate swapfile swapon installdependencies tostring journalctl -->
+<!-- cspell:ignore passwordauthentication kbdinteractiveauthentication permitrootlogin publickey keyrings usermod fallocate swapfile swapon installdependencies tostring fromdate journalctl -->
 
 How to set up and operate the self-hosted GitHub Actions runner that runs the tracker's container
 test jobs. The decision, its cost rationale, and the security controls it depends on are in
@@ -401,6 +401,15 @@ old server, including its caches.
 Only if measured queue time shows pull requests waiting for the runner. The decision to keep one
 runner, and when to recheck it, is recorded in the
 [capacity specification](issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md).
+
+To recheck queue time, list the self-hosted jobs created since a date with their wait for a runner
+(`started_at - created_at`):
+
+```bash
+desktop$ since=<YYYY-MM-DD>; for wf in container.yaml testing.yaml; do gh api --paginate "repos/torrust/torrust-tracker/actions/workflows/$wf/runs?created=>=$since&per_page=100" -q '.workflow_runs[].id'; done | while read -r run; do gh api "repos/torrust/torrust-tracker/actions/runs/$run/jobs" -q '.jobs[] | select((.labels | index("torrust-hetzner")) and (.runner_name // "") != "") | [.run_id, .name, .created_at, "queued \((.started_at | fromdate) - (.created_at | fromdate)) s"] | @tsv'; done
+```
+
+Also recheck the run volume in [Cost](#cost).
 
 Add capacity as a **second server** with one runner instance: follow
 [Set Up a New Runner](#set-up-a-new-runner) from "Create the Server" through "Verify", with a new
