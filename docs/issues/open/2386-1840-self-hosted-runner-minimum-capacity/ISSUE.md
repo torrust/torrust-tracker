@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: in-progress
 priority: p2
 epic: 1840
-github-issue: null
-spec-path: docs/issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md
-branch: "{issue-number}-1840-self-hosted-runner-minimum-capacity"
-related-pr: null
-last-updated-utc: "2026-09-30 09:41"
+github-issue: 2386
+spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+branch: "1840-record-runner-capacity-decision"
+related-pr: 2383
+last-updated-utc: "2026-09-30 10:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
 
 <!-- cspell:ignore cpuset cpus journalctl -->
 
-# Issue #[To be assigned] - Determine the Minimum Self-Hosted Runner Capacity
+# Issue #2386 - Determine the Minimum Self-Hosted Runner Capacity
 
 Parent EPIC: #1840 - Improve PR Workflow Performance
 
@@ -182,8 +182,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Measure both sizes            | Measurement Method in a maintainer-approved window; results in `manual-verification-evidence.md` V1 and V2; runner restored (V4).   |
 | T2  | TODO   | Record the load evidence      | Self-hosted queue times from 2026-09-28 to the measurement date in `manual-verification-evidence.md` V3.                            |
 | T3  | TODO   | Record the capacity decision  | Maintainer decision on server size, runner count, resilience, and recheck triggers, in a Decision section of this specification.    |
-| T4  | TODO   | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands. |
-| T5  | TODO   | Update EPIC #1840             | A DONE row for #2374 and a row for this issue.                                                                                      |
+| T4  | IN_PROGRESS | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands. Done except the queue-time recheck command. |
+| T5  | DONE   | Update EPIC #1840             | Row 16 for #2374 (DONE) and row 17 for #2386 (IN_PROGRESS).                                                                                      |
 
 ## Commit Points
 
@@ -201,9 +201,9 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Issue linked as a GitHub sub-issue of EPIC #1840
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Issue linked as a GitHub sub-issue of EPIC #1840
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, pre-commit checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -221,6 +221,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-29 15:30 UTC - GitHub Copilot - Added resilience as a third goal: a second server also removes the single point of failure - this file
 - 2026-09-30 09:26 UTC - josecelano, GitHub Copilot - Decided to keep one runner on the current server, deferred this issue, and recorded the revisit triggers; moved the draft from `.tmp/` to `docs/issues/drafts/` - PR #2383
 - 2026-09-30 09:41 UTC - josecelano, GitHub Copilot - Changed the scope to determining the minimum capacity, with documentation as the output: the maintainer chose to open and close an issue instead of keeping a deferred draft; added a measurement of the 4 vCPU size; the multi-instance plan moves to a future test-isolation EPIC - this file
+- 2026-09-30 10:26 UTC - josecelano, GitHub Copilot - Maintainer approved the spec; created #2386, linked it as a sub-issue of #1840, and moved the spec to `docs/issues/open/`. The work continues in PR #2383, which already carries this spec and the guide changes; its branch keeps the name `1840-record-runner-capacity-decision` because it was opened before the issue existed - #2386, PR #2383
 
 ## Acceptance Criteria
 
