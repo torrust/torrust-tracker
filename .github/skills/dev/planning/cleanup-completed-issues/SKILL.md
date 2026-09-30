@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.9"
+  version: "1.10"
 ---
 
 # Cleaning Up Completed Issues
@@ -225,12 +225,16 @@ rg 'docs/issues/open/42-add-peer-expiry-grace-period\.md' \
   --glob '!target/**' --glob '!storage/**'
 ```
 
-For a folder spec, search its folder prefix:
+For a folder spec, search its folder name alone, not the full `docs/issues/open/...` path, so
+relative links such as `../../open/42-my-subissue-folder/evidence.md` are found too:
 
 ```bash
-rg 'docs/issues/open/42-my-subissue-folder' \
+rg '42-my-subissue-folder' \
   --glob '!target/**' --glob '!storage/**'
 ```
+
+The local link checker excludes `docs/issues/closed/`, so a stale link in an already archived spec
+is not reported by `linter all`; this search is the only check for it.
 
 The remaining results must be either corrected or deliberately retained historical records.
 
