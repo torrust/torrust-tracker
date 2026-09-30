@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: "2026-09-30 07:09"
+last-updated-utc: "2026-09-30 11:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -410,6 +410,7 @@ Append one line per meaningful update.
 - 2026-09-29 18:59 UTC - GitHub Copilot - Follow-up #2374 completed M5 and reviewed AC1, AC3, and AC4 using V1-V7 evidence and explicitly named static checks for unobserved `main` and release paths - [`manual-verification-evidence.md`](manual-verification-evidence.md), #2374
 - 2026-09-29 19:48 UTC - GitHub Copilot - Independent review found the post-update Dependabot `Docker E2E` observation still pending: the merge update created no push run, while the PR run skipped `Docker E2E` for its `develop` target. It also corrected the guide's inaccurate claim that fork PRs always use GitHub-hosted runners - #2374, `docs/self-hosted-runner.md`
 - 2026-09-29 21:12 UTC - GitHub Copilot - M7 DONE: temporary signed trigger and revert commits on the updated Dependabot branch produced `Docker E2E` job `109621539097` on GitHub Actions with `ubuntu-latest`; source content restored - [`manual-verification-evidence.md`](manual-verification-evidence.md) V7
+- 2026-09-30 11:28 UTC - GitHub Copilot - Repaired the retrospective link in Implementation Completion Review, which still pointed to `docs/issues/open/` after #2374 was archived (PR #2380) - this file
 
 ## Acceptance Criteria
 
@@ -582,7 +583,7 @@ All answered by the maintainer on 2026-09-26 and recorded in the ADR (T4).
 ## Implementation Completion Review
 
 - Retrospective: #2374 records the M5/M7 routing and verification discoveries in its
-  [`implementation-retrospective.md`](../../open/2374-1840-verify-self-hosted-runner-operational-controls/implementation-retrospective.md).
+  [`implementation-retrospective.md`](../2374-1840-verify-self-hosted-runner-operational-controls/implementation-retrospective.md).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
