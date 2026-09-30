@@ -51,7 +51,8 @@ default `docker` Buildx driver, keep host-side Cargo builds in
 
 The runner is persistent and job code gets root-equivalent access to it through the `docker`
 group, so a compromised job can control later jobs. The ADR accepts that on the condition that
-unreviewed code rarely reaches the runner, and that the runner holds nothing worth stealing.
+unreviewed code rarely reaches the runner, and that the server holds no long-lived Torrust
+credentials.
 
 ### Secrets and Credentials
 

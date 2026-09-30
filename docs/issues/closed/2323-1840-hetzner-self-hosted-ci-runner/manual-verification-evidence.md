@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-last-updated-utc: 2026-09-29
+last-updated-utc: 2026-09-30 07:03
 ---
 
 # Manual Verification Evidence
@@ -32,7 +32,7 @@ do not invent commands, output, logs, or results.
 - Goal: a PR targeting `develop` runs `Test (Docker)` on the Hetzner runner and passes.
 - Initial state: first job ever on the runner; no Rust toolchain, Docker layers, or Cargo caches
   on the host.
-- Status: `IN_PROGRESS` (parts 1 and 3 done; the post-update `Docker E2E` observation is pending)
+- Status: `DONE`
 
 #### Steps Performed
 

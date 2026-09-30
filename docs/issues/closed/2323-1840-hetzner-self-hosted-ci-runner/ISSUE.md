@@ -9,7 +9,7 @@ github-issue: 2323
 spec-path: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
 branch: "2323-1840-hetzner-self-hosted-ci-runner"
 related-pr: 2352
-last-updated-utc: "2026-09-29 21:15"
+last-updated-utc: "2026-09-30 07:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -581,8 +581,8 @@ All answered by the maintainer on 2026-09-26 and recorded in the ADR (T4).
 
 ## Implementation Completion Review
 
-- Retrospective: not needed. M5 and M7 confirmed the runtime controls; the only finding was a
-  corrected guide statement about approved fork PR routing.
+- Retrospective: #2374 records the M5/M7 routing and verification discoveries in its
+  [`implementation-retrospective.md`](../../open/2374-1840-verify-self-hosted-runner-operational-controls/implementation-retrospective.md).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.

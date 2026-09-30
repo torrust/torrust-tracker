@@ -8,8 +8,8 @@ epic: 1840
 github-issue: 2374
 spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
-related-pr: null
-last-updated-utc: "2026-09-30 06:10"
+related-pr: 2379
+last-updated-utc: "2026-09-30 07:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,8 @@ semantic-links:
     - docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md
     - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
     - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/manual-verification-evidence.md
+    - docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/manual-verification-evidence.md
+    - docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/agent-review-reports.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
 ---
@@ -80,9 +82,9 @@ Evidence that already exists (to be recorded, not repeated):
   updates its branch from `develop`; observe a real external-contributor PR waiting for approval.
 - Review AC1, AC3, and AC4 of #2323 against the evidence, including the static checks of routing
   that cannot be observed yet (`main`, `releases/**`).
-- Record the results in the archived #2323 evidence file (new sections V5 and V7) and update its
-  scenario and acceptance tables with links to this issue. One evidence record is easier to audit
-  than two.
+- Record detailed results in the archived #2323 evidence file (new sections V5 and V7), and retain
+  an issue-local manual-evidence summary with the commands, outcomes, and links. Update #2323's
+  scenario and acceptance tables with links to this issue.
 - Make the secrets boundary explicit in `docs/self-hosted-runner.md` (a Security section listing
   which jobs use secrets and how to re-check it).
 - Fix `docs/self-hosted-runner.md` if the observed behavior differs from what it describes.
@@ -209,7 +211,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - [x] Issue linked as a GitHub sub-issue of EPIC #1840
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, pre-commit checks)
-- [x] Manual verification scenarios executed and recorded in the #2323 `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
@@ -231,6 +233,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 21:16 UTC - GitHub Copilot - Final full pre-commit gate passed, including `linter all`, staged Markdown frontmatter, dependency checks, formatting, Containerfile linting, and documentation tests - `contrib/dev-tools/git/hooks/pre-commit.sh`
 - 2026-09-29 21:26 UTC - GitHub Copilot - Independent review clarified that the PR merge update observed `Test (Docker)`, while a later temporary branch push observed `Docker E2E`; recorded the reusable discovery in `implementation-retrospective.md` - this file
 - 2026-09-30 06:10 UTC - Task Reviewer - Final read-only review passed AC1-AC5; reviewer and committer checkpoints recorded, with GitHub issue closure and archive pending PR merge - current branch
+- 2026-09-30 07:03 UTC - GitHub Copilot - Addressed PR #2379 review: restored V1 status and evidence timestamp, added issue-local manual evidence and review report, linked the retrospective, recorded PR metadata, and narrowed the runner credential invariant - #2379
 
 ## Acceptance Criteria
 
@@ -265,22 +268,23 @@ No code changes are planned, so no additional tests are required.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2323's numbering.
+The detailed evidence remains in #2323's V5 and V7; this folder keeps an issue-local summary, so
+the scenario IDs retain #2323's numbering.
 
 | ID      | Scenario                    | Human-oriented command/steps                                                                                             | Expected Result                                                                   | Status | Evidence                                    |
 | ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
-| M5      | Runner offline              | M5 Plan above; `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs` and the runners API during the window | Job queued 293 seconds past its 2-minute limit; fallback GitHub-hosted; job ran after restart | DONE   | #2323 `manual-verification-evidence.md` V5 |
-| M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | DONE   | #2323 `manual-verification-evidence.md` V7 |
-| M7 (2)  | Maintainer updates branch   | **Update branch** on #2369; then signed branch trigger; jobs API                                                         | Updated PR `Test (Docker)` and later-push `Docker E2E` GitHub-hosted            | DONE   | #2323 `manual-verification-evidence.md` V7 |
-| M7 (3)  | External contributor        | PR from `josecelano-bot`; inspect runs before and after approval                                                         | No workflow run before approval; run starts after approval                       | DONE   | #2323 `manual-verification-evidence.md` V7 |
+| M5      | Runner offline              | M5 Plan above; `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs` and the runners API during the window | Job queued 293 seconds past its 2-minute limit; fallback GitHub-hosted; job ran after restart | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V1; #2323 V5 |
+| M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V2; #2323 V7 |
+| M7 (2)  | Maintainer updates branch   | **Update branch** on #2369; then signed branch trigger; jobs API                                                         | Updated PR `Test (Docker)` and later-push `Docker E2E` GitHub-hosted            | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V2; #2323 V7 |
+| M7 (3)  | External contributor        | PR from `josecelano-bot`; inspect runs before and after approval                                                         | No workflow run before approval; run starts after approval                       | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V2; #2323 V7 |
 
 ### Acceptance Verification
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | DONE   | #2323 `manual-verification-evidence.md` V5 |
-| AC2   | DONE   | #2323 `manual-verification-evidence.md` V7: updated PR `Test (Docker)` and later-push `Docker E2E` job `109621539097` |
-| AC3   | DONE   | #2323 `manual-verification-evidence.md` V7 part 3 |
+| AC1   | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V1; #2323 V5 |
+| AC2   | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V2; #2323 V7 |
+| AC3   | DONE   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V2; #2323 V7 part 3 |
 | AC4   | DONE   | #2323 `ISSUE.md` acceptance verification: observed V1-V7 evidence and static routing checks |
 | AC5   | DONE   | `docs/self-hosted-runner.md` Security section; re-check commands run on 2026-09-29: every `secrets.`/`environment:` match is in a publish job, and only `container.yaml` and `testing.yaml` use `torrust-hetzner` |
 
@@ -288,6 +292,9 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 
 The reusable routing and verification discoveries are recorded in
 [`implementation-retrospective.md`](implementation-retrospective.md).
+
+The independent final review is recorded in
+[`agent-review-reports.md`](agent-review-reports.md).
 
 ## Related Work
 
