@@ -18,9 +18,9 @@ Follow the shared [guidance](README.md). This plan covers only
 
 ## Current State
 
-- **Fresh unit-only coverage:** 21 / 21 lines (100.00%), 2 / 2 functions, and 50 / 52 regions
+- **Fresh unit-only coverage:** 19 / 21 lines (90.48%), 2 / 2 functions, and 41 / 52 regions
   from the stable Rust toolchain report `cargo llvm-cov -p torrust-tracker-udp-server --all-features
-  --lib --json`. No package source has changed since the row-27 report was generated.
+  --lib --json`. The uncovered `UdpError` delegation arm matches the #2149 dispatcher review.
 - **Module-owned decisions:** exhaustive delegation of each UDP `Event` variant, unchanged payload,
   repository, and timestamp to its specialized statistics handler.
 - **Existing tests:** none colocated. Specialized handler tests already call this parent dispatcher
@@ -50,7 +50,7 @@ Follow the shared [guidance](README.md). This plan covers only
 | R1 | SKIPPED | No existing test needs refactoring. | Current-tests review above. |
 | R2 | SKIPPED | No package-owned unit contract has an independent observable seam. | #2149 dispatcher review and coverage analysis above. |
 | R3 | SKIPPED | No real UDP integration increment is selected. | Integration cannot make a routing-only collaborator assertion more specific. |
-| R4 | DONE | Recorded the current no-change result. | 21 / 21 lines (100.00%), 2 / 2 functions, and 50 / 52 regions. |
+| R4 | DONE | Recorded the current no-change result. | 19 / 21 lines (90.48%), 2 / 2 functions, and 41 / 52 regions. |
 
 ## Results
 
@@ -68,3 +68,6 @@ Approved by Jose Celano on 2026-09-29.
 - 2026-09-29 17:20 UTC - Jose Celano - Approved the no-change plan. Completed-file review is
   requested.
 - 2026-09-29 17:23 UTC - Jose Celano - Approved the completed-file result.
+- 2026-09-30 07:55 UTC - GitHub Copilot - Corrected the recorded coverage from 21 / 21 lines and
+  50 / 52 regions to 19 / 21 lines and 41 / 52 regions. The final 2026-09-30 unit-only and
+  aggregate reports both show the lower values; the no-change decision is unaffected.

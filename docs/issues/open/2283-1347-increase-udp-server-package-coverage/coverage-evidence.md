@@ -167,7 +167,7 @@ file completes.
 | `statistics/services.rs` | 32 / 32 (100.00%) | 32 / 32 (100.00%) | 1 renamed | 0 | No; direct service aggregation covers the complete returned value |
 | `statistics/event/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declaration wiring has no runtime boundary |
 | `statistics/event/listener.rs` | 164 / 172 (95.35%) | 164 / 172 (95.35%) | 0 | 0 | No; direct dispatch is covered, while spawned lifecycle is #1488-owned and event-context accessor arms are representation-only |
-| `statistics/event/handler/mod.rs` | 19 / 21 (90.48%) | 21 / 21 (100.00%) | 0 | 0 | No; routing-only dispatcher has no independent observable seam |
+| `statistics/event/handler/mod.rs` | 19 / 21 (90.48%) | 19 / 21 (90.48%) | 0 | 0 | No; routing-only dispatcher has no independent observable seam |
 | `statistics/event/handler/error.rs` | 131 / 151 (86.75%) | 131 / 151 (86.75%) | 1 renamed | 0 | No; observable general and connection-cookie routing remains covered, while peer-client representation and repository-error logging have separate owners |
 | `statistics/event/handler/request_received.rs` | 33 / 34 (97.06%) | 33 / 34 (97.06%) | 1 renamed | 0 | No; observable received-request metric routing remains covered, while repository counter-write failure is logging-only |
 | `statistics/event/handler/request_accepted.rs` | 162 / 163 (99.39%) | 162 / 163 (99.39%) | 6 renamed | 0 | No; observable protocol-family and request-kind routing remains covered, while repository counter-write failure is logging-only |
