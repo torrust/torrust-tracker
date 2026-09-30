@@ -18,7 +18,7 @@ workspace = true
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
-axum-client-ip = "0"
+axum-client-ip = "1"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 torrust-tracker-http-core = { version = "0.1.0", path = "../http-core" }
 torrust-tracker-http-protocol = { version = "0.1.0", path = "../http-protocol" }
