@@ -353,8 +353,14 @@ keeps `--workspace` because it must warm the full recipe.
 
 Accepted side effect: at the repository root, `cargo build`, `cargo test`, and `cargo clippy`
 without `--workspace` currently act on the root crate only (Cargo's default when the root manifest
-is a package); with `default-members` they act on all listed tracker packages. CI workflows, git
-hooks, and `linter` already pass `--workspace`, so they are unaffected. A single `ARG` holding a
+is a package); with `default-members` they act on all listed tracker packages. Git hooks and
+`linter` pass `--workspace` and are unaffected. One CI job is affected:
+`.github/workflows/os-compatibility.yaml` runs a bare `cargo build --verbose` on Linux, macOS, and
+Windows (stable and nightly), which now builds every default member instead of the root crate
+only. In practice this adds one crate, `torrust-tracker-test-helpers`, because every other default
+member is already a normal dependency of the root crate; PR #2385's six compatibility builds took
+2-9 minutes, within the 2-10 minute range of recent `develop` runs. The wider scope is accepted as
+slightly broader platform coverage. A single `ARG` holding a
 `-p` list was considered as an alternative that avoids the side effect but keeps the list in Docker
 rather than Cargo; rejected because the only goal of the `ARG` was deduplication, which
 `default-members` achieves natively.
@@ -584,7 +590,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - D1 depends on BuildKit content-addressed caching of `COPY --from`; if it does not hold, every
   commit would rebuild external dependencies. Mitigated by the M5/M6 gate and the D2 fallback.
 - `default-members` changes what bare `cargo build`/`cargo test` do at the repository root.
-  Accepted; all automation passes `--workspace`.
+  Accepted; hooks and `linter` pass `--workspace`, and the one bare CI build
+  (`os-compatibility.yaml`) now also compiles `torrust-tracker-test-helpers`.
 - The allow-list must admit everything the `Containerfile` reads; a forgotten path fails the build
   visibly, which is the preferred failure mode.
 - Until the EPIC #2003 sub-issue lands, harness crates still need allow-list entries (D7); this is

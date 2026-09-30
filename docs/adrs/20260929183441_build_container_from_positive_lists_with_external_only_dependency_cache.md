@@ -110,7 +110,11 @@ including something by accident can ship unintended content into the image.
 
 6. **Accepted side effect.** With `default-members`, a bare `cargo build`, `cargo test`, or
    `cargo clippy` at the repository root acts on all product crates instead of the root crate only.
-   CI workflows, git hooks, and `linter` already pass `--workspace` and are unaffected.
+   Git hooks and `linter` pass `--workspace` and are unaffected. The `os-compatibility.yaml`
+   workflow runs a bare `cargo build` on Linux, macOS, and Windows, so its scope grows to every
+   default member; in practice that adds only `torrust-tracker-test-helpers`, because the other
+   default members are already normal dependencies of the root crate, and build times stayed
+   within the range of recent `develop` runs.
 
 ### Alternatives Considered
 
