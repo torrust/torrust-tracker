@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2298
 spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-branch: "2298-rust-dev-tool-container-integration-spec"
+branch: "2298-rust-dev-tool-container-integration"
 related-pr: 2293
-last-updated-utc: "2026-09-22 13:17"
+last-updated-utc: "2026-09-30 11:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,14 @@ semantic-links:
     - .dockerignore
     - .github/skills/dev/maintenance/add-workspace-member/SKILL.md
     - docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
+    - docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
+    - docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
+    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md
+    - docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 ---
+
+  <!-- markdownlint-disable MD003 -->
 
 # Issue #2298 - Eliminate Manual Container Integration for Rust Developer Tools
 
@@ -30,6 +37,12 @@ Make adding a Rust developer tool to the Cargo workspace reliable without repeat
 Docker build recipe by hand. The eventual solution must keep developer-only tools out of the
 production tracker image and container test archives while ensuring Cargo Chef can resolve the
 whole workspace.
+
+Selected direction (2026-09-29 maintainer review, see [Root Cause Analysis](#root-cause-analysis)
+and [Selected Design](#selected-design)): remove the duplicated hand-maintained lists instead of
+validating or generating them. The container build derives package facts from Cargo, the Docker
+build context becomes an explicit allow-list, container test archives use a Cargo-native positive
+list, and the AI-harness tools are proposed for a separate workspace under EPIC #2003.
 
 ## Background
 
@@ -122,71 +135,276 @@ manifest target layout during Cargo Chef preparation.
 - Document and reproduce the mismatch between explicit Cargo workspace membership and Cargo Chef's
   manifest-only Docker recipe.
 - Inventory every duplicated source of truth that changes for developer-only Rust tools.
-- Decide and implement one maintainable mechanism that prevents or detects omissions before hosted
-  Container CI fails.
-- Preserve Cargo Chef dependency-layer caching where practical.
-- Preserve exclusion of developer-only checks, analysis tools, benchmarks, CLI tools, and host-only
-  E2E tools from production tracker test archives unless an individual tool has a documented reason
-  to be included.
-- Add automated validation for the selected mechanism and update the workspace-member workflow
-  documentation.
+- Remove the duplicated hand-maintained lists from the container build (D1/D2, D4) and measure the
+  cache effect against the current baseline (M5, M6).
+- Preserve the #1869 third-party dependency cache layer; any regression triggers the D2 fallback.
+- Convert the Docker build context to a default-deny allow-list (D3).
+- Keep developer-only checks, analysis tools, benchmarks, CLI tools, and host-only E2E tools out of
+  container test archives through the `default-members` positive list (D4).
+- Record the container caching and positive-list model in an ADR (D5).
+- Draft the separate AI-harness workspace sub-issue spec for EPIC #2003 (D6).
+- Update the workspace-member workflow documentation (AC6).
 
 ### Out of Scope
 
 - Adding a new developer tool.
 - Changing the tracker runtime image contents or production deployment behavior.
-- Removing Cargo Chef, Docker, nextest archives, or `.dockerignore` without an independently
-  approved container-build redesign.
+- Removing Cargo Chef, Docker, or nextest archives.
+- Implementing the AI-harness workspace separation (owned by EPIC #2003).
 - Deciding that every workspace member belongs in container test archives.
-- Retrofitting unrelated path dependencies unless analysis proves they share the same fault.
+- Changing which tracker verification tools are tested inside the container.
 
 ## Architectural Decisions
 
-- Related guidance: `.github/skills/dev/maintenance/add-workspace-member/SKILL.md` already
-  documents the manual checklist.
+- Related guidance: `.github/skills/dev/maintenance/add-workspace-member/SKILL.md` documents the
+  manual checklist that this issue retires.
 - Related implementation evidence: PR #2293 and its Container workflow repair.
-- ADRs to create: `None known`. Create one if the chosen solution establishes a new generated-file
-  authority, changes Docker build-context policy, or changes the container trust/performance model.
+- Related prior decisions without an ADR: #1852 (manifest-only recipe stage) and #1869
+  (`--external-only` third-party recipe). This issue supersedes #1852 and preserves #1869.
+- ADR to create (D5): container caching and positive-list model. It changes Docker build-context
+  policy and the container performance model, which the original draft named as ADR triggers.
 
 ## Design and Ownership Review
 
-This work owns build metadata and validation only; it does not introduce runtime child-process or
+This work owns build metadata only; it does not introduce runtime child-process or
 network-lifetime behavior.
 
-- Cargo metadata remains the authority for workspace packages and declared targets.
-- The selected mechanism must have one documented source of truth and a clear owner for generated
-  or checked artifacts.
-- The solution must distinguish recipe reachability from archive inclusion: every workspace member
-  may need metadata visibility, while only production-relevant members belong in container archives.
-- The first vertical slice must add one disposable or representative developer tool and demonstrate
-  both a passing container build and a deterministic failure when the mechanism is intentionally
-  bypassed, where practical.
+- Cargo is the single authority for workspace packages and declared targets; the container build
+  reads them through `cargo chef prepare`, never through a copied list.
+- Recipe reachability and archive inclusion are distinct: every workspace member must be visible to
+  `cargo metadata` (build context), while only `default-members` are compiled and tested inside the
+  image.
+- Positive lists are preferred over negative lists wherever content enters the container.
+- The first vertical slice adds one disposable lib+bin package and demonstrates archive inclusion
+  with no `Containerfile` change (M2) and exclusion from the archive when it is not a default
+  member (M3).
 
 ## Bug-Fix Process
 
 1. Reproduce the current failure using a workspace member omitted from the recipe build context or
-   from required target stubs.
+   from required target stubs (M1).
 2. Capture the Cargo Chef/Cargo metadata diagnostic in issue-local manual evidence.
-3. Add a smallest deterministic automatic check at the selected ownership boundary.
-4. Demonstrate that the check fails for the omission before relying on hosted CI.
-5. Implement the selected source-of-truth or validation mechanism.
-6. Re-run the same container target and hosted Container workflow.
+3. Measure the baseline cache behaviour (M5, M6) on the current `Containerfile`.
+4. Implement D1 and repeat the measurement; fall back to D2 only if the third-party cook layer is
+   no longer cached.
+5. Implement D3 and D4.
+6. Re-run the same container targets and the hosted Container workflow.
 
 ## Regression Test Strategy
 
-The preferred regression boundary is a repository-owned Rust or shell-free validation tool that
-compares Cargo metadata with the effective recipe/build-context policy. It must fail deterministically
-when a developer-only explicit workspace member lacks required recipe visibility, required target
-stubs, or a synchronized archive decision.
+The regression boundary is the container build itself: with the canonical recipe stage, an
+unreachable manifest or target fails `cargo chef prepare` with Cargo's own diagnostic, and there is
+no hand-maintained list left to drift. If D2 is implemented, the stub generator gets focused unit
+tests covering library-only, binary-only, mixed, and explicit-path targets plus a deterministic
+negative case.
 
-A direct Container build remains mandatory integration evidence because Cargo Chef, Docker ignore
-semantics, and nextest archives interact across tools. The selected solution should additionally
-make the common omission fail faster than a full hosted Docker build.
+## Root Cause Analysis
 
-## Proposed Solutions
+Recorded from the 2026-09-29 maintainer review. The original draft framed the problem as keeping
+several lists synchronized; the review concluded that the lists themselves are the problem.
 
-No option is selected in this draft. Evaluate implementation complexity, cache behavior, portability,
-reviewability, failure quality, and migration cost before choosing one.
+### Type of coupling
+
+One fact, "which packages exist, where they live, and which targets they have", is owned by Cargo
+and copied by hand into six places in three formats:
+
+1. root `Cargo.toml` `[workspace].members`;
+2. `.dockerignore` negation entries;
+3. `Containerfile` recipe-stage `COPY <pkg>/Cargo.toml` lines;
+4. `Containerfile` recipe-stage `mkdir`/`touch` target stubs;
+5. four identical `cargo nextest archive --exclude` lists; and
+6. explanatory comments listing the same packages.
+
+This is content coupling through duplicated knowledge: no artifact derives from another, and no
+check ties them together, so every package addition, move, or target change must be replicated by
+hand. Git history confirms it is not limited to developer tools: `93e194361` and `a871c7f7b`
+repaired UDP benchmark stubs for tracker packages, while `94f2441a9`, `5938a1ee2`, `b6ddf879e`,
+`e4d7da576`, and `a45ae2d41` repaired AI-harness tools.
+
+### Cause 1: the hand-maintained recipe stage (issue #1852)
+
+Issue #1852 replaced Cargo Chef's canonical `COPY . .` planner stage with a manifest-only copy plus
+target stubs so that source-only changes would not invalidate the recipe layer. Its own warm-build
+measurements (T4, M3, M4) were never executed; the change assumed that Docker "can't tell" whether a
+regenerated `recipe.json` is identical. Cargo Chef's README describes hand-maintained manifest lists
+as the fragile approach it was created to replace.
+
+The cache property that actually matters was delivered later by issue #1869: the
+`torrust-cargo-chef` `--external-only` recipe (`recipe-thirdparty.json`) strips all `path`
+dependencies, so the expensive third-party cook layer is keyed only on external dependency metadata
+and survives workspace `Cargo.toml` changes. Most tracker logic lives in workspace packages that
+change in nearly every commit, so this layer is the one that must remain cached. No ADR records this
+model; the rationale exists only in #1869 and `Containerfile` comments.
+
+Whether `COPY . .` can return to the recipe stage without regressing #1869 depends on one fact:
+BuildKit keys `COPY --from=recipe` cache entries on the content checksum of the copied file, not on
+whether the producing stage re-ran (Docker's cache-invalidation documentation states that `COPY`
+checksums exclude `mtime`). If that holds, a re-run recipe stage that emits an identical
+`recipe-thirdparty.json` keeps the third-party cook cached. This must be measured before adoption,
+and the design carries a fallback that does not depend on it.
+
+### Cause 2: the tracker workspace and the AI-harness workspace are mixed
+
+The explicit members split into two groups with different relationships to the tracker:
+
+| Group | Members | Depends on tracker crates? |
+| --- | --- | --- |
+| AI/dev harness | `workspace-coupling`, `agent-review-report-contract`, `clippy-allow-reasons`, `frontmatter-validator`, `package-coverage-check`, `github-review-threads` | No. They share only `[workspace.package]` fields, `[workspace.lints]`, and `Cargo.lock`; nothing in the tracker depends on them. |
+| Tracker verification tools | `console/tracker-client`, `e2e-tools`, `persistence-benchmark`, `torrent-repository-benchmarking` | Yes, through path dependencies; they belong in the tracker workspace. |
+
+A Cargo workspace is one unit for the lockfile, `cargo metadata`, and `--workspace`. Docker, Cargo
+Chef, and nextest treat that unit as the product, so every harness tool joins the product build and
+must then be kept out again by hand. The harness is expected to grow and to be reused by other
+projects later; keeping it inside the tracker workspace couples it to the tracker while it is still
+changing weekly. EPIC #2003 owns how the harness is organized (location, what counts as harness,
+unified binary versus multiple binaries, scripts versus Rust), so the separation is proposed there
+rather than decided here.
+
+### Security framing
+
+The maintainer prefers a positive list over a negative list for everything that enters the
+container: forgetting to include something breaks the build visibly, while accidentally including
+something can expose the tracker to attack. This applies to the Docker build context
+(`.dockerignore`) and to the container test archives (which packages are compiled and tested inside
+the image).
+
+## Selected Design
+
+### Decision summary
+
+| # | Decision | Owner | Status |
+| --- | --- | --- | --- |
+| D1 | Restore Cargo Chef's canonical `COPY . .` recipe stage and delete the manifest-copy and stub lists, provided measurement M5/M6 shows the third-party cook layer stays cached across source-only and workspace-manifest-only changes. | #2298 | Implemented; gate passed (V2) |
+| D2 | If D1 measurement fails, implement the generated-stubs fallback (below) instead of restoring hand lists. | #2298 | Not needed (kept as documented fallback in the ADR) |
+| D3 | Convert `.dockerignore` to a default-deny allow-list of what the container build needs. | #2298 | Implemented |
+| D4 | Replace the four `--exclude` lists with a Cargo-native positive list: `[workspace] default-members` names the tracker packages, and `cargo nextest archive` runs without `--workspace`. | #2298 | Implemented |
+| D5 | Write an ADR recording the container caching model: three-layer cook, `--external-only` recipe, canonical recipe stage, allow-list context, positive archive list. | #2298 | Written |
+| D6 | Propose a separate AI-harness Cargo workspace as a draft sub-issue spec of EPIC #2003 (owner: Cameron, `da2ce7`). #2298 does not implement it. | EPIC #2003 | Draft spec written |
+| D7 | Until D6 lands, harness crates remain reachable to `cargo metadata` through explicit allow-list entries, removed when the harness leaves the tracker workspace. | #2298 | Implemented (interim block in `.dockerignore`) |
+| D8 | List every in-repo crate explicitly in `[workspace].members`, not only the ones Cargo cannot auto-discover. Found during V3: the `--external-only` skeleton strips path dependencies, so auto-discovered members vanish from it and `default-members` fails to resolve during `cargo chef cook`. | #2298 | Implemented |
+
+Options 1 (validator), 2 (generated Containerfile fragment), 4 (BuildKit bind mounts), 5
+(reclassify tools outside the workspace, now D6), and 6 (data file) from the original draft are
+retired: they add machinery on top of the duplicated lists instead of removing them. Option 3 is
+retained only as the D2 fallback.
+
+### D1: canonical recipe stage
+
+```dockerfile
+FROM chef AS recipe
+WORKDIR /build/src
+COPY . /build/src
+RUN cargo chef prepare --recipe-path /build/recipe.json
+RUN cargo chef prepare --external-only --recipe-path /build/recipe-thirdparty.json
+```
+
+The recipe stage layer is rebuilt on every source change (`cargo chef prepare` costs about 0.1 s per
+the #1841 baseline). Downstream `COPY --from=recipe` steps must hit the cache when the recipe files
+are byte-identical. New tracker packages and targets are picked up automatically; no `Containerfile`
+edit is needed when a package, binary, bench, or example is added.
+
+Measurement gate (see M5, M6): with a warm cache, a source-only change must leave
+`dependencies_thirdparty*` and `dependencies*` cook stages `CACHED`; a workspace `Cargo.toml`-only
+change must leave `dependencies_thirdparty*` `CACHED` and rebuild only the full cook stubs. Both
+scenarios were specified by #1852 (M3, M4) and never executed; this issue runs them for the previous
+and the new `Containerfile` and records the numbers.
+
+Measured result (2026-09-29, `manual-verification-evidence.md` V1/V2): identical cache behaviour
+in both `Containerfile`s. Source-only and manifest-comment changes keep every cook stage `CACHED`
+with the canonical stage (`COPY --from=recipe` hit the cache although the recipe stage re-ran,
+confirming content-checksum keying); a workspace feature toggle rebuilds both cooks in both
+designs because it changes external feature resolution. Recipe stage re-run cost: about 0.5 s.
+The gate passed and D2 was not implemented.
+
+### D2: generated-stubs fallback
+
+Used only if D1 loses the third-party cache. The recipe stage keeps a manifest-only context, but
+nothing is hand-listed:
+
+1. Manifests reach the recipe stage generically: either a `.dockerignore` allow-list rule admitting
+   `**/Cargo.toml` and `Cargo.lock`, or `COPY --parents ./**/Cargo.toml ./` (Dockerfile labs
+   syntax; check Podman/buildah support before choosing it).
+2. A repository-owned Rust tool runs inside the recipe stage before `cargo chef prepare`. It parses
+   each manifest and touches every declared target path (`[lib]`, `[[bin]]`, `[[bench]]`,
+   `[[example]]`, `[[test]]` with explicit `path`) plus `src/lib.rs` when a package declares no
+   target, so `cargo metadata` can resolve every package.
+3. Auto-detected targets (`src/bin/*.rs`, `benches/*.rs`, `examples/*.rs`) are invisible without the
+   source tree. That is harmless: `cargo metadata` only aborts on declared targets whose file is
+   missing or on packages with no targets at all. Extra or missing stub targets change only
+   workspace-crate fingerprints, which are rebuilt from real source in the build stage anyway;
+   `recipe-thirdparty.json` depends only on external entries.
+
+Cost: one more repository-owned tool executed inside the container build. That is why it is the
+fallback rather than the default.
+
+### D3: `.dockerignore` allow-list
+
+Default-deny (`*`) followed by explicit negations for what the `Containerfile` reads:
+`Cargo.toml`, `Cargo.lock`, `.cargo/`, `packages/`, `console/`, `src/`, `tests/`, `share/`,
+`contrib/dev-tools/su-exec/`, and, per D7, the harness crate directories that are still workspace
+members. Everything else (`.github/`, `docs/`, compose files, linter configs, `.tmp/`, `storage/`,
+`target/`) is excluded by default and needs no individual entry. The `Containerfile` header keeps
+its `related-artifacts` link so the two files are reviewed together.
+
+### D4: positive list for container test archives
+
+`[workspace] default-members` lists the tracker packages (root crate plus every `packages/*` crate
+that is part of the product or its tests). Every `cargo nextest archive` invocation drops
+`--workspace` and the `--exclude` flags, so it builds exactly the default members. `cargo chef cook`
+keeps `--workspace` because it must warm the full recipe.
+
+Accepted side effect: at the repository root, `cargo build`, `cargo test`, and `cargo clippy`
+without `--workspace` currently act on the root crate only (Cargo's default when the root manifest
+is a package); with `default-members` they act on all listed tracker packages. Git hooks and
+`linter` pass `--workspace` and are unaffected. One CI job is affected:
+`.github/workflows/os-compatibility.yaml` runs a bare `cargo build --verbose` on Linux, macOS, and
+Windows (stable and nightly), which now builds every default member instead of the root crate
+only. In practice this adds one crate, `torrust-tracker-test-helpers`, because every other default
+member is already a normal dependency of the root crate; PR #2385's six compatibility builds took
+2-9 minutes, within the 2-10 minute range of recent `develop` runs. The wider scope is accepted as
+slightly broader platform coverage. A single `ARG` holding a
+`-p` list was considered as an alternative that avoids the side effect but keeps the list in Docker
+rather than Cargo; rejected because the only goal of the `ARG` was deduplication, which
+`default-members` achieves natively.
+
+The tracker verification tools (`console/tracker-client`, `e2e-tools`, `persistence-benchmark`,
+`torrent-repository-benchmarking`) remain outside `default-members`: excluding them from container
+archives is a deliberate test-scope decision, not a build-integrity problem, and it is unchanged by
+this issue.
+
+Implementation finding (D8): `default-members` entries must also be explicit `members`. Cargo
+normally auto-discovers `packages/*` crates through the root crate's path dependencies, but the
+`--external-only` skeleton that `cargo chef cook` builds has those path dependencies stripped, so
+the auto-discovered crates are absent from the skeleton workspace and Cargo rejects the
+`default-members` entry. The first `test_debug` build on D4 failed this way; listing every in-repo
+crate in `members` fixed it and makes membership explicit and reviewable.
+
+### D5: ADR
+
+`docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`
+covers: the three-layer cook, the `--external-only` recipe and the `torrust-cargo-chef` fork, the
+canonical recipe stage and its measured cache behaviour, the allow-list build context, the
+`default-members` archive policy, explicit membership (D8), and the D2 fallback with its trigger
+condition. Indexed in `docs/adrs/index.md`.
+
+### D6 and D7: AI-harness workspace
+
+Draft spec: `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`
+(`status: draft`, `epic: 2003`). It proposes a separate Cargo workspace for the harness tools,
+owned by Cameron (`da2ce7`) through EPIC #2003. It records the goal (decoupling while the harness
+matures in-repo, with extraction to its own repository possible later, following the
+`torrust-linting` precedent) and lists as EPIC decisions: workspace location (for example
+`contrib/ai-harness/`), what counts as harness, unified binary versus multiple binaries, scripts
+versus Rust. It lists the migration costs: second `Cargo.lock` for Dependabot, `cargo deny`, and
+`cargo machete`; duplicated lint policy; `cargo run -p …` calls in hooks and CI becoming
+`--manifest-path` calls; `linter clippy`/`rustfmt` in `torrust-linting` running only the root
+workspace; a second CI build cache. It also records that root `[workspace].exclude` removes the
+harness from `cargo metadata`, which deletes the D7 interim entries. No GitHub issue is created by
+this work.
+
+## Retired Options
+
+Kept for traceability; none is selected. See the decision summary for why.
 
 1. **Repository-owned validator as an immediate guardrail**
    - Add a Rust check under `contrib/dev-tools/checks/` that reads Cargo metadata and validates the
@@ -230,34 +448,40 @@ reviewability, failure quality, and migration cost before choosing one.
    - Advantage: explicit reviewable policy for production, test, and developer-only crates.
    - Drawback: adds another artifact and requires clear ownership relative to Cargo metadata.
 
-The selected option may combine an immediate validator with later generation, but the issue must
-record why each retained manual surface remains necessary.
-
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and inventory drift | Record the Cargo Chef failure and derive the full current manual-edit matrix from Cargo metadata, `.dockerignore`, and Containerfile. |
-| T2 | TODO | Evaluate solution options | Compare the proposed options against cache behavior, Docker/Podman portability, test scope, and maintenance cost; obtain maintainer decision. |
-| T3 | TODO | Design selected mechanism | Specify the source of truth, classification model, ownership boundaries, migration path, and failure diagnostics. Create an ADR if warranted. |
-| T4 | TODO | Implement prevention or detection | Add the selected tool/generator/validation and migrate current developer-only members. |
-| T5 | TODO | Add automated tests | Cover a representative developer tool, target variants, archive policy, and an intentional mismatch. Perform the required test-design review. |
-| T6 | TODO | Update contributor workflow | Update `add-workspace-member` guidance and canonical container documentation without duplicating procedural detail. |
-| T7 | TODO | Record container verification | Record local recipe/test targets and hosted Container workflow evidence in issue-local manual evidence. |
-| T8 | TODO | Complete review | Reconcile acceptance criteria, observe cache/runtime effects, and record the implementation completion review. |
+| T1 | DONE | Reproduce and inventory drift | Root-cause analysis and manual-edit matrix recorded in this spec (2026-09-29). |
+| T2 | DONE | Evaluate solution options | Maintainer review retired options 1, 2, 4, 5, 6; selected D1-D7 with option 3 as fallback. |
+| T3 | DONE | Measure baseline cache behaviour | V1 in `manual-verification-evidence.md`: M5 all cooks `CACHED`; M6a all cooks `CACHED`; M6b (feature toggle) both cooks rebuilt. |
+| T4 | DONE | Implement D1 canonical recipe stage | `COPY . /build/src`; both `cargo chef prepare` invocations kept; manifest-copy and stub lists deleted; stage comments rewritten. |
+| T5 | DONE | Measure D1 cache behaviour | V2: identical to baseline in M5, M6a, M6b. Gate passed. |
+| T5b | DONE | Generated-stubs fallback (only if T5 fails) | Not needed. Design kept in the ADR's alternatives as the documented fallback. |
+| T6 | DONE | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions; interim harness block (D7) marked for removal by the EPIC #2003 sub-issue; `**/AGENTS.md` and `**/docs/` re-excluded recursively inside admitted directories (tightened after the M7 probe). |
+| T7 | DONE | Implement D4 `default-members` positive list | `default-members` added; all in-repo crates listed explicitly in `members` (D8); `--workspace` and all `--exclude` flags removed from the four `cargo nextest archive` commands; comments updated. |
+| T8 | DONE | Verify container targets | `recipe`, `test_debug` (V3: 1121 tests / 38 binaries, identical to baseline), release `test`, and `runtime` base stage pass. Final `release` image verified in V4: `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check`; expected entrypoint and command. |
+| T9 | DONE | Write D5 ADR | `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`, indexed. |
+| T10 | DONE | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`. |
+| T11 | DONE | Update contributor workflow | `add-workspace-member` skill v2.0: no `Containerfile` edits; `default-members` decision; allow-list rule; explicit membership. `docs/containers.md` does not describe the recipe stage, so no change. |
+| T12 | IN_PROGRESS | Record container verification | V1-V5 recorded (M1-M3, M5-M7 done; release image verified). M4 (hosted workflow) pending the fork PR. |
+| T13 | TODO | Complete review | Reconcile acceptance criteria; record the implementation completion review. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T1 | Reproduction and inventory evidence | Documentation-only commit after evidence review. |
-| T3 | Approved design or ADR | Documentation-only commit before implementation when it changes repository policy. |
-| T4 | Prevention/detection mechanism and migration | Commit after focused validation. |
-| T5 | Automated regression coverage | Commit each reviewed test increment separately when it improves reviewability. |
-| T6 | Workflow and documentation updates | Documentation commit after Markdown validation. |
-| T7-T8 | Hosted evidence and completion reconciliation | Documentation-only commits after direct observation. |
+| T1-T2 | Spec update with root-cause analysis and decisions | Documentation-only commit before implementation. |
+| T3 | Baseline measurement evidence | Documentation-only commit. |
+| T4-T5 | Canonical recipe stage plus its measurement | One commit; if T5 fails, the fallback lands as separate commits without rewriting this one. |
+| T6 | Allow-list `.dockerignore` | Own commit after a `--target recipe` build. |
+| T7 | `default-members` and archive commands | Own commit after `--target test_debug`. |
+| T9 | ADR | Documentation-only commit. |
+| T10 | EPIC #2003 draft sub-issue spec | Documentation-only commit. |
+| T11 | Skill and docs updates | Documentation commit after Markdown validation. |
+| T12-T13 | Evidence and completion reconciliation | Documentation-only commits after direct observation. |
 
 ## Progress Tracking
 
@@ -266,9 +490,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Temporary draft created in `.tmp/rust-dev-tool-container-integration/`.
 - [x] Draft moved to `docs/issues/drafts/` and reviewed by the maintainer.
 - [x] GitHub issue #2298 created and issue number added to this specification.
-- [ ] Implementation approach selected after draft review.
-- [ ] Automatic verification completed.
-- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md`.
+- [x] Implementation approach selected after draft review.
+- [x] Baseline and post-change cache measurements recorded.
+- [x] Automatic verification completed.
+- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md` (only M4, the hosted workflow, remains).
+- [x] ADR written and indexed.
+- [x] EPIC #2003 draft sub-issue spec written.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -281,30 +508,71 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   folder and prepared it for GitHub issue creation.
 - 2026-09-22 13:17 UTC - GitHub Copilot - Created GitHub issue #2298 and moved this specification
   to the canonical open-issues folder.
+- 2026-09-29 17:07 UTC - GitHub Copilot - Maintainer review of root causes. Recorded that the
+  duplicated lists, not their synchronization, are the problem; that the cache property to protect
+  is the #1869 `--external-only` third-party layer, not the #1852 manifest-only recipe stage (whose
+  measurements were never run); and that the AI-harness tools do not belong in the tracker
+  workspace. Selected D1-D7 (canonical recipe stage gated on measurement, generated-stubs fallback,
+  allow-list `.dockerignore`, `default-members` positive archive list, ADR, EPIC #2003 draft
+  sub-issue). Retired the validator, generated-fragment, bind-mount, and data-file options.
+  Branch `2298-rust-dev-tool-container-integration` created.
+- 2026-09-29 18:50 UTC - GitHub Copilot - Measured M5/M6 on the baseline and on D1 (V1, V2):
+  identical cache behaviour; the D1 gate passed and D2 was not implemented. Implemented D1, D3,
+  D4; `test_debug` passes with identical scope (1121 tests / 38 binaries). Found D8: every in-repo
+  crate must be an explicit member because the `--external-only` skeleton strips path
+  dependencies. Wrote the ADR, the `add-workspace-member` skill v2.0, the EPIC #2003 draft
+  sub-issue spec, and the evidence record. Release `test` build was interrupted by a host restart
+  (Docker saturated the workstation while the IDE ran).
+- 2026-09-30 08:18 UTC - GitHub Copilot - Maintainer reran the release `test` target outside the
+  IDE; it completed successfully from the successful cached release compilation. `runtime` remains
+  pending outside the IDE.
+- 2026-09-30 08:20 UTC - GitHub Copilot - Maintainer built the `runtime` base and final `release`
+  target outside the IDE. The base image correctly contains no application binaries; the final
+  release image contains `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check` with the
+  expected entrypoint and command (V4). Corrected the evidence to distinguish the two stages.
+- 2026-09-30 09:45 UTC - GitHub Copilot - Ran V5 with a disposable `packages/container-build-probe`
+  crate (removed afterwards): M1 reproduced the baseline `cargo metadata` missing-manifest failure;
+  M2 showed a new default member enters the archive with no container edit (1122/39); M3 showed a
+  non-default member stays out (1121/38). M7's context probe found nested `AGENTS.md` and package
+  `docs/` trees admitted by the first allow-list; replaced the three top-level `AGENTS.md`
+  re-exclusions with `**/AGENTS.md` and `**/docs/` after confirming no build or test reads them.
+  Also noted in the EPIC #2003 draft that `github-review-threads` embeds a `.github/skills/` file
+  via `include_str!`.
+- 2026-09-30 11:18 UTC - GitHub Copilot - Re-ran M2 with the probe expanded to a library, default
+  binary, and additional binary. The `test_debug` archive ran all three probe tests before an
+  unrelated `axum-http-server` listener test failed (210/1141 passed); target inclusion is proven,
+  but M2 remains in progress pending a clean full test stage.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Adding or removing a developer-only explicit Rust workspace member cannot silently
-  leave Cargo Chef recipe metadata, Docker build context, target stubs, or archive policy stale.
-- [ ] AC2: The selected mechanism provides a fast, actionable local diagnostic before hosted
-  Container CI when its required metadata is missing or inconsistent.
-- [ ] AC3: Cargo Chef dependency-layer caching remains materially equivalent or any regression is
-  measured and explicitly accepted.
-- [ ] AC4: Developer-only tools remain absent from the final production tracker image and from
-  container nextest archives unless an explicit documented classification includes them.
-- [ ] AC5: The mechanism handles library-only, binary-only, and mixed-target developer tools.
-- [ ] AC6: The add-workspace-member workflow directs contributors to the selected mechanism and
-  no longer relies on an undocumented repeated manual repair.
+- [ ] AC1: Adding, moving, or removing a tracker package or one of its targets requires no
+  `Containerfile` change; adding a developer-only explicit workspace member requires no
+  `Containerfile` change and no `.dockerignore` change beyond the interim D7 entries.
+- [ ] AC2: Omissions fail fast and visibly: a package or target unreachable to `cargo metadata`
+  fails the `recipe` stage with Cargo's own diagnostic, and no silent stale-list state exists.
+- [ ] AC3: Measured on a warm cache: a source-only change keeps every cook stage `CACHED`; a
+  workspace `Cargo.toml`-only change keeps the third-party cook stages `CACHED`. Any regression
+  versus the baseline is measured and explicitly accepted or triggers D2.
+- [ ] AC4: Developer-only tools are absent from the runtime image and from container nextest
+  archives; inclusion is controlled by the positive list `[workspace] default-members`.
+- [ ] AC5: Library-only, binary-only, and mixed-target packages, including benches and examples,
+  need no per-target maintenance.
+- [ ] AC6: The `add-workspace-member` skill directs contributors to the positive lists
+  (`default-members`, `.dockerignore` allow-list) and no longer documents `Containerfile` repairs.
+- [ ] AC7: The Docker build context is a default-deny allow-list.
+- [ ] AC8: An ADR records the container caching and positive-list model.
+- [ ] AC9: A draft sub-issue spec for the separate AI-harness workspace exists for EPIC #2003.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant automated tests pass.
-- [ ] Manual verification scenarios are executed and recorded after the draft becomes an open issue.
+- [ ] Manual verification scenarios are executed and recorded.
 
 ## Verification Plan
 
 ### Automatic Checks
 
-- Focused tests for the selected validator or generator.
-- A deterministic negative test for an omitted manifest, target stub, or archive decision.
+- `cargo metadata --no-deps` succeeds and `default-members` resolve to existing packages.
+- If D2 is implemented: focused tests for the stub generator (lib-only, bin-only, mixed, explicit
+  `path` targets, package with no targets) and a deterministic negative test.
 - `linter all`.
 - `cargo test --doc --workspace`.
 - Pre-push checks when implementation changes are ready to publish.
@@ -315,21 +583,29 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Reproduce current failure | Use a disposable representative developer-tool member while omitting one required current-manual integration entry. | The new local check or existing recipe fails with a diagnostic that identifies the missing surface. | TODO | `manual-verification-evidence.md#M1` |
-| M2 | Developer-only tool integration | Add a representative library-and-binary developer tool through the selected mechanism. | Recipe and `test_debug` targets pass; the tool is not in the production test archive. | TODO | `manual-verification-evidence.md#M2` |
-| M3 | Production-relevant member control | Classify a representative production-relevant member. | It remains available to required container build and test stages. | TODO | `manual-verification-evidence.md#M3` |
-| M4 | Hosted container workflow | Push the final implementation to a fork PR. | The Container workflow passes; logs confirm the selected mechanism runs with actionable output. | TODO | `manual-verification-evidence.md#M4` |
+| M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | DONE | `manual-verification-evidence.md#V5` |
+| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | IN PROGRESS | `manual-verification-evidence.md#V5` (corrected lib+bin probe: 3 target tests passed; full suite stopped on an unrelated failure) |
+| M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | DONE | `manual-verification-evidence.md#V5` (1121 tests / 38 binaries) |
+| M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#V6` |
+| M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` |
+| M6 | Warm cache, workspace manifest change | Warm build; toggle a feature in a `packages/*/Cargo.toml`; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | `dependencies_thirdparty*` `CACHED`; full cook stubs rebuild only. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` (comment change: all cooks `CACHED`; feature toggle: both cooks rebuild in both designs, expected) |
+| M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | DONE | `manual-verification-evidence.md#V5` (first probe found nested `AGENTS.md` and package `docs/`; fixed with recursive re-exclusions) |
 
 ## Risks and Trade-offs
 
-- Generating Dockerfile fragments can obscure the final image recipe unless generated output is
-  reviewable and drift is checked.
-- Parsing a Containerfile is brittle unless the file contains deliberately constrained markers or
-  structured generated blocks.
-- Broader Docker build context can reduce cache efficiency or portability and must be benchmarked.
-- Treating every workspace member as developer-only would risk excluding needed production tests;
-  classification must be explicit and reviewable.
-- Separating tools from the workspace may move rather than solve dependency-lock and linting costs.
+- D1 depends on BuildKit content-addressed caching of `COPY --from`; if it does not hold, every
+  commit would rebuild external dependencies. Mitigated by the M5/M6 gate and the D2 fallback.
+- `default-members` changes what bare `cargo build`/`cargo test` do at the repository root.
+  Accepted; hooks and `linter` pass `--workspace`, and the one bare CI build
+  (`os-compatibility.yaml`) now also compiles `torrust-tracker-test-helpers`.
+- The allow-list must admit everything the `Containerfile` reads; a forgotten path fails the build
+  visibly, which is the preferred failure mode.
+- Until the EPIC #2003 sub-issue lands, harness crates still need allow-list entries (D7); this is
+  the residual manual surface and is documented as such.
+- `COPY --parents` (D2 option) is Dockerfile labs syntax; Podman/buildah support must be checked
+  before relying on it.
+- Removing `--workspace` from `cargo nextest archive` while keeping it on `cargo chef cook` is
+  deliberate; the asymmetry must be explained in the `Containerfile` so it is not "fixed".
 
 ## Implementation Completion Review
 
@@ -341,8 +617,16 @@ add a concise progress-log entry explaining why one is unnecessary.
 ## References
 
 - PR #2293: https://github.com/torrust/torrust-tracker/pull/2293
-- Container repair commit: `a9b4723677d7f6edbe34680176f2fd9cda2b4c0f`
-- Issue evidence record: `docs/issues/open/2222-1347-package-coverage-regression-ci/ISSUE.md`
+- Container repair commit: `a45ae2d41` (`fix(container): include package coverage check in recipe`)
+- Earlier recipe repairs: `93e194361`, `94f2441a9`, `5938a1ee2`, `b6ddf879e`, `e4d7da576`,
+  `a45ae2d41`, `a871c7f7b`
+- Issue evidence record: `docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md`
+- Manifest-only recipe stage (unmeasured): `docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md`
+- `--external-only` third-party recipe: `docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md`
+- AI-harness organization: `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`
+- Cargo Chef README (canonical planner stage, benefits vs manual manifest lists): https://github.com/LukeMathWalker/cargo-chef
+- Docker build cache invalidation (`COPY` checksums exclude `mtime`): https://docs.docker.com/build/cache/invalidation/
+- Cargo `default-members`: https://doc.rust-lang.org/cargo/reference/workspaces.html#the-default-members-field
 - Existing manual workflow: `.github/skills/dev/maintenance/add-workspace-member/SKILL.md`
 - Cargo Chef recipe and archive policy: `Containerfile`
 - Docker build-context policy: `.dockerignore`
