@@ -117,6 +117,10 @@ Recorded so the EPIC can weigh them; none is a blocker.
   `clippy-allow-reasons` and `frontmatter-validator` via `cargo run --package`) and CI workflows
   (`testing.yaml` runs `clippy-allow-reasons`; `generate_coverage_pr.yaml` runs
   `package-coverage-check`) switch to `--manifest-path <harness>/Cargo.toml`.
+- **Repository-file embedding.** `github-review-threads` embeds
+  `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` with `include_str!` via a
+  relative path. Moving the crate changes that path, and the file is outside the tracker container
+  allow-list, which is harmless only while the crate is not a tracker default member.
 - **Linter coverage.** `torrust-linting`'s `linter clippy` and `linter rustfmt` run
   `cargo clippy --workspace` / `cargo fmt --check` at the repository root only. Either
   `torrust-linting` gains a manifest-path or multi-workspace option, or the harness gets its own

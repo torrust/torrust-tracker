@@ -187,10 +187,63 @@ expected tracker binaries plus the intentionally included BusyBox links and `su-
 
 ### V5 - M1, M2, M3, M7 (disposable package and context probe)
 
-- Status: `TODO`
-- M1 (reproduce failure on the baseline), M2 (new default-member package needs no container edit),
-  M3 (non-default member stays out of the archive), and M7 (context contains only allow-listed
-  paths) are not yet executed.
+- Goal: prove the old failure mode, prove a new package needs no container edit, prove the positive
+  list controls archive scope, and prove the build context contains only allow-listed paths.
+- Initial state: a disposable library crate `packages/container-build-probe` (no dependencies,
+  one unit test for M2/M3). M1 ran in a temporary detached `develop` worktree
+  (`bc90cde1b`); M2, M3, and M7 ran on this branch. The probe was removed after each run and left
+  no tracked change.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. M1 (baseline): in a detached `develop` worktree, added the probe to `[workspace].members`
+   without touching `Containerfile` or `.dockerignore`;
+   `docker build --target recipe --file Containerfile .` (`m1-baseline-missing-member.log`).
+2. M2: on this branch, added the probe to `members` and `default-members` with no `Containerfile`
+   or `.dockerignore` edit; `docker build --target test_debug --file Containerfile .`
+   (`m2-default-member-probe.log`).
+3. M3: removed the probe from `default-members` only (still a member); rebuilt `test_debug`
+   (`m3-non-default-member-probe.log`).
+4. Removed the probe; `git status` clean for `Cargo.toml` and `Cargo.lock`.
+5. M7: built a throwaway BusyBox image that copies the context and lists it
+   (`.tmp/2298/context-probe.Dockerfile`, `m7-context-probe.log`). Found nested `AGENTS.md` and
+   package `docs/` trees in the context; replaced the three top-level `AGENTS.md` re-exclusions with
+   `**/AGENTS.md` and `**/docs/`, reran the probe (`m7-context-probe-v2.log`), and rebuilt
+   `--target recipe` (`m7-recipe-after-docs-exclusion.log`).
+
+#### Observed Result
+
+```text
+M1: ERROR: process "/bin/sh -c cargo chef prepare --recipe-path /build/recipe.json" did not complete successfully
+    `cargo metadata` exited with an error: error: failed to load manifest for workspace member
+    `/build/src/packages/container-build-probe`
+    failed to read `/build/src/packages/container-build-probe/Cargo.toml`
+    No such file or directory (os error 2)
+
+M2: Starting 1122 tests across 39 binaries
+    Summary [   6.691s] 1122 tests run: 1122 passed, 0 skipped
+
+M3: Starting 1121 tests across 38 binaries
+    Summary [   6.800s] 1121 tests run: 1121 passed, 0 skipped
+
+M7 first probe, forbidden paths found: ./packages/configuration/AGENTS.md (depth 3; package docs/
+   trees deeper)
+M7 second probe, top level: .cargo Cargo.lock Cargo.toml console contrib packages share src tests
+   forbidden paths (docs, .github, .tmp, storage, target, .git, AGENTS.md, **/docs): none
+   recipe stage after the change: cargo chef prepare DONE 0.2s (both invocations)
+```
+
+#### Conclusion
+
+All four scenarios met. M1 reproduces the original bug on the baseline with Cargo's own
+diagnostic. M2 shows a new product package enters the container archive with no `Containerfile` or
+`.dockerignore` change (one more test, one more binary). M3 shows `default-members` alone controls
+archive scope. M7 shows the context is limited to the allow-list; the probe caught nested agent
+and documentation files that the first allow-list version admitted, now re-excluded recursively.
+No Rust source lives under any `docs/` directory, no manifest references one, and no `.rs` file
+embeds or reads a `docs/` path or `AGENTS.md` in a default member, so the exclusion cannot break a
+build stage.
 
 ### V6 - M4 hosted Container workflow
 
@@ -207,3 +260,7 @@ expected tracker binaries plus the intentionally included BusyBox links and `su-
 - V4: the original runtime-image inspection expected `/app/bin`, but `runtime` is intentionally a
   base stage. The final `release` stage copies `/app/` from `test` to `/usr/`; verification is
   corrected to target `release`.
+- V5 M7 first probe: the allow-list re-excluded only top-level `AGENTS.md` files, so
+  `packages/configuration/AGENTS.md` and package `docs/` trees (ADRs, benchmark reports, licenses)
+  reached the build context. Remediation: `**/AGENTS.md` and `**/docs/` re-exclusions. Rerun
+  showed no forbidden paths and the `recipe` stage still passes.

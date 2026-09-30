@@ -452,13 +452,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Implement D1 canonical recipe stage | `COPY . /build/src`; both `cargo chef prepare` invocations kept; manifest-copy and stub lists deleted; stage comments rewritten. |
 | T5 | DONE | Measure D1 cache behaviour | V2: identical to baseline in M5, M6a, M6b. Gate passed. |
 | T5b | DONE | Generated-stubs fallback (only if T5 fails) | Not needed. Design kept in the ADR's alternatives as the documented fallback. |
-| T6 | DONE | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions; interim harness block (D7) marked for removal by the EPIC #2003 sub-issue; `AGENTS.md` files re-excluded inside admitted directories. |
+| T6 | DONE | Implement D3 allow-list `.dockerignore` | Default-deny with explicit inclusions; interim harness block (D7) marked for removal by the EPIC #2003 sub-issue; `**/AGENTS.md` and `**/docs/` re-excluded recursively inside admitted directories (tightened after the M7 probe). |
 | T7 | DONE | Implement D4 `default-members` positive list | `default-members` added; all in-repo crates listed explicitly in `members` (D8); `--workspace` and all `--exclude` flags removed from the four `cargo nextest archive` commands; comments updated. |
 | T8 | DONE | Verify container targets | `recipe`, `test_debug` (V3: 1121 tests / 38 binaries, identical to baseline), release `test`, and `runtime` base stage pass. Final `release` image verified in V4: `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check`; expected entrypoint and command. |
 | T9 | DONE | Write D5 ADR | `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`, indexed. |
 | T10 | DONE | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`. |
 | T11 | DONE | Update contributor workflow | `add-workspace-member` skill v2.0: no `Containerfile` edits; `default-members` decision; allow-list rule; explicit membership. `docs/containers.md` does not describe the recipe stage, so no change. |
-| T12 | IN_PROGRESS | Record container verification | V1-V3 recorded; V4 (release/runtime), M1-M3, M7, and M4 (hosted workflow) pending. |
+| T12 | IN_PROGRESS | Record container verification | V1-V5 recorded (M1-M3, M5-M7 done; release image verified). M4 (hosted workflow) pending the fork PR. |
 | T13 | TODO | Complete review | Reconcile acceptance criteria; record the implementation completion review. |
 
 ## Commit Points
@@ -485,7 +485,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Implementation approach selected after draft review.
 - [x] Baseline and post-change cache measurements recorded.
 - [x] Automatic verification completed.
-- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md` (M1-M3, M7, M4 remain).
+- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md` (only M4, the hosted workflow, remains).
 - [x] ADR written and indexed.
 - [x] EPIC #2003 draft sub-issue spec written.
 - [ ] Acceptance criteria reviewed after implementation.
@@ -522,6 +522,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   target outside the IDE. The base image correctly contains no application binaries; the final
   release image contains `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check` with the
   expected entrypoint and command (V4). Corrected the evidence to distinguish the two stages.
+- 2026-09-30 09:45 UTC - GitHub Copilot - Ran V5 with a disposable `packages/container-build-probe`
+  crate (removed afterwards): M1 reproduced the baseline `cargo metadata` missing-manifest failure;
+  M2 showed a new default member enters the archive with no container edit (1122/39); M3 showed a
+  non-default member stays out (1121/38). M7's context probe found nested `AGENTS.md` and package
+  `docs/` trees admitted by the first allow-list; replaced the three top-level `AGENTS.md`
+  re-exclusions with `**/AGENTS.md` and `**/docs/` after confirming no build or test reads them.
+  Also noted in the EPIC #2003 draft that `github-review-threads` embeds a `.github/skills/` file
+  via `include_str!`.
 
 ## Acceptance Criteria
 
@@ -563,13 +571,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | TODO | `manual-verification-evidence.md#V5` |
-| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | TODO | `manual-verification-evidence.md#V5` |
-| M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | TODO | `manual-verification-evidence.md#V5` |
+| M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | DONE | `manual-verification-evidence.md#V5` |
+| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | DONE | `manual-verification-evidence.md#V5` (1122 tests / 39 binaries) |
+| M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | DONE | `manual-verification-evidence.md#V5` (1121 tests / 38 binaries) |
 | M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#V6` |
 | M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` |
 | M6 | Warm cache, workspace manifest change | Warm build; toggle a feature in a `packages/*/Cargo.toml`; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | `dependencies_thirdparty*` `CACHED`; full cook stubs rebuild only. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` (comment change: all cooks `CACHED`; feature toggle: both cooks rebuild in both designs, expected) |
-| M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | TODO | `manual-verification-evidence.md#V5` |
+| M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | DONE | `manual-verification-evidence.md#V5` (first probe found nested `AGENTS.md` and package `docs/`; fixed with recursive re-exclusions) |
 
 ## Risks and Trade-offs
 
