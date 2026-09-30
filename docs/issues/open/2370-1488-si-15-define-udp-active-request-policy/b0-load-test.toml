@@ -1,0 +1,21 @@
+server_address = "127.0.0.1:3000"
+log_level = "error"
+workers = 1
+duration = 30
+summarize_last = 30
+extra_statistics = true
+
+[network]
+multiple_client_ipv4s = true
+sockets_per_worker = 4
+recv_buffer = 8000000
+
+[requests]
+number_of_torrents = 1000000
+number_of_peers = 2000000
+scrape_max_torrents = 10
+announce_peers_wanted = 30
+weight_connect = 50
+weight_announce = 50
+weight_scrape = 1
+peer_seeder_probability = 0.75

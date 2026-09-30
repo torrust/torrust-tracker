@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-26
+last-updated-utc: 2026-09-30
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -15,6 +15,7 @@ semantic-links:
     - src/main.rs
     - packages/axum-server/src/signals.rs
     - packages/udp-server/src/server/launcher.rs
+    - packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 ---
 
 # Task Inventory
@@ -50,7 +51,7 @@ torrust-tracker process (Tokio runtime; main)
       │  ├─ peers inactivity update [conditional]
       │  ├─ UDP instance [N configured public bindings; component child token]
       │  │  └─ receive loop [component-owned OwnedTask; stops cooperatively on cancellation]
-      │  │     └─ request processors [N datagrams; bounded AbortHandle buffer]
+      │  │     └─ request processors [N datagrams; loop-owned JoinSet; 5 s drain; AbortHandle eviction ring]
       │  ├─ HTTP instance [N configured bindings; component child token]
       │  │  ├─ server task [component-owned TokenAwareServerTask]
       │  │  └─ drain controller [component-owned and joined]
@@ -74,7 +75,7 @@ flowchart TD
     direct --> inactivity["Peers inactivity update (conditional)"]
     direct --> udp["UDP instances (N)"]
     udp --> udpLoop["Owned receive loop: cooperative stop"]
-    udpLoop --> udpRequests["Request processors: AbortHandle buffer"]
+    udpLoop --> udpRequests["Request processors: owned JoinSet, 5 s drain"]
     direct --> http["HTTP instances (N)"]
     http --> httpController["Owned, joined drain controller"]
     direct --> rest["REST API (optional)"]
@@ -101,7 +102,7 @@ each row.
 | UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
 | UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
 | UDP instances                 | N bindings  | Direct `JoinSet` | Child token              | SI-14 complete         |
-| UDP request processors        | N datagrams | Component-owned  | Abort handles            | SI-15                  |
+| UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain        | SI-15 (issue #2370)    |
 | HTTP instances                | N bindings  | Direct `JoinSet` | Child token              | SI-11 complete         |
 | REST API                      | 0–1         | Direct `JoinSet` | Child token              | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |
@@ -139,9 +140,10 @@ each row.
 - **UDP instances** — one direct component per enabled UDP binding, each with
   a child of the `JobManager` root token. The component owns the receive loop
   through `OwnedTask`, created before the component future is returned, and
-  aborts it if dropped. The loop observes the token between datagrams and
-  returns `Ok(())`, so the component reports cooperative cancellation; a
-  receive error or panic fails the component (SI-14).
+  aborts it if dropped. The loop observes the token between datagrams, drains
+  its request processors, and returns `Ok(())`, so the component reports
+  cooperative cancellation; a receive error or panic fails the component
+  (SI-14, SI-15).
 - **HTTP instances and REST API** — direct components with a child token each.
   They own their server task and token-aware drain controller through
   `TokenAwareServerTask` and join both after cancellation or independent
@@ -155,11 +157,20 @@ each row.
 
 ### Component-Owned, Detached, and Framework-Owned Work
 
-- **UDP request processors** — the receive loop spawns one per datagram and
-  retains only a bounded `AbortHandle` buffer. Eviction and buffer drop abort
-  unfinished processors, but no processor terminal result is collected. Each
-  processor holds a clone of the socket `Arc`, so the socket closes once the
-  runtime drops the aborted processors (SI-15).
+- **UDP request processors** — the receive loop spawns one per datagram into a
+  loop-owned `JoinSet`, reaping finished processors before each spawn. A
+  bounded `AbortHandle` ring still decides overload eviction but no longer
+  owns the tasks. On cancellation the loop stops admitting datagrams, waits up
+  to five seconds, aborts and joins the rest, and logs one summary with
+  `completed`, `failed`, `aborted`, and `evicted` counts. A receive error
+  aborts and joins every processor before returning. The socket `Arc` clones
+  held by processors are therefore released before the loop returns (issue
+  #2370). In the summary, the drain-start `active` count includes finished
+  processors not yet reaped, and `evicted` counts only overload evictions not
+  yet reaped at shutdown; `aborting request` warnings report all evictions.
+  The package-local
+  [request-concurrency ADR](../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
+  records the admission, eviction, and ownership design.
 - **HTTP and REST drain controllers** — each token-aware server spawns a
   controller that waits for its component token, then drains for up to 90
   seconds. The component joins it before reporting its outcome; the 90-second
@@ -204,8 +215,9 @@ sole legacy job is separately conditional as shown above.
    joined. Aligning their drain budgets with the manager deadline is SI-20.
 6. Health-check lifecycle uses the token-aware path after SI-13 but does not
    yet mark readiness unhealthy before draining: SI-21.
-7. UDP stops its receive loop cooperatively after SI-14 but still aborts
-   request processors without joining them or reporting their outcomes: SI-15.
+7. UDP stops its receive loop cooperatively after SI-14 and, after SI-15, joins
+   every request processor under a five-second drain and reports their
+   outcomes in one log summary. Making the drain deadline configurable is SI-20.
 8. Standalone HTTP and UDP examples retain Ctrl-C-based shutdown: SI-16 and
    SI-17. Final process outcome-to-exit-code and configured-deadline policy is
    SI-20.

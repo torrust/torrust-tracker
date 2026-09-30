@@ -3,16 +3,24 @@ use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
+/// The number of request-processor abort handles the ring retains for overload eviction.
+///
+/// It is not an exact limit on processors running at once; see [`ActiveRequests`].
+pub(crate) const ACTIVE_REQUESTS_CAPACITY: usize = 50;
+
+// ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 // ADR: packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
+// issue: #2370
 /// A ring buffer for managing active UDP request abort handles.
 ///
 /// The `ActiveRequests` struct maintains a fixed-size ring buffer of abort
-/// handles for UDP request processor tasks. It ensures that at most 50 requests
-/// are handled concurrently, and provides mechanisms to handle buffer overflow
-/// by removing finished or oldest unfinished tasks.
+/// handles for UDP request processor tasks. When the buffer overflows, it
+/// removes finished tasks or aborts the oldest unfinished one. Handles it drops
+/// while their tasks still run are no longer tracked here, so more than
+/// `ACTIVE_REQUESTS_CAPACITY` processors can run at once.
 #[derive(Default)]
 pub struct ActiveRequests {
-    rb: StaticRb<AbortHandle, 50>, // The number of requests handled simultaneously.
+    rb: StaticRb<AbortHandle, ACTIVE_REQUESTS_CAPACITY>,
 }
 
 impl std::fmt::Debug for ActiveRequests {
