@@ -9,7 +9,7 @@ github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 branch: "1840-record-runner-capacity-decision"
 related-pr: 2383
-last-updated-utc: "2026-09-30 10:26"
+last-updated-utc: "2026-09-30 10:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -222,6 +222,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 09:26 UTC - josecelano, GitHub Copilot - Decided to keep one runner on the current server, deferred this issue, and recorded the revisit triggers; moved the draft from `.tmp/` to `docs/issues/drafts/` - PR #2383
 - 2026-09-30 09:41 UTC - josecelano, GitHub Copilot - Changed the scope to determining the minimum capacity, with documentation as the output: the maintainer chose to open and close an issue instead of keeping a deferred draft; added a measurement of the 4 vCPU size; the multi-instance plan moves to a future test-isolation EPIC - this file
 - 2026-09-30 10:26 UTC - josecelano, GitHub Copilot - Maintainer approved the spec; created #2386, linked it as a sub-issue of #1840, and moved the spec to `docs/issues/open/`. The work continues in PR #2383, which already carries this spec and the guide changes; its branch keeps the name `1840-record-runner-capacity-decision` because it was opened before the issue existed - #2386, PR #2383
+- 2026-09-30 10:35 UTC - GitHub Copilot - Checked the daily Docker prune, suspected of not bounding the build cache. It works as configured: `--max-used-space 120GB` means 120 GiB, the 04:00 run on 2026-09-29 reclaimed 50.29 GB, and a manual run of the same command reclaimed 62.08 GB (187.6 GB to 125.5 GB). The 0 B run on 2026-09-30 found the cache below the cap. The guide said "caps" and now says the timer trims once a day and the cache overshoots between runs. The manual run started while a Container job for PR #2382 was building: the idle check and the prune ran in one command, and the runner picked up that job between them - guide "Prune Docker Storage Daily", run `36702472251`
 
 ## Acceptance Criteria
 
