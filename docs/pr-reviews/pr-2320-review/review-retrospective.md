@@ -6,7 +6,7 @@ semantic-links:
     - fix-bug
   related-artifacts:
       - docs/issues/closed/2314-preserve-udp-scrape-response-order/ISSUE.md
-      - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
+      - docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md
       - docs/templates/PR-REVIEW-RETROSPECTIVE.md
       - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
       - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
@@ -556,4 +556,4 @@ and the reconciler checks; a retrospective is otherwise a snapshot and is not re
   and the ACK-collection function (matches `ACK` lines by the six-character head prefix).
 - Container failure: Container workflow run 35867175758, step 8, `cargo chef cook` error
   `can't find udp_tracker_server_benchmark bench`.
-- Related issue for item 5: `docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md`.
+- Related issue for item 5: `docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md`.

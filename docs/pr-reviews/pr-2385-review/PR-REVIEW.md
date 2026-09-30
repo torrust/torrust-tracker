@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
+    - docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

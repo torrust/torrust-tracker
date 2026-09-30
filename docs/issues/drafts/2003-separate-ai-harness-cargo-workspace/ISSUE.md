@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 branch: "{issue-number}-2003-separate-ai-harness-cargo-workspace"
 related-pr: null
-last-updated-utc: "2026-09-30 10:45"
+last-updated-utc: "2026-09-30 12:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - Cargo.toml
     - .dockerignore
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
+    - docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md
     - docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md
 ---
 
@@ -252,7 +252,7 @@ assumptions, material design changes, unexpected validation findings, and reusab
 ## References
 
 - Issue #2298 (root-cause analysis, cause 2; decisions D6 and D7):
-  `docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md`
+  `docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md`
 - ADR: `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`
 - EPIC #2003: `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`
 - Extraction precedent: [torrust/torrust-linting](https://github.com/torrust/torrust-linting)
