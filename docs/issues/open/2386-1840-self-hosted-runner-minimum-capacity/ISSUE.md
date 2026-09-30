@@ -9,7 +9,7 @@ github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 branch: "1840-record-runner-capacity-decision"
 related-pr: 2383
-last-updated-utc: "2026-09-30 10:52"
+last-updated-utc: "2026-09-30 11:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -78,7 +78,12 @@ Existing evidence:
 Maintainer inputs (2026-09-30):
 
 - The maintainer merges one pull request at a time, and each next pull request is rebased and
-  rerun anyway, so parallel container jobs save little while one maintainer is active.
+  rerun anyway.
+- Correction, same day: 2026-09-29 and 2026-09-30 were not normal days. Normally the maintainer
+  works with 6 AI agents and has about 4 pull requests open, and review rework (Copilot and
+  @da2ce7) runs each pull request's checks 3 to 5 times. Merging one at a time therefore does not
+  serialize the checks: every push to any open pull request starts a `Test (Docker)` job. The
+  30-day data agrees (`manual-verification-evidence.md` V3): median 4 `Container` runs per branch.
 - The verified fallback is enough resilience; a second server is not needed for availability.
 - Recheck the load in about a month, or earlier if it is expected to rise, for example when another
   maintainer works actively on the project (@da2ce7 was expected to start, with little activity
@@ -180,7 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                          | Notes / Expected Output                                                                                                             |
 | --- | ------ | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Measure both sizes            | Measurement Method in a maintainer-approved window; results in `manual-verification-evidence.md` V1 and V2; runner restored (V4).   |
-| T2  | TODO   | Record the load evidence      | Self-hosted queue times from 2026-09-28 to the measurement date in `manual-verification-evidence.md` V3.                            |
+| T2  | IN_PROGRESS | Record the load evidence      | `manual-verification-evidence.md` V3: observed self-hosted queue times, and a replay of the last 30 days of real `Container` run arrivals through 1 and 2 runners, with and without cancelling superseded runs. The observed window is extended to the measurement date after T1. |
 | T3  | TODO   | Record the capacity decision  | Maintainer decision on server size, runner count, resilience, and recheck triggers, in a Decision section of this specification.    |
 | T4  | DONE   | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands for queue time and run volume. |
 | T5  | DONE   | Update EPIC #1840             | Row 16 for #2374 (DONE) and row 17 for #2386 (IN_PROGRESS).                                                                                      |
@@ -224,6 +229,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 10:26 UTC - josecelano, GitHub Copilot - Maintainer approved the spec; created #2386, linked it as a sub-issue of #1840, and moved the spec to `docs/issues/open/`. The work continues in PR #2383, which already carries this spec and the guide changes; its branch keeps the name `1840-record-runner-capacity-decision` because it was opened before the issue existed - #2386, PR #2383
 - 2026-09-30 10:35 UTC - GitHub Copilot - Checked the daily Docker prune, suspected of not bounding the build cache. It works as configured: `--max-used-space 120GB` means 120 GiB, the 04:00 run on 2026-09-29 reclaimed 50.29 GB, and a manual run of the same command reclaimed 62.08 GB (187.6 GB to 125.5 GB). The 0 B run on 2026-09-30 found the cache below the cap. The guide said "caps" and now says the timer trims once a day and the cache overshoots between runs. The manual run started while a Container job for PR #2382 was building: the idle check and the prune ran in one command, and the runner picked up that job between them - guide "Prune Docker Storage Daily", run `36702472251`
 - 2026-09-30 10:52 UTC - GitHub Copilot - T4 DONE: added the queue-time recheck command to the guide's "Add Runner Capacity" section. Its first run shows a busier morning than the Background window: from 08:03 to 10:27 UTC, 9 self-hosted jobs, 4 of them queued for 124 to 760 s; T2 records the full window after T1 - guide "Add Runner Capacity"
+- 2026-09-30 11:04 UTC - josecelano, GitHub Copilot - The maintainer corrected the workload assumption: the last two days were not normal (normally 6 agents, about 4 open pull requests, checks run 3 to 5 times each). Replaying the last 30 days of real `Container` run arrivals shows one runner queues heavily (p90 wait 99 min at a 723 s job) and that cancelling superseded runs helps more than a second runner alone; the "concurrency is not needed" conclusion is withdrawn, and the choice is Open Question 4 - `manual-verification-evidence.md` V3
 
 ## Acceptance Criteria
 
@@ -291,6 +297,12 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 2. How close to 15 minutes counts as inconclusive and needs a real candidate server? Proposed:
    within 10% (13.5 to 16.5 minutes).
 3. When is the measurement window?
+4. The 30-day replay (`manual-verification-evidence.md` V3) shows one runner queues a normal
+   workload heavily. Which remedy, decided in T3 and delivered as a follow-up: cancel superseded
+   pull-request runs (a `concurrency` group with `cancel-in-progress`, no extra cost), add a second
+   server (about 69 EUR per month more, and less cost-efficient at low volume), or both?
+5. Does a second server change the answer to question 1, for example two 4 vCPU servers instead
+   of one 8 vCPU server?
 
 ## Implementation Completion Review
 
