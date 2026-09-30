@@ -6,7 +6,7 @@ epic: null
 github-issue: 1840
 spec-path: docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-28 09:26"
+last-updated-utc: "2026-09-30 09:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,6 +84,8 @@ Ordering policy:
 | 13    | #[To be assigned] - Apply Profile-Guided Optimization (PGO) to the tracker release binary    | `docs/issues/drafts/1840-workflow-performance-pgo-optimization/ISSUE.md`                                | TODO       | Deferred. Instrumentation PGO requires a double-compile pass which adds CI time — a direct cost against this EPIC's goals. Must measure CI overhead (T4/T5 in spec) and weigh against binary performance gains before enabling. Prerequisites: LTO already enabled in `[profile.release]`. Tooling: `cargo-pgo`. Training workload to be defined against realistic announce/scrape traffic. |
 | 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`                                    | IN_REVIEW  | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). The issue removes the development-profile override and retains release fat LTO; PR #2013 is under review.                                                                                                                                                                       |
 | 15    | #2323 - Offload the container test job to a self-hosted Hetzner runner                       | `docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`                             | DONE       | Moves `container.yaml` `test` to a persistent self-hosted runner so Docker layers and Cargo caches survive between jobs; publish jobs stay on GitHub-hosted runners and stop reading self-hosted cache. Target: PR checks from about 40 to about 15 minutes.                                                                                 |
+| 16    | #2374 - Verify the self-hosted runner's offline recovery and untrusted-code routing          | `docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md`            | DONE       | Merged in PR #2379, archived in PR #2380. Verified the offline queue and `ubuntu-latest` fallback (M5) and Dependabot and external-contributor routing (M7). |
+| 17    | #[To be assigned] - Scale self-hosted runner capacity for concurrent container jobs          | `docs/issues/drafts/1840-self-hosted-runner-instance-capacity/ISSUE.md`                           | TODO       | Deferred on 2026-09-30: keep one runner on the current server; resilience is covered by the verified fallback. Recheck queue time around 2026-10-30, or earlier if load rises. |
 
 ## Delivery Strategy
 
@@ -153,6 +155,7 @@ Append one line per meaningful update.
 - 2026-06-09 00:00 UTC - GitHub Copilot - Updated row 10 (split-external-dep-cache-layer draft) to SUPERSEDED: the `--external-only` cargo-chef flag was implemented in a `torrust-cargo-chef` fork during #1869 investigation, directly addressing T3; row 7 (#1869) now covers implementation of the three-layer cook pattern
 - 2026-06-09 00:00 UTC - GitHub Copilot - Marked row 7 (#1869) as DONE: three-layer cook pattern implemented, verified locally (release + debug builds pass, third-party layer CACHED on app-code-only changes)
 - 2026-09-24 15:20 UTC - GitHub Copilot - Added subissue row 15 for #2323 (self-hosted Hetzner runner for the container test job); spec at `docs/issues/open/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`
+- 2026-09-30 09:26 UTC - GitHub Copilot - Added row 16 for #2374 (DONE; missed when it was opened and archived) and row 17 for the deferred runner-capacity draft; the maintainer decided to keep one runner and recheck load around 2026-10-30 - `docs/issues/drafts/1840-self-hosted-runner-instance-capacity/ISSUE.md`
 
 ## Acceptance Criteria
 
