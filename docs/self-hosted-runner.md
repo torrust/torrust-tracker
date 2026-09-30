@@ -25,7 +25,7 @@ way, is in issue #2323's
 | Workflow         | Job             | Self-hosted when                                                                 | Otherwise       |
 | ---------------- | --------------- | -------------------------------------------------------------------------------- | --------------- |
 | `container.yaml` | `Test (Docker)` | PR targeting `develop` (not opened by Dependabot), or push to `develop`          | `ubuntu-latest` |
-| `testing.yaml`   | `Docker E2E`    | Any run in `torrust/torrust-tracker`, except Dependabot PRs and `dependabot/` branch pushes | `ubuntu-latest` |
+| `testing.yaml`   | `Docker E2E`    | Pushes to other branches and PRs targeting other branches in `torrust/torrust-tracker`, except Dependabot PRs and `dependabot/` branch pushes; the job is skipped for `develop`, `main`, and `releases/**` events | `ubuntu-latest` |
 
 Fork PRs targeting `develop` can select the self-hosted runner after their workflows are approved;
 the approval policy for all external contributors is the gate. The publish jobs always run on
@@ -35,17 +35,53 @@ default `docker` Buildx driver, keep host-side Cargo builds in
 
 ## Current Runner
 
-| Property     | Value                                                              |
-| ------------ | ------------------------------------------------------------------ |
-| Owner        | Nautilus Cyberneering (Hetzner account)                            |
-| Server       | Hetzner Cloud, Falkenstein, shared vCPU (CPX42 class)              |
-| Resources    | 8 vCPU, 16 GB RAM, 16 GB swap, 320 GB disk, 20 TB traffic per month |
-| Price        | 69.49 EUR per month                                                |
-| OS           | Ubuntu 26.04 LTS                                                   |
-| Hostname     | `torrust-runner-01`                                                |
-| Registration | Repository level, `torrust/torrust-tracker`                        |
-| Labels       | `self-hosted`, `Linux`, `X64`, `torrust-hetzner`                   |
-| Service      | `actions.runner.torrust-torrust-tracker.torrust-runner-01.service` |
+| Property     | Value                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------- |
+| Owner        | Nautilus Cyberneering (Hetzner account)                                                 |
+| Provider     | Hetzner Cloud                                                                           |
+| Location     | Falkenstein, Germany (data center `fsn1-dc8`, network zone `eu-central`)                |
+| Server type  | CPX42 class, shared vCPU                                                                |
+| Server ID    | `167265417` (Hetzner Cloud)                                                             |
+| CPU          | 8 vCPU, AMD EPYC (Genoa), KVM virtual machine                                           |
+| Memory       | 16 GB RAM, 16 GB swap file                                                              |
+| Disk         | 320 GB local disk, 300 GB usable for `/`                                                |
+| Traffic      | 20 TB outgoing per month included                                                       |
+| Price        | 69.49 EUR per month                                                                     |
+| Public IP    | Not recorded in this public repository; see the server in the Hetzner console           |
+| SSH          | Key only, as `root`, with the dedicated key from step 3                                 |
+| Firewall     | `torrust-runner-ssh-only`: inbound TCP 22 only                                          |
+| OS           | Ubuntu 26.04.1 LTS                                                                      |
+| Docker       | Engine 29.8.1, Buildx 0.37.1, Compose 5.5.1                                             |
+| Hostname     | `torrust-runner-01`                                                                     |
+| Runner       | `torrust-runner-01`, runner ID 23, agent 2.337.0 (updates itself)                       |
+| Registration | Repository level, `torrust/torrust-tracker`                                             |
+| Labels       | `self-hosted`, `Linux`, `X64`, `torrust-hetzner`                                        |
+| Service      | `actions.runner.torrust-torrust-tracker.torrust-runner-01.service`                      |
+| Created      | Server 2026-09-24; runner registered again on 2026-09-26                                |
+
+Versions were checked on 2026-09-30 and change with updates; re-check them with the commands in
+Check the Runner.
+
+## Cost
+
+A GitHub-hosted runner exists only while it runs a job. The server is billed a flat 69.49 EUR per
+month whether it runs jobs or sits idle, and it is idle most of the day. GitHub bills neither
+self-hosted minutes nor the standard GitHub-hosted runners of this public repository.
+
+The paid alternative for faster container jobs is a GitHub larger runner, billed per minute from
+the first minute plus GitHub Team seats. Issue #2323 estimated about 18.3 minutes per
+`Test (Docker)` job on a 16-core larger runner at 0.042 USD per minute, about 0.77 USD per
+`Container` run: 290 to 330 USD per month for the 433 runs of the 30 days before 2026-09-16. See
+the [comparison in #2323](issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md#alternatives-considered)
+and the [ADR](adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md).
+
+So the server is cheaper while there are more than about 100 `Container` runs per month, before
+counting Team seats. The 30 days before 2026-09-30 had 591 runs (516 pull request, 75 push). When
+rechecking capacity, also recheck the volume and the current per-minute prices:
+
+```bash
+desktop$ gh api "repos/torrust/torrust-tracker/actions/workflows/container.yaml/runs?created=>=<YYYY-MM-DD>&per_page=1" -q .total_count
+```
 
 ## Security
 
@@ -325,6 +361,8 @@ publish jobs wait for `test`, so nothing is published until the job runs.
 2. Re-run the failed or cancelled jobs: `gh run rerun <run-id> --repo torrust/torrust-tracker --failed`.
 3. If the server cannot be recovered quickly, merge a PR that sets `runs-on: ubuntu-latest` for
    the two jobs in "What Runs on the Runner", then restore the expressions once the runner is back.
+   An open PR picks up the fallback only after it is rebased onto it: a re-run keeps the workflow
+   file of its original commit.
 
 ### Cache Cleanup
 
@@ -357,7 +395,7 @@ old server, including its caches.
 
 Only if measured queue time shows pull requests waiting for the runner. The decision to keep one
 runner, and when to recheck it, is recorded in the
-[capacity draft](issues/drafts/1840-self-hosted-runner-instance-capacity/ISSUE.md).
+[capacity specification](issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md).
 
 Add capacity as a **second server** with one runner instance: repeat steps 2 to 13 with a new
 runner name and the same `torrust-hetzner` label. Do not add a second instance on the same server:
