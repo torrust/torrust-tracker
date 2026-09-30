@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
-related-pr: null
-last-updated-utc: "2026-09-30 09:54"
+related-pr: 2382
+last-updated-utc: "2026-09-30 10:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -577,6 +577,7 @@ Sign every commit with GPG and use the `udp-server` scope.
   - F3: the deadline warning includes `service_binding`. The new paused-time test `it_should_name_the_listener_in_the_deadline_warning` reads the warning from the test-helpers log buffer and needs no production hook (D9). Removing the field, or logging it as `local_addr`, made the test fail.
   - Rebased onto `develop`: the only conflict was upstream's processor test changes, resolved by keeping upstream's assertions and adding the D7 `Ok` checks.
   - Validation (nightly Rust toolchain for formatting and docs): `cargo test -p torrust-tracker-udp-server` 209 passed; `linter clippy`; `linter all`; pre-push checks passed.
+- 2026-09-30 10:18 UTC - GitHub Copilot - Maintainer decision: `related-pr` records implementation PR #2382, following SI-14 (`related-pr: 2351`). Spec-only PR #2372 stays in this log because the v1 field holds one value. The maintainer asked for a schema follow-up to allow several related PRs; it is drafted as a #2264 subissue in `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md`.
 
 ## Acceptance Criteria
 
