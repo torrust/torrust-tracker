@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2298
-spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
+spec-path: docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md
 branch: "2298-rust-dev-tool-container-integration"
-related-pr: 2293
-last-updated-utc: "2026-09-30 11:18"
+related-pr: 2385
+last-updated-utc: "2026-09-30 12:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 ---
 
-  <!-- markdownlint-disable MD003 -->
+<!-- markdownlint-disable MD003 -->
 
 # Issue #2298 - Eliminate Manual Container Integration for Rust Developer Tools
 
@@ -466,8 +466,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T9 | DONE | Write D5 ADR | `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`, indexed. |
 | T10 | DONE | Draft D6 EPIC #2003 sub-issue spec | `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`. |
 | T11 | DONE | Update contributor workflow | `add-workspace-member` skill v2.0: no `Containerfile` edits; `default-members` decision; allow-list rule; explicit membership. `docs/containers.md` does not describe the recipe stage, so no change. |
-| T12 | IN_PROGRESS | Record container verification | V1-V5 recorded (M1-M3, M5-M7 done; release image verified). M4 (hosted workflow) pending the fork PR. |
-| T13 | TODO | Complete review | Reconcile acceptance criteria; record the implementation completion review. |
+| T12 | DONE | Record container verification | V1-V6 recorded: M1-M7 done; release image verified; hosted Container workflow passed on PR #2385 and on `develop` (V6). |
+| T13 | DONE | Complete review | Acceptance criteria reconciled; implementation completion review recorded. |
 
 ## Commit Points
 
@@ -493,11 +493,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Implementation approach selected after draft review.
 - [x] Baseline and post-change cache measurements recorded.
 - [x] Automatic verification completed.
-- [ ] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md` (only M4, the hosted workflow, remains).
+- [x] Manual container verification scenarios recorded in issue-local `manual-verification-evidence.md`.
 - [x] ADR written and indexed.
 - [x] EPIC #2003 draft sub-issue spec written.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded.
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded.
+- [x] PR #2385 merged, issue closed, and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -542,29 +543,43 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   binary, and additional binary. The `test_debug` archive ran all three probe tests before an
   unrelated `axum-http-server` listener test failed (210/1141 passed); target inclusion is proven,
   but M2 remains in progress pending a clean full test stage.
+- 2026-09-30 12:26 UTC - GitHub Copilot - PR #2385 merged (`0b130ec0d`) and GitHub closed the
+  issue. Maintainer accepted M2 as done without another local Docker run: the probe run proved
+  target inclusion, and the hosted Container workflow proved the full container suite passes
+  (V6, which also completes M4). Reconciled the acceptance criteria, recorded the completion
+  review, and archived this spec. Restored the evidence file's missing opening frontmatter
+  delimiter, dropped by an earlier edit in PR #2385.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Adding, moving, or removing a tracker package or one of its targets requires no
+- [x] AC1: Adding, moving, or removing a tracker package or one of its targets requires no
   `Containerfile` change; adding a developer-only explicit workspace member requires no
   `Containerfile` change and no `.dockerignore` change beyond the interim D7 entries.
-- [ ] AC2: Omissions fail fast and visibly: a package or target unreachable to `cargo metadata`
+  Evidence: M2 and M3 (V5) added a package with no `Containerfile` or `.dockerignore` edit.
+- [x] AC2: Omissions fail fast and visibly: a package or target unreachable to `cargo metadata`
   fails the `recipe` stage with Cargo's own diagnostic, and no silent stale-list state exists.
-- [ ] AC3: Measured on a warm cache: a source-only change keeps every cook stage `CACHED`; a
+  Evidence: M1 shows the `cargo metadata` diagnostic; the new recipe stage runs the same
+  `cargo chef prepare` over the real tree, and no hand-maintained list remains to go stale.
+- [x] AC3: Measured on a warm cache: a source-only change keeps every cook stage `CACHED`; a
   workspace `Cargo.toml`-only change keeps the third-party cook stages `CACHED`. Any regression
   versus the baseline is measured and explicitly accepted or triggers D2.
-- [ ] AC4: Developer-only tools are absent from the runtime image and from container nextest
+  Evidence: V1 and V2 show identical behaviour to the baseline; D2 was not needed.
+- [x] AC4: Developer-only tools are absent from the runtime image and from container nextest
   archives; inclusion is controlled by the positive list `[workspace] default-members`.
-- [ ] AC5: Library-only, binary-only, and mixed-target packages, including benches and examples,
-  need no per-target maintenance.
-- [ ] AC6: The `add-workspace-member` skill directs contributors to the positive lists
+  Evidence: V3 (unchanged archive scope), M3 (non-default member stays out), V4 (final image
+  holds only `torrust-tracker` and `http_health_check`).
+- [x] AC5: Library-only, binary-only, and mixed-target packages, including benches and examples,
+  need no per-target maintenance. Evidence: M2 ran a library-only probe, then a probe with a
+  library, two binaries, an example, and a bench; both built with no container edit. Binary-only
+  packages go through the same Cargo metadata path and were not run separately.
+- [x] AC6: The `add-workspace-member` skill directs contributors to the positive lists
   (`default-members`, `.dockerignore` allow-list) and no longer documents `Containerfile` repairs.
-- [ ] AC7: The Docker build context is a default-deny allow-list.
-- [ ] AC8: An ADR records the container caching and positive-list model.
-- [ ] AC9: A draft sub-issue spec for the separate AI-harness workspace exists for EPIC #2003.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant automated tests pass.
-- [ ] Manual verification scenarios are executed and recorded.
+- [x] AC7: The Docker build context is a default-deny allow-list. Evidence: M7 (V5).
+- [x] AC8: An ADR records the container caching and positive-list model.
+- [x] AC9: A draft sub-issue spec for the separate AI-harness workspace exists for EPIC #2003.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant automated tests pass (pre-push suite and PR #2385 CI).
+- [x] Manual verification scenarios are executed and recorded.
 
 ## Verification Plan
 
@@ -584,9 +599,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | DONE | `manual-verification-evidence.md#V5` |
-| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | IN PROGRESS | `manual-verification-evidence.md#V5` (corrected lib+bin probe: 3 target tests passed; full suite stopped on an unrelated failure) |
+| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | DONE | `manual-verification-evidence.md#V5` (lib+bin probe: 3 target tests passed in the container archive), `#V6` (full container suite passes on the hosted runner) |
 | M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | DONE | `manual-verification-evidence.md#V5` (1121 tests / 38 binaries) |
-| M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#V6` |
+| M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | DONE | `manual-verification-evidence.md#V6` |
 | M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` |
 | M6 | Warm cache, workspace manifest change | Warm build; toggle a feature in a `packages/*/Cargo.toml`; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | `dependencies_thirdparty*` `CACHED`; full cook stubs rebuild only. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` (comment change: all cooks `CACHED`; feature toggle: both cooks rebuild in both designs, expected) |
 | M7 | Build-context allow-list | `docker build --target recipe` with a `RUN find . -maxdepth 2` probe, or inspect context via `docker buildx build --progress=plain`. | Only allow-listed paths are present; `docs/`, `.github/`, `.tmp/`, `storage/` absent. | DONE | `manual-verification-evidence.md#V5` (first probe found nested `AGENTS.md` and package `docs/`; fixed with recursive re-exclusions) |
@@ -613,6 +628,23 @@ After implementation, compare the selected mechanism against this draft. Record 
 assumptions, observed cache/runtime effects, migration deviations, and reusable lessons. Create an
 issue-local retrospective if the selected design or migration has material consequences; otherwise
 add a concise progress-log entry explaining why one is unnecessary.
+
+Review (2026-09-30):
+
+- Invalidated assumption: #1852's premise that a manifest-only recipe stage was needed for cache
+  reuse. Measured, the canonical stage caches identically (V2), so the hand lists bought nothing.
+- Design change found during implementation: D8. The `--external-only` skeleton strips path
+  dependencies, so every in-repo crate must be listed explicitly in `members`.
+- Unexpected findings: nested `AGENTS.md` and package `docs/` trees passed the first allow-list
+  (fixed with recursive exclusions); `runtime` is a base stage, and the final image is `release`;
+  `default-members` widened the bare `cargo build` in `os-compatibility.yaml` (Copilot F4/F5).
+- Process lesson: full local Docker builds can saturate the workstation while the IDE runs; the
+  maintainer ran them outside the IDE.
+- Retrospective: not needed. The durable lessons live in the ADR (agreements 5 and 6) and the
+  `add-workspace-member` skill; the rest is recorded in this spec and its evidence.
+- Follow-ups: the AI-harness workspace draft awaits EPIC #2003 owner review. The
+  `axum-http-server` listener test that failed in one local container run is recorded in the
+  evidence file for separate triage.
 
 ## References
 

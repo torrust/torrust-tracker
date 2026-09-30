@@ -1,6 +1,7 @@
+---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-last-updated-utc: 2026-09-30 11:18
+issue-spec: docs/issues/closed/2298-rust-dev-tool-container-integration/ISSUE.md
+last-updated-utc: 2026-09-30 12:26
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -193,11 +194,9 @@ expected tracker binaries plus the intentionally included BusyBox links and `su-
 - Initial state: a disposable mixed-target crate `packages/container-build-probe` (no
   dependencies; a library, default binary, additional binary, example, and benchmark). The three
   testable targets each have one unit test. M1 ran in a temporary detached `develop` worktree
-  (`bc90cde1b`); M2, M3, and M7 ran on this branch. The probe was removed after each completed
-  run and left no tracked change. The corrective M2 rerun is still present pending its clean
-  container test result.
-- Status: `IN PROGRESS` (M1, M3, and M7 complete; corrected M2 target inclusion demonstrated,
-  but the full test stage has an unrelated failure)
+  (`bc90cde1b`); M2, M3, and M7 ran on this branch. The probe was removed after each run and left
+  no tracked change.
+- Status: `DONE` (M2 closed together with V6; see the conclusion below)
 
 #### Steps Performed
 
@@ -255,8 +254,9 @@ M7 second probe, top level: .cargo Cargo.lock Cargo.toml console contrib package
 M1, M3, and M7 met. M1 reproduces the original bug on the baseline with Cargo's own diagnostic.
 The corrected M2 run demonstrates that the archive includes the disposable library and both binary
 targets without a `Containerfile` or `.dockerignore` change. Its three probe tests passed before
-an unrelated `axum-http-server` listener test failed, so M2 remains in progress until a clean
-container test stage is observed. M3 shows `default-members` alone controls archive scope. M7
+an unrelated `axum-http-server` listener test failed. On 2026-09-30 the maintainer accepted M2 as
+done without another local run: this run proves target inclusion, and V6 proves the full
+container suite passes. M3 shows `default-members` alone controls archive scope. M7
 shows the context is limited to the allow-list; the probe caught nested agent and documentation
 files that the first allow-list version admitted, now re-excluded recursively. No Rust source
 lives under any `docs/` directory, no manifest references one, and no `.rs` file embeds or reads a
@@ -264,7 +264,33 @@ lives under any `docs/` directory, no manifest references one, and no `.rs` file
 
 ### V6 - M4 hosted Container workflow
 
-- Status: `TODO` (requires the fork PR).
+- Goal: the hosted Container workflow builds and tests the image on the self-hosted runner.
+- Initial state: PR #2385 head `3ae381d5d` (rebased on `develop`), then the merge commit
+  `0b130ec0d` on `develop`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Pushed the branch to the fork PR; GitHub ran the `Container` workflow.
+2. Merged PR #2385; GitHub ran the `Container` workflow on `develop`.
+3. Read the job results with `gh run view <run-id> --json jobs` and the runner names from the
+   Actions jobs API.
+
+#### Observed Result
+
+```text
+run 36710654492 (pull_request, 3ae381d5d): success
+  Test (Docker) (release): success 11:51:11Z -> 12:07:59Z  runner torrust-runner-01 (self-hosted)
+  Context: success; Publish jobs skipped (PR event)
+run 36714211896 (push, develop, 0b130ec0d):
+  Test (Docker) (release): success 12:21:46Z -> 12:24:01Z
+```
+
+#### Conclusion
+
+M4 met. The `release` target build runs the release `test` stage (archive, extract, and the full
+`cargo nextest run`), and it passed on the self-hosted runner for the PR and again on `develop`.
+This is also the clean full container test stage that the corrected M2 run did not reach.
 
 ## Failures and Follow-up
 
@@ -281,3 +307,8 @@ lives under any `docs/` directory, no manifest references one, and no `.rs` file
   `packages/configuration/AGENTS.md` and package `docs/` trees (ADRs, benchmark reports, licenses)
   reached the build context. Remediation: `**/AGENTS.md` and `**/docs/` re-exclusions. Rerun
   showed no forbidden paths and the `recipe` stage still passes.
+- V5 corrected M2: `torrust-tracker-axum-http-server`
+  `server::tests::it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails`
+  failed once in the local `test_debug` stage with `Address already in use (os error 98)`. It
+  passed in the pre-push suite and in CI, so it looks like a flaky port-binding test unrelated to
+  this issue. Left for separate triage.
