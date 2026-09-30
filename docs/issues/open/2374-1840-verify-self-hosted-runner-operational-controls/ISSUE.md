@@ -9,7 +9,7 @@ github-issue: 2374
 spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
 related-pr: null
-last-updated-utc: "2026-09-29 21:20"
+last-updated-utc: "2026-09-29 21:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -229,6 +229,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 19:48 UTC - GitHub Copilot - Corrected `docs/self-hosted-runner.md`: approved fork PRs targeting `develop` can select the self-hosted runner. The maintainer update created no Dependabot branch-push run, so the post-update `Docker E2E` observation remains pending; reopened AC2 and the completion review - #2323 evidence V7
 - 2026-09-29 21:12 UTC - GitHub Copilot - M7 DONE: temporary signed trigger and revert commits on the updated Dependabot branch produced `Docker E2E` job `109621539097` on GitHub Actions with `ubuntu-latest`; source content restored - #2323 evidence V7
 - 2026-09-29 21:16 UTC - GitHub Copilot - Final full pre-commit gate passed, including `linter all`, staged Markdown frontmatter, dependency checks, formatting, Containerfile linting, and documentation tests - `contrib/dev-tools/git/hooks/pre-commit.sh`
+- 2026-09-29 21:26 UTC - GitHub Copilot - Independent review clarified that the PR merge update observed `Test (Docker)`, while a later temporary branch push observed `Docker E2E`; recorded the reusable discovery in `implementation-retrospective.md` - this file
 
 ## Acceptance Criteria
 
@@ -236,8 +237,9 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
       offline, is not ended by its `timeout-minutes`, and runs after the restart; that the
       `runs-on: ubuntu-latest` fallback starts a GitHub-hosted run; and that the runner ends online
       and idle.
-- [x] AC2: M7 shows that Dependabot `Test (Docker)` and `Docker E2E` jobs run on GitHub-hosted
-      runners, both as opened by Dependabot and after a maintainer updates the branch.
+- [x] AC2: M7 shows that Dependabot `Test (Docker)` runs GitHub-hosted after a maintainer updates
+  its PR branch, and `Docker E2E` runs GitHub-hosted after a subsequent Dependabot-branch
+  push.
 - [x] AC3: M7 shows that a PR from a non-member fork (`josecelano-bot`) waits for maintainer
       approval before any job runs.
 - [x] AC4: #2323 AC1, AC3, and AC4 are reviewed against the evidence and their tables updated,
@@ -268,7 +270,7 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 | ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
 | M5      | Runner offline              | M5 Plan above; `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs` and the runners API during the window | Job queued 293 seconds past its 2-minute limit; fallback GitHub-hosted; job ran after restart | DONE   | #2323 `manual-verification-evidence.md` V5 |
 | M7 (1)  | Dependabot PR               | Jobs API for the Dependabot PR runs listed in Background                                                                 | `Test (Docker)` and `Docker E2E` on GitHub-hosted runners                        | DONE   | #2323 `manual-verification-evidence.md` V7 |
-| M7 (2)  | Maintainer updates branch   | **Update branch** on #2369; signed branch trigger after update; jobs API                                                | Container and `Docker E2E` GitHub-hosted; `triggering_actor=josecelano`         | DONE   | #2323 `manual-verification-evidence.md` V7 |
+| M7 (2)  | Maintainer updates branch   | **Update branch** on #2369; then signed branch trigger; jobs API                                                         | Updated PR `Test (Docker)` and later-push `Docker E2E` GitHub-hosted            | DONE   | #2323 `manual-verification-evidence.md` V7 |
 | M7 (3)  | External contributor        | PR from `josecelano-bot`; inspect runs before and after approval                                                         | No workflow run before approval; run starts after approval                       | DONE   | #2323 `manual-verification-evidence.md` V7 |
 
 ### Acceptance Verification
@@ -276,15 +278,15 @@ The evidence is appended to the #2323 evidence file, so the scenario IDs keep #2
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
 | AC1   | DONE   | #2323 `manual-verification-evidence.md` V5 |
-| AC2   | DONE   | #2323 `manual-verification-evidence.md` V7 parts 1-3; post-update `Docker E2E` job `109621539097` |
+| AC2   | DONE   | #2323 `manual-verification-evidence.md` V7: updated PR `Test (Docker)` and later-push `Docker E2E` job `109621539097` |
 | AC3   | DONE   | #2323 `manual-verification-evidence.md` V7 part 3 |
 | AC4   | DONE   | #2323 `ISSUE.md` acceptance verification: observed V1-V7 evidence and static routing checks |
 | AC5   | DONE   | `docs/self-hosted-runner.md` Security section; re-check commands run on 2026-09-29: every `secrets.`/`environment:` match is in a publish job, and only `container.yaml` and `testing.yaml` use `torrust-hetzner` |
 
 ## Implementation Completion Review
 
-No retrospective is needed: M5 and M7 confirmed the runtime controls. The only finding was the
-fork-routing guide correction recorded at 19:48 UTC.
+The reusable routing and verification discoveries are recorded in
+[`implementation-retrospective.md`](implementation-retrospective.md).
 
 ## Related Work
 
