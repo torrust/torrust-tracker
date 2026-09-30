@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-mine-ai-agent-memories/ISSUE.md
 branch: "chore/mine-ai-agent-memories-spec"
 related-pr: null
-last-updated-utc: "2026-09-30 11:00"
+last-updated-utc: "2026-09-30 11:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -290,8 +290,8 @@ None planned.
   and the local memories are private to one workstation. Committing them makes them public.
   A privacy review on 2026-09-30 found no secrets. It redacted one operational note about
   remote server administration (`U19`) and one contributor's first name (`U11`); each snapshot
-  records its review. The maintainer must still approve publishing both snapshots before the
-  spec is committed.
+  records its review. The maintainer approved publishing both snapshots on 2026-09-30, after
+  that review.
 - **Snapshots age quickly.** Copilot keeps adding and re-ranking memories. The snapshots are
   frozen on 2026-09-30, and T2 classifies them against `develop` at the time of analysis. T5
   compares the live page with the snapshot before deleting anything, so it does not remove a
