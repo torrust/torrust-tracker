@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: open
+status: blocked
 priority: p3
+epic: 2392
 github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-branch: 1419-allow-multiple-integration-tests
+branch: "1419-allow-multiple-integration-tests"
 related-pr: 2189
-last-updated-utc: 2026-09-10 15:49
+last-updated-utc: "2026-09-30 14:58"
 semantic-links:
   skill-links:
     - write-unit-test
@@ -15,20 +17,22 @@ semantic-links:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/open/2392-test-isolation/EPIC.md
     - tests/AGENTS.md
-    - tests/common/
-    - tests/metrics/
-    - tests/banning/
+    - tests/common
+    - tests/metrics
+    - tests/banning
     - tests/scaffold.rs
     - src/app.rs
     - src/bootstrap/jobs/manager.rs
-    - packages/test-helpers/
+    - packages/test-helpers
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
-    - https://github.com/torrust/torrust-tracker/issues/1488
-    - https://github.com/torrust/torrust-tracker/pull/1993
+    - "issue #1488"
 ---
 
 # Issue #1419 - Allow multiple integration tests at the main app level
+
+Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
 ## Goal
 
@@ -254,6 +258,11 @@ completed work and remaining tasks are recorded after the decision pivot.
 - 2026-09-10 15:49 UTC - josecelano - Reopened GitHub issue #1419 after it was
   closed accidentally with PR #2189. The remaining R8/AC8a and R9 work still
   requires the shutdown-overhaul #1488 follow-up and final closure review.
+- 2026-09-30 14:58 UTC - GitHub Copilot - Linked as a GitHub sub-issue of the new Test Isolation
+  EPIC #2392. Scope is unchanged; the remaining AC8a still waits on #1488. Migrated the
+  frontmatter to v1 (required by the validator for edited open specs): status `open` became
+  `blocked`, directory paths lost trailing slashes, and the #1488 and PR #1993 URLs were replaced
+  by an `issue #1488` reference (v1 has no pull-request reference; the body still links #1993).
 
 ## Acceptance Criteria
 
