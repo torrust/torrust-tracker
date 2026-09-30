@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 branch: "{issue-number}-2003-separate-ai-harness-cargo-workspace"
 related-pr: null
-last-updated-utc: "2026-09-29 18:40"
+last-updated-utc: "2026-09-30 10:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,6 +27,8 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Separate the AI-Harness Tools into Their Own Cargo Workspace
+
+**Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 
 ## Goal
 
@@ -85,6 +87,16 @@ precedent and the EPIC #1669 package extractions) possible later.
   `persistence-benchmark`, `torrent-repository-benchmarking`); they depend on tracker crates and
   remain tracker workspace members.
 
+## Architectural Decisions
+
+- Related ADRs:
+  `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md`
+  (positive-list container build; its interim harness allow-list entries are removed by this
+  issue).
+- ADRs to create: one ADR recording the harness workspace boundary (location, what counts as
+  harness, and how quality gates cover a second workspace), once EPIC #2003 settles the deferred
+  decisions below.
+
 ## Decisions Deferred to EPIC #2003
 
 These are precisely the questions EPIC #2003 exists to answer; this draft records them and takes
@@ -131,22 +143,111 @@ Recorded so the EPIC can weigh them; none is a blocker.
   harness prebuilt too.
 - **Docs and skills** that name `cargo run -p <harness-tool>`.
 
-## Expected Outcome
+## Implementation Plan
 
-- Root `Cargo.toml` `members` lists only tracker crates; `exclude` names the harness root.
-- `.dockerignore` has no harness entries; the tracker container build never sees harness code.
-- Adding a harness tool touches only the harness workspace.
-- All quality gates run for both workspaces and pass.
+Tasks T2 onward start only after EPIC #2003 records the deferred decisions (T1).
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID | Status | Task | Notes / Expected Output |
+| --- | --- | --- | --- |
+| T1 | BLOCKED | Obtain EPIC #2003 decisions | Location, harness boundary, binary shape, and ownership recorded in the EPIC; this spec updated to match. Blocked on the EPIC architecture decision. |
+| T2 | TODO | Create the harness workspace | New workspace root with copied `[workspace.package]` and `[workspace.lints]`; harness crates moved or re-rooted; root `members` drops them and `exclude` names the harness root; both `cargo metadata` calls succeed. |
+| T3 | TODO | Migrate invocations | Hooks, CI workflows, docs, and skills call harness binaries through the new workspace; `include_str!` paths updated. |
+| T4 | TODO | Cover both workspaces in quality gates | Dependabot, `cargo deny`, `cargo machete`, doc tests, formatting, and Clippy run for the harness workspace. |
+| T5 | TODO | Remove interim container entries | Harness block removed from `.dockerignore`; `add-workspace-member` skill updated. |
+| T6 | TODO | Verify and review | Automatic checks, manual scenarios, acceptance review, completion review. |
+
+## Commit Points
+
+| Task | Coherent change set | Commit policy |
+| --- | --- | --- |
+| T1 | Spec update with the EPIC decisions | Documentation-only commit. |
+| T2 | Workspace creation and membership move | One commit after both workspaces resolve and build. |
+| T3 | Invocation migration | One commit after hooks and a local run of each migrated invocation pass. |
+| T4 | Quality-gate coverage | One commit per tool family when it improves reviewability. |
+| T5 | Container allow-list and skill cleanup | One commit after `docker build --target recipe`. |
+| T6 | Evidence and completion review | Documentation-only commits. |
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Folder-style spec drafted in `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`
+- [ ] EPIC #2003 owner reviewed the draft and recorded the deferred decisions
+- [ ] GitHub issue created and issue number added to this spec
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded
+- [ ] Issue closed and spec moved to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-09-29 18:40 UTC - GitHub Copilot - Drafted from issue #2298 root-cause analysis (cause 2) at
+  the maintainer's request, for EPIC #2003 owner review. No GitHub issue created.
+- 2026-09-30 10:45 UTC - GitHub Copilot - Added the parent marker and the template lifecycle
+  sections after the PR #2385 review (`review-finding:pr-2385-f1`, `review-finding:pr-2385-f2`).
+
+## Acceptance Criteria
+
+- [ ] AC1: Root `Cargo.toml` `members` lists only tracker crates; `exclude` names the harness root.
+- [ ] AC2: `.dockerignore` has no harness entries; the tracker container build never sees harness
+  code.
+- [ ] AC3: Adding a harness tool touches only the harness workspace.
+- [ ] AC4: Every quality gate that covers the tracker workspace also covers the harness workspace.
+- [ ] AC5: Every hook, workflow, doc, and skill invocation of a harness binary works from the
+  repository root.
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass in both workspaces
+- [ ] Manual verification scenarios are executed and documented in issue-local
+  `manual-verification-evidence.md`
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
-- `cargo metadata --no-deps` in both workspaces succeeds; the tracker workspace lists no harness
-  package.
-- `docker build --target recipe --file Containerfile .` passes with the harness allow-list block
-  removed.
-- `./contrib/dev-tools/git/hooks/pre-commit.sh` passes and still runs the harness checks.
-- The `testing.yaml` and `generate_coverage_pr.yaml` workflows pass on a fork PR.
-- `cargo machete`, `cargo deny check bans`, and Dependabot cover the harness `Cargo.lock`.
+### Automatic Checks
+
+- `linter all`
+- `cargo test --doc --workspace` in both workspaces
+- `cargo metadata --no-deps` in both workspaces; the tracker workspace lists no harness package
+- Pre-commit and pre-push checks
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+| ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| M1 | Container build without harness | Remove the harness allow-list block; `docker build --target recipe --file Containerfile .` | Recipe stage passes; the build context contains no harness path. | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Hooks run harness checks | Stage a Markdown file with invalid frontmatter; run `./contrib/dev-tools/git/hooks/pre-commit.sh` | The frontmatter check runs from the harness workspace and reports the error. | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | CI invocations | Push to a fork PR | `testing.yaml` and `generate_coverage_pr.yaml` run the harness tools and pass. | TODO | `manual-verification-evidence.md` section V3 |
+| M4 | Dependency tooling | Run `cargo machete` and `cargo deny check bans` for both workspaces; inspect the Dependabot configuration | Both workspaces covered; no unused dependency. | TODO | `manual-verification-evidence.md` section V4 |
+
+### Acceptance Verification
+
+After implementation, re-review each acceptance criterion against the evidence above and record
+the result in the progress log.
+
+## Risks and Trade-offs
+
+- Lint policy duplicated in two workspace roots can drift; a follow-up check may be needed.
+- A second lockfile doubles dependency-update review for shared crates.
+- Tools that inspect the tracker workspace (`workspace-coupling`) must keep targeting the tracker
+  manifest explicitly once they live in another workspace.
+
+## Implementation Completion Review
+
+After implementation, compare the result with this specification. Record invalidated
+assumptions, material design changes, unexpected validation findings, and reusable lessons.
+
+- Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
+- If no retrospective is needed, add a concise progress-log entry explaining why the work had no
+  material discovery.
 
 ## References
 
