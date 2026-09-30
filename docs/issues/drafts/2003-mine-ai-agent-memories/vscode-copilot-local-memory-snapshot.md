@@ -36,9 +36,11 @@
 ## Privacy Review
 
 Reviewed on 2026-09-30 before publication. No credentials, tokens, keys, email addresses, IP
-addresses, private hostnames, or local filesystem paths were found. The only hostnames are the
-public Torrust demo trackers. The maintainer's own name and GitHub handle already appear publicly
-in commit history, so they are kept.
+addresses, private hostnames, or absolute local filesystem paths were found. The only local path
+detail is the workspace folder name `torrust-tracker-agent-02` in the provenance. It is kept
+because repository memory is scoped to that folder, and it identifies no user or machine. The
+only hostnames are the public Torrust demo trackers. The maintainer's own name and GitHub handle
+already appear publicly in commit history, so they are kept.
 
 Redacted records:
 
