@@ -160,6 +160,15 @@ fn log_request_drain_outcome(outcome: &RequestDrainOutcome, elapsed: Duration, l
     }
 }
 
+/// Aborts and joins every processor, without the graceful deadline, before handing back the receive error.
+async fn join_request_processors_after_receive_error<T: 'static>(
+    processors: &mut JoinSet<T>,
+    error: std::io::Error,
+) -> std::io::Error {
+    processors.shutdown().await;
+    error
+}
+
 impl Drop for OwnedReceiveLoop {
     fn drop(&mut self) {
         if let Some(task) = &self.0 {
@@ -360,8 +369,7 @@ impl Launcher {
             let req = match admit_received(next, &local_addr) {
                 ControlFlow::Continue(req) => req,
                 ControlFlow::Break(error) => {
-                    processors.shutdown().await;
-                    return Err(error);
+                    return Err(join_request_processors_after_receive_error(&mut processors, error).await);
                 }
             };
 
@@ -578,6 +586,7 @@ mod tests {
     use std::io::ErrorKind;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::Duration;
 
     use tokio::sync::oneshot;
@@ -603,6 +612,22 @@ mod tests {
     const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
     const LIFECYCLE_TIMEOUT: Duration = Duration::from_secs(5);
     const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
+
+    /// Counts a processor as running until its future is dropped by completion or abort.
+    struct RunningProcessor(Arc<AtomicUsize>);
+
+    impl RunningProcessor {
+        fn start(running: &Arc<AtomicUsize>) -> Self {
+            running.fetch_add(1, Ordering::SeqCst);
+            Self(running.clone())
+        }
+    }
+
+    impl Drop for RunningProcessor {
+        fn drop(&mut self) {
+            self.0.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
 
     struct UdpLauncherTestContext {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -1004,21 +1029,22 @@ mod tests {
     }
 
     mod request_drain {
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicUsize, Ordering};
         use std::time::Duration;
 
+        use tokio::sync::oneshot;
         use tokio::task::JoinSet;
         use tokio::time::Instant;
 
-        use crate::server::launcher::{RequestDrainOutcome, drain_request_processors};
+        use super::RunningProcessor;
+        use crate::server::launcher::{
+            RequestDrainOutcome, drain_request_processors, join_request_processors_after_receive_error,
+        };
 
         const DRAIN_DEADLINE: Duration = Duration::from_secs(5);
 
         type ProcessorResult = Result<(), &'static str>;
-
-        async fn panicking_processor() -> ProcessorResult {
-            tokio::task::yield_now().await;
-            panic!("request processor panic under test");
-        }
 
         #[tokio::test(start_paused = true)]
         async fn it_should_count_processors_that_finish_before_the_deadline_as_completed() {
@@ -1063,9 +1089,16 @@ mod tests {
         async fn it_should_count_failed_processors_and_keep_draining_the_rest() {
             // Arrange
             let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            let (panicked, after_panic) = oneshot::channel();
             processors.spawn(async { Err("the response could not be sent") });
-            processors.spawn(panicking_processor());
-            processors.spawn(async { Ok(()) });
+            processors.spawn(async move {
+                panicked
+                    .send(())
+                    .expect("the processor waiting for the panic should be alive");
+                panic!("request processor panic under test");
+            });
+            // Finishes only after the panic, so a drain that stopped at a failure would miss it.
+            processors.spawn(async move { after_panic.await.map_err(|_| "the panicking processor did not signal") });
 
             // Act
             let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
@@ -1117,6 +1150,34 @@ mod tests {
                 "draining no processors must not wait for the {DRAIN_DEADLINE:?} deadline"
             );
         }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_join_every_processor_before_returning_the_receive_error() {
+            // Arrange
+            let running = Arc::new(AtomicUsize::new(0));
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            let processor = RunningProcessor::start(&running);
+            processors.spawn(async move {
+                let _running = processor;
+                std::future::pending().await
+            });
+
+            // Act
+            let error = join_request_processors_after_receive_error(
+                &mut processors,
+                std::io::Error::new(std::io::ErrorKind::ConnectionReset, "receive failed under test"),
+            )
+            .await;
+
+            // Assert
+            assert_eq!(error.kind(), std::io::ErrorKind::ConnectionReset);
+            assert_eq!(
+                running.load(Ordering::SeqCst),
+                0,
+                "no processor may outlive the receive error"
+            );
+            assert!(processors.is_empty());
+        }
     }
 
     mod receive_loop_shutdown {
@@ -1134,7 +1195,7 @@ mod tests {
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
 
-        use super::{LIFECYCLE_TIMEOUT, UdpLauncherTestContext, wait_until_bindable};
+        use super::{LIFECYCLE_TIMEOUT, RunningProcessor, UdpLauncherTestContext, wait_until_bindable};
         use crate::container::UdpTrackerServerContainer;
         use crate::event::Event;
         use crate::server::bound_socket::BoundSocket;
@@ -1153,15 +1214,6 @@ mod tests {
             release: watch::Receiver<bool>,
         }
 
-        /// Counts a held processor until its future is dropped by completion or abort.
-        struct RunningHeldProcessor(Arc<AtomicUsize>);
-
-        impl Drop for RunningHeldProcessor {
-            fn drop(&mut self) {
-                self.0.fetch_sub(1, Ordering::SeqCst);
-            }
-        }
-
         impl Sender for HoldAcceptedRequestsSender {
             type Event = Event;
 
@@ -1174,8 +1226,7 @@ mod tests {
                     return Box::pin(async { None });
                 }
 
-                self.running_held_processors.fetch_add(1, Ordering::SeqCst);
-                let running = RunningHeldProcessor(self.running_held_processors.clone());
+                let running = RunningProcessor::start(&self.running_held_processors);
                 self.held
                     .send(())
                     .expect("the held-processor receiver should outlive the scenario");
