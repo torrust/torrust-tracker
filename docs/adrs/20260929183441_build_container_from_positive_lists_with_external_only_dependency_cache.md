@@ -92,7 +92,9 @@ including something by accident can ship unintended content into the image.
    `src/`, `tests/`, `packages/`, `console/`, `share/`, `contrib/dev-tools/su-exec/`, and, as an
    interim measure, each AI-harness crate directory that is still a workspace member. Broad
    negations are not used. Every workspace member must be admitted whole, because `cargo metadata`
-   aborts on a member whose manifest or declared target file is missing.
+   aborts on a member whose manifest or declared target file is missing. Inside admitted
+   directories, `**/AGENTS.md` and `**/docs/` are re-excluded: no build stage reads them, and doc
+   edits then do not invalidate the source `COPY` layers.
 
 4. **Container test scope is a Cargo-native positive list.** Root `Cargo.toml` declares
    `[workspace] default-members` naming the product crates. Every `cargo nextest archive` in the

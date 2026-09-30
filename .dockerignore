@@ -44,6 +44,6 @@
 !/contrib/dev-tools/github/github-review-threads/
 
 # ── Re-exclusions inside admitted directories ─────────────────────────────────
-/packages/AGENTS.md
-/src/AGENTS.md
-/tests/AGENTS.md
+# Agent instructions and package documentation are never read by a build stage.
+**/AGENTS.md
+**/docs/
