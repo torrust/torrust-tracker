@@ -1,5 +1,7 @@
 ---
 doc-type: manual-verification-evidence
+issue-spec: docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md
+last-updated-utc: 2026-09-30 10:02
 issue: 2283
 package: torrust-tracker-udp-server
 measured-utc: 2026-09-30T07:42:00Z
