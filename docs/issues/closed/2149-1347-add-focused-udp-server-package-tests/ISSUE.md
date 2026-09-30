@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests"
 related-pr: 2174
-last-updated-utc: 2026-09-30
+last-updated-utc: "2026-09-30 13:03"
 semantic-links:
   skill-links:
     - create-issue
