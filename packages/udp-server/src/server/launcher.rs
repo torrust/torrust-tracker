@@ -77,7 +77,11 @@ const REQUEST_DRAIN_DEADLINE: Duration = Duration::from_secs(5);
 /// Cancellations seen before the deadline come from overload eviction, not from this drain.
 // ADR: packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 // issue: #2370
-async fn drain_request_processors<E>(tasks: &mut JoinSet<Result<(), E>>, deadline: Duration) -> RequestDrainOutcome
+async fn drain_request_processors<E>(
+    tasks: &mut JoinSet<Result<(), E>>,
+    deadline: Duration,
+    service_binding: &str,
+) -> RequestDrainOutcome
 where
     E: 'static,
 {
@@ -94,7 +98,7 @@ where
         while let Some(result) = tasks.try_join_next() {
             record_request_processor_outcome(result, &mut outcome, false);
         }
-        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, remaining = tasks.len(), ?deadline, "UDP request drain deadline reached: aborting remaining request processors");
+        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, service_binding, remaining = tasks.len(), ?deadline, "UDP request drain deadline reached: aborting remaining request processors");
         tasks.abort_all();
         while let Some(result) = tasks.join_next().await {
             record_request_processor_outcome(result, &mut outcome, true);
@@ -131,7 +135,7 @@ async fn drain_request_processors_on_shutdown(
     log_request_drain_start(processors.len(), deadline, service_binding);
 
     let started = tokio::time::Instant::now();
-    let outcome = drain_request_processors(processors, deadline).await;
+    let outcome = drain_request_processors(processors, deadline, service_binding).await;
 
     log_request_drain_outcome(&outcome, started.elapsed(), service_binding);
 }
@@ -1036,6 +1040,7 @@ mod tests {
         use tokio::sync::oneshot;
         use tokio::task::JoinSet;
         use tokio::time::Instant;
+        use torrust_tracker_test_helpers::logging::{self, logs_contains_a_line_with};
 
         use super::RunningProcessor;
         use crate::server::launcher::{
@@ -1043,6 +1048,8 @@ mod tests {
         };
 
         const DRAIN_DEADLINE: Duration = Duration::from_secs(5);
+
+        const SERVICE_BINDING: &str = "udp://127.0.0.1:6969";
 
         type ProcessorResult = Result<(), &'static str>;
 
@@ -1054,7 +1061,7 @@ mod tests {
             processors.spawn(async { Ok(()) });
 
             // Act
-            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE, SERVICE_BINDING).await;
 
             // Assert
             assert_eq!(
@@ -1073,7 +1080,7 @@ mod tests {
             processors.spawn(std::future::pending());
 
             // Act
-            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE, SERVICE_BINDING).await;
 
             // Assert
             assert_eq!(
@@ -1082,6 +1089,30 @@ mod tests {
                     aborted: 1,
                     ..RequestDrainOutcome::default()
                 }
+            );
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn it_should_name_the_listener_in_the_deadline_warning() {
+            // Arrange
+            logging::setup();
+            // A documentation address no other test logs, so only this drain can match.
+            let service_binding = "udp://192.0.2.15:2382";
+            let mut processors: JoinSet<ProcessorResult> = JoinSet::new();
+            processors.spawn(std::future::pending());
+
+            // Act
+            drain_request_processors(&mut processors, DRAIN_DEADLINE, service_binding).await;
+
+            // Assert
+            assert!(
+                logs_contains_a_line_with(&[
+                    "WARN",
+                    "UDP request drain deadline reached",
+                    "service_binding",
+                    service_binding
+                ]),
+                "the deadline warning must name the listener whose drain reached the deadline"
             );
         }
 
@@ -1101,7 +1132,7 @@ mod tests {
             processors.spawn(async move { after_panic.await.map_err(|_| "the panicking processor did not signal") });
 
             // Act
-            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE, SERVICE_BINDING).await;
 
             // Assert
             assert_eq!(
@@ -1122,7 +1153,7 @@ mod tests {
             evicted_by_overload.abort();
 
             // Act
-            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+            let outcome = drain_request_processors(&mut processors, DRAIN_DEADLINE, SERVICE_BINDING).await;
 
             // Assert
             assert_eq!(
@@ -1141,7 +1172,7 @@ mod tests {
             let started = Instant::now();
 
             // Act
-            drain_request_processors(&mut processors, DRAIN_DEADLINE).await;
+            drain_request_processors(&mut processors, DRAIN_DEADLINE, SERVICE_BINDING).await;
 
             // Assert
             assert_eq!(
