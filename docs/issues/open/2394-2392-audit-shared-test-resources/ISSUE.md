@@ -8,7 +8,7 @@ epic: 2392
 github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
-related-pr: null
+related-pr: 2397
 last-updated-utc: "2026-09-30 14:58"
 semantic-links:
   skill-links:
