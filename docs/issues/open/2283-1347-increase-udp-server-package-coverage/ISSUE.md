@@ -158,7 +158,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T5  | DONE | Implement integration-test increments selected by file test plans | No completed file plan selected a 3B integration increment: direct unit boundaries were clearer where new coverage was selected, and existing loopback coverage or #1488 ownership covered the remaining UDP lifecycle boundaries. |
 | T6  | DONE | Perform bounded mutation assessment | Completed a bounded `handle_packet` sample: one viable mutant was caught, two generated default-response mutants were unviable, and there were no survivors. [mutation-evidence.md](mutation-evidence.md) records configuration, timeout, scope, and limitations. |
 | T7  | DONE | Reconcile evidence and progress state | Confirmed 37 `DONE` ledger rows, 37 completed plans, and 37 per-file result rows; restored three omitted results; normalized stale processor-plan frontmatter; and updated final aggregate/unit-only EPIC coverage tables. Baseline/historical SHA mentions are not branch commit citations. |
-| T8  | TODO | Complete verification and acceptance review | Run final automatic checks, manual verification, acceptance-criteria review, and implementation completion review. Stop for maintainer review after the final test-producing increment before final verification, committing, or opening an implementation PR. |
+| T8  | DONE | Complete verification and acceptance review | Automatic checks, manual tracker verification, acceptance review, and the retrospective decision are recorded. Jose Celano approved the final acceptance review before the final evidence commit. |
 
 ## Commit Points
 
@@ -305,17 +305,26 @@ plan so the ledger has no implicit exceptions.
 - [x] Shared plan guidance and the first file test plan (`error.rs`) created; no tests changed.
 - [x] First file test plan reviewed and approved before test-producing work.
 - [x] Every ledger row is `DONE` with its own file test plan (37 / 37).
-- [ ] Implementation completed.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
+- [x] Implementation completed.
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`.
 - [x] Bounded mutation assessment recorded.
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence.
-- [ ] Evidence-based implementation completion review recorded.
-- [ ] Reviewer validated acceptance criteria and updated checkboxes.
+- [x] Acceptance criteria reviewed after implementation and updated with evidence.
+- [x] Evidence-based implementation completion review recorded.
+- [x] Reviewer validated acceptance criteria and updated checkboxes.
 - [x] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
+
+- 2026-09-30 07:49 UTC - Jose Celano - Approved the final acceptance review and final evidence
+  commit for Issue #2283.
+
+- 2026-09-30 07:42 UTC - GitHub Copilot - Completed T8 automatic and manual evidence: nightly
+  Rust formatting, the full UDP-server package tests, explicit integration tests, `linter all`,
+  and JSON pre-commit all passed. An isolated built tracker accepted a real unified-client announce
+  and scrape, recorded in [manual-verification-evidence.md](manual-verification-evidence.md).
+  The acceptance review is complete; final reviewer validation remains pending.
 
 - 2026-09-30 07:03 UTC - GitHub Copilot - Began T7 reconciliation. Confirmed 37 `DONE` ledger
   rows and 37 file plans; restored three omitted per-file result rows and normalized the completed
@@ -556,8 +565,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | UDP tracker announce contract | Start or target an isolated tracker instance and announce with `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | The UDP tracker accepts the announce and returns a valid tracker response for the selected scenario. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | UDP tracker scrape or failure-path contract | Exercise the selected behavior affected by this issue through the built tracker and `tracker_client`, or record why no user-facing UDP behavior changed. | Observable UDP behavior remains consistent with the selected contract and no regression is observed. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | UDP tracker announce contract | Start or target an isolated tracker instance and announce with `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | The UDP tracker accepts the announce and returns a valid tracker response for the selected scenario. | DONE | [manual-verification-evidence.md](manual-verification-evidence.md) V1: local announce returned a valid IPv4 response with one leecher. |
+| M2 | UDP tracker scrape or failure-path contract | Exercise the selected behavior affected by this issue through the built tracker and `tracker_client`, or record why no user-facing UDP behavior changed. | Observable UDP behavior remains consistent with the selected contract and no regression is observed. | DONE | [manual-verification-evidence.md](manual-verification-evidence.md) V2: scrape returned the announced torrent with one leecher. |
 
 Manual verification means real human-oriented artifact interaction. Running automated tests alone
 does not satisfy it.
@@ -572,22 +581,22 @@ and why any non-Rust implementation is justified.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Complete inventory in `coverage-evidence.md` |
-| AC2 | TODO | Ledger 37 / 37 `DONE`; one plan per file; per-file results table in `coverage-evidence.md` |
-| AC3 | TODO | Coverage evidence tables and command output summaries |
-| AC4 | TODO | File test plans and test output |
-| AC5 | TODO | Integration-boundary rationale in file test plans |
-| AC6 | TODO | No-change/deferral conclusions in file test plans and `coverage-evidence.md` |
-| AC7 | TODO | File test plans and focused validation evidence |
-| AC8 | TODO | File test plans: R1 reviewed before R2; completed-file review recorded |
-| AC9 | TODO | `mutation-evidence.md` |
-| AC10 | TODO | Reconciliation progress-log entry and final diff review |
-| AC11 | TODO | Nightly rustfmt output |
-| AC12 | TODO | `linter all` output |
-| AC13 | TODO | Package test output |
-| AC14 | TODO | `manual-verification-evidence.md` |
-| AC15 | TODO | Post-implementation acceptance review |
-| AC16 | TODO | Documentation diff or no-change rationale |
+| AC1 | DONE | Complete inventory in [coverage-evidence.md](coverage-evidence.md). |
+| AC2 | DONE | Ledger, plan index, and per-file results each contain 37 completed records. |
+| AC3 | DONE | Separate final aggregate, unit-only, and integration-only totals are in [coverage-evidence.md](coverage-evidence.md). |
+| AC4 | DONE | Every source file has a completed plan with focused validation evidence. |
+| AC5 | DONE | Every plan records whether the 3B integration boundary was selected; none was selected. |
+| AC6 | DONE | Completed plans and coverage evidence record package, collaborator, lifecycle, and platform ownership boundaries. |
+| AC7 | DONE | Per-file plans record focused command outcomes; final package checks also pass. |
+| AC8 | DONE | Every plan is `status: done` and records its completed-file review. |
+| AC9 | DONE | [mutation-evidence.md](mutation-evidence.md) records one caught viable mutant and no survivors. |
+| AC10 | DONE | T7 reconciled evidence counts, plan statuses, SHA citations, and EPIC tables. |
+| AC11 | DONE | `cargo +nightly fmt --all -- --check` passed with the nightly Rust toolchain. |
+| AC12 | DONE | `linter all` passed on 2026-09-30. |
+| AC13 | DONE | `cargo test -p torrust-tracker-udp-server` passed 199 unit, 11 integration, and 1 documentation test; the explicit integration run also passed 11 tests. |
+| AC14 | DONE | [manual-verification-evidence.md](manual-verification-evidence.md) records successful local announce and scrape interactions. |
+| AC15 | DONE | This acceptance review maps each criterion to its final issue-local evidence. |
+| AC16 | DONE | Final evidence, manual verification, acceptance rows, and EPIC coverage tables were updated; no repository-wide guidance change is justified. |
 
 ## Risks and Trade-offs
 
@@ -609,7 +618,9 @@ and why any non-Rust implementation is justified.
 After implementation, compare the result with this specification. Record invalidated assumptions,
 material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not created. T7 found documentation-state omissions that its required
+  reconciliation caught and repaired; no material design discovery, queue change, or reusable
+  lesson beyond the existing reconciliation guidance was produced.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
   if this issue produces material design discoveries, changes the approved queue, or creates
   reusable lessons beyond `lessons.md`.
