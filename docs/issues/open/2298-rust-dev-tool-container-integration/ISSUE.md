@@ -9,7 +9,7 @@ github-issue: 2298
 spec-path: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
 branch: "2298-rust-dev-tool-container-integration"
 related-pr: 2293
-last-updated-utc: "2026-09-29 18:50"
+last-updated-utc: "2026-09-30 11:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,6 +26,8 @@ semantic-links:
     - docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md
     - docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md
 ---
+
+  <!-- markdownlint-disable MD003 -->
 
 # Issue #2298 - Eliminate Manual Container Integration for Rust Developer Tools
 
@@ -173,7 +175,7 @@ network-lifetime behavior.
   `cargo metadata` (build context), while only `default-members` are compiled and tested inside the
   image.
 - Positive lists are preferred over negative lists wherever content enters the container.
-- The first vertical slice adds one disposable package and demonstrates a passing container build
+- The first vertical slice adds one disposable lib+bin package and demonstrates archive inclusion
   with no `Containerfile` change (M2) and exclusion from the archive when it is not a default
   member (M3).
 
@@ -536,6 +538,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   re-exclusions with `**/AGENTS.md` and `**/docs/` after confirming no build or test reads them.
   Also noted in the EPIC #2003 draft that `github-review-threads` embeds a `.github/skills/` file
   via `include_str!`.
+- 2026-09-30 11:18 UTC - GitHub Copilot - Re-ran M2 with the probe expanded to a library, default
+  binary, and additional binary. The `test_debug` archive ran all three probe tests before an
+  unrelated `axum-http-server` listener test failed (210/1141 passed); target inclusion is proven,
+  but M2 remains in progress pending a clean full test stage.
 
 ## Acceptance Criteria
 
@@ -578,7 +584,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Reproduce current failure | On the pre-change `Containerfile`, add a disposable workspace member without recipe entries; `docker build --target recipe --file Containerfile .` | `cargo chef prepare` fails with the `cargo metadata` missing-manifest diagnostic. | DONE | `manual-verification-evidence.md#V5` |
-| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | DONE | `manual-verification-evidence.md#V5` (1122 tests / 39 binaries) |
+| M2 | New package needs no container edit | On the new `Containerfile`, add a disposable lib+bin package under `packages/`, register it as a member and default member; build `recipe` and `test_debug`. | Both targets pass with no `Containerfile` or `.dockerignore` edit; archive contains the package only because it is a default member. | IN PROGRESS | `manual-verification-evidence.md#V5` (corrected lib+bin probe: 3 target tests passed; full suite stopped on an unrelated failure) |
 | M3 | Developer-only member stays out | Add the disposable package as a member but not a default member. | `recipe` passes; `test_debug` archive does not contain its tests; runtime image unchanged. | DONE | `manual-verification-evidence.md#V5` (1121 tests / 38 binaries) |
 | M4 | Hosted container workflow | Push the implementation to a fork PR. | Container workflow passes on the self-hosted runner. | TODO | `manual-verification-evidence.md#V6` |
 | M5 | Warm cache, source-only change | Warm build; edit one `.rs` file; rebuild `--target test_debug`. Run on baseline and new `Containerfile`. | All cook stages `CACHED`; only build stages rerun. Record wall time. | DONE | `manual-verification-evidence.md#V1`, `#V2` |

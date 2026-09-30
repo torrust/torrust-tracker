@@ -1,8 +1,9 @@
----
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-last-updated-utc: 2026-09-29 18:45
+last-updated-utc: 2026-09-30 11:18
 ---
+
+<!-- markdownlint-disable MD003 -->
 
 # Manual Verification Evidence
 
@@ -14,7 +15,7 @@ do not invent commands, output, logs, or results.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-09-29 16:15 to 19:30
+- Date and time (UTC): 2026-09-29 16:15 to 2026-09-30 11:18
 - Artifact under test: branch `2298-rust-dev-tool-container-integration`, patches
   `docs(issues): [#2298] record root causes and selected container design` plus the working-tree
   changes to `Containerfile`, `.dockerignore`, and `Cargo.toml` (D1, D3, D4). Baseline runs used
@@ -189,11 +190,14 @@ expected tracker binaries plus the intentionally included BusyBox links and `su-
 
 - Goal: prove the old failure mode, prove a new package needs no container edit, prove the positive
   list controls archive scope, and prove the build context contains only allow-listed paths.
-- Initial state: a disposable library crate `packages/container-build-probe` (no dependencies,
-  one unit test for M2/M3). M1 ran in a temporary detached `develop` worktree
-  (`bc90cde1b`); M2, M3, and M7 ran on this branch. The probe was removed after each run and left
-  no tracked change.
-- Status: `DONE`
+- Initial state: a disposable mixed-target crate `packages/container-build-probe` (no
+  dependencies; a library, default binary, additional binary, example, and benchmark). The three
+  testable targets each have one unit test. M1 ran in a temporary detached `develop` worktree
+  (`bc90cde1b`); M2, M3, and M7 ran on this branch. The probe was removed after each completed
+  run and left no tracked change. The corrective M2 rerun is still present pending its clean
+  container test result.
+- Status: `IN PROGRESS` (M1, M3, and M7 complete; corrected M2 target inclusion demonstrated,
+  but the full test stage has an unrelated failure)
 
 #### Steps Performed
 
@@ -201,8 +205,10 @@ expected tracker binaries plus the intentionally included BusyBox links and `su-
    without touching `Containerfile` or `.dockerignore`;
    `docker build --target recipe --file Containerfile .` (`m1-baseline-missing-member.log`).
 2. M2: on this branch, added the probe to `members` and `default-members` with no `Containerfile`
-   or `.dockerignore` edit; `docker build --target test_debug --file Containerfile .`
-   (`m2-default-member-probe.log`).
+  or `.dockerignore` edit; `docker build --target test_debug --file Containerfile .`
+  (`m2-default-member-probe.log`). The original run used a library-only probe. In the corrective
+  rerun, the lib+bin probe above was used with the same command
+  (`m2-mixed-target-probe.log`).
 3. M3: removed the probe from `default-members` only (still a member); rebuilt `test_debug`
    (`m3-non-default-member-probe.log`).
 4. Removed the probe; `git status` clean for `Cargo.toml` and `Cargo.lock`.
@@ -221,8 +227,18 @@ M1: ERROR: process "/bin/sh -c cargo chef prepare --recipe-path /build/recipe.js
     failed to read `/build/src/packages/container-build-probe/Cargo.toml`
     No such file or directory (os error 2)
 
-M2: Starting 1122 tests across 39 binaries
+M2 original library-only probe: Starting 1122 tests across 39 binaries
     Summary [   6.691s] 1122 tests run: 1122 passed, 0 skipped
+
+M2 corrected lib+bin probe: Starting 1141 tests across 41 binaries
+    container-build-probe tests::probe_library_target_is_tested: PASS
+    container-build-probe::bin/container-build-probe
+      tests::probe_default_binary_target_is_tested: PASS
+    container-build-probe::bin/probe_extra
+      tests::probe_extra_binary_target_is_tested: PASS
+    Summary [   3.309s] 211/1141 tests run: 210 passed, 1 failed, 0 skipped
+    Unrelated failure: torrust-tracker-axum-http-server
+      server::tests::it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails
 
 M3: Starting 1121 tests across 38 binaries
     Summary [   6.800s] 1121 tests run: 1121 passed, 0 skipped
@@ -236,14 +252,15 @@ M7 second probe, top level: .cargo Cargo.lock Cargo.toml console contrib package
 
 #### Conclusion
 
-All four scenarios met. M1 reproduces the original bug on the baseline with Cargo's own
-diagnostic. M2 shows a new product package enters the container archive with no `Containerfile` or
-`.dockerignore` change (one more test, one more binary). M3 shows `default-members` alone controls
-archive scope. M7 shows the context is limited to the allow-list; the probe caught nested agent
-and documentation files that the first allow-list version admitted, now re-excluded recursively.
-No Rust source lives under any `docs/` directory, no manifest references one, and no `.rs` file
-embeds or reads a `docs/` path or `AGENTS.md` in a default member, so the exclusion cannot break a
-build stage.
+M1, M3, and M7 met. M1 reproduces the original bug on the baseline with Cargo's own diagnostic.
+The corrected M2 run demonstrates that the archive includes the disposable library and both binary
+targets without a `Containerfile` or `.dockerignore` change. Its three probe tests passed before
+an unrelated `axum-http-server` listener test failed, so M2 remains in progress until a clean
+container test stage is observed. M3 shows `default-members` alone controls archive scope. M7
+shows the context is limited to the allow-list; the probe caught nested agent and documentation
+files that the first allow-list version admitted, now re-excluded recursively. No Rust source
+lives under any `docs/` directory, no manifest references one, and no `.rs` file embeds or reads a
+`docs/` path or `AGENTS.md` in a default member, so the exclusion cannot break a build stage.
 
 ### V6 - M4 hosted Container workflow
 
