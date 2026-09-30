@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md
 branch: "{issue-number}-2264-support-multiple-related-prs-in-issue-frontmatter"
 related-pr: null
-last-updated-utc: "2026-09-30 10:16"
+last-updated-utc: "2026-09-30 12:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
     - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
     - docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -121,5 +121,5 @@ field `null`, so a missing PR is common today.
   EPIC #2003)
 - v1 contract: `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/frontmatter-v1-contract.md`
 - Validator implementation: `docs/issues/closed/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md`
-- Motivating case: `docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md`
+- Motivating case: `docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md`
 - Directory naming (tagged segments pending): `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md`

@@ -3,10 +3,10 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/agent-review-reports.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/manual-verification-evidence.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/performance-evidence.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/agent-review-reports.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/manual-verification-evidence.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/performance-evidence.md
     - packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md
 ---
 

@@ -25,7 +25,7 @@ semantic-links:
 # Superseded Draft SI-9 — Split UDP Lifecycle Migration
 
 > **Status**: Superseded for implementation planning. [SI-14](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md)
-> replaces the UDP receive/reset-loop migration, followed by [SI-15](../../open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)
+> replaces the UDP receive/reset-loop migration, followed by [SI-15](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)
 > for the separate active-request policy change.
 >
 > **Retention**: This draft was never opened as a GitHub issue. It is kept only

@@ -102,7 +102,7 @@ each row.
 | UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
 | UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
 | UDP instances                 | N bindings  | Direct `JoinSet` | Child token              | SI-14 complete         |
-| UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain        | SI-15 (issue #2370)    |
+| UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain        | SI-15 complete         |
 | HTTP instances                | N bindings  | Direct `JoinSet` | Child token              | SI-11 complete         |
 | REST API                      | 0–1         | Direct `JoinSet` | Child token              | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |

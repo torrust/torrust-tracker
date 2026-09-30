@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
-issue-spec: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-last-updated-utc: "2026-09-30 07:27"
+issue-spec: docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+last-updated-utc: "2026-09-30 12:24"
 ---
 
 # UDP Performance Evidence
