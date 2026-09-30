@@ -133,5 +133,12 @@ Evidence:
 - Manual evidence: [manual-verification-evidence.md](manual-verification-evidence.md)
 - Benchmarks: [performance-evidence.md](performance-evidence.md)
 - ADR: [request-concurrency ADR](../../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
-- Commits: `484697a` (T1), `d1fe4d3` (T2), `de3b27f` (T3), `9fe13a9` (T4),
-  `c5b9b42` (T5), `6f4f641` (T6), `fc75038` (T7)
+- Commits (by subject; branch ids change on rebase):
+  - T1 `docs(udp-server): [#2370] record shutdown baseline`
+  - T2 `docs(adrs): [#2370] document UDP request concurrency`
+  - T3 `test(udp-server): [#2370] add request drain and orphan regression test`
+  - T4 `feat(udp-server): return a Result from UDP request processors`
+  - T5 `fix(udp-server): [#2370] own and drain UDP request processors on shutdown`
+  - T6 `docs(udp-server): [#2370] link the request drain to its ADR`
+  - T7 `docs(shutdown): [#2370] document owned and drained UDP request processors`
+  - T9 `test(udp-server): [#2370] prove the receive-error join and drain after a panic`

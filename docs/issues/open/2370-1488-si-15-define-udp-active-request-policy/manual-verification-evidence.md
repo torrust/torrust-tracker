@@ -125,7 +125,7 @@ as the deterministic guard.
 ## Shutdown Verification
 
 Environment: 2026-09-30 06:06-06:09 UTC, branch
-`2370-1488-si-15-define-udp-active-request-policy` at `fc750380`, release
+`2370-1488-si-15-define-udp-active-request-policy` at the T7 commit ("docs(shutdown): [#2370] document owned and drained UDP request processors"), release
 build of `torrust-tracker` and `tracker_client`, same machine and toolchain as
 above. M1-M3 use `.tmp/si15-t5-tracker.toml`, a temporary copy of
 [b0-tracker.toml](b0-tracker.toml) that only raises `trace_filter` to `info`.

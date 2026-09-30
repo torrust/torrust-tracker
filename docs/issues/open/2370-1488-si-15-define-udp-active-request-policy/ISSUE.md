@@ -545,7 +545,7 @@ Sign every commit with GPG and use the `udp-server` scope.
   - Component outcome: `udp_tracker::start_job` still maps `Ok(())` to `Cancelled` and a loop error or panic to a component error; its existing tests pass unchanged (AC9).
   - Semantic links: added `// ADR:` and `// issue: #2370` markers to `drain_request_processors`. The drain lives in `launcher.rs`, not a separate module, so these are item comments rather than `//!` module comments. Updated the ADR's Affected Code entry for `launcher.rs`, which still called the shutdown owner "future" wiring.
 - 2026-09-29 21:25 UTC - GitHub Copilot - Completed T7. Updated the shutdown task inventory, which now shows UDP request processors as loop-owned, joined, and drained within five seconds, with outcome counts. Also updated EPIC row 11's scope text; its status stays `Open` until close-out. The feature README describes the planned Q4 policy (a five-second UDP budget), which the implementation now meets, so it needed no change. Its overall `Status` section is stale across the whole EPIC and is left to the EPIC close-out.
-- 2026-09-30 06:10 UTC - GitHub Copilot - Completed T8 against release builds at `fc750380`.
+- 2026-09-30 06:10 UTC - GitHub Copilot - Completed T8 against release builds at the T7 commit.
   - M1 (idle): exit 0; the drain reported `active=1 completed=1`; the UDP instance completed after cooperative cancellation; rebind ok.
   - M2 (`SIGTERM` 10 s into an Aquatic load run, 85 evictions): exit 0; the drain reported `active=5 completed=5 failed=0 aborted=0 evicted=0`; in-process shutdown took 1.8 ms.
   - M3: an immediate restart rebinds and serves an announce.

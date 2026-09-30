@@ -20,7 +20,7 @@ semantic-links:
 
 - Invocation scope: Pre-PR task review of AC1-AC16, the generic criteria, D1-D9, and implementation
   constraints 1-9 for branch `2370-1488-si-15-define-udp-active-request-policy` (base `02c026c0`;
-  commits `484697a3` T1 through `fc750380` T7; uncommitted T8 evidence edits in `ISSUE.md` and
+  commits T1 "docs(udp-server): [#2370] record shutdown baseline" through T7 "docs(shutdown): [#2370] document owned and drained UDP request processors"; uncommitted T8 evidence edits in `ISSUE.md` and
   `manual-verification-evidence.md`). Changed code: `launcher.rs`, `processor.rs`,
   `request_buffer.rs`, and `Cargo.toml` (udp-server). Changed docs: new request-concurrency ADR,
   eviction ADR, ADR index, udp-server `README.md`, `task-inventory.md`, and EPIC row 11.
@@ -33,7 +33,7 @@ semantic-links:
   - `receive_loop_shutdown` and `request_drain` tests: 10 of 10 consecutive runs passed (7 tests).
   - `linter all`: exit `0`. Frontmatter validator on the issue folder, udp-server ADRs,
     shutdown feature docs, and EPIC folder: exit `0`. `linter lychee`: exit `0`.
-  - `.tmp/si15-pre-push.out` (written after `fc750380`): all pre-push checks passed.
+  - `.tmp/si15-pre-push.out` (written after the T7 commit): all pre-push checks passed.
   - `git log --format=%G?`: all seven commits signed. `0b870a68` (PR #2372, spec-only) is an
     ancestor of the base.
   - B0/B1/B2 means recomputed from the run tables: 159413.39, 164634.37, 167716.20.
@@ -134,7 +134,7 @@ semantic-links:
      inventory or ADR.
   8. Nit - `performance-evidence.md` repeats the shared-SQLite exclusion paragraph before the B0
      table and after "Result". Remove one copy.
-  9. Nit - Commit `9fe13a95` lacks the `[#2370]` reference, and the T2/T7 scopes (`adrs`,
+  9. Nit - Commit "feat(udp-server): return a Result from UDP request processors" lacks the `[#2370]` reference, and the T2/T7 scopes (`adrs`,
      `shutdown`) differ from the Commit Points instruction to use `udp-server`. Do not rewrite
      history; noted for consistency only.
   10. Nit - The map places the `run_udp_server_main` markers "at the processor spawn and drain
@@ -155,7 +155,7 @@ semantic-links:
 ### 2026-09-30 07:52 UTC - GitHub Copilot (Task Reviewer)
 
 - Invocation scope: Re-review of the 2026-09-30 06:21 UTC `REVIEW FAILED` report after the
-  implementer's fixes (progress-log entry 2026-09-30 07:27 UTC). Committed history up to `fc750380`
+  implementer's fixes (progress-log entry 2026-09-30 07:27 UTC). Committed history up to the T7 commit
   was reviewed earlier; this entry covers the uncommitted working tree: `launcher.rs`, the
   request-concurrency ADR, `task-inventory.md`, the SI-17 draft, `performance-evidence.md`,
   `ISSUE.md`, and the new `implementation-retrospective.md`.
