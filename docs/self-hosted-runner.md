@@ -48,7 +48,7 @@ default `docker` Buildx driver, keep host-side Cargo builds in
 | Traffic      | 20 TB outgoing per month included                                                       |
 | Price        | 69.49 EUR per month                                                                     |
 | Public IP    | Not recorded in this public repository; see the server in the Hetzner console           |
-| SSH          | Key only, as `root`, with the dedicated key from step 3                                 |
+| SSH          | Key only, as `root`, with the dedicated key from "Set Up SSH Key Login"                 |
 | Firewall     | `torrust-runner-ssh-only`: inbound TCP 22 only                                          |
 | OS           | Ubuntu 26.04.1 LTS                                                                      |
 | Docker       | Engine 29.8.1, Buildx 0.37.1, Compose 5.5.1                                             |
@@ -345,7 +345,7 @@ reports `runner_name` `torrust-runner-01` and passes.
 
 ### Check the Runner
 
-- Status and labels: the `gh api .../actions/runners` command in step 13.
+- Status and labels: the `gh api .../actions/runners` command in "Verify".
 - Service: `systemctl status actions.runner.torrust-torrust-tracker.torrust-runner-01.service`.
 - Out-of-memory kills: `journalctl -k | grep "Killed process"`.
 - Disk and cache: `df -h /` and `docker system df`.
@@ -366,10 +366,10 @@ publish jobs wait for `test`, so nothing is published until the job runs.
 
 ### Cache Cleanup
 
-The daily prune timer (step 10) bounds the Docker build cache. The host-side Cargo target
-directories under `/home/runner/.cache/torrust-tracker/` are not pruned; if they grow too large,
-delete them (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is running. The
-next job rebuilds them.
+The daily prune timer ("Prune Docker Storage Daily") bounds the Docker build cache. The host-side
+Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned; if they grow
+too large, delete them (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is
+running. The next job rebuilds them.
 
 ### Runner Agent Updates
 
@@ -381,8 +381,9 @@ current version in the service log (`Current runner version`) or the runners API
 Rebuild the server regularly (for example monthly) and immediately on any suspicion of compromise,
 so an implant does not survive:
 
-1. Create a new server and repeat steps 2 to 13 with a new runner name (for example
-   `torrust-runner-02`) and the same `torrust-hetzner` label.
+1. Create a new server and follow [Set Up a New Runner](#set-up-a-new-runner) from "Create the
+   Server" through "Verify", with a new runner name (for example `torrust-runner-02`) and the same
+   `torrust-hetzner` label.
 2. When the new runner is online, remove the old registration:
    `gh api repos/torrust/torrust-tracker/actions/runners -q '.runners[] | "\(.id) \(.name)"'`,
    then `gh api -X DELETE repos/torrust/torrust-tracker/actions/runners/<runner-id>`.
@@ -397,7 +398,8 @@ Only if measured queue time shows pull requests waiting for the runner. The deci
 runner, and when to recheck it, is recorded in the
 [capacity specification](issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md).
 
-Add capacity as a **second server** with one runner instance: repeat steps 2 to 13 with a new
+Add capacity as a **second server** with one runner instance: follow
+[Set Up a New Runner](#set-up-a-new-runner) from "Create the Server" through "Verify", with a new
 runner name and the same `torrust-hetzner` label. Do not add a second instance on the same server:
 concurrent jobs on one Docker host collide on the E2E tests' fixed host ports, share the
 `torrust-tracker:local` image tag (a job can test another job's image), and share the Cargo target
