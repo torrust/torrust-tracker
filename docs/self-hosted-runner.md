@@ -277,9 +277,11 @@ server# swapon --show
 
 ### 10. Prune Docker Storage Daily
 
-The jobs keep Docker layers and BuildKit cache mounts on local disk. A daily timer caps the build
-cache at 120 GB and removes stale containers, images, and anonymous volumes; in-use cache and
-running containers are never removed.
+The jobs keep Docker layers and BuildKit cache mounts on local disk. A daily timer trims the build
+cache to 120 GiB (`docker system df` shows about 128.8 GB) and removes stale containers, images,
+and anonymous volumes; in-use cache and running containers are never removed. The trim runs once
+a day, so on busy days the cache grows well past it before the next run: on 2026-09-30 it reached
+187.6 GB (71% of the disk) by 10:30 UTC. The disk is sized to absorb that.
 
 ```bash
 server# printf '%s\n' '[Unit]' 'Description=Prune Docker build cache and unused objects for the CI runner' '' '[Service]' 'Type=oneshot' 'ExecStart=/usr/bin/docker builder prune --force --max-used-space 120GB' 'ExecStart=/usr/bin/docker container prune --force --filter until=24h' 'ExecStart=/usr/bin/docker image prune --force --filter until=168h' 'ExecStart=/usr/bin/docker volume prune --force' > /etc/systemd/system/docker-ci-prune.service
@@ -366,7 +368,9 @@ publish jobs wait for `test`, so nothing is published until the job runs.
 
 ### Cache Cleanup
 
-The daily prune timer ("Prune Docker Storage Daily") bounds the Docker build cache. The host-side
+The daily prune timer ("Prune Docker Storage Daily") trims the Docker build cache to 120 GiB once
+a day. To trim it earlier, run the timer's service: `systemctl start docker-ci-prune.service`. It
+only removes cache that no build is using, but run it while the runner is idle. The host-side
 Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned; if they grow
 too large, delete them (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is
 running. The next job rebuilds them.
