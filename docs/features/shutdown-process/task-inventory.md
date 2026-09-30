@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-29
+last-updated-utc: 2026-09-30
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -165,7 +165,10 @@ each row.
   `completed`, `failed`, `aborted`, and `evicted` counts. A receive error
   aborts and joins every processor before returning. The socket `Arc` clones
   held by processors are therefore released before the loop returns (issue
-  #2370). The package-local
+  #2370). In the summary, the drain-start `active` count includes finished
+  processors not yet reaped, and `evicted` counts only overload evictions not
+  yet reaped at shutdown; `aborting request` warnings report all evictions.
+  The package-local
   [request-concurrency ADR](../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
   records the admission, eviction, and ownership design.
 - **HTTP and REST drain controllers** — each token-aware server spawns a

@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-29 21:25"
+last-updated-utc: "2026-09-30 07:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -467,8 +467,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Wire the drain into the receive loop, green regression, and benchmark B2 | The receive loop spawns every processor into a loop-owned `JoinSet<Result<(), ProcessorError>>`, passes the `AbortHandle` to the unchanged `force_push`, and reaps finished tasks with `try_join_next` before each spawn. On cancellation it drains with the private 5-second `REQUEST_DRAIN_DEADLINE` and logs the D4 summary: `warn` if any processor failed or was aborted, otherwise `info`. On a receive error it calls `JoinSet::shutdown` before returning the original error. The deadline is injected through the package-private `start_receive_loop_with_request_drain_deadline`, and production passes the constant. Regression is green 10 of 10 runs and mutation-proven; a companion test proves a released processor answers before the loop returns. B2 mean 167716.20 responses/s passes AC11. The T1 artifact recheck drained `completed=6` after 408 evictions. |
 | T6 | DONE | Review the first passing vertical slice | No ownership, drop-path, receive-error, log-level, or component-outcome correction needed. Two semantic-link corrections were committed: ADR/issue markers on the drain primitive, and the ADR's Affected Code entry, which no longer calls the shutdown owner "future". |
 | T7 | DONE | Update shutdown documentation | `task-inventory.md`: the ownership tree, flowchart, overview row, UDP-instance and request-processor notes, and finding 7 now describe the loop-owned `JoinSet` and the five-second drain. EPIC row 11 now names the delivered scope; it stays `Open` until close-out. The feature README only restates the Q4 five-second UDP budget, which the implementation now matches, so it is unchanged. |
-| T8 | TODO | Executable-boundary verification | M1-M4 in `manual-verification-evidence.md`. |
-| T9 | TODO | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; retrospective decision recorded. |
+| T8 | DONE | Executable-boundary verification | M1-M4 recorded in `manual-verification-evidence.md`: every run exits 0 with a reconciled drain summary and immediate rebind; M4 records the known SI-17 panic. |
+| T9 | DONE | Acceptance and completion review | Independent Task Reviewer reports in `agent-review-reports.md`; findings 1-8 and 11-13 resolved, 9-10 accepted; retrospective recorded. Final re-review (07:58 UTC): `REVIEW PASSED`. |
 
 ## Commit Points
 
@@ -499,14 +499,14 @@ Sign every commit with GPG and use the `udp-server` scope.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2370 created, linked as a sub-issue of EPIC #1488, and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -545,30 +545,56 @@ Sign every commit with GPG and use the `udp-server` scope.
   - Component outcome: `udp_tracker::start_job` still maps `Ok(())` to `Cancelled` and a loop error or panic to a component error; its existing tests pass unchanged (AC9).
   - Semantic links: added `// ADR:` and `// issue: #2370` markers to `drain_request_processors`. The drain lives in `launcher.rs`, not a separate module, so these are item comments rather than `//!` module comments. Updated the ADR's Affected Code entry for `launcher.rs`, which still called the shutdown owner "future" wiring.
 - 2026-09-29 21:25 UTC - GitHub Copilot - Completed T7. Updated the shutdown task inventory, which now shows UDP request processors as loop-owned, joined, and drained within five seconds, with outcome counts. Also updated EPIC row 11's scope text; its status stays `Open` until close-out. The feature README describes the planned Q4 policy (a five-second UDP budget), which the implementation now meets, so it needed no change. Its overall `Status` section is stale across the whole EPIC and is left to the EPIC close-out.
+- 2026-09-30 06:10 UTC - GitHub Copilot - Completed T8 against release builds at `fc750380`.
+  - M1 (idle): exit 0; the drain reported `active=1 completed=1`; the UDP instance completed after cooperative cancellation; rebind ok.
+  - M2 (`SIGTERM` 10 s into an Aquatic load run, 85 evictions): exit 0; the drain reported `active=5 completed=5 failed=0 aborted=0 evicted=0`; in-process shutdown took 1.8 ms.
+  - M3: an immediate restart rebinds and serves an announce.
+  - M4: the standalone example serves, then exits 101 on `SIGINT` with the known SI-17 panic, unchanged.
+  - Harness error: M3's first attempt failed because the load generator still ran after the restart, and its stale cookies got 127.0.0.1 IP-banned. Diagnosed, recorded, and rerun with the generator stopped first.
+- 2026-09-30 06:20 UTC - GitHub Copilot (Task Reviewer) - Independent T9 review recorded in `agent-review-reports.md`: `REVIEW FAILED`. Verified and ticked AC1-AC11, AC13, AC14, and AC16. AC12 (receive-error join untested and undocumented) and AC15 (ADR omits the orphaned-handle trade-off) stay `PENDING`; the completion review is not yet recorded. No production or test code changed.
+- 2026-09-30 07:27 UTC - GitHub Copilot - Addressed the T9 review findings; re-review pending.
+  - F1: added `implementation-retrospective.md`.
+  - F2: extracted the receive-error branch into `join_request_processors_after_receive_error` and added `it_should_join_every_processor_before_returning_the_receive_error`. A real receive error cannot be produced reliably on loopback, and D9 forbids production hooks. Replacing `shutdown` with `abort_all` makes the test fail (`running` 1).
+  - F4: the panic test now uses a `oneshot`, so the surviving processor finishes only after the panic. A drain that stops after a panic fails it with `completed: 0`. The mutation was proven on the helper form; the panicking processor was then inlined to satisfy the conflicting `unused_async` and `manual_async_fn` lints, with unchanged semantics.
+  - F3: the ADR now describes `force_push` precisely, adds Known Trade-offs (inexact bound, up to 48 dropped live handles, summary snapshot semantics), and hyperlinks issues #566, #611, #918, and #2149.
+  - F5: the D9 deviation (real-time loopback collaboration tests with a 100 ms injected deadline; counts asserted only in paused-time unit tests) is recorded in the retrospective.
+  - F6: noted for SI-17: the test `Environment` stop bound (5 s) equals `REQUEST_DRAIN_DEADLINE`, so a stuck processor would hit the stop panic before the drain aborts it.
+  - F7: the task inventory explains the `active` and `evicted` snapshot semantics.
+  - F8: removed the duplicated B0 paragraph.
+  - F9 and F10 need no change; history is not rewritten.
+  - Validation: `cargo test -p torrust-tracker-udp-server --lib` 191 passed; `linter clippy`.
+- 2026-09-30 07:52 UTC - GitHub Copilot (Task Reviewer) - Re-review recorded in `agent-review-reports.md`: `REVIEW FAILED`. Findings 1-8 resolved; 9-10 accepted. Reviewer mutations confirmed the receive-error join and the drain-after-panic tests; the receive-error wiring is guarded by the non-test build (`dead_code`). Ticked AC12, AC15, the re-review criterion, and the completion-review checkpoint. New finding 11 blocks T9: no prose-first Arrange-Act-Assert evidence for the two changed tests. Nits 12-13 are optional. No production or test code changed.
+- 2026-09-30 07:56 UTC - GitHub Copilot - Addressed re-review findings 11-13; final re-review pending.
+  - F11, prose-first review of `it_should_count_failed_processors_and_keep_draining_the_rest`. Prose: "Given a failing processor, a panicking processor, and a processor that finishes only after the panic, when the drain runs, then it counts one completion and two failures." The Arrange shows those three processors directly. Its one comment stays because the causal state is the ordering: the `oneshot` is what forces the drain past the panic, and the spawn lines alone do not show that. The Act is the visible `drain_request_processors` call. The Assert is an independently written `RequestDrainOutcome`.
+  - F11, prose-first review of `it_should_join_every_processor_before_returning_the_receive_error`. Prose: "Given a processor that never finishes, when the receive-error path runs, then the error is handed back unchanged and no processor is still running." The Arrange's causal state is the pending processor counted by `RunningProcessor::start`. The Act is the visible `join_request_processors_after_receive_error` call with a named error kind. The asserts state the error kind, a zero running count with a message, and an empty set. No comment is needed.
+  - F13: moved one `RunningProcessor` guard into the parent test module, with a `start` constructor that increments the counter. Both `request_drain` and `receive_loop_shutdown` use it, which removes `RunningHeldProcessor`.
+  - F12: refreshed `last-updated-utc` in the task inventory and the SI-17 draft.
+  - Validation: `cargo test -p torrust-tracker-udp-server --lib` 191 passed; `linter clippy`.
+- 2026-09-30 07:58 UTC - GitHub Copilot (Task Reviewer) - Final re-review recorded in `agent-review-reports.md`: `REVIEW PASSED`. Findings 11-13 resolved: the recorded prose matches both test bodies, and the shared `RunningProcessor` guard keeps the increment-before-`held.send` order and the receive-error counter at 1 while pending. A reviewer mutation (`abort_all` instead of `shutdown`) still fails the receive-error test; `launcher.rs` was restored and its diff is byte-identical. Set T9 to `DONE`. Issue closure stays open. No production or test code changed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every spawned UDP request processor is owned by the receive loop until it is joined or aborted, including processors whose abort handles the eviction ring drops.
-- [ ] AC2: On cancellation the receive loop stops admitting datagrams before the drain starts.
-- [ ] AC3: The drain waits up to the five-second request deadline; processors that finish in time are counted as `completed`.
-- [ ] AC4: Processors still running at the deadline are deliberately aborted, joined, and counted as `aborted`.
-- [ ] AC5: Panicked processors and processors returning `Err` are counted as `failed` and logged; the drain continues and joins every remaining processor.
-- [ ] AC6: Processors aborted earlier by overload eviction are counted as `evicted`, never as `aborted`.
-- [ ] AC7: On cancellation or a receive error, the receive loop returns only after every processor is joined, and the UDP socket is released when it returns.
-- [ ] AC8: One `tracing` summary reports `completed`, `failed`, `aborted`, `evicted`, and elapsed time; no metrics or domain events are added.
-- [ ] AC9: The UDP component reports `Cancelled` after a drain that finishes within its deadline; a receive-loop error still fails it.
-- [ ] AC10: `ActiveRequests::force_push` eviction behavior is unchanged and its existing tests pass without modification.
-- [ ] AC11: At each D6 checkpoint, the mean UDP throughput is not below the lowest run of the checkpoint it is compared with (B1 against B0; B2 against B1 and B0) on the same machine and settings; any drop below it is investigated and explained to the maintainer before continuing.
-- [ ] AC12: Deterministic tests cover AC3-AC7 without OS signals, real sleeps, or network dependencies.
-- [ ] AC13: Manual SIGTERM verification under UDP traffic records the `main()` signal event, the drain summary, a clean exit, and immediate UDP rebind.
-- [ ] AC14: `Processor::process_request` returns `Result<(), ProcessorError>`; encode and send failures are `Err`, and handled requests, including UDP error responses, are `Ok(())`.
-- [ ] AC15: A package-local ADR records the UDP request-handling design, its history and evidence, the SI-15 ownership split, every alternative with its evaluation status, and re-evaluation triggers; it is registered in the package ADR index and linked from the eviction ADR.
-- [ ] AC16: Every link in the Semantic Link Map exists in both directions where the map specifies it, and the frontmatter validator and `linter lychee` pass.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflow changes.
+- [x] AC1: Every spawned UDP request processor is owned by the receive loop until it is joined or aborted, including processors whose abort handles the eviction ring drops.
+- [x] AC2: On cancellation the receive loop stops admitting datagrams before the drain starts.
+- [x] AC3: The drain waits up to the five-second request deadline; processors that finish in time are counted as `completed`.
+- [x] AC4: Processors still running at the deadline are deliberately aborted, joined, and counted as `aborted`.
+- [x] AC5: Panicked processors and processors returning `Err` are counted as `failed` and logged; the drain continues and joins every remaining processor.
+- [x] AC6: Processors aborted earlier by overload eviction are counted as `evicted`, never as `aborted`.
+- [x] AC7: On cancellation or a receive error, the receive loop returns only after every processor is joined, and the UDP socket is released when it returns.
+- [x] AC8: One `tracing` summary reports `completed`, `failed`, `aborted`, `evicted`, and elapsed time; no metrics or domain events are added.
+- [x] AC9: The UDP component reports `Cancelled` after a drain that finishes within its deadline; a receive-loop error still fails it.
+- [x] AC10: `ActiveRequests::force_push` eviction behavior is unchanged and its existing tests pass without modification.
+- [x] AC11: At each D6 checkpoint, the mean UDP throughput is not below the lowest run of the checkpoint it is compared with (B1 against B0; B2 against B1 and B0) on the same machine and settings; any drop below it is investigated and explained to the maintainer before continuing.
+- [x] AC12: Deterministic tests cover AC3-AC7 without OS signals, real sleeps, or network dependencies.
+- [x] AC13: Manual SIGTERM verification under UDP traffic records the `main()` signal event, the drain summary, a clean exit, and immediate UDP rebind.
+- [x] AC14: `Processor::process_request` returns `Result<(), ProcessorError>`; encode and send failures are `Err`, and handled requests, including UDP error responses, are `Ok(())`.
+- [x] AC15: A package-local ADR records the UDP request-handling design, its history and evidence, the SI-15 ownership split, every alternative with its evaluation status, and re-evaluation triggers; it is registered in the package ADR index and linked from the eviction ADR.
+- [x] AC16: Every link in the Semantic Link Map exists in both directions where the map specifies it, and the frontmatter validator and `linter lychee` pass.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflow changes.
 
 ## Verification Plan
 
@@ -592,11 +618,11 @@ is released. Record everything in issue-local `manual-verification-evidence.md`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Idle UDP shutdown | Start `target/release/torrust-tracker` with one UDP binding, confirm readiness with `tracker_client udp announce`, wait for the request to finish, then send `SIGTERM` to the binary PID. | The drain summary reconciles every processor observed at shutdown; it may count the completed readiness request if no later datagram reaped it. The component reports `Cancelled`; exit `0`. | TODO | `manual-verification-evidence.md` M1 |
-| M2 | Shutdown under UDP load | Run `aquatic_udp_load_test` against the tracker, send `SIGTERM` to the binary PID during the run, and capture bounded exit and logs. | `main()` logs the signal; the summary reports non-zero processors and reconciles its counts; the process exits within the drain deadline plus shutdown overhead. | TODO | `manual-verification-evidence.md` M2 |
-| M3 | Listener release | Restart the same configuration immediately after M2 and announce again. | The UDP socket rebinds immediately and serves the announce. | TODO | `manual-verification-evidence.md` M3 |
-| M4 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops; any stop delay is bounded by the drain deadline. The known SI-17 Ctrl-C panic is recorded, not fixed. | TODO | `manual-verification-evidence.md` M4 |
-| M5 | UDP throughput checkpoints | Follow the UDP load test in `docs/benchmarking.md` with the release build and one saved `aquatic_udp_load_test` config. Run it five times at each D6 checkpoint: B0 (T1), B1 (T4), B2 (T5), on the same machine. | Each checkpoint satisfies AC11. | TODO | `performance-evidence.md` |
+| M1 | Idle UDP shutdown | Start `target/release/torrust-tracker` with one UDP binding, confirm readiness with `tracker_client udp announce`, wait for the request to finish, then send `SIGTERM` to the binary PID. | The drain summary reconciles every processor observed at shutdown; it may count the completed readiness request if no later datagram reaped it. The component reports `Cancelled`; exit `0`. | DONE | `manual-verification-evidence.md` M1 |
+| M2 | Shutdown under UDP load | Run `aquatic_udp_load_test` against the tracker, send `SIGTERM` to the binary PID during the run, and capture bounded exit and logs. | `main()` logs the signal; the summary reports non-zero processors and reconciles its counts; the process exits within the drain deadline plus shutdown overhead. | DONE | `manual-verification-evidence.md` M2 |
+| M3 | Listener release | Restart the same configuration immediately after M2 and announce again. | The UDP socket rebinds immediately and serves the announce. | DONE | `manual-verification-evidence.md` M3 |
+| M4 | Legacy UDP lifecycle | Run the standalone UDP example or environment start/stop path. | It starts, serves, and stops; any stop delay is bounded by the drain deadline. The known SI-17 Ctrl-C panic is recorded, not fixed. | DONE | `manual-verification-evidence.md` M4 |
+| M5 | UDP throughput checkpoints | Follow the UDP load test in `docs/benchmarking.md` with the release build and one saved `aquatic_udp_load_test` config. Run it five times at each D6 checkpoint: B0 (T1), B1 (T4), B2 (T5), on the same machine. | Each checkpoint satisfies AC11. | DONE | `performance-evidence.md` |
 
 Deadline aborts cannot be produced reliably from outside the release binary,
 because real processors finish in microseconds and SI-15 adds no production
@@ -613,22 +639,22 @@ in this issue directory and record why a maintained Rust test cannot cover it.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | T3 red and T5 green orphaned-processor regression test |
-| AC2 | TODO | T5 receive-loop test; SI-14 admission tests |
-| AC3 | TODO | T3 completion test |
-| AC4 | TODO | T3 deadline-abort test; T5 gated real-processor deadline test |
-| AC5 | TODO | T3 panic and `Err` tests; D4 log review |
-| AC6 | TODO | T3 pre-aborted-task test |
-| AC7 | TODO | T5 loop-return and socket-release tests |
-| AC8 | TODO | Code review; M1-M2 logs |
-| AC9 | TODO | `udp_tracker` component outcome tests; M1 |
-| AC10 | TODO | No diff to the `force_push` decision; `request_buffer` tests pass unmodified |
-| AC11 | TODO | `performance-evidence.md` B0, B1, B2 |
-| AC12 | TODO | T3-T5 test review |
-| AC13 | TODO | `manual-verification-evidence.md` M1-M3 |
-| AC14 | TODO | T4 processor tests |
-| AC15 | TODO | T2 ADR and index row |
-| AC16 | TODO | T2 and T6 link review; validator and `linter lychee` output |
+| AC1 | DONE | Every spawn goes through the loop-owned `JoinSet` (`launcher.rs` `processors.spawn`); regression test `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` red 48 orphans before T5, green 10/10 on reviewer re-run, mutation-proven (V2) |
+| AC2 | DONE | `biased` `select!` drains inside the cancelled branch, so the receiver is never polled again; SI-14 token-stop tests pass |
+| AC3 | DONE | `it_should_count_processors_that_finish_before_the_deadline_as_completed` (paused time); `it_should_let_an_accepted_request_finish_and_answer_before_returning_on_cancellation` |
+| AC4 | DONE | `it_should_abort_and_join_processors_still_running_at_the_deadline`; orphan regression test with a never-released gate and 100 ms deadline ends with 0 running processors |
+| AC5 | DONE | `it_should_count_failed_processors_and_keep_draining_the_rest` orders the `Ok` processor after the panic with a `oneshot`; reviewer mutation (break after a panic) fails it with `completed: 0`; panic `error` and processor-level `warn`/`error` reviewed |
+| AC6 | DONE | `it_should_count_a_processor_aborted_before_the_drain_as_evicted`; deadline path reaps finished tasks before `abort_all` |
+| AC7 | DONE | Cancellation: regression test asserts 0 running, `Ok(())`, and bindable socket. Receive error: `it_should_join_every_processor_before_returning_the_receive_error` on `join_request_processors_after_receive_error`; reviewer mutation `abort_all` fails it (`running` 1); bypassing the helper fails the non-test build (`dead_code`) |
+| AC8 | DONE | One summary with all four counters and `elapsed`; diff adds no `Event` variant or metric; M1-M2 logs |
+| AC9 | DONE | `src/bootstrap/jobs/udp_tracker.rs` unchanged; `cargo test -p torrust-tracker --lib udp` 12 passed; M1-M2 log cooperative cancellation |
+| AC10 | DONE | `request_buffer.rs` diff is only `ACTIVE_REQUESTS_CAPACITY` (still 50) and link comments; its tests are unmodified and pass |
+| AC11 | DONE | B0 mean 159413.39, lowest 152965.92; B1 mean 164634.37, lowest 163440.01; B2 mean 167716.20; means recomputed by reviewer |
+| AC12 | DONE | AC3-AC6 and both AC7 paths covered by paused-time unit tests or gate-decided loopback tests; no OS signals or external network; D9 real-time deviation recorded in `implementation-retrospective.md` |
+| AC13 | DONE | M2 records `SIGTERM` log, drain summary `active=5 completed=5`, exit 0; M3 immediate rebind and announce |
+| AC14 | DONE | `ProcessorError::{EncodeResponse, SendResponse}`; processor tests assert `Ok` for discarded and error-response requests and `SendResponse` for an unreachable IPv6 client |
+| AC15 | DONE | ADR, index row, and eviction-ADR link exist; Agreement 2 matches `force_push`; Known Trade-offs records the inexact bound, up to 48 dropped live handles, the `JoinSet` ownership split, and snapshot counts; history issues hyperlinked |
+| AC16 | DONE | Every map entry present (drain uses item-level `// ADR:`/`// issue:` markers, accepted); frontmatter validator and `linter lychee` exit 0 on reviewer re-run |
 
 ## Dependencies
 
@@ -672,7 +698,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`.
+- Retrospective: recorded in [implementation-retrospective.md](implementation-retrospective.md).
 - Create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` for reusable lessons or
   material deviations; otherwise record why none is needed in the progress log.

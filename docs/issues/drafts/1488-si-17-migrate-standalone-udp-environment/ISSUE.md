@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "1488-si-17-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-09-29 11:56"
+last-updated-utc: "2026-09-30 07:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,6 +71,13 @@ FailedToStartOrStopServer("Normal")`, identically on `develop` before SI-14.
 global OS-signal branch; the launcher stops first, so the environment's later
 `Server::stop()` cannot send its halt message. Moving the example to the
 token-aware path removes the second listener and must make this stop clean.
+
+After SI-15 (#2370), the receive loop drains request processors for up to
+five seconds (`REQUEST_DRAIN_DEADLINE`) before returning. The testing
+`Environment` stop bound, `DEFAULT_SERVER_LIFECYCLE_TIMEOUT`, is also five
+seconds, so a processor stuck until the drain deadline would hit the
+environment's stop panic first. When migrating, give the environment a stop
+bound above the drain deadline, or derive it from that deadline.
 
 ## Scope
 

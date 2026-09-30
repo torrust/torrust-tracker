@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-last-updated-utc: "2026-09-29 21:12"
+last-updated-utc: "2026-09-30 06:10"
 ---
 
 # Manual Verification Evidence
@@ -124,9 +124,106 @@ as the deterministic guard.
 
 ## Shutdown Verification
 
-Record M1-M4 after implementation, including direct binary PID, command output,
-relevant logs, bounded exit status, and listener rebind evidence.
+Environment: 2026-09-30 06:06-06:09 UTC, branch
+`2370-1488-si-15-define-udp-active-request-policy` at `fc750380`, release
+build of `torrust-tracker` and `tracker_client`, same machine and toolchain as
+above. M1-M3 use `.tmp/si15-t5-tracker.toml`, a temporary copy of
+[b0-tracker.toml](b0-tracker.toml) that only raises `trace_filter` to `info`.
+Every scenario signals the direct binary PID. The wait is bounded with
+`timeout 15 tail --pid=<pid> -f /dev/null`, and the exit status comes from
+`wait`. The external stop times include up to about one second of `tail --pid`
+polling. The in-process log timestamps give the real shutdown duration.
+
+### M1 - Idle UDP Shutdown
+
+- Status: `DONE`
+- Steps: started the tracker; `tracker_client udp announce 127.0.0.1:3000
+  9c38422213e30bff212b30bbe7fb2a0abfabad49` returned exit 0 with an
+  `AnnounceIpv4` response. After one second, sent `SIGTERM` to the tracker PID.
+  After it exited, bound `0.0.0.0:3000` from a fresh process.
+
+```text
+tracker_rc=0 stop_ms=207
+06:06:25.694689Z INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+06:06:25.694762Z INFO UDP TRACKER: Draining UDP request processors local_addr="udp://0.0.0.0:3000" active=1 deadline=5s
+06:06:25.694816Z INFO UDP TRACKER: UDP request processors drained local_addr="udp://0.0.0.0:3000" completed=1 failed=0 aborted=0 evicted=0 elapsed=...
+INFO torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=udp_instance_0_0.0.0.0:3000
+06:06:25.694983Z INFO torrust_tracker: Torrust tracker successfully shutdown.
+rebind ok
+```
+
+The summary reconciles: the one processor found at shutdown is the completed
+readiness announce, which no later datagram had reaped. The component reports
+cooperative cancellation, and the process exits 0.
+
+### M2 - Shutdown Under UDP Load
+
+- Status: `DONE`
+- Steps: started the tracker; started `aquatic_udp_load_test -c
+  b0-load-test.toml` in the background; after 10 seconds, sent `SIGTERM` to the
+  tracker PID; after the tracker exited, stopped the load generator.
+
+```text
+tracker_rc=0 stop_ms=1108
+aborting request: (no finished tasks) count: 85
+06:08:30.618859Z INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+INFO UDP TRACKER: Draining UDP request processors local_addr="udp://0.0.0.0:3000" active=5 deadline=5s
+INFO UDP TRACKER: UDP request processors drained local_addr="udp://0.0.0.0:3000" completed=5 failed=0 aborted=0 evicted=0 elapsed=12.333µs
+INFO torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=udp_instance_0_0.0.0.0:3000
+06:08:30.620704Z INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+`main()` logged the signal. The drain found five live processors under load
+and joined all five as `completed`: 5 = 5 + 0 + 0 + 0. In-process shutdown
+took 1.8 ms, well within the five-second drain deadline. The 1108 ms external
+figure is `tail --pid` polling. No `aborted` count appeared, as expected,
+because real processors finish in microseconds (see AC4 note in the issue).
+
+### M3 - Listener Release
+
+- Status: `DONE`
+- Steps: right after M2's tracker exited and the load generator stopped,
+  started the same configuration, waited one second, and announced.
+
+```text
+INFO UDP TRACKER: Started on: udp://0.0.0.0:3000
+M3 announce_rc=0
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+INFO UDP TRACKER: UDP request processors drained local_addr="udp://0.0.0.0:3000" completed=1 failed=0 aborted=0 evicted=0 elapsed=1.442µs
+M3 tracker_rc=0
+```
+
+The socket rebinds immediately and serves the announce.
+
+### M4 - Legacy UDP Lifecycle
+
+- Status: `DONE` (known SI-17 panic recorded, not fixed)
+- Steps: built and ran `target/debug/examples/udp_only_public_tracker`
+  directly, announced to its printed address, then sent `SIGINT` to its PID.
+
+```text
+Listening on 127.0.0.1:53431
+announce_rc=0 (AnnounceIpv4 response)
+Shutting down...
+thread 'main' panicked at packages/udp-server/src/testing/environment.rs:214:14:
+Failed to stop the UDP tracker server: FailedToStartOrStopServer("Normal")
+example_rc=101 stop_ms=1108
+```
+
+The example starts and serves, and it stops within the bounded wait. The panic
+is the one the SI-17 draft already documents: "Ctrl-C panics with `Failed to
+stop the UDP tracker server: FailedToStartOrStopServer("Normal")`, identically
+on `develop` before SI-14". SI-15 does not change it.
 
 ## Failures and Follow-up
 
-Record failed or blocked scenarios, diagnosis, remediation, and rerun status.
+- M3, first attempt (2026-09-30 06:07 UTC): the announce timed out. The
+  restarted tracker had bound the socket and was receiving datagrams, but the
+  script stopped the load generator only after the restart. For about a second
+  it kept sending announces with connection cookies from the previous process.
+  The tracker logged 27 `ConnectionCookieError`s, which exceeds
+  `max_connection_id_errors_per_ip = 10`, so `127.0.0.1` was banned and the
+  verification announce was dropped. This was a harness-ordering error, not a
+  listener-release failure. The rerun above stops the load generator before
+  restarting and passes; M2 was rerun in the same script, and those results are
+  the ones recorded.

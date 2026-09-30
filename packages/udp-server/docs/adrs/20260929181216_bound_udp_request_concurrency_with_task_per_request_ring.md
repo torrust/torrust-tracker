@@ -43,9 +43,12 @@ design, its evidence, and when it should be reconsidered.
 ## Agreement
 
 1. Spawn one lightweight Tokio processor task per accepted UDP request.
-2. Retain a fixed-capacity ring of processor `AbortHandle` values. A full ring
-   reclaims finished work when possible; otherwise it gives the oldest active
-   task one scheduler yield and aborts it if no earlier completion made space.
+2. Retain a fixed-capacity ring of processor `AbortHandle` values. When the
+   ring is full, `force_push` drains it oldest first, gives each still-active
+   task one scheduler yield, and counts tasks finished by then. If none had
+   finished before the first still-active task, it aborts that task. Otherwise
+   it re-inserts the last still-active handle it traversed and drops the
+   others (see [Known Trade-offs](#known-trade-offs)).
 3. Keep the normal path cheap: do not add locks, dynamic dispatch, per-request
    heap allocation beyond the spawned task, or latency measurement solely for
    overload control.
@@ -62,7 +65,7 @@ an intentional fairness opportunity, not a completion guarantee.
 ## History and Evidence
 
 - [PR #644](https://github.com/torrust/torrust-tracker/pull/644), implementing
-  issue #611, introduced concurrent UDP request tasks and the fixed 50-request
+  issue [#611](https://github.com/torrust/torrust-tracker/issues/611), introduced concurrent UDP request tasks and the fixed 50-request
   bound in commit `72c83485`.
 - Commit `9e01f7fa` corrected an earlier ring implementation that effectively
   handled one request at a time; its author noted that a vector could provide
@@ -70,13 +73,13 @@ an intentional fairness opportunity, not a completion guarantee.
 - [PR #873](https://github.com/torrust/torrust-tracker/pull/873), commit
   `84cc1a1d`, reimplemented request handling using a stream and the current
   `force_push` shape; its measurements improved average throughput.
-- Issue #566 discussed adapting concurrency from measured core latency.
-- Issue #918 observed real overload aborts and proposed a pending-request
+- Issue [#566](https://github.com/torrust/torrust-tracker/issues/566) discussed adapting concurrency from measured core latency.
+- Issue [#918](https://github.com/torrust/torrust-tracker/issues/918) observed real overload aborts and proposed a pending-request
   queue. [PR #921](https://github.com/torrust/torrust-tracker/pull/921)
   recorded the chosen eager-spawn and yield rationale.
 - [PR #922](https://github.com/torrust/torrust-tracker/pull/922) tried simpler
   eviction and cleanup separation; it regressed performance and was rejected.
-- Issue #2149 supplied focused request-buffer tests and the narrower eviction
+- Issue [#2149](https://github.com/torrust/torrust-tracker/issues/2149) supplied focused request-buffer tests and the narrower eviction
   ADR.
 
 ## Alternatives Considered
@@ -110,6 +113,29 @@ an intentional fairness opportunity, not a completion guarantee.
   a replacement ordering policy for oldest-first eviction.
 - **Fixed worker pool.** Avoids per-request spawn cost but risks head-of-line
   blocking and is a larger redesign.
+
+## Known Trade-offs
+
+- **The bound is not exact.** When a full ring reclaims finished tasks, it
+  keeps only the last still-active handle it traversed. With a capacity of 50,
+  up to 48 other live handles can be dropped. Their processors keep running
+  but are no longer visible to the ring. Overload eviction can then no longer
+  abort them, and more than 50 processors can run at once. Issue #2370
+  reproduced this with a deterministic receive-loop test.
+- **Accounting lives outside the ring.** After issue #2370 the receive loop's
+  `JoinSet` owns and joins every processor, including those whose ring handles
+  were dropped, so shutdown and socket release are exact. The ring's overload
+  decision is unchanged, so the concurrency bound during normal operation stays
+  approximate.
+- **Shutdown counts are a snapshot.** Finished processors are reaped from the
+  `JoinSet` before each spawn. The drain summary's `evicted` count therefore
+  covers only overload evictions not yet reaped when shutdown starts, not every
+  eviction during the process lifetime. The `aborting request` warning and the
+  `UdpRequestAborted` event report those.
+
+Making the bound exact, for example with a `JoinSet`-based or semaphore-based
+limit, is a change to this decision. It needs its own issue and before/after
+benchmark evidence.
 
 ## Consequences
 
