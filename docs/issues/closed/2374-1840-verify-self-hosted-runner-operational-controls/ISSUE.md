@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 1840
 github-issue: 2374
-spec-path: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
+spec-path: docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
 branch: "2374-1840-verify-self-hosted-runner-operational-controls"
 related-pr: 2379
-last-updated-utc: "2026-09-30 07:03"
+last-updated-utc: "2026-09-30 07:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,8 +19,8 @@ semantic-links:
     - docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md
     - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
     - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/manual-verification-evidence.md
-    - docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/manual-verification-evidence.md
-    - docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/agent-review-reports.md
+    - docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/manual-verification-evidence.md
+    - docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/agent-review-reports.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
 ---
@@ -216,7 +216,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -234,6 +234,7 @@ T3 does not depend on an outside contributor anymore, so all tasks can go in one
 - 2026-09-29 21:26 UTC - GitHub Copilot - Independent review clarified that the PR merge update observed `Test (Docker)`, while a later temporary branch push observed `Docker E2E`; recorded the reusable discovery in `implementation-retrospective.md` - this file
 - 2026-09-30 06:10 UTC - Task Reviewer - Final read-only review passed AC1-AC5; reviewer and committer checkpoints recorded, with GitHub issue closure and archive pending PR merge - current branch
 - 2026-09-30 07:03 UTC - GitHub Copilot - Addressed PR #2379 review: restored V1 status and evidence timestamp, added issue-local manual evidence and review report, linked the retrospective, recorded PR metadata, and narrowed the runner credential invariant - #2379
+- 2026-09-30 07:31 UTC - GitHub Copilot - PR #2379 merged and GitHub closed #2374; archived this completed specification with its evidence and review records - #2379
 
 ## Acceptance Criteria
 
