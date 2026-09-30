@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
-last-updated-utc: 2026-09-30 07:03
+issue-spec: docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md
+last-updated-utc: 2026-09-30 07:31
 semantic-links:
   related-artifacts:
     - ISSUE.md
