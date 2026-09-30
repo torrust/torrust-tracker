@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-29 21:19"
+last-updated-utc: "2026-09-29 21:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -466,7 +466,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Processor returns `Result` (D7) and benchmark B1 | `process_request` returns `Result<(), ProcessorError>`, with `EncodeResponse` and `SendResponse` variants; the receive loop still discards it. Existing log messages are unchanged. Processor tests assert `Ok` for a discarded request and for UDP error responses, and a new test proves a failed send returns `SendResponse` (IPv4 socket answering an IPv6 client). B1 mean 164634.37 responses/s, above the lowest B0 run (152965.92). |
 | T5 | DONE | Wire the drain into the receive loop, green regression, and benchmark B2 | The receive loop spawns every processor into a loop-owned `JoinSet<Result<(), ProcessorError>>`, passes the `AbortHandle` to the unchanged `force_push`, and reaps finished tasks with `try_join_next` before each spawn. On cancellation it drains with the private 5-second `REQUEST_DRAIN_DEADLINE` and logs the D4 summary: `warn` if any processor failed or was aborted, otherwise `info`. On a receive error it calls `JoinSet::shutdown` before returning the original error. The deadline is injected through the package-private `start_receive_loop_with_request_drain_deadline`, and production passes the constant. Regression is green 10 of 10 runs and mutation-proven; a companion test proves a released processor answers before the loop returns. B2 mean 167716.20 responses/s passes AC11. The T1 artifact recheck drained `completed=6` after 408 evictions. |
 | T6 | DONE | Review the first passing vertical slice | No ownership, drop-path, receive-error, log-level, or component-outcome correction needed. Two semantic-link corrections were committed: ADR/issue markers on the drain primitive, and the ADR's Affected Code entry, which no longer calls the shutdown owner "future". |
-| T7 | TODO | Update shutdown documentation | UDP request-processor rows and notes in `task-inventory.md`; the feature README where it describes UDP shutdown; the EPIC roadmap row. |
+| T7 | DONE | Update shutdown documentation | `task-inventory.md`: the ownership tree, flowchart, overview row, UDP-instance and request-processor notes, and finding 7 now describe the loop-owned `JoinSet` and the five-second drain. EPIC row 11 now names the delivered scope; it stays `Open` until close-out. The feature README only restates the Q4 five-second UDP budget, which the implementation now matches, so it is unchanged. |
 | T8 | TODO | Executable-boundary verification | M1-M4 in `manual-verification-evidence.md`. |
 | T9 | TODO | Acceptance and completion review | Independent Task Reviewer report in `agent-review-reports.md`; findings fixed; retrospective decision recorded. |
 
@@ -544,6 +544,7 @@ Sign every commit with GPG and use the `udp-server` scope.
   - Log levels match D3/D4: drain start at `debug`/`info`, a panic `error` per task, a deadline `warn` with the remaining count, and one summary at `warn` when `failed` or `aborted` is non-zero, otherwise `info`. Processors reaped by `try_join_next` during normal operation are discarded silently, as the detached tasks were before; Tokio's panic hook still prints panics. No change.
   - Component outcome: `udp_tracker::start_job` still maps `Ok(())` to `Cancelled` and a loop error or panic to a component error; its existing tests pass unchanged (AC9).
   - Semantic links: added `// ADR:` and `// issue: #2370` markers to `drain_request_processors`. The drain lives in `launcher.rs`, not a separate module, so these are item comments rather than `//!` module comments. Updated the ADR's Affected Code entry for `launcher.rs`, which still called the shutdown owner "future" wiring.
+- 2026-09-29 21:25 UTC - GitHub Copilot - Completed T7. Updated the shutdown task inventory, which now shows UDP request processors as loop-owned, joined, and drained within five seconds, with outcome counts. Also updated EPIC row 11's scope text; its status stays `Open` until close-out. The feature README describes the planned Q4 policy (a five-second UDP budget), which the implementation now meets, so it needed no change. Its overall `Status` section is stale across the whole EPIC and is left to the EPIC close-out.
 
 ## Acceptance Criteria
 
