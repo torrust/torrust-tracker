@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2283
 spec-path: docs/issues/open/2283-1347-increase-udp-server-package-coverage/ISSUE.md
 branch: "2283-1347-increase-udp-server-package-coverage"
-related-pr: null
-last-updated-utc: "2026-09-22 07:10"
+related-pr: 2381
+last-updated-utc: "2026-09-30 08:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -510,32 +510,32 @@ plan so the ledger has no implicit exceptions.
 
 ## Acceptance Criteria
 
-- [ ] A complete `packages/udp-server/src/` module inventory is recorded with unit-only coverage,
+- [x] A complete `packages/udp-server/src/` module inventory is recorded with unit-only coverage,
       property-test candidacy, selected behavior, and a T1 hypothesis for every source file.
-- [ ] Every Rust source file in the package has its own file test plan, processed through the
+- [x] Every Rust source file in the package has its own file test plan, processed through the
       per-file workflow, with its resulting unit-only coverage recorded in `coverage-evidence.md`.
-- [ ] Fresh aggregate/global, unit-only, and integration-only coverage evidence is recorded with
+- [x] Fresh aggregate/global, unit-only, and integration-only coverage evidence is recorded with
       clean reproducible commands and toolchain-qualified results.
-- [ ] Selected tests protect package-owned UDP server behavior at the narrowest maintainable
+- [x] Selected tests protect package-owned UDP server behavior at the narrowest maintainable
       boundary, prioritizing deterministic unit tests over higher-level coverage when feasible.
-- [ ] Any package integration tests added by this issue have an explicit reviewed rationale for why
+- [x] Any package integration tests added by this issue have an explicit reviewed rationale for why
       the real UDP boundary is clearer or necessary.
-- [ ] No-change and deferral decisions enumerate the relevant uncovered lines or behavior groups
+- [x] No-change and deferral decisions enumerate the relevant uncovered lines or behavior groups
       and identify the owner or reason.
-- [ ] Test-producing increments complete the prose-first Arrange-Act-Assert review and focused
+- [x] Test-producing increments complete the prose-first Arrange-Act-Assert review and focused
       validation before the next module begins.
-- [ ] Each selected source file completes its approved current-test refactor, focused validation,
+- [x] Each selected source file completes its approved current-test refactor, focused validation,
   and completed-file review before new coverage is added or another file begins.
-- [ ] Bounded mutation assessment is completed without introducing a mutation score target or CI gate.
-- [ ] Reconciliation confirms module records, coverage evidence, acceptance verification, and EPIC
+- [x] Bounded mutation assessment is completed without introducing a mutation score target or CI gate.
+- [x] Reconciliation confirms module records, coverage evidence, acceptance verification, and EPIC
       tracking are aligned before final verification.
-- [ ] `cargo +nightly fmt --all -- --check` passes.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant package tests pass.
-- [ ] Manual verification scenarios are executed and documented in issue-local
+- [x] `cargo +nightly fmt --all -- --check` passes.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant package tests pass.
+- [x] Manual verification scenarios are executed and documented in issue-local
       `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflow changes.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflow changes.
 
 ## Verification Plan
 

@@ -136,6 +136,7 @@ mod tests {
     mod scrape_request {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
+        use std::time::Duration;
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_peer_id::PeerId;
@@ -160,6 +161,8 @@ mod tests {
             sample_strict_cookie_validation,
         };
         use crate::handlers::{CookieValidationContext, handle_scrape};
+
+        const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
 
         struct Tracker {
             core_tracker_services: CoreTrackerServices,
@@ -371,8 +374,13 @@ mod tests {
 
             // Assert
             assert_eq!(response, expected_response);
-            let _accepted_event = receiver.recv().await.expect("accepted scrape event should be published");
-            let error_event = receiver.recv().await.expect("cookie error event should be published");
+            let (_accepted_event, error_event) = tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, async {
+                let accepted_event = receiver.recv().await.expect("accepted scrape event should be published");
+                let error_event = receiver.recv().await.expect("cookie error event should be published");
+                (accepted_event, error_event)
+            })
+            .await
+            .expect("accepted and cookie error events should be published before the test deadline");
             assert!(matches!(
                 error_event,
                 Event::UdpError {

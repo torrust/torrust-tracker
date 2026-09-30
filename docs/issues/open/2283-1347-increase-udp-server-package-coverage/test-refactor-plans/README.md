@@ -2,7 +2,7 @@
 doc-type: test-refactor-plan-guidance
 issue: 2283
 package: torrust-tracker-udp-server
-status: in-progress
+status: done
 ---
 
 # UDP Server File Test Plan Guidance
