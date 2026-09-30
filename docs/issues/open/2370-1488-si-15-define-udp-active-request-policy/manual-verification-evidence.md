@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-last-updated-utc: "2026-09-30 06:10"
+last-updated-utc: "2026-09-30 09:04"
 ---
 
 # Manual Verification Evidence
@@ -10,6 +10,10 @@ last-updated-utc: "2026-09-30 06:10"
 
 Record the orphaned-processor bug reproduction and final like-for-like recheck,
 then the executable-boundary scenarios from the issue specification.
+
+The drain log captures below predate a PR #2382 review fix that renamed their
+`local_addr` field to the canonical `service_binding`. The field value is
+unchanged.
 
 ## Environment and Prerequisites
 

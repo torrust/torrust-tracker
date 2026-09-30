@@ -126,26 +126,26 @@ fn record_request_processor_outcome<E>(
 async fn drain_request_processors_on_shutdown(
     processors: &mut JoinSet<Result<(), ProcessorError>>,
     deadline: Duration,
-    local_addr: &str,
+    service_binding: &str,
 ) {
-    log_request_drain_start(processors.len(), deadline, local_addr);
+    log_request_drain_start(processors.len(), deadline, service_binding);
 
     let started = tokio::time::Instant::now();
     let outcome = drain_request_processors(processors, deadline).await;
 
-    log_request_drain_outcome(&outcome, started.elapsed(), local_addr);
+    log_request_drain_outcome(&outcome, started.elapsed(), service_binding);
 }
 
-fn log_request_drain_start(active: usize, deadline: Duration, local_addr: &str) {
+fn log_request_drain_start(active: usize, deadline: Duration, service_binding: &str) {
     if active == 0 {
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Draining UDP request processors: none active");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, service_binding, "Draining UDP request processors: none active");
     } else {
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, local_addr, active, ?deadline, "Draining UDP request processors");
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding, active, ?deadline, "Draining UDP request processors");
     }
 }
 
 /// Warns when the drain lost work (failed or aborted processors); otherwise reports at info.
-fn log_request_drain_outcome(outcome: &RequestDrainOutcome, elapsed: Duration, local_addr: &str) {
+fn log_request_drain_outcome(outcome: &RequestDrainOutcome, elapsed: Duration, service_binding: &str) {
     let RequestDrainOutcome {
         completed,
         failed,
@@ -154,9 +154,9 @@ fn log_request_drain_outcome(outcome: &RequestDrainOutcome, elapsed: Duration, l
     } = *outcome;
 
     if failed > 0 || aborted > 0 {
-        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, local_addr, completed, failed, aborted, evicted, ?elapsed, "UDP request processors drained");
+        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, service_binding, completed, failed, aborted, evicted, ?elapsed, "UDP request processors drained");
     } else {
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, local_addr, completed, failed, aborted, evicted, ?elapsed, "UDP request processors drained");
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding, completed, failed, aborted, evicted, ?elapsed, "UDP request processors drained");
     }
 }
 
