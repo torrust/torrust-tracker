@@ -299,7 +299,36 @@ mod tests {
     use tokio::time::sleep;
     use torrust_tracker_test_helpers::{configuration, logging};
 
-    use super::Started;
+    use super::{
+        ConfigurationConnectionIdValidationPolicy, ConnectionIdValidationPolicy, Started, UdpTrackerServer,
+        connection_id_validation_policy,
+    };
+
+    #[test]
+    fn it_should_map_strict_connection_id_validation_policy() {
+        let configuration = UdpTrackerServer {
+            connection_id_validation: ConfigurationConnectionIdValidationPolicy::Strict,
+            ..UdpTrackerServer::default()
+        };
+
+        assert_eq!(
+            ConnectionIdValidationPolicy::Strict,
+            connection_id_validation_policy(&configuration)
+        );
+    }
+
+    #[test]
+    fn it_should_map_disabled_connection_id_validation_policy() {
+        let configuration = UdpTrackerServer {
+            connection_id_validation: ConfigurationConnectionIdValidationPolicy::Disabled,
+            ..UdpTrackerServer::default()
+        };
+
+        assert_eq!(
+            ConnectionIdValidationPolicy::Disabled,
+            connection_id_validation_policy(&configuration)
+        );
+    }
 
     #[tokio::test]
     async fn it_should_make_and_stop_udp_server() {

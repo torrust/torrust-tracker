@@ -152,6 +152,7 @@ file completes.
 | `statistics/event/handler/request_aborted.rs` | 56 / 57 (98.25%) | 33 / 34 (97.06%) | 1 renamed, 1 removed | 0 | No; observable aborted-request metric routing remains covered, while repository counter-write failure is logging-only; the smaller after denominator excludes deleted duplicated test code |
 | `statistics/event/handler/response_sent.rs` | 122 / 130 (93.85%) | 122 / 130 (93.85%) | 2 renamed | 0 | No; observable response metric routes remain covered, while repository write and average-calculation failures have separate owners |
 | `testing/mod.rs` | No executable entries | No executable entries | 0 | 0 | No; module declaration has no runtime boundary; `testing/environment.rs` owns setup behavior |
+| `testing/environment.rs` | 168 / 184 (91.30%) | 183 / 198 (92.42%) | 0 | 2 | No; strict and disabled policy mapping are direct unit contracts; lifecycle orchestration remains #1488 SI-14/SI-17-owned |
 
 ## Relationship To Issue #2149
 

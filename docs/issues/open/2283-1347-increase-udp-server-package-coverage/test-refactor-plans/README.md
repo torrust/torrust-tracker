@@ -58,6 +58,7 @@ maintainer approves it.
 | 34 | [statistics-event-handler-request-aborted-tests.md](statistics-event-handler-request-aborted-tests.md) | DONE | Removed one duplicate test and renamed the retained aborted-request metric contract |
 | 35 | [statistics-event-handler-response-sent-tests.md](statistics-event-handler-response-sent-tests.md) | DONE | Renamed two response-counter tests; focused response metrics remain sufficient |
 | 36 | [testing-mod-tests.md](testing-mod-tests.md) | DONE | No Rust change; module declaration has no independent runtime contract |
+| 37 | [testing-environment-tests.md](testing-environment-tests.md) | DONE | 2 direct policy mapping tests added; lifecycle orchestration remains #1488-owned |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
