@@ -35,7 +35,7 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
-    async fn should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event() {
+    async fn it_should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event() {
         let stats_repository = Repository::new();
 
         handle_event(

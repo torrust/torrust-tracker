@@ -178,10 +178,11 @@ mod tests {
     use torrust_metrics::label::LabelValue;
     use torrust_peer_id::PeerId;
     use torrust_tracker_core::databases::error::Error as DatabaseError;
-    use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+    use torrust_tracker_core::error::{AnnounceError, ScrapeError, WhitelistError};
     use torrust_tracker_primitives::Driver;
     use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
     use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+    use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
     use torrust_tracker_udp_protocol::{
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash as UdpInfoHash, NumberOfBytes,
         NumberOfPeers, PeerKey, Port, TransactionId,
@@ -206,6 +207,16 @@ mod tests {
             key: PeerKey::new(0),
             peers_wanted: NumberOfPeers::new(0),
             port: Port::new(NonZeroU16::MIN),
+        }
+    }
+
+    fn torrent_not_whitelisted_error() -> WhitelistError {
+        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0") // DevSkim: ignore DS173237
+            .expect("test info hash should be valid");
+
+        WhitelistError::TorrentNotWhitelisted {
+            info_hash,
+            location: Location::caller(),
         }
     }
 
@@ -257,14 +268,85 @@ mod tests {
     #[test]
     fn it_should_classify_a_whitelist_error() {
         // Arrange
-        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0") // DevSkim: ignore DS173237
-            .expect("test info hash should be valid");
         let error = Error::AnnounceFailed {
             source: UdpAnnounceError::TrackerCoreWhitelistError {
-                source: WhitelistError::TorrentNotWhitelisted {
-                    info_hash,
-                    location: Location::caller(),
+                source: torrent_not_whitelisted_error(),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert!(
+            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_nested_announce_whitelist_error() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::TrackerCoreAnnounceError {
+                source: AnnounceError::Whitelist(torrent_not_whitelisted_error()),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert!(
+            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_scrape_connection_cookie_error() {
+        // Arrange
+        let error = Error::ScrapeFailed {
+            source: UdpScrapeError::ConnectionCookieError {
+                source: ConnectionCookieError::ValueExpired {
+                    expired_value: 1.0,
+                    min_value: 2.0,
                 },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::ConnectionCookie("cookie value is expired: 1, expected > 2".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_nested_scrape_whitelist_error() {
+        // Arrange
+        let error = Error::ScrapeFailed {
+            source: UdpScrapeError::TrackerCoreScrapeError {
+                source: ScrapeError::Whitelist(torrent_not_whitelisted_error()),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert!(
+            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_direct_scrape_whitelist_error() {
+        // Arrange
+        let error = Error::ScrapeFailed {
+            source: UdpScrapeError::TrackerCoreWhitelistError {
+                source: torrent_not_whitelisted_error(),
             },
         };
 
@@ -328,7 +410,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_convert_request_kinds_to_metric_labels_and_display_values() {
+    fn it_should_render_request_kinds() {
         // Arrange
         let cases = [
             (UdpRequestKind::Connect, "connect"),
@@ -344,6 +426,25 @@ mod tests {
         // Act and Assert
         for (request_kind, expected) in cases {
             assert_eq!(request_kind.to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn it_should_convert_request_kinds_to_metric_labels() {
+        // Arrange
+        let cases = [
+            (UdpRequestKind::Connect, "connect"),
+            (
+                UdpRequestKind::Announce {
+                    announce_request: announce_request(),
+                },
+                "announce",
+            ),
+            (UdpRequestKind::Scrape, "scrape"),
+        ];
+
+        // Act and Assert
+        for (request_kind, expected) in cases {
             assert_eq!(LabelValue::from(request_kind), LabelValue::new(expected));
         }
     }

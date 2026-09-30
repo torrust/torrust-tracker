@@ -38,7 +38,7 @@ pub enum UdpError {
         source: torrust_server_lib::registar::RegistrationError,
     },
 
-    #[error("Any error to do with starting or stopping the sever")]
+    #[error("Any error to do with starting or stopping the server")]
     FailedToStartOrStopServer(String),
 }
 
@@ -418,70 +418,5 @@ mod tests {
             assert_eq!(binding.bind_address(), bind_to);
             UdpSocket::bind(bind_to).expect("the UDP socket should be released after registration failure");
         }
-    }
-}
-
-/// Todo: submit test to tokio documentation.
-#[cfg(test)]
-mod test_tokio {
-    use std::sync::Arc;
-    use std::time::Duration;
-
-    use tokio::sync::Barrier;
-    use tokio::task::JoinSet;
-
-    #[tokio::test]
-    async fn test_barrier_with_aborted_tasks() {
-        // Create a barrier that requires 10 tasks to proceed.
-        let barrier = Arc::new(Barrier::new(10));
-        let mut tasks = JoinSet::default();
-        let mut handles = Vec::default();
-
-        // Set Barrier to 9/10.
-        for _ in 0..9 {
-            let c = barrier.clone();
-            handles.push(tasks.spawn(async move {
-                c.wait().await;
-            }));
-        }
-
-        // Abort two tasks: Barrier: 7/10.
-        for _ in 0..2 {
-            if let Some(handle) = handles.pop() {
-                handle.abort();
-            }
-        }
-
-        // Spawn a single task: Barrier 8/10.
-        let c = barrier.clone();
-        handles.push(tasks.spawn(async move {
-            c.wait().await;
-        }));
-
-        // give a chance fro the barrier to release.
-        tokio::time::sleep(Duration::from_millis(50)).await;
-
-        // assert that the barrier isn't removed, i.e. 8, not 10.
-        for h in &handles {
-            assert!(!h.is_finished());
-        }
-
-        // Spawn two more tasks to trigger the barrier release: Barrier 10/10.
-        for _ in 0..2 {
-            let c = barrier.clone();
-            handles.push(tasks.spawn(async move {
-                c.wait().await;
-            }));
-        }
-
-        // give a chance fro the barrier to release.
-        tokio::time::sleep(Duration::from_millis(50)).await;
-
-        // assert that the barrier has been triggered
-        for h in &handles {
-            assert!(h.is_finished());
-        }
-
-        tasks.shutdown().await;
     }
 }

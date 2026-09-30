@@ -141,8 +141,10 @@ impl Debug for BoundSocket {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::io::ErrorKind;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use socket2::SockRef;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use url::Url;
 
@@ -180,5 +182,36 @@ mod tests {
             actual_service_binding,
             ServiceBinding::new(Protocol::UDP, expected_address).expect("bound UDP address should form a service binding")
         );
+    }
+
+    #[tokio::test]
+    async fn it_should_restrict_an_ipv6_socket_to_ipv6_when_ipv6_v6only_is_requested() {
+        // Arrange
+        let requested_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
+        let ipv6_v6only = true;
+
+        // Act
+        let bound_socket = BoundSocket::bind(requested_address, ipv6_v6only).expect("IPv6 socket should bind");
+
+        // Assert
+        let only_v6 = SockRef::from(&*bound_socket)
+            .only_v6()
+            .expect("IPV6_V6ONLY should be readable");
+        assert!(only_v6, "the socket should accept IPv6 traffic only");
+    }
+
+    #[tokio::test]
+    async fn it_should_return_an_error_when_the_address_is_already_in_use() {
+        // Arrange
+        let first_socket = BoundSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0), false)
+            .expect("IPv4 loopback socket should bind");
+        let address_in_use = first_socket.address();
+
+        // Act
+        let result = BoundSocket::bind(address_in_use, false);
+
+        // Assert
+        let error = result.expect_err("binding an address that is in use should fail");
+        assert_eq!(error.kind(), ErrorKind::AddrInUse);
     }
 }

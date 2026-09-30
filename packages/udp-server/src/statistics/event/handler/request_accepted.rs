@@ -42,7 +42,7 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
-    async fn should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind() {
+    async fn it_should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind() {
+    async fn it_should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind() {
+    async fn it_should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind() {
+    async fn it_should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -152,7 +152,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind() {
+    async fn it_should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -181,7 +181,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind() {
+    async fn it_should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind() {
         let stats_repository = Repository::new();
 
         handle_event(

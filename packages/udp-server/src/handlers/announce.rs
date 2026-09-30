@@ -191,16 +191,23 @@ pub(crate) mod tests {
 
     pub mod announce_request {
 
-        use std::net::Ipv4Addr;
+        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::num::NonZeroU16;
+        use std::sync::Arc;
 
         use torrust_peer_id::PeerId;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+        use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
         use torrust_tracker_udp_core::connection_cookie::make;
         use torrust_tracker_udp_protocol::{
-            AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerKey, Port,
-            TransactionId,
+            AnnounceActionPlaceholder, AnnounceEvent, AnnounceInterval, AnnounceRequest, AnnounceResponse,
+            AnnounceResponseFixedData, ConnectionId, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfBytes, NumberOfPeers, PeerKey, Port,
+            Response, ResponsePeer, TransactionId,
         };
+        use zerocopy::byteorder::network_endian::I32;
 
+        use crate::handlers::announce::build_response;
         use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
 
         pub struct AnnounceRequestBuilder {
@@ -263,6 +270,72 @@ pub(crate) mod tests {
             }
         }
 
+        #[tokio::test]
+        async fn it_should_encode_only_peer_addresses_matching_the_request_family() {
+            // Arrange
+            let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
+                crate::handlers::tests::initialize_core_tracker_services_for_default_tracker_configuration().await;
+            let request = AnnounceRequestBuilder::default().into();
+            let ipv4_peer_address = Ipv4Addr::new(198, 51, 100, 10);
+            let ipv4_peer = SocketAddr::new(IpAddr::V4(ipv4_peer_address), 6881);
+            let ipv6_peer_address = Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 10);
+            let ipv6_peer = SocketAddr::new(IpAddr::V6(ipv6_peer_address), 6882);
+            let announce_data = AnnounceData {
+                peers: vec![
+                    Arc::new(PeerBuilder::default().with_peer_address(ipv4_peer).into()),
+                    Arc::new(PeerBuilder::default().with_peer_address(ipv6_peer).into()),
+                ],
+                stats: SwarmMetadata {
+                    complete: 2,
+                    downloaded: 0,
+                    incomplete: 3,
+                },
+                policy: AnnouncePolicy::default(),
+            };
+
+            // Act
+            let ipv4_response = build_response(
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), 8080),
+                &request,
+                &core_tracker_services.core_config,
+                &announce_data,
+            );
+            let ipv6_response = build_response(
+                SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080),
+                &request,
+                &core_tracker_services.core_config,
+                &announce_data,
+            );
+
+            // Assert
+            let fixed = AnnounceResponseFixedData {
+                transaction_id: request.transaction_id,
+                announce_interval: AnnounceInterval(I32::new(120)),
+                leechers: NumberOfPeers(I32::new(3)),
+                seeders: NumberOfPeers(I32::new(2)),
+            };
+            assert_eq!(
+                ipv4_response,
+                Response::from(AnnounceResponse {
+                    fixed,
+                    peers: vec![ResponsePeer::<Ipv4AddrBytes> {
+                        ip_address: ipv4_peer_address.into(),
+                        port: Port(ipv4_peer.port().into()),
+                    }],
+                })
+            );
+            assert_eq!(
+                ipv6_response,
+                Response::from(AnnounceResponse {
+                    fixed,
+                    peers: vec![ResponsePeer::<Ipv6AddrBytes> {
+                        ip_address: ipv6_peer_address.into(),
+                        port: Port(ipv6_peer.port().into()),
+                    }],
+                })
+            );
+        }
+
         mod using_ipv4 {
 
             use std::future;
@@ -278,11 +351,14 @@ pub(crate) mod tests {
             use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_core::event::ConnectionContext;
+            use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
             use torrust_tracker_udp_protocol::{
-                AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
-                Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
+                AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, ConnectionId, InfoHash as AquaticInfoHash,
+                Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
+            use zerocopy::byteorder::network_endian::I64;
 
+            use crate::error::Error;
             use crate::event::{Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
@@ -430,6 +506,46 @@ pub(crate) mod tests {
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
 
+            #[tokio::test]
+            async fn it_should_preserve_an_announce_service_failure_for_packet_error_routing() {
+                // Arrange
+                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_public_tracker().await;
+                let client_socket_addr = sample_ipv4_socket_address();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+                let request = AnnounceRequestBuilder::default()
+                    .with_connection_id(ConnectionId(I64::new(0)))
+                    .into();
+
+                // Act
+                let actual = handle_announce(
+                    &core_udp_tracker_services.announce_service,
+                    client_socket_addr,
+                    server_service_binding,
+                    &request,
+                    &core_tracker_services.core_config,
+                    &server_udp_tracker_services.udp_server_stats_event_sender,
+                    sample_strict_cookie_validation(),
+                )
+                .await;
+
+                // Assert
+                assert!(matches!(
+                    actual,
+                    Err(boxed_error) if matches!(
+                        *boxed_error,
+                        (
+                            Error::AnnounceFailed {
+                                source: UdpAnnounceError::ConnectionCookieError { .. },
+                            },
+                            transaction_id,
+                            UdpRequestKind::Announce { announce_request },
+                        ) if transaction_id == request.transaction_id && announce_request == request
+                    )
+                ));
+            }
+
             async fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
@@ -501,7 +617,7 @@ pub(crate) mod tests {
             }
 
             #[tokio::test]
-            async fn should_send_the_upd4_announce_event() {
+            async fn should_send_the_udp4_announce_event() {
                 let client_socket_addr = sample_ipv4_socket_address();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
@@ -942,7 +1058,7 @@ pub(crate) mod tests {
             }
 
             #[tokio::test]
-            async fn should_send_the_upd6_announce_event() {
+            async fn should_send_the_udp6_announce_event() {
                 let client_socket_addr = sample_ipv6_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();

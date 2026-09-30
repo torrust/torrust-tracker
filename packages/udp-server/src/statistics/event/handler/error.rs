@@ -134,7 +134,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
+    async fn it_should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
         // Arrange
         let stats_repository = Repository::new();
         let connection_context = sample_ipv4_connection_context();

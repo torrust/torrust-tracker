@@ -136,26 +136,146 @@ mod tests {
     mod scrape_request {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
+        use std::time::Duration;
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_peer_id::PeerId;
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-        use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+        use torrust_tracker_udp_core::event::ConnectionContext;
+        use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
         use torrust_tracker_udp_protocol::{
-            InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
-            TransactionId,
+            ConnectionId, InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse,
+            TorrentScrapeStatistics, TransactionId,
         };
+        use zerocopy::byteorder::network_endian::I64;
 
-        use crate::event::bus::EventBus;
+        use crate::error::Error;
         use crate::event::sender::Broadcaster;
-        use crate::handlers::handle_scrape;
+        use crate::event::{Event, UdpRequestKind};
         use crate::handlers::tests::{
-            CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_public_tracker,
-            sample_ipv4_remote_addr, sample_issue_time, sample_strict_cookie_validation,
+            CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_listed_tracker,
+            initialize_core_tracker_services_for_public_tracker, sample_ipv4_remote_addr, sample_issue_time,
+            sample_strict_cookie_validation,
         };
+        use crate::handlers::{CookieValidationContext, handle_scrape};
+
+        const EVENT_PUBLICATION_TIMEOUT: Duration = Duration::from_secs(1);
+
+        struct Tracker {
+            core_tracker_services: CoreTrackerServices,
+            core_udp_tracker_services: CoreUdpTrackerServices,
+            client_socket_addr: SocketAddr,
+            server_service_binding: ServiceBinding,
+            udp_server_broadcaster: Broadcaster,
+            udp_server_stats_event_sender: crate::event::sender::Sender,
+        }
+
+        impl Tracker {
+            async fn public() -> Self {
+                Self::public_for_client(sample_ipv4_remote_addr()).await
+            }
+
+            async fn public_for_client(client_socket_addr: SocketAddr) -> Self {
+                let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_public_tracker().await;
+                Self::with_services(core_tracker_services, core_udp_tracker_services, client_socket_addr)
+            }
+
+            async fn listed() -> Self {
+                let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_listed_tracker().await;
+                Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
+            }
+
+            fn with_services(
+                core_tracker_services: CoreTrackerServices,
+                core_udp_tracker_services: CoreUdpTrackerServices,
+                client_socket_addr: SocketAddr,
+            ) -> Self {
+                let udp_server_broadcaster = Broadcaster::default();
+                let server_ip = Ipv4Addr::new(203, 0, 113, 196);
+                let server_socket_addr = match client_socket_addr {
+                    SocketAddr::V4(_) => SocketAddr::new(IpAddr::V4(server_ip), 6969),
+                    SocketAddr::V6(_) => SocketAddr::new(IpAddr::V6(server_ip.to_ipv6_compatible()), 6969),
+                };
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+
+                Self {
+                    core_tracker_services,
+                    core_udp_tracker_services,
+                    client_socket_addr,
+                    server_service_binding,
+                    udp_server_stats_event_sender: Some(Arc::new(udp_server_broadcaster.clone())),
+                    udp_server_broadcaster,
+                }
+            }
+
+            async fn with_seeder_for(self, info_hash: &InfoHash) -> Self {
+                add_a_seeder(
+                    self.core_tracker_services.in_memory_torrent_repository.clone(),
+                    &self.client_socket_addr,
+                    info_hash,
+                )
+                .await;
+                self
+            }
+
+            async fn whitelisting(self, info_hash: &InfoHash) -> Self {
+                self.core_tracker_services.in_memory_whitelist.add(&info_hash.0.into()).await;
+                self
+            }
+        }
+
+        struct ScrapeRequestBuilder {
+            request: ScrapeRequest,
+        }
+
+        impl ScrapeRequestBuilder {
+            fn for_client_and_info_hash(client_socket_addr: SocketAddr, info_hash: InfoHash) -> Self {
+                Self {
+                    request: ScrapeRequest {
+                        connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
+                        transaction_id: TransactionId::new(0i32),
+                        info_hashes: vec![info_hash],
+                    },
+                }
+            }
+
+            fn with_connection_id(mut self, connection_id: ConnectionId) -> Self {
+                self.request.connection_id = connection_id;
+                self
+            }
+
+            fn with_transaction_id(mut self, transaction_id: TransactionId) -> Self {
+                self.request.transaction_id = transaction_id;
+                self
+            }
+
+            fn with_info_hashes(mut self, info_hashes: Vec<InfoHash>) -> Self {
+                self.request.info_hashes = info_hashes;
+                self
+            }
+
+            fn into(self) -> ScrapeRequest {
+                self.request
+            }
+        }
+
+        /// Calls `handle_scrape` with the tracker's ordinary strict-validation context.
+        async fn scrape(tracker: &Tracker, request: &ScrapeRequest) -> Result<Response, crate::handlers::HandlerError> {
+            handle_scrape(
+                &tracker.core_udp_tracker_services.scrape_service,
+                tracker.client_socket_addr,
+                tracker.server_service_binding.clone(),
+                request,
+                &tracker.udp_server_stats_event_sender,
+                sample_strict_cookie_validation(),
+            )
+            .await
+        }
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {
@@ -166,24 +286,38 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn should_return_no_stats_when_the_tracker_does_not_have_any_torrent() {
+        async fn it_should_return_zeroed_statistics_when_the_tracker_does_not_have_the_requested_torrent() {
+            // Arrange
+            let tracker = Tracker::public().await;
+            let info_hash = InfoHash([0u8; 20]);
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, info_hash).into();
+            let expected_response = Response::from(ScrapeResponse {
+                transaction_id: request.transaction_id,
+                torrent_stats: vec![zeroed_torrent_statistics()],
+            });
+
+            // Act
+            let response = scrape(&tracker, &request).await.unwrap();
+
+            // Assert
+            assert_eq!(response, expected_response);
+        }
+
+        #[tokio::test]
+        async fn it_should_preserve_a_scrape_service_failure_for_packet_error_routing() {
+            // Arrange
             let (_core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                 initialize_core_tracker_services_for_public_tracker().await;
-
             let client_socket_addr = sample_ipv4_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(client_socket_addr, InfoHash([0u8; 20]))
+                .with_connection_id(ConnectionId(I64::new(0)))
+                .with_transaction_id(TransactionId::new(42))
+                .into();
 
-            let info_hash = InfoHash([0u8; 20]);
-            let info_hashes = vec![info_hash];
-
-            let request = ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
-                transaction_id: TransactionId(0i32.into()),
-                info_hashes,
-            };
-
-            let response = handle_scrape(
+            // Act
+            let actual = handle_scrape(
                 &core_udp_tracker_services.scrape_service,
                 client_socket_addr,
                 server_service_binding,
@@ -191,18 +325,70 @@ mod tests {
                 &server_udp_tracker_services.udp_server_stats_event_sender,
                 sample_strict_cookie_validation(),
             )
+            .await;
+
+            // Assert
+            assert!(matches!(
+                actual,
+                Err(boxed_error) if matches!(
+                    *boxed_error,
+                    (
+                        Error::ScrapeFailed {
+                            source: UdpScrapeError::ConnectionCookieError { .. },
+                        },
+                        transaction_id,
+                        UdpRequestKind::Scrape,
+                    ) if transaction_id == request.transaction_id
+                )
+            ));
+        }
+
+        #[tokio::test]
+        async fn it_should_publish_a_cookie_error_and_answer_when_cookie_validation_is_disabled() {
+            // Arrange
+            let tracker = Tracker::public().await;
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, InfoHash([0u8; 20]))
+                .with_connection_id(ConnectionId(I64::new(0)))
+                .into();
+            let cookie_validation = CookieValidationContext {
+                valid_range: crate::handlers::tests::sample_cookie_valid_range(),
+                connection_id_validation: torrust_tracker_udp_core::ConnectionIdValidationPolicy::Disabled,
+            };
+            let expected_response = Response::from(ScrapeResponse {
+                transaction_id: request.transaction_id,
+                torrent_stats: vec![zeroed_torrent_statistics()],
+            });
+            let mut receiver = tracker.udp_server_broadcaster.subscribe();
+
+            // Act
+            let response = handle_scrape(
+                &tracker.core_udp_tracker_services.scrape_service,
+                tracker.client_socket_addr,
+                tracker.server_service_binding.clone(),
+                &request,
+                &tracker.udp_server_stats_event_sender,
+                cookie_validation,
+            )
             .await
             .unwrap();
 
-            let expected_torrent_stats = vec![zeroed_torrent_statistics()];
-
-            assert_eq!(
-                response,
-                Response::from(ScrapeResponse {
-                    transaction_id: request.transaction_id,
-                    torrent_stats: expected_torrent_stats
-                })
-            );
+            // Assert
+            assert_eq!(response, expected_response);
+            let (_accepted_event, error_event) = tokio::time::timeout(EVENT_PUBLICATION_TIMEOUT, async {
+                let accepted_event = receiver.recv().await.expect("accepted scrape event should be published");
+                let error_event = receiver.recv().await.expect("cookie error event should be published");
+                (accepted_event, error_event)
+            })
+            .await
+            .expect("accepted and cookie error events should be published before the test deadline");
+            assert!(matches!(
+                error_event,
+                Event::UdpError {
+                    kind: Some(UdpRequestKind::Scrape),
+                    error: crate::event::ErrorKind::ConnectionCookie(_),
+                    ..
+                }
+            ));
         }
 
         async fn add_a_seeder(
@@ -243,74 +429,29 @@ mod tests {
             }
         }
 
-        fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {
-            let info_hashes = vec![*info_hash];
-
-            ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(remote_addr), sample_issue_time()).unwrap(),
-                transaction_id: TransactionId::new(0i32),
-                info_hashes,
-            }
-        }
-
-        async fn add_a_sample_seeder_and_scrape(
-            core_tracker_services: Arc<CoreTrackerServices>,
-            core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
-        ) -> Response {
-            let udp_server_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_server_broadcaster.clone()));
-
-            let udp_server_stats_event_sender = event_bus.sender();
-
-            let client_socket_addr = sample_ipv4_remote_addr();
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-
-            let info_hash = InfoHash([0u8; 20]);
-
-            add_a_seeder(
-                core_tracker_services.in_memory_torrent_repository.clone(),
-                &client_socket_addr,
-                &info_hash,
-            )
-            .await;
-
-            let request = build_scrape_request(&client_socket_addr, &info_hash);
-
-            handle_scrape(
-                &core_udp_tracker_services.scrape_service,
-                client_socket_addr,
-                server_service_binding,
-                &request,
-                &udp_server_stats_event_sender,
-                sample_strict_cookie_validation(),
-            )
-            .await
-            .unwrap()
-        }
-
-        fn match_scrape_response(response: Response) -> Option<ScrapeResponse> {
+        fn scrape_response(response: Response) -> ScrapeResponse {
             match response {
-                Response::Scrape(scrape_response) => Some(scrape_response),
-                _ => None,
+                Response::Scrape(scrape_response) => scrape_response,
+                _ => panic!("the scrape handler should return a scrape response"),
             }
         }
 
         #[test]
         fn it_should_return_zeroed_statistics_when_scrape_data_does_not_contain_a_requested_hash() {
+            // Arrange
             let client_socket_addr = sample_ipv4_remote_addr();
             let info_hash = InfoHash([0u8; 20]);
-            let request = build_scrape_request(&client_socket_addr, &info_hash);
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(client_socket_addr, info_hash).into();
+            let expected_response = Response::from(ScrapeResponse {
+                transaction_id: request.transaction_id,
+                torrent_stats: vec![zeroed_torrent_statistics()],
+            });
 
+            // Act
             let response = super::super::build_response(&request, &ScrapeData::empty());
 
-            assert_eq!(
-                response,
-                Response::from(ScrapeResponse {
-                    transaction_id: request.transaction_id,
-                    torrent_stats: vec![zeroed_torrent_statistics()],
-                })
-            );
+            // Assert
+            assert_eq!(response, expected_response);
         }
 
         #[tokio::test]
@@ -322,11 +463,9 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
             let info_hash = InfoHash([0u8; 20]);
-            let request = ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
-                transaction_id: TransactionId(0i32.into()),
-                info_hashes: vec![info_hash, info_hash],
-            };
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(client_socket_addr, info_hash)
+                .with_info_hashes(vec![info_hash, info_hash])
+                .into();
             let expected_torrent_stats = vec![
                 TorrentScrapeStatistics {
                     seeders: NumberOfPeers(1.into()),
@@ -429,11 +568,9 @@ mod tests {
                     leechers: NumberOfPeers(0.into()),
                 },
             ];
-            let request = ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
-                transaction_id: TransactionId(0i32.into()),
-                info_hashes: requested_info_hashes,
-            };
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(client_socket_addr, requested_info_hashes[0])
+                .with_info_hashes(requested_info_hashes)
+                .into();
 
             for (info_hash, number_of_seeders) in request.info_hashes.iter().zip([8u8, 3, 6, 1, 7, 2, 5, 4]) {
                 add_seeders(
@@ -469,255 +606,150 @@ mod tests {
         mod with_a_public_tracker {
             use torrust_tracker_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::handlers::scrape::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
-            use crate::handlers::tests::initialize_core_tracker_services_for_public_tracker;
+            use super::{ScrapeRequestBuilder, Tracker, scrape};
+            use crate::handlers::scrape::tests::scrape_request::InfoHash;
 
             #[tokio::test]
-            async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
-                let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker().await;
-
-                let torrent_stats = match_scrape_response(
-                    add_a_sample_seeder_and_scrape(core_tracker_services.into(), core_udp_tracker_services.into()).await,
-                );
-
+            async fn it_should_return_statistics_when_the_public_tracker_has_the_requested_torrent() {
+                // Arrange
+                let info_hash = InfoHash([0u8; 20]);
+                let tracker = Tracker::public().await.with_seeder_for(&info_hash).await;
+                let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, info_hash).into();
                 let expected_torrent_stats = vec![TorrentScrapeStatistics {
                     seeders: NumberOfPeers(1.into()),
                     completed: NumberOfDownloads(0.into()),
                     leechers: NumberOfPeers(0.into()),
                 }];
 
-                assert_eq!(torrent_stats.unwrap().torrent_stats, expected_torrent_stats);
+                // Act
+                let response = scrape(&tracker, &request).await.unwrap();
+
+                // Assert
+                let actual_torrent_stats = match response {
+                    torrust_tracker_udp_protocol::Response::Scrape(response) => response.torrent_stats,
+                    _ => panic!("the scrape handler should return a scrape response"),
+                };
+                assert_eq!(actual_torrent_stats, expected_torrent_stats);
             }
         }
 
         mod with_a_whitelisted_tracker {
-            use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
             use torrust_tracker_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::handlers::handle_scrape;
-            use crate::handlers::scrape::tests::scrape_request::{
-                add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
-            };
-            use crate::handlers::tests::{
-                initialize_core_tracker_services_for_listed_tracker, sample_ipv4_remote_addr, sample_strict_cookie_validation,
-            };
+            use super::{ScrapeRequestBuilder, Tracker, scrape, scrape_response, zeroed_torrent_statistics};
 
             #[tokio::test]
-            async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
-                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_listed_tracker().await;
-
-                let client_socket_addr = sample_ipv4_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-
+            async fn it_should_return_statistics_when_the_listed_tracker_has_a_whitelisted_torrent() {
+                // Arrange
                 let info_hash = InfoHash([0u8; 20]);
-
-                add_a_seeder(
-                    core_tracker_services.in_memory_torrent_repository.clone(),
-                    &client_socket_addr,
-                    &info_hash,
-                )
-                .await;
-
-                core_tracker_services.in_memory_whitelist.add(&info_hash.0.into()).await;
-
-                let request = build_scrape_request(&client_socket_addr, &info_hash);
-
-                let torrent_stats = match_scrape_response(
-                    handle_scrape(
-                        &core_udp_tracker_services.scrape_service,
-                        client_socket_addr,
-                        server_service_binding,
-                        &request,
-                        &server_udp_tracker_services.udp_server_stats_event_sender,
-                        sample_strict_cookie_validation(),
-                    )
+                let tracker = Tracker::listed()
                     .await
-                    .unwrap(),
-                )
-                .unwrap();
-
+                    .with_seeder_for(&info_hash)
+                    .await
+                    .whitelisting(&info_hash)
+                    .await;
+                let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, info_hash).into();
                 let expected_torrent_stats = vec![TorrentScrapeStatistics {
                     seeders: NumberOfPeers(1.into()),
                     completed: NumberOfDownloads(0.into()),
                     leechers: NumberOfPeers(0.into()),
                 }];
 
-                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+                // Act
+                let response = scrape(&tracker, &request).await.unwrap();
+
+                // Assert
+                assert_eq!(scrape_response(response).torrent_stats, expected_torrent_stats);
             }
 
             #[tokio::test]
-            async fn should_return_zeroed_statistics_when_the_requested_torrent_is_not_whitelisted() {
-                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_listed_tracker().await;
-
-                let client_socket_addr = sample_ipv4_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-
+            async fn it_should_return_zeroed_statistics_when_the_listed_tracker_has_not_whitelisted_the_torrent() {
+                // Arrange
                 let info_hash = InfoHash([0u8; 20]);
-
-                add_a_seeder(
-                    core_tracker_services.in_memory_torrent_repository.clone(),
-                    &client_socket_addr,
-                    &info_hash,
-                )
-                .await;
-
-                let request = build_scrape_request(&client_socket_addr, &info_hash);
-
-                let torrent_stats = match_scrape_response(
-                    handle_scrape(
-                        &core_udp_tracker_services.scrape_service,
-                        client_socket_addr,
-                        server_service_binding,
-                        &request,
-                        &server_udp_tracker_services.udp_server_stats_event_sender,
-                        sample_strict_cookie_validation(),
-                    )
-                    .await
-                    .unwrap(),
-                )
-                .unwrap();
-
+                let tracker = Tracker::listed().await.with_seeder_for(&info_hash).await;
+                let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, info_hash).into();
                 let expected_torrent_stats = vec![zeroed_torrent_statistics()];
 
-                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+                // Act
+                let response = scrape(&tracker, &request).await.unwrap();
+
+                // Assert
+                assert_eq!(scrape_response(response).torrent_stats, expected_torrent_stats);
             }
         }
 
-        fn sample_scrape_request(remote_addr: &SocketAddr) -> ScrapeRequest {
-            let info_hash = InfoHash([0u8; 20]);
-            let info_hashes = vec![info_hash];
-
-            ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(remote_addr), sample_issue_time()).unwrap(),
-                transaction_id: TransactionId(0i32.into()),
-                info_hashes,
-            }
-        }
-
-        mod using_ipv4 {
-            use std::future;
-            use std::net::{IpAddr, Ipv6Addr, SocketAddr};
-            use std::sync::Arc;
-
-            use mockall::predicate::eq;
-            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-            use torrust_tracker_udp_core::event::ConnectionContext;
-
-            use super::sample_scrape_request;
-            use crate::event::{Event, UdpRequestKind};
-            use crate::handlers::handle_scrape;
-            use crate::handlers::tests::{
-                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                sample_ipv4_remote_addr, sample_strict_cookie_validation,
+        #[tokio::test]
+        async fn it_should_publish_an_accepted_scrape_event_for_an_ipv4_client() {
+            // Arrange
+            let tracker = Tracker::public().await;
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, InfoHash([0u8; 20])).into();
+            let expected_event = Event::UdpRequestAccepted {
+                context: ConnectionContext::new(
+                    tracker.core_udp_tracker_services.scrape_service.configuration_instance_id(),
+                    tracker.client_socket_addr,
+                    tracker.server_service_binding.clone(),
+                ),
+                kind: UdpRequestKind::Scrape,
             };
+            let mut receiver = tracker.udp_server_broadcaster.subscribe();
 
-            #[tokio::test]
-            async fn should_send_the_upd4_scrape_event() {
-                let client_socket_addr = sample_ipv4_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
-                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            // Act
+            scrape(&tracker, &request).await.unwrap();
 
-                let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
-                udp_server_stats_event_sender_mock
-                    .expect_send()
-                    .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(
-                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                            client_socket_addr,
-                            server_service_binding.clone(),
-                        ),
-                        kind: UdpRequestKind::Scrape,
-                    }))
-                    .times(1)
-                    .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Some(Arc::new(udp_server_stats_event_sender_mock));
-
-                let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration().await;
-
-                handle_scrape(
-                    &core_udp_tracker_services.scrape_service,
-                    client_socket_addr,
-                    server_service_binding,
-                    &sample_scrape_request(&client_socket_addr),
-                    &udp_server_stats_event_sender,
-                    sample_strict_cookie_validation(),
-                )
-                .await
-                .unwrap();
-            }
+            // Assert
+            let event = receiver.recv().await.expect("accepted scrape event should be published");
+            assert_eq!(event, expected_event);
         }
 
-        mod using_ipv6 {
-            use std::future;
-            use std::net::{IpAddr, Ipv6Addr, SocketAddr};
-            use std::sync::Arc;
-
-            use mockall::predicate::eq;
-            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-            use torrust_tracker_udp_core::event::ConnectionContext;
-
-            use super::sample_scrape_request;
-            use crate::event::{Event, UdpRequestKind};
-            use crate::handlers::handle_scrape;
-            use crate::handlers::tests::{
-                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                sample_ipv6_remote_addr, sample_strict_cookie_validation,
+        #[tokio::test]
+        async fn it_should_publish_an_accepted_scrape_event_for_an_ipv6_client() {
+            // Arrange
+            let tracker = Tracker::public_for_client(crate::handlers::tests::sample_ipv6_remote_addr()).await;
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, InfoHash([0u8; 20])).into();
+            let expected_event = Event::UdpRequestAccepted {
+                context: ConnectionContext::new(
+                    tracker.core_udp_tracker_services.scrape_service.configuration_instance_id(),
+                    tracker.client_socket_addr,
+                    tracker.server_service_binding.clone(),
+                ),
+                kind: UdpRequestKind::Scrape,
             };
+            let mut receiver = tracker.udp_server_broadcaster.subscribe();
 
-            #[tokio::test]
-            async fn should_send_the_upd6_scrape_event() {
-                let client_socket_addr = sample_ipv6_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
-                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            // Act
+            scrape(&tracker, &request).await.unwrap();
 
-                let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
-                udp_server_stats_event_sender_mock
-                    .expect_send()
-                    .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(
-                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                            client_socket_addr,
-                            server_service_binding.clone(),
-                        ),
-                        kind: UdpRequestKind::Scrape,
-                    }))
-                    .times(1)
-                    .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Some(Arc::new(udp_server_stats_event_sender_mock));
-
-                let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration().await;
-
-                handle_scrape(
-                    &core_udp_tracker_services.scrape_service,
-                    client_socket_addr,
-                    server_service_binding,
-                    &sample_scrape_request(&client_socket_addr),
-                    &udp_server_stats_event_sender,
-                    sample_strict_cookie_validation(),
-                )
-                .await
-                .unwrap();
-            }
+            // Assert
+            let event = receiver.recv().await.expect("accepted scrape event should be published");
+            assert_eq!(event, expected_event);
         }
     }
 
     #[test]
-    fn should_saturate_large_download_counts_for_udp_protocol() {
-        assert_eq!(super::udp_counter_from_u32(u32::MAX), i32::MAX);
-        assert_eq!(super::udp_counter_from_u32((i32::MAX as u32) + 1), i32::MAX);
-        assert_eq!(super::udp_counter_from_u32(42), 42);
+    fn it_should_encode_counters_that_fit_in_i32_as_is() {
+        // Arrange
+        let counter = 42;
+        let expected_encoded_counter = i32::try_from(counter).expect("counter should fit in i32");
+
+        // Act
+        let encoded_counter = super::udp_counter_from_u32(counter);
+
+        // Assert
+        assert_eq!(encoded_counter, expected_encoded_counter);
+    }
+
+    #[test]
+    fn it_should_saturate_counters_above_i32_max() {
+        // Arrange
+        let counter_just_above_i32_max = (i32::MAX as u32) + 1;
+        let maximum_u32_counter = u32::MAX;
+
+        // Act
+        let encoded_just_above_i32_max = super::udp_counter_from_u32(counter_just_above_i32_max);
+        let encoded_maximum_u32 = super::udp_counter_from_u32(maximum_u32_counter);
+
+        // Assert
+        assert_eq!(encoded_just_above_i32_max, i32::MAX);
+        assert_eq!(encoded_maximum_u32, i32::MAX);
     }
 }

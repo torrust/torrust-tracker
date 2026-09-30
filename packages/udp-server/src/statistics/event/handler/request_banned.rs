@@ -35,7 +35,7 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
-    async fn should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event() {
+    async fn it_should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event() {
         let stats_repository = Repository::new();
 
         handle_event(
@@ -57,30 +57,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp_requests_banned_total(), 1);
-    }
-
-    #[tokio::test]
-    async fn should_increase_the_udp_ban_counter_when_it_receives_a_udp_banned_event() {
-        let stats_repository = Repository::new();
-
-        handle_event(
-            Event::UdpRequestBanned {
-                context: ConnectionContext::new(
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-        let stats = stats_repository.get_stats().await;
         assert_eq!(stats.udp_requests_banned_total(), 1);
     }
 }
