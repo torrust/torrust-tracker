@@ -6,7 +6,7 @@ epic: null
 github-issue: 1840
 spec-path: docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-30 10:26"
+last-updated-utc: "2026-09-30 12:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,7 @@ Ordering policy:
 | 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`                                    | IN_REVIEW  | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). The issue removes the development-profile override and retains release fat LTO; PR #2013 is under review.                                                                                                                                                                       |
 | 15    | #2323 - Offload the container test job to a self-hosted Hetzner runner                       | `docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`                             | DONE       | Moves `container.yaml` `test` to a persistent self-hosted runner so Docker layers and Cargo caches survive between jobs; publish jobs stay on GitHub-hosted runners and stop reading self-hosted cache. Target: PR checks from about 40 to about 15 minutes.                                                                                 |
 | 16    | #2374 - Verify the self-hosted runner's offline recovery and untrusted-code routing          | `docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md`            | DONE       | Merged in PR #2379, archived in PR #2380. Verified the offline queue and `ubuntu-latest` fallback (M5) and Dependabot and external-contributor routing (M7). |
-| 17    | #2386 - Determine the minimum self-hosted runner capacity                                    | `docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md`                         | IN_PROGRESS | Measures the realistic PR build at 8 vCPU / 16 GB and 4 vCPU / 8 GB, then records the capacity decision (one runner on the current server unless the data says otherwise), the cost trade-off, and recheck triggers. PR #2383. |
+| 17    | #2386 - Determine the minimum self-hosted runner capacity                                    | `docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md`                         | IN_PROGRESS | Measures the realistic PR build at 8 vCPU / 16 GB and 4 vCPU / 8 GB, then records the capacity decision (one runner on the current server unless the data says otherwise), the cost trade-off, and recheck triggers. PR #2389. |
 
 ## Delivery Strategy
 

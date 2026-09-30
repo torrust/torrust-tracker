@@ -7,9 +7,9 @@ priority: p2
 epic: 1840
 github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
-branch: "1840-record-runner-capacity-decision"
-related-pr: 2383
-last-updated-utc: "2026-09-30 11:04"
+branch: "2386-1840-self-hosted-runner-minimum-capacity"
+related-pr: 2389
+last-updated-utc: "2026-09-30 12:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -230,6 +230,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 10:35 UTC - GitHub Copilot - Checked the daily Docker prune, suspected of not bounding the build cache. It works as configured: `--max-used-space 120GB` means 120 GiB, the 04:00 run on 2026-09-29 reclaimed 50.29 GB, and a manual run of the same command reclaimed 62.08 GB (187.6 GB to 125.5 GB). The 0 B run on 2026-09-30 found the cache below the cap. The guide said "caps" and now says the timer trims once a day and the cache overshoots between runs. The manual run started while a Container job for PR #2382 was building: the idle check and the prune ran in one command, and the runner picked up that job between them - guide "Prune Docker Storage Daily", run `36702472251`
 - 2026-09-30 10:52 UTC - GitHub Copilot - T4 DONE: added the queue-time recheck command to the guide's "Add Runner Capacity" section. Its first run shows a busier morning than the Background window: from 08:03 to 10:27 UTC, 9 self-hosted jobs, 4 of them queued for 124 to 760 s; T2 records the full window after T1 - guide "Add Runner Capacity"
 - 2026-09-30 11:04 UTC - josecelano, GitHub Copilot - The maintainer corrected the workload assumption: the last two days were not normal (normally 6 agents, about 4 open pull requests, checks run 3 to 5 times each). Replaying the last 30 days of real `Container` run arrivals shows one runner queues heavily (p90 wait 99 min at a 723 s job) and that cancelling superseded runs helps more than a second runner alone; the "concurrency is not needed" conclusion is withdrawn, and the choice is Open Question 4 - `manual-verification-evidence.md` V3
+- 2026-09-30 12:25 UTC - josecelano, GitHub Copilot - Moved the work to branch `2386-1840-self-hosted-runner-minimum-capacity`, rebased onto `develop`, and opened PR #2389, which supersedes #2383: the old branch was named after the EPIC, and GitHub closes a pull request when its head branch is renamed. The #2383 review audit carries over - PR #2389
 
 ## Acceptance Criteria
 
@@ -317,5 +318,5 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 
 - Parent EPIC: #1840
 - Related issues: #2323, #2374, #1419
-- Related PRs: #2383 (superseded by this issue)
+- Related PRs: #2389 (implementation); #2383 (superseded by #2389, branch named after the EPIC)
 - Related ADRs: `docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`

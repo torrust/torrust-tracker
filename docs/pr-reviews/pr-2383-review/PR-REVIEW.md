@@ -115,6 +115,9 @@ full agentic review did not start before its timeout; that warning names no find
   this audit.
 - 2026-09-30 10:19 UTC - Re-deriving the F1 claim showed the spec still mentions `.tmp` twice
   without citing data; edited the F1 reply, which had said the spec no longer referenced `.tmp/`.
+- 2026-09-30 12:25 UTC - PR #2383 is superseded by PR #2389, which carries the same commits,
+  rebased onto `develop`, on a branch named after issue #2386. This audit merges through #2389;
+  the F1 to F3 resolution-reference commit subjects are unchanged by the rebase.
 
 ## Completion Rules
 
