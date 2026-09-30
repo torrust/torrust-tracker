@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: null
-last-updated-utc: "2026-09-30 07:58"
+last-updated-utc: "2026-09-30 09:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -571,6 +571,12 @@ Sign every commit with GPG and use the `udp-server` scope.
   - F12: refreshed `last-updated-utc` in the task inventory and the SI-17 draft.
   - Validation: `cargo test -p torrust-tracker-udp-server --lib` 191 passed; `linter clippy`.
 - 2026-09-30 07:58 UTC - GitHub Copilot (Task Reviewer) - Final re-review recorded in `agent-review-reports.md`: `REVIEW PASSED`. Findings 11-13 resolved: the recorded prose matches both test bodies, and the shared `RunningProcessor` guard keeps the increment-before-`held.send` order and the receive-error counter at 1 while pending. A reviewer mutation (`abort_all` instead of `shutdown`) still fails the receive-error test; `launcher.rs` was restored and its diff is byte-identical. Set T9 to `DONE`. Issue closure stays open. No production or test code changed.
+- 2026-09-30 09:54 UTC - GitHub Copilot - Addressed PR #2382 Copilot review findings F1-F4. The audit is in `docs/pr-reviews/pr-2382-review/PR-REVIEW.md`.
+  - F1 and F2: the ring-capacity doc comments and the request-concurrency ADR no longer say the ring limits running processors or protects memory. It bounds only the abort handles it keeps (D8 unchanged).
+  - F4: the new drain start and summary logs use the canonical `service_binding` field. Existing receive-loop logs keep `local_addr` (Implementation Constraint 9).
+  - F3: the deadline warning includes `service_binding`. The new paused-time test `it_should_name_the_listener_in_the_deadline_warning` reads the warning from the test-helpers log buffer and needs no production hook (D9). Removing the field, or logging it as `local_addr`, made the test fail.
+  - Rebased onto `develop`: the only conflict was upstream's processor test changes, resolved by keeping upstream's assertions and adding the D7 `Ok` checks.
+  - Validation (nightly Rust toolchain for formatting and docs): `cargo test -p torrust-tracker-udp-server` 209 passed; `linter clippy`; `linter all`; pre-push checks passed.
 
 ## Acceptance Criteria
 
