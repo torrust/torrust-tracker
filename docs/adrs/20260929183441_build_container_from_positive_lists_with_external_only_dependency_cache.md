@@ -9,9 +9,10 @@ semantic-links:
     - Containerfile
     - .dockerignore
     - Cargo.toml
-    - docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md
-    - docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
-    - docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
+    - "issue #2298"
+    - "issue #1852"
+    - "issue #1869"
+    - "issue #2003"
 ---
 
 <!-- skill-link: create-adr -->
@@ -159,14 +160,10 @@ including something by accident can ship unintended content into the image.
 
 ## References
 
-- Issue #2298: `docs/issues/open/2298-rust-dev-tool-container-integration/ISSUE.md` (root-cause
-  analysis, decisions D1-D7, measurement evidence)
-- Issue #1852 (manifest-only recipe stage, superseded by this ADR):
-  `docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md`
-- Issue #1869 (`--external-only` third-party recipe, preserved):
-  `docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md`
-- EPIC #2003 (AI-harness organization):
-  `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`
+- Issue #2298 (root-cause analysis, decisions D1-D8, measurement evidence)
+- Issue #1852 (manifest-only recipe stage, superseded by this ADR)
+- Issue #1869 (`--external-only` third-party recipe, preserved)
+- EPIC #2003 (AI-harness organization)
 - ADR: [Keep unit tests inside the container build](20260603000000_keep_unit_tests_inside_container_build.md)
 - Cargo Chef README: <https://github.com/LukeMathWalker/cargo-chef>
 - Upstream `--external-only` PR: <https://github.com/LukeMathWalker/cargo-chef/pull/360>
