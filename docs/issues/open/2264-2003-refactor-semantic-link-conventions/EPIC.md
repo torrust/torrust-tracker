@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-09-28 10:53"
+last-updated-utc: "2026-09-30 10:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -350,6 +350,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 9 | External links | Classify link importance and checker limitations | Use the #2185 handoff to decide whether link importance belongs in typed metadata, prose policy, or checker configuration. | TODO |
 | 10 | Integration | Reconcile validators with the #2003 architecture decision | Preserve domain semantics while migrating checks to the selected execution, output, policy, and caching architecture when required. | TODO |
 
+### Draft Subissue Proposals
+
+Drafts proposed for this EPIC but not yet ordered in the table above. Whoever plans the next
+subissue should triage them: place each one in the table, merge it into a planned row, or reject
+it.
+
+- [Support multiple related pull requests in issue frontmatter](../../drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md):
+  `related-pr` holds only one PR, but an issue can have a spec-only PR, an implementation PR, and
+  PRs after a reopen. Proposed on 2026-09-30 while implementing issue #2370. It changes the
+  frontmatter contract, so it likely belongs in the Frontmatter phase.
+
 ## Relationship to Issue #2233
 
 Issue #2233 should not solve the full convention problem. Its code-span path inventory is evidence
@@ -612,6 +623,9 @@ For each completed subissue, the default completion policy is:
 - 2026-09-21 16:01 UTC - GitHub Copilot - Archived completed issue #2265 after PR #2273 merged;
   updated the successor and this EPIC's progressive-subissue state -
   `docs/issues/closed/2265-2264-inventory-markdown-frontmatter-contracts/`
+- 2026-09-30 10:22 UTC - GitHub Copilot - Added the unordered Draft Subissue Proposals list with
+  the maintainer-requested draft for multiple related PRs in issue frontmatter; its order in the
+  table is left to the EPIC's planner.
 
 ## Risks and Trade-offs
 
