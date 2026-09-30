@@ -277,7 +277,7 @@ the image).
 | D3 | Convert `.dockerignore` to a default-deny allow-list of what the container build needs. | #2298 | Implemented |
 | D4 | Replace the four `--exclude` lists with a Cargo-native positive list: `[workspace] default-members` names the tracker packages, and `cargo nextest archive` runs without `--workspace`. | #2298 | Implemented |
 | D5 | Write an ADR recording the container caching model: three-layer cook, `--external-only` recipe, canonical recipe stage, allow-list context, positive archive list. | #2298 | Written |
-| D6 | Propose a separate AI-harness Cargo workspace as a draft sub-issue spec of EPIC #2003 (owner: Cameron). #2298 does not implement it. | EPIC #2003 | Draft spec written |
+| D6 | Propose a separate AI-harness Cargo workspace as a draft sub-issue spec of EPIC #2003 (owner: Cameron, `da2ce7`). #2298 does not implement it. | EPIC #2003 | Draft spec written |
 | D7 | Until D6 lands, harness crates remain reachable to `cargo metadata` through explicit allow-list entries, removed when the harness leaves the tracker workspace. | #2298 | Implemented (interim block in `.dockerignore`) |
 | D8 | List every in-repo crate explicitly in `[workspace].members`, not only the ones Cargo cannot auto-discover. Found during V3: the `--external-only` skeleton strips path dependencies, so auto-discovered members vanish from it and `default-members` fails to resolve during `cargo chef cook`. | #2298 | Implemented |
 
@@ -383,7 +383,7 @@ condition. Indexed in `docs/adrs/index.md`.
 
 Draft spec: `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`
 (`status: draft`, `epic: 2003`). It proposes a separate Cargo workspace for the harness tools,
-owned by Cameron through EPIC #2003. It records the goal (decoupling while the harness
+owned by Cameron (`da2ce7`) through EPIC #2003. It records the goal (decoupling while the harness
 matures in-repo, with extraction to its own repository possible later, following the
 `torrust-linting` precedent) and lists as EPIC decisions: workspace location (for example
 `contrib/ai-harness/`), what counts as harness, unified binary versus multiple binaries, scripts
@@ -604,7 +604,7 @@ add a concise progress-log entry explaining why one is unnecessary.
 ## References
 
 - PR #2293: https://github.com/torrust/torrust-tracker/pull/2293
-- Container repair commit: `a9b4723677d7f6edbe34680176f2fd9cda2b4c0f`
+- Container repair commit: `a45ae2d41` (`fix(container): include package coverage check in recipe`)
 - Earlier recipe repairs: `93e194361`, `94f2441a9`, `5938a1ee2`, `b6ddf879e`, `e4d7da576`,
   `a45ae2d41`, `a871c7f7b`
 - Issue evidence record: `docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md`
