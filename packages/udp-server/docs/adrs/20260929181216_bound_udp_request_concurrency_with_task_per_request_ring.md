@@ -57,10 +57,14 @@ design, its evidence, and when it should be reconsidered.
    processor for cancellation, joining, outcomes, and socket release while the
    ring keeps its existing overload decision.
 
-The fixed bound protects memory. The original implementation judged Tokio tasks
-lightweight and UDP requests short-lived; it expected the tracker data locks and
-kernel packet sending to dominate beyond a small concurrency level. The yield is
-an intentional fairness opportunity, not a completion guarantee.
+The fixed ring bounds overload-control bookkeeping: the abort handles it
+retains. It does not bound processor concurrency or task memory exactly,
+because live handles it drops leave processors running outside it (see
+[Known Trade-offs](#known-trade-offs)). The original implementation judged
+Tokio tasks lightweight and UDP requests short-lived; it expected the tracker
+data locks and kernel packet sending to dominate beyond a small concurrency
+level. The yield is an intentional fairness opportunity, not a completion
+guarantee.
 
 ## History and Evidence
 
@@ -154,8 +158,8 @@ Reassess this decision when any of these occur:
 - production evidence shows sustained overload evictions or unfair client
   impact;
 - a simpler alternative matches or exceeds the current B0/B2 benchmark results;
-- memory, latency, or socket-pressure evidence shows the fixed bound no longer
-  protects the deployment profile; or
+- memory, latency, or socket-pressure evidence shows the approximate bound does
+  not protect the deployment profile; or
 - a supported protocol consumer needs explicit admission or fairness semantics.
 
 ## Affected Code
