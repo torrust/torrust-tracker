@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2370
-spec-path: docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+spec-path: docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: 2382
-last-updated-utc: "2026-09-30 11:03"
+last-updated-utc: "2026-09-30 12:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -508,7 +508,7 @@ Sign every commit with GPG and use the `udp-server` scope.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -579,6 +579,7 @@ Sign every commit with GPG and use the `udp-server` scope.
   - Validation (nightly Rust toolchain for formatting and docs): `cargo test -p torrust-tracker-udp-server` 209 passed; `linter clippy`; `linter all`; pre-push checks passed.
 - 2026-09-30 10:18 UTC - GitHub Copilot - Maintainer decision: `related-pr` records implementation PR #2382, following SI-14 (`related-pr: 2351`). Spec-only PR #2372 stays in this log because the v1 field holds one value. The maintainer asked for a schema follow-up to allow several related PRs; it is drafted as a #2264 subissue in `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md`.
 - 2026-09-30 11:03 UTC - GitHub Copilot - Maintainer decision on the mixed UDP listener field names left by Copilot finding F4: this PR keeps them, because constraint 9 forbids changing existing receive-loop logs. A standalone follow-up, issue #2387, reviews all startup and shutdown logs for coherence and missing operator information, with a verbatim baseline capture. It is postponed until EPIC #1488 is complete, and its spec merges with this PR.
+- 2026-09-30 12:24 UTC - GitHub Copilot - PR #2382 merged into `develop` as merge commit `f911083d`, and GitHub closed the issue as completed. The PR was not linked as the closing PR, because `Closes #2370` was added by editing the body after creation; the issue was closed by the merge commit message, and an issue comment now records the link. Archived this spec to `docs/issues/closed/`, set EPIC #1488 row 11 to Done, and repaired live references to the old path.
 
 ## Acceptance Criteria
 

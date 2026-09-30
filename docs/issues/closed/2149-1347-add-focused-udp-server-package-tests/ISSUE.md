@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests"
 related-pr: 2174
-last-updated-utc: 2026-09-14
+last-updated-utc: 2026-09-30
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/open/1347-overhaul-packages-testing/EPIC.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/src/server/launcher.rs

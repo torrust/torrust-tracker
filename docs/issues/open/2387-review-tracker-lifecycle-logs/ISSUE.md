@@ -9,7 +9,7 @@ github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/ISSUE.md
 branch: "2387-review-tracker-lifecycle-logs"
 related-pr: null
-last-updated-utc: "2026-09-30 11:03"
+last-updated-utc: "2026-09-30 12:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - packages/udp-server/src/server/launcher.rs
     - share/default/config/tracker.development.sqlite3.toml
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - "issue #1166"
 ---
@@ -228,4 +228,4 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - Origin: PR #2382 Copilot review finding F4; issue #2370 (EPIC #1488 SI-15)
 - Related: #1166 (tracing level usage); closed #387 (syslog format)
-- Evidence source: `docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/manual-verification-evidence.md` (M1)
+- Evidence source: `docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/manual-verification-evidence.md` (M1)

@@ -9,7 +9,7 @@ github-issue: 2342
 spec-path: docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
 branch: "2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle"
 related-pr: 2351
-last-updated-utc: "2026-09-28 09:26"
+last-updated-utc: "2026-09-30 12:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,7 @@ semantic-links:
     - docs/features/shutdown-process/shutdown-architecture-examples.md
     - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
-    - docs/issues/open/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
+    - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
