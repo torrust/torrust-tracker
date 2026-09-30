@@ -353,8 +353,14 @@ so an implant does not survive:
 Deleting the registration through the API needs no removal token. Do not reuse anything from the
 old server, including its caches.
 
-### Add a Second Runner Instance
+### Add Runner Capacity
 
-Only if measured queue time shows jobs waiting for the runner. A second instance on the same server
-halves the CPU each compile gets and doubles the memory pressure. Repeat step 11 in a second
-directory with its own name and the same label, then step 12 for its unit.
+Only if measured queue time shows pull requests waiting for the runner. The decision to keep one
+runner, and when to recheck it, is recorded in the
+[capacity draft](issues/drafts/1840-self-hosted-runner-instance-capacity/ISSUE.md).
+
+Add capacity as a **second server** with one runner instance: repeat steps 2 to 13 with a new
+runner name and the same `torrust-hetzner` label. Do not add a second instance on the same server:
+concurrent jobs on one Docker host collide on the E2E tests' fixed host ports, share the
+`torrust-tracker:local` image tag (a job can test another job's image), and share the Cargo target
+directories.
