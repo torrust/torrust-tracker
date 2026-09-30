@@ -60,6 +60,27 @@ boundary. It is not a substitute for unit-only protection.
 | ---: | ---: | ---: |
 | 1,118 / 1,469 (76.11%) | 1,190 / 1,654 (71.95%) | 148 / 187 (79.14%) |
 
+## Final Coverage Measurement
+
+On 2026-09-30, `cargo-llvm-cov 0.6.16` with stable Rust 1.98.1 generated clean final reports at
+the Issue #2283 implementation head. Each command was preceded by `cargo llvm-cov clean
+--workspace`; raw JSON reports remain ignored under `.tmp/2283-final-coverage/`.
+
+```text
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --json --output-path .tmp/2283-final-coverage/aggregate.json
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --lib --json --output-path .tmp/2283-final-coverage/unit.json
+cargo llvm-cov -p torrust-tracker-udp-server --all-features --test integration --json --output-path .tmp/2283-final-coverage/integration.json
+```
+
+The scopes have distinct denominators and remain separate evidence. The aggregate measurement is
+broad navigation evidence; the unit-only report remains the package-local coverage measure.
+
+| Measurement scope | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| Aggregate/global | 6,340 / 6,431 (98.58%) | 8,316 / 8,519 (97.62%) | 686 / 696 (98.56%) |
+| Unit-only (`--lib`) | 6,314 / 6,431 (98.18%) | 8,267 / 8,519 (97.04%) | 680 / 696 (97.70%) |
+| Integration-only (`--test integration`) | 1,184 / 1,560 (75.90%) | 1,266 / 1,751 (72.30%) | 159 / 200 (79.50%) |
+
 ## Module Inventory And T1 Hypotheses
 
 Every source file has one T1 hypothesis. It orders the per-file work and records the ownership
