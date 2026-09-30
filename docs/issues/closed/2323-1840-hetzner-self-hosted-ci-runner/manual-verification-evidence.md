@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md
-last-updated-utc: 2026-09-28
+last-updated-utc: 2026-09-30 07:03
 ---
 
 # Manual Verification Evidence
@@ -159,6 +159,165 @@ PR checks on the head commit: first start 09:45:05Z, last completion 10:02:54Z (
 M4 met: third-party layers came from the local Docker store and only the workspace compile reran.
 M6 met: the job took 12 min 3 s and the PR checks 17 min 49 s, recorded in `benchmark-results.md`
 against the baseline and the 15-minute target.
+
+### V5 - Runner-Offline Recovery (M5)
+
+Recorded under follow-up issue #2374.
+
+- Goal: prove that `timeout-minutes` does not expire a queued self-hosted job, then prove restart
+  recovery and the GitHub-hosted fallback.
+- Initial state: `torrust-runner-01` online and idle; no queued or active `Container` or `Testing`
+  runs. The disposable PR #2378 changed only `Test (Docker)` from `timeout-minutes: 90` to `2`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Stopped `actions.runner.torrust-torrust-tracker.torrust-runner-01.service` at 18:03:34 UTC.
+  The service was `inactive`; GitHub reported the runner `offline` before the PR was opened.
+2. Opened disposable PR #2378 at 18:09 UTC. Its Container run `36610063594` created job
+  `109548900765` at 18:09:40 UTC.
+3. The job remained queued until 18:14:33 UTC, when the restarted runner picked it up. The queue
+  duration was 293 seconds (4 min 53 s), longer than its 2-minute `timeout-minutes`. It was
+  cancelled at 18:16:40 UTC only after execution had begun, as expected for the execution limit.
+4. A second queued run (`36610612944`, job `109550759376`) also started on
+  `torrust-runner-01` after recovery, confirming the service resumed the backlog.
+5. Pushed a fallback commit only to #2378 that set the test job's `runs-on` to `ubuntu-latest`.
+  Its run `36611356707` started job `109553292706` on `GitHub Actions 1000091271` two seconds
+  after creation (18:20:31 UTC -> 18:20:33 UTC). It was cancelled at its 2-minute execution cap.
+6. Verified `torrust-runner-01` online and idle, then closed #2378 and deleted its fork branch.
+
+Observed result:
+
+```text
+run 36610063594 | self-hosted | created 18:09:40Z | started 18:14:33Z | queue 293 s | cancelled 18:16:40Z
+run 36610612944 | self-hosted | created 18:14:13Z | started 18:16:42Z | queue 149 s | cancelled 18:18:49Z
+run 36611356707 | ubuntu-latest | created 18:20:31Z | started 18:20:33Z | queue 2 s | cancelled 18:23:12Z
+```
+
+Job links:
+
+- <https://github.com/torrust/torrust-tracker/actions/runs/36610063594/job/109548900765>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36610612944/job/109550759376>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36611356707/job/109553292706>
+
+Conclusion: M5 met. A queued job waited past its two-minute timeout and ran only after the runner
+recovered, proving that `timeout-minutes` does not limit queue time. The fallback started on a
+GitHub-hosted runner without changing `develop`. The five-minute wait in the plan was not needed:
+the 293-second observation already exceeds the two-minute claim under test.
+
+### V7 - Untrusted-Code Routing (M7)
+
+Recorded under follow-up issue #2374, which completes the scenarios this issue left open.
+
+- Goal: Dependabot jobs run on GitHub-hosted runners, also after a maintainer updates the branch,
+  and a PR from a non-member fork waits for approval before any job runs.
+- Initial state: routing merged in PR #2352 (`432d4e69`); fork-PR approval policy
+  `all_external_contributors`.
+- Status: `DONE`
+
+#### Part 1 - Dependabot PRs
+
+Steps performed (2026-09-29 16:15 UTC, read-only):
+
+1. Listed the Dependabot PRs opened or re-run after the routing change: #2369 and #2338, both
+   authored by `app/dependabot`.
+2. Inspected their `Container` and `Testing` runs:
+   `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>` and
+   `gh api repos/torrust/torrust-tracker/actions/runs/<run-id>/jobs`.
+
+Observed result (`labels` is the job's resolved `runs-on` value):
+
+```text
+PR #2369, head 5055ba63, branch dependabot/github_actions/develop/github/codeql-action-4.38.2
+  run 36474323310 Container pull_request actor=dependabot[bot] triggering=dependabot[bot]
+    Test (Docker) (release) | success | runner=GitHub Actions 1000091160 | labels=ubuntu-latest
+  run 36474314420 Testing push actor=dependabot[bot] triggering=dependabot[bot]
+    Docker E2E | success | runner=GitHub Actions 1000091147 | labels=ubuntu-latest
+PR #2338, head cd518a79, branch dependabot/cargo/develop/schemars-1.2.2
+  run 36408286110 Container pull_request actor=dependabot[bot] triggering=dependabot[bot]
+    Test (Docker) (release) | failure | runner=GitHub Actions 1000090762 | labels=ubuntu-latest
+  run 36408280318 Testing push actor=dependabot[bot] triggering=dependabot[bot]
+    Docker E2E | success | runner=GitHub Actions 1000090777 | labels=ubuntu-latest
+```
+
+Job links:
+
+- <https://github.com/torrust/torrust-tracker/actions/runs/36474323310/job/109104118212>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36474314420/job/109104090790>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36408286110/job/108882141096>
+- <https://github.com/torrust/torrust-tracker/actions/runs/36408280318/job/108882121591>
+
+Conclusion: part 1 met. Both Dependabot PRs ran `Test (Docker)` on GitHub-hosted runners, and the
+`Docker E2E` jobs of the pushes to their `dependabot/` branches did too. The #2338 failure is in
+the job itself, not in routing. The PR `Docker E2E` jobs were `skipped`, as expected for PRs
+targeting `develop`.
+
+#### Part 2 - After a Maintainer Updates the Branch
+
+Steps performed (2026-09-29 18:57 UTC):
+
+1. The maintainer selected **Update with merge commit** for Dependabot PR #2369. The PR author
+   remained `app/dependabot` and its new head was `7b3a3245`.
+2. Inspected the new Container run `36615722101` and its `Test (Docker)` job `109568077764`.
+
+Observed result:
+
+```text
+Container pull_request | actor=josecelano | triggering_actor=josecelano | head=7b3a3245
+Test (Docker) (release) | in_progress | runner=GitHub Actions 1000091297 |
+  labels=ubuntu-latest | 2026-09-29T18:57:03Z -> 2026-09-29T18:57:05Z
+```
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36615722101/job/109568077764>
+
+Conclusion: the Container portion of part 2 met. Although the maintainer triggered the merge
+commit, #2369 remained a Dependabot PR and its container test started on a GitHub-hosted runner.
+The associated pull-request `Docker E2E` job was skipped because its target is `develop`, and the
+merge update created no push workflow. To observe the post-update push path, the maintainer pushed
+a signed empty commit (`7e810339`), which path filtering did not run, then a signed temporary Rust
+doc-comment commit (`11180ff9`). The latter triggered `Testing` push run `36631486290`; its
+`Docker E2E` job `109621539097` started on `GitHub Actions 1000091340` with
+`labels=ubuntu-latest` at 21:10:31 UTC. The signed revert commit `cd4cdfba` immediately restored
+the source file, leaving no net source-content change from this observation.
+
+<https://github.com/torrust/torrust-tracker/actions/runs/36631486290/job/109621539097>
+
+Conclusion: part 2 met. Both the maintainer-updated Container PR run and the subsequent
+Dependabot-branch `Docker E2E` push run selected GitHub-hosted runners.
+
+#### Part 3 - PR From a Non-Member Fork
+
+Steps performed (2026-09-29 16:50 UTC):
+
+1. `josecelano-bot` opened #2376 from its fork, `josecelano-bot/torrust-tracker`.
+  GitHub classified the author as `FIRST_TIME_CONTRIBUTOR`. The PR adds only `test.md` (three
+  lines), and no workflow or executable file changed.
+2. Before approval, inspected the PR head `696b0f63`: the combined status was `pending`, with no
+  check runs and no Actions workflow runs. The maintainer then approved the workflows in GitHub.
+3. After approval, Docs Lint run `36599032618` started at 16:38:45 UTC on `GitHub Actions
+  1000091230`, showing that work began only after approval.
+
+Observed result:
+
+```text
+Before approval: status=pending; check_runs=[]; workflow_runs=[]
+After approval: Docs Lint | failure | runner=GitHub Actions 1000091230 |
+           2026-09-29T16:38:45Z -> 2026-09-29T16:39:24Z
+```
+
+<https://github.com/torrust/torrust-tracker/pull/2376>
+<https://github.com/torrust/torrust-tracker/actions/runs/36599032618/job/109511966141>
+
+The job failed only because the test file contains a spelling error identified by cspell. It is
+unrelated to the approval gate. As a documentation-only PR, #2376 did not trigger `Test (Docker)`
+and is not evidence of self-hosted-runner routing after approval.
+
+Conclusion: part 3 met. No workflow run existed before the maintainer approved the first-time
+external contributor's PR; the approved workflow then started. This proves the approval gate.
+
+Conclusion: M7 met. Dependabot jobs routed to GitHub-hosted runners both before and after a
+maintainer updated the branch, and the first-time external contributor could not start a workflow
+before approval.
 
 ## Failures and Follow-up
 
