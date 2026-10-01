@@ -7,9 +7,9 @@ priority: p2
 epic: 1840
 github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
-branch: "2386-1840-self-hosted-runner-minimum-capacity"
+branch: "2386-1840-runner-capacity-measurements"
 related-pr: 2389
-last-updated-utc: "2026-09-30 12:25"
+last-updated-utc: "2026-10-01 14:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -104,7 +104,7 @@ interfere:
 
 Other fixed container names, networks, or `/tmp` paths were not audited. Separate servers have
 separate Docker daemons, ports, and file systems, so these limits do not apply between them.
-Removing them belongs to a future test-isolation EPIC, together with #1419 for the integration
+Removing them belongs to the test-isolation EPIC #2392, together with #1419 for the integration
 tests.
 
 ## Scope
@@ -124,7 +124,7 @@ tests.
 
 - Resizing the server, adding a server, or adding a runner instance. If the measurement favors
   another size, the change is a follow-up that uses the guide's rebuild procedure.
-- Removing the concurrency limits (a future test-isolation EPIC, and #1419).
+- Removing the concurrency limits (test-isolation EPIC #2392, and #1419).
 - Autoscaling, ephemeral runners, or runner-controller tooling.
 - Changes to the security routing (Dependabot, `main`, `releases/**`, fork approval).
 - Optimizing the build itself, and the unit-test critical path (#2323 Scenario G), which are other
@@ -184,9 +184,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                          | Notes / Expected Output                                                                                                             |
 | --- | ------ | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Measure both sizes            | Measurement Method in a maintainer-approved window; results in `manual-verification-evidence.md` V1 and V2; runner restored (V4).   |
-| T2  | IN_PROGRESS | Record the load evidence      | `manual-verification-evidence.md` V3: observed self-hosted queue times, and a replay of the last 30 days of real `Container` run arrivals through 1 and 2 runners, with and without cancelling superseded runs. The observed window is extended to the measurement date after T1. |
-| T3  | TODO   | Record the capacity decision  | Maintainer decision on server size, runner count, resilience, and recheck triggers, in a Decision section of this specification.    |
+| T1  | DONE   | Measure both sizes            | Measurement Method in a maintainer-approved window; results in `manual-verification-evidence.md` V1 and V2; runner restored (V4).   |
+| T2  | DONE   | Record the load evidence      | `manual-verification-evidence.md` V3: observed self-hosted queue times, and a replay of the last 30 days of real `Container` run arrivals through 1 and 2 runners, with and without cancelling superseded runs. The observed window is extended to the measurement date after T1. |
+| T3  | DONE   | Record the capacity decision  | Maintainer decision on server size, runner count, resilience, and recheck triggers, in a Decision section of this specification.    |
 | T4  | DONE   | Update the operations guide   | `docs/self-hosted-runner.md`: current server facts, the cost trade-off, one runner per server and why, how to add capacity, and recheck commands for queue time and run volume. |
 | T5  | DONE   | Update EPIC #1840             | Row 16 for #2374 (DONE) and row 17 for #2386 (IN_PROGRESS).                                                                                      |
 
@@ -231,21 +231,24 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 10:52 UTC - GitHub Copilot - T4 DONE: added the queue-time recheck command to the guide's "Add Runner Capacity" section. Its first run shows a busier morning than the Background window: from 08:03 to 10:27 UTC, 9 self-hosted jobs, 4 of them queued for 124 to 760 s; T2 records the full window after T1 - guide "Add Runner Capacity"
 - 2026-09-30 11:04 UTC - josecelano, GitHub Copilot - The maintainer corrected the workload assumption: the last two days were not normal (normally 6 agents, about 4 open pull requests, checks run 3 to 5 times each). Replaying the last 30 days of real `Container` run arrivals shows one runner queues heavily (p90 wait 99 min at a 723 s job) and that cancelling superseded runs helps more than a second runner alone; the "concurrency is not needed" conclusion is withdrawn, and the choice is Open Question 4 - `manual-verification-evidence.md` V3
 - 2026-09-30 12:25 UTC - josecelano, GitHub Copilot - Moved the work to branch `2386-1840-self-hosted-runner-minimum-capacity`, rebased onto `develop`, and opened PR #2389, which supersedes #2383: the old branch was named after the EPIC, and GitHub closes a pull request when its head branch is renamed. The #2383 review audit carries over - PR #2389
+- 2026-09-30 12:33 UTC - josecelano, GitHub Copilot - PR #2389 merged the spec, guide, and V3 evidence. GitHub closed #2386 on the merge: the merge tool copies the pull request body into the merge commit, and the body's sentence "The link will change to `Closes #2386` when the remaining tasks are done" contains a closing keyword. The issue was reopened because T1 and T3 remain. The rest continues on branch `2386-1840-runner-capacity-measurements` - PR #2389, #2386
+- 2026-09-30 15:17 UTC - josecelano, GitHub Copilot - T1 and T2 DONE. In a window from 13:34 to 14:58 UTC the realistic build took 639 s at 8 vCPU / 16 GB (projected job 801 s, 13.4 minutes) and 1065 s constrained to 4 vCPU / 8 GB (projected 1227 s, 20.5 minutes); no out-of-memory kills. The replay rerun at 801 s gives a one-runner 90th-percentile wait of 140 minutes, 12 with superseded runs cancelled. The maintainer kept the current 8 vCPU / 16 GB server as the minimum; the queueing remedy is still open - `manual-verification-evidence.md` V1 to V4, Decision
+- 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - T3 DONE: the maintainer chose to cancel superseded pull-request runs before adding a second server, delivered in #2402, and kept the recheck trigger of about a month or another active maintainer - Decision, #2402
 
 ## Acceptance Criteria
 
-- [ ] AC1: The realistic pull-request build is measured with one protocol at 8 vCPU / 16 GB and at
+- [x] AC1: The realistic pull-request build is measured with one protocol at 8 vCPU / 16 GB and at
       4 vCPU / 8 GB, recording total build time, workspace compile time, peak memory and swap, and
       any out-of-memory kill.
-- [ ] AC2: The projected job time for each size is compared with the 15-minute target, and the
+- [x] AC2: The projected job time for each size is compared with the 15-minute target, and the
       minimum size is stated with its evidence.
-- [ ] AC3: The capacity decision (server size, number of runners, resilience, and recheck triggers)
+- [x] AC3: The capacity decision (server size, number of runners, resilience, and recheck triggers)
       is recorded with the maintainer's rationale.
-- [ ] AC4: `docs/self-hosted-runner.md` records the current server's facts (without its IP address),
+- [x] AC4: `docs/self-hosted-runner.md` records the current server's facts (without its IP address),
       the cost trade-off against GitHub larger runners with the break-even volume, the
       one-runner-per-server limit and its causes, how to add capacity, and commands to recheck
       queue time and run volume.
-- [ ] AC5: EPIC #1840 lists #2374 and this issue.
+- [x] AC5: EPIC #1840 lists #2374 and this issue.
 - [ ] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
@@ -263,10 +266,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario             | Human-oriented command/steps                                  | Expected Result                                                   | Status | Evidence                                     |
 | --- | -------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Full-size build      | Measurement Method steps 1 to 3                               | Build and compile times, peak memory and swap recorded            | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | 4 vCPU / 8 GB build  | Measurement Method step 4                                     | Same metrics recorded; any out-of-memory kill noted               | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Queue-time recheck   | Run the recheck command added to `docs/self-hosted-runner.md` | Lists self-hosted jobs with their queue times                     | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Runner restored      | Runners API after the window                                  | `torrust-runner-01` `online` and idle; benchmark builder removed | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | Full-size build      | Measurement Method steps 1 to 3                               | Build and compile times, peak memory and swap recorded            | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | 4 vCPU / 8 GB build  | Measurement Method step 4                                     | Same metrics recorded; any out-of-memory kill noted               | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Queue-time recheck   | Run the recheck command added to `docs/self-hosted-runner.md` | Lists self-hosted jobs with their queue times                     | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Runner restored      | Runners API after the window                                  | `torrust-runner-01` `online` and idle; benchmark builder removed | DONE   | `manual-verification-evidence.md` section V4 |
 
 ### Disposable Verification Scripts
 
@@ -276,11 +279,30 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC1   | DONE                   | `manual-verification-evidence.md` V1 and V2 |
+| AC2   | DONE                   | V1, V2, and the Decision section |
+| AC3   | DONE                   | Decision section |
+| AC4   | DONE                   | `docs/self-hosted-runner.md`, PR #2389 |
+| AC5   | DONE                   | EPIC #1840 rows 16 and 17, PR #2389 |
+
+## Decision
+
+Recorded on 2026-09-30 from the measurements in `manual-verification-evidence.md`.
+
+- **Server size: keep the current 8 vCPU / 16 GB server (CPX42 class).** It is the smallest size
+  that meets the target: its projected job is 801 s (13.4 minutes), while 4 vCPU / 8 GB projects
+  1227 s (20.5 minutes). The maintainer's rationale: the job is dominated by heavy work, the Docker
+  build and the Rust compilation, so a smaller server is not an option. The margin is small, 1.6
+  minutes and about 123 MiB of free memory, and the compile has grown from 561 s to 614 s since
+  #2323.
+- **Resilience:** the verified `ubuntu-latest` fallback is enough; see Background.
+- **Runner count and queueing: one server; cancel superseded pull-request runs first.** Cancelling
+  gives about the same 90th-percentile wait as a second server (12 against 13 minutes at 801 s,
+  V3) at no cost. It is a workflow change, delivered in #2402 under EPIC #1840. A second server is
+  added only if the recheck after that shows waits over 15 minutes are still common.
+- **Recheck triggers:** about a month after cancellation is in place, or earlier if the load is
+  expected to rise, for example when another maintainer works actively on the project (maintainer
+  input in Background). Use the queue-time and run-volume commands in the guide.
 
 ## Risks and Trade-offs
 
@@ -294,16 +316,18 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 ## Open Questions
 
 1. If 4 vCPU / 8 GB stays under 15 minutes, downsize (about half the monthly cost, in a follow-up)
-   or keep 8 vCPU for headroom? Decided in T3.
+   or keep 8 vCPU for headroom? Answered by V2: it does not stay under 15 minutes (20.5 minutes).
 2. How close to 15 minutes counts as inconclusive and needs a real candidate server? Proposed:
-   within 10% (13.5 to 16.5 minutes).
-3. When is the measurement window?
+   within 10% (13.5 to 16.5 minutes). Not needed: V2 is well outside that band.
+3. When is the measurement window? 2026-09-30, 13:34 to 14:58 UTC (V4).
 4. The 30-day replay (`manual-verification-evidence.md` V3) shows one runner queues a normal
    workload heavily. Which remedy, decided in T3 and delivered as a follow-up: cancel superseded
    pull-request runs (a `concurrency` group with `cancel-in-progress`, no extra cost), add a second
-   server (about 69 EUR per month more, and less cost-efficient at low volume), or both?
+   server (about 69 EUR per month more, and less cost-efficient at low volume), or both? Decided:
+   cancel superseded runs first, in #2402; see Decision.
 5. Does a second server change the answer to question 1, for example two 4 vCPU servers instead
-   of one 8 vCPU server?
+   of one 8 vCPU server? No: V2 shows a 4 vCPU server misses the 15-minute job target on its own,
+   whatever the number of servers.
 
 ## Implementation Completion Review
 
