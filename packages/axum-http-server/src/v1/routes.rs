@@ -7,7 +7,7 @@ use axum::http::HeaderName;
 use axum::response::Response;
 use axum::routing::get;
 use axum::{BoxError, Router};
-use axum_client_ip::SecureClientIpSource;
+use axum_client_ip::ClientIpSource;
 use hyper::{Request, StatusCode};
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_server_lib::logging::Latency;
@@ -74,7 +74,7 @@ fn with_request_layers(router: Router, server_service_binding: &ServiceBinding) 
 
     router
         // Add extension to get the client IP from the connection info
-        .layer(SecureClientIpSource::ConnectInfo.into_extension())
+        .layer(ClientIpSource::ConnectInfo.into_extension())
         .layer(CompressionLayer::new())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
