@@ -93,6 +93,9 @@ the PR #2363 audit, they are recorded as `Minor (inferred)` and `Nit (inferred)`
 - 2026-09-30 15:59 UTC - Fixed F2 in `docs(issues): [#2393] quote the evidence timestamp`, pushed
   it, re-verified F1 with the frontmatter validator, and replied on both threads. F1 is an original
   no-change finding, so its reply names itself, as in the PR #2334 audit.
+- 2026-10-01 06:44 UTC - Confirmed the replies on threads `PRRT_kwDOGp2yqc6nmeFg` and
+  `PRRT_kwDOGp2yqc6nmeGi`, resolved both threads, and refreshed GitHub review-thread data: zero
+  unresolved actionable threads remain.
 
 ## Completion Rules
 
