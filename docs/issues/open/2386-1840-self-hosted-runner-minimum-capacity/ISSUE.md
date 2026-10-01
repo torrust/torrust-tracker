@@ -9,7 +9,7 @@ github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 branch: "2386-1840-runner-capacity-measurements"
 related-pr: 2389
-last-updated-utc: "2026-10-01 14:52"
+last-updated-utc: "2026-10-01 16:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -233,7 +233,8 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 12:25 UTC - josecelano, GitHub Copilot - Moved the work to branch `2386-1840-self-hosted-runner-minimum-capacity`, rebased onto `develop`, and opened PR #2389, which supersedes #2383: the old branch was named after the EPIC, and GitHub closes a pull request when its head branch is renamed. The #2383 review audit carries over - PR #2389
 - 2026-09-30 12:33 UTC - josecelano, GitHub Copilot - PR #2389 merged the spec, guide, and V3 evidence. GitHub closed #2386 on the merge: the merge tool copies the pull request body into the merge commit, and the body's sentence "The link will change to `Closes #2386` when the remaining tasks are done" contains a closing keyword. The issue was reopened because T1 and T3 remain. The rest continues on branch `2386-1840-runner-capacity-measurements` - PR #2389, #2386
 - 2026-09-30 15:17 UTC - josecelano, GitHub Copilot - T1 and T2 DONE. In a window from 13:34 to 14:58 UTC the realistic build took 639 s at 8 vCPU / 16 GB (projected job 801 s, 13.4 minutes) and 1065 s constrained to 4 vCPU / 8 GB (projected 1227 s, 20.5 minutes); no out-of-memory kills. The replay rerun at 801 s gives a one-runner 90th-percentile wait of 140 minutes, 12 with superseded runs cancelled. The maintainer kept the current 8 vCPU / 16 GB server as the minimum; the queueing remedy is still open - `manual-verification-evidence.md` V1 to V4, Decision
-- 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - T3 DONE: the maintainer chose to cancel superseded pull-request runs before adding a second server, delivered in #2402, and kept the recheck trigger of about a month or another active maintainer - Decision, #2402
+- 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - T3 DONE: the maintainer chose to cancel superseded pull-request runs before adding a second server, to be delivered in #2402, and kept the recheck trigger of about a month or another active maintainer - Decision, #2402
+- 2026-10-01 16:26 UTC - josecelano, GitHub Copilot - Addressed the Copilot review of PR #2403. The first cancelling replay only dropped runs superseded within one job time of their arrival and treated cancelled running jobs as free; an event-driven replay corrects the one-runner figures at 801 s to 11 minutes (90th percentile) and 32 minutes (maximum), from 12 and 79, which strengthens the decision. The V2 memory claim is narrowed to the sampled last 5 minutes, and the Decision dates its parts - `manual-verification-evidence.md` V2, V3, `docs/pr-reviews/pr-2403-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
@@ -287,19 +288,21 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 
 ## Decision
 
-Recorded on 2026-09-30 from the measurements in `manual-verification-evidence.md`.
+Measurements from 2026-09-30 in `manual-verification-evidence.md`. The maintainer decided the server
+size on 2026-09-30 and the runner count and queueing on 2026-10-01.
 
-- **Server size: keep the current 8 vCPU / 16 GB server (CPX42 class).** It is the smallest size
+- **Server size (2026-09-30): keep the current 8 vCPU / 16 GB server (CPX42 class).** It is the smallest size
   that meets the target: its projected job is 801 s (13.4 minutes), while 4 vCPU / 8 GB projects
   1227 s (20.5 minutes). The maintainer's rationale: the job is dominated by heavy work, the Docker
   build and the Rust compilation, so a smaller server is not an option. The margin is small, 1.6
   minutes and about 123 MiB of free memory, and the compile has grown from 561 s to 614 s since
   #2323.
 - **Resilience:** the verified `ubuntu-latest` fallback is enough; see Background.
-- **Runner count and queueing: one server; cancel superseded pull-request runs first.** Cancelling
-  gives about the same 90th-percentile wait as a second server (12 against 13 minutes at 801 s,
-  V3) at no cost. It is a workflow change, delivered in #2402 under EPIC #1840. A second server is
-  added only if the recheck after that shows waits over 15 minutes are still common.
+- **Runner count and queueing (2026-10-01): one server; cancel superseded pull-request runs first.**
+  At 801 s on one runner, cancelling cuts the 90th-percentile wait from 140 to 11 minutes and the
+  longest from 239 to 32, against 13 and 63 minutes for a second server alone (V3), at no cost. It
+  is a workflow change, to be delivered in #2402 under EPIC #1840. A second server is added only if
+  the recheck after that shows waits over 15 minutes are still common.
 - **Recheck triggers:** about a month after cancellation is in place, or earlier if the load is
   expected to rise, for example when another maintainer works actively on the project (maintainer
   input in Background). Use the queue-time and run-volume commands in the guide.
