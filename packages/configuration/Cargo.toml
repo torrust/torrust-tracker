@@ -26,7 +26,7 @@ serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 serde_with = "3"
 thiserror = "2"
-toml = "0"
+toml = "1"
 torrust-located-error = "3.0.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 tracing = "0"
