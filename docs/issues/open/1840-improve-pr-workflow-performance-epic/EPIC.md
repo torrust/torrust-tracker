@@ -6,7 +6,7 @@ epic: null
 github-issue: 1840
 spec-path: docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-30 12:25"
+last-updated-utc: "2026-10-01 14:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,8 @@ Ordering policy:
 | 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`                                    | IN_REVIEW  | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). The issue removes the development-profile override and retains release fat LTO; PR #2013 is under review.                                                                                                                                                                       |
 | 15    | #2323 - Offload the container test job to a self-hosted Hetzner runner                       | `docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md`                             | DONE       | Moves `container.yaml` `test` to a persistent self-hosted runner so Docker layers and Cargo caches survive between jobs; publish jobs stay on GitHub-hosted runners and stop reading self-hosted cache. Target: PR checks from about 40 to about 15 minutes.                                                                                 |
 | 16    | #2374 - Verify the self-hosted runner's offline recovery and untrusted-code routing          | `docs/issues/closed/2374-1840-verify-self-hosted-runner-operational-controls/ISSUE.md`            | DONE       | Merged in PR #2379, archived in PR #2380. Verified the offline queue and `ubuntu-latest` fallback (M5) and Dependabot and external-contributor routing (M7). |
-| 17    | #2386 - Determine the minimum self-hosted runner capacity                                    | `docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md`                         | IN_PROGRESS | Measures the realistic PR build at 8 vCPU / 16 GB and 4 vCPU / 8 GB, then records the capacity decision (one runner on the current server unless the data says otherwise), the cost trade-off, and recheck triggers. PR #2389. |
+| 17    | #2386 - Determine the minimum self-hosted runner capacity                                    | `docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md`                         | IN_PROGRESS | Measured the realistic PR job at 801 s on 8 vCPU / 16 GB and 1227 s constrained to 4 vCPU / 8 GB; decided to keep the current server and one runner, and to cancel superseded runs first (#2402). PR #2389. |
+| 18    | #2402 - Cancel superseded pull-request CI runs                                               | `docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md`                                   | TODO       | `concurrency` groups in `container.yaml` and `testing.yaml` cancel a pull request's older runs; push runs are never cancelled. The #2386 replay cuts the one-runner 90th-percentile wait from 140 to 11 minutes. |
 
 ## Delivery Strategy
 
@@ -158,6 +159,7 @@ Append one line per meaningful update.
 - 2026-09-30 09:26 UTC - GitHub Copilot - Added row 16 for #2374 (DONE; missed when it was opened and archived) and row 17 for the deferred runner-capacity draft; the maintainer decided to keep one runner and recheck load around 2026-10-30 - `docs/issues/drafts/1840-self-hosted-runner-instance-capacity/ISSUE.md`
 - 2026-09-30 10:08 UTC - GitHub Copilot - Changed row 17 to the minimum-capacity issue: the maintainer chose to open, implement, and close it with documentation as the output instead of keeping a deferred draft; the draft moved to `docs/issues/drafts/1840-self-hosted-runner-minimum-capacity/ISSUE.md`
 - 2026-09-30 10:26 UTC - GitHub Copilot - Created #2386 for row 17, linked it as a sub-issue, and moved its spec to `docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md`
+- 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - Updated row 17 with the #2386 measurements and decision, and added row 18: created #2402 (cancel superseded pull-request runs), linked it as a sub-issue, and opened its spec - `docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md`
 
 ## Acceptance Criteria
 
