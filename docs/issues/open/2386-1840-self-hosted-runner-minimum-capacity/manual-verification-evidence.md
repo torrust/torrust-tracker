@@ -102,7 +102,8 @@ swap.
 build 14:35:27 to 14:53:12 UTC: success, 1065 s
 build 3/3 workspace compile: 1029.7 s
 image test stage: 1148 tests passed in 20.6 s
-builder memory: at the 8 GiB limit (maximum sample 8,589,811,712 bytes); memory.events max 41922, oom 0, oom_kill 0
+builder memory, sampled 14:48:39 to 14:53:12 UTC (262 samples): median 5.85 GiB, 69 samples above 7 GiB, 14 within 1% of the 8 GiB limit, maximum 8,589,811,712 bytes
+builder memory.events after the build: max 41922, oom 0, oom_kill 0 (40124 of the max events had occurred by 14:48:28)
 builder swap: maximum sample 3.10 GiB (14:48 onwards only)
 host: maximum swap used 5,969,952 KiB (5.69 GiB)
 out-of-memory kills: none
@@ -114,8 +115,10 @@ Projected job time: 1065 s + 162 s = 1227 s (20.5 minutes).
 
 4 vCPU / 8 GB misses the 15-minute target by 5.5 minutes, outside the 13.5 to 16.5 minute band
 that would call for a real candidate server (Open Question 2). The result matches the 1250 s
-estimate from GitHub-hosted 4 vCPU runners. The build ran at its memory limit throughout, so
-swapping added to the loss of CPU.
+estimate from GitHub-hosted 4 vCPU runners. The builder reached its 8 GiB limit repeatedly
+(`memory.events max` counts hits, not their duration; most occurred in the first 13 minutes, which
+were not sampled) and swapped up to 3.10 GiB in the sampled last 5 minutes, so memory pressure
+added to the loss of CPU; the samples do not show how long it sat at the limit.
 
 Measurement limits: this is an approximation of a smaller server, not one (see the specification's
 Measurement Method). Writing `0` to `memory.peak` and `memory.swap.peak` before the run did not
@@ -150,17 +153,66 @@ swap peak covers only its last 5 minutes.
    awk -v S=723 -v C=1 -F'\t' '{ t=$1; best=1; for (i=2;i<=C;i++) if (free[i] < free[best]) best=i; start=(free[best]>t)?free[best]:t; free[best]=start+S; print start-t "\t" substr($4,1,10) }' arrivals.tsv
    ```
 
-4. Repeated step 3 after removing each pull-request run followed by a newer run on the same branch
-   within `S` seconds, as a `cancel-in-progress` policy would:
+4. Replayed the same arrivals with cancelling, as a `cancel-in-progress` group per pull request
+   would: a new pull-request run cancels its pull request's queued run and its running run, whose
+   runner frees at that moment; push runs are never cancelled. The key is the head repository and
+   branch (`head_repository.full_name:head_branch`), which identifies a pull request; the arrivals
+   for this step were collected with that key in place of `.head_branch`. The program
+   (`replay.awk`) prints the wait of each run that completes, and the cancellation counts:
 
-   ```bash
-   awk -v S=723 -F'\t' '{ t[NR]=$1; e[NR]=$2; b[NR]=$3 } END { for (i=1;i<=NR;i++) { keep=1; if (e[i]=="pull_request") for (j=i+1;j<=NR && t[j]-t[i] < S;j++) if (b[j]==b[i]) { keep=0; break } if (keep) print t[i] } }' arrivals.tsv
+   ```awk
+   BEGIN { FS = "\t"; head = 1; tail = 0 }
+   function dispatch(now,    r, best, start) {
+     while (head <= tail) {
+       if (gone[q[head]]) { head++; continue }
+       best = 0
+       for (r = 1; r <= C; r++) if (job[r] == 0 && (best == 0 || free[r] < free[best])) best = r
+       if (best == 0) {
+         for (r = 1; r <= C; r++) if (best == 0 || free[r] < free[best]) best = r
+         if (free[best] > now) return
+         finish(best)
+       }
+       start = (free[best] > t[q[head]]) ? free[best] : t[q[head]]
+       if (start > now) return
+       wait[q[head]] = start - t[q[head]]; job[best] = q[head]; free[best] = start + S; head++
+     }
+   }
+   function finish(r) { if (job[r] && !gone[job[r]]) done[job[r]] = 1; job[r] = 0 }
+   function settle(now,    r) {
+     for (r = 1; r <= C; r++) if (job[r] && free[r] <= now) finish(r)
+     dispatch(now)
+     for (r = 1; r <= C; r++) if (job[r] && free[r] <= now) { finish(r); dispatch(now) }
+   }
+   {
+     n = NR; t[n] = $1; ev[n] = $2; key[n] = $3; day[n] = substr($4, 1, 10)
+     settle(t[n])
+     if (X && ev[n] == "pull_request" && (n2 = last[key[n]])) {
+       if (!done[n2] && !gone[n2]) {
+         gone[n2] = 1
+         for (r = 1; r <= C; r++) if (job[r] == n2) { used += t[n] - (free[r] - S); free[r] = t[n]; job[r] = 0; running++ }
+         if (!(n2 in wait)) queued++
+       }
+     }
+     if (ev[n] == "pull_request") last[key[n]] = n
+     q[++tail] = n
+     settle(t[n])
+   }
+   END {
+     settle(1e12)
+     for (i = 1; i <= n; i++) if (done[i]) print wait[i] "\t" day[i]
+     printf "cancelled: %d queued, %d running (%.0f runner-minutes used before cancelling)\n", queued + 0, running + 0, used / 60 > "/dev/stderr"
+   }
    ```
+
+   Run as `awk -v S=801 -v C=1 -v X=1 -f replay.awk arrivals.tsv`. With `X=0` it reproduces
+   step 3's results.
 
 5. Calibrated the model by replaying only 2026-09-28 and comparing it with the queue observed that
    day.
 6. After V1, reran step 1 for the whole of 2026-09-30 and steps 2 to 4 with `S` = 801 s, the job
    time projected from V1.
+7. After review finding F1 of PR #2403, replaced the first version of step 4 with the event-driven
+   replay above and recomputed every cancelling row (see Failures and Follow-up).
 
 #### Observed Result
 
@@ -195,13 +247,14 @@ job 968 s, 1 runner:  waited >60 s 64%, >15 min 242 runs, p90 232 min, max 330 m
 job 968 s, 2 runners: waited >60 s 30%, >15 min  81 runs, p90 28 min, max  93 min,  6 days
 ```
 
-Replay, superseded pull-request runs cancelled:
+Replay, superseded pull-request runs cancelled (554 runs from 2026-08-31 to 2026-09-30 13:27 UTC;
+waits of completed runs):
 
 ```text
-job 723 s, 1 runner:  391 runs, waited >60 s 31%, >15 min 20 runs, p90 10 min, max 62 min
-job 723 s, 2 runners: 391 runs, waited >60 s  2%, >15 min  0 runs, p90  0 min, max 11 min
-job 968 s, 1 runner:  370 runs, waited >60 s 32%, >15 min 36 runs, p90 14 min, max 53 min
-job 968 s, 2 runners: 370 runs, waited >60 s  3%, >15 min  0 runs, p90  0 min, max 11 min
+job 723 s, 1 runner:  383 completed, waited >60 s 28%, >15 min 10 runs, p90 10 min, max 27 min, 4 days; cancelled 37 queued, 134 running
+job 723 s, 2 runners: 394 completed, waited >60 s  2%, >15 min  0 runs, p90  0 min, max 11 min, 0 days; cancelled  4 queued, 156 running
+job 968 s, 1 runner:  355 completed, waited >60 s 30%, >15 min 32 runs, p90 14 min, max 32 min, 13 days; cancelled 46 queued, 153 running
+job 968 s, 2 runners: 374 completed, waited >60 s  4%, >15 min  0 runs, p90  0 min, max 14 min, 0 days; cancelled  7 queued, 173 running
 ```
 
 Replay at the V1 job time, 554 runs from 2026-08-31 to 2026-09-30 13:27 UTC:
@@ -209,9 +262,12 @@ Replay at the V1 job time, 554 runs from 2026-08-31 to 2026-09-30 13:27 UTC:
 ```text
 job 801 s, 1 runner:              waited >60 s 59%, >15 min 206 runs, p90 140 min, max 239 min, 20 days
 job 801 s, 2 runners:             waited >60 s 26%, >15 min  50 runs, p90  13 min, max  63 min,  4 days
-job 801 s, 1 runner, cancelling:  395 runs, waited >60 s 32%, >15 min 28 runs, p90 12 min, max 79 min, 9 days
-job 801 s, 2 runners, cancelling: 395 runs, waited >60 s  3%, >15 min  0 runs, p90  0 min, max 11 min
+job 801 s, 1 runner, cancelling:  376 completed, waited >60 s 29%, >15 min 12 runs, p90 11 min, max 32 min, 6 days
+job 801 s, 2 runners, cancelling: 392 completed, waited >60 s  4%, >15 min  0 runs, p90  0 min, max 12 min, 0 days
 ```
+
+At 801 s on one runner, cancelling cancels 40 queued and 138 running runs; the running ones had used
+761 runner-minutes before they were cancelled.
 
 Calibration, 2026-09-28 (25 jobs, one runner):
 
@@ -224,13 +280,12 @@ replay at 968 s: 15 waited >60 s, max 42 min
 #### Conclusion
 
 The replay brackets the observed day, so it is a usable model. With a normal month's workload, one
-runner queues heavily. Cancelling superseded pull-request runs removes about a third of the jobs
-and cuts the 90th-percentile wait from 99 to 10 minutes at no cost; a second runner on top brings
-waits close to zero. The model assumes every job recompiles; warm jobs (130 to 140 s) are faster,
-so it overstates waits somewhat. A cancelled run may also have used part of its time before being
-cancelled, so the cancellation rows are a lower bound on load. At the V1 job time of 801 s the
-picture is the same: cancelling cuts the one-runner 90th-percentile wait from 140 to 12 minutes,
-and a second runner alone cuts it to 13 minutes.
+runner queues heavily. Cancelling superseded pull-request runs is the larger lever: at the V1 job
+time of 801 s it cuts the one-runner 90th-percentile wait from 140 to 11 minutes and the longest
+wait from 239 to 32 minutes, against 13 and 63 minutes for a second runner alone. Most cancelled
+runs were already running, so cancelling also frees the runner at once; a second runner on top
+brings waits close to zero. The model assumes every job recompiles; warm jobs (130 to 140 s) are
+faster, so it overstates waits somewhat.
 
 ### V4 - Runner Restored (M4)
 
@@ -275,3 +330,11 @@ to its previous state.
   when the build ends. Watch from the desktop with short SSH checks instead of a loop on the host.
 - `memory.peak` could not be reset for V2 (see V2), so its swap peak covers only the last
   5 minutes of the build.
+- Review finding F1 of PR #2403: the first cancelling replay removed a run only when a newer run on
+  its branch arrived within `S` seconds of it, so it missed runs superseded while queued longer than
+  that, and it treated cancelled running jobs as using no runner time. It reported 12 minutes
+  (90th percentile) and 79 minutes (maximum) at 801 s on one runner. V3 step 4 now simulates the
+  queue and the cancellations per pull request; the corrected figures are 11 and 32 minutes.
+- Review finding F2 of PR #2403: V2 first said the build ran at its memory limit "throughout".
+  The samples cover only its last 5 minutes and sit at the limit in 14 of 262; V2 now states what
+  was measured.
