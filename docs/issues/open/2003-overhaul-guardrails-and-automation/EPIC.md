@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-09-29 16:29"
+last-updated-utc: "2026-10-01 08:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,7 +184,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 11 | #2278 - Strengthen PR review author self-audit and evidence generation (child EPIC) | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md` | IN_PROGRESS | Converted from a task by #2288 after its improvement matrix showed several independently reviewable artifacts; split into one-PR subissues. It owns the author-side register items (see Decisions Recorded on This EPIC) and, from #2347, its order 8 and #2362 (order 11). It remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. Evidence: PR #2270, #2271 and #2272 retrospectives, #2219 and #2233, and #2266 for check-crate placement. |
 | 12 | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | IN_PROGRESS | Processes the 32 findings through the existing `process-pr-review` post-merge workflow: audits, approved dispositions and documentation fixes only; workflow, CI and Rust changes become their own issues. Every finding has an approved disposition, a disposition reply and an audit row; the implementation is PR #2363. The close-out is pending; see Order 12 Close-Out. |
 | 13 | #2360 - Resolve the crate-level scope of the UDP protocol `empty_enums` allowance | `docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md` | TODO | Follow-up of #2347 (`review-finding:pr-2290-f4`); approved 2026-09-28 and landed with PR #2363. |
-| 14 | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | TODO | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264 (frontmatter and semantic-link conventions). |
+| 14 | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | TODO | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264 (frontmatter and semantic-link conventions). Scheduling: implementation starts only after a fresh review of the spec against the current tree, the rule the spec itself introduces. That review settles two open points from the #2377 review: whether a slug may begin with a reserved `i<digits>-` or `e<digits>-` prefix, and whether the guarantee covers `closed/` names. The name check's placement follows #2264. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -212,6 +212,13 @@ Issue #2347 closes through one close-out PR. PR #2363, which carries the #2347 i
 | #2301 | #1347, existing coverage rollout review (`docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`) | `review-finding:pr-2293-f5` | Its specification records hosted run 36305549957, which settles the source-prefix risk |
 | #2278 order 8 | #2278 | `review-finding:pr-2300-f10` | Pin the whole audit roster on both sides |
 | #2362 | #2278, order 11 | `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, `-f9` | The remaining audit-contract rules; coordinate its placeholder pin change with #2349 (`docs/issues/open/2349-2278-contract-checker-evidence-boundary/ISSUE.md`) |
+
+### Drafts Awaiting Issues
+
+The Subissues table lists only created issues. These draft specifications on `develop` are placed in the plan; each becomes a row when its issue is created.
+
+- **`docs/issues/drafts/2003-mine-ai-agent-memories/ISSUE.md`** (PR #2388) mines the 110 GitHub Copilot repository memories and 50 local Copilot Chat memories for missing, hard-to-find or contradictory guidance. It falls under the Scope exception: it is evidence and documentation (snapshots, a classification ledger, a report, small approved guidance changes and memory cleanup), it implements no new check, and it selects no architecture. It takes the next order when its issue is created. Its report is input for Proposed Subissue 1 (what agents had to remember instead of finding) and Proposed Subissue 2 (the deterministic checks it proposes become candidates there). Its frontmatter and issue-metadata findings go to #2264. It overlaps the draft `docs/issues/drafts/mine-pr-review-audit-records/ISSUE.md` (PR #2371, parent not yet decided), because Copilot code review writes the memories while reviewing the PRs those audit records cover; shared findings are cross-referenced, not proposed twice.
+- **`docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`** (PR #2385, from #2298) moves the six AI-harness crates under `contrib/dev-tools/` into their own Cargo workspace. It is not a Scope exception: it changes hook and CI invocations, and its first task waits for five decisions this EPIC owns (workspace location, what counts as harness, binary shape, scripts versus Rust, ownership and versioning). Those decisions are inputs to Proposed Subissues 6 and 7, and they are recorded under Decisions Recorded on This EPIC before the issue is created. Until the separation lands, each harness crate needs one line in the interim allow-list block of `.dockerignore` and stays out of `default-members` in `Cargo.toml`, as `docs/adrs/20260929183441_build_container_from_positive_lists_with_external_only_dependency_cache.md` records.
 
 ## Undecided Improvement Candidates
 
@@ -255,6 +262,7 @@ These are proposed planning subissues; none has been created. Titles and boundar
   The register's index records where each of these numbers stands now.
 - **Frictions are filed under semantic labels (2026-09-26).** The F series is closed at F102, and the index is the register; see Friction Register.
 - **Ownership (2026-09-28).** This EPIC and #2347 pass to da2ce7, per the [hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520) and the [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152); the assignees changed at 16:17 UTC. The #2347 close-out, the follow-up owners and the five improvement candidates are taken as listed and placed from this EPIC.
+- **Draft placement (2026-10-01).** The memories draft (`2003-mine-ai-agent-memories`) proceeds under the Scope exception and takes the next order when its issue is created; its report feeds Proposed Subissues 1 and 2. The harness-workspace draft (`2003-separate-ai-harness-cargo-workspace`) is an implementation subissue gated on the five decisions it lists, which are pending and are recorded here before its issue is created. Order 14 (#2375) is scheduled behind a fresh review of its spec against the current tree; see Drafts Awaiting Issues and the Subissues table.
 
 ## Friction Register
 
@@ -386,6 +394,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-09-28 17:03 UTC - da2ce7 - Overhauled this specification to carry what the thread established: the Subissues table through order 13, the order 12 close-out, the follow-up owners, the decisions, the undecided candidates, the friction register's rules and counts, and the findings without an owner; the comments it carries are minimized
 - 2026-09-28 17:10 UTC - da2ce7 - Corrected two statements found in the PR #2366 review: #2281 is closed, and the register holds 127 frictions plus two CI findings
 - 2026-09-29 16:29 UTC - GitHub Copilot - Maintainer approved subissue #2375 (order 14), unambiguous issue specification directory names; created and linked it under this EPIC
+- 2026-10-01 08:26 UTC - da2ce7 - Rebased over the maintainer's #2375 row and owner metadata; placed the two draft specifications from PRs #2388 and #2385; recorded the #2375 scheduling position
 
 ## Acceptance Criteria
 
