@@ -9,7 +9,7 @@ github-issue: 2402
 spec-path: docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
 related-pr: null
-last-updated-utc: "2026-10-01 14:52"
+last-updated-utc: "2026-10-01 16:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,9 +18,8 @@ semantic-links:
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/self-hosted-runner.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/manual-verification-evidence.md
-    - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
+    - "issue #2386"
+    - "issue #1840"
 ---
 
 <!-- skill-link: create-issue -->
@@ -49,15 +48,17 @@ Issue #2386 measured the job at 801 s on the current server and replayed the 554
 runs from 2026-08-31 to 2026-09-30 through the runner (V3 of its
 `manual-verification-evidence.md`):
 
-| Setup                     | Jobs run | Waited >15 min | 90th-percentile wait | Longest wait |
-| ------------------------- | -------- | -------------- | -------------------- | ------------ |
-| 1 runner (today)          | 554      | 206            | 140 min              | 239 min      |
-| 1 runner, cancelling      | 395      | 28             | 12 min               | 79 min       |
-| 2 servers                 | 554      | 50             | 13 min               | 63 min       |
-| 2 servers, cancelling     | 395      | 0              | 0 min                | 11 min       |
+| Setup                     | Jobs completed | Waited >15 min | 90th-percentile wait | Longest wait |
+| ------------------------- | -------------- | -------------- | -------------------- | ------------ |
+| 1 runner (today)          | 554            | 206            | 140 min              | 239 min      |
+| 1 runner, cancelling      | 376            | 12             | 11 min               | 32 min       |
+| 2 servers                 | 554            | 50             | 13 min               | 63 min       |
+| 2 servers, cancelling     | 392            | 0              | 0 min                | 12 min       |
 
-Cancelling superseded runs gives about the same 90th-percentile wait as a second server, at no
-cost. The maintainer chose to do this first, and to add a second server only if waits over
+With cancelling, a new pull-request run cancels that pull request's queued and running runs. On one
+runner it cancels 40 queued and 138 running runs, so it frees the runner at once instead of letting a
+stale build finish. Cancelling gives a lower 90th-percentile and longest wait than a second server,
+at no cost. The maintainer chose to do this first, and to add a second server only if waits over
 15 minutes remain common afterwards (#2386 Decision).
 
 ## Scope
@@ -168,14 +169,18 @@ marker; review that skill when changing them.
 - 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - Maintainer approved the spec, confirming that
   `testing.yaml` is included; created #2402, linked it as a sub-issue of #1840, and moved the spec to
   `docs/issues/open/` - #2402
+- 2026-10-01 16:26 UTC - josecelano, GitHub Copilot - Addressed the Copilot review of PR #2403:
+  corrected the replay figures (an event-driven replay of the cancellations), made M1 observe both
+  workflows and a control pull request, made M2 overlap two `develop` pushes, and replaced issue
+  paths in the frontmatter with issue numbers - `docs/pr-reviews/pr-2403-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
 - [ ] AC1: A newer push to a pull request cancels that pull request's older `Container` and
       `Testing` runs, whether queued or running.
 - [ ] AC2: Push runs, including consecutive pushes to `develop`, are never cancelled or replaced.
-- [ ] AC3: `Container` and `Testing` runs do not cancel each other, and runs of different pull
-      requests do not cancel each other.
+- [ ] AC3: A newer run of one workflow does not cancel the other workflow's run for the same
+      commit, and a pull request's runs do not cancel another pull request's runs.
 - [ ] AC4: `docs/self-hosted-runner.md` states that superseded pull-request runs are cancelled.
 - [x] AC5: EPIC #1840 lists this issue.
 - [ ] `linter all` exits with code `0`
@@ -195,8 +200,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                        | Human-oriented command/steps                                                                                                                  | Expected Result                                                                                   | Status | Evidence                                     |
 | --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Superseded pull-request run     | On the implementation pull request, push a second non-documentation commit while the first `Container` run is queued or running; `gh run list --branch <branch>` | The older `Container` and `Testing` runs end `cancelled`; the newer runs complete; other pull requests' runs are unaffected | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Push runs are kept              | After the merge, list `Container` runs for `develop` pushes: `gh run list --workflow container.yaml --branch develop --event push`            | The merge commit's run completes and publishes; no `develop` push run is `cancelled`              | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Superseded pull-request run     | 1. Have a control pull request open with a non-documentation change (another open pull request, or a disposable draft one) whose `Container` run is queued or running. 2. Push commit A to the implementation pull request and wait until `gh run list --branch <branch> --json workflowName,headSha,status` shows both its `Container` and `Testing` runs `queued` or `in_progress`. 3. Push commit B. 4. Inspect each run with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | Commit A's `Container` and `Testing` runs end `cancelled`; commit B's `Container` and `Testing` runs both complete; the control pull request's run is not `cancelled` | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | Push runs are kept              | After the merge, push two commits to `develop` so that the second push's runs start while the first push's `Container` and `Testing` runs are still queued or running (two merges in quick succession). If no such overlap occurs, repeat on a fork's `develop` with Actions enabled, where both workflows run on `ubuntu-latest`. Inspect all four runs with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | All four runs complete, none `cancelled`; upstream, both `Container` runs publish (`Publish (Development)` succeeds) | TODO   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
@@ -218,11 +223,10 @@ None.
   Mitigation: the guide note; the newest run is the one that reports on the head commit.
 - Re-running an older run's jobs while a newer run is active puts the older run back in the group
   and cancels the newer one. Mitigation: the guide note says to re-run only the latest run.
-- A run cancelled part-way has already used runner time, so the real saving is smaller per
-  cancelled run than the replay assumes; but queued runs are superseded more often than the replay
-  counts, which works the other way.
+- The replay (#2386 V3) models a fixed 801 s job; real jobs vary, and warm jobs are much faster.
+  Mitigation: the recheck after this change measures the real queue times.
 - AC2 relies on the `run-<run_id>` group. If it were wrong, a `develop` commit could go unpublished.
-  Mitigation: M2, and the design keeps `cancel-in-progress` `false` for pushes as a second guard.
+  Mitigation: M2 makes two `develop` pushes overlap, which a shared push group would fail.
 
 ## Implementation Completion Review
 
