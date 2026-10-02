@@ -203,6 +203,20 @@ impl TestEnv {
         .expect("Timed out waiting for global downloads to be persisted to the database");
     }
 
+    /// Writes a torrent's downloads count straight into the database, as a
+    /// previous tracker run would have left it.
+    pub async fn persist_torrent_downloads(&self, info_hash: &InfoHash, downloads: u32) {
+        self.tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("tracker core test environment requires persistence")
+            .database_stores
+            .torrent_metrics_store
+            .save_torrent_downloads(info_hash, downloads)
+            .await
+            .unwrap();
+    }
+
     pub async fn remove_swarm(&self, info_hash: &InfoHash) {
         self.swarm_coordination_registry_container
             .swarms
