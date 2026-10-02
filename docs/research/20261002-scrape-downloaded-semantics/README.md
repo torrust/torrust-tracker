@@ -56,6 +56,7 @@ Shallow clones inspected on 2026-10-02.
 | aquatic (in-memory) | `a2ddc4b` | No (always 0) | Zeros | n/a | Swarm removed when empty |
 | chihaya (memory/redis) | `878b42e` | No (HTTP omits it) | Zeros | n/a | Swarm deleted when empty |
 | webtorrent bittorrent-tracker | `0cec688` | No (`downloaded` = current `complete`) | 0 | No | No deletion code found |
+| torrust-actix (in-memory, optional SQL) | `4c5f4cf` | Yes (`TorrentEntry.completed`) | Persistence on: entry kept, real count returned. Default (off): entry purged, zeros returned; scrape never reads the database | Only with `database.persistent = true` (default `false`); all torrents loaded at startup | Persistence off: entry removed when peerless. Persistence on: peers cleared, entry and count kept |
 
 Notes:
 
@@ -65,6 +66,13 @@ Notes:
   default.
 - XBT and Ocelot load every torrent at startup. Torrust rejected that approach in #1510 because
   the demo database held about 1.9 billion torrents.
+- [torrust-actix](https://github.com/Power2All/torrust-actix) ties scrape to persistence: with
+  `database.persistent = true` it loads every torrent with its `completed` count at startup
+  (`src/main.rs`, `TorrentTracker::load_torrents`, 100,000-row pages) and keeps peerless entries in
+  memory, so scrape returns the historical count; with persistence off, peerless entries are
+  removed and scrape returns zeros. Scrape itself only reads memory (`get_torrent_counts` in
+  `src/tracker/impls/torrent_tracker_torrents.rs`). Its issue #9 states the intent that torrents
+  without peers "only retain their completed downloaded number".
 
 ## 3. Related Discussions
 
@@ -75,6 +83,9 @@ Notes:
 - [aquatic#27](https://github.com/greatest-ape/aquatic/issues/27): relational persistence is
   described as a private-tracker concern.
 - No discussion of the privacy of exposing historical `downloaded` through scrape was found.
+- [torrust-actix#27](https://github.com/Power2All/torrust-actix/issues/27): per-torrent
+  persistence of seeders, leechers, and completed was requested; the maintainer made it optional
+  because of database load.
 
 ## 4. Relationship to Torrust Announce Behavior
 
@@ -88,6 +99,9 @@ moment reported zero, so scrape and announce disagreed about the same swarm.
 - The specifications support reporting historical `downloaded` for peerless torrents.
 - Database-backed trackers do so; in-memory open trackers report only what remains in memory or
   do not track the counter.
+- torrust-actix, the closest relative, follows the persistence setting: when an operator enables
+  persistence, scrape reports the historical count for peerless torrents; it achieves this by
+  eager startup loading, which Torrust rejected in #1510, rather than a lazy lookup.
 - Treating scrape as "announce statistics without side effects" (BEP 48) makes scrape consistent
   with the announce response, whichever exposure policy the announce response follows.
 
@@ -96,3 +110,6 @@ moment reported zero, so scrape and announce disagreed about the same swarm.
 - Whether opentracker operators commonly use the state file in production.
 - How clients use `downloaded` beyond UI display.
 - webtorrent swarm deletion was checked only in `server.js` and `lib/server/swarm.js`.
+- torrust-actix: only the SQLite loader and saver were read in full; MySQL and PostgreSQL were
+  checked by grep. With default `insert_vacant = false`, new torrents may not get a persisted
+  row (inferred, not run).
