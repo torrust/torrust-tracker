@@ -1,6 +1,7 @@
 use std::fmt;
 use std::ops::Deref;
 use std::path::Path;
+use std::str::FromStr;
 
 /// A file name (base name only, no path separators).
 ///
@@ -61,12 +62,20 @@ impl TryFrom<String> for FileName {
     }
 }
 
+impl FromStr for FileName {
+    type Err = InvalidFileName;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        validate(s)?;
+        Ok(Self(s.to_string()))
+    }
+}
+
 impl TryFrom<&str> for FileName {
     type Error = InvalidFileName;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        validate(s)?;
-        Ok(Self(s.to_string()))
+        s.parse()
     }
 }
 
@@ -105,12 +114,14 @@ mod tests {
     }
 
     #[test]
-    fn it_should_convert_from_string_and_str() {
+    fn it_should_convert_from_string_str_and_parse() {
         let from_string = FileName::try_from(String::from("a.torrent")).unwrap();
         let from_str = FileName::try_from("b.torrent").unwrap();
+        let from_parse = "c.torrent".parse::<FileName>().unwrap();
 
         assert_eq!(&*from_string, "a.torrent");
         assert_eq!(&*from_str, "b.torrent");
+        assert_eq!(&*from_parse, "c.torrent");
     }
 
     #[test]
