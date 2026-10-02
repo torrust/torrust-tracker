@@ -59,6 +59,7 @@
 //! - [BEP 48. Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
 //! - [BEP 15. UDP Tracker Protocol for `BitTorrent`. Scrape section](https://www.bittorrent.org/beps/bep_0015.html)
 //! - [Vuze docs](https://wiki.vuze.com/w/Scrape)
+use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
@@ -132,7 +133,7 @@ impl ScrapeHandler {
     /// [BEP 48: Scrape Protocol](https://www.bittorrent.org/beps/bep_0048.html)
     pub async fn handle_scrape(&self, info_hashes: &Vec<InfoHash>) -> Result<ScrapeData, ScrapeError> {
         let mut scrape_data = ScrapeData::empty();
-        let mut absent_from_memory = Vec::new();
+        let mut absent_from_memory = BTreeSet::new();
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.whitelist_authorization.authorize(info_hash).await {
@@ -141,7 +142,7 @@ impl ScrapeHandler {
                     .get_swarm_metadata(info_hash)
                     .await
                     .unwrap_or_else(|| {
-                        absent_from_memory.push(*info_hash);
+                        absent_from_memory.insert(*info_hash);
                         SwarmMetadata::zeroed()
                     }),
                 Err(_) => SwarmMetadata::zeroed(),
@@ -149,6 +150,7 @@ impl ScrapeHandler {
             scrape_data.add_file(info_hash, swarm_metadata);
         }
 
+        let absent_from_memory: Vec<InfoHash> = absent_from_memory.into_iter().collect();
         for (info_hash, downloaded) in self.persisted_downloads.load_many(&absent_from_memory).await? {
             scrape_data.add_file(&info_hash, SwarmMetadata::new(downloaded, 0, 0));
         }
@@ -244,6 +246,25 @@ mod tests {
         assert_eq!(scrape_data.files[&in_memory], SwarmMetadata::new(3, 1, 0));
         assert_eq!(scrape_data.files[&persisted], SwarmMetadata::new(5, 0, 0));
         assert_eq!(scrape_data.files[&unknown], SwarmMetadata::zeroed());
+    }
+
+    #[tokio::test]
+    async fn it_should_look_up_a_repeated_info_hash_absent_from_memory_only_once() {
+        // Arrange
+        let persisted = InfoHash([2; 20]);
+        let mut store = MockTorrentMetricsStore::new();
+        store
+            .expect_load_torrents_downloads()
+            .withf(move |info_hashes| info_hashes == [persisted])
+            .times(1)
+            .returning(move |_| Box::pin(std::future::ready(Ok(NumberOfDownloadsPerInfoHash::from([(persisted, 5)])))));
+        let scrape_handler = scrape_handler_with_persisted_downloads(store, &Arc::new(InMemoryTorrentRepository::default()));
+
+        // Act
+        let scrape_data = scrape_handler.handle_scrape(&vec![persisted, persisted]).await.unwrap();
+
+        // Assert
+        assert_eq!(scrape_data.files[&persisted], SwarmMetadata::new(5, 0, 0));
     }
 
     #[tokio::test]
