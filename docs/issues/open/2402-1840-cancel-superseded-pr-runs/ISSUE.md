@@ -9,7 +9,7 @@ github-issue: 2402
 spec-path: docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
 related-pr: 2419
-last-updated-utc: "2026-10-02 17:54"
+last-updated-utc: "2026-10-02 18:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -180,6 +180,9 @@ marker; review that skill when changing them.
   M1 with disposable draft control PR #2420; its independent `Container` run is active.
 - 2026-10-02 17:54 UTC - josecelano, GitHub Copilot - M1 commit A started with `Container`
   queued and `Testing` in progress; pushed the superseding commit B next.
+- 2026-10-02 18:21 UTC - josecelano, GitHub Copilot - Addressed Copilot review findings on #2419:
+  the runner runbook now warns against rerunning stale cancelled runs, and the completed `linter all`
+  acceptance criterion is marked done.
 
 ## Acceptance Criteria
 
@@ -190,7 +193,7 @@ marker; review that skill when changing them.
       commit, and a pull request's runs do not cancel another pull request's runs.
 - [x] AC4: `docs/self-hosted-runner.md` states that superseded pull-request runs are cancelled.
 - [x] AC5: EPIC #1840 lists this issue.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
