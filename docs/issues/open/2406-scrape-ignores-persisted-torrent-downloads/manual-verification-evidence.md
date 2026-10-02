@@ -9,7 +9,7 @@ last-updated-utc: 2026-10-02 18:53
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-10-02 13:29 to 13:30
-- Artifact under test: debug binary built with `cargo run` from PR branch commit `83a1f6c4fe677fb117ecdfa1ad674a789c2bc981` (`docs(issues): [#2406] add issue specification for scrape ignoring persisted downloads`), before the planned production fix
+- Artifact under test: debug binary built with `cargo run` from the spec PR branch at `docs(issues): [#2406] add issue specification for scrape ignoring persisted downloads`, before the planned production fix
 - Operating system / environment: Linux, local workspace
 - Runtime: `./target/debug/torrust-tracker` with Rust-built workspace artifacts
 - Database backend: isolated local SQLite database at `.tmp/scrape-persisted-downloads-bug.sqlite3`
