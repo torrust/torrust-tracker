@@ -86,7 +86,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| 1     | #1348 - Add tests to the udp-core package         | Not yet created                                                                   | TODO   | Existing subissue; package-level test work.                                                                          |
+| 1     | #1348 - Add tests to the udp-core package         | `docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md`                          | TODO   | Spec approved, based on the #2283 template; merged through a spec-only PR before the T1 baseline and per-file work. |
 | 2     | #1349 - Add tests to the http-core package        | Not yet created                                                                   | TODO   | Existing subissue; package-level test work.                                                                          |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
@@ -95,7 +95,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 7     | #2283 - Increase UDP server package coverage      | `docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md`      | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 96.18% → 98.18%; bounded mutation sample and manual verification recorded; merged via PR #2381. |
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
-| 10    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 10    | Draft - Add tests to the axum-rest-api-server package | `docs/issues/drafts/1347-add-tests-axum-rest-api-server/ISSUE.md`           | TODO   | Draft without a GitHub issue; formerly misfiled under #1349 (`http-core`). Needs alignment with the subissue-spec guidelines before approval. |
+| 11    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -218,6 +219,11 @@ For each subissue implementation, the completion policy is:
   package boundary. Combined coverage reports must not be treated as proof of unit coverage.
 - 2026-09-28 10:00 UTC - GitHub Copilot - Maintainer approved bug subissue #2361 (order 9), a
   follow-up of #2347 for `review-finding:pr-2293-f1`; created and linked it under this EPIC.
+- 2026-10-02 11:03 UTC - GitHub Copilot - Completed the 2026-09-03 package-to-subissue
+  correction: the `axum-rest-api-server` spec was still filed as
+  `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/`, although #1349 is `http-core`.
+  Moved it to `docs/issues/drafts/1347-add-tests-axum-rest-api-server/` with no GitHub issue.
+  Every other #1347 spec folder matches its GitHub issue.
 
 ## Acceptance Criteria
 
