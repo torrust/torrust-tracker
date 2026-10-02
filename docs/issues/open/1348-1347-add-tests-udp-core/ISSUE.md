@@ -416,10 +416,12 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
   not a workspace member. Build output goes to `.tmp/`.
 - Why not a maintained test: the scenarios verify the built tracker binary from a client's point
   of view; the same behaviors are protected by maintained unit and `udp-server` integration tests.
-- Owner: removed before the issue is archived, unless the maintainer decides to promote it into a
   `tracker_client` option through a separate issue.
-- If building the client proves impractical, record the attempt and use the strongest automated
-  substitute: the `udp-server` integration tests that send invalid connection IDs.
+  `tracker_client` option through a separate issue.
+- If building the client proves impractical, mark M3 and M4 `BLOCKED`, record the attempted
+  commands and constraint, and define another human-oriented interaction before final
+  verification. The `udp-server` integration tests are supporting evidence only; they do not
+  complete manual verification.
 
 ### Acceptance Verification
 
