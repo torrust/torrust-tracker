@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-02 18:34
+last-updated-utc: 2026-10-02 18:53
 ---
 
 # Manual Verification Evidence
@@ -237,6 +237,27 @@ test result: ok. 1 passed; 0 failed
 $ TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests run_postgres_driver_tests
 test result: ok. 1 passed; 0 failed
 ```
+
+## Automated Equivalents of the Manual Scenarios (T8)
+
+| Manual aspect | Automated test |
+| --- | --- |
+| HTTP scrape returns the persisted count | `http-core` `services::scrape::tests::with_real_data::it_should_return_the_persisted_downloads_of_a_torrent_absent_from_memory` |
+| UDP scrape returns persisted counts in request order | `udp-server` `handlers::scrape::tests::scrape_request::it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order` |
+| Completion by a real announce, graceful shutdown, restart on the same `SQLite` file, HTTP and UDP scrape of a completed and an unknown torrent | root binary `persistence-scrape-after-restart` (`tests/persistence/scrape_after_restart.rs`) |
+
+The root test restarts the application in-process with `TrackerApplicationFixture::restart`, which gracefully stops all jobs and starts a new application on the same workspace. It does not start a separate OS process; the manual V2/V3 checks remain the evidence for the real binary.
+
+Mutation proof: the persisted lookup was disabled in `scrape_handler.rs` (`load_many(&[])`), not staged, and restored with `git checkout --` (the file had no uncommitted changes). All three tests failed, for example:
+
+```text
+$ cargo test --test persistence-scrape-after-restart
+test it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart ... FAILED
+  left: [SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 }, SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 }]
+ right: [SwarmMetadata { downloaded: 1, complete: 0, incomplete: 0 }, SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 }]
+```
+
+Stability: the root restart test passed 20 of 20 consecutive runs, so the asynchronous persistence write completes before the graceful shutdown finishes.
 
 ## Failures and Follow-up
 

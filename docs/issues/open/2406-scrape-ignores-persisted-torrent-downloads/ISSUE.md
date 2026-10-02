@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: null
-last-updated-utc: "2026-10-02 18:31"
+last-updated-utc: "2026-10-02 18:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,6 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Implement the production fix | Shared `PersistedDownloads` lookup, `ScrapeHandler` paired constructors, `ScrapeError::Database`; announce behavior unchanged. |
 | T5 | DONE | Verify green and recheck M1 | [manual-verification-evidence.md](manual-verification-evidence.md) "Green Run" and V2. |
 | T7 | DONE | Batch the persisted scrape lookup | One query per scrape request, chunked at 100 info-hashes; unit test proven against a per-torrent mutation; driver tests pass on SQLite, MySQL, and PostgreSQL. See [manual-verification-evidence.md](manual-verification-evidence.md) "Batch Lookup (T7)". |
+| T8 | DONE | Automate the manual restart scenario | Protocol-level tests in `http-core` and `udp-server`, plus the root binary `persistence-scrape-after-restart` (UDP completion, application restart on the same SQLite database, HTTP and UDP scrape). All proven against a disabled-lookup mutation. See [manual-verification-evidence.md](manual-verification-evidence.md) "Automated Equivalents of the Manual Scenarios (T8)". |
 | T6 | IN_PROGRESS | Complete acceptance and implementation reviews | Acceptance verification table updated; awaiting maintainer review and pre-push checks. |
 
 ## Commit Points
@@ -194,6 +195,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 17:50 UTC - Copilot - Added two `tracker-core` integration tests; the persisted-downloads test failed against the unfixed code (`downloaded: 0`, expected `7`) - [manual-verification-evidence.md](manual-verification-evidence.md).
 - 2026-10-02 18:00 UTC - Copilot - Implemented Option A; integration, unit, and affected-package tests pass; V2 shows HTTP `downloaded: 1` and UDP `completed: 1` after a clean restart. Spam and abuse note: the EPIC draft is not on `develop`, so it is recorded here instead: with persistence enabled, each scrape of an info-hash absent from memory costs one database read (as a first announce does), and Option A adds no memory growth.
 - 2026-10-02 18:31 UTC - Copilot - Maintainer refined the decision (value per persistence mode, batch lookup without N+1, query limit independent of #2417, no cache). Implemented the batch lookup as a separate `perf(tracker-core)` commit; the spam and abuse note above now reads one batch query per scrape request instead of one read per info-hash.
+- 2026-10-02 18:53 UTC - Copilot - Maintainer asked for automated equivalents of the manual V2/V3 checks. Added protocol-level tests (`http-core`, `udp-server`) and a root restart integration binary; manual verification stays mandatory for the real binary and OS process.
 
 ## Acceptance Criteria
 
@@ -236,8 +238,8 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | DONE | M2 (V2) HTTP `downloaded: 1`; `it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory` |
-| AC2 | DONE | M2 (V2) UDP `completed: 1`; same integration test (both protocols use `ScrapeHandler`) |
+| AC1 | DONE | M2 (V2) HTTP `downloaded: 1`; `it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory`; root `persistence-scrape-after-restart` |
+| AC2 | DONE | M2 (V2) UDP `completed: 1`; same integration test (both protocols use `ScrapeHandler`); `udp-server` request-order test; root `persistence-scrape-after-restart` |
 | AC3 | DONE | `it_should_not_scrape_persisted_downloads_when_the_persistent_completed_stat_is_disabled`; `ScrapeHandler::new_public` holds no persistence dependency |
 | AC4 | DONE | Existing announce tests, `container::tests::it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced`, and the global persisted-downloads integration test pass unchanged |
 | AC5 | DONE | Red and green output in [manual-verification-evidence.md](manual-verification-evidence.md) |
