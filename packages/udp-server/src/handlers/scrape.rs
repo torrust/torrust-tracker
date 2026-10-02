@@ -143,6 +143,7 @@ mod tests {
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_test_helpers::configuration;
         use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_udp_core::event::ConnectionContext;
         use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
@@ -157,8 +158,8 @@ mod tests {
         use crate::event::{Event, UdpRequestKind};
         use crate::handlers::tests::{
             CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_listed_tracker,
-            initialize_core_tracker_services_for_public_tracker, sample_ipv4_remote_addr, sample_issue_time,
-            sample_strict_cookie_validation,
+            initialize_core_tracker_services_for_public_tracker, initialize_core_tracker_services_with_config,
+            sample_ipv4_remote_addr, sample_issue_time, sample_strict_cookie_validation,
         };
         use crate::handlers::{CookieValidationContext, handle_scrape};
 
@@ -188,6 +189,23 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_listed_tracker().await;
                 Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
+            }
+
+            async fn public_with_persistent_completed_statistics() -> Self {
+                let mut configuration = configuration::ephemeral_public();
+                configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+                let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
+                    initialize_core_tracker_services_with_config(&configuration).await;
+                Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
+            }
+
+            async fn with_persisted_downloads(self, info_hash: &InfoHash, downloads: u32) -> Self {
+                self.core_tracker_services
+                    .torrent_metrics_store
+                    .save_torrent_downloads(&info_hash.0.into(), downloads)
+                    .await
+                    .unwrap();
+                self
             }
 
             fn with_services(
@@ -294,6 +312,38 @@ mod tests {
             let expected_response = Response::from(ScrapeResponse {
                 transaction_id: request.transaction_id,
                 torrent_stats: vec![zeroed_torrent_statistics()],
+            });
+
+            // Act
+            let response = scrape(&tracker, &request).await.unwrap();
+
+            // Assert
+            assert_eq!(response, expected_response);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order() {
+            // Arrange
+            let persisted = InfoHash([1u8; 20]);
+            let unknown = InfoHash([2u8; 20]);
+            let other_persisted = InfoHash([3u8; 20]);
+            let tracker = Tracker::public_with_persistent_completed_statistics()
+                .await
+                .with_persisted_downloads(&persisted, 7)
+                .await
+                .with_persisted_downloads(&other_persisted, 9)
+                .await;
+            let request = ScrapeRequestBuilder::for_client_and_info_hash(tracker.client_socket_addr, persisted)
+                .with_info_hashes(vec![persisted, unknown, other_persisted])
+                .into();
+            let completed_only = |downloads: i32| TorrentScrapeStatistics {
+                seeders: NumberOfPeers(0.into()),
+                completed: NumberOfDownloads(downloads.into()),
+                leechers: NumberOfPeers(0.into()),
+            };
+            let expected_response = Response::from(ScrapeResponse {
+                transaction_id: request.transaction_id,
+                torrent_stats: vec![completed_only(7), zeroed_torrent_statistics(), completed_only(9)],
             });
 
             // Act

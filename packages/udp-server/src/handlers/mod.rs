@@ -248,6 +248,7 @@ pub(crate) mod tests {
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
+    use torrust_tracker_core::databases::TorrentMetricsStore;
     use torrust_tracker_core::databases::setup::initialize_database;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
     use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -281,6 +282,7 @@ pub(crate) mod tests {
         pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        pub torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
     }
 
     pub struct CoreUdpTrackerServices {
@@ -391,6 +393,7 @@ pub(crate) mod tests {
                 in_memory_torrent_repository,
                 in_memory_whitelist,
                 whitelist_authorization,
+                torrent_metrics_store: database.torrent_metrics_store,
             },
             CoreUdpTrackerServices {
                 announce_service,
