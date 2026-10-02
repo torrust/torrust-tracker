@@ -9,14 +9,14 @@ github-issue: 2396
 spec-path: docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-09-30 14:58"
+last-updated-utc: "2026-10-02 13:30"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+    - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - src/console/ci/e2e/runner.rs

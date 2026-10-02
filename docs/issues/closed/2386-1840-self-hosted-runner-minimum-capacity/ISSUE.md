@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1840
 github-issue: 2386
-spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+spec-path: docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 branch: "2386-1840-runner-capacity-close-out"
 related-pr: 2403
-last-updated-utc: "2026-10-02 07:47"
+last-updated-utc: "2026-10-02 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -217,7 +217,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -237,6 +237,7 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-10-01 16:26 UTC - josecelano, GitHub Copilot - Addressed the Copilot review of PR #2403. The first cancelling replay only dropped runs superseded within one job time of their arrival and treated cancelled running jobs as free; an event-driven replay corrects the one-runner figures at 801 s to 11 minutes (90th percentile) and 32 minutes (maximum), from 12 and 79, which strengthens the decision. The V2 memory claim is narrowed to the sampled last 5 minutes, and the Decision dates its parts - `manual-verification-evidence.md` V2, V3, `docs/pr-reviews/pr-2403-review/PR-REVIEW.md`
 - 2026-10-02 07:11 UTC - GitHub Copilot - PR #2403 merged. Started the close-out on branch `2386-1840-runner-capacity-close-out`: recorded the implementation retrospective, checked the implementation and verification checkpoints, and added the closing-keyword rule it identified to the `open-pull-request` skill; the independent review follows - `implementation-retrospective.md`
 - 2026-10-02 07:47 UTC - GitHub Copilot - The Task Reviewer passed the close-out with four Low findings, all fixed: PR #2403 is now cited in the acceptance verification, References, and EPIC row 17; the evidence `last-updated-utc` is corrected; and the guide's "Add Runner Capacity" now puts cancelling superseded runs (#2402) before a second server and links #2386 by issue instead of by its `docs/issues/open/` path - `agent-review-reports.md`
+- 2026-10-02 13:30 UTC - GitHub Copilot - PR #2405 merged and closed #2386. Archived this spec to `docs/issues/closed/` and updated the references in EPIC #1840 and in the frontmatter of EPIC #2392 and its sub-issues #2393 to #2396 - this folder
 
 ## Acceptance Criteria
 

@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-09-30 14:58"
+last-updated-utc: "2026-10-02 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - tests/configuration/cli_configuration/base_source_precedence.rs
     - docs/issues/closed/2298-rust-dev-tool-container-integration/manual-verification-evidence.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+    - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
     - tests/metrics/fixed_ports.rs
     - src/console/ci/e2e/runner.rs

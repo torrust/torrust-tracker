@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+issue-spec: docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
 last-updated-utc: 2026-10-01 16:52
 semantic-links:
   related-artifacts:
