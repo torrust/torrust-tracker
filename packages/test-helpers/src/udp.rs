@@ -28,8 +28,17 @@ pub async fn udp_announce(
         .await
         .expect("failed to create UDP client");
     let connection_id = connect(&client).await;
+    let request = announce_request(
+        connection_id,
+        TransactionId::new(2),
+        info_hash,
+        peer_id,
+        port,
+        AnnounceEvent::Started,
+        0,
+    );
 
-    announce(&client, connection_id, info_hash, peer_id, port, AnnounceEvent::Started, 0).await
+    send_announce(&client, request).await
 }
 
 /// Registers one completed download: the peer announces `started` while
@@ -38,18 +47,25 @@ pub async fn udp_announce(
 /// # Panics
 ///
 /// Panics if the client cannot connect, send, or receive, or if a response is
-/// not an announce response.
+/// not an announce response for the request's transaction ID.
 pub async fn udp_complete_download(remote_addr: SocketAddr, info_hash: &[u8; 20], peer_id: &[u8; 20], port: u16) {
     let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(5))
         .await
         .expect("failed to create UDP client");
     let connection_id = connect(&client).await;
 
-    for (event, bytes_left) in [(AnnounceEvent::Started, 1), (AnnounceEvent::Completed, 0)] {
-        match announce(&client, connection_id, info_hash, peer_id, port, event, bytes_left).await {
-            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => {}
+    for (transaction_id, event, bytes_left) in [(2, AnnounceEvent::Started, 1), (3, AnnounceEvent::Completed, 0)] {
+        let transaction_id = TransactionId::new(transaction_id);
+        let request = announce_request(connection_id, transaction_id, info_hash, peer_id, port, event, bytes_left);
+        let response_transaction_id = match send_announce(&client, request).await {
+            Response::AnnounceIpv4(response) => response.fixed.transaction_id,
+            Response::AnnounceIpv6(response) => response.fixed.transaction_id,
             other => panic!("expected announce response, got: {other:?}"),
-        }
+        };
+        assert_eq!(
+            response_transaction_id, transaction_id,
+            "announce response must echo its request"
+        );
     }
 }
 
@@ -68,7 +84,7 @@ pub async fn udp_scrape(remote_addr: SocketAddr, info_hashes: &[[u8; 20]]) -> Ve
 
     let scrape_request = ScrapeRequest {
         connection_id,
-        transaction_id: TransactionId::new(3),
+        transaction_id: TransactionId::new(4),
         info_hashes: info_hashes
             .iter()
             .map(|info_hash| torrust_tracker_udp_protocol::common::InfoHash(*info_hash))
@@ -112,19 +128,19 @@ async fn connect(client: &UdpTrackerClient) -> ConnectionId {
     }
 }
 
-async fn announce(
-    client: &UdpTrackerClient,
+fn announce_request(
     connection_id: ConnectionId,
+    transaction_id: TransactionId,
     info_hash: &[u8; 20],
     peer_id: &[u8; 20],
     port: u16,
     event: AnnounceEvent,
     bytes_left: i64,
-) -> Response {
-    let announce_request = AnnounceRequest {
+) -> AnnounceRequest {
+    AnnounceRequest {
         connection_id,
         action_placeholder: AnnounceActionPlaceholder::default(),
-        transaction_id: TransactionId::new(2),
+        transaction_id,
         info_hash: torrust_tracker_udp_protocol::common::InfoHash(*info_hash),
         peer_id: torrust_peer_id::PeerId(*peer_id),
         bytes_downloaded: NumberOfBytes::new(0),
@@ -135,11 +151,11 @@ async fn announce(
         key: PeerKey::new(0),
         peers_wanted: NumberOfPeers::new(1),
         port: Port::new(NonZeroU16::new(port).expect("port must be non-zero")),
-    };
-    client
-        .send(announce_request.into())
-        .await
-        .expect("failed to send announce request");
+    }
+}
+
+async fn send_announce(client: &UdpTrackerClient, request: AnnounceRequest) -> Response {
+    client.send(request.into()).await.expect("failed to send announce request");
     client.receive().await.expect("failed to receive announce response")
 }
 
