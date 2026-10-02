@@ -8,8 +8,8 @@ epic: null
 github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
-related-pr: null
-last-updated-utc: "2026-10-02 18:53"
+related-pr: 2423
+last-updated-utc: "2026-10-02 19:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -196,6 +196,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 18:00 UTC - Copilot - Implemented Option A; integration, unit, and affected-package tests pass; V2 shows HTTP `downloaded: 1` and UDP `completed: 1` after a clean restart. Spam and abuse note: the EPIC draft is not on `develop`, so it is recorded here instead: with persistence enabled, each scrape of an info-hash absent from memory costs one database read (as a first announce does), and Option A adds no memory growth.
 - 2026-10-02 18:31 UTC - Copilot - Maintainer refined the decision (value per persistence mode, batch lookup without N+1, query limit independent of #2417, no cache). Implemented the batch lookup as a separate `perf(tracker-core)` commit; the spam and abuse note above now reads one batch query per scrape request instead of one read per info-hash.
 - 2026-10-02 18:53 UTC - Copilot - Maintainer asked for automated equivalents of the manual V2/V3 checks. Added protocol-level tests (`http-core`, `udp-server`) and a root restart integration binary; manual verification stays mandatory for the real binary and OS process.
+- 2026-10-02 19:03 UTC - Copilot - Pre-push checks passed; opened implementation PR #2423 - <https://github.com/torrust/torrust-tracker/pull/2423>.
 
 ## Acceptance Criteria
 
