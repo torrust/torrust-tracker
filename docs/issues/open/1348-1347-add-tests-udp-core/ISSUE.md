@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-02 17:06"
+last-updated-utc: "2026-10-02 18:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,8 +203,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global and unit-only commands and totals. Its inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests changed. |
-| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds shared guardrails and the plan index; the first file plan is created. No tests change. |
-| T3 | TODO | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
+| T2 | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index; the first plan is [services-announce-tests.md](test-refactor-plans/services-announce-tests.md). No tests changed. |
+| T3 | DONE | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
 | T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
@@ -276,19 +276,20 @@ the test needs; they do not reuse production container factories.
 
 ## Source File Ledger
 
-States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`. Order follows
-[Key Package Responsibilities](#key-package-responsibilities), most critical first; within a
+States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`. Critical-path files with no unit-only
+coverage come first (announce, its peer mapping, scrape); the rest follow
+[Key Package Responsibilities](#key-package-responsibilities), most critical first. Within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the preliminary measurement and are replaced by T1 evidence.
+lines are the T1 measurement.
 
 | Order | Source module | Rank | Unit-only lines | T1 hypothesis | State | Plan |
 | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
-| 2 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
-| 3 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
-| 4 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | PENDING | - |
-| 5 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | PENDING | - |
-| 6 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
+| 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
+| 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | PENDING | - |
+| 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
+| 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
+| 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
+| 6 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
 | 7 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
 | 8 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
 | 9 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
@@ -316,8 +317,8 @@ lines are the preliminary measurement and are replaced by T1 evidence.
 - [x] Specification reviewed and approved by user/maintainer.
 - [x] Spec-only PR #2407 merged into `develop` before implementation.
 - [x] Complete module inventory and baseline coverage evidence recorded.
-- [ ] Shared plan guidance and the first file test plan created; processing order approved.
-- [ ] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
+- [x] Shared plan guidance and the first file test plan created; processing order approved.
+- [x] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
 - [ ] Every ledger row is `DONE` with its own file test plan.
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
@@ -348,6 +349,16 @@ lines are the preliminary measurement and are replaced by T1 evidence.
   aggregate and unit-only source measurements, the 20-file inventory, property-test candidates,
   ownership boundaries, and prioritized gaps. The package has 43 unit tests and no package
   integration test target at baseline. T2/T3 await maintainer review of this inventory and order.
+- 2026-10-02 18:34 UTC - Jose Celano / GitHub Copilot - T1 approved and committed as
+  `docs(issues): record udp core coverage baseline and inventory`. Maintainer chose to start with
+  `services/announce.rs` (critical and uncovered). T2 created the shared plan guidance and the
+  announce plan; T3 proposes moving announce, `peer_builder.rs`, and scrape ahead of the
+  cookie/crypto files. Also checked the EPIC-baseline checkpoint missed in T1. Plan and order await
+  approval; no Rust tests changed.
+- 2026-10-02 18:43 UTC - Jose Celano - Approved the processing order (T3) and the announce plan.
+  T4 is paused: the maintainer is fixing a bug that adds tests to this package. Rebase onto
+  `develop` after that PR merges, then re-check the announce plan against the new tests before
+  starting R2.
 
 ## Acceptance Criteria
 
