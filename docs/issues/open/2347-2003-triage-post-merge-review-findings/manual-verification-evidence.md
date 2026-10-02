@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-last-updated-utc: "2026-09-28 11:48"
+last-updated-utc: "2026-09-28 17:37"
 ---
 
 # Manual Verification Evidence
@@ -70,8 +70,28 @@ that of #2293 F3, whose fix was already on `develop` (T3 amendment 2). M1 passes
 ### V2 - Thread States Match Dispositions (M2)
 
 - Goal: After T7, only `FOLLOW_UP` threads are unresolved.
-- Initial state: Not reached; T7 runs after PR #2363 merges.
-- Status: `TODO`
+- Initial state: PR #2363 merged at 2026-09-28 17:00:27Z. Between 17:07:36Z and 17:07:57Z, josecelano posted the T7 reply on each of the 13 threads whose findings PR #2363 fixed. He then resolved those 13 threads and the 9 `NO_ACTION` threads. He had replied on the PR #2363 F15 thread and resolved it at 16:53:48Z.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. At 2026-09-28 17:19 UTC, the loop's orchestrator ran the GraphQL `repository.pullRequest.reviewThreads` query for PRs #2290, #2293, #2300, #2313, #2320, and #2363. It fetched each thread's node id, `isResolved`, path and line, and every comment's id, URL, author, time and body. The repository's `github-review-threads` tool was not run.
+2. Each unresolved thread was mapped to its audit finding through the first comment id in the audit's `Source URL`. The owner named in its disposition reply was then read from the thread.
+
+#### Observed Result
+
+| PR | Threads | Unresolved | Unresolved threads (reviewer ID → audit ID, owner named in the disposition reply) |
+| -- | ------- | ---------- | ------------------------------------------------------------------------------ |
+| #2290 | 10 | 1 | loop F4 → F4, #2360 |
+| #2293 | 16 | 2 | loop F1 → F1, #2361; loop F5 → F5, #2301 |
+| #2300 | 12 | 1 | loop F10 → F10, #2278 order 8 |
+| #2313 | 10 | 5 | loop F4 → F4, #2362; loop F5 → F5, #2362; loop F6 → F6, #2362; loop F7 → F7, #2362; loop F9 → F9, #2362 |
+| #2320 | 29 | 0 | none |
+| #2363 | 15 | 0 | none; F15 was resolved at 16:53:48Z |
+
+#### Conclusion
+
+The 9 unresolved threads are exactly the 9 `FOLLOW_UP` findings, and each has a disposition reply that names its owner. Every other one of the 32 threads is resolved: the 13 fixed findings, the 9 `NO_ACTION` findings, and #2293 F3. PR #2363 has no open thread. This matches the `FOLLOW_UP` set, and M2 passes.
 
 ### V3 - Live-Status Spot Check (M3)
 
