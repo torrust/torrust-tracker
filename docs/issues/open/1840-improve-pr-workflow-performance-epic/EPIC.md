@@ -6,7 +6,7 @@ epic: null
 github-issue: 1840
 spec-path: docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-01 14:52"
+last-updated-utc: "2026-10-02 10:40"
 semantic-links:
   skill-links:
     - create-issue
