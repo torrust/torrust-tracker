@@ -1,18 +1,20 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
 status: draft
 priority: p2
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
-branch: null
+branch: "{issue-number}-configure-shutdown-policy"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-10-02 15:42"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - packages/configuration/src/v3_0_0/
+    - packages/configuration/src/v3_0_0
     - src/main.rs
     - src/app.rs
     - src/bootstrap/jobs/manager.rs
@@ -75,6 +77,9 @@ handled, such as SIGKILL, has an OS-defined result. See Q3/Q4 for rationale.
   documentation.
 - Add configuration unit tests, invalid-configuration tests, and end-to-end
   shutdown verification using configured deadlines.
+- Evaluate and add configuration for the event-listener drain timeouts that
+  SI-22 injects through constructors (SI-22 decision D9), choosing the section
+  each listener belongs to, and include them in the budget validation.
 
 ### Out of scope
 
@@ -157,6 +162,42 @@ Components must return outcomes to their owner and must not call
   configured component budgets.
 - SI-21 follows this task and must use the configured process deadline without
   adding a separate timer.
+
+## Review Notes (2026-10-01)
+
+Facts found while reviewing EPIC #1488 progress; revalidate them when this
+draft is refreshed.
+
+- `main` ignores the outcomes returned by `JobManager::wait_for_all()` and
+  logs "Torrust tracker successfully shutdown." even after a timeout, panic,
+  or abort, so a normal return from that path exits with code 0 despite failed
+  component outcomes. Startup failure exits with code 1; forced termination
+  and process-level panic are not covered by this statement.
+- The shared deadline in `main` is 10 seconds, the same as Docker's Linux default
+  stop grace period, so Docker sends SIGKILL at about the moment the tracker's
+  own deadline expires.
+- The token-aware HTTP drain timeout (`HTTP_GRACEFUL_DRAIN_TIMEOUT`) is 90
+  seconds, longer than the 10-second shared deadline. An HTTP drain still
+  running at that shared deadline is aborted before its own budget runs out. The UDP
+  request drain deadline (`REQUEST_DRAIN_DEADLINE`) is 5 seconds.
+- Suggested safety step: before changing the exit-code mapping, add a
+  characterization test that pins the current behavior (exit code 0 even when
+  a component fails or times out). The fix then becomes a deliberate, visible
+  change to that test.
+- Sequencing: SI-20 has no technical dependency on SI-16 to SI-19, but runs
+  after SI-16, SI-17, and SI-22 by the maintainer's choice, so the package
+  tests cover the production shutdown path first. SI-22's D9 (how listener
+  drains share the deadline) must stay valid when this task makes budgets
+  configurable.
+- Listener drain timeouts (SI-22 D9): SI-22 injects each listener's drain
+  timeout through its constructor with a measured default. This task chooses
+  where each value lives in the configuration file. Findings so far: the swarm
+  and tracker-core listeners fit in `[core]`; the udp-core and udp-server
+  listeners fit in `[udp_tracker_server]`; the http-core listener has no
+  global section, because HTTP settings exist only per `[[http_trackers]]`
+  entry and the listener is shared by all of them (a new global HTTP section
+  would be needed). Alternatives: one value in `[shutdown]`, or a new section
+  for event listeners.
 
 ## Rollback
 

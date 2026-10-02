@@ -26,7 +26,7 @@ semantic-links:
 
 # Superseded Draft SI-3 — Split Standalone Environment Migration
 
-> **Status**: Superseded for implementation planning. [SI-16](../1488-si-16-migrate-standalone-http-environment/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-16](../../open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)
 > replaces the standalone HTTP environment/example and [SI-17](../1488-si-17-migrate-standalone-udp-environment/ISSUE.md)
 > replaces the standalone UDP environment/example, after the additive server
 > lifecycle API is available.

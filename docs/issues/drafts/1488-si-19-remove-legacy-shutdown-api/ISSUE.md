@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
 status: draft
 priority: p1
+epic: 1488
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-branch: null
+branch: "{issue-number}-remove-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: 2026-09-28
+last-updated-utc: "2026-10-02 11:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +33,7 @@ semantic-links:
 
 # Draft SI-19 — Remove Legacy Shutdown API and Library OS Signals
 
-> **EPIC position**: Roadmap step 15. Breaking removal after all declared
+> **EPIC position**: Roadmap step 16. Breaking removal after all declared
 > compatibility, migration, deprecation, and release gates have been satisfied.
 
 ## Goal

@@ -67,9 +67,9 @@ Relevant history:
 
 - Loading every torrent at startup, rejected by #1510.
 - Changing the global downloads metric from #1543.
-- Rate limiting or other scrape-abuse protections, tracked by the spam and abuse resistance EPIC draft (`docs/issues/drafts/spam-and-abuse-resistance/EPIC.md`, from the #1488 SI-22 work; not yet on `develop`).
-- The HTTP scrape 74-info-hash limit, tracked by the draft `docs/issues/drafts/verify-http-scrape-info-hash-limit/ISSUE.md` (not yet on `develop`).
-- Batching persistence writes, tracked by the draft `docs/issues/drafts/batch-persisted-download-writes/ISSUE.md` (not yet on `develop`).
+- Rate limiting or other scrape-abuse protections, tracked by the spam and abuse resistance EPIC #2411 (`docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md`, from the #1488 SI-22 work).
+- The HTTP scrape 74-info-hash limit, tracked by #2417 (`docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`).
+- Batching persistence writes, tracked by #2418 (`docs/issues/open/2418-batch-persisted-download-writes/ISSUE.md`).
 - Changes to the #1488 SI-22 shutdown implementation or specifications.
 
 ## Design Options
