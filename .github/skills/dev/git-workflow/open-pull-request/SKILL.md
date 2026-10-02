@@ -131,10 +131,11 @@ The keyword closes the issue wherever it appears in the body, including a senten
 mentions it (for example "the link will change to `Closes #N` later"): the merge tool copies the
 whole body into the merge commit. Do not write a closing keyword followed by an issue reference
 anywhere in the body of a PR that must not close that issue. Before creating or editing the body,
-scan it:
+scan it. The pattern covers the reference forms GitHub accepts after a keyword (`#N`,
+`owner/repo#N`, and an issue URL), with or without a colon:
 
 ```bash
-grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^#]{0,20}#[0-9]+' <body-file>
+grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|#[0-9]+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)' <body-file>
 ```
 
 ### Identifying the PR type
