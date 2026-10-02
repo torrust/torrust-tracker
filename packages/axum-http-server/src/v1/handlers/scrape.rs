@@ -185,7 +185,10 @@ mod tests {
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
+        let scrape_handler = Arc::new(ScrapeHandler::new_public(
+            &whitelist_authorization,
+            &in_memory_torrent_repository,
+        ));
 
         let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
             core_config,

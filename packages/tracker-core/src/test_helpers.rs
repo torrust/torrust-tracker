@@ -139,22 +139,33 @@ pub(crate) mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store));
 
-        let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
-            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-                &db_downloads_metric_repository,
-            ))
+        let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            (
+                Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+                Arc::new(ScrapeHandler::new_with_persistent_completed_statistics(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+            )
         } else {
-            Arc::new(AnnounceHandler::new_public(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-            ))
+            (
+                Arc::new(AnnounceHandler::new_public(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+                Arc::new(ScrapeHandler::new_public(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+            )
         };
-
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         (announce_handler, scrape_handler)
     }

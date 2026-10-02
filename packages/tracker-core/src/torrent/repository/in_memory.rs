@@ -134,6 +134,23 @@ impl InMemoryTorrentRepository {
     /// Retrieves swarm metadata for a given torrent.
     ///
     /// This method returns the swarm metadata (aggregate information such as
+    /// peer counts) for the torrent specified by the infohash, or `None` if the
+    /// torrent is not in memory.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
+    #[must_use]
+    pub(crate) async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
+        self.swarms
+            .get_swarm_metadata(info_hash)
+            .await
+            .expect("Failed to get swarm metadata")
+    }
+
+    /// Retrieves swarm metadata for a given torrent.
+    ///
+    /// This method returns the swarm metadata (aggregate information such as
     /// peer counts) for the torrent specified by the infohash. If the torrent
     /// entry is not found, a zeroed metadata struct is returned.
     ///

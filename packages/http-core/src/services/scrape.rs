@@ -259,22 +259,33 @@ mod tests {
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
 
-        let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
-            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-                &db_downloads_metric_repository,
-            ))
+        let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            (
+                Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+                Arc::new(ScrapeHandler::new_with_persistent_completed_statistics(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+            )
         } else {
-            Arc::new(AnnounceHandler::new_public(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-            ))
+            (
+                Arc::new(AnnounceHandler::new_public(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+                Arc::new(ScrapeHandler::new_public(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+            )
         };
-
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         Container {
             announce_handler,

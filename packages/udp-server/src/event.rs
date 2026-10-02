@@ -137,6 +137,7 @@ impl From<Error> for ErrorKind {
                 UdpScrapeError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
                 UdpScrapeError::TrackerCoreScrapeError { source } => match source {
                     ScrapeError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
+                    ScrapeError::Database(error) => Self::Database(error.to_string()),
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
@@ -365,6 +366,28 @@ mod tests {
         let error = Error::AnnounceFailed {
             source: UdpAnnounceError::TrackerCoreAnnounceError {
                 source: AnnounceError::Database(DatabaseError::MalformedDatabaseRecord {
+                    message: "corrupt record".to_string(),
+                    driver: Driver::Sqlite3,
+                }),
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::Database("Malformed Sqlite3 database record: corrupt record".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_scrape_database_error() {
+        // Arrange
+        let error = Error::ScrapeFailed {
+            source: UdpScrapeError::TrackerCoreScrapeError {
+                source: ScrapeError::Database(DatabaseError::MalformedDatabaseRecord {
                     message: "corrupt record".to_string(),
                     driver: Driver::Sqlite3,
                 }),

@@ -68,26 +68,50 @@ use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use super::whitelist;
 use crate::error::ScrapeError;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+use crate::torrent::persisted_downloads::PersistedDownloads;
 
 /// Handles scrape requests, providing torrent swarm metadata.
+///
+/// A scrape reports the swarm statistics an announce would return, without
+/// side effects. See
+/// [ADR-20261002173716](../../../docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 pub struct ScrapeHandler {
     /// Service for authorizing access to whitelisted torrents.
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
 
     /// The in-memory torrents repository.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
+
+    /// Persisted downloads lookup for swarms absent from memory.
+    persisted_downloads: PersistedDownloads,
 }
 
 impl ScrapeHandler {
-    /// Creates a new `ScrapeHandler` instance.
+    /// Creates a `ScrapeHandler` without persistent completed statistics.
     #[must_use]
-    pub fn new(
+    pub fn new_public(
         whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
     ) -> Self {
         Self {
             whitelist_authorization: whitelist_authorization.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
+            persisted_downloads: PersistedDownloads::disabled(),
+        }
+    }
+
+    /// Creates a `ScrapeHandler` with persistent completed statistics.
+    #[must_use]
+    pub fn new_with_persistent_completed_statistics(
+        whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
+        in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
+        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    ) -> Self {
+        Self {
+            whitelist_authorization: whitelist_authorization.clone(),
+            in_memory_torrent_repository: in_memory_torrent_repository.clone(),
+            persisted_downloads: PersistedDownloads::enabled(db_downloads_metric_repository),
         }
     }
 
@@ -95,14 +119,13 @@ impl ScrapeHandler {
     ///
     /// - Returns metadata for each requested torrent.
     /// - If a torrent isn't whitelisted or doesn't exist, returns zeroed stats.
+    /// - If a torrent isn't in memory and persistent completed statistics are
+    ///   enabled, returns its persisted `downloaded` count without loading the
+    ///   torrent into memory.
     ///
     /// # Errors
     ///
-    /// It does not return any errors for the time being. The error is returned
-    /// to avoid breaking changes in the future if we decide to return errors.
-    /// For example, a new tracker configuration option could be added to return
-    /// an error if a torrent is not whitelisted instead of returning zeroed
-    /// stats.
+    /// Returns an error if loading a persisted downloads count fails.
     ///
     /// # BEP Reference:
     ///
@@ -112,17 +135,23 @@ impl ScrapeHandler {
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.whitelist_authorization.authorize(info_hash).await {
-                Ok(()) => {
-                    self.in_memory_torrent_repository
-                        .get_swarm_metadata_or_default(info_hash)
-                        .await
-                }
+                Ok(()) => self.get_swarm_metadata(info_hash).await?,
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
         }
 
         Ok(scrape_data)
+    }
+
+    async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, ScrapeError> {
+        if let Some(swarm_metadata) = self.in_memory_torrent_repository.get_swarm_metadata(info_hash).await {
+            return Ok(swarm_metadata);
+        }
+
+        let downloaded = self.persisted_downloads.load(info_hash).await?.unwrap_or_default();
+
+        Ok(SwarmMetadata::new(downloaded, 0, 0))
     }
 }
 
@@ -131,25 +160,84 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_primitives::ScrapeData;
+    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{Driver, ScrapeData};
     use torrust_tracker_test_helpers::configuration;
 
     use super::ScrapeHandler;
+    use crate::databases::error::Error as DatabaseError;
+    use crate::databases::{MockTorrentMetricsStore, TorrentMetricsStore};
+    use crate::error::ScrapeError;
+    use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+    use crate::test_helpers::tests::{sample_info_hash, sample_peer};
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::{self};
 
-    fn scrape_handler() -> ScrapeHandler {
+    fn whitelist_authorization() -> Arc<whitelist::authorization::WhitelistAuthorization> {
         let config = configuration::ephemeral_public();
-
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(whitelist::authorization::WhitelistAuthorization::new(
+
+        Arc::new(whitelist::authorization::WhitelistAuthorization::new(
             &config.core,
             &in_memory_whitelist,
-        ));
+        ))
+    }
+
+    fn scrape_handler_with_persisted_downloads(
+        store: MockTorrentMetricsStore,
+        in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
+    ) -> ScrapeHandler {
+        let store: Arc<dyn TorrentMetricsStore> = Arc::new(store);
+
+        ScrapeHandler::new_with_persistent_completed_statistics(
+            &whitelist_authorization(),
+            in_memory_torrent_repository,
+            &Arc::new(DatabaseDownloadsMetricRepository::new(&store)),
+        )
+    }
+
+    #[tokio::test]
+    async fn it_should_report_an_in_memory_swarm_without_reading_the_persisted_downloads() {
+        // Arrange
+        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+        in_memory_torrent_repository
+            .handle_announcement(&sample_info_hash(), &sample_peer(), Some(3))
+            .await;
+        let store_without_expectations = MockTorrentMetricsStore::new();
+        let scrape_handler = scrape_handler_with_persisted_downloads(store_without_expectations, &in_memory_torrent_repository);
+
+        // Act
+        let scrape_data = scrape_handler.handle_scrape(&vec![sample_info_hash()]).await.unwrap();
+
+        // Assert
+        assert_eq!(scrape_data.files[&sample_info_hash()], SwarmMetadata::new(3, 1, 0));
+    }
+
+    #[tokio::test]
+    async fn it_should_fail_when_loading_the_persisted_downloads_fails() {
+        // Arrange
+        let mut failing_store = MockTorrentMetricsStore::new();
+        failing_store.expect_load_torrent_downloads().returning(|_| {
+            Box::pin(std::future::ready(Err(DatabaseError::MalformedDatabaseRecord {
+                message: "corrupt record".to_string(),
+                driver: Driver::Sqlite3,
+            })))
+        });
+        let scrape_handler =
+            scrape_handler_with_persisted_downloads(failing_store, &Arc::new(InMemoryTorrentRepository::default()));
+
+        // Act
+        let result = scrape_handler.handle_scrape(&vec![sample_info_hash()]).await;
+
+        // Assert
+        assert!(matches!(result, Err(ScrapeError::Database(_))));
+    }
+
+    fn scrape_handler() -> ScrapeHandler {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-        ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository)
+        ScrapeHandler::new_public(&whitelist_authorization(), &in_memory_torrent_repository)
     }
 
     #[tokio::test]

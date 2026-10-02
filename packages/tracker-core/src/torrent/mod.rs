@@ -164,5 +164,6 @@
 //!
 //! Refer to [`peer`](torrust_tracker_primitives::peer) for more information about peers.
 pub mod manager;
+pub(crate) mod persisted_downloads;
 pub mod repository;
 pub mod services;
