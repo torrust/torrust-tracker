@@ -398,10 +398,11 @@ old server, including its caches.
 
 ### Add Runner Capacity
 
-Only if measured queue time shows pull requests waiting for the runner after superseded pull-request
-runs are cancelled ([#2402](https://github.com/torrust/torrust-tracker/issues/2402)), the cheaper
-remedy. The decision to keep one runner, and when to recheck it, is recorded in the Decision section
-of [#2386](https://github.com/torrust/torrust-tracker/issues/2386).
+Only if, after superseded pull-request runs are cancelled
+([#2402](https://github.com/torrust/torrust-tracker/issues/2402)), the queue-time recheck below
+still shows waits over 15 minutes as common. The decision to keep one runner, the threshold, and
+when to recheck are recorded in the Decision section of
+[#2386](https://github.com/torrust/torrust-tracker/issues/2386).
 
 To recheck queue time, list the self-hosted jobs created since a date with their wait for a runner
 (`started_at - created_at`):
