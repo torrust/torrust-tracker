@@ -75,7 +75,7 @@ use crate::torrent::persisted_downloads::PersistedDownloads;
 ///
 /// A scrape reports the swarm statistics an announce would return, without
 /// side effects. See
-/// [ADR-20261002173716](../../../docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+/// [ADR-20261002173716](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 pub struct ScrapeHandler {
     /// Service for authorizing access to whitelisted torrents.
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,

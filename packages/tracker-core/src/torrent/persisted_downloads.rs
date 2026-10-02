@@ -2,7 +2,7 @@
 //!
 //! Announce and scrape share this lookup so both report the same `downloaded`
 //! count for a torrent whose swarm is absent from memory. See
-//! [ADR-20261002173716](../../../../docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+//! [ADR-20261002173716](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
