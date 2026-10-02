@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
-use torrust_tracker_primitives::NumberOfDownloads;
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
 
 use crate::databases;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -45,6 +45,22 @@ impl PersistedDownloads {
         match &self.db_downloads_metric_repository {
             Some(repository) => repository.load_torrent_downloads(info_hash).await,
             None => Ok(None),
+        }
+    }
+
+    /// Returns the persisted downloads counts of several torrents in one
+    /// lookup, avoiding one query per torrent.
+    ///
+    /// Torrents without a persisted count are absent from the result. No
+    /// query runs when the lookup is disabled or `info_hashes` is empty.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database query fails.
+    pub async fn load_many(&self, info_hashes: &[InfoHash]) -> Result<NumberOfDownloadsPerInfoHash, databases::error::Error> {
+        match &self.db_downloads_metric_repository {
+            Some(repository) if !info_hashes.is_empty() => repository.load_torrents_downloads(info_hashes).await,
+            _ => Ok(NumberOfDownloadsPerInfoHash::new()),
         }
     }
 }

@@ -121,37 +121,39 @@ impl ScrapeHandler {
     /// - If a torrent isn't whitelisted or doesn't exist, returns zeroed stats.
     /// - If a torrent isn't in memory and persistent completed statistics are
     ///   enabled, returns its persisted `downloaded` count without loading the
-    ///   torrent into memory.
+    ///   torrent into memory. All such torrents are looked up in one batch.
     ///
     /// # Errors
     ///
-    /// Returns an error if loading a persisted downloads count fails.
+    /// Returns an error if loading the persisted downloads counts fails.
     ///
     /// # BEP Reference:
     ///
     /// [BEP 48: Scrape Protocol](https://www.bittorrent.org/beps/bep_0048.html)
     pub async fn handle_scrape(&self, info_hashes: &Vec<InfoHash>) -> Result<ScrapeData, ScrapeError> {
         let mut scrape_data = ScrapeData::empty();
+        let mut absent_from_memory = Vec::new();
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.whitelist_authorization.authorize(info_hash).await {
-                Ok(()) => self.get_swarm_metadata(info_hash).await?,
+                Ok(()) => self
+                    .in_memory_torrent_repository
+                    .get_swarm_metadata(info_hash)
+                    .await
+                    .unwrap_or_else(|| {
+                        absent_from_memory.push(*info_hash);
+                        SwarmMetadata::zeroed()
+                    }),
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
         }
 
-        Ok(scrape_data)
-    }
-
-    async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, ScrapeError> {
-        if let Some(swarm_metadata) = self.in_memory_torrent_repository.get_swarm_metadata(info_hash).await {
-            return Ok(swarm_metadata);
+        for (info_hash, downloaded) in self.persisted_downloads.load_many(&absent_from_memory).await? {
+            scrape_data.add_file(&info_hash, SwarmMetadata::new(downloaded, 0, 0));
         }
 
-        let downloaded = self.persisted_downloads.load(info_hash).await?.unwrap_or_default();
-
-        Ok(SwarmMetadata::new(downloaded, 0, 0))
+        Ok(scrape_data)
     }
 }
 
@@ -161,7 +163,7 @@ mod tests {
 
     use torrust_info_hash::InfoHash;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-    use torrust_tracker_primitives::{Driver, ScrapeData};
+    use torrust_tracker_primitives::{Driver, NumberOfDownloadsPerInfoHash, ScrapeData};
     use torrust_tracker_test_helpers::configuration;
 
     use super::ScrapeHandler;
@@ -215,10 +217,40 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_load_the_persisted_downloads_of_all_torrents_absent_from_memory_in_one_query() {
+        // Arrange
+        let in_memory = InfoHash([1; 20]);
+        let persisted = InfoHash([2; 20]);
+        let unknown = InfoHash([3; 20]);
+        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+        in_memory_torrent_repository
+            .handle_announcement(&in_memory, &sample_peer(), Some(3))
+            .await;
+        let mut store = MockTorrentMetricsStore::new();
+        store
+            .expect_load_torrents_downloads()
+            .withf(move |info_hashes| info_hashes == [persisted, unknown])
+            .times(1)
+            .returning(move |_| Box::pin(std::future::ready(Ok(NumberOfDownloadsPerInfoHash::from([(persisted, 5)])))));
+        let scrape_handler = scrape_handler_with_persisted_downloads(store, &in_memory_torrent_repository);
+
+        // Act
+        let scrape_data = scrape_handler
+            .handle_scrape(&vec![in_memory, persisted, unknown])
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(scrape_data.files[&in_memory], SwarmMetadata::new(3, 1, 0));
+        assert_eq!(scrape_data.files[&persisted], SwarmMetadata::new(5, 0, 0));
+        assert_eq!(scrape_data.files[&unknown], SwarmMetadata::zeroed());
+    }
+
+    #[tokio::test]
     async fn it_should_fail_when_loading_the_persisted_downloads_fails() {
         // Arrange
         let mut failing_store = MockTorrentMetricsStore::new();
-        failing_store.expect_load_torrent_downloads().returning(|_| {
+        failing_store.expect_load_torrents_downloads().returning(|_| {
             Box::pin(std::future::ready(Err(DatabaseError::MalformedDatabaseRecord {
                 message: "corrupt record".to_string(),
                 driver: Driver::Sqlite3,
