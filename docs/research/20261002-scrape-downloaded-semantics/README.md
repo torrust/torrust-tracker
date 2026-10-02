@@ -94,7 +94,22 @@ memory loads the persisted count before building the response. The announce resp
 already exposes the historical count. Before #2406, scrape for the same torrent at the same
 moment reported zero, so scrape and announce disagreed about the same swarm.
 
-## 5. Summary
+## 5. One Field, Two Possible Meanings
+
+BEP 48 provides a single `downloaded` field ("the number of peers that have ever completed
+downloading"), and the protocol cannot be extended with a second field. A tracker that persists
+the counter could mean either completions since the process started or the lifetime count. The
+maintainer resolved this on 2026-10-02:
+
+- persistence disabled: return the in-memory count since the tracker started;
+- persistence enabled: return the persisted lifetime count.
+
+Because the first announce of a torrent loads its persisted count into memory, an active swarm's
+in-memory value already equals the lifetime count when persistence is enabled. The decision and
+its lookup implementation are recorded in
+[ADR 20261002173716](../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+
+## 6. Summary
 
 - The specifications support reporting historical `downloaded` for peerless torrents.
 - Database-backed trackers do so; in-memory open trackers report only what remains in memory or
@@ -105,7 +120,7 @@ moment reported zero, so scrape and announce disagreed about the same swarm.
 - Treating scrape as "announce statistics without side effects" (BEP 48) makes scrape consistent
   with the announce response, whichever exposure policy the announce response follows.
 
-## 6. Unverified Items
+## 7. Unverified Items
 
 - Whether opentracker operators commonly use the state file in production.
 - How clients use `downloaded` beyond UI display.

@@ -47,6 +47,30 @@ at that moment, without any side effect:
 Whether persisted counts should be exposed in responses at all is a policy that must apply to
 announce and scrape together. Any future exposure setting must govern both.
 
+### Which `downloaded` Value Is Returned
+
+BEP 48 defines `downloaded` as "the number of peers that have ever completed downloading", and
+the response has only one field for it. A tracker cannot report both an in-process count and a
+persisted lifetime count, so the persistence mode decides what "ever" means:
+
+- **Persistence disabled:** completions registered since the tracker process started (in memory).
+- **Persistence enabled:** the persisted lifetime count. For an active swarm, the in-memory value
+  already is that count, because the first announce loads the persisted value and later
+  completions add to it. Scrape therefore reads active swarms from memory, exactly as announce
+  does, and only reads the database for torrents absent from memory.
+
+### Lookup Implementation
+
+- Scrape loads the persisted counts of all authorized info-hashes absent from memory with one
+  batch query per request, avoiding one query per torrent (N+1).
+- Drivers bind at most `MAX_INFO_HASHES_PER_QUERY` (100) info-hashes per `IN (...)` query and
+  split larger inputs. A full UDP scrape (about 74 info-hashes, BEP 15) fits in one query. The
+  value is deliberately independent of protocol request limits (see #2417), which exist for other
+  reasons and may grow.
+- No cache is used. Scrape requests are far less frequent than announces, so one query per scrape
+  request is acceptable. Add an in-memory cache only if metrics show the scrape database load
+  matters.
+
 ### Alternatives Considered
 
 - **Cache a peerless swarm on scrape.** Avoids repeated database reads, but `TorrentAdded`
@@ -56,11 +80,15 @@ announce and scrape together. Any future exposure setting must govern both.
 - **Scrape reports only in-memory state.** Keeps the pre-#2406 behavior, but scrape and announce
   then disagree about the same swarm, and counts reset to zero after a restart or cleanup.
   Rejected.
+- **One query per absent info-hash.** Simplest, but a scrape of N torrents costs N database round
+  trips. Rejected in favor of the batch query.
+- **Eager loading of all torrents at startup** (XBT, Ocelot, torrust-actix). Rejected in #1510
+  for large databases.
 
 ### Consequences
 
-- Scraping a torrent absent from memory costs one database read per info-hash when persistence is
-  enabled, as a first announce does. Scrape-abuse protections are out of scope here.
+- Scraping torrents absent from memory costs one batch query per request (one per 100
+  info-hashes) when persistence is enabled. Scrape-abuse protections are out of scope here.
 - Scrape responses can fail with a database error when persistence is enabled.
 
 ## Date
@@ -71,5 +99,6 @@ announce and scrape together. Any future exposure setting must govern both.
 
 - Issue [#2406](https://github.com/torrust/torrust-tracker/issues/2406)
 - Issues #1510 and #1543 (startup loading rejected; lazy per-torrent loading introduced)
+- Issue [#2417](https://github.com/torrust/torrust-tracker/issues/2417) (HTTP scrape info-hash limit)
 - [BEP 48](https://www.bittorrent.org/beps/bep_0048.html)
 - [Events are objective facts](20260727000000_events_are_objective_facts.md)

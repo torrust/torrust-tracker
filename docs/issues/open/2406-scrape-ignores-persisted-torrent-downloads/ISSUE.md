@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: null
-last-updated-utc: "2026-10-02 18:00"
+last-updated-utc: "2026-10-02 18:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,6 +105,14 @@ The maintainer questioned whether scrape should report only the active swarm (sc
 - **Spam and abuse note:** scraping info-hashes absent from memory costs one database read each when persistence is enabled; add a note to the spam and abuse EPIC draft if it is on `develop`, otherwise record it in the progress log.
 - Any future setting to hide persisted counts from responses must apply to announce and scrape together; it is out of scope.
 
+### Decision Refinement (2026-10-02, after implementation review)
+
+- **Which value:** BEP 48 has one `downloaded` field ("ever completed"). With persistence disabled, scrape returns the in-memory count since the tracker started; with persistence enabled, the persisted lifetime count. An active swarm's in-memory value already is the lifetime count, so active swarms are read from memory exactly as announce does.
+- **Batch lookup:** scrape loads the persisted counts of all authorized info-hashes absent from memory with one query per request instead of one per torrent (N+1). New `TorrentMetricsStore::load_torrents_downloads` for SQLite, MySQL, and PostgreSQL.
+- **Query size limit:** drivers bind at most `MAX_INFO_HASHES_PER_QUERY = 100` info-hashes per `IN (...)` query and split larger inputs. A full UDP scrape (about 74) fits in one query; the value is independent of protocol request limits, which are discussed in #2417 and may grow.
+- **No cache:** scrape is far less frequent than announce; add a cache only if metrics show a need.
+- Recorded in the [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md) and the [research document](../../../research/20261002-scrape-downloaded-semantics/README.md) section 5.
+
 ## Architectural Decisions
 
 - Related ADRs: [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md).
@@ -144,6 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Add and prove a red regression test | [manual-verification-evidence.md](manual-verification-evidence.md) "Selected Tests" and "Red Run". |
 | T4 | DONE | Implement the production fix | Shared `PersistedDownloads` lookup, `ScrapeHandler` paired constructors, `ScrapeError::Database`; announce behavior unchanged. |
 | T5 | DONE | Verify green and recheck M1 | [manual-verification-evidence.md](manual-verification-evidence.md) "Green Run" and V2. |
+| T7 | DONE | Batch the persisted scrape lookup | One query per scrape request, chunked at 100 info-hashes; unit test proven against a per-torrent mutation; driver tests pass on SQLite, MySQL, and PostgreSQL. See [manual-verification-evidence.md](manual-verification-evidence.md) "Batch Lookup (T7)". |
 | T6 | IN_PROGRESS | Complete acceptance and implementation reviews | Acceptance verification table updated; awaiting maintainer review and pre-push checks. |
 
 ## Commit Points
@@ -184,6 +193,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 17:40 UTC - Copilot - Created implementation branch `2406-scrape-ignores-persisted-torrent-downloads`; researched BEPs and other trackers; maintainer selected Option A under the "scrape = announce statistics without side effects" principle - [research](../../../research/20261002-scrape-downloaded-semantics/README.md), [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 - 2026-10-02 17:50 UTC - Copilot - Added two `tracker-core` integration tests; the persisted-downloads test failed against the unfixed code (`downloaded: 0`, expected `7`) - [manual-verification-evidence.md](manual-verification-evidence.md).
 - 2026-10-02 18:00 UTC - Copilot - Implemented Option A; integration, unit, and affected-package tests pass; V2 shows HTTP `downloaded: 1` and UDP `completed: 1` after a clean restart. Spam and abuse note: the EPIC draft is not on `develop`, so it is recorded here instead: with persistence enabled, each scrape of an info-hash absent from memory costs one database read (as a first announce does), and Option A adds no memory growth.
+- 2026-10-02 18:31 UTC - Copilot - Maintainer refined the decision (value per persistence mode, batch lookup without N+1, query limit independent of #2417, no cache). Implemented the batch lookup as a separate `perf(tracker-core)` commit; the spam and abuse note above now reads one batch query per scrape request instead of one read per info-hash.
 
 ## Acceptance Criteria
 
@@ -234,7 +244,7 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 ## Risks and Trade-offs
 
-- Option A does not cache, so repeated scrapes of a torrent absent from memory each read the database when persistence is enabled. Scrape-abuse protection is out of scope.
+- Option A does not cache, so each scrape request with torrents absent from memory runs one batch query (one per 100 info-hashes) when persistence is enabled. Scrape-abuse protection is out of scope.
 - Adding persistence access to scrape can blur announce and scrape ownership. Prefer the smallest design that makes the shared policy explicit and create an ADR if the responsibility boundary materially changes.
 - A database-backed restart test can be slower than a unit test. Keep it focused, deterministic, and isolated because it is the clearest contract boundary for the defect.
 

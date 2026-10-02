@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-02 17:59
+last-updated-utc: 2026-10-02 18:34
 ---
 
 # Manual Verification Evidence
@@ -121,6 +121,35 @@ Post-restart UDP scrape (first and second):
 
 Fixed. After a clean restart and before any announce, HTTP `downloaded` and UDP `completed` both equal the persisted count `1`, while seeders and leechers remain zero.
 
+### V3 - Multi-Torrent Scrape After Restart (Batch Lookup)
+
+- Goal: confirm the batch lookup returns correct per-torrent counts for a mixed scrape request after a restart.
+- Date and time (UTC): 2026-10-02 18:32 to 18:33
+- Artifact under test: debug binaries rebuilt at `perf(tracker-core): [#2406] load persisted scrape downloads in one batch query`
+- Configuration: `.tmp/scrape-persisted-downloads-fix-v3.toml`, identical to V1 except the fresh SQLite path `.tmp/scrape-persisted-downloads-fix-v3.sqlite3`
+- Info hashes: `1111…` and `2222…` (each announced `started` then `completed` before the restart), `3333…` (never announced)
+- Status: `DONE` (fixed)
+
+#### Steps Performed
+
+1. Started the tracker, sent UDP `started` and `completed` announces for `1111…` and `2222…`, and stopped it with `SIGINT` (exit code 0). SQLite contained `1111…|1` and `2222…|1`.
+2. Restarted with the same configuration and database, without announcing.
+3. Scraped all three info-hashes in one HTTP request and one UDP request, then stopped with `SIGINT` (exit code 0, `Torrust tracker successfully shutdown.`).
+
+#### Observed Result
+
+```text
+HTTP:
+{"2222222222222222222222222222222222222222":{"complete":0,"downloaded":1,"incomplete":0},"1111111111111111111111111111111111111111":{"complete":0,"downloaded":1,"incomplete":0},"3333333333333333333333333333333333333333":{"complete":0,"downloaded":0,"incomplete":0}}
+
+UDP (request order 1111…, 2222…, 3333…):
+{"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":0,"completed":1,"leechers":0},{"seeders":0,"completed":1,"leechers":0},{"seeders":0,"completed":0,"leechers":0}]}}
+```
+
+#### Conclusion
+
+Fixed. Both persisted torrents report `1` and the unknown torrent reports `0` in a single request on both protocols; UDP keeps the request order.
+
 ## Regression-Test Boundary
 
 Use a `tracker-core` SQLite-backed restart integration test. It is the smallest current deterministic boundary that can observe the contract: a fresh in-memory repository with the same persisted database must return the saved count from `ScrapeHandler`. A pure unit test is not currently available because `ScrapeHandler` does not own a persistence dependency; reassess after the implementation design chooses its seam.
@@ -177,6 +206,37 @@ The fix also added unit tests at the handler seam created by the design:
 - `udp-server` `event::tests::it_should_classify_a_scrape_database_error`: the new variant maps to `ErrorKind::Database`.
 
 Affected packages (`torrust-tracker-core`, `-http-core`, `-udp-core`, `-udp-server`, `-axum-http-server`) pass with `cargo test`, and `cargo clippy --workspace --all-targets --all-features -- -D warnings -W clippy::pedantic` is clean.
+
+### Batch Lookup (T7)
+
+Code state: `perf(tracker-core): [#2406] load persisted scrape downloads in one batch query`.
+
+Tests added:
+
+- Unit test `scrape_handler::tests::it_should_load_the_persisted_downloads_of_all_torrents_absent_from_memory_in_one_query`: one torrent in memory, one persisted, one unknown. The mock store expects exactly one `load_torrents_downloads` call with only the two absent info-hashes, so it guards against both N+1 queries and querying in-memory torrents.
+- Driver tests (shared by all backends): `it_should_load_the_persisted_downloads_of_the_requested_torrents_only` and `it_should_load_the_persisted_downloads_of_more_torrents_than_fit_in_one_query` (101 torrents, more than `MAX_INFO_HASHES_PER_QUERY`).
+
+Mutation proof: the scrape handler was temporarily changed to call the lookup once per info-hash (`absent_from_memory.chunks(1)`), not staged, and restored by hand afterwards:
+
+```text
+$ cargo test -p torrust-tracker-core --lib scrape_handler::tests::it_should_load_the_persisted
+test scrape_handler::tests::it_should_load_the_persisted_downloads_of_all_torrents_absent_from_memory_in_one_query ... FAILED
+MockTorrentMetricsStore::load_torrents_downloads([InfoHash([2, 2, ...])]): No matching expectation found
+```
+
+Green runs after restoring:
+
+```text
+$ cargo test -p torrust-tracker-core
+test result: ok. 150 passed; 0 failed (lib, includes run_sqlite_driver_tests)
+test result: ok. 8 passed; 0 failed (integration)
+
+$ TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests run_mysql_driver_tests
+test result: ok. 1 passed; 0 failed
+
+$ TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests run_postgres_driver_tests
+test result: ok. 1 passed; 0 failed
+```
 
 ## Failures and Follow-up
 
