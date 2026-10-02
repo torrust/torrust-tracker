@@ -1,14 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: draft
 priority: p2
 epic: 1347
-github-issue: 1349
-spec-path: docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "1349-add-tests-axum-rest-api-server"
+github-issue: null
+spec-path: docs/issues/drafts/1347-add-tests-axum-rest-api-server/ISSUE.md
+branch: "{issue-number}-1347-add-tests-axum-rest-api-server"
 related-pr: null
-last-updated-utc: 2026-09-01 18:00
+last-updated-utc: "2026-10-02 11:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,9 +19,14 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #1349 - Add Tests to the Axum REST API Server Package
+# Issue #[To be assigned] - Add Tests to the Axum REST API Server Package
 
 Parent EPIC: #1347 - Overhaul: Packages Testing
+
+> **Identity correction (2026-10-02):** this draft was created on 2026-09-01 under GitHub issue
+> #1349, but #1349 is the `http-core` package subissue. No GitHub issue exists yet for
+> `axum-rest-api-server` package tests. Create one after maintainer review, then move this draft
+> to `docs/issues/open/` with its own number.
 
 ## Goal
 
@@ -90,8 +96,10 @@ selection or expected-value construction.
 
 ### Workflow Checkpoints
 
-- [x] Repository-local folder-style spec created for existing GitHub issue #1349
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Repository-local folder-style draft created (originally misfiled under GitHub issue #1349)
+- [ ] Draft reviewed and approved by user/maintainer
+- [ ] GitHub issue created and linked as a subissue of #1347
+- [ ] Draft moved to `docs/issues/open/` with its assigned issue number
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed
@@ -105,6 +113,7 @@ selection or expected-value construction.
 
 - 2026-09-01 18:00 UTC - GitHub Copilot - Created a repository-local folder-style specification from GitHub issue #1349 and EPIC #1347. - https://github.com/torrust/torrust-tracker/issues/1349
 - 2026-09-01 18:00 UTC - User/maintainer - Clarified that the work should increase the recorded coverage baseline by testing critical behavior, prioritize fast unit tests close to package code, and retain or add valuable package-level integration and end-to-end tests. - https://github.com/torrust/torrust-tracker/issues/1349
+- 2026-10-02 11:03 UTC - GitHub Copilot - Corrected the package-to-issue identity, completing the 2026-09-03 correction that moved the Axum HTTP server work from #1348 to #2136. GitHub issue #1349 is `http-core`; this `axum-rest-api-server` draft has no GitHub issue yet, so it moved from `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/` to `docs/issues/drafts/1347-add-tests-axum-rest-api-server/`. Before approval, align it with the #1347 subissue-spec guidelines and the #1348 specification.
 
 ## Acceptance Criteria
 
@@ -163,7 +172,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- GitHub issue: https://github.com/torrust/torrust-tracker/issues/1349
+- GitHub issue: not yet created (formerly misfiled under #1349, the `http-core` subissue)
 - Parent EPIC: #1347
 - Package: `packages/axum-rest-api-server/`
 - Test environment: `packages/axum-rest-api-server/src/testing/environment.rs`
