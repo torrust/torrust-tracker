@@ -398,9 +398,10 @@ old server, including its caches.
 
 ### Add Runner Capacity
 
-Only if measured queue time shows pull requests waiting for the runner. The decision to keep one
-runner, and when to recheck it, is recorded in the
-[capacity specification](issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md).
+Only if measured queue time shows pull requests waiting for the runner after superseded pull-request
+runs are cancelled ([#2402](https://github.com/torrust/torrust-tracker/issues/2402)), the cheaper
+remedy. The decision to keep one runner, and when to recheck it, is recorded in the Decision section
+of [#2386](https://github.com/torrust/torrust-tracker/issues/2386).
 
 To recheck queue time, list the self-hosted jobs created since a date with their wait for a runner
 (`started_at - created_at`):
