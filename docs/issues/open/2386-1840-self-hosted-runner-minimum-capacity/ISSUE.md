@@ -7,9 +7,9 @@ priority: p2
 epic: 1840
 github-issue: 2386
 spec-path: docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
-branch: "2386-1840-runner-capacity-measurements"
-related-pr: 2389
-last-updated-utc: "2026-10-01 16:26"
+branch: "2386-1840-runner-capacity-close-out"
+related-pr: 2403
+last-updated-utc: "2026-10-02 07:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -209,14 +209,14 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Issue linked as a GitHub sub-issue of EPIC #1840
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, pre-commit checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, pre-commit checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -235,6 +235,8 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
 - 2026-09-30 15:17 UTC - josecelano, GitHub Copilot - T1 and T2 DONE. In a window from 13:34 to 14:58 UTC the realistic build took 639 s at 8 vCPU / 16 GB (projected job 801 s, 13.4 minutes) and 1065 s constrained to 4 vCPU / 8 GB (projected 1227 s, 20.5 minutes); no out-of-memory kills. The replay rerun at 801 s gives a one-runner 90th-percentile wait of 140 minutes, 12 with superseded runs cancelled. The maintainer kept the current 8 vCPU / 16 GB server as the minimum; the queueing remedy is still open - `manual-verification-evidence.md` V1 to V4, Decision
 - 2026-10-01 14:52 UTC - josecelano, GitHub Copilot - T3 DONE: the maintainer chose to cancel superseded pull-request runs before adding a second server, to be delivered in #2402, and kept the recheck trigger of about a month or another active maintainer - Decision, #2402
 - 2026-10-01 16:26 UTC - josecelano, GitHub Copilot - Addressed the Copilot review of PR #2403. The first cancelling replay only dropped runs superseded within one job time of their arrival and treated cancelled running jobs as free; an event-driven replay corrects the one-runner figures at 801 s to 11 minutes (90th percentile) and 32 minutes (maximum), from 12 and 79, which strengthens the decision. The V2 memory claim is narrowed to the sampled last 5 minutes, and the Decision dates its parts - `manual-verification-evidence.md` V2, V3, `docs/pr-reviews/pr-2403-review/PR-REVIEW.md`
+- 2026-10-02 07:11 UTC - GitHub Copilot - PR #2403 merged. Started the close-out on branch `2386-1840-runner-capacity-close-out`: recorded the implementation retrospective, checked the implementation and verification checkpoints, and added the closing-keyword rule it identified to the `open-pull-request` skill; the independent review follows - `implementation-retrospective.md`
+- 2026-10-02 07:47 UTC - GitHub Copilot - The Task Reviewer passed the close-out with four Low findings, all fixed: PR #2403 is now cited in the acceptance verification, References, and EPIC row 17; the evidence `last-updated-utc` is corrected; and the guide's "Add Runner Capacity" now puts cancelling superseded runs (#2402) before a second server and links #2386 by issue instead of by its `docs/issues/open/` path - `agent-review-reports.md`
 
 ## Acceptance Criteria
 
@@ -250,9 +252,9 @@ Use Conventional Commits (`docs(issues)`, `docs(self-hosted-runner)`) and sign e
       one-runner-per-server limit and its causes, how to add capacity, and commands to recheck
       queue time and run volume.
 - [x] AC5: EPIC #1840 lists #2374 and this issue.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -280,9 +282,9 @@ None. The commands are recorded directly in `manual-verification-evidence.md`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | `manual-verification-evidence.md` V1 and V2 |
-| AC2   | DONE                   | V1, V2, and the Decision section |
-| AC3   | DONE                   | Decision section |
+| AC1   | DONE                   | `manual-verification-evidence.md` V1 and V2, PR #2403 |
+| AC2   | DONE                   | V1, V2, and the Decision section, PR #2403 |
+| AC3   | DONE                   | Decision section, PR #2403 |
 | AC4   | DONE                   | `docs/self-hosted-runner.md`, PR #2389 |
 | AC5   | DONE                   | EPIC #1840 rows 16 and 17, PR #2389 |
 
@@ -334,7 +336,9 @@ size on 2026-09-30 and the runner count and queueing on 2026-10-01.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md) (material
+  discoveries: workload model, queue-replay model, memory evidence, window mechanics, and the
+  closing keyword in a PR body)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a progress-log
   entry explaining why not.
@@ -345,5 +349,6 @@ size on 2026-09-30 and the runner count and queueing on 2026-10-01.
 
 - Parent EPIC: #1840
 - Related issues: #2323, #2374, #1419
-- Related PRs: #2389 (implementation); #2383 (superseded by #2389, branch named after the EPIC)
+- Related PRs: #2389 (spec, guide, first queue evidence); #2403 (measurements and decision); #2383
+  (superseded by #2389, branch named after the EPIC)
 - Related ADRs: `docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`
