@@ -180,12 +180,12 @@ is applied there. Otherwise, the smallest boundary where the limit is applied.
   recorded manual evidence (V1: it does not on the tested requests).
 - [ ] AC2: HTTP scrape behavior with more than 74 info hashes matches the
       decided option and the documentation.
+- [ ] AC3: A maintained test covers the decided behavior, or a documentation-only
+  outcome explains why existing coverage suffices without a new test.
 - [ ] AC4: An ADR records whether HTTP caps scrape requests, the value and
       behavior if so, and the reason per protocol (UDP packet size; HTTP
       policy), noting that parallel requests bypass a per-request cap and that
       rate limiting is EPIC #2411. Doc comments and user docs link it.
-- [ ] AC3: A maintained test covers the decided behavior, or a documentation-only
-  outcome explains why existing coverage suffices without a new test.
 - [ ] `linter all` exits with code `0`; relevant tests pass.
 
 ## Verification Plan
