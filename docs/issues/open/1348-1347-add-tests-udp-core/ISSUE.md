@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core-spec"
 related-pr: null
-last-updated-utc: "2026-10-02 11:26"
+last-updated-utc: "2026-10-02 11:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -314,7 +314,7 @@ lines are the preliminary measurement and are replaced by T1 evidence.
 - [x] Local branch `1348-1347-add-tests-udp-core-spec` created from `develop` for the spec-only PR;
       `1348-1347-add-tests-udp-core` is reserved for implementation.
 - [x] Specification reviewed and approved by user/maintainer.
-- [ ] Spec-only PR merged into `develop` before implementation.
+- [ ] Spec-only PR #2407 merged into `develop` before implementation.
 - [ ] Complete module inventory and baseline coverage evidence recorded.
 - [ ] Shared plan guidance and the first file test plan created; processing order approved.
 - [ ] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
@@ -340,6 +340,8 @@ lines are the preliminary measurement and are replaced by T1 evidence.
   disposable low-level client.
 - 2026-10-02 11:26 UTC - User/maintainer - Approved the specification. It is merged through a
   spec-only PR before implementation starts on `1348-1347-add-tests-udp-core`.
+- 2026-10-02 11:42 UTC - GitHub Copilot - Opened spec-only PR #2407
+  (<https://github.com/torrust/torrust-tracker/pull/2407>) with `Related to #1348`.
 
 ## Acceptance Criteria
 
