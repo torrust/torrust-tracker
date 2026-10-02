@@ -9,7 +9,7 @@ github-issue: 2402
 spec-path: docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
 related-pr: 2419
-last-updated-utc: "2026-10-02 17:52"
+last-updated-utc: "2026-10-02 17:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,6 +178,8 @@ marker; review that skill when changing them.
   pre-commit gate passed - `ci(workflows): [#2402] cancel superseded PR runs`
 - 2026-10-02 17:52 UTC - josecelano, GitHub Copilot - Opened implementation PR #2419 and started
   M1 with disposable draft control PR #2420; its independent `Container` run is active.
+- 2026-10-02 17:54 UTC - josecelano, GitHub Copilot - M1 commit A started with `Container`
+  queued and `Testing` in progress; pushed the superseding commit B next.
 
 ## Acceptance Criteria
 
