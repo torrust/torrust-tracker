@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-30 12:24"
+last-updated-utc: "2026-10-02 15:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -52,50 +52,85 @@ The accepted architecture and alternatives are recorded in the
 ## Why This Is Needed
 
 The current shutdown process has several problems identified in the
-[shutdown analysis](../../../analysis/20260716-shutdown-process/README.md):
+[shutdown analysis](../../../analysis/20260716-shutdown-process/README.md).
+The list keeps the problems as originally found; each item ends with its
+status as of 2026-10-02.
 
 1. **No `SIGTERM` in `main.rs`** — only `SIGINT` (Ctrl+C) is handled at the top
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
    which means `jobs.cancel()` and `jobs.wait_for_all()` are never called.
+   **Status: fixed** by SI-1 (#2132).
 2. **Three inconsistent shutdown mechanisms** — jobs use `CancellationToken`,
    direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
+   **Status: fixed in the application** (sequences 3 to 11); the standalone
+   test environments still use `Halted` until SI-16 and SI-17, and the legacy
+   API is removed by SI-18 and SI-19.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
+   **Status: fixed** by SI-4 (#2169) and #2221.
 4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
    force-aborts timed-out wrappers, while Axum servers have a 90s graceful
-   shutdown with detached drain controllers.
+   shutdown with detached drain controllers. **Status: partly fixed**: #1586
+   made `JobManager` wait concurrently under one deadline, and #2274 made the
+   Axum drain joinable; the 90s HTTP drain is still longer than the 10s
+   deadline (SI-20).
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
+   **Status: fixed** by #2342 and #2370.
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
-   surface.
+   surface. **Status: open** (SI-20).
 7. **Incomplete shutdown observability** — named per-job waiting and timeout
    logs exist, but the supervisor has no concurrent aggregate outcomes or
-   complete component-level drain progress.
+   complete component-level drain progress. **Status: partly fixed**: #1586
+   added concurrent named outcomes, and the migrated components log their
+   drains; listener drain logs come with SI-22.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
+   **Status: fixed in the application**: production servers use the token
+   lifecycle; only the legacy UDP stop path still observes the OS signal
+   until SI-19 removes it.
+9. **Event listeners drop events on shutdown** — found on 2026-10-01, after
+   the original analysis. Every event listener stops as soon as cancellation is
+   requested, even with events still queued, and servers that are still
+   draining keep emitting events after the listeners have stopped. Persisted
+   completed-download counts can be lost. This predates the cancellation-token
+   refactor (#1405 changed the trigger, not the policy). **Status: open**
+   (SI-22).
 
 ## The Contracts Being Implemented
 
 These are not new features — they are standard behaviors that every process
-manager, container runtime, and operator already expects:
+manager, container runtime, and operator already expects. Status as of
+2026-10-02:
 
 ```bash
-# These all SHOULD trigger coordinated shutdown, but currently only stop servers:
-kill <pid>               # SIGTERM reaches server libraries but bypasses main ❌
-docker stop <container>  # SIGTERM reaches server libraries but bypasses main ❌
-systemctl stop <service> # SIGTERM reaches server libraries but bypasses main ❌
-# Kubernetes pod delete    # SIGTERM reaches server libraries but bypasses main ❌
+# These all trigger coordinated shutdown since SI-1 (#2132):
+kill <pid>               # SIGTERM — works ✅
+docker stop <container>  # SIGTERM — works ✅
+systemctl stop <service> # SIGTERM — works ✅
+# Kubernetes pod delete    # SIGTERM — works ✅
 
-# This works but is non-standard:
+# This also works:
 kill -INT <pid>          # SIGINT — works ✅
 
 # This should be the last resort, never needed in normal operation:
 kill -9 <pid>            # SIGKILL — force kill ❌
 ```
 
-Adding a `SIGTERM` handler in `main.rs` is the single most impactful change in
-this EPIC — it fixes all four broken cases above with a few lines of code.
+Before SI-1, `SIGTERM` reached the server libraries but bypassed `main`, so
+only the servers stopped. Adding the `SIGTERM` handler in `main.rs` was the
+single most impactful change in this EPIC. What remains of the contract is
+owned by later sub-issues: ordered listener draining with explicit timeout and
+failure reporting, not an unconditional zero-loss guarantee (SI-22); the shutdown
+budget fits the orchestrator's grace period and the exit code reports the
+outcome (SI-20), and the health check reports not ready during shutdown
+(SI-21).
+
+The signal examples establish that coordinated shutdown starts, not that every
+deployment waits long enough for it to finish. Docker, systemd, and Kubernetes
+can still enforce an external deadline and kill the process; SI-20 owns that
+budget alignment and operator guidance.
 
 ## Background
 
@@ -122,6 +157,8 @@ and identified the remaining jobs that still handle `ctrl_c` directly.
 - Grace period alignment between `JobManager` and server-level shutdown.
 - Review and align the Axum `graceful_shutdown` timeout with the `JobManager` timeout.
 - UDP server shutdown improvements (drain or at least log in-flight work).
+- Event listeners process queued events, and event producers stop before
+  their consumers, subject to drain budgets and explicit failure reporting (SI-22).
 
 ### Out of Scope
 
@@ -163,17 +200,31 @@ deterministic tests, and manual evidence.
 | 9        | #2324 | [Migrate health-check API to token lifecycle](../../closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Done       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
 | 10       | #2342 | [Migrate UDP tracker to token lifecycle](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Done       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
 | 11       | #2370 | [Define UDP active-request shutdown policy](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)  | Done       | Loop-owned request processors; five-second drain with deadline abort and one outcome summary.        |
-| 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Draft      | One supported standalone HTTP consumer migration.                                                    |
+| 12       | #2412 | [Migrate standalone HTTP environment/example](../2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Planned    | One supported standalone HTTP consumer migration.                                                    |
 | 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |
-| 14       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
-| 15       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
-| 16       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
-| 17       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
+| 14       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
+| 15       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
+| 16       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
+| 17       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
+| 18       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
 | —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
 | —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
 | —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
+
+**Why SI-16 and SI-17 come before SI-20 and SI-21**: the HTTP and UDP package
+integration tests run through the standalone test environments, which still use
+the legacy `Halted` shutdown path. Migrating them first makes those tests
+exercise the token-aware path the tracker uses in production, so the later
+budget, exit-code, and readiness changes are covered by an existing safety net.
+SI-20 has no dependency on SI-16 to SI-19; the order is a deliberate safety
+choice, not a technical constraint. SI-22 follows SI-17 so the fix can be
+applied to the application and both migrated test environments at once, and
+precedes SI-20 because it prevents possible loss of persisted data. The
+maintainer prefers safe, incremental steps over doing the highest-impact item
+first, and favors tasks that strengthen the test safety net before the changes
+that rely on it (review of 2026-10-01).
 
 ### Superseded Draft Retention
 

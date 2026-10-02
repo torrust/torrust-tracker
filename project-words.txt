@@ -449,6 +449,7 @@ sendto
 serde
 serialisation
 setgroups
+setsid
 setsockopt
 sharktorrent
 shellcheck

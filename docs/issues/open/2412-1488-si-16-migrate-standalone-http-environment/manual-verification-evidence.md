@@ -40,9 +40,22 @@
 
 ## Example Executable Evidence
 
+### V1: Baseline SIGTERM
+
+- [ ] Run the unmodified example directly, wait for readiness, signal its PID,
+      and record output and exit status before changing the example.
+
+### V2: Announce, Then SIGTERM
+
 - [ ] Run `http_only_public_tracker` and send SIGTERM to the example binary.
 - [ ] Record the signal-boundary output, orderly stop, and final process result.
+
+### V3: SIGINT
+
 - [ ] Repeat with Ctrl+C and record the same lifecycle path.
+
+### V4: Library Boundary and Compatibility
+
 - [ ] Confirm no HTTP library module gains an OS-signal subscription.
 - [ ] Confirm legacy HTTP start/stop callers still compile and behave as before.
 
