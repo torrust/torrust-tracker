@@ -9,14 +9,14 @@ github-issue: 2395
 spec-path: docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-09-30 14:58"
+last-updated-utc: "2026-10-02 13:30"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+    - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - src/console/ci/e2e/runner.rs
     - src/console/ci/e2e/tracker_container.rs
     - src/console/ci/e2e/logs_parser.rs

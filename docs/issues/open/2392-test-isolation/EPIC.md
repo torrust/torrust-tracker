@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-30 14:58"
+last-updated-utc: "2026-10-02 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
     - docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
+    - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
 ---
 
