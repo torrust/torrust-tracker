@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: null
 github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-branch: "2406-scrape-ignores-persisted-torrent-downloads-spec"
+branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: null
-last-updated-utc: "2026-10-02 11:28"
+last-updated-utc: "2026-10-02 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,8 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md
+    - docs/research/20261002-scrape-downloaded-semantics/README.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -89,10 +91,24 @@ The decision must answer:
 
 If the selected behavior adds a material new random-info-hash persistence or memory-growth case, add a note to the spam and abuse resistance EPIC draft. It does not block this bug fix.
 
+### Decision (2026-10-02)
+
+The maintainer questioned whether scrape should report only the active swarm (scalability and privacy by default). Research in [docs/research/20261002-scrape-downloaded-semantics/README.md](../../../research/20261002-scrape-downloaded-semantics/README.md) found that BEP 48 defines `downloaded` as a lifetime counter and frames scrape as having no effect on swarm participation, and that the announce response already exposes the persisted count. The maintainer accepted the principle that scrape returns the statistics an announce would return, without side effects, recorded in the ADR below.
+
+- **Option A selected.** Scrape reads the persisted count only when the swarm is absent from memory and persistence is enabled. It does not insert a swarm.
+- **Option B rejected.** `TorrentAdded` requires a peer announcement that scrape lacks; inserting without it would unbalance the `torrents_total` gauge when peerless cleanup emits `TorrentRemoved`; and with `remove_peerless_torrents = false` scraped entries would never expire. The rough peerless-swarm footprint (about 150-250 bytes per entry) was not the deciding factor.
+- **Events:** scrape emits no swarm events.
+- **Missing persisted row:** scrape returns zero and inserts nothing.
+- **Database errors:** propagate through a new `ScrapeError::Database` variant, mirroring `AnnounceError::Database`.
+- **Lookup placement:** a shared tracker-core helper used by both announce and scrape.
+- **Construction:** `ScrapeHandler` mirrors `AnnounceHandler` with `new_public` and `new_with_persistent_completed_statistics`.
+- **Spam and abuse note:** scraping info-hashes absent from memory costs one database read each when persistence is enabled; add a note to the spam and abuse EPIC draft if it is on `develop`, otherwise record it in the progress log.
+- Any future setting to hide persisted counts from responses must apply to announce and scrape together; it is out of scope.
+
 ## Architectural Decisions
 
-- Related ADRs: none known.
-- ADRs to create: none known. Create an ADR only if the shared-lookup design materially changes handler responsibilities or tracker-core architecture.
+- Related ADRs: [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md).
+- ADRs created: [Scrape reports announce swarm statistics without side effects](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 
 ## Design and Ownership Review
 
@@ -115,7 +131,7 @@ The maintained regression boundary is a `tracker-core` collaboration/integration
 
 This is not currently a unit test: `ScrapeHandler` neither owns a persistence dependency nor exposes a pure persistence lookup seam. The observable contract requires both the persistence repository and the restarted in-memory state. Before implementing the test, assess whether the selected production design creates a focused pure decision helper that merits a unit test; retain the restart integration test regardless because it protects the persistence contract. Use the `write-unit-test` skill for any test-producing increment.
 
-For each added or refactored test, record a prose-first Arrange-Act-Assert review in task evidence. The review must confirm that the visible causal difference is the fresh in-memory repository backed by the same database, the fixture owns only incidental setup, and the production Act plus independently specified persisted count remain visible. If Option B is selected, test that a second scrape does not perform another database read when an observable seam can prove it; otherwise record why no suitable seam exists.
+For each added or refactored test, record a prose-first Arrange-Act-Assert review in task evidence. The review must confirm that the visible causal difference is the fresh in-memory repository backed by the same database, the fixture owns only incidental setup, and the production Act plus independently specified persisted count remain visible. Option A was selected, so also assert that scrape does not insert the torrent into the in-memory repository.
 
 ## Implementation Plan
 
@@ -124,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce M1 on a local tracker | [manual-verification-evidence.md](manual-verification-evidence.md) V1 records the incorrect post-restart HTTP and UDP responses. |
-| T2 | TODO | Choose Option A or B | Record peerless-swarm memory estimate, behavior for missing rows and events, shared-helper decision, and any spam-and-abuse EPIC note. |
+| T2 | DONE | Choose Option A or B | Option A; see Decision (2026-10-02), the research document, and the ADR. |
 | T3 | TODO | Add and prove a red regression test | Use a real SQLite restart boundary; record the failing stable-Rust command and prose-first test review. |
 | T4 | TODO | Implement the production fix | Preserve announce and global-metric behavior; rerun focused tests after the change. |
 | T5 | TODO | Verify green and recheck M1 | Record green test output and like-for-like HTTP and UDP results after a clean restart. |
@@ -148,7 +164,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - [x] Folder-style spec drafted in `docs/issues/drafts/scrape-ignores-persisted-torrent-downloads/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation; implementation begins in a separate follow-up branch after this specification is merged
+- [x] Spec-only PR merged into `develop` before implementation; implementation begins in a separate follow-up branch after this specification is merged
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Initial manual reproduction executed and recorded in issue-local `manual-verification-evidence.md`
@@ -165,6 +181,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 11:09 UTC - Copilot - Drafted the issue specification and independently reproduced the post-restart HTTP and UDP scrape defect - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
 - 2026-10-02 11:28 UTC - Copilot - Maintainer approved the spec; created GitHub issue #2406 and moved the spec to `docs/issues/open/` - <https://github.com/torrust/torrust-tracker/issues/2406>.
 - 2026-10-02 13:30 UTC - Copilot - Repeated V1 from the recorded PR branch commit and verified `torrents.completed = 1` directly in SQLite after the first clean shutdown - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
+- 2026-10-02 17:40 UTC - Copilot - Created implementation branch `2406-scrape-ignores-persisted-torrent-downloads`; researched BEPs and other trackers; maintainer selected Option A under the "scrape = announce statistics without side effects" principle - [research](../../../research/20261002-scrape-downloaded-semantics/README.md), [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
 
 ## Acceptance Criteria
 
@@ -215,7 +232,7 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 ## Risks and Trade-offs
 
-- Caching persisted scrape counts lowers repeated database reads but can grow memory for scraped random info hashes. Estimate the peerless-swarm cost and document the Option A/B decision before implementation.
+- Option A does not cache, so repeated scrapes of a torrent absent from memory each read the database when persistence is enabled. Scrape-abuse protection is out of scope.
 - Adding persistence access to scrape can blur announce and scrape ownership. Prefer the smallest design that makes the shared policy explicit and create an ADR if the responsibility boundary materially changes.
 - A database-backed restart test can be slower than a unit test. Keep it focused, deterministic, and isolated because it is the clearest contract boundary for the defect.
 
@@ -231,4 +248,5 @@ After implementation, compare observed behavior with this specification. Record 
 
 - Related issues: #1264, #1488, #1502, #1510, #1541, #1543
 - Related PRs: #1509
-- Related ADRs: none known
+- Related ADRs: [20261002173716](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md)
+- Research: [scrape `downloaded` semantics](../../../research/20261002-scrape-downloaded-semantics/README.md)
