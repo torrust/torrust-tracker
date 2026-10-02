@@ -3,6 +3,7 @@ name: Container
 # issue: #2107
 # Before changing container validation, review the deferred persistence-transition
 # test and entrypoint refactor plan in #2107.
+# This comment-only change provides a disposable control run for #2402 M1 verification.
 
 # skill-link: update-github-workflow-actions
 
