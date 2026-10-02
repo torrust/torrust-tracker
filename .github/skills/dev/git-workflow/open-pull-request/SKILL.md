@@ -127,6 +127,16 @@ Choose the correct keyword based on what the PR contains:
 > **Rule:** only use `Closes`/`Fixes`/`Resolves` when the PR fully resolves the issue.
 > A spec-only PR does **not** resolve the issue — use `Related to #N` to avoid auto-closing it.
 
+The keyword closes the issue wherever it appears in the body, including a sentence that only
+mentions it (for example "the link will change to `Closes #N` later"): the merge tool copies the
+whole body into the merge commit. Do not write a closing keyword followed by an issue reference
+anywhere in the body of a PR that must not close that issue. Before creating or editing the body,
+scan it:
+
+```bash
+grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^#]{0,20}#[0-9]+' <body-file>
+```
+
 ### Identifying the PR type
 
 Before writing the PR body, check the diff:
