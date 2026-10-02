@@ -9,7 +9,7 @@ github-issue: 2418
 spec-path: docs/issues/open/2418-batch-persisted-download-writes/ISSUE.md
 branch: "2410-process-queued-events-before-listeners-stop-spec"
 related-pr: null
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-02 18:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -173,7 +173,7 @@ and logs in issue-local `manual-verification-evidence.md`.
 ### Workflow Checkpoints
 
 - [x] Draft prepared; implementation blocked on #1488 completion
-- [ ] GitHub issue created with the dependency recorded
+- [x] GitHub issue created with the dependency recorded
 - [ ] Baseline and failure policy reviewed before driver changes
 - [ ] First passing vertical slice reviewed
 - [ ] Implementation and automatic/manual validation complete

@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2410-process-queued-events-before-listeners-stop-spec"
 related-pr: null
-last-updated-utc: "2026-10-02 17:51"
+last-updated-utc: "2026-10-02 18:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -218,7 +218,7 @@ because the response dictionary can collapse them.
 ### Workflow Checkpoints
 
 - [x] Draft reviewed; HTTP mismatch reproduced, final behavior choice still pending
-- [ ] GitHub issue created and parent linked
+- [x] GitHub issue created and parent linked
 - [ ] Manual baseline, reconsidered decision, and ADR recorded
 - [ ] Implementation, automatic checks, and manual recheck completed
 - [ ] Acceptance criteria re-reviewed and independent Task Reviewer report recorded

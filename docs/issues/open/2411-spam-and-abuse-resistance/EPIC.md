@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-02 18:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -104,16 +104,19 @@ Notes:
 ### Workflow Checkpoints
 
 - [x] Epic spec drafted in `docs/issues/drafts/`
-- [ ] Epic spec reviewed and approved by user/maintainer
-- [ ] GitHub epic issue created and issue number added to this spec
-- [ ] #324 linked as a sub-issue
-- [ ] Subissues created and linked in this spec
+- [x] Epic spec reviewed and approved by user/maintainer
+- [x] GitHub epic issue created and issue number added to this spec
+- [x] #324 linked as a sub-issue
+- [x] Subissues created and linked in this spec (#2417; later children are added when approved)
 
 ### Progress Log
 
 - 2026-10-02 10:49 UTC - GitHub Copilot - Drafted the EPIC with the first
   inventory (A1-A6), at the maintainer's request during the #1488 SI-22
   session.
+- 2026-10-02 18:45 UTC - GitHub Copilot - Marked the creation and linking
+  checkpoints done: #2411 exists with #324 and #2417 as GitHub sub-issues
+  (PR #2421 review).
 
 ## Acceptance Criteria
 
