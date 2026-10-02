@@ -20,7 +20,6 @@ workspace = true
 torrust-tracker-http-protocol = { version = "0.1.0", path = "../http-protocol" }
 torrust-info-hash = "=0.2.0"
 torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
-criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
 serde = "1.0.219"
 thiserror = "2"
@@ -36,6 +35,7 @@ torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../sw
 tracing = "0"
 
 [dev-dependencies]
+criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 mockall = "0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 
