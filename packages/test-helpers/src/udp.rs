@@ -5,9 +5,10 @@ use std::num::NonZeroU16;
 use std::time::Duration;
 
 use torrust_tracker_client::udp::client::{UdpClient, UdpTrackerClient};
+use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_udp_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
-    PeerKey, Port, Response, TransactionId,
+    PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };
 
 /// Sends a UDP announce to the given tracker address.
@@ -26,33 +27,110 @@ pub async fn udp_announce(
     let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(5))
         .await
         .expect("failed to create UDP client");
+    let connection_id = connect(&client).await;
 
-    // Connect
-    let connect_transaction_id = TransactionId::new(1);
+    announce(&client, connection_id, info_hash, peer_id, port, AnnounceEvent::Started, 0).await
+}
+
+/// Registers one completed download: the peer announces `started` while
+/// leeching, then `completed`.
+///
+/// # Panics
+///
+/// Panics if the client cannot connect, send, or receive, or if a response is
+/// not an announce response.
+pub async fn udp_complete_download(remote_addr: SocketAddr, info_hash: &[u8; 20], peer_id: &[u8; 20], port: u16) {
+    let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(5))
+        .await
+        .expect("failed to create UDP client");
+    let connection_id = connect(&client).await;
+
+    for (event, bytes_left) in [(AnnounceEvent::Started, 1), (AnnounceEvent::Completed, 0)] {
+        match announce(&client, connection_id, info_hash, peer_id, port, event, bytes_left).await {
+            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => {}
+            other => panic!("expected announce response, got: {other:?}"),
+        }
+    }
+}
+
+/// Sends a UDP scrape for the given info-hashes and returns their swarm
+/// metadata in response order, which BEP 15 defines as request order.
+///
+/// # Panics
+///
+/// Panics if the client cannot connect, send, or receive, or the response is
+/// not a scrape response.
+pub async fn udp_scrape(remote_addr: SocketAddr, info_hashes: &[[u8; 20]]) -> Vec<SwarmMetadata> {
+    let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(5))
+        .await
+        .expect("failed to create UDP client");
+    let connection_id = connect(&client).await;
+
+    let scrape_request = ScrapeRequest {
+        connection_id,
+        transaction_id: TransactionId::new(3),
+        info_hashes: info_hashes
+            .iter()
+            .map(|info_hash| torrust_tracker_udp_protocol::common::InfoHash(*info_hash))
+            .collect(),
+    };
+    client
+        .send(scrape_request.into())
+        .await
+        .expect("failed to send scrape request");
+    match client.receive().await.expect("failed to receive scrape response") {
+        Response::Scrape(response) => response
+            .torrent_stats
+            .iter()
+            .map(|stats| {
+                SwarmMetadata::new(
+                    counter(stats.completed.0.get()),
+                    counter(stats.seeders.0.get()),
+                    counter(stats.leechers.0.get()),
+                )
+            })
+            .collect(),
+        other => panic!("expected scrape response, got: {other:?}"),
+    }
+}
+
+fn counter(value: i32) -> u32 {
+    u32::try_from(value).expect("UDP scrape counters should not be negative")
+}
+
+async fn connect(client: &UdpTrackerClient) -> ConnectionId {
     let connect_request = ConnectRequest {
-        transaction_id: connect_transaction_id,
+        transaction_id: TransactionId::new(1),
     };
     client
         .send(connect_request.into())
         .await
         .expect("failed to send connect request");
-    let connection_id = match client.receive().await.expect("failed to receive connect response") {
-        torrust_tracker_udp_protocol::Response::Connect(resp) => resp.connection_id,
+    match client.receive().await.expect("failed to receive connect response") {
+        Response::Connect(resp) => resp.connection_id,
         other => panic!("expected connect response, got: {other:?}"),
-    };
+    }
+}
 
-    // Announce
-    let announce_transaction_id = TransactionId::new(2);
+async fn announce(
+    client: &UdpTrackerClient,
+    connection_id: ConnectionId,
+    info_hash: &[u8; 20],
+    peer_id: &[u8; 20],
+    port: u16,
+    event: AnnounceEvent,
+    bytes_left: i64,
+) -> Response {
     let announce_request = AnnounceRequest {
         connection_id,
         action_placeholder: AnnounceActionPlaceholder::default(),
-        transaction_id: announce_transaction_id,
+        transaction_id: TransactionId::new(2),
         info_hash: torrust_tracker_udp_protocol::common::InfoHash(*info_hash),
         peer_id: torrust_peer_id::PeerId(*peer_id),
         bytes_downloaded: NumberOfBytes::new(0),
         bytes_uploaded: NumberOfBytes::new(0),
-        bytes_left: NumberOfBytes::new(0),
-        event: AnnounceEvent::Started.into(),
+        bytes_left: NumberOfBytes::new(bytes_left),
+        event: event.into(),
         ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
         key: PeerKey::new(0),
         peers_wanted: NumberOfPeers::new(1),

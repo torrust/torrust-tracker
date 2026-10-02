@@ -51,6 +51,10 @@ name = "lifecycle-signals"
 path = "tests/lifecycle/signals.rs"
 
 [[test]]
+name = "persistence-scrape-after-restart"
+path = "tests/persistence/scrape_after_restart.rs"
+
+[[test]]
 name = "cli-configuration"
 path = "tests/configuration/cli_configuration.rs"
 

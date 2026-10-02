@@ -5302,6 +5302,7 @@ dependencies = [
  "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
  "torrust-tracker-http-protocol",
+ "torrust-tracker-primitives",
  "torrust-tracker-udp-protocol",
  "tracing",
  "tracing-subscriber",
