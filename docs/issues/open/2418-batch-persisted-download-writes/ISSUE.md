@@ -101,8 +101,11 @@ Not applicable: this is a performance improvement.
 
 ## Regression Test Strategy
 
-Not applicable. Tests cover aggregation (unit) and the persisted totals after
-a burst (integration in `packages/tracker-core/tests/`).
+No bug regression test: this is a performance change, not a bug fix. The
+behavior it must preserve is covered by new tests in the plan: unit tests for
+the aggregation function (T2), and integration tests in
+`packages/tracker-core/tests/` checking persisted per-torrent and global totals
+after a burst and after a shutdown flush (T3, T4).
 
 ## Implementation Plan
 
