@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: null
-last-updated-utc: "2026-10-02 17:40"
+last-updated-utc: "2026-10-02 18:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -141,10 +141,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce M1 on a local tracker | [manual-verification-evidence.md](manual-verification-evidence.md) V1 records the incorrect post-restart HTTP and UDP responses. |
 | T2 | DONE | Choose Option A or B | Option A; see Decision (2026-10-02), the research document, and the ADR. |
-| T3 | TODO | Add and prove a red regression test | Use a real SQLite restart boundary; record the failing stable-Rust command and prose-first test review. |
-| T4 | TODO | Implement the production fix | Preserve announce and global-metric behavior; rerun focused tests after the change. |
-| T5 | TODO | Verify green and recheck M1 | Record green test output and like-for-like HTTP and UDP results after a clean restart. |
-| T6 | TODO | Complete acceptance and implementation reviews | Re-review acceptance criteria, record deviations or lessons, and create a retrospective only when warranted. |
+| T3 | DONE | Add and prove a red regression test | [manual-verification-evidence.md](manual-verification-evidence.md) "Selected Tests" and "Red Run". |
+| T4 | DONE | Implement the production fix | Shared `PersistedDownloads` lookup, `ScrapeHandler` paired constructors, `ScrapeError::Database`; announce behavior unchanged. |
+| T5 | DONE | Verify green and recheck M1 | [manual-verification-evidence.md](manual-verification-evidence.md) "Green Run" and V2. |
+| T6 | IN_PROGRESS | Complete acceptance and implementation reviews | Acceptance verification table updated; awaiting maintainer review and pre-push checks. |
 
 ## Commit Points
 
@@ -165,11 +165,11 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation; implementation begins in a separate follow-up branch after this specification is merged
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Initial manual reproduction executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Final manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Final manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
@@ -182,19 +182,21 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 11:28 UTC - Copilot - Maintainer approved the spec; created GitHub issue #2406 and moved the spec to `docs/issues/open/` - <https://github.com/torrust/torrust-tracker/issues/2406>.
 - 2026-10-02 13:30 UTC - Copilot - Repeated V1 from the recorded PR branch commit and verified `torrents.completed = 1` directly in SQLite after the first clean shutdown - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
 - 2026-10-02 17:40 UTC - Copilot - Created implementation branch `2406-scrape-ignores-persisted-torrent-downloads`; researched BEPs and other trackers; maintainer selected Option A under the "scrape = announce statistics without side effects" principle - [research](../../../research/20261002-scrape-downloaded-semantics/README.md), [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+- 2026-10-02 17:50 UTC - Copilot - Added two `tracker-core` integration tests; the persisted-downloads test failed against the unfixed code (`downloaded: 0`, expected `7`) - [manual-verification-evidence.md](manual-verification-evidence.md).
+- 2026-10-02 18:00 UTC - Copilot - Implemented Option A; integration, unit, and affected-package tests pass; V2 shows HTTP `downloaded: 1` and UDP `completed: 1` after a clean restart. Spam and abuse note: the EPIC draft is not on `develop`, so it is recorded here instead: with persistence enabled, each scrape of an info-hash absent from memory costs one database read (as a first announce does), and Option A adds no memory growth.
 
 ## Acceptance Criteria
 
-- [ ] AC1: With persistence enabled, after a restart, an HTTP scrape reports the persisted `downloaded` count for a torrent that has not announced in the new process.
-- [ ] AC2: With persistence enabled, after a restart, a UDP scrape reports the persisted completed count for a torrent that has not announced in the new process.
-- [ ] AC3: With persistence disabled, scrape does not read the database.
-- [ ] AC4: Announce behavior and the global downloads metric remain unchanged.
-- [ ] AC5: A maintained regression test fails against the broken behavior and passes after the fix.
+- [x] AC1: With persistence enabled, after a restart, an HTTP scrape reports the persisted `downloaded` count for a torrent that has not announced in the new process.
+- [x] AC2: With persistence enabled, after a restart, a UDP scrape reports the persisted completed count for a torrent that has not announced in the new process.
+- [x] AC3: With persistence disabled, scrape does not read the database.
+- [x] AC4: Announce behavior and the global downloads metric remain unchanged.
+- [x] AC5: A maintained regression test fails against the broken behavior and passes after the fix.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant tests pass on the stable Rust toolchain.
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior or workflow changes.
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior or workflow changes.
 
 ## Verification Plan
 
@@ -212,7 +214,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Pre-fix persisted scrape after restart | Start a local SQLite-backed tracker with `persistent_torrent_completed_stat = true`; announce `started` and `completed`; stop cleanly; restart with the same database; scrape the torrent over HTTP and UDP before another announce. | Before the fix, both protocol responses report zero. After the fix, both report the persisted count. | DONE (pre-fix) | [manual-verification-evidence.md](manual-verification-evidence.md) V1 |
-| M2 | Post-fix like-for-like recheck | Repeat M1 against the fixed artifact with the same database lifecycle and both scrape protocols. | HTTP `downloaded` and UDP `completed` equal the persisted count before any post-restart announce. | TODO | `manual-verification-evidence.md` V2 |
+| M2 | Post-fix like-for-like recheck | Repeat M1 against the fixed artifact with the same database lifecycle and both scrape protocols. | HTTP `downloaded` and UDP `completed` equal the persisted count before any post-restart announce. | DONE | [manual-verification-evidence.md](manual-verification-evidence.md) V2 |
 
 Manual verification is mandatory even when automatic tests pass. Record the exact commands, actual output, runtime configuration, and relevant logs in the evidence file. A failed scenario must be recorded in the progress log before proceeding.
 
@@ -224,11 +226,11 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | M2 HTTP response and focused regression test |
-| AC2 | TODO | M2 UDP response and focused regression test |
-| AC3 | TODO | Focused test with persistence disabled |
-| AC4 | TODO | Focused announce and metrics tests |
-| AC5 | TODO | Recorded red and green regression-test output |
+| AC1 | DONE | M2 (V2) HTTP `downloaded: 1`; `it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory` |
+| AC2 | DONE | M2 (V2) UDP `completed: 1`; same integration test (both protocols use `ScrapeHandler`) |
+| AC3 | DONE | `it_should_not_scrape_persisted_downloads_when_the_persistent_completed_stat_is_disabled`; `ScrapeHandler::new_public` holds no persistence dependency |
+| AC4 | DONE | Existing announce tests, `container::tests::it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced`, and the global persisted-downloads integration test pass unchanged |
+| AC5 | DONE | Red and green output in [manual-verification-evidence.md](manual-verification-evidence.md) |
 
 ## Risks and Trade-offs
 
@@ -240,7 +242,7 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 After implementation, compare observed behavior with this specification. Record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: Not yet assessed.
+- Retrospective: Not needed. The only material discovery (scrape scope semantics) is captured in the research document and ADR; the test boundary and design held as planned.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` if the selected design, test boundary, or validation findings yield a reusable lesson. Otherwise add a concise progress-log entry explaining why no retrospective was needed.
 - When an independent reviewer receives this folder-style specification, record its result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
