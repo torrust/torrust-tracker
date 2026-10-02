@@ -281,6 +281,102 @@ impl Info {
     }
 }
 
+/// Announce policy for the `BitTorrent` announce cycle.
+///
+/// **Deprecated**: import from [`torrust_tracker_primitives::AnnouncePolicy`] instead.
+/// This re-export is kept for backwards compatibility and will be removed in a
+/// future release. Removal is tracked as a follow-up cleanup subissue of EPIC
+/// [#1669](https://github.com/torrust/torrust-tracker/issues/1669).
+#[deprecated(
+    since = "3.0.0-develop",
+    note = "import `AnnouncePolicy` from `torrust_tracker_primitives` instead; \
+            this re-export will be removed in a future release (see EPIC #1669)"
+)]
+pub use torrust_tracker_primitives::AnnouncePolicy;
+
+/// Errors that can occur when loading the configuration.
+#[derive(Error, Debug)]
+pub enum Error {
+    /// Unable to read an explicitly selected configuration file.
+    #[error("Unable to load explicit configuration file `{path}`: {source}")]
+    UnableToLoadExplicitConfigFile {
+        /// The explicitly selected path that could not be read.
+        path: PathBuf,
+        /// The file-system failure.
+        #[source]
+        source: io::Error,
+    },
+
+    /// Unable to parse or extract an explicitly selected configuration file.
+    #[error("Unable to process explicit configuration file `{path}`: {source}")]
+    UnableToProcessExplicitConfigFile {
+        /// The explicitly selected path whose contents could not be processed.
+        path: PathBuf,
+        /// The preserved configuration diagnostic.
+        #[source]
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
+    /// Unable to load the configuration from the environment variable.
+    /// This error only occurs if there is no configuration file and the
+    /// `TORRUST_TRACKER_CONFIG_TOML` environment variable is not set.
+    #[error("Unable to load from Environmental Variable: {source}")]
+    UnableToLoadFromEnvironmentVariable {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("Unable to load from Config File: {source}")]
+    UnableToLoadFromConfigFile {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
+    /// Unable to load the configuration from the configuration file.
+    #[error("Failed processing the configuration: {source}")]
+    ConfigError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("The error for errors that can never happen.")]
+    Infallible,
+
+    #[error("Unsupported configuration version: {version}")]
+    UnsupportedVersion { version: Version },
+
+    #[error("Missing mandatory configuration option. Option path: {path}")]
+    MissingMandatoryOption { path: String },
+}
+
+impl From<figment::Error> for Error {
+    #[track_caller]
+    fn from(err: figment::Error) -> Self {
+        Self::ConfigError {
+            source: (Arc::new(err) as DynError).into(),
+        }
+    }
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+pub struct TslConfig {
+    /// Path to the SSL certificate file.
+    #[serde(default = "TslConfig::default_ssl_cert_path")]
+    pub ssl_cert_path: Utf8PathBuf,
+
+    /// Path to the SSL key file.
+    #[serde(default = "TslConfig::default_ssl_key_path")]
+    pub ssl_key_path: Utf8PathBuf,
+}
+
+impl TslConfig {
+    fn default_ssl_cert_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
+    }
+
+    fn default_ssl_key_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::io;
@@ -811,101 +907,5 @@ mod tests {
 
             Ok(())
         });
-    }
-}
-
-/// Announce policy for the `BitTorrent` announce cycle.
-///
-/// **Deprecated**: import from [`torrust_tracker_primitives::AnnouncePolicy`] instead.
-/// This re-export is kept for backwards compatibility and will be removed in a
-/// future release. Removal is tracked as a follow-up cleanup subissue of EPIC
-/// [#1669](https://github.com/torrust/torrust-tracker/issues/1669).
-#[deprecated(
-    since = "3.0.0-develop",
-    note = "import `AnnouncePolicy` from `torrust_tracker_primitives` instead; \
-            this re-export will be removed in a future release (see EPIC #1669)"
-)]
-pub use torrust_tracker_primitives::AnnouncePolicy;
-
-/// Errors that can occur when loading the configuration.
-#[derive(Error, Debug)]
-pub enum Error {
-    /// Unable to read an explicitly selected configuration file.
-    #[error("Unable to load explicit configuration file `{path}`: {source}")]
-    UnableToLoadExplicitConfigFile {
-        /// The explicitly selected path that could not be read.
-        path: PathBuf,
-        /// The file-system failure.
-        #[source]
-        source: io::Error,
-    },
-
-    /// Unable to parse or extract an explicitly selected configuration file.
-    #[error("Unable to process explicit configuration file `{path}`: {source}")]
-    UnableToProcessExplicitConfigFile {
-        /// The explicitly selected path whose contents could not be processed.
-        path: PathBuf,
-        /// The preserved configuration diagnostic.
-        #[source]
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-    },
-
-    /// Unable to load the configuration from the environment variable.
-    /// This error only occurs if there is no configuration file and the
-    /// `TORRUST_TRACKER_CONFIG_TOML` environment variable is not set.
-    #[error("Unable to load from Environmental Variable: {source}")]
-    UnableToLoadFromEnvironmentVariable {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("Unable to load from Config File: {source}")]
-    UnableToLoadFromConfigFile {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-    },
-
-    /// Unable to load the configuration from the configuration file.
-    #[error("Failed processing the configuration: {source}")]
-    ConfigError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("The error for errors that can never happen.")]
-    Infallible,
-
-    #[error("Unsupported configuration version: {version}")]
-    UnsupportedVersion { version: Version },
-
-    #[error("Missing mandatory configuration option. Option path: {path}")]
-    MissingMandatoryOption { path: String },
-}
-
-impl From<figment::Error> for Error {
-    #[track_caller]
-    fn from(err: figment::Error) -> Self {
-        Self::ConfigError {
-            source: (Arc::new(err) as DynError).into(),
-        }
-    }
-}
-
-#[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
-pub struct TslConfig {
-    /// Path to the SSL certificate file.
-    #[serde(default = "TslConfig::default_ssl_cert_path")]
-    pub ssl_cert_path: Utf8PathBuf,
-
-    /// Path to the SSL key file.
-    #[serde(default = "TslConfig::default_ssl_key_path")]
-    pub ssl_key_path: Utf8PathBuf,
-}
-
-impl TslConfig {
-    fn default_ssl_cert_path() -> Utf8PathBuf {
-        Utf8PathBuf::new()
-    }
-
-    fn default_ssl_key_path() -> Utf8PathBuf {
-        Utf8PathBuf::new()
     }
 }
