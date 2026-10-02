@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
-branch: "1348-1347-add-tests-udp-core-spec"
+branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-02 11:42"
+last-updated-utc: "2026-10-02 17:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,7 +202,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Create coverage evidence and complete module inventory | `coverage-evidence.md` records clean aggregate/global and unit-only commands and totals, and the inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests change. |
+| T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global and unit-only commands and totals. Its inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests changed. |
 | T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds shared guardrails and the plan index; the first file plan is created. No tests change. |
 | T3 | TODO | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
@@ -314,8 +314,8 @@ lines are the preliminary measurement and are replaced by T1 evidence.
 - [x] Local branch `1348-1347-add-tests-udp-core-spec` created from `develop` for the spec-only PR;
       `1348-1347-add-tests-udp-core` is reserved for implementation.
 - [x] Specification reviewed and approved by user/maintainer.
-- [ ] Spec-only PR #2407 merged into `develop` before implementation.
-- [ ] Complete module inventory and baseline coverage evidence recorded.
+- [x] Spec-only PR #2407 merged into `develop` before implementation.
+- [x] Complete module inventory and baseline coverage evidence recorded.
 - [ ] Shared plan guidance and the first file test plan created; processing order approved.
 - [ ] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
 - [ ] Every ledger row is `DONE` with its own file test plan.
@@ -342,6 +342,12 @@ lines are the preliminary measurement and are replaced by T1 evidence.
   spec-only PR before implementation starts on `1348-1347-add-tests-udp-core`.
 - 2026-10-02 11:42 UTC - GitHub Copilot - Opened spec-only PR #2407
   (<https://github.com/torrust/torrust-tracker/pull/2407>) with `Related to #1348`.
+- 2026-10-02 17:06 UTC - GitHub Copilot - Started implementation on branch
+  `1348-1347-add-tests-udp-core` after PR #2407 merged as `6eba68a1f`. Completed T1 without
+  changing tests or production code: [coverage-evidence.md](coverage-evidence.md) records clean
+  aggregate and unit-only source measurements, the 20-file inventory, property-test candidates,
+  ownership boundaries, and prioritized gaps. The package has 43 unit tests and no package
+  integration test target at baseline. T2/T3 await maintainer review of this inventory and order.
 
 ## Acceptance Criteria
 
