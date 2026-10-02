@@ -79,7 +79,7 @@ The implementer chooses after estimating the memory footprint of a peerless swar
 | Option | Behavior after database read | Pros | Cons |
 | --- | --- | --- | --- |
 | A | Return the persisted value without adding a swarm to memory. | Does not grow memory from scrape. | Repeated scrapes read the database until an announce. |
-| B | Add a peerless swarm with the persisted count, as first announce does. | One database read per torrent per process lifetime. | Memory grows per scraped torrent until peerless-torrent cleanup. |
+| B | Add a peerless swarm with the persisted count, as first announce does. | Avoids further database reads while the cached swarm remains resident. | Memory grows per scraped torrent until peerless-torrent cleanup; a later scrape can read the database again after cleanup. |
 
 The decision must answer:
 
@@ -148,7 +148,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - [x] Folder-style spec drafted in `docs/issues/drafts/scrape-ignores-persisted-torrent-downloads/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional) Spec-only PR merged into `develop` before implementation: not used; the spec ships with the fix in one PR, as planned in the hand-off
+- [ ] Spec-only PR merged into `develop` before implementation; implementation begins in a separate follow-up branch after this specification is merged
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Initial manual reproduction executed and recorded in issue-local `manual-verification-evidence.md`
@@ -164,6 +164,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 
 - 2026-10-02 11:09 UTC - Copilot - Drafted the issue specification and independently reproduced the post-restart HTTP and UDP scrape defect - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
 - 2026-10-02 11:28 UTC - Copilot - Maintainer approved the spec; created GitHub issue #2406 and moved the spec to `docs/issues/open/` - <https://github.com/torrust/torrust-tracker/issues/2406>.
+- 2026-10-02 13:30 UTC - Copilot - Repeated V1 from the recorded PR branch commit and verified `torrents.completed = 1` directly in SQLite after the first clean shutdown - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
 
 ## Acceptance Criteria
 

@@ -1,15 +1,15 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-02 11:09
+last-updated-utc: 2026-10-02 13:30
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-02 11:05 to 11:09
-- Artifact under test: current workspace debug binary before the planned fix
+- Date and time (UTC): 2026-10-02 13:29 to 13:30
+- Artifact under test: debug binary built with `cargo run` from PR branch commit `83a1f6c4fe677fb117ecdfa1ad674a789c2bc981` (`docs(issues): [#2406] add issue specification for scrape ignoring persisted downloads`), before the planned production fix
 - Operating system / environment: Linux, local workspace
 - Runtime: `./target/debug/torrust-tracker` with Rust-built workspace artifacts
 - Database backend: isolated local SQLite database at `.tmp/scrape-persisted-downloads-bug.sqlite3`
@@ -40,7 +40,16 @@ last-updated-utc: 2026-10-02 11:09
    cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:17696 1111111111111111111111111111111111111111
    ```
 
-3. Stopped the tracker with `SIGINT`, which completed its cooperative shutdown and persistence listener.
+3. Stopped the tracker with `SIGINT`, which completed its cooperative shutdown and persistence listener. Queried the SQLite database before restart:
+
+   ```text
+   sqlite3 -header -column .tmp/scrape-persisted-downloads-bug.sqlite3 "SELECT info_hash, completed FROM torrents WHERE info_hash = '1111111111111111111111111111111111111111';"
+
+   info_hash                                 completed
+   ----------------------------------------  ---------
+   1111111111111111111111111111111111111111  1
+   ```
+
 4. Restarted the same binary with the same configuration and SQLite file, without a new announce.
 5. Scraped the original info hash over HTTP and UDP:
 
@@ -64,7 +73,7 @@ Post-restart UDP scrape:
 {"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":0,"completed":0,"leechers":0}]}}
 ```
 
-The tracker startup log confirmed the same SQLite path and `persistent_torrent_completed_stat: true` for both runs. Each process shut down with `Torrust tracker successfully shutdown.`
+The tracker startup log confirmed the same SQLite path and `persistent_torrent_completed_stat: true` for both runs. Each process shut down with `Torrust tracker successfully shutdown.` The direct post-shutdown query confirms that the per-torrent row was persisted before the fresh process returned zero counts.
 
 #### Conclusion
 
