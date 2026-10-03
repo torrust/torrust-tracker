@@ -1,5 +1,6 @@
 # skill-link: run-tracker-locally
 # skill-link: use-rest-api
+# Disposable concurrent-control M1 verification trigger.
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
