@@ -172,7 +172,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | TODO | Add the ADR profile end to end | Canonical type and definition, accepted and rejected fixtures, schema regeneration, the D3 collection check, `docs/templates/ADR.md` emitting v1, and `create-adr` skill guidance. Stop for the vertical-slice checkpoint. |
 | T4 | TODO | Add the remaining approved repository-owned profiles | One coherent change per profile: type, fixtures, schema regeneration, template update, and producing-skill guidance. |
 | T5 | TODO | Add the Agent Skill and agent-profile extension profile | Apply the frozen reference syntax and repository-aware resolution to `metadata.semantic-links` (D5); fix or record findings in existing skills. |
-| T6 | TODO | Protect templates against drift | Remove `docs/templates/` from `EXCLUDED_PREFIXES`, implement template mode (D6) with fixtures for each drift kind, and fix the drift the first run reports in `docs/templates/`. |
+| T6 | TODO | Protect templates against drift | Remove `docs/templates/` from `EXCLUDED_PREFIXES`, implement template mode (D6) with fixtures for each drift kind, change `it_should_skip_excluded_paths_in_every_mode` into template-mode coverage for `docs/templates/` while it keeps asserting the fixtures exclusion, and fix the drift the first run reports in `docs/templates/`. |
 | T7a | TODO | Add the stale-guidance regression test and prove it red | Add the guidance-example test from Regression Test Strategy, run it against the unchanged convention, and record the failing command and output in `manual-verification-evidence.md` section B2. Depends on T6. |
 | T7b | TODO | Fix the stale guidance and derive author guidance from the model | Apply D8: replace the field lists in `docs/skills/semantic-skill-link-convention.md` with references to the generated schema and the crate README, and update the crate README and its migration checklist, `docs/schemas/README.md`, and the producing skills. |
 | T7c | TODO | Prove green and recheck like-for-like | Rerun the T7a test and record it green; repeat the B1 authoring procedure with only the fixed guidance, validate the spec, and record the output in section V7 (M7). |
@@ -228,7 +228,7 @@ Append one line per meaningful update.
 
 - [ ] AC1: `profile-catalog.md` records the baseline, every D4 candidate's disposition, and the maintainer's approval before any profile is implemented.
 - [ ] AC2: Every approved repository-owned profile has a canonical Rust type and strict definition, at least one accepted fixture, and rejected fixtures for an unknown field, a missing required field, a wrong scalar type, and an invalid allowed value where the profile has an enum.
-- [ ] AC3: Issue and EPIC validation outcomes are unchanged: the existing library and command tests pass unmodified, and the `--all` counts for issue and EPIC records match the T8 baseline.
+- [ ] AC3: Issue and EPIC validation outcomes are unchanged: the existing library and command tests that assert issue and EPIC outcomes pass unmodified, and the `--all` counts for issue and EPIC records match the T8 baseline. The one existing test that changes is `it_should_skip_excluded_paths_in_every_mode` in `contrib/dev-tools/checks/frontmatter-validator/tests/cli.rs`: under T6 its `docs/templates/` case becomes template-mode coverage, while it keeps asserting that `contrib/dev-tools/checks/frontmatter-validator/fixtures/` is skipped in every mode.
 - [ ] AC4: `docs/schemas/frontmatter-v1.schema.json` is regenerated from the model, covers every approved profile selectable by `doc-type`, and passes the #2280 drift check; the parity test covers each new profile's required fields.
 - [ ] AC5: A `schema-version: 1` record whose `doc-type` names no approved profile remains permissive.
 - [ ] AC6: Agent Skills and agent profiles receive reference-syntax and resolution diagnostics for `metadata.semantic-links` only; an unknown top-level key in them produces no diagnostic.
@@ -285,7 +285,7 @@ None planned. Fixture and command tests are maintained Rust tests in the crate; 
 | ----- | ---------------------- | -------- |
 | AC1 | TODO | `profile-catalog.md` and its approval log entry |
 | AC2 | TODO | Fixture list and focused test output |
-| AC3 | TODO | Unmodified test run and T8 baseline counts |
+| AC3 | TODO | Issue and EPIC test run without test changes, the reworked exclusion test, and T8 baseline counts |
 | AC4 | TODO | Schema diff and drift-check output |
 | AC5 | TODO | Unit test for an unknown v1 `doc-type` |
 | AC6 | TODO | M5 and extension-profile tests |
