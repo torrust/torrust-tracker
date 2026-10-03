@@ -106,11 +106,11 @@ project. Research looks outward — at how other projects solve similar problems
 Design discussions and their draft conclusions, kept for review by the owner of the affected work.
 A discussion is input, not a decision.
 
-| Location                                                                                                                                                       | Description                                                       |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [discussions/AGENTS.md](discussions/AGENTS.md)                                                                                                                 | Overview of the discussions folder and its conventions            |
-| [discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/](discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/) | Goals and boundaries: knowledge, workflows, and agents (EPIC #2003) |
-| [discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/](discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/) | Semantic linking and a repository knowledge graph (EPIC #2264) |
+| Location                                                                                                                                                                                         | Description                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| [discussions/AGENTS.md](discussions/AGENTS.md)                                                                                                                                                   | Overview of the discussions folder and its conventions              |
+| [discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/](discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/)                         | Goals and boundaries: knowledge, workflows, and agents (EPIC #2003) |
+| [discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/](discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/) | Semantic linking and a repository knowledge graph (EPIC #2264)      |
 
 ## External Source Snapshots
 

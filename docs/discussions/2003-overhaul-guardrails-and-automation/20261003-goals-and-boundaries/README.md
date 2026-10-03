@@ -14,13 +14,13 @@ semantic-links:
 
 # Goals and Boundaries: Knowledge, Workflows, and Agents
 
-| Field        | Value                                                                                          |
-| ------------ | ---------------------------------------------------------------------------------------------- |
-| Status       | Draft for review in the pull request that adds it                                              |
-| Started      | 2026-10-03                                                                                     |
-| Participants | Jose Celano (the four aspects); GitHub Copilot (analysis and draft)                            |
-| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPICs #2264 and #2278                 |
-| Informs      | EPIC #2003 and its child EPICs #2264 and #2278                                                 |
+| Field        | Value                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Status       | Draft for review in the pull request that adds it                                                                      |
+| Started      | 2026-10-03                                                                                                             |
+| Participants | Jose Celano (the four aspects); GitHub Copilot (analysis and draft)                                                    |
+| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPICs #2264 and #2278                                         |
+| Informs      | EPIC #2003 and its child EPICs #2264 and #2278                                                                         |
 | Deep dive    | [Semantic linking and a repository knowledge graph](../20261003-semantic-linking-knowledge-graph/README.md) (aspect 1) |
 
 ## Why This Discussion
