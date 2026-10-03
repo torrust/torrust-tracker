@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-02 18:53
+last-updated-utc: 2026-10-03 07:16
 ---
 
 # Manual Verification Evidence
@@ -258,6 +258,45 @@ test it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart ... F
 ```
 
 Stability: the root restart test passed 20 of 20 consecutive runs, so the asynchronous persistence write completes before the graceful shutdown finishes.
+
+## Test Review Against the Write-Unit-Test Guide (T9)
+
+Code state: `test: [#2406] align new scrape tests with the write-unit-test guide`. Every test added by this PR was reviewed against `.github/skills/dev/testing/write-unit-test/SKILL.md`, `docs/testing.md`, and `tests/AGENTS.md`.
+
+| Test | Smell found | Change |
+| --- | --- | --- |
+| `tracker-core` `it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory` | Multiple assertions: returned value and the absence of a memory insert are two behaviors | Split; new `it_should_not_load_a_scraped_torrent_into_memory` |
+| `scrape_handler` unit tests | Hidden behavioral data: the expected seeder came from `sample_peer()` being a seeder | Arrange uses the state-named `seeder()` fixture |
+| `scrape_handler` one-query test | Multiple field assertions on one result | One semantic assertion against an independently built `ScrapeData` |
+| Driver batch tests | No AAA markers | Added `// Arrange`, `// Act`, `// Assert` |
+| Root `persistence-scrape-after-restart` | One scenario asserted two protocol contracts, against `tests/AGENTS.md` | One runner with one scenario function per protocol |
+| All new tests | No assertion messages | Messages state the scenario and the causal values |
+
+Tests left unchanged after review: the persistence-disabled integration test, the repeated-info-hash and database-failure unit tests (messages added), the `udp-server` error-kind test (matches its module's style), and the `http-core`/`udp-server` protocol tests (messages added). The `http-core` test keeps its client IP and binding setup inline, as its neighboring tests do; it is incidental and does not vary the behavior.
+
+Prose-first AAA comparison (summary; the temporary prose was removed once the code expressed it):
+
+| Test | Arrange (causal state) | Act | Assert (independent result) |
+| --- | --- | --- | --- |
+| Persisted scrape (`tracker-core`) | Persistence on; row of 7 written; nothing in memory | `ScrapeHandler::handle_scrape` | `downloaded = 7`, zero peers |
+| No memory insert | Same state | Same Act | No swarm for the torrent afterwards |
+| Persistence disabled | Persistence off; row of 7 | Same Act | Zeroed metadata |
+| In-memory swarm, no DB read | Swarm with 3 downloads and one seeder; store mock with no expectations | Scrape that torrent | `(3, 1, 0)`; any DB call panics |
+| One batch query | In-memory, persisted (5), unknown | Scrape all three | Whole `ScrapeData`; mock expects one call with the two absent hashes |
+| Repeated info-hash | Persisted (5); scrape lists it twice | Scrape | `(5, 0, 0)`; mock expects one call with one hash |
+| Database failure | Failing store | Scrape | `ScrapeError::Database` |
+| Driver batch tests | Rows for requested, not-requested, missing hashes; 101 rows | `load_torrents_downloads` | Only requested rows; all 101 across chunks |
+| Protocol tests | Persistence on; rows written | HTTP scrape service / UDP `handle_scrape` | `downloaded = 7`; UDP `(7, 0, 9)` in request order |
+| Root restart | UDP completion, graceful restart | HTTP scrape; UDP scrape | `[(1, 0, 0), zeroed]` per protocol |
+
+Failure messages were read cold by disabling the persisted lookup (`load_many(&absent_from_memory[..0])`, unstaged, restored with `git checkout --` after the refactor was committed). Each failing test printed its scenario and expected value, for example:
+
+```text
+assertion `left == right` failed: UDP scrape should report persisted downloads (7, 0, 9) in request order (persisted, unknown, other persisted)
+assertion `left == right` failed: HTTP scrape after restart: completed torrent should report 1 persisted download, unknown torrent zeros
+```
+
+The earlier T8 mutation `load_many(&[])` no longer compiles after the F4 deduplication change (unused variable), so this compiling equivalent replaces it.
 
 ## Failures and Follow-up
 

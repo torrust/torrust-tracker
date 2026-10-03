@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: 2423
-last-updated-utc: "2026-10-02 19:03"
+last-updated-utc: "2026-10-03 07:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -154,6 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Verify green and recheck M1 | [manual-verification-evidence.md](manual-verification-evidence.md) "Green Run" and V2. |
 | T7 | DONE | Batch the persisted scrape lookup | One query per scrape request, chunked at 100 info-hashes; unit test proven against a per-torrent mutation; driver tests pass on SQLite, MySQL, and PostgreSQL. See [manual-verification-evidence.md](manual-verification-evidence.md) "Batch Lookup (T7)". |
 | T8 | DONE | Automate the manual restart scenario | Protocol-level tests in `http-core` and `udp-server`, plus the root binary `persistence-scrape-after-restart` (UDP completion, application restart on the same SQLite database, HTTP and UDP scrape). All proven against a disabled-lookup mutation. See [manual-verification-evidence.md](manual-verification-evidence.md) "Automated Equivalents of the Manual Scenarios (T8)". |
+| T9 | DONE | Review new tests against the `write-unit-test` guide | Smells found and fixed; prose-first AAA comparison and failure-message review recorded in [manual-verification-evidence.md](manual-verification-evidence.md) "Test Review Against the Write-Unit-Test Guide (T9)". |
 | T6 | IN_PROGRESS | Complete acceptance and implementation reviews | Acceptance verification table updated; awaiting maintainer review and pre-push checks. |
 
 ## Commit Points
@@ -197,6 +198,8 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 18:31 UTC - Copilot - Maintainer refined the decision (value per persistence mode, batch lookup without N+1, query limit independent of #2417, no cache). Implemented the batch lookup as a separate `perf(tracker-core)` commit; the spam and abuse note above now reads one batch query per scrape request instead of one read per info-hash.
 - 2026-10-02 18:53 UTC - Copilot - Maintainer asked for automated equivalents of the manual V2/V3 checks. Added protocol-level tests (`http-core`, `udp-server`) and a root restart integration binary; manual verification stays mandatory for the real binary and OS process.
 - 2026-10-02 19:03 UTC - Copilot - Pre-push checks passed; opened implementation PR #2423 - <https://github.com/torrust/torrust-tracker/pull/2423>.
+- 2026-10-02 20:28 UTC - Copilot - Fixed the five Copilot review findings on #2423 in separate commits - [PR review audit](../../../pr-reviews/pr-2423-review/PR-REVIEW.md).
+- 2026-10-03 07:16 UTC - Copilot - Maintainer asked to review every new test against the repository test guides. Fixed the smells found (combined behaviors, hidden seeder state, multiple field assertions, missing AAA markers and assertion messages, one restart scenario covering two protocols) - [manual-verification-evidence.md](manual-verification-evidence.md) T9.
 
 ## Acceptance Criteria
 
