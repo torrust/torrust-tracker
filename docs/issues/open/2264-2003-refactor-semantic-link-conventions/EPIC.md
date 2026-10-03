@@ -5,8 +5,8 @@ status: in-progress
 epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
-epic-owner: null
-last-updated-utc: "2026-09-30 10:22"
+epic-owner: da2ce7
+last-updated-utc: "2026-10-03 10:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -341,6 +341,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2 | Frontmatter | [#2266 - Implement the Rust frontmatter model and initial validator](../../closed/2266-2264-implement-rust-frontmatter-model-and-validator/ISSUE.md) | Implement the canonical universal envelope and strict issue/EPIC profiles, provisional reference union, fixtures, stable diagnostics, and replaceable progressive validator. | DONE |
 | 2.1 | Frontmatter | [#2280 - Generate v1 schema and verify drift](../../closed/2280-2264-generate-v1-schema-and-verify-drift/ISSUE.md) | Generate a Draft 2020-12 projection from the canonical v1 Rust model and verify deterministic offline artifact drift. | DONE |
 | 2.2 | Frontmatter | [#2281 - Add frontmatter validator command and pre-commit rollout](../../closed/2281-2264-frontmatter-validator-command/ISSUE.md) | Read-only command for explicit paths, `--staged`, and whole-tree validation with NDJSON diagnostics, location-dependent severity, repository-aware checks for strict v1 specs, and a pre-commit step. | DONE |
+| 2.3 | Frontmatter | [Support multiple related pull requests in issue frontmatter](../../drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md) (draft) | Decide and implement a representation of zero, one, or many PRs per issue or EPIC spec across the canonical Rust model, generated schema, template, and skills, with a compatibility rule for existing `related-pr` values. Depends on #2266, #2280, and #2281; if the change needs a new `schema-version` rather than an additive v1 change, it also depends on row 4's versioning and migration policy. | TODO |
 | 3 | Frontmatter | Extend strict profiles and author guidance | Add approved profiles for ADRs, skills, agents, evidence records, and other known classes; keep prose and editor/agent discovery derived from the canonical Rust model. Protect `docs/templates/` against drift from the v1 contract, which #2281 excludes from validation. | TODO |
 | 4 | Conventions | Split convention ownership and migration policy | Move mixed normative content to clearly owned convention documents without a repository-wide document migration. | TODO |
 | 5 | Semantic links | Normalize the semantic-link model | Canonical relation and target types, graph semantics, accepted/rejected fixtures, and compatibility rules represented by the shared Rust model. | TODO |
@@ -356,10 +357,7 @@ Drafts proposed for this EPIC but not yet ordered in the table above. Whoever pl
 subissue should triage them: place each one in the table, merge it into a planned row, or reject
 it.
 
-- [Support multiple related pull requests in issue frontmatter](../../drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md):
-  `related-pr` holds only one PR, but an issue can have a spec-only PR, an implementation PR, and
-  PRs after a reopen. Proposed on 2026-09-30 while implementing issue #2370. It changes the
-  frontmatter contract, so it likely belongs in the Frontmatter phase.
+- [Support multiple related pull requests in issue frontmatter](../../drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md): `related-pr` holds only one PR, but an issue can have a spec-only PR, an implementation PR, and PRs after a reopen. Proposed on 2026-09-30 while implementing issue #2370. It changes the frontmatter contract, so it likely belongs in the Frontmatter phase. Triaged on 2026-10-03: placed as row 2.3 rather than merged into row 3, because it changes the existing strict issue and EPIC profiles (today only the issue profile has `related-pr`), while row 3 adds profiles for other document classes and template drift protection; ordering it before row 3 lets the contract change settle before more profiles are built on the same model.
 
 ## Relationship to Issue #2233
 
@@ -626,6 +624,7 @@ For each completed subissue, the default completion policy is:
 - 2026-09-30 10:22 UTC - GitHub Copilot - Added the unordered Draft Subissue Proposals list with
   the maintainer-requested draft for multiple related PRs in issue frontmatter; its order in the
   table is left to the EPIC's planner.
+- 2026-10-03 10:56 UTC - da2ce7 - Triaged the multiple-related-PRs draft into row 2.3 and proposed the row 3 draft specification, which awaits maintainer approval before its GitHub issue is created - `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`
 
 ## Risks and Trade-offs
 
