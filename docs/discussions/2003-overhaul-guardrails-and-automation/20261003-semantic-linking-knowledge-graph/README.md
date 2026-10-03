@@ -11,15 +11,15 @@ semantic-links:
 
 # Semantic Linking and a Repository Knowledge Graph
 
-| Field        | Value                                                                              |
-| ------------ | ---------------------------------------------------------------------------------- |
-| Status       | Draft for review in the pull request that adds it                                  |
-| Started      | 2026-10-03                                                                         |
-| Participants | Jose Celano; an AI agent (initial proposal); GitHub Copilot (review and draft)     |
-| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPIC #2264                |
-| Informs      | EPIC #2264 - Refactor Semantic Link and Frontmatter Conventions                    |
+| Field        | Value                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| Status       | Draft for review in the pull request that adds it                                                |
+| Started      | 2026-10-03                                                                                       |
+| Participants | Jose Celano; an AI agent (initial proposal); GitHub Copilot (review and draft)                   |
+| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPIC #2264                              |
+| Informs      | EPIC #2264 - Refactor Semantic Link and Frontmatter Conventions                                  |
 | Scope        | Aspect 1 (knowledge graph) of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md) |
-| Source       | [`initial-proposal.md`](initial-proposal.md)                                       |
+| Source       | [`initial-proposal.md`](initial-proposal.md)                                                     |
 
 ## Context
 
@@ -50,15 +50,15 @@ resource kind, and a graph database as a late phase.
 
 Most of the proposal is already planned or delivered:
 
-| Proposal (section)                                    | Existing coverage                                                                                                                   |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Strict frontmatter, free-form body (5)                | v1 Rust frontmatter model and `frontmatter-validator` (#2265, #2266, #2280, and #2281 are done)                                     |
+| Proposal (section)                                    | Existing coverage                                                                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Strict frontmatter, free-form body (5)                | v1 Rust frontmatter model and `frontmatter-validator` (#2265, #2266, #2280, and #2281 are done)                                                            |
 | Resource kinds and resolvers (8, 15)                  | #2264 candidate target types: `path`, `markdown-section`, `issue`, `epic`, `adr`, `skill`, `agent`, `review-finding`, `commit`, `rust-module`, `rust-item` |
-| Relation vocabulary (10, 24)                          | #2264 candidate relation types, explicitly open to revision                                                                         |
-| Explicit links only where they matter (11, 12, 19)    | #2264 "Path References Versus Semantic Links"                                                                                       |
-| One reference syntax in comments and other files (28) | #2264 "Marker placement" convention; existing `skill-link:` comment markers                                                         |
-| Theory building after Naur (20)                       | Already a #2264 design input, with the same caution against over-formalizing prose                                                  |
-| Graph tooling and database (28)                       | Tool placement and execution belong to #2003; see the AI-harness workspace draft below                                              |
+| Relation vocabulary (10, 24)                          | #2264 candidate relation types, explicitly open to revision                                                                                                |
+| Explicit links only where they matter (11, 12, 19)    | #2264 "Path References Versus Semantic Links"                                                                                                              |
+| One reference syntax in comments and other files (28) | #2264 "Marker placement" convention; existing `skill-link:` comment markers                                                                                |
+| Theory building after Naur (20)                       | Already a #2264 design input, with the same caution against over-formalizing prose                                                                         |
+| Graph tooling and database (28)                       | Tool placement and execution belong to #2003; see the AI-harness workspace draft below                                                                     |
 
 The proposal is an independent confirmation of the direction of #2264, not a new direction.
 
