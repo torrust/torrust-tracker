@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-28 11:48"
+last-updated-utc: "2026-10-03 17:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,6 +269,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-26 09:46 UTC - GitHub Copilot - PR #2339 merged as `a20e8f3a` and closed #2333; order 4 is `DONE`, its specification is archived under `docs/issues/closed/`, and AC2 is `DONE`, completing Phase 1. Three review findings on PR #2339 were still unprocessed at merge; with maintainer approval (<https://github.com/torrust/torrust-tracker/pull/2339#issuecomment-5844522320>) they are handled in a follow-up PR from `develop`, which also extends `process-pr-review`'s post-merge rule to findings unprocessed at merge. Orders 5 and 6 are unblocked.
 - 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer set the order after Phase 1: order 6 next, then order 5 once PR #2344 merges and #2347 triage settles which audit-contract findings belong to it, because orders 5, #2344, and #2347 all edit `process-pr-review`. Maintainer approved the order 6 specification with the `no-stdout-result` output migration; created and linked subissue #2349 and moved its specification to `docs/issues/open/2349-2278-contract-checker-evidence-boundary/`. Spec-only PR pending. For order 7, #2266 recorded its placement decision (`contrib/dev-tools/checks/`, `cargo run --package`, `no-stdout-result`), so it is unblocked; the maintainer approved three decisions for its specification: keep `no-stdout-result` and record dropping the Python prototype's stdout JSON summary as a deliberate parity deviation; do not wait for #2281, adopting its NDJSON diagnostic catalog if it has merged when order 7 starts; and no pre-commit integration, because the validator needs `gh` and network access.
 - 2026-09-28 10:08 UTC - GitHub Copilot - #2347 triage settled which audit-contract findings belong where. None goes to order 5. `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, and `-f9` go to the new order 11, which the maintainer approved; created and linked subissue #2362. `review-finding:pr-2300-f10` goes to order 8 (T3 approval <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>).
+- 2026-10-03 17:09 UTC - da2ce7 - Drafted the order 5 specification (author self-audit gate) in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`; awaiting maintainer review before GitHub issue creation. Row 5 stays `TODO` with its placeholder path until the issue exists.
 
 ## Acceptance Criteria
 
