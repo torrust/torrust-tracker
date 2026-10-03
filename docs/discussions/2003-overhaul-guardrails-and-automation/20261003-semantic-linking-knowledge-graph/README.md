@@ -180,7 +180,9 @@ so it is a further input for the same model.
    silently. Inside Rust code, rustdoc intra-doc links already resolve symbols and warn when one is
    broken.
 3. **Behavioral tests as the durable specification** (section 4) may be right, but it is a
-   testing-strategy decision. Folding it into #2264 would widen that EPIC's scope.
+   testing-strategy decision. Folding it into #2264 would widen that EPIC's scope. The
+   [specifications-and-rationale discussion](../20261003-specifications-and-rationale/README.md)
+   takes it up under aspect 2.
 
 ## Draft Conclusions
 
