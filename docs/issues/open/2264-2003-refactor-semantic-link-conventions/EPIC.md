@@ -5,7 +5,7 @@ status: in-progress
 epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
-epic-owner: null
+epic-owner: da2ce7
 last-updated-utc: "2026-09-30 10:22"
 semantic-links:
   skill-links:

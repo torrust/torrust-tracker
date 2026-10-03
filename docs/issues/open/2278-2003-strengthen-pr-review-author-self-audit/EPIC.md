@@ -5,7 +5,7 @@ status: planned
 epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
-epic-owner: josecelano
+epic-owner: da2ce7
 last-updated-utc: "2026-09-28 11:48"
 semantic-links:
   skill-links:
