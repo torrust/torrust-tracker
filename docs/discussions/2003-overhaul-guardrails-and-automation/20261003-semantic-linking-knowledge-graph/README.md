@@ -142,7 +142,7 @@ discussion in five ways:
    `cleanup-completed-issues-audit-links-class-unstated` asks whether a past audit's frontmatter
    links are navigational or historical. The conclusions below cite these labels instead of
    raising them again.
-5. **Its most frequent defect class is a relation nobody records.** Two copies of one rule drift
+5. **A recurring defect class is a relation nobody records.** Two copies of one rule drift
    apart across artifacts (`review-findings-rules-copied-across-three-docs`,
    `pre-push-step-list-copied-in-four-guides`, `link-convention-field-lists-drift-from-schema`). An
    edge from each copy to its source would let a check find every copy when the source changes.

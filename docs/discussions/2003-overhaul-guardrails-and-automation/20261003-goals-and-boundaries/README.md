@@ -138,8 +138,8 @@ of an agent step.
 
 - Small pull requests merged optimistically surface textual conflicts quickly. They do not surface
   conflicts of direction between changes to different files: those never conflict at merge and
-  appear later as inconsistency. The most frequent defect class in the friction register, two
-  copies of one rule drifting apart, is that outcome.
+  appear later as inconsistency. A recurring defect class in the friction register, two copies of
+  one rule drifting apart, is that outcome.
 - Collisions have already happened: #2367 and #2368 were opened within two minutes of each other
   for the same close-out, and two branches bumped the same skill to version 1.3 and merged without
   a conflict (`add-new-skill-version-collision-undetected`).
