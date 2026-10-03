@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
-last-updated-utc: "2026-10-03 11:31"
+last-updated-utc: "2026-10-03 11:48"
 ---
 
 # Manual Verification Evidence
@@ -12,9 +12,9 @@ Record real, human-oriented verification of the completed behavior. This is evid
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-03 11:31
-- Artifact under test: the frontmatter guidance in `docs/skills/semantic-skill-link-convention.md` and the `frontmatter-validator` command, both as on `develop` at the base of the spec branch; the draft itself is at the commit "docs(issues): [#2264] name the spec-only branch in the row 3 draft".
-- Operating system / environment: the drafting environment is a Linux sandbox without a Rust toolchain (`cargo` and `rustc` are absent), so it cannot build or run `frontmatter-validator`.
+- Date and time (UTC): 2026-10-03 11:31 (attempt while drafting); 2026-10-03 11:44 (reproduction run)
+- Artifact under test: the frontmatter guidance in `docs/skills/semantic-skill-link-convention.md` and the `frontmatter-validator` command, both as on `develop` at the base of the spec branch; the draft itself is at the commit "docs(issues): [#2264] name the spec-only branch in the row 3 draft" for the attempt, and the reproduction run used the branch head at the commit "docs(pr-reviews): audit PR #2425 Copilot findings", which leaves the guidance and the validator unchanged.
+- Operating system / environment: the attempt while drafting ran in a Linux sandbox without a Rust toolchain (`cargo` and `rustc` are absent), which cannot build or run `frontmatter-validator`. The reproduction run used the loop's compute pod, a Linux container with the workspace toolchain: `cargo 1.101.0-nightly (f3865b2a4 2026-09-29)` and `rustc 1.101.0-nightly (21b707e3f 2026-09-30)`.
 - Prerequisites and setup performed: two disposable specs written from the convention's field list (reproduced verbatim below); no repository file was changed to prepare them.
 
 ## Verification Processes
@@ -23,8 +23,8 @@ Record real, human-oriented verification of the completed behavior. This is evid
 
 - Goal: show that an issue spec written from the "Required metadata fields for issue specs" list in `docs/skills/semantic-skill-link-convention.md` is rejected by the pre-commit frontmatter validator.
 - Initial state: the convention's list omits `schema-version` and `epic`, offers an `open` status, and shows an unquoted `last-updated-utc`; the strict v1 issue profile in `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs` requires `schema-version` and `epic`, rejects `open`, and requires a double-quoted timestamp.
-- Status: `BLOCKED`
-- Reproduction outcome: **Infeasible** in the drafting environment. Attempted: preparing the two disposable specs below and the validator commands. Blocking constraint: no Rust toolchain, so `cargo run --package frontmatter-validator` cannot run here. Strongest substitute evidence: the field-by-field comparison and the dispatch trace below, which predict the result of each run. The commands are recorded so that a run on a machine with the stable Rust toolchain moves this outcome to **Reproduced** in a follow-up commit.
+- Status: `DONE`
+- Reproduction outcome: **Reproduced** on 2026-10-03 11:44 UTC on the loop's compute pod: both runs exited `1` with exactly the predicted record. The attempt while drafting was **Infeasible**, because the drafting environment has no Rust toolchain; its field-by-field comparison and dispatch trace below predicted both records, and the recorded commands then ran unchanged on the pod.
 
 #### Steps Performed
 
@@ -59,10 +59,11 @@ Record real, human-oriented verification of the completed behavior. This is evid
 
 4. Attempted to run them in the drafting environment: not possible, because `cargo` is absent.
 5. Compared the convention's list with the strict issue profile, field by field, and traced how the validator dispatches each spec.
+6. On the loop's compute pod, from the repository root at the branch head, placed both specs at their paths, ran the two commands with the toolchain above, removed the specs, and confirmed that `git status --short` printed nothing.
 
 #### Observed Result
 
-No validator output exists yet. Substitute evidence, from inspecting the files at the base of the spec branch:
+Analysis recorded before the run, from inspecting the files at the base of the spec branch:
 
 | Convention list entry | Strict v1 issue profile | Effect on a spec written from the list |
 | --- | --- | --- |
@@ -84,10 +85,23 @@ second spec: {"kind":"diagnostic","path":"docs/issues/drafts/reproduce-conventio
 
 The library reports only the first structural failure per document, so the second run stops at the missing `epic` before the unquoted timestamp; the comparison table lists the remaining differences.
 
+Observed records, 2026-10-03 11:44 UTC, on the loop's compute pod with the toolchain above:
+
+```text
+$ cargo run --package frontmatter-validator --bin frontmatter-validator -- docs/issues/drafts/reproduce-convention-issue-fields/ISSUE.md
+{"kind":"diagnostic","path":"docs/issues/drafts/reproduce-convention-issue-fields/ISSUE.md","severity":"error","category":"legacy-shape","field_path":null,"message":"Draft and open issue specs must use the v1 frontmatter (`schema-version: 1`); copy the shape from `docs/templates/ISSUE.md` or `docs/templates/EPIC.md` and follow the migration checklist in `contrib/dev-tools/checks/frontmatter-validator/README.md`."}
+exit=1
+$ cargo run --package frontmatter-validator --bin frontmatter-validator -- docs/issues/drafts/reproduce-convention-issue-fields-v1/ISSUE.md
+{"kind":"diagnostic","path":"docs/issues/drafts/reproduce-convention-issue-fields-v1/ISSUE.md","severity":"error","category":"missing-required-field","field_path":"epic","message":"Strict frontmatter requires `epic`."}
+exit=1
+```
+
+The relayed transcript of the run shortened the first record's `message` after `docs/templates/EPIC.md`; the `message` above is the validator's own string at the branch head (`contrib/dev-tools/checks/frontmatter-validator/src/repository.rs`, function `legacy_shape`). Every other byte of both records, and both exit codes, are as relayed.
+
 #### Conclusion
 
-The wrong outcome (a spec written from the convention's guidance is rejected) is predicted by inspection but not yet observed, so the outcome stays **Infeasible** until the commands run with the Rust toolchain. The implementation plan turns this reproduction into the maintained regression test and reruns it like-for-like after the fix.
+Reproduced: a spec written from the convention's list is rejected as `legacy-shape`, and the same spec with `schema-version: 1` added is still rejected for the missing `epic`, exactly as predicted. The implementation plan turns this reproduction into the maintained regression test and reruns it like-for-like after the fix.
 
 ## Failures and Follow-up
 
-- B1 is blocked only by the missing toolchain in the drafting environment. Follow-up: run the recorded commands with the stable Rust toolchain, record the toolchain, records, and exit codes here, and set the outcome to **Reproduced** if they match the prediction.
+- The attempt while drafting was blocked by the missing toolchain; the recorded commands then ran on the loop's compute pod on 2026-10-03 11:44 UTC and reproduced the defect. No follow-up remains open for B1.
