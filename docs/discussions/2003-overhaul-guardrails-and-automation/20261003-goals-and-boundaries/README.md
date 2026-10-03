@@ -4,6 +4,7 @@ semantic-links:
     - "issue #2003"
     - "issue #2264"
     - "issue #2278"
+    - docs/discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md
     - docs/agents/orchestration.md
     - docs/templates/ISSUE.md
     - docs/skills/semantic-skill-link-convention.md
@@ -22,6 +23,7 @@ semantic-links:
 | Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPICs #2264 and #2278                                         |
 | Informs      | EPIC #2003 and its child EPICs #2264 and #2278                                                                         |
 | Deep dive    | [Semantic linking and a repository knowledge graph](../20261003-semantic-linking-knowledge-graph/README.md) (aspect 1) |
+| Deep dive    | [Specifications and rationale](../20261003-specifications-and-rationale/README.md) (aspect 2)                          |
 
 ## Why This Discussion
 
@@ -117,7 +119,8 @@ and claims bound aspects 3 and 4. #2264 and #2278 already cover much of it.
   permanent removal ([`docs/issues/closed/README.md`](../../../issues/closed/README.md)), so
   knowledge that must outlive a specification has to move into a durable artifact (ADR, guide,
   test, or code documentation) before the specification is deleted. No workflow states that step
-  today.
+  today. The [specifications-and-rationale discussion](../20261003-specifications-and-rationale/README.md)
+  covers what that knowledge is and where it should go.
 
 ### Aspect 3: Agent Orchestration
 
@@ -166,6 +169,22 @@ authors use the field for context and provenance, which is aspect 1.
 | Change impact | 2 | A workflow file names the skill that must be reviewed when it changes | Strict: the target must exist, and a change must trigger the review |
 | Workflow relation | 2 | `epic`, `github-issue`, and `related-pr` in a specification | Strict and tied to state: checked against GitHub where GitHub owns the state |
 
+## Specifications and Rationale
+
+Specifications appear in more than one aspect: issue specifications drive the workflows of aspect
+2, and they are link sources and targets in aspect 1. The
+[specifications-and-rationale discussion](../20261003-specifications-and-rationale/README.md)
+examines what outlives them. In brief:
+
+- Issue specifications are spec-first in the established classification of spec-driven
+  development: written for one change, then archived and deleted.
+- High-level acceptance tests, written in Rust to read like prose, are the long-term specification
+  of what the program does. No separate executable specification format is needed.
+- Tests do not record why. External constraints, technical decisions, product decisions, and goals
+  each need a durable home; product decisions and goals have none today.
+- For aspect 1, links that start in issue specifications are expected to go stale. Durable link
+  targets are acceptance tests, the homes of the why, and context files such as `AGENTS.md`.
+
 ## Draft Conclusions
 
 1. **Frame #2003 by the four aspects.** Record each proposal under the aspect it serves and judge
@@ -184,7 +203,12 @@ authors use the field for context and provenance, which is aspect 1.
 7. **Coordination starts on GitHub.** A claim rule and a check for overlapping open pull requests
    come first. Messaging between agents is a later, optional technique and must log to a place the
    maintainers can read.
-8. **Sequence.** Aspect 2 first, then aspect 1. The claim rule and the rewording of the
+8. **Tests specify what; durable records explain why.** Issue specifications are disposable,
+   high-level acceptance tests are the long-term specification, and each kind of why gets a
+   durable home. The
+   [specifications-and-rationale discussion](../20261003-specifications-and-rationale/README.md#draft-conclusions)
+   holds the detailed conclusions.
+9. **Sequence.** Aspect 2 first, then aspect 1. The claim rule and the rewording of the
    orchestration guide are small documentation changes that can happen at any time.
 
 ## Open Questions for the Reviewer
