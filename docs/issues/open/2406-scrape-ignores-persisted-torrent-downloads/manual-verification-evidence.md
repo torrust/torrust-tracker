@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-03 07:16
+last-updated-utc: 2026-10-03 07:35
 ---
 
 # Manual Verification Evidence
@@ -13,8 +13,62 @@ last-updated-utc: 2026-10-03 07:16
 - Operating system / environment: Linux, local workspace
 - Runtime: `./target/debug/torrust-tracker` with Rust-built workspace artifacts
 - Database backend: isolated local SQLite database at `.tmp/scrape-persisted-downloads-bug.sqlite3`
-- Tracker configuration: `.tmp/scrape-persisted-downloads-bug.toml`, with `persistent_torrent_completed_stat = true`, UDP `127.0.0.1:17696`, and HTTP `127.0.0.1:17070`
+- Tracker configuration: `.tmp/scrape-persisted-downloads-bug.toml`, reproduced verbatim in [Tracker Configuration](#tracker-configuration), with `persistent_torrent_completed_stat = true`, UDP `127.0.0.1:17696`, and HTTP `127.0.0.1:17070`
 - Client: `cargo run -q -p torrust-tracker-client --bin tracker_client -- ...` on the stable Rust toolchain
+
+`.tmp/` is git-ignored, so the paths above are local to the verification run. The configuration is preserved below; the SQLite databases and tracker logs were runtime outputs whose relevant content (queries, responses, shutdown lines) is recorded inline in each process.
+
+### Tracker Configuration
+
+V1 used this file as `.tmp/scrape-persisted-downloads-bug.toml`. The access token is a throwaway value for the local run.
+
+```toml
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+inactive_peer_cleanup_interval = 120
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = ".tmp/scrape-persisted-downloads-bug.sqlite3"
+
+[core.tracker_policy]
+max_peer_timeout = 60
+persistent_torrent_completed_stat = true
+remove_peerless_torrents = true
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:17696"
+tracker_usage_statistics = true
+
+[[http_trackers]]
+bind_address = "127.0.0.1:17070"
+tracker_usage_statistics = true
+
+[http_api]
+bind_address = "127.0.0.1:11212"
+
+[http_api.access_tokens]
+admin = "ManualVerificationToken"
+```
+
+V2 and V3 used copies that differ only in `core.database.path`, so each run started from a fresh database:
+
+```sh
+sed 's/scrape-persisted-downloads-bug.sqlite3/scrape-persisted-downloads-fix-v2.sqlite3/' \
+  .tmp/scrape-persisted-downloads-bug.toml > .tmp/scrape-persisted-downloads-fix-v2.toml
+sed 's/scrape-persisted-downloads-bug.sqlite3/scrape-persisted-downloads-fix-v3.sqlite3/' \
+  .tmp/scrape-persisted-downloads-bug.toml > .tmp/scrape-persisted-downloads-fix-v3.toml
+```
 
 ## Verification Processes
 
@@ -84,7 +138,7 @@ Reproduced. The completion count was observable as one before restart, but both 
 - Goal: confirm HTTP and UDP scrape report the persisted count after a clean restart and before any new announce.
 - Date and time (UTC): 2026-10-02 17:57 to 17:58
 - Artifact under test: debug binaries built with `cargo build --bin torrust-tracker` and `cargo build -p torrust-tracker-client --bin tracker_client` from the code state committed as `fix(tracker-core): [#2406] scrape reports persisted downloads for swarms absent from memory`
-- Configuration: `.tmp/scrape-persisted-downloads-fix-v2.toml`, identical to V1 except the fresh SQLite path `.tmp/scrape-persisted-downloads-fix-v2.sqlite3`; `persistent_torrent_completed_stat = true`, `remove_peerless_torrents = true`, UDP `127.0.0.1:17696`, HTTP `127.0.0.1:17070`
+- Configuration: `.tmp/scrape-persisted-downloads-fix-v2.toml`, the [V1 configuration](#tracker-configuration) with only the SQLite path changed to `.tmp/scrape-persisted-downloads-fix-v2.sqlite3`; `persistent_torrent_completed_stat = true`, `remove_peerless_torrents = true`, UDP `127.0.0.1:17696`, HTTP `127.0.0.1:17070`
 - Same info hash `1111111111111111111111111111111111111111` and peer ID `ABCDEFGHIJKLMNOPQRST` as V1
 - Status: `DONE` (fixed)
 
@@ -126,7 +180,7 @@ Fixed. After a clean restart and before any announce, HTTP `downloaded` and UDP 
 - Goal: confirm the batch lookup returns correct per-torrent counts for a mixed scrape request after a restart.
 - Date and time (UTC): 2026-10-02 18:32 to 18:33
 - Artifact under test: debug binaries rebuilt at `perf(tracker-core): [#2406] load persisted scrape downloads in one batch query`
-- Configuration: `.tmp/scrape-persisted-downloads-fix-v3.toml`, identical to V1 except the fresh SQLite path `.tmp/scrape-persisted-downloads-fix-v3.sqlite3`
+- Configuration: `.tmp/scrape-persisted-downloads-fix-v3.toml`, the [V1 configuration](#tracker-configuration) with only the SQLite path changed to `.tmp/scrape-persisted-downloads-fix-v3.sqlite3`
 - Info hashes: `1111…` and `2222…` (each announced `started` then `completed` before the restart), `3333…` (never announced)
 - Status: `DONE` (fixed)
 
