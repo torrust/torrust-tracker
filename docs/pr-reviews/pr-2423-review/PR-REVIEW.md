@@ -59,6 +59,8 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 | F11 | `review-finding:pr-2423-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2423-f12` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2423-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2423-f14` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2423-f15` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -231,6 +233,32 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938699>
 
+### F14 - Audit lacks rows and replies for the human review
+
+- PR number: 2423
+- Source review ID: 5400353319
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172827202>
+- Concern: The audit carried only Copilot's F1-F5 and no human-review thread had a reply, although a commit already acted on F12.
+- Solution: The audit records F6-F15 with detail entries, and every human-review thread has a reply citing its resolution.
+- Current-tree verification: `validate-audit-record.py --pr-number 2423 --base torrust/develop` reports 0 failures; `reply-status` reports a reply on every thread.
+- Resolution reference: `docs(pr-reviews): [#2406] audit Cameron's review on #2423`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172974805>
+
+### F15 - Drafts omit the completion-review conditions
+
+- PR number: 2423
+- Source review ID: 5400353319
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172827203>
+- Concern: Both draft specs kept only "Retrospective: Not yet assessed" instead of the template's retrospective conditions that `create-issue` requires.
+- Solution: Both drafts now carry the template's Implementation Completion Review guidance.
+- Current-tree verification: both drafts' completion-review sections match `docs/templates/ISSUE.md`; `linter markdown` passed.
+- Resolution reference: `docs(issues): add the completion-review conditions to both draft specs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172974889>
+
 ## Processing Log
 
 - 2026-10-02 19:21 UTC - Copilot review 5395864035 submitted five inline findings.
@@ -238,6 +266,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - 2026-10-03 08:52 UTC - Human review 5399817905 (da2ce7, round 1) requested changes with findings F6-F11; the reviewer's IDs continue this audit's numbering and are kept.
 - 2026-10-03 10:17 UTC - Human review 5400241273 (da2ce7, round 2) kept the request and added F12 and F13.
 - 2026-10-03 11:21 UTC - Correction to the 20:28 entry: F2 and F3 were fixed in one commit, so the five findings took four commits. Correction to F2's verification (F9): it now also matches three plain `// adr:` comments; the Rustdoc-only check is `grep -rnE '//[!/].*20261002173716' --include=*.rs packages`. Fixed F6-F13, pushed after the pre-push suite passed, updated the PR body (F11), and replied to each thread.
+- 2026-10-03 11:32 UTC - Human review 5400353319 (da2ce7, round 3, at an earlier head) added F14 and F15. Fixed F15, recorded both, replied to both threads.
 
 ## Completion Rules
 
