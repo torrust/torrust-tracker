@@ -26,9 +26,11 @@ pub struct TrackerPolicy {
     /// That's how many times a torrent has been downloaded completely.
     ///
     /// It also selects the meaning of the `downloaded` count in announce and
-    /// scrape responses: the persisted lifetime count when enabled, and the
-    /// count since the tracker started when disabled. A scrape reports the
-    /// persisted count even for a torrent no peer has announced since a
+    /// scrape responses. When enabled, it is the persisted lifetime count. When
+    /// disabled, it counts completions registered while the torrent's swarm
+    /// has been in memory in this process, and it is lost when peerless
+    /// cleanup (`remove_peerless_torrents`) removes the swarm. A scrape reports
+    /// the persisted count even for a torrent no peer has announced since a
     /// restart.
     // issue: #2406
     #[serde(default = "TrackerPolicy::default_persistent_torrent_completed_stat")]

@@ -60,7 +60,10 @@
 //! - `complete` and `incomplete` count the active peers in memory.
 //! - `downloaded` is BEP 48's "ever completed" counter. The response has one
 //!   field for it, so `persistent_torrent_completed_stat` decides its meaning:
-//!   - disabled: completions registered since the tracker process started;
+//!   - disabled: completions registered while the torrent's swarm has been in
+//!     memory in this process. Peerless-torrent cleanup
+//!     (`remove_peerless_torrents`, enabled by default) removes the swarm and
+//!     its count, so the count restarts from zero afterwards;
 //!   - enabled: the persisted lifetime count. A swarm in memory already holds
 //!     it, because its first announce loaded the persisted value; a torrent
 //!     absent from memory reports the persisted value with zero peers.

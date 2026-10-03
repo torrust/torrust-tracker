@@ -102,7 +102,9 @@ downloading"), and the protocol cannot be extended with a second field. A tracke
 the counter could mean either completions since the process started or the lifetime count. The
 maintainer resolved this on 2026-10-02:
 
-- persistence disabled: return the in-memory count since the tracker started;
+- persistence disabled: return the in-memory count, which covers completions registered while the
+  torrent's swarm has been in memory in this process (peerless cleanup, enabled by default,
+  discards it);
 - persistence enabled: return the persisted lifetime count.
 
 Because the first announce of a torrent loads its persisted count into memory, an active swarm's
