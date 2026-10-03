@@ -1,5 +1,6 @@
 # skill-link: run-tracker-locally
 # skill-link: use-rest-api
+# Disposable M1 workflow-concurrency verification commit A.
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
