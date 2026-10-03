@@ -61,6 +61,8 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 | F13 | `review-finding:pr-2423-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2423-f14` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2423-f15` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2423-f16` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2423-f17` | Human | Minor | metadata | RE_RAISE_OF:F14 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -259,6 +261,32 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172974889>
 
+### F16 - Reviewer finding ID filled without a reassignment
+
+- PR number: 2423
+- Source review ID: 5400576772
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4173005959>
+- Concern: F6-F15 recorded the reviewer's IDs as `Reviewer finding ID`, although that field is for IDs reassigned on collision and none was reassigned.
+- Solution: `Reviewer finding ID` is `N/A` for F6-F15, and a Processing Log entry corrects the 08:52 entry.
+- Current-tree verification: `grep -cE '^- Reviewer finding ID: N/A$'` returns 16 (F1-F16); F17, the only reassigned ID, records F14.
+- Resolution reference: `docs(pr-reviews): [#2406] cite the commit that recorded F14 and clear unreassigned reviewer IDs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174460195>
+
+### F17 - F14 reply claimed rows that were not on the branch
+
+- PR number: 2423
+- Source review ID: 5400576772
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4173005956>
+- Concern: Re-raise of F14. At `cdbd2c5ed` the F14 reply said `FIXED` while the audit had no F14 or F15 rows, no Processing Log entry for review 5400353319, and the cited commit did not contain the fix.
+- Solution: The F14 and F15 rows landed in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`. F14 now cites that commit, the Processing Log has the 10:40 UTC round-3 entry, and a correction records that the reply preceded the rows. The reviewer's ID F14 collides with the original finding, so this re-raise is F17.
+- Current-tree verification: F14 and F15 rows, detail entries, and Resolution references inspected; `validate-audit-record.py --pr-number 2423 --base torrust/develop` reports 0 failures.
+- Resolution reference: `docs(pr-reviews): [#2406] cite the commit that recorded F14 and clear unreassigned reviewer IDs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174460116>
+
 ## Processing Log
 
 - 2026-10-02 19:21 UTC - Copilot review 5395864035 submitted five inline findings.
@@ -270,6 +298,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - 2026-10-03 11:32 UTC - Human review 5400353319 (da2ce7, round 3, at an earlier head) added F14 and F15. Fixed F15, recorded both, replied to both threads.
 - 2026-10-03 11:43 UTC - Human review 5400576772 (da2ce7, round 4, at `cdbd2c5ed`) kept the request, re-raised F14, and added F16.
 - 2026-10-03 12:13 UTC - Correction to the 11:32 entry: the F14 reply said `FIXED` and cited `docs(pr-reviews): [#2406] audit Cameron's review on #2423`, but the F14 and F15 rows landed only in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`, pushed at 12:01 UTC after a pre-push failure caused by a full disk. F14 now cites that commit. Correction to the 08:52 entry: no reviewer ID was reassigned, so `Reviewer finding ID` for F6-F15 is now `N/A` (F16).
+- 2026-10-03 19:06 UTC - Recorded round 4 as F16 and F17 (re-raise of F14, renumbered because the ID is taken). Pushed the fix before replying to either thread.
 
 ## Completion Rules
 
