@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-09-30 10:22"
+last-updated-utc: "2026-10-03 20:43"
 semantic-links:
   skill-links:
     - create-issue
