@@ -109,6 +109,7 @@ A discussion is input, not a decision.
 | Location                                                                                                                                                       | Description                                                       |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | [discussions/AGENTS.md](discussions/AGENTS.md)                                                                                                                 | Overview of the discussions folder and its conventions            |
+| [discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/](discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/) | Semantic linking and a repository knowledge graph (EPIC #2264) |
 
 ## External Source Snapshots
 
