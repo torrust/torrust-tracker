@@ -360,7 +360,9 @@ publish jobs wait for `test`, so nothing is published until the job runs.
 
 1. Check the service and the kernel log (see Check the Runner). If the service is `failed`, run
    `systemctl reset-failed <unit>` and `systemctl start <unit>`, and look for the cause.
-2. Re-run the failed or cancelled jobs: `gh run rerun <run-id> --repo torrust/torrust-tracker --failed`.
+2. Re-run failed jobs only from a pull request's latest run:
+  `gh run rerun <run-id> --repo torrust/torrust-tracker --failed`. Do not re-run an older cancelled
+  run: it shares the pull request's concurrency group and would cancel the latest run.
 3. If the server cannot be recovered quickly, merge a PR that sets `runs-on: ubuntu-latest` for
    the two jobs in "What Runs on the Runner", then restore the expressions once the runner is back.
    An open PR picks up the fallback only after it is rebased onto it: a re-run keeps the workflow

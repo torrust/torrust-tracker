@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1840
 github-issue: 2402
 spec-path: docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
-related-pr: null
-last-updated-utc: "2026-10-01 16:26"
+related-pr: 2419
+last-updated-utc: "2026-10-02 18:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,9 +126,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                              | Notes / Expected Output                                                                                         |
 | --- | ------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Cancel superseded `Container` runs | `concurrency` block in `container.yaml`, with a one-line comment linking this issue.                           |
-| T2  | TODO   | Cancel superseded `Testing` runs   | The same block in `testing.yaml`.                                                                               |
-| T3  | TODO   | Update the operations guide       | `docs/self-hosted-runner.md` "Add Runner Capacity" states that superseded pull-request runs are cancelled.      |
+| T1  | DONE   | Cancel superseded `Container` runs | `concurrency` block in `container.yaml`, with a one-line comment linking this issue.                           |
+| T2  | DONE   | Cancel superseded `Testing` runs   | The same block in `testing.yaml`.                                                                               |
+| T3  | DONE   | Update the operations guide       | `docs/self-hosted-runner.md` "Add Runner Capacity" states that superseded pull-request runs are cancelled.      |
 | T4  | TODO   | Verify on real runs               | M1 and M2 in issue-local `manual-verification-evidence.md`.                                                     |
 | T5  | DONE   | Update EPIC #1840                 | Row 18 for this issue.                                                                                          |
 
@@ -152,8 +152,8 @@ marker; review that skill when changing them.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1840-cancel-superseded-pr-runs/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, pre-commit checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, pre-commit checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
@@ -173,6 +173,16 @@ marker; review that skill when changing them.
   corrected the replay figures (an event-driven replay of the cancellations), made M1 observe both
   workflows and a control pull request, made M2 overlap two `develop` pushes, and replaced issue
   paths in the frontmatter with issue numbers - `docs/pr-reviews/pr-2403-review/PR-REVIEW.md`
+- 2026-10-02 17:17 UTC - josecelano, GitHub Copilot - Added the approved workflow-level
+  concurrency policy to `container.yaml` and `testing.yaml`; `linter all` and the mandatory
+  pre-commit gate passed - `ci(workflows): [#2402] cancel superseded PR runs`
+- 2026-10-02 17:52 UTC - josecelano, GitHub Copilot - Opened implementation PR #2419 and started
+  M1 with disposable draft control PR #2420; its independent `Container` run is active.
+- 2026-10-02 17:54 UTC - josecelano, GitHub Copilot - M1 commit A started with `Container`
+  queued and `Testing` in progress; pushed the superseding commit B next.
+- 2026-10-02 18:21 UTC - josecelano, GitHub Copilot - Addressed Copilot review findings on #2419:
+  the runner runbook now warns against rerunning stale cancelled runs, and the completed `linter all`
+  acceptance criterion is marked done.
 
 ## Acceptance Criteria
 
@@ -181,9 +191,9 @@ marker; review that skill when changing them.
 - [ ] AC2: Push runs, including consecutive pushes to `develop`, are never cancelled or replaced.
 - [ ] AC3: A newer run of one workflow does not cancel the other workflow's run for the same
       commit, and a pull request's runs do not cancel another pull request's runs.
-- [ ] AC4: `docs/self-hosted-runner.md` states that superseded pull-request runs are cancelled.
+- [x] AC4: `docs/self-hosted-runner.md` states that superseded pull-request runs are cancelled.
 - [x] AC5: EPIC #1840 lists this issue.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
@@ -200,7 +210,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                        | Human-oriented command/steps                                                                                                                  | Expected Result                                                                                   | Status | Evidence                                     |
 | --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Superseded pull-request run     | 1. Have a control pull request open with a non-documentation change (another open pull request, or a disposable draft one) whose `Container` run is queued or running. 2. Push commit A to the implementation pull request and wait until `gh run list --branch <branch> --json workflowName,headSha,status` shows both its `Container` and `Testing` runs `queued` or `in_progress`. 3. Push commit B. 4. Inspect each run with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | Commit A's `Container` and `Testing` runs end `cancelled`; commit B's `Container` and `Testing` runs both complete; the control pull request's run is not `cancelled` | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Superseded pull-request run     | 1. Have a control pull request open with a non-documentation change (another open pull request, or a disposable draft one) whose `Container` run is queued or running. 2. Push commit A to the implementation pull request and wait until `gh run list --branch <branch> --json workflowName,headSha,status` shows both its `Container` and `Testing` runs `queued` or `in_progress`. 3. Push commit B. 4. Inspect each run with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | Commit A's `Container` and `Testing` runs end `cancelled`; commit B's `Container` and `Testing` runs both complete; the control pull request's run is not `cancelled` | IN_PROGRESS | `manual-verification-evidence.md` section V1 |
 | M2  | Push runs are kept              | After the merge, push two commits to `develop` so that the second push's runs start while the first push's `Container` and `Testing` runs are still queued or running (two merges in quick succession). If no such overlap occurs, repeat on a fork's `develop` with Actions enabled, where both workflows run on `ubuntu-latest`. Inspect all four runs with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | All four runs complete, none `cancelled`; upstream, both `Container` runs publish (`Publish (Development)` succeeds) | TODO   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
