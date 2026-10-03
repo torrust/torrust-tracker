@@ -72,6 +72,9 @@ For every bug, create or update `manual-verification-evidence.md` from
 - when real-artifact reproduction is infeasible, or no maintained regression test is practical,
   the attempted commands, blocking constraint, and strongest substitute evidence.
 
+Keep every artifact the evidence relies on in the issue folder, never only under a git-ignored
+path such as `.tmp/`; the template's "Preserving Verification Artifacts" section says where.
+
 Identify PR-branch code states by Conventional Commit subject, never by branch commit id: every
 rebase onto `develop` rewrites the ids and orphans the cited objects, so a merged evidence file
 would point at commits no clone of `develop` carries. Commit ids are durable only for commits
