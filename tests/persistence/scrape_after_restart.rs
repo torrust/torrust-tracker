@@ -66,6 +66,7 @@ async fn it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart()
         PEER_PORT,
     )
     .await;
+    wait_for_persisted_downloads(fixture.app_container(), &COMPLETED_TORRENT, 1).await;
     fixture.restart().await;
 
     // Act and Assert
@@ -78,6 +79,38 @@ async fn it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart()
 /// The completed torrent reports its persisted download and the unknown torrent zeros.
 fn expected_after_restart() -> Vec<SwarmMetadata> {
     vec![SwarmMetadata::new(1, 0, 0), SwarmMetadata::zeroed()]
+}
+
+/// Waits until the persistence listener has written the torrent's downloads.
+///
+/// The completion is persisted asynchronously by an event listener that a
+/// restart cancels without draining queued events, so the test must not
+/// restart before the row exists.
+async fn wait_for_persisted_downloads(app_container: &AppContainer, info_hash: &[u8; 20], expected: u32) {
+    let torrent_metrics_store = &app_container
+        .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("persistent completed statistics require persistence")
+        .database_stores
+        .torrent_metrics_store;
+
+    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+        loop {
+            let persisted = torrent_metrics_store
+                .load_all_torrents_downloads()
+                .await
+                .expect("persisted downloads should be readable")
+                .into_iter()
+                .any(|(persisted_info_hash, downloads)| persisted_info_hash.0 == *info_hash && downloads == expected);
+            if persisted {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        }
+    })
+    .await
+    .unwrap_or_else(|_| panic!("timed out waiting for {expected} persisted download(s) before the restart"));
 }
 
 async fn it_should_report_persisted_downloads_over_http_after_a_restart(app_container: &Arc<AppContainer>) {
