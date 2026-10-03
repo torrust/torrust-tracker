@@ -7,9 +7,9 @@ priority: p2
 epic: 2264
 github-issue: null
 spec-path: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
-branch: "{issue-number}-extend-strict-profiles-and-author-guidance"
+branch: "{issue-number}-extend-strict-profiles-and-author-guidance-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 10:56"
+last-updated-utc: "2026-10-03 11:30"
 semantic-links:
   skill-links:
     - create-issue
