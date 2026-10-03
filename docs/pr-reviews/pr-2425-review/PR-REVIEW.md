@@ -9,6 +9,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore unsuffixed -->
+
 # PR #2425 Review Audit
 
 Source: pull-request reviews and inline review threads for <https://github.com/torrust/torrust-tracker/pull/2425>.
@@ -58,7 +60,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4172956388>
 - Concern: "This PR and D1 define a spec-only branch and reserve the unsuffixed name for implementation, but this metadata currently points to that reserved implementation branch. The spec-only workflow also requires the frontmatter branch to use the same `-spec` name (`.github/skills/dev/planning/create-issue/SKILL.md:285-288`)."
-- Solution: Set `branch:` to `"{issue-number}-extend-strict-profiles-and-author-guidance-spec"`. The cited rule holds: the `create-issue` spec-only workflow names the branch with the `-spec` suffix, reserves the unsuffixed name for implementation, and sets the spec's frontmatter `branch:` to the same `-spec` name; D1 already follows that workflow.
+- Solution: Set `branch:` to `"{issue-number}-extend-strict-profiles-and-author-guidance-spec"`. The cited rule holds: the `create-issue` spec-only workflow names the branch with the `-spec` suffix, reserves the name without the suffix for the implementation branch, and sets the spec's frontmatter `branch:` to the same `-spec` name; D1 already follows that workflow.
 - Current-tree verification: `grep -n '^branch:' docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md` prints line 10 with the `-spec` value; `.github/skills/dev/planning/create-issue/SKILL.md:286-288` states the rule.
 - Resolution reference: `docs(issues): [#2264] name the spec-only branch in the row 3 draft`
 - Follow-up PR URL: N/A
@@ -127,6 +129,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - 2026-10-03 11:37 UTC - da2ce7 - Recorded the F3 thread reply for posting: FIXED. The cited rule holds (`.github/skills/dev/debugging/fix-bug/SKILL.md:141-144`). T7 is now three tasks (lines 176-178): T7a adds a maintained crate test that validates every issue and EPIC frontmatter example in the semantic-link convention in the D6 template mode, and records its red run against the unchanged convention in evidence section B2; T7b fixes the convention and the other guidance; and T7c records the green run and repeats the B1 authoring procedure like-for-like (M7). The Bug-Fix Process now follows the six-step required sequence, and Regression Test Strategy, Commit Points (the test and the fix land together after the red run is recorded) and AC9 match it. Resolution: `docs(issues): [#2264] split the row 3 stale-guidance fix into red, fix, and green tasks`.
 - 2026-10-03 11:37 UTC - da2ce7 - Recorded the F4 thread reply for posting: FIXED. Confirmed: `contrib/dev-tools/checks/frontmatter-validator/tests/cli.rs:683-708` (`it_should_skip_excluded_paths_in_every_mode`) asserts that both `docs/templates/` and the crate fixtures are skipped in every mode. AC3 (line 231) now requires only the tests that assert issue and EPIC outcomes to pass unmodified. It names `it_should_skip_excluded_paths_in_every_mode` as the one test that changes: its `docs/templates/` case becomes template-mode coverage, while it keeps asserting the fixtures exclusion. T6 (line 175) records the change. Resolution: `docs(issues): [#2264] exempt the template-exclusion test from row 3 AC3`.
 - 2026-10-03 11:37 UTC - da2ce7 - Recorded the F5 thread reply for posting: FIXED. Confirmed: no tracked file under `docs/refactor-plans/closed/` declares `schema-version`, and a valid closed v1 spec yields no structural finding, so the old M6 could not show a warning. M6 (line 268) now copies a passing record into each historical location that has a strict profile: a closed v1 spec, plus a refactor plan opted into its profile if that profile is approved. It injects one unprefixed unknown field, validates the copy, and expects exactly one `warning` record and exit `0`. Resolution: `docs(issues): [#2264] make the row 3 advisory-severity scenario trigger a finding`.
+- 2026-10-03 11:49 UTC - da2ce7 - Correction: the spelling check rejects `unsuffixed`. Reworded the F1 Solution to "reserves the name without the suffix for the implementation branch", and the F1 reply recorded at 11:37 will be posted with that same reworded clause. The word stays in Copilot's verbatim F1 concern and in the 11:37 log entry, which are not rewritten, so this record carries a file-local `cspell:ignore` for it.
 
 ## Completion Rules
 
