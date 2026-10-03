@@ -50,6 +50,11 @@ no severity bracket; the review overview rates it Medium, recorded as `Minor (in
 for the same change, so it is a re-raise of F6. The review body's verification sections and its
 answers to the discussions' open questions request no change, so they have no rows.
 
+Round 2: review 5402418983 by da2ce7 approved the head `docs(pr-reviews): add the PR #2428 review
+audit` with no new finding, so it adds no row. Copilot review 5402455515 at the same head posted
+two findings that carry their own `[Minor][F7]` and `[Minor][F8]` brackets; those IDs are also the
+next free ordinals, so they are kept.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2428-f1` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -58,6 +63,8 @@ answers to the discussions' open questions request no change, so they have no ro
 | F4 | `review-finding:pr-2428-f4` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2428-f5` | Human | Nit | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2428-f6` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2428-f7` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2428-f8` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -168,6 +175,38 @@ answers to the discussions' open questions request no change, so they have no ro
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174468146>
 
+### F7 - EPIC #2264 kept its earlier update timestamp
+
+- PR number: 2428
+- Source review ID: 5402455515
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174590133>
+- Concern: The owner-metadata commit changed `epic-owner` in the #2264 EPIC spec but left
+  `last-updated-utc` at 2026-09-30, which the repository treats as stale metadata.
+- Solution: Set `last-updated-utc` to `2026-10-03 20:43`, the time of the fix commit, which
+  modifies the file again.
+- Current-tree verification: `git grep -n "last-updated-utc" HEAD -- docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`
+  matches line 9 with `"2026-10-03 20:43"`.
+- Resolution reference: `docs(issues): refresh EPIC #2264 and #2278 update timestamps`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174782367>
+
+### F8 - EPIC #2278 kept its earlier update timestamp
+
+- PR number: 2428
+- Source review ID: 5402455515
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174590151>
+- Concern: The owner-metadata commit changed `epic-owner` in the #2278 EPIC spec but left
+  `last-updated-utc` at 2026-09-28, which the repository treats as stale metadata.
+- Solution: Set `last-updated-utc` to `2026-10-03 20:43`, the time of the fix commit, which
+  modifies the file again.
+- Current-tree verification: `git grep -n "last-updated-utc" HEAD -- docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md`
+  matches line 9 with `"2026-10-03 20:43"`.
+- Resolution reference: `docs(issues): refresh EPIC #2264 and #2278 update timestamps`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174782481>
+
 ## Processing Log
 
 - 2026-10-03 12:01 UTC - Copilot review 5400634431 posted one finding (F6).
@@ -183,6 +222,17 @@ answers to the discussions' open questions request no change, so they have no ro
 - 2026-10-03 19:20 UTC - `reply-status` reported every unresolved thread replied; resolved all six
   threads.
 - 2026-10-03 19:21 UTC - Started this audit.
+- 2026-10-03 19:37 UTC - Review 5402418983 by da2ce7 (round 2) approved the head
+  `docs(pr-reviews): add the PR #2428 review audit` with no new finding; ACK comment posted at the
+  same time.
+- 2026-10-03 19:50 UTC - Copilot review 5402455515 posted two findings (F7, F8).
+- 2026-10-03 20:40 UTC - Pushed the specifications-and-rationale discussion without first checking
+  for new reviews. GitHub dismissed the approval of review 5402418983 on that push, and F7 and F8
+  had not been read yet.
+- 2026-10-03 20:44 UTC - Committed the F7 and F8 fix, checked for reviews newer than 19:50 UTC
+  (none), then pushed it.
+- 2026-10-03 20:46 UTC - Replied on the F7 and F8 threads.
+- 2026-10-03 20:47 UTC - `reply-status` reported both unresolved threads replied; resolved them.
 
 ## Completion Rules
 
