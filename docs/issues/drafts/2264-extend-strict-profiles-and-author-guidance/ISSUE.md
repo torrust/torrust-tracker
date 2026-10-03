@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
 branch: "{issue-number}-extend-strict-profiles-and-author-guidance-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 11:31"
+last-updated-utc: "2026-10-03 11:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -148,16 +148,18 @@ The command already runs short synchronous `git` processes and needs no new chil
 
 ## Bug-Fix Process
 
-The issue is a feature, but T7 corrects stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+The issue is a feature, but T7a-T7c correct stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 1. the hypothesis: the duplicated lists predate the v1 contract and were never updated with it;
 2. the reproduction, attempted while drafting and before maintainer review: two disposable specs written from the convention's issue field list, one exactly as listed and one with `schema-version: 1` added. The outcome is **Infeasible** in the drafting environment, which has no Rust toolchain. The substitute evidence, a field-by-field comparison with `profile.rs` and a trace of the validator's dispatch, predicts a `legacy-shape` error for the first spec and a `missing-required-field` error for `epic` for the second. `manual-verification-evidence.md` section B1 records the specs, the commands, and the comparison; running the commands with the Rust toolchain moves the outcome to **Reproduced**;
-3. the fix: replace the lists with references to the generated schema and the crate README (D8);
-4. the like-for-like recheck: the same spec written from the referenced sources passes.
+3. the regression-test boundary: the guidance-example test described in Regression Test Strategy;
+4. the red run (T7a): the test is added and run against the unchanged convention, and its failing output is recorded in `manual-verification-evidence.md` section B2 before the convention changes;
+5. the fix (T7b): replace the lists with references to the generated schema and the crate README (D8);
+6. the green run and like-for-like recheck (T7c): the test passes, and the B1 authoring procedure repeated with only the fixed guidance produces a spec that the validator accepts (M7, section V7).
 
 ## Regression Test Strategy
 
-Prose cannot carry a unit test, so the regression guard is structural: after T7 no hand-maintained field list remains to drift, and the template mode (D6) fails when a template, the other authoring source, drifts from a profile. A focused template-mode unit test covers an enumerated placeholder that lists `open` for `status` and must be rejected.
+The defect lives in guidance text, not in the validator, so a unit test at the validator's decision seam cannot fail for it: the validator already rejects a spec written from the stale list. The smallest deterministic maintained test that can fail for this defect reads the guidance itself. T7a adds a test in the `frontmatter-validator` crate that extracts every issue and EPIC frontmatter example from `docs/skills/semantic-skill-link-convention.md` and validates each in the template mode of D6, requiring `schema-version: 1`. Against the unchanged convention it fails on both the issue and the EPIC example, each of which lacks `schema-version` and `epic`, offers an `open` status, and shows an unquoted timestamp placeholder; T7a records that red run in section B2 before T7b changes the convention. After T7b removes the duplicated lists the test passes, and it fails again whenever a drifting issue or EPIC example is added to the convention. Because it uses the template mode, T7a follows T6. A focused template-mode unit test also covers an enumerated placeholder that lists `open` for `status` and must be rejected.
 
 ## Implementation Plan
 
@@ -171,7 +173,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | TODO | Add the remaining approved repository-owned profiles | One coherent change per profile: type, fixtures, schema regeneration, template update, and producing-skill guidance. |
 | T5 | TODO | Add the Agent Skill and agent-profile extension profile | Apply the frozen reference syntax and repository-aware resolution to `metadata.semantic-links` (D5); fix or record findings in existing skills. |
 | T6 | TODO | Protect templates against drift | Remove `docs/templates/` from `EXCLUDED_PREFIXES`, implement template mode (D6) with fixtures for each drift kind, and fix the drift the first run reports in `docs/templates/`. |
-| T7 | TODO | Derive author guidance from the model | Apply D8 to `docs/skills/semantic-skill-link-convention.md`, the crate README and its migration checklist, `docs/schemas/README.md`, and the producing skills, following the Bug-Fix Process for the stale field lists. |
+| T7a | TODO | Add the stale-guidance regression test and prove it red | Add the guidance-example test from Regression Test Strategy, run it against the unchanged convention, and record the failing command and output in `manual-verification-evidence.md` section B2. Depends on T6. |
+| T7b | TODO | Fix the stale guidance and derive author guidance from the model | Apply D8: replace the field lists in `docs/skills/semantic-skill-link-convention.md` with references to the generated schema and the crate README, and update the crate README and its migration checklist, `docs/schemas/README.md`, and the producing skills. |
+| T7c | TODO | Prove green and recheck like-for-like | Rerun the T7a test and record it green; repeat the B1 authoring procedure with only the fixed guidance, validate the spec, and record the output in section V7 (M7). |
 | T8 | TODO | Run the whole-tree baseline and triage | Run `--all` before and after the change; record error and warning counts per class; fix genuine new errors in draft and open records; rewrite no historical record. |
 | T9 | TODO | Prove failures and review | Fixture and mutation evidence, manual scenarios M1-M7, post-implementation acceptance review, independent Task Reviewer report, and the implementation completion review. |
 
@@ -185,7 +189,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | Each remaining approved profile | One commit per profile after its focused tests and schema regeneration. |
 | T5 | Extension profile and any existing-skill fixes | Separate commits for the validator change and for each coherent skill fix. |
 | T6 | Template mode and exclusion removal; separately, template fixes | Commit the validator change after its tests, then each template fix after the validator passes on it. |
-| T7 | Guidance changes | One `docs` commit per guidance document group after `linter all`. |
+| T7a-T7b | Guidance-example regression test, its recorded red run, and the convention fix | One commit after the red run is recorded in section B2 and the test passes, so no commit carries a failing test. |
+| T7b | Remaining D8 guidance changes (crate README, `docs/schemas/README.md`, producing skills) | One `docs` commit per guidance document group after `linter all`. |
+| T7c | Green run and like-for-like recheck evidence | Commit with the section V7 evidence update. |
 | T8-T9 | Baseline record, evidence, and review records | Commit after the full quality gate and review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For every test-producing increment, use the `write-unit-test` skill and record the mandatory prose-first Arrange-Act-Assert design review before maintainer review and commit, confirming that each test exposes the one causal initial-state difference, such as the profile, the location, or the single offending field or placeholder. Commit through the `commit-changes` skill with Conventional Commits, the `frontmatter` scope for validator changes, and the issue reference.
@@ -228,7 +234,7 @@ Append one line per meaningful update.
 - [ ] AC6: Agent Skills and agent profiles receive reference-syntax and resolution diagnostics for `metadata.semantic-links` only; an unknown top-level key in them produces no diagnostic.
 - [ ] AC7: `docs/templates/` is validated in template mode in every command mode; a drifted template (missing field, unknown field, enumerated placeholder that differs from the profile's values, or unquoted placeholder for a quoted field) fails, and every tracked template passes.
 - [ ] AC8: Each profiled class's template emits `schema-version: 1` and its `doc-type`, and its producing skill names the profile and the validation command.
-- [ ] AC9: No hand-maintained frontmatter field list remains in `docs/skills/semantic-skill-link-convention.md`; author guidance points to the generated schema and the crate README.
+- [ ] AC9: The guidance-example regression test failed against the unchanged convention with the output recorded in section B2, and passes after the fix; no hand-maintained frontmatter field list remains in `docs/skills/semantic-skill-link-convention.md`, whose guidance points to the generated schema and the crate README; and the like-for-like recheck (M7) passes.
 - [ ] AC10: No historical record is rewritten to remove a diagnostic, and the T8 baseline records the before and after counts per class.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -285,7 +291,7 @@ None planned. Fixture and command tests are maintained Rust tests in the crate; 
 | AC6 | TODO | M5 and extension-profile tests |
 | AC7 | TODO | M4 and template-mode tests |
 | AC8 | TODO | Template and skill diffs |
-| AC9 | TODO | Convention diff and M7 |
+| AC9 | TODO | Section B2 red output, the green test run, the convention diff, and M7 (section V7) |
 | AC10 | TODO | T8 baseline record |
 
 ## Risks and Trade-offs
