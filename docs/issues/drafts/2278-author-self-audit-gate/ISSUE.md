@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md
 branch: "{issue-number}-2278-author-self-audit-gate"
 related-pr: null
-last-updated-utc: "2026-10-03 17:38"
+last-updated-utc: "2026-10-03 17:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The EPIC (`docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPI
 
 The PR #2270 retrospective counts about a third of its findings as re-raises, traces them to bookkeeping from memory rather than from the bytes, and asks for these rules (`docs/pr-reviews/pr-2270-review/review-retrospective.md`, lines 56-57, 115, and 166-173). The PR #2271 retrospective asks for a recorded self-audit pass before each re-review request and judges it would alone have prevented rounds four through seven (`docs/pr-reviews/pr-2271-review/review-retrospective.md`, lines 119-122, 130-131, and 145-146).
 
-At `develop`, the skill (`.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`) runs the validator before every audit commit, reply, and resolution (lines 205-207) and asks for progressive updates (lines 101-102), but has no rule for a validator that cannot run, for what to re-derive and when, or for recording a self-audit, and no checklist item for progressive updates (lines 280-297). The template (`docs/templates/PR-REVIEW-TEMPLATE.md`) has no evidence-first or stamp-source rule (lines 95 and 110-111).
+At `develop`, the skill (`.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`) runs the validator before every audit commit, reply, and resolution (lines 205-207) and asks for progressive updates (lines 101-102), but has no rule for a validator that cannot run, for what to re-derive and when, or for recording a self-audit, and no progressive-update checklist item (lines 280-297). The template (`docs/templates/PR-REVIEW-TEMPLATE.md`) has no evidence-first or stamp-source rule (lines 95 and 110-111).
 
 That run cannot pass before the first reply: the validator (`.github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py`) requires one posted reply on each discussion-anchored row's own thread (lines 147-155), and the skill blocks on any failure (skill lines 229-230). Hence a pre-posting pass and a full pass.
 
@@ -57,7 +57,7 @@ Matrix line numbers refer to `docs/issues/open/2278-2003-strengthen-pr-review-au
 | Matrix | Rule this issue adds | Where |
 | ------ | -------------------- | ----- |
 | 35 | Before each reply, a pre-posting pass runs every check that needs no posted reply (the validator with `--audit-file` on the uncommitted record, or by hand with recorded commands), naming the pending reply-URL check as its only exception. Before the audit commit, each resolution, and completion, a full pass has none. No helper is a prerequisite. | Skill gate; validator section |
-| 39 | On a finding's second re-raise, stop editing and re-derive every field of every affected row from source before the next reply. | Skill gate |
+| 39 | On a finding's second re-raise, stop and re-derive every field of every affected row from source before the next reply. | Skill gate |
 | 40 | A corrected value is re-derived from a named Git or GitHub command recorded in `Current-tree verification`. | Skill gate; template |
 | 41 | After context compaction, pass the gate over every row before writing anything. | Skill gate |
 | 42 | For each row the event touches: re-run its verification; re-raise targets are findings of this audit; row/detail parity and order hold. | Skill gate |
@@ -70,7 +70,7 @@ Matrix line numbers refer to `docs/issues/open/2278-2003-strengthen-pr-review-au
 | 119 | F55, manual part: the audit record exists at its canonical path before the first reply and is committed, with each posted reply URL, before the first resolution. | Skill gate; checklist |
 
 - The gate is a new skill section with four gated events: the pre-posting pass gates each reply; the full pass gates the audit commit, thread resolution, and re-review request; the record is committed after its replies. New sentences in steps 5, 7, and 9 and the validator section point to it.
-- Each gate pass is one append-only Processing Log entry naming the gated event, the rows checked, and the commands run with their outcome. No per-finding field is added.
+- Each gate pass is one append-only Processing Log entry naming the event, rows checked, and commands run with their outcome; no field is added.
 - Template guidance outside the copied sections: rows 40, 44, and 46 beside `## Finding Details`; the gate entry and row 47 beside `## Processing Log`.
 - Bump the skill version, record verification, and update the EPIC row.
 
@@ -78,7 +78,7 @@ Matrix line numbers refer to `docs/issues/open/2278-2003-strengthen-pr-review-au
 
 - Automating gate checks or changing the validator (orders 7 to 9).
 - Changing audit fields or template placeholders.
-- Rewriting the sentences #2362 changes (see Dependencies and Open Questions).
+- Rewriting the sentences #2362 changes (see Dependencies).
 - A CI check that an audit exists (F55 CI part); `agent-review-report-contract` changes (#2349).
 - Proportionate evidence (order 10), `review-pr`, and historical audit records.
 
@@ -93,7 +93,7 @@ Not applicable. Documentation rules only; no process, I/O, readiness, cleanup, o
 
 ## Bug-Fix Process
 
-Not applicable. The task adds a missing workflow control, not a fix for broken runtime behavior.
+Not applicable. A missing workflow control, not broken runtime behavior.
 
 ## Regression Test Strategy
 
@@ -172,7 +172,7 @@ Append one line per meaningful update.
 - [ ] AC6: The skill and the template's Processing Log guidance state the one-entry-per-gate-pass record; the roster and template skeleton are unchanged.
 - [ ] AC7: The Completion Checklist has the F65 item and the F55 manual item.
 - [ ] AC8: In one round processed under the revised skill, a pre-posting entry precedes each reply, the record is committed after the replies with each reply URL on its own thread, and a full-pass entry precedes the audit commit, each resolution, and the re-review request.
-- [ ] AC9: `cargo run --package agent-review-report-contract` passes, and `validate-audit-record.py` passes for the three most recent audits and this issue's implementation PR.
+- [ ] AC9: `cargo run --package agent-review-report-contract` passes; `validate-audit-record.py` passes for this issue's PR and, each with its recorded `--base`, the three most recent audits; no historical record is edited.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -188,7 +188,7 @@ Define verification before implementation starts and execute it before closing t
 - `linter all`
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`
 - `cargo run --package agent-review-report-contract` (stable Rust toolchain)
-- `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number <N>` for the three most recent audits
+- `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number <N> --base <B>` for the three most recent audits, `<B>` being each audit PR's recorded merge base (`git merge-base <M>^1 <M>^2` for its merge commit `<M>`); the `develop` default excludes merged fixes (validator lines 65 and 104-108), and no record is edited to fit it.
 - Pre-push checks before opening the implementation PR
 
 ### Manual Verification Scenarios
@@ -198,7 +198,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | One review round under the gate | Process the first review round of this issue's implementation PR with the revised skill; record thread data and reply `created_at` values. | Each reply follows a pre-posting entry excepting only its pending reply URL; the audit commit follows the replies with 0 validator failures; no resolution precedes it. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Gate without the validator | During M1, pass the pre-posting gate once for one row by hand. | The entry lists the manual commands and their outcome; the row matches the current tree. | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Gate without the validator | During M1, pass the pre-posting gate once for one row by hand. | The entry lists the manual commands and outcome; the row matches the tree. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | One rule per matrix row | Find each Scope table rule where the table places it with a recorded `rg -U` pattern. | One rule per row; no copied template section changed. | TODO | `manual-verification-evidence.md` section V3 |
 
 Record the scenarios from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`. Without a review round on the implementation PR, M1 and M2 stay `BLOCKED`, never simulated. No disposable verification script is planned.
@@ -222,7 +222,7 @@ Record the scenarios from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`. With
 - Gate cost on small reviews. Mitigation: a pass checks only the rows its event touches.
 - A gate entry recording intent as fact. Mitigation: it names the commands and their outcome; M1 checks each stamp against its event.
 - The pre-posting exception hiding a reply defect. Mitigation: it is named, and the full pass checks every posted URL before any resolution.
-- Concurrent edits by #2362 and #2349. Mitigation: insert-only sentences, one commit per task, rebased before the PR.
+- Concurrent edits by #2362 and #2349. Mitigation: insert-only sentences, rebased.
 
 ## Dependencies and Open Questions
 
@@ -238,7 +238,7 @@ Record the scenarios from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`. With
 After implementation, compare the result with this specification. Record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
 - Retrospective: `Not yet assessed`
-- Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` here if M1 shows a check that cannot be done by hand or an unanticipated cost.
+- Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` if M1 shows a check that cannot be done by hand.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no material discovery.
 - When an independent reviewer receives this folder-style specification, it records its result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
