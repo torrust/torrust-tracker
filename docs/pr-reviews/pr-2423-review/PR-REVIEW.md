@@ -65,6 +65,8 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 | F15 | `review-finding:pr-2423-f15` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2423-f16` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | `review-finding:pr-2423-f17` | Human | Minor | metadata | RE_RAISE_OF:F14 | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2423-f18` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2423-f19` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -289,6 +291,32 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174460116>
 
+### F18 - Record lines identify branch heads by commit id
+
+- PR number: 2423
+- Source review ID: 5402386212
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174518634>
+- Concern: The 10:40 and 11:43 log entries and the F17 Concern named review heads by commit id, which a rebase rewrites.
+- Solution: The F17 Concern names the round-4 head by subject, and an appended log correction names the round-3 and round-4 heads by subject; the two log entries are left as written.
+- Current-tree verification: the only commit ids left in the record are in the 10:40 and 11:43 entries, and the 19:47 correction covers both.
+- Resolution reference: `docs(pr-reviews): [#2406] name review heads by subject and scope the spelling exception to the audit`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174716719>
+
+### F19 - Ordinary word added to the project dictionary
+
+- PR number: 2423
+- Source review ID: 5402386212
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174518641>
+- Concern: `unreassigned` is ordinary English, not a technical term, so it does not belong in `project-words.txt`.
+- Solution: The word is removed from `project-words.txt`, and this record carries a file-local `cspell:ignore` directive, as the PR #2344 audit does.
+- Current-tree verification: `grep -c unreassigned project-words.txt` returns 0; `linter cspell` passed.
+- Resolution reference: `docs(pr-reviews): [#2406] name review heads by subject and scope the spelling exception to the audit`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4174716823>
+
 ## Processing Log
 
 - 2026-10-02 19:21 UTC - Copilot review 5395864035 submitted five inline findings.
@@ -302,6 +330,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - 2026-10-03 12:13 UTC - Correction to the 11:32 entry: the F14 reply said `FIXED` and cited `docs(pr-reviews): [#2406] audit Cameron's review on #2423`, but the F14 and F15 rows landed only in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`, pushed at 12:01 UTC after a pre-push failure caused by a full disk. F14 now cites that commit. Correction to the 08:52 entry: no reviewer ID was reassigned, so `Reviewer finding ID` for F6-F15 is now `N/A` (F16).
 - 2026-10-03 19:06 UTC - Recorded round 4 as F16 and F17 (re-raise of F14, renumbered because the ID is taken). Pushed the fix before replying to either thread.
 - 2026-10-03 19:47 UTC - Human review 5400661243 (da2ce7, round 5, 12:09 UTC, at `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`) raised no new finding; its pre-merge list is the work recorded as F16 and F17, and the 19:05 push dismissed it. Human review 5402386212 (da2ce7, round 7, 19:25 UTC) approved and added F18 and F19. Correction to the 10:40 and 11:43 entries (F18): the round-3 head is `docs(issues): draft ADR task for prose-style tests as the executable specification` and the round-4 head is `docs(issues): add the completion-review conditions to both draft specs`; heads are named by subject because a rebase rewrites commit ids.
+- 2026-10-03 20:24 UTC - Recorded F18 and F19. Pushed the fix before replying to either thread.
 
 ## Completion Rules
 
