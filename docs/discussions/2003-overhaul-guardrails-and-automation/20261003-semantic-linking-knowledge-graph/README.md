@@ -3,8 +3,8 @@ semantic-links:
   related-artifacts:
     - "issue #2003"
     - "issue #2264"
+    - docs/discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md
     - docs/skills/semantic-skill-link-convention.md
-    - docs/issues/closed/README.md
     - contrib/dev-tools/checks/frontmatter-validator/
     - lychee.toml
 ---
@@ -13,11 +13,12 @@ semantic-links:
 
 | Field        | Value                                                                              |
 | ------------ | ---------------------------------------------------------------------------------- |
-| Status       | Draft: conclusions not yet reviewed by Jose Celano                                 |
+| Status       | Draft for review in the pull request that adds it                                  |
 | Started      | 2026-10-03                                                                         |
 | Participants | Jose Celano; an AI agent (initial proposal); GitHub Copilot (review and draft)     |
 | Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003 and its child EPIC #2264                |
 | Informs      | EPIC #2264 - Refactor Semantic Link and Frontmatter Conventions                    |
+| Scope        | Aspect 1 (knowledge graph) of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md) |
 | Source       | [`initial-proposal.md`](initial-proposal.md)                                       |
 
 ## Context
@@ -27,6 +28,11 @@ Jose Celano asked an AI agent how the repository could become a knowledge graph 
 structured data. The answer is kept in [`initial-proposal.md`](initial-proposal.md). This document
 reviews it against the repository's current conventions and the planned work in EPIC #2264, and
 proposes conclusions for the owner of that EPIC.
+
+The first draft mixed different goals. The
+[Goals and Boundaries](../20261003-goals-and-boundaries/README.md) discussion now separates four
+aspects; this document covers the first, the knowledge graph. Its points about workflow state,
+the lifecycle of issue specifications, and how strictly links are validated moved there.
 
 Nothing here changes a specification. A conclusion takes effect only when the EPIC owner records
 it in #2264 or one of its subissues.
@@ -156,12 +162,6 @@ so it is a further input for the same model.
    request metadata are a derived data set, not repository content.
 4. **Grade identity by the stability it needs** (section 14): explicit identifier, intrinsic
    identity, derived address, physical location. This framing suits the path-reference subissue.
-5. **Issue specifications are provisional** (section 3). The repository already treats them so:
-   closed specifications are a temporary buffer before permanent removal
-   ([`docs/issues/closed/README.md`](../../../issues/closed/README.md)), and the validator stops
-   resolving their links. The consequence the proposal implies, and the repository does not yet
-   state, is that knowledge which must outlive a specification has to move into a durable
-   artifact before the specification is deleted.
 
 ## Points of Disagreement
 
@@ -172,7 +172,7 @@ so it is a further input for the same model.
    ([`lychee.toml`](../../../../lychee.toml): `offline = true`, `include_fragments = "full"`). A new
    form is needed only for targets without a path, and the repository already has a pattern for
    those: `review-finding:pr-<number>-<id>`, and `issue #N`, whose `#` fails in YAML (open
-   question 3).
+   question 2).
 2. **Rust symbols are not cheap to resolve** (section 15). Resolution needs rustdoc JSON (nightly
    only) or a rust-analyzer index. Without a resolver, a renamed symbol breaks the reference
    silently. Inside Rust code, rustdoc intra-doc links already resolve symbols and warn when one is
@@ -182,7 +182,7 @@ so it is a further input for the same model.
 
 ## Draft Conclusions
 
-These are drafts. Jose Celano reviews them first; then they go to the reviewer.
+These are drafts for review.
 
 1. **Direction.** The proposal confirms the direction of #2264. No change of course is needed.
 2. **Inventory before vocabulary.** Before the #2264 row "Normalize the semantic-link model" fixes
@@ -199,19 +199,12 @@ These are drafts. Jose Celano reviews them first; then they go to the reviewer.
    Only targets without a path (issues, review findings, commits, Rust items) use a typed prefix,
    following the existing `review-finding:` form. No `[[...]]` syntax. This is input for the #2264
    row "Decide path-reference scope and syntax".
-6. **Specifications are provisional; their knowledge is not.** References to a specification use
-   its issue number, which survives archiving and deletion. Knowledge that must outlive a
-   specification moves to a durable artifact (ADR, guide, test, or code documentation) before the
-   specification is deleted. Links inside archived records stay as written, as the validator
-   already assumes. Which other records count as historical is the question that
-   `link-convention-stability-warning-scope` and
-   `cleanup-completed-issues-audit-links-class-unstated` already track.
-7. **Rust targets need a resolver first.** Accept `rust-module` and `rust-item` targets only
+6. **Rust targets need a resolver first.** Accept `rust-module` and `rust-item` targets only
    together with a check that resolves them. Until then, use file paths, and keep rustdoc
    intra-doc links inside Rust code.
-8. **Behavioral tests are a separate topic.** Whether acceptance tests become the durable
+7. **Behavioral tests are a separate topic.** Whether acceptance tests become the durable
    specification is a testing-strategy question outside #2264.
-9. **Graph tooling comes later and belongs to #2003.** A graph builder or store is a read-only
+8. **Graph tooling comes later and belongs to #2003.** A graph builder or store is a read-only
    analysis tool. Its placement follows the decisions the AI-harness workspace draft lists. It is
    not part of the convention work.
 
@@ -219,19 +212,14 @@ These are drafts. Jose Celano reviews them first; then they go to the reviewer.
 
 1. Should the #2264 row "Normalize the semantic-link model" start with the inventory from
    conclusion 2?
-2. 5 of 167 ADR path links no longer resolve, and nothing checks them. Should ADR links be
-   validated strictly because ADRs last, or treated as historical because an ADR records a
-   decision at a point in time? The register asks the same question for audit frontmatter and
-   spec-to-spec links; one answer could cover all three.
-3. Should every target without a path use one `kind:value` form? 48 of 130 issue references lost
+2. Should every target without a path use one `kind:value` form? 48 of 130 issue references lost
    their number to YAML's comment syntax (`link-convention-unquoted-issue-marker`), and the
    documented `issue: #<number>` key loads as null (`link-convention-issue-key-loads-null`). A form
    such as `issue:2264` avoids both, at the cost of migrating the 130 entries.
-4. Should the graph read GitHub-hosted records such as the friction register, or only tracked
+3. Should the graph read GitHub-hosted records such as the friction register, or only tracked
    files? The register is the richest typed link set in the project, and it lives in issue
    comments.
-5. Where should the outcome be recorded: the #2264 progress log and subissue rows, or elsewhere?
-6. Does the [`docs/discussions/`](../../AGENTS.md) convention work for you?
+4. Where should the outcome be recorded: the #2264 progress log and subissue rows, or elsewhere?
 
 ## Outcome
 
