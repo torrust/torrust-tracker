@@ -11,12 +11,14 @@ decision.
 
 ## Layout
 
-Group discussions by the issue or EPIC they inform, then by start date and topic:
+Group discussions by the issue or EPIC they inform, then by start date and topic. For example:
 
 ```text
 docs/discussions/
 ├── AGENTS.md
 └── 2003-overhaul-guardrails-and-automation/
+    ├── 20261003-goals-and-boundaries/
+    │   └── README.md
     └── 20261003-semantic-linking-knowledge-graph/
         ├── README.md
         └── initial-proposal.md
