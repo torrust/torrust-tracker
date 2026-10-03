@@ -12,6 +12,9 @@
 #[path = "../common/mod.rs"]
 mod common;
 
+use std::sync::Arc;
+
+use torrust_tracker_lib::container::AppContainer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
 const PERSISTENT_COMPLETED_STAT_CONFIG: &str = r#"
@@ -55,32 +58,61 @@ const PEER_PORT: u16 = 16881;
 async fn it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart() {
     // Arrange
     let mut fixture = common::TrackerApplicationFixture::start(PERSISTENT_COMPLETED_STAT_CONFIG).await;
-    common::udp_complete_download(udp_tracker_addr(&fixture).await, &COMPLETED_TORRENT, &PEER_ID, PEER_PORT).await;
+    common::udp_complete_download(
+        udp_tracker_addr(fixture.app_container()).await,
+        &COMPLETED_TORRENT,
+        &PEER_ID,
+        PEER_PORT,
+    )
+    .await;
     fixture.restart().await;
-    let requested_torrents = [COMPLETED_TORRENT, UNKNOWN_TORRENT];
 
-    // Act
-    let http_scrape = common::http_scrape(&http_tracker_url(&fixture).await, &requested_torrents).await;
-    let udp_scrape = common::udp_scrape(udp_tracker_addr(&fixture).await, &requested_torrents).await;
-
-    // Assert
-    let expected = vec![SwarmMetadata::new(1, 0, 0), SwarmMetadata::zeroed()];
-    assert_eq!(http_scrape, expected);
-    assert_eq!(udp_scrape, expected);
+    // Act and Assert
+    it_should_report_persisted_downloads_over_http_after_a_restart(fixture.app_container()).await;
+    it_should_report_persisted_downloads_over_udp_after_a_restart(fixture.app_container()).await;
 
     fixture.shutdown().await;
 }
 
-async fn http_tracker_url(fixture: &common::TrackerApplicationFixture) -> url::Url {
-    common::http_tracker_urls(fixture.app_container())
+/// The completed torrent reports its persisted download and the unknown torrent zeros.
+fn expected_after_restart() -> Vec<SwarmMetadata> {
+    vec![SwarmMetadata::new(1, 0, 0), SwarmMetadata::zeroed()]
+}
+
+async fn it_should_report_persisted_downloads_over_http_after_a_restart(app_container: &Arc<AppContainer>) {
+    // Act
+    let scrape = common::http_scrape(&http_tracker_url(app_container).await, &[COMPLETED_TORRENT, UNKNOWN_TORRENT]).await;
+
+    // Assert
+    assert_eq!(
+        scrape,
+        expected_after_restart(),
+        "HTTP scrape after restart: completed torrent should report 1 persisted download, unknown torrent zeros"
+    );
+}
+
+async fn it_should_report_persisted_downloads_over_udp_after_a_restart(app_container: &Arc<AppContainer>) {
+    // Act
+    let scrape = common::udp_scrape(udp_tracker_addr(app_container).await, &[COMPLETED_TORRENT, UNKNOWN_TORRENT]).await;
+
+    // Assert
+    assert_eq!(
+        scrape,
+        expected_after_restart(),
+        "UDP scrape after restart: completed torrent should report 1 persisted download, unknown torrent zeros"
+    );
+}
+
+async fn http_tracker_url(app_container: &AppContainer) -> url::Url {
+    common::http_tracker_urls(app_container)
         .await
         .into_iter()
         .next()
         .expect("expected one HTTP tracker")
 }
 
-async fn udp_tracker_addr(fixture: &common::TrackerApplicationFixture) -> std::net::SocketAddr {
-    let url = common::udp_tracker_urls(fixture.app_container())
+async fn udp_tracker_addr(app_container: &AppContainer) -> std::net::SocketAddr {
+    let url = common::udp_tracker_urls(app_container)
         .await
         .into_iter()
         .next()

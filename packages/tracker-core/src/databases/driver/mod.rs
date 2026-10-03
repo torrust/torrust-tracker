@@ -129,20 +129,28 @@ pub(crate) mod tests {
         }
 
         pub async fn it_should_load_the_persisted_downloads_of_the_requested_torrents_only(driver: &Arc<Box<dyn Database>>) {
+            // Arrange
             let persisted = numbered_info_hash(1);
             let not_requested = numbered_info_hash(2);
             let not_persisted = numbered_info_hash(3);
             driver.save_torrent_downloads(&persisted, 5).await.unwrap();
             driver.save_torrent_downloads(&not_requested, 6).await.unwrap();
 
+            // Act
             let downloads = driver.load_torrents_downloads(&[persisted, not_persisted]).await.unwrap();
 
-            assert_eq!(downloads, NumberOfDownloadsPerInfoHash::from([(persisted, 5)]));
+            // Assert
+            assert_eq!(
+                downloads,
+                NumberOfDownloadsPerInfoHash::from([(persisted, 5)]),
+                "only requested torrents with a persisted row should be returned"
+            );
         }
 
         pub async fn it_should_load_the_persisted_downloads_of_more_torrents_than_fit_in_one_query(
             driver: &Arc<Box<dyn Database>>,
         ) {
+            // Arrange
             let torrents = u32::try_from(MAX_INFO_HASHES_PER_QUERY).unwrap() + 1;
             let mut expected = NumberOfDownloadsPerInfoHash::new();
             for number in 100..100 + torrents {
@@ -154,9 +162,14 @@ pub(crate) mod tests {
             }
             let info_hashes: Vec<InfoHash> = expected.keys().copied().collect();
 
+            // Act
             let downloads = driver.load_torrents_downloads(&info_hashes).await.unwrap();
 
-            assert_eq!(downloads, expected);
+            // Assert
+            assert_eq!(
+                downloads, expected,
+                "all {torrents} torrents should be loaded across chunks of {MAX_INFO_HASHES_PER_QUERY} info-hashes"
+            );
         }
 
         // Aggregate metrics for all torrents

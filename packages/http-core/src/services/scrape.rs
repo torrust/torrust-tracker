@@ -501,7 +501,11 @@ mod tests {
                 .unwrap();
 
             // Assert
-            assert_eq!(scrape_data.files[&sample_info_hash()], SwarmMetadata::new(7, 0, 0));
+            assert_eq!(
+                scrape_data.files[&sample_info_hash()],
+                SwarmMetadata::new(7, 0, 0),
+                "HTTP scrape should report the persisted downloads (7) of a torrent absent from memory"
+            );
         }
 
         #[tokio::test]

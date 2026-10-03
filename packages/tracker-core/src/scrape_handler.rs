@@ -173,7 +173,7 @@ mod tests {
     use crate::databases::{MockTorrentMetricsStore, TorrentMetricsStore};
     use crate::error::ScrapeError;
     use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-    use crate::test_helpers::tests::{sample_info_hash, sample_peer};
+    use crate::test_helpers::tests::{sample_info_hash, seeder};
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::{self};
@@ -206,7 +206,7 @@ mod tests {
         // Arrange
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         in_memory_torrent_repository
-            .handle_announcement(&sample_info_hash(), &sample_peer(), Some(3))
+            .handle_announcement(&sample_info_hash(), &seeder(), Some(3))
             .await;
         let store_without_expectations = MockTorrentMetricsStore::new();
         let scrape_handler = scrape_handler_with_persisted_downloads(store_without_expectations, &in_memory_torrent_repository);
@@ -215,7 +215,11 @@ mod tests {
         let scrape_data = scrape_handler.handle_scrape(&vec![sample_info_hash()]).await.unwrap();
 
         // Assert
-        assert_eq!(scrape_data.files[&sample_info_hash()], SwarmMetadata::new(3, 1, 0));
+        assert_eq!(
+            scrape_data.files[&sample_info_hash()],
+            SwarmMetadata::new(3, 1, 0),
+            "an in-memory swarm (3 downloads, one seeder) should be reported as is; any database read panics the mock"
+        );
     }
 
     #[tokio::test]
@@ -226,7 +230,7 @@ mod tests {
         let unknown = InfoHash([3; 20]);
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         in_memory_torrent_repository
-            .handle_announcement(&in_memory, &sample_peer(), Some(3))
+            .handle_announcement(&in_memory, &seeder(), Some(3))
             .await;
         let mut store = MockTorrentMetricsStore::new();
         store
@@ -235,6 +239,10 @@ mod tests {
             .times(1)
             .returning(move |_| Box::pin(std::future::ready(Ok(NumberOfDownloadsPerInfoHash::from([(persisted, 5)])))));
         let scrape_handler = scrape_handler_with_persisted_downloads(store, &in_memory_torrent_repository);
+        let mut expected_scrape_data = ScrapeData::empty();
+        expected_scrape_data.add_file(&in_memory, SwarmMetadata::new(3, 1, 0));
+        expected_scrape_data.add_file(&persisted, SwarmMetadata::new(5, 0, 0));
+        expected_scrape_data.add_file_with_zeroed_metadata(&unknown);
 
         // Act
         let scrape_data = scrape_handler
@@ -243,9 +251,10 @@ mod tests {
             .unwrap();
 
         // Assert
-        assert_eq!(scrape_data.files[&in_memory], SwarmMetadata::new(3, 1, 0));
-        assert_eq!(scrape_data.files[&persisted], SwarmMetadata::new(5, 0, 0));
-        assert_eq!(scrape_data.files[&unknown], SwarmMetadata::zeroed());
+        assert_eq!(
+            scrape_data, expected_scrape_data,
+            "in-memory swarm from memory, persisted torrent (5) and unknown torrent from one batch lookup"
+        );
     }
 
     #[tokio::test]
@@ -264,7 +273,11 @@ mod tests {
         let scrape_data = scrape_handler.handle_scrape(&vec![persisted, persisted]).await.unwrap();
 
         // Assert
-        assert_eq!(scrape_data.files[&persisted], SwarmMetadata::new(5, 0, 0));
+        assert_eq!(
+            scrape_data.files[&persisted],
+            SwarmMetadata::new(5, 0, 0),
+            "a repeated info-hash should be looked up once and report its persisted downloads (5)"
+        );
     }
 
     #[tokio::test]
@@ -284,7 +297,10 @@ mod tests {
         let result = scrape_handler.handle_scrape(&vec![sample_info_hash()]).await;
 
         // Assert
-        assert!(matches!(result, Err(ScrapeError::Database(_))));
+        assert!(
+            matches!(result, Err(ScrapeError::Database(_))),
+            "a failing persisted lookup should surface as ScrapeError::Database, got {result:?}"
+        );
     }
 
     fn scrape_handler() -> ScrapeHandler {

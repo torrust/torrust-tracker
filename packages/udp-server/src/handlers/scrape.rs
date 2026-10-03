@@ -350,7 +350,10 @@ mod tests {
             let response = scrape(&tracker, &request).await.unwrap();
 
             // Assert
-            assert_eq!(response, expected_response);
+            assert_eq!(
+                response, expected_response,
+                "UDP scrape should report persisted downloads (7, 0, 9) in request order (persisted, unknown, other persisted)"
+            );
         }
 
         #[tokio::test]
