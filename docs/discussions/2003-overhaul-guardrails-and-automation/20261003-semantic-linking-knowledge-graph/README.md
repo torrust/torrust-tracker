@@ -109,11 +109,13 @@ Observations:
 
 ## Input from the EPIC #2003 Thread
 
-All 54 comments on #2003 were read on 2026-10-03. Most of the thread is the friction register
-that Cameron keeps: 148 labels for frictions in skills, templates, and tooling, plus two CI
-findings, indexed in two comments linked from the "Friction Register" section of the #2003 issue
-body. No comment discusses a knowledge graph, but the register bears on this discussion in five
-ways:
+The thread is still growing, so this section is pinned to a cutoff. It covers the 54 comments on
+the #2003 thread up to comment 5968442607, posted at 2026-10-03 10:49 UTC; later comments are not
+covered. Most of the thread is the friction register that Cameron keeps, indexed in two comments
+that are edited in place and linked from the "Friction Register" section of the #2003 issue body.
+At their revision of 2026-10-03 10:50 UTC the index held 148 labels, two of them CI findings
+rather than frictions. No comment discusses a knowledge graph, but the register bears on this
+discussion in five ways:
 
 1. **It is a typed, evidence-backed link set kept by hand.** Each row links a friction to the
    comment that filed it, the review round that surfaced it, and a disposition with evidence:
