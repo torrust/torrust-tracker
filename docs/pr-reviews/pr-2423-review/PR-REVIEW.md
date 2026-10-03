@@ -51,6 +51,14 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 | F3 | `review-finding:pr-2423-f3` | Copilot | Minor (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2423-f4` | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2423-f5` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2423-f6` | Human | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2423-f7` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2423-f8` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2423-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2423-f10` | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2423-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2423-f12` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2423-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -119,10 +127,117 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4169553774>
 
+### F6 - Restart test races the asynchronous persistence write
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391139>
+- Concern: `udp_complete_download` returns when the announce response arrives, but the persistence listener writes the row later, and `restart()` cancels the listener without draining queued events, so the root restart test was order-dependent.
+- Solution: Before restarting, the test waits under a 5-second deadline until the torrent metrics store holds 1 download for the completed torrent (`wait_for_persisted_downloads`), mirroring `wait_for_global_downloads_persisted` in tracker-core.
+- Current-tree verification: `cargo test --test persistence-scrape-after-restart` passed 20 of 20 runs; workspace pedantic Clippy clean.
+- Resolution reference: `test(tracker): [#2406] wait for the persisted download before restarting`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172937527>
+
+### F7 - Stability note claims a shutdown guarantee
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391146>
+- Concern: The evidence inferred from 20 passing runs that the persistence write completes before graceful shutdown, which the listener's biased cancellation does not guarantee.
+- Solution: The note now names the wait the test uses, explains why it is needed, and records that the earlier claim was a sample.
+- Current-tree verification: `manual-verification-evidence.md` T8 stability paragraph inspected; `linter all` passed.
+- Resolution reference: `docs(issues): [#2406] correct the restart-test stability claim and the principle's location`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172937646>
+
+### F8 - Disabled-mode contract ignores peerless cleanup
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391149>
+- Concern: The contract said disabled mode counts completions since the tracker started, but default peerless cleanup removes the swarm and its count.
+- Solution: The `ScrapeHandler` Rustdoc, `policy.rs`, research section 5, and the spec decision bullet now say the count covers completions while the swarm has been in memory and is reset by peerless cleanup.
+- Current-tree verification: `grep` for "since the tracker started" in the touched files returns no contract text; library docs build clean.
+- Resolution reference: `docs(tracker-core): [#2406] state that peerless cleanup resets the in-memory downloaded count`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172937731>
+
+### F9 - F2's recorded grep no longer reproduces
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391154>
+- Concern: After `docs: [#2406] separate the scrape behavior contract from the lookup ADR`, F2's recorded `grep` also matches three plain `// adr:` comments, so its "only absolute URLs" result is stale.
+- Solution: A processing-log entry records the narrowed Rustdoc-only command; F2's original verification is left as recorded at the time.
+- Current-tree verification: `grep -rnE '//[!/].*20261002173716' --include=*.rs packages` prints only the two absolute URLs.
+- Resolution reference: `docs(pr-reviews): [#2406] audit Cameron's review on #2423`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938010>
+
+### F10 - Spec points the principle to the ADR
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391162>
+- Concern: After the ADR split, the spec still said the scrape principle was recorded in the ADR.
+- Solution: The decision paragraph and the 17:40 log entry now point the principle to the `ScrapeHandler` Rustdoc and the ADR to the lookup design.
+- Current-tree verification: `ISSUE.md` decision paragraph and 17:40 log entry inspected; `linter lychee` passed.
+- Resolution reference: `docs(issues): [#2406] correct the restart-test stability claim and the principle's location`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938348>
+
+### F11 - PR body omissions and commit count
+
+- PR number: 2423
+- Source review ID: 5399817905
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391170>
+- Concern: The PR body omitted touched packages and files and the draft follow-up, and said Copilot's five findings were fixed in separate commits although F2 and F3 share one. Round 2 noted the omissions grew with the rustdoc commit.
+- Solution: The PR body now lists every touched package and file group, the draft specs, and the rustdoc, hook, CI, and template commits, and states that F1-F5 were fixed in four commits.
+- Current-tree verification: `gh pr view 2423 --json body` matches `git diff --name-only torrust/develop...HEAD` grouped by package.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938486>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938486>
+
+### F12 - Library rustdoc is not gated
+
+- PR number: 2423
+- Source review ID: 5400241273
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172733545>
+- Concern: The pre-push hook documents only `--bins --examples` and no workflow builds rustdoc, so broken library links can land again.
+- Solution: The hook has a separate `--lib` documentation step (a combined `--lib --bins` run collides on dev-tool crates whose lib and bin share a name), and the nightly unit job in `testing.yaml` builds library docs. Skills and `AGENTS.md` updated.
+- Current-tree verification: pre-push passed 5 of 5 steps; `linter yaml` clean.
+- Resolution reference: `ci(testing): build library rustdoc on the nightly unit job`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938592>
+
+### F13 - De-linked factory names a removed function
+
+- PR number: 2423
+- Source review ID: 5400241273
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172733551>
+- Concern: The `udp-core` and `udp-server` statistics docs described a `factory` function that no longer exists.
+- Solution: Both docs now link `UdpTrackerCoreServices::initialize_from` and `UdpTrackerServerServices::initialize`, and the stale factory text and example are removed.
+- Current-tree verification: no `factory` text remains in either file; `cargo +nightly doc --no-deps --lib` for both crates is clean.
+- Resolution reference: `docs(udp-core,udp-server): name the real constructors in the statistics service docs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172938699>
+
 ## Processing Log
 
 - 2026-10-02 19:21 UTC - Copilot review 5395864035 submitted five inline findings.
 - 2026-10-02 20:28 UTC - Fixed all five findings in separate commits, rebased onto the latest `develop`, pushed after the pre-push suite passed, replied to each thread, and started this audit.
+- 2026-10-03 08:52 UTC - Human review 5399817905 (da2ce7, round 1) requested changes with findings F6-F11; the reviewer's IDs continue this audit's numbering and are kept.
+- 2026-10-03 10:17 UTC - Human review 5400241273 (da2ce7, round 2) kept the request and added F12 and F13.
+- 2026-10-03 11:21 UTC - Correction to the 20:28 entry: F2 and F3 were fixed in one commit, so the five findings took four commits. Correction to F2's verification (F9): it now also matches three plain `// adr:` comments; the Rustdoc-only check is `grep -rnE '//[!/].*20261002173716' --include=*.rs packages`. Fixed F6-F13, pushed after the pre-push suite passed, updated the PR body (F11), and replied to each thread.
 
 ## Completion Rules
 
