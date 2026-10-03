@@ -6,7 +6,7 @@ epic: null
 github-issue: 2429
 spec-path: docs/issues/open/2429-templated-documentation/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-10-03 14:20"
+last-updated-utc: "2026-10-03 14:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,7 +48,7 @@ The public friction register on EPIC #2003 tracks these drift classes.
 
 One artifact already works this way: `docs/schemas/frontmatter-v1.schema.json` is generated from the Rust model (`contrib/dev-tools/checks/frontmatter-validator/src/profile.rs:49`), and a `check` mode fails when the committed bytes differ from a fresh generation.
 
-The tree tracks 970 Markdown files, among them 272 primary specifications (`ISSUE.md` or `EPIC.md` under `docs/issues/`), 143 PR-review audit files, 46 skills, 33 ADRs (29 at the root) and 14 templates: each a count that documents quote and the next change makes wrong.
+At `develop` `eb96d2957` the tree tracks 970 Markdown files, among them 272 primary specifications (`ISSUE.md` or `EPIC.md` under `docs/issues/`), 143 PR-review audit files, 46 skills, 33 ADRs (29 at the root) and 14 templates: each a count that documents quote and the next change makes wrong.
 
 ## Scope
 
