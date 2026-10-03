@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: 2423
-last-updated-utc: "2026-10-03 07:16"
+last-updated-utc: "2026-10-03 07:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,8 +19,11 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
-    - docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md
+    - docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md
     - docs/research/20261002-scrape-downloaded-semantics/README.md
+    - packages/tracker-core/src/scrape_handler.rs
+    - packages/tracker-core/tests/integration.rs
+    - tests/persistence/scrape_after_restart.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -111,12 +114,13 @@ The maintainer questioned whether scrape should report only the active swarm (sc
 - **Batch lookup:** scrape loads the persisted counts of all authorized info-hashes absent from memory with one query per request instead of one per torrent (N+1). New `TorrentMetricsStore::load_torrents_downloads` for SQLite, MySQL, and PostgreSQL.
 - **Query size limit:** drivers bind at most `MAX_INFO_HASHES_PER_QUERY = 100` info-hashes per `IN (...)` query and split larger inputs. A full UDP scrape (about 74) fits in one query; the value is independent of protocol request limits, which are discussed in #2417 and may grow.
 - **No cache:** scrape is far less frequent than announce; add a cache only if metrics show a need.
-- Recorded in the [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md) and the [research document](../../../research/20261002-scrape-downloaded-semantics/README.md) section 5.
+- Recorded in the [ADR](../../../adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md) and the [research document](../../../research/20261002-scrape-downloaded-semantics/README.md) section 5.
 
 ## Architectural Decisions
 
 - Related ADRs: [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md).
-- ADRs created: [Scrape reports announce swarm statistics without side effects](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+- ADRs created: [Load persisted scrape downloads with a batched, uncached lookup](../../../adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md) (technical decisions only).
+- Behavior contract: the `ScrapeHandler` module Rustdoc in `packages/tracker-core/src/scrape_handler.rs`, which names the prose-style tests that serve as its executable specification.
 
 ## Design and Ownership Review
 
@@ -192,7 +196,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 11:09 UTC - Copilot - Drafted the issue specification and independently reproduced the post-restart HTTP and UDP scrape defect - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
 - 2026-10-02 11:28 UTC - Copilot - Maintainer approved the spec; created GitHub issue #2406 and moved the spec to `docs/issues/open/` - <https://github.com/torrust/torrust-tracker/issues/2406>.
 - 2026-10-02 13:30 UTC - Copilot - Repeated V1 from the recorded PR branch commit and verified `torrents.completed = 1` directly in SQLite after the first clean shutdown - [manual-verification-evidence.md](manual-verification-evidence.md) V1.
-- 2026-10-02 17:40 UTC - Copilot - Created implementation branch `2406-scrape-ignores-persisted-torrent-downloads`; researched BEPs and other trackers; maintainer selected Option A under the "scrape = announce statistics without side effects" principle - [research](../../../research/20261002-scrape-downloaded-semantics/README.md), [ADR](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+- 2026-10-02 17:40 UTC - Copilot - Created implementation branch `2406-scrape-ignores-persisted-torrent-downloads`; researched BEPs and other trackers; maintainer selected Option A under the "scrape = announce statistics without side effects" principle - [research](../../../research/20261002-scrape-downloaded-semantics/README.md), [ADR](../../../adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md).
 - 2026-10-02 17:50 UTC - Copilot - Added two `tracker-core` integration tests; the persisted-downloads test failed against the unfixed code (`downloaded: 0`, expected `7`) - [manual-verification-evidence.md](manual-verification-evidence.md).
 - 2026-10-02 18:00 UTC - Copilot - Implemented Option A; integration, unit, and affected-package tests pass; V2 shows HTTP `downloaded: 1` and UDP `completed: 1` after a clean restart. Spam and abuse note: the EPIC draft is not on `develop`, so it is recorded here instead: with persistence enabled, each scrape of an info-hash absent from memory costs one database read (as a first announce does), and Option A adds no memory growth.
 - 2026-10-02 18:31 UTC - Copilot - Maintainer refined the decision (value per persistence mode, batch lookup without N+1, query limit independent of #2417, no cache). Implemented the batch lookup as a separate `perf(tracker-core)` commit; the spam and abuse note above now reads one batch query per scrape request instead of one read per info-hash.
@@ -200,6 +204,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 19:03 UTC - Copilot - Pre-push checks passed; opened implementation PR #2423 - <https://github.com/torrust/torrust-tracker/pull/2423>.
 - 2026-10-02 20:28 UTC - Copilot - Fixed the five Copilot review findings on #2423 in separate commits - [PR review audit](../../../pr-reviews/pr-2423-review/PR-REVIEW.md).
 - 2026-10-03 07:16 UTC - Copilot - Maintainer asked to review every new test against the repository test guides. Fixed the smells found (combined behaviors, hidden seeder state, multiple field assertions, missing AAA markers and assertion messages, one restart scenario covering two protocols) - [manual-verification-evidence.md](manual-verification-evidence.md) T9.
+- 2026-10-03 07:48 UTC - Copilot - Maintainer separated the domain behavior from the technical decision: the ADR was renamed to `20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md` and keeps only the lookup design; the behavior contract moved to the `ScrapeHandler` module Rustdoc, which names the prose-style tests that specify it. Earlier links in this log were updated to the new ADR path.
 
 ## Acceptance Criteria
 
@@ -266,5 +271,5 @@ After implementation, compare observed behavior with this specification. Record 
 
 - Related issues: #1264, #1488, #1502, #1510, #1541, #1543
 - Related PRs: #1509
-- Related ADRs: [20261002173716](../../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md)
+- Related ADRs: [20261002173716](../../../adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md)
 - Research: [scrape `downloaded` semantics](../../../research/20261002-scrape-downloaded-semantics/README.md)

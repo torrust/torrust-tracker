@@ -128,6 +128,7 @@ pub(crate) mod tests {
             assert_eq!(number_of_downloads, 2);
         }
 
+        // adr: docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md
         pub async fn it_should_load_the_persisted_downloads_of_the_requested_torrents_only(driver: &Arc<Box<dyn Database>>) {
             // Arrange
             let persisted = numbered_info_hash(1);

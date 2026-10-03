@@ -1,11 +1,12 @@
 ---
 doc-type: research
 status: complete
-last-updated-utc: 2026-10-02
+last-updated-utc: 2026-10-03
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-    - docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md
+    - "issue #2406"
+    - packages/tracker-core/src/scrape_handler.rs
+    - docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md
 ---
 
 # Scrape `downloaded` Semantics for Torrents Without Active Peers
@@ -105,9 +106,11 @@ maintainer resolved this on 2026-10-02:
 - persistence enabled: return the persisted lifetime count.
 
 Because the first announce of a torrent loads its persisted count into memory, an active swarm's
-in-memory value already equals the lifetime count when persistence is enabled. The decision and
-its lookup implementation are recorded in
-[ADR 20261002173716](../../adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+in-memory value already equals the lifetime count when persistence is enabled. The resulting
+behavior contract is documented in the `ScrapeHandler` module Rustdoc
+(`packages/tracker-core/src/scrape_handler.rs`) and specified by the tests it names; how the
+persisted counts are loaded is recorded in
+[ADR 20261002173716](../../adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md).
 
 ## 6. Summary
 

@@ -57,6 +57,7 @@ async fn it_should_handle_the_scrape_request() {
     assert!(scrape_data.files.contains_key(&info_hash));
 }
 
+// issue: #2406
 #[tokio::test]
 async fn it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory() {
     // Arrange

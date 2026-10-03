@@ -11,6 +11,7 @@
 //! ```
 #[path = "../common/mod.rs"]
 mod common;
+// issue: #2406
 
 use std::sync::Arc;
 

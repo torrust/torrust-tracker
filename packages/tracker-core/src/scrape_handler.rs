@@ -52,6 +52,37 @@
 //! );
 //! ```
 //!
+//! ## Reported Statistics
+//!
+//! A scrape reports, for each requested torrent, the swarm statistics an
+//! announce would return at that moment, without any side effect (BEP 48):
+//!
+//! - `complete` and `incomplete` count the active peers in memory.
+//! - `downloaded` is BEP 48's "ever completed" counter. The response has one
+//!   field for it, so `persistent_torrent_completed_stat` decides its meaning:
+//!   - disabled: completions registered since the tracker process started;
+//!   - enabled: the persisted lifetime count. A swarm in memory already holds
+//!     it, because its first announce loaded the persisted value; a torrent
+//!     absent from memory reports the persisted value with zero peers.
+//! - A torrent that is not whitelisted, or has neither a swarm nor a persisted
+//!   count, reports zeros.
+//! - A scrape never inserts a swarm, emits a swarm event, or changes retention.
+//!
+//! These rules are specified by tests that read as prose:
+//!
+//! - `packages/tracker-core/tests/integration.rs`:
+//!   `it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory`,
+//!   `it_should_not_load_a_scraped_torrent_into_memory`,
+//!   `it_should_not_scrape_persisted_downloads_when_the_persistent_completed_stat_is_disabled`;
+//! - the `tests` module of this file;
+//! - the HTTP and UDP protocol tests named
+//!   `it_should_return_the_persisted_downloads_of_*` in `http-core` and
+//!   `udp-server`, and the root `persistence-scrape-after-restart` suite.
+//!
+//! How persisted counts are loaded (one batched, uncached query) is recorded in
+//! [ADR-20261002173716](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md);
+//! the domain research is in `docs/research/20261002-scrape-downloaded-semantics/`.
+//!
 //! ## References:
 //!
 //! Refer to `BitTorrent` BEPs and other sites for more information about the `scrape` request:
@@ -59,6 +90,8 @@
 //! - [BEP 48. Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
 //! - [BEP 15. UDP Tracker Protocol for `BitTorrent`. Scrape section](https://www.bittorrent.org/beps/bep_0015.html)
 //! - [Vuze docs](https://wiki.vuze.com/w/Scrape)
+// issue: #2406
+// adr: docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
@@ -74,9 +107,7 @@ use crate::torrent::persisted_downloads::PersistedDownloads;
 
 /// Handles scrape requests, providing torrent swarm metadata.
 ///
-/// A scrape reports the swarm statistics an announce would return, without
-/// side effects. See
-/// [ADR-20261002173716](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261002173716_scrape_reports_announce_swarm_stats_without_side_effects.md).
+/// See the module documentation for the statistics a scrape reports.
 pub struct ScrapeHandler {
     /// Service for authorizing access to whitelisted torrents.
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
@@ -118,11 +149,9 @@ impl ScrapeHandler {
 
     /// Handles a scrape request for multiple torrents.
     ///
-    /// - Returns metadata for each requested torrent.
-    /// - If a torrent isn't whitelisted or doesn't exist, returns zeroed stats.
-    /// - If a torrent isn't in memory and persistent completed statistics are
-    ///   enabled, returns its persisted `downloaded` count without loading the
-    ///   torrent into memory. All such torrents are looked up in one batch.
+    /// Returns metadata for each requested torrent, following the rules in
+    /// the module documentation. Torrents absent from memory are looked up in
+    /// one batch when persistent completed statistics are enabled.
     ///
     /// # Errors
     ///
