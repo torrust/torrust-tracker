@@ -133,7 +133,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F6
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391139>
 - Concern: `udp_complete_download` returns when the announce response arrives, but the persistence listener writes the row later, and `restart()` cancels the listener without draining queued events, so the root restart test was order-dependent.
 - Solution: Before restarting, the test waits under a 5-second deadline until the torrent metrics store holds 1 download for the completed torrent (`wait_for_persisted_downloads`), mirroring `wait_for_global_downloads_persisted` in tracker-core.
@@ -146,7 +146,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F7
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391146>
 - Concern: The evidence inferred from 20 passing runs that the persistence write completes before graceful shutdown, which the listener's biased cancellation does not guarantee.
 - Solution: The note now names the wait the test uses, explains why it is needed, and records that the earlier claim was a sample.
@@ -159,7 +159,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F8
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391149>
 - Concern: The contract said disabled mode counts completions since the tracker started, but default peerless cleanup removes the swarm and its count.
 - Solution: The `ScrapeHandler` Rustdoc, `policy.rs`, research section 5, and the spec decision bullet now say the count covers completions while the swarm has been in memory and is reset by peerless cleanup.
@@ -172,7 +172,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F9
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391154>
 - Concern: After `docs: [#2406] separate the scrape behavior contract from the lookup ADR`, F2's recorded `grep` also matches three plain `// adr:` comments, so its "only absolute URLs" result is stale.
 - Solution: A processing-log entry records the narrowed Rustdoc-only command; F2's original verification is left as recorded at the time.
@@ -185,7 +185,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F10
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391162>
 - Concern: After the ADR split, the spec still said the scrape principle was recorded in the ADR.
 - Solution: The decision paragraph and the 17:40 log entry now point the principle to the `ScrapeHandler` Rustdoc and the ADR to the lookup design.
@@ -198,7 +198,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5399817905
-- Reviewer finding ID: F11
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172391170>
 - Concern: The PR body omitted touched packages and files and the draft follow-up, and said Copilot's five findings were fixed in separate commits although F2 and F3 share one. Round 2 noted the omissions grew with the rustdoc commit.
 - Solution: The PR body now lists every touched package and file group, the draft specs, and the rustdoc, hook, CI, and template commits, and states that F1-F5 were fixed in four commits.
@@ -211,7 +211,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5400241273
-- Reviewer finding ID: F12
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172733545>
 - Concern: The pre-push hook documents only `--bins --examples` and no workflow builds rustdoc, so broken library links can land again.
 - Solution: The hook has a separate `--lib` documentation step (a combined `--lib --bins` run collides on dev-tool crates whose lib and bin share a name), and the nightly unit job in `testing.yaml` builds library docs. Skills and `AGENTS.md` updated.
@@ -224,7 +224,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5400241273
-- Reviewer finding ID: F13
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172733551>
 - Concern: The `udp-core` and `udp-server` statistics docs described a `factory` function that no longer exists.
 - Solution: Both docs now link `UdpTrackerCoreServices::initialize_from` and `UdpTrackerServerServices::initialize`, and the stale factory text and example are removed.
@@ -237,12 +237,12 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5400353319
-- Reviewer finding ID: F14
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172827202>
 - Concern: The audit carried only Copilot's F1-F5 and no human-review thread had a reply, although a commit already acted on F12.
 - Solution: The audit records F6-F15 with detail entries, and every human-review thread has a reply citing its resolution.
-- Current-tree verification: `validate-audit-record.py --pr-number 2423 --base torrust/develop` reports 0 failures; `reply-status` reports a reply on every thread.
-- Resolution reference: `docs(pr-reviews): [#2406] audit Cameron's review on #2423`
+- Current-tree verification: rows and detail entries for F6-F15 are present; `validate-audit-record.py --pr-number 2423 --base torrust/develop` reports 0 failures; `reply-status` reports a reply on every thread.
+- Resolution reference: `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172974805>
 
@@ -250,7 +250,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 
 - PR number: 2423
 - Source review ID: 5400353319
-- Reviewer finding ID: F15
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4172827203>
 - Concern: Both draft specs kept only "Retrospective: Not yet assessed" instead of the template's retrospective conditions that `create-issue` requires.
 - Solution: Both drafts now carry the template's Implementation Completion Review guidance.
@@ -265,8 +265,11 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - 2026-10-02 20:28 UTC - Fixed all five findings in separate commits, rebased onto the latest `develop`, pushed after the pre-push suite passed, replied to each thread, and started this audit.
 - 2026-10-03 08:52 UTC - Human review 5399817905 (da2ce7, round 1) requested changes with findings F6-F11; the reviewer's IDs continue this audit's numbering and are kept.
 - 2026-10-03 10:17 UTC - Human review 5400241273 (da2ce7, round 2) kept the request and added F12 and F13.
+- 2026-10-03 10:40 UTC - Human review 5400353319 (da2ce7, round 3, at `ae318f38e`) kept the request and added F14 and F15.
 - 2026-10-03 11:21 UTC - Correction to the 20:28 entry: F2 and F3 were fixed in one commit, so the five findings took four commits. Correction to F2's verification (F9): it now also matches three plain `// adr:` comments; the Rustdoc-only check is `grep -rnE '//[!/].*20261002173716' --include=*.rs packages`. Fixed F6-F13, pushed after the pre-push suite passed, updated the PR body (F11), and replied to each thread.
 - 2026-10-03 11:32 UTC - Human review 5400353319 (da2ce7, round 3, at an earlier head) added F14 and F15. Fixed F15, recorded both, replied to both threads.
+- 2026-10-03 11:43 UTC - Human review 5400576772 (da2ce7, round 4, at `cdbd2c5ed`) kept the request, re-raised F14, and added F16.
+- 2026-10-03 12:13 UTC - Correction to the 11:32 entry: the F14 reply said `FIXED` and cited `docs(pr-reviews): [#2406] audit Cameron's review on #2423`, but the F14 and F15 rows landed only in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`, pushed at 12:01 UTC after a pre-push failure caused by a full disk. F14 now cites that commit. Correction to the 08:52 entry: no reviewer ID was reassigned, so `Reviewer finding ID` for F6-F15 is now `N/A` (F16).
 
 ## Completion Rules
 
