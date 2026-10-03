@@ -82,8 +82,10 @@ The script runs these steps in order:
 
 1. `cargo +nightly fmt --check` - nightly format check
 2. `cargo +nightly check ...` - nightly workspace check
-3. `cargo +nightly doc ...` - nightly documentation build
-4. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
+3. `cargo +nightly doc --no-deps --bins --examples ...` - nightly documentation build for binaries and examples
+4. `cargo +nightly doc --no-deps --lib ...` - nightly documentation build for libraries (a separate run avoids
+   output filename collisions between a crate's lib and bin targets)
+5. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
 
 Steps already covered by pre-commit (machete, linters, doc tests) are intentionally
 omitted — they always run before each commit. E2E tests are excluded because they are

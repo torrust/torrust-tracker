@@ -156,6 +156,7 @@ cargo test --doc --workspace
 cargo test --tests --benches --examples --workspace --all-targets --all-features
 cargo test --test integration
 cargo +nightly doc --no-deps --bins --examples --workspace --all-features
+cargo +nightly doc --no-deps --lib --workspace --all-features
 cargo bench --package torrent-repository-benchmarking
 ```
 
