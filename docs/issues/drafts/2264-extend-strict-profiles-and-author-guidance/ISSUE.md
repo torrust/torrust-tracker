@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
 branch: "{issue-number}-extend-strict-profiles-and-author-guidance-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 11:30"
+last-updated-utc: "2026-10-03 11:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -151,7 +151,7 @@ The command already runs short synchronous `git` processes and needs no new chil
 The issue is a feature, but T7 corrects stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 1. the hypothesis: the duplicated lists predate the v1 contract and were never updated with it;
-2. the reproduction: a disposable spec written only from the convention's issue field list, run through the validator, recorded in `manual-verification-evidence.md` section B1;
+2. the reproduction, attempted while drafting and before maintainer review: two disposable specs written from the convention's issue field list, one exactly as listed and one with `schema-version: 1` added. The outcome is **Infeasible** in the drafting environment, which has no Rust toolchain. The substitute evidence, a field-by-field comparison with `profile.rs` and a trace of the validator's dispatch, predicts a `legacy-shape` error for the first spec and a `missing-required-field` error for `epic` for the second. `manual-verification-evidence.md` section B1 records the specs, the commands, and the comparison; running the commands with the Rust toolchain moves the outcome to **Reproduced**;
 3. the fix: replace the lists with references to the generated schema and the crate README (D8);
 4. the like-for-like recheck: the same spec written from the referenced sources passes.
 
@@ -195,6 +195,7 @@ Record a justified no-change decision in the task's evidence without creating an
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`
+- [x] Stale-guidance reproduction attempted while drafting and classified in issue-local `manual-verification-evidence.md` section B1 (`Infeasible` in the drafting environment)
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -215,6 +216,7 @@ Record a justified no-change decision in the task's evidence without creating an
 Append one line per meaningful update.
 
 - 2026-10-03 10:54 UTC - da2ce7 - Drafted this specification from EPIC #2264 row 3, the v1 contract's deferred classes, and the validator as delivered by #2266, #2280, and #2281; awaits maintainer approval before a GitHub issue is created - This specification
+- 2026-10-03 11:31 UTC - da2ce7 - Attempted the stale-guidance reproduction before review: `Infeasible` in the drafting environment (no Rust toolchain); recorded the disposable specs, validator commands, and field-by-field substitute evidence - `manual-verification-evidence.md` section B1
 
 ## Acceptance Criteria
 
