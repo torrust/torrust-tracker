@@ -49,7 +49,7 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API [`Stats`](crate::v1::context::stats::resources::Stats)
+//! Refer to the API [`Stats`](torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats)
 //! resource for more information about the response attributes.
 pub mod handlers;
 pub mod responses;

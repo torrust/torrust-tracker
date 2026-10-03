@@ -18,7 +18,7 @@ use crate::v1::responses::{disabled_by_configuration_response, invalid_auth_key_
 ///
 /// It returns these types of responses:
 ///
-/// - `200` with a json [`AuthKey`]
+/// - `200` with a json [`AuthKey`](torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey)
 ///   resource. If the key was generated successfully.
 /// - `400` with an error if the key couldn't been added because of an invalid
 ///   request.
@@ -50,7 +50,7 @@ pub async fn add_auth_key_handler(
 ///
 /// It returns two types of responses:
 ///
-/// - `200` with an json [`AuthKey`]
+/// - `200` with an json [`AuthKey`](torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey)
 ///   resource. If the key was generated successfully.
 /// - `500` with serialized error in debug format. If the key couldn't be
 ///   generated.

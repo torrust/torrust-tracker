@@ -2,7 +2,7 @@
 //!
 //! It includes:
 //!
-//! - A [`factory`](crate::statistics::setup::factory) function to build the structs needed to collect the tracker metrics.
+//! - A `factory` function to build the structs needed to collect the tracker metrics.
 //! - A [`get_metrics`] service to get the tracker [`metrics`](crate::statistics::metrics::Metrics).
 //!
 //! Tracker metrics are collected using a Publisher-Subscribe pattern.
@@ -21,10 +21,10 @@
 //! There is an event listener that is receiving all the events and processing them with an event handler.
 //! Then, the event handler updates the metrics depending on the received event.
 //!
-//! For example, if you send the event [`Event::Udp4Connect`](crate::statistics::event::Event::Udp4Connect):
+//! For example, if you send the event [`Event::UdpConnect`](crate::event::Event::UdpConnect):
 //!
 //! ```text
-//! let result = event_sender.send_event(Event::Udp4Connect).await;
+//! let result = event_sender.send_event(Event::UdpConnect { connection }).await;
 //! ```
 //!
 //! Eventually the counter for UDP connections from IPv4 peers will be increased.

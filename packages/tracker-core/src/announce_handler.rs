@@ -246,7 +246,7 @@ pub enum PeersWanted {
 impl PeersWanted {
     /// Request a specific number of peers, without applying the tracker-side cap.
     ///
-    /// The cap is applied when [`limit`](PeersWanted::limit) is called.
+    /// The cap is applied when the crate-private `limit` method is called.
     #[must_use]
     pub const fn only(amount: u32) -> Self {
         Self::Only { amount: amount as usize }
@@ -256,7 +256,7 @@ impl PeersWanted {
     ///
     /// A value of `0` or negative means "as many as possible";
     /// any positive value is stored as-is and capped at the tracker limit
-    /// when [`limit`](PeersWanted::limit) is called.
+    /// when the crate-private `limit` method is called.
     #[must_use]
     pub const fn from_client_request(value: i32) -> Self {
         if value <= 0 {

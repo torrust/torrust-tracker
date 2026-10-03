@@ -5,7 +5,7 @@
 //! It delegates the `announce` logic to the [`AnnounceHandler`] and it returns
 //! the [`AnnounceData`].
 //!
-//! It also sends an [`udp_tracker_core::statistics::event::Event`]
+//! It also sends an [`Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
