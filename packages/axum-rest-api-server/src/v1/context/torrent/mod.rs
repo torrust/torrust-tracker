@@ -69,7 +69,7 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API [`Torrent`](crate::v1::context::torrent::resources::torrent::Torrent)
+//! Refer to the API [`Torrent`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::Torrent)
 //! resource for more information about the response attributes.
 //!
 //! # List torrents
@@ -109,7 +109,7 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API [`ListItem`](crate::v1::context::torrent::resources::torrent::ListItem)
+//! Refer to the API [`ListItem`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::ListItem)
 //! resource for more information about the attributes for a single item in the
 //! response.
 //!

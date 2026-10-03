@@ -5,7 +5,7 @@
 //! It delegates the `scrape` logic to the [`ScrapeHandler`] and it returns the
 //! [`ScrapeData`].
 //!
-//! It also sends an [`udp_tracker_core::statistics::event::Event`]
+//! It also sends an [`Event`]
 //! because events are specific for the UDP tracker.
 use std::net::SocketAddr;
 use std::ops::Range;

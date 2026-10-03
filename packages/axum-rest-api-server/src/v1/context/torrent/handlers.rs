@@ -21,7 +21,7 @@ use crate::v1::responses::invalid_info_hash_param_response;
 ///
 /// It returns:
 ///
-/// - `200` response with a json [`Torrent`](crate::v1::context::torrent::resources::torrent::Torrent).
+/// - `200` response with a json [`Torrent`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::Torrent).
 /// - `500` with serialized error in debug format if the torrent is not known.
 ///
 /// Refer to the [API endpoint documentation](crate::v1::context::torrent#get-a-torrent)
@@ -75,7 +75,7 @@ pub struct QueryParams {
 
 /// It handles the request to get a list of torrents.
 ///
-/// It returns a `200` response with a json array with [`crate::v1::context::torrent::resources::torrent::ListItem`] resources.
+/// It returns a `200` response with a json array with [`ListItem`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::ListItem) resources.
 ///
 /// Refer to the [API endpoint documentation](crate::v1::context::torrent#list-torrents)
 /// for more information about this endpoint.

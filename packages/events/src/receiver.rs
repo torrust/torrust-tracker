@@ -12,7 +12,7 @@ pub trait Receiver: Sync + Send {
     fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>>;
 }
 
-/// An error returned from the [`recv`] function on a [`Receiver`].
+/// An error returned from the [`recv`](Receiver::recv) function on a [`Receiver`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RecvError {
     /// There are no more active senders implying no further messages will ever

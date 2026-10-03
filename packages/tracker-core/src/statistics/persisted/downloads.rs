@@ -92,6 +92,17 @@ impl DatabaseDownloadsMetricRepository {
         self.database.load_torrent_downloads(info_hash).await
     }
 
+    /// Loads the persisted downloads of several torrents.
+    ///
+    /// Torrents without a persisted row are absent from the result.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the underlying database query fails.
+    pub(crate) async fn load_torrents_downloads(&self, info_hashes: &[InfoHash]) -> Result<NumberOfDownloadsPerInfoHash, Error> {
+        self.database.load_torrents_downloads(info_hashes).await
+    }
+
     /// Saves the persistent torrent metric into the database.
     ///
     /// This function stores or updates the download count for the torrent

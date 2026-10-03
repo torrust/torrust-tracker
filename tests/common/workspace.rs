@@ -97,6 +97,22 @@ impl TrackerApplicationFixture {
         jobs.cancel();
         jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
     }
+
+    /// Gracefully stops the tracker and starts a new application on the same
+    /// workspace, so persisted state survives while in-memory state is lost.
+    ///
+    /// Port-zero listeners get new ports; rediscover endpoints afterwards.
+    // See the per-target compilation note on `EphemeralTrackerWorkspace::path`.
+    #[allow(dead_code)]
+    pub async fn restart(&mut self) {
+        let jobs = self.jobs.take().expect("tracker jobs must be available before restart");
+        jobs.cancel();
+        jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
+
+        let (app_container, jobs) = start_tracker_with_config(&self.workspace).await;
+        self.app_container = app_container;
+        self.jobs = Some(jobs);
+    }
 }
 
 impl Drop for TrackerApplicationFixture {

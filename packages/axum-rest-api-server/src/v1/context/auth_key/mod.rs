@@ -64,7 +64,7 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API [`AuthKey`](crate::v1::context::auth_key::resources::AuthKey)
+//! Refer to the API [`AuthKey`](torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey)
 //! resource for more information about the response attributes.
 //!
 //! # Delete an authentication key

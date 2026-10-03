@@ -101,6 +101,7 @@ use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
 use crate::error::AnnounceError;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+use crate::torrent::persisted_downloads::PersistedDownloads;
 use crate::whitelist::authorization::WhitelistAuthorization;
 
 /// Handles `announce` requests from `BitTorrent` clients.
@@ -114,12 +115,8 @@ pub struct AnnounceHandler {
     /// Repository for in-memory torrent data.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
-    /// Persistent completed-statistics behavior, when configured.
-    persistent_completed_statistics: Option<PersistentCompletedStatistics>,
-}
-
-struct PersistentCompletedStatistics {
-    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
+    /// Persisted downloads lookup for swarms absent from memory.
+    persisted_downloads: PersistedDownloads,
 }
 
 impl AnnounceHandler {
@@ -134,7 +131,7 @@ impl AnnounceHandler {
             whitelist_authorization: whitelist_authorization.clone(),
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            persistent_completed_statistics: None,
+            persisted_downloads: PersistedDownloads::disabled(),
         }
     }
 
@@ -150,9 +147,7 @@ impl AnnounceHandler {
             whitelist_authorization: whitelist_authorization.clone(),
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            persistent_completed_statistics: Some(PersistentCompletedStatistics {
-                db_downloads_metric_repository: db_downloads_metric_repository.clone(),
-            }),
+            persisted_downloads: PersistedDownloads::enabled(db_downloads_metric_repository),
         }
     }
 
@@ -205,13 +200,7 @@ impl AnnounceHandler {
             return Ok(None);
         }
 
-        match &self.persistent_completed_statistics {
-            Some(statistics) => Ok(statistics
-                .db_downloads_metric_repository
-                .load_torrent_downloads(info_hash)
-                .await?),
-            None => Ok(None),
-        }
+        self.persisted_downloads.load(info_hash).await
     }
 
     /// Builds the announce data for the peer making the request.
@@ -257,7 +246,7 @@ pub enum PeersWanted {
 impl PeersWanted {
     /// Request a specific number of peers, without applying the tracker-side cap.
     ///
-    /// The cap is applied when [`limit`](PeersWanted::limit) is called.
+    /// The cap is applied when the crate-private `limit` method is called.
     #[must_use]
     pub const fn only(amount: u32) -> Self {
         Self::Only { amount: amount as usize }
@@ -267,7 +256,7 @@ impl PeersWanted {
     ///
     /// A value of `0` or negative means "as many as possible";
     /// any positive value is stored as-is and capped at the tracker limit
-    /// when [`limit`](PeersWanted::limit) is called.
+    /// when the crate-private `limit` method is called.
     #[must_use]
     pub const fn from_client_request(value: i32) -> Self {
         if value <= 0 {

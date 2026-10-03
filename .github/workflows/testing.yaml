@@ -40,10 +40,12 @@ jobs:
             components: rustfmt, clippy, llvm-tools-preview
             timeout_minutes: 45
             run_format: true
+            run_library_docs: true
           - toolchain: stable
             components: clippy, llvm-tools-preview
             timeout_minutes: 90
             run_format: false
+            run_library_docs: false
 
     steps:
       - id: checkout
@@ -100,6 +102,12 @@ jobs:
       - id: test-docs
         name: Run Documentation Tests
         run: cargo test --doc --workspace
+
+      # `cargo test --doc` does not resolve intra-doc links; this catches broken library links.
+      - id: library-docs
+        name: Build Library Documentation
+        if: ${{ matrix.run_library_docs }}
+        run: cargo doc --no-deps --lib --workspace --all-features
 
       - id: test
         name: Run Unit Tests

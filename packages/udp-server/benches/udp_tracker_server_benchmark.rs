@@ -43,7 +43,10 @@ impl ScrapeBenchmarkContext {
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&configuration.core, &in_memory_whitelist));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
+        let scrape_handler = Arc::new(ScrapeHandler::new_public(
+            &whitelist_authorization,
+            &in_memory_torrent_repository,
+        ));
         let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, Broadcaster::default()));
         let request_info_hashes = (1..=SCRAPE_TORRENT_COUNT)
             .map(|value| InfoHash([value; 20]))

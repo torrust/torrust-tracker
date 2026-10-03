@@ -5,14 +5,14 @@ use serde_json::json;
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
 /// `200` response that contains an array of
-/// [`ListItem`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::ListItem)
+/// [`ListItem`]
 /// resources as json.
 pub const fn torrent_list_response(items: Vec<ListItem>) -> Json<Vec<ListItem>> {
     Json(items)
 }
 
 /// `200` response that contains a
-/// [`Torrent`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::Torrent)
+/// [`Torrent`]
 /// resources as json.
 pub const fn torrent_info_response(torrent: Torrent) -> Json<Torrent> {
     Json(torrent)

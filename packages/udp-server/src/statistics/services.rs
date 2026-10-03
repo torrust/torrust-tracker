@@ -1,20 +1,14 @@
 //! Statistics services.
 //!
-//! It includes:
-//!
-//! - A `factory` function to build the structs needed to collect the tracker metrics.
-//! - A [`get_metrics`] service to get the tracker [`metrics`](crate::statistics::metrics::Metrics).
+//! It includes a [`get_metrics`] service to get the tracker [`metrics`](crate::statistics::metrics::Metrics).
 //!
 //! Tracker metrics are collected using a Publisher-Subscribe pattern.
 //!
-//! The factory function builds two structs:
+//! [`UdpTrackerServerServices::initialize`](crate::container::UdpTrackerServerServices::initialize)
+//! builds the two structs involved:
 //!
-//! - An statistics event [`Sender`](crate::event::sender::Sender)
+//! - An statistics event [`Sender`](crate::event::sender::Sender), taken from the services' event bus
 //! - An statistics [`Repository`]
-//!
-//! ```text
-//! let (stats_event_sender, stats_repository) = factory(tracker_usage_statistics);
-//! ```
 //!
 //! The statistics repository is responsible for storing the metrics in memory.
 //! The statistics event sender allows sending events related to metrics.

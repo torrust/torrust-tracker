@@ -1,14 +1,31 @@
 use std::str::FromStr;
 
 use ::sqlx::Row;
+use ::sqlx::mysql::MySqlRow;
 use async_trait::async_trait;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
 
 use super::{DRIVER, Mysql};
 use crate::databases::TorrentMetricsStore;
-use crate::databases::driver::TORRENTS_DOWNLOADS_TOTAL;
+use crate::databases::driver::{MAX_INFO_HASHES_PER_QUERY, TORRENTS_DOWNLOADS_TOTAL};
 use crate::databases::error::Error;
+
+fn torrent_downloads_from_row(row: &MySqlRow) -> Result<(InfoHash, NumberOfDownloads), Error> {
+    let info_hash_value: String = row.try_get("info_hash").map_err(|e| (e, DRIVER))?;
+    let completed: i64 = row.try_get("completed").map_err(|e| (e, DRIVER))?;
+    let completed = u32::try_from(completed).map_err(|e| Error::MalformedDatabaseRecord {
+        message: e.to_string(),
+        driver: DRIVER,
+    })?;
+
+    InfoHash::from_str(&info_hash_value)
+        .map(|info_hash| (info_hash, completed))
+        .map_err(|e| Error::MalformedDatabaseRecord {
+            message: format!("{e:?}"),
+            driver: DRIVER,
+        })
+}
 
 #[async_trait]
 impl TorrentMetricsStore for Mysql {
@@ -18,24 +35,30 @@ impl TorrentMetricsStore for Mysql {
             .await
             .map_err(|e| (e, DRIVER))?;
 
-        rows.into_iter()
-            .map(|row| {
-                let info_hash_value: String = row.try_get("info_hash").map_err(|e| (e, DRIVER))?;
-                let completed: i64 = row.try_get("completed").map_err(|e| (e, DRIVER))?;
-                let completed = u32::try_from(completed).map_err(|e| Error::MalformedDatabaseRecord {
-                    message: e.to_string(),
-                    driver: DRIVER,
-                })?;
+        rows.iter().map(torrent_downloads_from_row).collect()
+    }
 
-                InfoHash::from_str(&info_hash_value)
-                    .map(|info_hash| (info_hash, completed))
-                    .map_err(|e| Error::MalformedDatabaseRecord {
-                        message: format!("{e:?}"),
-                        driver: DRIVER,
-                    })
-            })
-            .collect::<Result<Vec<_>, Error>>()
-            .map(|v| v.iter().copied().collect())
+    async fn load_torrents_downloads(&self, info_hashes: &[InfoHash]) -> Result<NumberOfDownloadsPerInfoHash, Error> {
+        let mut downloads = NumberOfDownloadsPerInfoHash::new();
+
+        for chunk in info_hashes.chunks(MAX_INFO_HASHES_PER_QUERY) {
+            let mut query_builder =
+                ::sqlx::QueryBuilder::<::sqlx::MySql>::new("SELECT info_hash, completed FROM torrents WHERE info_hash IN (");
+            let mut bound_info_hashes = query_builder.separated(", ");
+            for info_hash in chunk {
+                bound_info_hashes.push_bind(info_hash.to_hex_string());
+            }
+            bound_info_hashes.push_unseparated(")");
+
+            let rows = query_builder.build().fetch_all(&self.pool).await.map_err(|e| (e, DRIVER))?;
+
+            for row in &rows {
+                let (info_hash, completed) = torrent_downloads_from_row(row)?;
+                downloads.insert(info_hash, completed);
+            }
+        }
+
+        Ok(downloads)
     }
 
     async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {

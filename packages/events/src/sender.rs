@@ -26,7 +26,7 @@ pub trait Sender: Sync + Send {
     fn send(&self, event: Self::Event) -> BoxFuture<'_, Option<Result<usize, SendError<Self::Event>>>>;
 }
 
-/// Error returned by the [`send`] function on a [`Sender`].
+/// Error returned by the [`send`](Sender::send) function on a [`Sender`].
 #[derive(Debug)]
 pub struct SendError<Event>(pub Event);
 

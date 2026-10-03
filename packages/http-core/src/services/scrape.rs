@@ -5,7 +5,7 @@
 //! It delegates the `scrape` logic to the [`ScrapeHandler`] and it returns the
 //! [`ScrapeData`].
 //!
-//! It also sends an [`http_tracker_core::statistics::event::Event`]
+//! It also sends an [`Event`]
 //! because events are specific for the HTTP tracker.
 use std::sync::Arc;
 
@@ -222,6 +222,7 @@ mod tests {
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
+    use torrust_tracker_core::databases::TorrentMetricsStore;
     use torrust_tracker_core::databases::setup::initialize_database;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
     use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -239,6 +240,7 @@ mod tests {
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
         configuration_instance_id: ConfigurationInstanceId,
+        torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
     }
 
     async fn initialize_services_with_configuration(config: &Configuration) -> Container {
@@ -259,28 +261,40 @@ mod tests {
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
 
-        let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
-            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-                &db_downloads_metric_repository,
-            ))
+        let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            (
+                Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+                Arc::new(ScrapeHandler::new_with_persistent_completed_statistics(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &db_downloads_metric_repository,
+                )),
+            )
         } else {
-            Arc::new(AnnounceHandler::new_public(
-                &config.core,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-            ))
+            (
+                Arc::new(AnnounceHandler::new_public(
+                    &config.core,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+                Arc::new(ScrapeHandler::new_public(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+            )
         };
-
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         Container {
             announce_handler,
             scrape_handler,
             authentication_service,
             configuration_instance_id,
+            torrent_metrics_store: database.torrent_metrics_store,
         }
     }
 
@@ -446,6 +460,52 @@ mod tests {
             );
 
             assert_eq!(scrape_data, expected_scrape_data);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_persisted_downloads_of_a_torrent_absent_from_memory() {
+            // Arrange
+            let mut configuration = configuration::ephemeral_public();
+            configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+            let container = initialize_services_with_configuration(&configuration).await;
+            container
+                .torrent_metrics_store
+                .save_torrent_downloads(&sample_info_hash(), 7)
+                .await
+                .unwrap();
+            let scrape_service = ScrapeService::new(
+                Arc::new(configuration.core),
+                container.scrape_handler,
+                container.authentication_service,
+                None,
+                container.configuration_instance_id,
+            );
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: None,
+                connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080)),
+            };
+            let server_service_binding =
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
+
+            // Act
+            let scrape_data = scrape_service
+                .handle_scrape(
+                    &Scrape {
+                        info_hashes: sample_info_hashes(),
+                    },
+                    &client_ip_sources,
+                    &server_service_binding,
+                    None,
+                )
+                .await
+                .unwrap();
+
+            // Assert
+            assert_eq!(
+                scrape_data.files[&sample_info_hash()],
+                SwarmMetadata::new(7, 0, 0),
+                "HTTP scrape should report the persisted downloads (7) of a torrent absent from memory"
+            );
         }
 
         #[tokio::test]

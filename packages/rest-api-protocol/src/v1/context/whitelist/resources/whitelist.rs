@@ -1,6 +1,6 @@
 //! API resources for the whitelist context.
 //!
-//! Most whitelist responses reuse the [`ActionStatus`] enum from
+//! Most whitelist responses reuse the [`ActionStatus`](crate::v1::responses::ActionStatus) enum from
 //! `rest-api-protocol::v1::responses`. This module defines the specific
 //! error type for whitelist command failures.
 use std::fmt;

@@ -105,22 +105,34 @@ impl TrackerCoreContainer {
             core_config.tracker_usage_statistics,
             core_config.tracker_policy.persistent_torrent_completed_stat,
         ));
-        let announce_handler = if core_config.tracker_policy.persistent_torrent_completed_stat {
+        let (announce_handler, scrape_handler) = if core_config.tracker_policy.persistent_torrent_completed_stat {
             let persistence = persistence.as_ref().ok_or(Error::PersistentStatisticsRequirePersistence)?;
-            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
-                core_config,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-                &persistence.db_downloads_metric_repository,
-            ))
+            (
+                Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                    core_config,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &persistence.db_downloads_metric_repository,
+                )),
+                Arc::new(ScrapeHandler::new_with_persistent_completed_statistics(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                    &persistence.db_downloads_metric_repository,
+                )),
+            )
         } else {
-            Arc::new(AnnounceHandler::new_public(
-                core_config,
-                &whitelist_authorization,
-                &in_memory_torrent_repository,
-            ))
+            (
+                Arc::new(AnnounceHandler::new_public(
+                    core_config,
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+                Arc::new(ScrapeHandler::new_public(
+                    &whitelist_authorization,
+                    &in_memory_torrent_repository,
+                )),
+            )
         };
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         Ok(Self {
             core_config: core_config.clone(),

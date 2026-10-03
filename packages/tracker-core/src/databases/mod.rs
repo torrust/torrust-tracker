@@ -7,7 +7,7 @@
 //! - [`TorrentMetricsStore`] — per-torrent and global download counters
 //! - [`WhitelistStore`] — torrent infohash whitelist
 //! - [`AuthKeyStore`] — authentication key persistence
-//! - [`Database`] — aggregate supertrait; any type that implements all four
+//! - [`Database`](traits::Database) — aggregate supertrait; any type that implements all four
 //!   narrow traits automatically satisfies `Database` via a blanket impl
 //!
 //! Design rationale: see ADR

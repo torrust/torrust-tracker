@@ -60,11 +60,18 @@ A different initial configuration requires a separate top-level file. For exampl
 | `tests/metrics/fixed_ports.rs`                    | Fixed-port aggregate metrics and routing                    |
 | `tests/metrics/udp_error_*.rs`                    | Enabled/disabled UDP cookie-error metric policy             |
 | `tests/banning/udp_metrics_disabled_port_zero.rs` | Disabled-listener banning metric                            |
+| `tests/persistence/scrape_after_restart.rs`       | Persisted scrape downloads survive an application restart  |
 | `tests/scaffold.rs`                               | Scaffolding demo — same pattern, isolated process           |
 
 Each binary defines a single `#[tokio::test]` runner that starts the tracker
 once, then calls scenario functions sequentially. Scenario functions are plain
 async functions that receive the `AppContainer` and assert behavior.
+
+To test state that must survive a restart, call
+`TrackerApplicationFixture::restart`. It gracefully stops the application and
+starts a new one on the same workspace, so persisted data remains and in-memory
+state is lost. Only one tracker instance runs at a time; rediscover port-zero
+endpoints after the restart.
 
 ### Scenario Design
 
@@ -176,6 +183,8 @@ tests/
 │   ├── port_zero.rs                  # Port-zero metrics and identity
 │   ├── udp_error_disabled_port_zero.rs # Disabled-listener error filtering
 │   └── udp_error_enabled_port_zero.rs # Enabled-listener error metrics
+├── persistence/
+│   └── scrape_after_restart.rs       # Persisted scrape downloads after a restart
 └── scaffold.rs                       # Scaffolding demo — pattern reference for new binaries
 ```
 
