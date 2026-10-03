@@ -41,15 +41,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Balanced") left five inline comments, each with its own finding ID (F1-F5) and severity bracket; the audit keeps those IDs. The review body is an overview only, so it creates no additional finding. The overview's badges rate F2, F4, and F5 `Medium severity` and F1 and F3 `Low severity`; each row records its comment's own bracket, `[Minor]` for F1 and `[Major]` for F2-F5. The replies are recorded in the Processing Log and are posted before the threads are resolved, so every thread is `OPEN` and every `Reply URL` is pending until then.
+Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Balanced") left five inline comments, each with its own finding ID (F1-F5) and severity bracket; the audit keeps those IDs. The review body is an overview only, so it creates no additional finding. The overview's badges rate F2, F4, and F5 `Medium severity` and F1 and F3 `Low severity`; each row records its comment's own bracket, `[Minor]` for F1 and `[Major]` for F2-F5. The replies recorded in the Processing Log were posted on their threads before the threads were resolved; each `Reply URL` names the posted reply.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2425-f1` | Copilot | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F2 | `review-finding:pr-2425-f2` | Copilot | Major | testing | ORIGINAL | FIXED | OPEN |
-| F3 | `review-finding:pr-2425-f3` | Copilot | Major | testing | ORIGINAL | FIXED | OPEN |
-| F4 | `review-finding:pr-2425-f4` | Copilot | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F5 | `review-finding:pr-2425-f5` | Copilot | Major | testing | ORIGINAL | FIXED | OPEN |
+| F1 | `review-finding:pr-2425-f1` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2425-f2` | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2425-f3` | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2425-f4` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2425-f5` | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -64,7 +64,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Current-tree verification: `grep -n '^branch:' docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md` prints line 10 with the `-spec` value; `.github/skills/dev/planning/create-issue/SKILL.md:286-288` states the rule.
 - Resolution reference: `docs(issues): [#2264] name the spec-only branch in the row 3 draft`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173070969>
 
 ### F2 - Record the stale-guidance reproduction before review
 
@@ -77,7 +77,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Current-tree verification: `git ls-files docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/` lists `ISSUE.md` and `manual-verification-evidence.md`; line 27 of the evidence file classifies the outcome as `Reproduced`, its Observed Result holds both records with exit `1`, and lines 154 and 204 of `ISSUE.md` state it.
 - Resolution reference: `docs(issues): [#2264] record the stale-guidance reproduction attempt for row 3`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071020>
 
 ### F3 - Split the bug regression sequence into explicit tasks
 
@@ -90,7 +90,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Current-tree verification: `grep -n -E '^\| T7[abc] ' docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md` lists T7a, T7b, and T7c at lines 176-178; `.github/skills/dev/debugging/fix-bug/SKILL.md:141-144` states the rule.
 - Resolution reference: `docs(issues): [#2264] split the row 3 stale-guidance fix into red, fix, and green tasks`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071064>
 
 ### F4 - Exempt the template-exclusion test from AC3
 
@@ -103,7 +103,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Current-tree verification: `contrib/dev-tools/checks/frontmatter-validator/tests/cli.rs:683-708` defines `it_should_skip_excluded_paths_in_every_mode` over both excluded prefixes; lines 175 and 232 of `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md` carry the T6 note and the new AC3.
 - Resolution reference: `docs(issues): [#2264] exempt the template-exclusion test from row 3 AC3`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071118>
 
 ### F5 - Make the advisory-severity scenario trigger a finding
 
@@ -116,7 +116,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - Current-tree verification: `git grep -l '^schema-version:' -- docs/refactor-plans/closed` prints nothing, which confirms the reviewer's premise; line 269 of `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md` carries the new M6.
 - Resolution reference: `docs(issues): [#2264] make the row 3 advisory-severity scenario trigger a finding`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071188>
 
 ## Processing Log
 
@@ -135,6 +135,7 @@ Copilot review 5400517694 (`COMMENTED`, "Changes recommended", review effort "Ba
 - 2026-10-03 11:51 UTC - da2ce7 - The new draft Progress Log line moved AC3 from line 231 to 232 and M6 from 268 to 269; updated the F4 and F5 verification lines, and recorded the F4 and F5 replies for posting with the corrected line numbers, replacing the 11:37 texts.
 - 2026-10-03 11:51 UTC - da2ce7 - Recorded the updated F4 thread reply for posting: FIXED. Confirmed: `contrib/dev-tools/checks/frontmatter-validator/tests/cli.rs:683-708` (`it_should_skip_excluded_paths_in_every_mode`) asserts that both `docs/templates/` and the crate fixtures are skipped in every mode. AC3 (line 232) now requires only the tests that assert issue and EPIC outcomes to pass unmodified. It names `it_should_skip_excluded_paths_in_every_mode` as the one test that changes: its `docs/templates/` case becomes template-mode coverage, while it keeps asserting the fixtures exclusion. T6 (line 175) records the change. Resolution: `docs(issues): [#2264] exempt the template-exclusion test from row 3 AC3`.
 - 2026-10-03 11:51 UTC - da2ce7 - Recorded the updated F5 thread reply for posting: FIXED. Confirmed: no tracked file under `docs/refactor-plans/closed/` declares `schema-version`, and a valid closed v1 spec yields no structural finding, so the old M6 could not show a warning. M6 (line 269) now copies a passing record into each historical location that has a strict profile: a closed v1 spec, plus a refactor plan opted into its profile if that profile is approved. It injects one unprefixed unknown field, validates the copy, and expects exactly one `warning` record and exit `0`. Resolution: `docs(issues): [#2264] make the row 3 advisory-severity scenario trigger a finding`.
+- 2026-10-03 12:08 UTC - da2ce7 - Recorded the five thread replies, posted at 2026-10-03 12:06 UTC with the texts last recorded above for posting: F1 <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173070969>, F2 <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071020>, F3 <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071064>, F4 <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071118>, F5 <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4173071188>. Set every thread state to `RESOLVED`: each concern is fixed and its reply is posted, and the five threads are resolved right after this commit reaches the PR.
 
 ## Completion Rules
 
