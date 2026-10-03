@@ -19,9 +19,11 @@ docs/discussions/
 └── 2003-overhaul-guardrails-and-automation/
     ├── 20261003-goals-and-boundaries/
     │   └── README.md
-    └── 20261003-semantic-linking-knowledge-graph/
-        ├── README.md
-        └── initial-proposal.md
+    ├── 20261003-semantic-linking-knowledge-graph/
+    │   ├── README.md
+    │   └── initial-proposal.md
+    └── 20261003-specifications-and-rationale/
+        └── README.md
 ```
 
 - Name the group folder like the issue specification folder: `<issue-number>-<slug>`.
