@@ -1,5 +1,9 @@
 # skill-link: run-tracker-locally
 # skill-link: use-rest-api
+# Disposable concurrent-verification M1 commit A trigger.
+# Disposable concurrent-verification M1 commit B trigger.
+# Disposable queued-run M1 verification commit A trigger.
+# Disposable queued-run M1 verification commit B trigger.
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
