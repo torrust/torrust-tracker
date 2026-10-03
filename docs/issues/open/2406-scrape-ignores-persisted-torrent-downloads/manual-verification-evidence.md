@@ -311,7 +311,7 @@ test it_should_scrape_the_persisted_downloads_of_a_torrent_after_a_restart ... F
  right: [SwarmMetadata { downloaded: 1, complete: 0, incomplete: 0 }, SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 }]
 ```
 
-Stability: the root restart test passed 20 of 20 consecutive runs, so the asynchronous persistence write completes before the graceful shutdown finishes.
+Stability: before restarting, the test waits under a 5-second deadline until the persisted row exists (`wait_for_persisted_downloads`). Graceful shutdown cancels the persistence listener without draining queued events, so without this wait the test could race the asynchronous write. With the wait, it passed 20 of 20 consecutive runs. An earlier version of this note claimed that 20 passing runs without the wait proved the write completed before shutdown; that was a sample, not a guarantee (review finding F7 on PR #2423).
 
 ## Test Review Against the Write-Unit-Test Guide (T9)
 
