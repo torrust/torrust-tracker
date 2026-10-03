@@ -9,6 +9,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore unreassigned -->
+
 # PR #2423 Review Audit
 
 Source: pull-request reviews and inline review threads for
@@ -280,7 +282,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - Source review ID: 5400576772
 - Reviewer finding ID: F14
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2423#discussion_r4173005956>
-- Concern: Re-raise of F14. At `cdbd2c5ed` the F14 reply said `FIXED` while the audit had no F14 or F15 rows, no Processing Log entry for review 5400353319, and the cited commit did not contain the fix.
+- Concern: Re-raise of F14. At the round-4 head, `docs(issues): add the completion-review conditions to both draft specs`, the F14 reply said `FIXED` while the audit had no F14 or F15 rows, no Processing Log entry for review 5400353319, and the cited commit did not contain the fix.
 - Solution: The F14 and F15 rows landed in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`. F14 now cites that commit, the Processing Log has the 10:40 UTC round-3 entry, and a correction records that the reply preceded the rows. The reviewer's ID F14 collides with the original finding, so this re-raise is F17.
 - Current-tree verification: F14 and F15 rows, detail entries, and Resolution references inspected; `validate-audit-record.py --pr-number 2423 --base torrust/develop` reports 0 failures.
 - Resolution reference: `docs(pr-reviews): [#2406] cite the commit that recorded F14 and clear unreassigned reviewer IDs`
@@ -299,6 +301,7 @@ badge markup; as in the PR #2397 audit, they are recorded as `Minor (inferred)` 
 - 2026-10-03 11:43 UTC - Human review 5400576772 (da2ce7, round 4, at `cdbd2c5ed`) kept the request, re-raised F14, and added F16.
 - 2026-10-03 12:13 UTC - Correction to the 11:32 entry: the F14 reply said `FIXED` and cited `docs(pr-reviews): [#2406] audit Cameron's review on #2423`, but the F14 and F15 rows landed only in `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`, pushed at 12:01 UTC after a pre-push failure caused by a full disk. F14 now cites that commit. Correction to the 08:52 entry: no reviewer ID was reassigned, so `Reviewer finding ID` for F6-F15 is now `N/A` (F16).
 - 2026-10-03 19:06 UTC - Recorded round 4 as F16 and F17 (re-raise of F14, renumbered because the ID is taken). Pushed the fix before replying to either thread.
+- 2026-10-03 19:47 UTC - Human review 5400661243 (da2ce7, round 5, 12:09 UTC, at `docs(pr-reviews): [#2406] record round-3 findings F14 and F15 on #2423`) raised no new finding; its pre-merge list is the work recorded as F16 and F17, and the 19:05 push dismissed it. Human review 5402386212 (da2ce7, round 7, 19:25 UTC) approved and added F18 and F19. Correction to the 10:40 and 11:43 entries (F18): the round-3 head is `docs(issues): draft ADR task for prose-style tests as the executable specification` and the round-4 head is `docs(issues): add the completion-review conditions to both draft specs`; heads are named by subject because a rebase rewrites commit ids.
 
 ## Completion Rules
 
