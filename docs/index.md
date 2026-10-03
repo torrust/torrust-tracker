@@ -6,6 +6,7 @@ semantic-links:
     - docs/AGENTS.md
     - docs/analysis/AGENTS.md
     - docs/research/AGENTS.md
+    - docs/discussions/AGENTS.md
     - docs/architecture/README.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/benchmarking.md
@@ -99,6 +100,15 @@ project. Research looks outward — at how other projects solve similar problems
 | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | [research/AGENTS.md](research/AGENTS.md)                                                     | Overview of the research folder and its conventions            |
 | [research/20260716-console-shutdown-patterns/](research/20260716-console-shutdown-patterns/) | How console apps handle SIGINT, SIGTERM, and graceful shutdown |
+
+## Discussions
+
+Design discussions and their draft conclusions, kept for review by the owner of the affected work.
+A discussion is input, not a decision.
+
+| Location                                                                                                                                                       | Description                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [discussions/AGENTS.md](discussions/AGENTS.md)                                                                                                                 | Overview of the discussions folder and its conventions            |
 
 ## External Source Snapshots
 
