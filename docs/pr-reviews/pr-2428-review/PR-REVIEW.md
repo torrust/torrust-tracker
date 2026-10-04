@@ -55,6 +55,12 @@ audit` with no new finding, so it adds no row. Copilot review 5402455515 at the 
 two findings that carry their own `[Minor][F7]` and `[Minor][F8]` brackets; those IDs are also the
 next free ordinals, so they are kept.
 
+Round 3: review 5402713128 by da2ce7 approved the head `docs(pr-reviews): record review round 2 of
+PR #2428` with three Nits that carry his own IDs, F9 to F11, which are also the next free
+ordinals. Its answers to the specifications-and-rationale discussion's open questions, and his
+request to transcribe the round-1 answers (comment 5973427591), request no review change, so they
+have no rows; they are recorded in the discussions' Outcome sections.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2428-f1` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -65,6 +71,9 @@ next free ordinals, so they are kept.
 | F6 | `review-finding:pr-2428-f6` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2428-f7` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2428-f8` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2428-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2428-f10` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2428-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -207,6 +216,54 @@ next free ordinals, so they are kept.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174782481>
 
+### F9 - The Informs row named EPIC #2003 by its folder slug
+
+- PR number: 2428
+- Source review ID: 5402713128
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174831538>
+- Concern: The specifications-and-rationale README's Informs row read "EPIC #2003 - Overhaul
+  guardrails and automation", the folder slug, while the EPIC's title is "Overhaul: Automation
+  Tools and AI Agent Guardrails".
+- Solution: The row now uses the EPIC's title; the header table stays padded to one row length.
+- Current-tree verification: `git grep -n "Informs" HEAD -- docs/discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md`
+  matches line 24 with "EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails".
+- Resolution reference: `docs(discussions): name EPIC #2003 by its title in the specifications discussion`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4176673122>
+
+### F10 - The issue template asks to address its conditional sections, not to carry them out
+
+- PR number: 2428
+- Source review ID: 5402713128
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174831542>
+- Concern: The discussion said the template asks every issue for a bug-fix process, a regression
+  test strategy, and a design and ownership review, but each section tells a non-applicable issue
+  to write `Not applicable`.
+- Solution: Used the reviewer's wording: the template asks every issue to address those sections,
+  even if only to mark them `Not applicable`.
+- Current-tree verification: `git grep -n "even if only to mark them" HEAD -- docs/discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md`
+  matches line 285 of the specifications-and-rationale README.
+- Resolution reference: `docs(discussions): say the issue template asks only to address its conditional sections`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4176673257>
+
+### F11 - F7 and F8 recorded Copilot's IDs as reviewer finding IDs
+
+- PR number: 2428
+- Source review ID: 5402713128
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174831544>
+- Concern: `Reviewer finding ID` records an original ID only when the audit changed it, and is
+  `N/A` otherwise; F7 and F8 kept Copilot's IDs but recorded `F7` and `F8`.
+- Solution: Both entries now record `N/A`, as F1 to F5 do.
+- Current-tree verification: `git grep -n "Reviewer finding ID" HEAD -- docs/pr-reviews/pr-2428-review/PR-REVIEW.md`
+  lists `N/A` for every finding.
+- Resolution reference: `docs(pr-reviews): record N/A reviewer finding IDs for F7 and F8 on PR #2428`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4176673362>
+
 ## Processing Log
 
 - 2026-10-03 12:01 UTC - Copilot review 5400634431 posted one finding (F6).
@@ -233,6 +290,19 @@ next free ordinals, so they are kept.
   (none), then pushed it.
 - 2026-10-03 20:46 UTC - Replied on the F7 and F8 threads.
 - 2026-10-03 20:47 UTC - `reply-status` reported both unresolved threads replied; resolved them.
+- 2026-10-03 20:49 UTC - Asked da2ce7 to answer the specifications-and-rationale open questions and
+  re-requested his review.
+- 2026-10-03 20:59 UTC - Review 5402713128 by da2ce7 (round 3) approved with three Nits (F9 to
+  F11) and answered the four open questions; ACK comment 5973427427, and comment 5973427591 asked
+  the author to transcribe the round-1 answers into the Outcome sections.
+- 2026-10-04 07:25 UTC - Rebased the branch onto the latest `develop`.
+- 2026-10-04 08:00 UTC - Committed the F9, F10, and F11 fixes, the round-1 transcriptions, and the
+  round-3 answers, after checking for reviews newer than round 3 (none).
+- 2026-10-04 08:02 UTC - Force-pushed the rebased branch. GitHub dismissed the approval of review
+  5402713128 on that push.
+- 2026-10-04 08:03 UTC - Replied on the F9, F10, and F11 threads.
+- 2026-10-04 08:04 UTC - `reply-status` reported the three unresolved threads replied; resolved
+  them.
 
 ## Completion Rules
 
