@@ -179,7 +179,7 @@ next free ordinals, so they are kept.
 
 - PR number: 2428
 - Source review ID: 5402455515
-- Reviewer finding ID: F7
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174590133>
 - Concern: The owner-metadata commit changed `epic-owner` in the #2264 EPIC spec but left
   `last-updated-utc` at 2026-09-30, which the repository treats as stale metadata.
@@ -195,7 +195,7 @@ next free ordinals, so they are kept.
 
 - PR number: 2428
 - Source review ID: 5402455515
-- Reviewer finding ID: F8
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2428#discussion_r4174590151>
 - Concern: The owner-metadata commit changed `epic-owner` in the #2278 EPIC spec but left
   `last-updated-utc` at 2026-09-28, which the repository treats as stale metadata.
