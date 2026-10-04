@@ -21,7 +21,7 @@ semantic-links:
 | Started      | 2026-10-03                                                                                                       |
 | Participants | Jose Celano (sources, the position on tests, the missing homes for the why); GitHub Copilot (analysis and draft) |
 | Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003                                                                       |
-| Informs      | EPIC #2003 - Overhaul guardrails and automation                                                                  |
+| Informs      | EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails                                                  |
 | Scope        | Specification lifecycle in aspect 2 of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md)        |
 
 ## Why This Discussion
