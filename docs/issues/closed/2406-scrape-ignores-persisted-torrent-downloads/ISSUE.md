@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: null
 github-issue: 2406
-spec-path: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
+spec-path: docs/issues/closed/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: 2423
-last-updated-utc: "2026-10-03 07:48"
+last-updated-utc: "2026-10-04 07:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -181,15 +181,15 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation; implementation begins in a separate follow-up branch after this specification is merged
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Initial manual reproduction executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Final manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -205,6 +205,7 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - 2026-10-02 20:28 UTC - Copilot - Fixed the five Copilot review findings on #2423 in separate commits - [PR review audit](../../../pr-reviews/pr-2423-review/PR-REVIEW.md).
 - 2026-10-03 07:16 UTC - Copilot - Maintainer asked to review every new test against the repository test guides. Fixed the smells found (combined behaviors, hidden seeder state, multiple field assertions, missing AAA markers and assertion messages, one restart scenario covering two protocols) - [manual-verification-evidence.md](manual-verification-evidence.md) T9.
 - 2026-10-03 07:48 UTC - Copilot - Maintainer separated the domain behavior from the technical decision: the ADR was renamed to `20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md` and keeps only the lookup design; the behavior contract moved to the `ScrapeHandler` module Rustdoc, which names the prose-style tests that specify it. Earlier links in this log were updated to the new ADR path.
+- 2026-10-04 07:57 UTC - Copilot - Human review (da2ce7) on #2423 ran seven rounds (F6-F19) and approved the final head; the pre-push suite and CI passed on it. #2423 was merged at 07:24 UTC as `a3914e03c` and closed #2406. Archived this spec to `docs/issues/closed/`. The reviewer-validation and agent-review-report checkpoints stay unchecked: no acceptance-criteria validation or agent review report was recorded for this specification. The review findings are in the [PR review audit](../../../pr-reviews/pr-2423-review/PR-REVIEW.md).
 
 ## Acceptance Criteria
 
@@ -213,8 +214,8 @@ Every test-producing increment requires the `write-unit-test` skill's prose-firs
 - [x] AC3: With persistence disabled, scrape does not read the database.
 - [x] AC4: Announce behavior and the global downloads metric remain unchanged.
 - [x] AC5: A maintained regression test fails against the broken behavior and passes after the fix.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass on the stable Rust toolchain.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass on the stable Rust toolchain.
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [x] Documentation is updated when behavior or workflow changes.
@@ -263,7 +264,7 @@ None planned. The durable behavior is covered by a maintained Rust regression te
 
 After implementation, compare observed behavior with this specification. Record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: Not needed. The only material discovery (scrape scope semantics) is captured in the research document and ADR; the test boundary and design held as planned.
+- Retrospective: Not needed. The only material discovery (scrape scope semantics) is captured in the research document, the `ScrapeHandler` Rustdoc contract, and the ADR; the test boundary and design held as planned. The review rounds on #2423 found process slips (a `FIXED` reply posted before its fix was pushed, branch heads named by commit id) that break existing `process-pr-review` rules; they are recorded in the PR review audit rather than as new lessons.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` if the selected design, test boundary, or validation findings yield a reusable lesson. Otherwise add a concise progress-log entry explaining why no retrospective was needed.
 - When an independent reviewer receives this folder-style specification, record its result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
