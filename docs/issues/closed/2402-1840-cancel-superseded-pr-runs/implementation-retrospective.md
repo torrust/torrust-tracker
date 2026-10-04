@@ -1,11 +1,11 @@
 ---
 doc-type: implementation-retrospective
 issue-spec: docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
-last-updated-utc: 2026-10-04 10:30
+last-updated-utc: 2026-10-04 19:07
 semantic-links:
   related-artifacts:
-    - ISSUE.md
-    - manual-verification-evidence.md
+      - docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
+      - docs/issues/closed/2402-1840-cancel-superseded-pr-runs/manual-verification-evidence.md
 ---
 
 # Implementation Retrospective - Issue #2402

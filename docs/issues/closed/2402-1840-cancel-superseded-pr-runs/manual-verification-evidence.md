@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
-last-updated-utc: 2026-10-04 10:30
+last-updated-utc: 2026-10-04 19:07
 semantic-links:
   related-artifacts:
-    - ISSUE.md
+    - docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
 ---

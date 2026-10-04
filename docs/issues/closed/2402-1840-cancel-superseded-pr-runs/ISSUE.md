@@ -9,7 +9,7 @@ github-issue: 2402
 spec-path: docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
 related-pr: 2419
-last-updated-utc: "2026-10-04 10:34"
+last-updated-utc: "2026-10-04 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -218,6 +218,9 @@ marker; review that skill when changing them.
 - 2026-10-04 10:34 UTC - josecelano, GitHub Copilot - Reconciled the completed manual-verification
   and acceptance-review checkboxes with their supporting M1/M2 evidence and passed independent
   review.
+- 2026-10-04 19:09 UTC - josecelano, GitHub Copilot - Addressed both Copilot PR #2433 review
+  findings by replacing bare `related-artifacts` filenames with repository-relative paths in the
+  archived manual evidence and retrospective metadata.
 
 ## Acceptance Criteria
 
