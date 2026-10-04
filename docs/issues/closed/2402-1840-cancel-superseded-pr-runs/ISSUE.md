@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1840
 github-issue: 2402
-spec-path: docs/issues/open/2402-1840-cancel-superseded-pr-runs/ISSUE.md
+spec-path: docs/issues/closed/2402-1840-cancel-superseded-pr-runs/ISSUE.md
 branch: "2402-1840-cancel-superseded-pr-runs"
 related-pr: 2419
-last-updated-utc: "2026-10-02 18:21"
+last-updated-utc: "2026-10-04 10:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -129,7 +129,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Cancel superseded `Container` runs | `concurrency` block in `container.yaml`, with a one-line comment linking this issue.                           |
 | T2  | DONE   | Cancel superseded `Testing` runs   | The same block in `testing.yaml`.                                                                               |
 | T3  | DONE   | Update the operations guide       | `docs/self-hosted-runner.md` "Add Runner Capacity" states that superseded pull-request runs are cancelled.      |
-| T4  | TODO   | Verify on real runs               | M1 and M2 in issue-local `manual-verification-evidence.md`.                                                     |
+| T4  | DONE   | Verify on real runs               | M1 and M2 are recorded in issue-local `manual-verification-evidence.md`.                                        |
 | T5  | DONE   | Update EPIC #1840                 | Row 18 for this issue.                                                                                          |
 
 ## Commit Points
@@ -154,13 +154,13 @@ marker; review that skill when changing them.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, pre-commit checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -183,19 +183,54 @@ marker; review that skill when changing them.
 - 2026-10-02 18:21 UTC - josecelano, GitHub Copilot - Addressed Copilot review findings on #2419:
   the runner runbook now warns against rerunning stale cancelled runs, and the completed `linter all`
   acceptance criterion is marked done.
+- 2026-10-03 11:24 UTC - josecelano, GitHub Copilot - M1 confirmed cancellation and successful
+  replacements, but independent review found that its #2420 control run was not concurrent. M1
+  remains in progress pending a rerun with an active control. M2 completed on the approved fork
+  fallback: both target workflows succeeded for each of two overlapping `develop` pushes. Evidence
+  and the fork-publication limitation are recorded in `manual-verification-evidence.md` and
+  `implementation-retrospective.md`.
+- 2026-10-03 12:16 UTC - josecelano, GitHub Copilot - Reran M1 with concurrent control PR #2426
+  and verification PR #2427. Both superseded verification runs were cancelled; both replacement
+  and control runs succeeded. Independent review can now validate AC3.
+- 2026-10-03 19:03 UTC - josecelano, GitHub Copilot - Independent review confirmed the rerun
+  proved running-run cancellation and AC3, but not queued-run cancellation. T4 and AC1 remain
+  pending a dedicated queued-run scenario.
+- 2026-10-04 08:09 UTC - josecelano, GitHub Copilot - Recorded the dedicated queued-run M1
+  scenario as complete. The subsequent independent review found that A's target jobs had already
+  started before B cancelled them, so this did not prove queued-run cancellation.
+- 2026-10-04 08:33 UTC - Task Reviewer - Independent completion review failed: M1 still lacks
+  proof that a queued target job is cancelled, and `agent-review-reports.md` is now recorded with
+  the findings. T4, AC1, manual verification, and the post-implementation acceptance review
+  remain pending.
+- 2026-10-04 10:26 UTC - josecelano, GitHub Copilot - Reran M1 with control commit
+  `99b47d67`, verification A `be79b16a`, and verification B `4cbe7a8d`. Immediately before B,
+  A's self-hosted `Container` job was `queued` with no runner assigned. B cancelled A's
+  `Container` and active `Testing` runs; both B replacements and the control `Container`
+  succeeded. T4, AC1, manual verification, and the post-implementation acceptance review are
+  complete pending a new independent review.
+- 2026-10-04 10:29 UTC - Task Reviewer - Independent re-review passed all acceptance criteria.
+  Corrected the evidence date range to include 2026-10-04 and appended the review report. The
+  reviewer and report checkpoints are complete; GitHub issue closure and archival remain pending.
+- 2026-10-04 10:30 UTC - josecelano, GitHub Copilot - Closed GitHub issue #2402 and disposable
+  verification PRs #2426 and #2427, then archived this issue record in `docs/issues/closed/`.
+- 2026-10-04 10:33 UTC - josecelano, GitHub Copilot - Completed the stale-reference audit,
+  `linter all`, and mandatory pre-commit gate; the archived specification is ready to commit.
+- 2026-10-04 10:34 UTC - josecelano, GitHub Copilot - Reconciled the completed manual-verification
+  and acceptance-review checkboxes with their supporting M1/M2 evidence and passed independent
+  review.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A newer push to a pull request cancels that pull request's older `Container` and
+- [x] AC1: A newer push to a pull request cancels that pull request's older `Container` and
       `Testing` runs, whether queued or running.
-- [ ] AC2: Push runs, including consecutive pushes to `develop`, are never cancelled or replaced.
-- [ ] AC3: A newer run of one workflow does not cancel the other workflow's run for the same
+- [x] AC2: Push runs, including consecutive pushes to `develop`, are never cancelled or replaced.
+- [x] AC3: A newer run of one workflow does not cancel the other workflow's run for the same
       commit, and a pull request's runs do not cancel another pull request's runs.
 - [x] AC4: `docs/self-hosted-runner.md` states that superseded pull-request runs are cancelled.
 - [x] AC5: EPIC #1840 lists this issue.
 - [x] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -210,8 +245,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                        | Human-oriented command/steps                                                                                                                  | Expected Result                                                                                   | Status | Evidence                                     |
 | --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Superseded pull-request run     | 1. Have a control pull request open with a non-documentation change (another open pull request, or a disposable draft one) whose `Container` run is queued or running. 2. Push commit A to the implementation pull request and wait until `gh run list --branch <branch> --json workflowName,headSha,status` shows both its `Container` and `Testing` runs `queued` or `in_progress`. 3. Push commit B. 4. Inspect each run with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | Commit A's `Container` and `Testing` runs end `cancelled`; commit B's `Container` and `Testing` runs both complete; the control pull request's run is not `cancelled` | IN_PROGRESS | `manual-verification-evidence.md` section V1 |
-| M2  | Push runs are kept              | After the merge, push two commits to `develop` so that the second push's runs start while the first push's `Container` and `Testing` runs are still queued or running (two merges in quick succession). If no such overlap occurs, repeat on a fork's `develop` with Actions enabled, where both workflows run on `ubuntu-latest`. Inspect all four runs with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | All four runs complete, none `cancelled`; upstream, both `Container` runs publish (`Publish (Development)` succeeds) | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Superseded pull-request run     | 1. Have a control pull request open with a non-documentation change (another open pull request, or a disposable draft one) whose `Container` run is queued or running. 2. Push commit A to the implementation pull request and wait until `gh run list --branch <branch> --json workflowName,headSha,status` shows both its `Container` and `Testing` runs `queued` or `in_progress`. 3. Push commit B. 4. Inspect each run with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | Commit A's `Container` and `Testing` runs end `cancelled`; commit B's `Container` and `Testing` runs both complete; the control pull request's run is not `cancelled` | DONE | `manual-verification-evidence.md` section V1 |
+| M2  | Push runs are kept              | After the merge, push two commits to `develop` so that the second push's runs start while the first push's `Container` and `Testing` runs are still queued or running (two merges in quick succession). If no such overlap occurs, repeat on a fork's `develop` with Actions enabled, where both workflows run on `ubuntu-latest`. Inspect all four runs with `gh run view <run-id> --json workflowName,headSha,status,conclusion`. | All four runs complete, none `cancelled`; upstream, both `Container` runs publish (`Publish (Development)` succeeds) | DONE | `manual-verification-evidence.md` section V2 (publication is repository-gated and not executed by the fork fallback) |
 
 ### Disposable Verification Scripts
 
@@ -221,10 +256,10 @@ None.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | `manual-verification-evidence.md` V1 |
+| AC2   | DONE                   | `manual-verification-evidence.md` V2 |
+| AC3   | DONE                   | `manual-verification-evidence.md` V1 |
+| AC4   | DONE                   | `docs/self-hosted-runner.md` |
 | AC5   | DONE                   | EPIC #1840 row 18 |
 
 ## Risks and Trade-offs
@@ -240,7 +275,8 @@ None.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `implementation-retrospective.md` records material fallback-verification findings,
+  the review-driven concurrent-control rerun, and the remaining queued-run scenario.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a progress-log
   entry explaining why not.
