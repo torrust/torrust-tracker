@@ -5,6 +5,7 @@
 # Disposable queued-run M1 verification commit A trigger.
 # Disposable queued-run M1 verification commit B trigger.
 # Disposable queued-job M1 verification commit A trigger.
+# Disposable queued-job M1 verification commit B trigger.
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
