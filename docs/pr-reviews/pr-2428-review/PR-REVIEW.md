@@ -61,6 +61,11 @@ ordinals. Its answers to the specifications-and-rationale discussion's open ques
 request to transcribe the round-1 answers (comment 5973427591), request no review change, so they
 have no rows; they are recorded in the discussions' Outcome sections.
 
+Round 4: review 5407197495 by da2ce7 approved the head `docs(pr-reviews): record review round 3
+of PR #2428`, rebased onto `develop`, with no new finding, so it adds no row. Its position on the
+prose-tests ADR draft asks for a revision of the specifications-and-rationale Outcome, which is
+recorded there.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2428-f1` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -303,6 +308,13 @@ have no rows; they are recorded in the discussions' Outcome sections.
 - 2026-10-04 08:03 UTC - Replied on the F9, F10, and F11 threads.
 - 2026-10-04 08:04 UTC - `reply-status` reported the three unresolved threads replied; resolved
   them.
+- 2026-10-04 08:08 UTC - Posted the round-3 summary comment and re-requested review from da2ce7.
+- 2026-10-04 08:33 UTC - Rebased onto `develop` at the merge that archives the issue #2406
+  specification and force-pushed, after checking for new reviews (none).
+- 2026-10-04 16:39 UTC - Review 5407197495 by da2ce7 (round 4) approved with no new finding,
+  confirmed the three Outcome transcriptions, and asked to reference the prose-tests ADR draft in
+  the specifications Outcome and revise its answer 3; ACK comment 5982180312.
+- 2026-10-04 16:54 UTC - Committed the specifications Outcome revision.
 
 ## Completion Rules
 
