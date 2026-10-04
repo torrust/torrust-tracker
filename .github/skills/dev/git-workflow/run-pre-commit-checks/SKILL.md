@@ -175,6 +175,7 @@ Verify these by hand before committing:
 
 ```bash
 cargo +nightly doc --no-deps --bins --examples --workspace --all-features
+cargo +nightly doc --no-deps --lib --workspace --all-features
 ```
 
 ## Troubleshooting Output Modes

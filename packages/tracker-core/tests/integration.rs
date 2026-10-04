@@ -57,6 +57,70 @@ async fn it_should_handle_the_scrape_request() {
     assert!(scrape_data.files.contains_key(&info_hash));
 }
 
+// issue: #2406
+#[tokio::test]
+async fn it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory() {
+    // Arrange
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let test_env = TestEnv::started(core_config).await;
+    let info_hash = sample_info_hash();
+    test_env.persist_torrent_downloads(&info_hash, 7).await;
+
+    // Act
+    let scrape_data = test_env.scrape(&info_hash).await;
+
+    // Assert
+    assert_eq!(
+        scrape_data.files[&info_hash],
+        SwarmMetadata {
+            downloaded: 7,
+            complete: 0,
+            incomplete: 0
+        },
+        "scrape of a torrent absent from memory should report its persisted downloads (7) with persistence enabled"
+    );
+}
+
+#[tokio::test]
+async fn it_should_not_load_a_scraped_torrent_into_memory() {
+    // Arrange
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let test_env = TestEnv::started(core_config).await;
+    let info_hash = sample_info_hash();
+    test_env.persist_torrent_downloads(&info_hash, 7).await;
+
+    // Act
+    let _scrape_data = test_env.scrape(&info_hash).await;
+
+    // Assert
+    assert!(
+        test_env.get_swarm_metadata(&info_hash).await.is_none(),
+        "scrape must not insert a swarm for a torrent that was only persisted"
+    );
+}
+
+#[tokio::test]
+async fn it_should_not_scrape_persisted_downloads_when_the_persistent_completed_stat_is_disabled() {
+    // Arrange
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = false;
+    let test_env = TestEnv::started(core_config).await;
+    let info_hash = sample_info_hash();
+    test_env.persist_torrent_downloads(&info_hash, 7).await;
+
+    // Act
+    let scrape_data = test_env.scrape(&info_hash).await;
+
+    // Assert
+    assert_eq!(
+        scrape_data.files[&info_hash],
+        SwarmMetadata::zeroed(),
+        "scrape should ignore the persisted downloads (7) when persistent_torrent_completed_stat is disabled"
+    );
+}
+
 #[tokio::test]
 async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_the_database() {
     let mut core_config = ephemeral_configuration();

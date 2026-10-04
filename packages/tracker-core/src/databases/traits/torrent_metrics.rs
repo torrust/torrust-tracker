@@ -44,6 +44,16 @@ pub trait TorrentMetricsStore: Sync + Send {
     /// Returns an [`Error`] if the metrics cannot be loaded.
     async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error>;
 
+    /// Loads torrent metrics data from the database for several torrents.
+    ///
+    /// Torrents without a persisted row are absent from the result. Drivers
+    /// split large inputs into queries of bounded size.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the metrics cannot be loaded.
+    async fn load_torrents_downloads(&self, info_hashes: &[InfoHash]) -> Result<NumberOfDownloadsPerInfoHash, Error>;
+
     /// Saves torrent metrics data into the database.
     ///
     /// # Arguments

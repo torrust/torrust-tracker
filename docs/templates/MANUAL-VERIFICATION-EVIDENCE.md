@@ -12,6 +12,22 @@ Record real, human-oriented verification of the completed behavior. This is
 evidence from commands or interactions actually performed against the artifact;
 do not invent commands, output, logs, or results.
 
+## Preserving Verification Artifacts
+
+`.tmp/` and other git-ignored paths are not part of the repository, so a path
+there is not evidence once the run ends. Record everything a reviewer needs in
+this issue folder:
+
+- Embed small artifacts, such as a tracker configuration file, verbatim in
+  this document.
+- Store larger artifacts, such as full logs or captured responses, in an
+  `evidence/` subfolder of the issue folder and link them from here.
+- Record runtime outputs (database rows, responses, relevant log lines) inline
+  in each process.
+
+A local `.tmp/` path may still be mentioned to show where a run wrote its
+files, but never as the only copy of something the evidence relies on.
+
 ## Environment and Prerequisites
 
 - Date and time (UTC):

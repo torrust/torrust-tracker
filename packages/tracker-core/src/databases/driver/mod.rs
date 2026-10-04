@@ -7,6 +7,13 @@ use super::error::Error;
 /// Metric name in DB for the total number of downloads across all torrents.
 pub(super) const TORRENTS_DOWNLOADS_TOTAL: &str = "torrents_downloads_total";
 
+/// Maximum number of info-hashes bound in one `IN (...)` torrent lookup.
+///
+/// A full UDP scrape (about 74 info-hashes, BEP 15) fits in one query. The
+/// value is deliberately independent of protocol request limits, which exist
+/// for other reasons and may grow.
+pub(super) const MAX_INFO_HASHES_PER_QUERY: usize = 100;
+
 pub mod mysql;
 pub mod postgres;
 pub mod sqlite;
@@ -24,6 +31,8 @@ pub(crate) mod tests {
         handling_torrent_persistence::it_should_save_and_load_persistent_torrents(driver).await;
         handling_torrent_persistence::it_should_load_all_persistent_torrents(driver).await;
         handling_torrent_persistence::it_should_increase_the_number_of_downloads_for_a_given_torrent(driver).await;
+        handling_torrent_persistence::it_should_load_the_persisted_downloads_of_the_requested_torrents_only(driver).await;
+        handling_torrent_persistence::it_should_load_the_persisted_downloads_of_more_torrents_than_fit_in_one_query(driver).await;
         handling_torrent_persistence::it_should_save_and_load_the_global_number_of_downloads(driver).await;
         handling_torrent_persistence::it_should_load_the_global_number_of_downloads(driver).await;
         handling_torrent_persistence::it_should_increase_the_global_number_of_downloads(driver).await;
@@ -65,8 +74,18 @@ pub(crate) mod tests {
 
         use std::sync::Arc;
 
+        use torrust_info_hash::InfoHash;
+        use torrust_tracker_primitives::NumberOfDownloadsPerInfoHash;
+
+        use crate::databases::driver::MAX_INFO_HASHES_PER_QUERY;
         use crate::databases::traits::Database;
         use crate::test_helpers::tests::sample_info_hash;
+
+        fn numbered_info_hash(number: u32) -> InfoHash {
+            let mut bytes = [0xAB; 20];
+            bytes[..4].copy_from_slice(&number.to_be_bytes());
+            InfoHash(bytes)
+        }
 
         // Metrics per torrent
 
@@ -107,6 +126,51 @@ pub(crate) mod tests {
             let number_of_downloads = driver.load_torrent_downloads(&infohash).await.unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 2);
+        }
+
+        // adr: docs/adrs/20261002173716_load_persisted_scrape_downloads_with_a_batched_uncached_lookup.md
+        pub async fn it_should_load_the_persisted_downloads_of_the_requested_torrents_only(driver: &Arc<Box<dyn Database>>) {
+            // Arrange
+            let persisted = numbered_info_hash(1);
+            let not_requested = numbered_info_hash(2);
+            let not_persisted = numbered_info_hash(3);
+            driver.save_torrent_downloads(&persisted, 5).await.unwrap();
+            driver.save_torrent_downloads(&not_requested, 6).await.unwrap();
+
+            // Act
+            let downloads = driver.load_torrents_downloads(&[persisted, not_persisted]).await.unwrap();
+
+            // Assert
+            assert_eq!(
+                downloads,
+                NumberOfDownloadsPerInfoHash::from([(persisted, 5)]),
+                "only requested torrents with a persisted row should be returned"
+            );
+        }
+
+        pub async fn it_should_load_the_persisted_downloads_of_more_torrents_than_fit_in_one_query(
+            driver: &Arc<Box<dyn Database>>,
+        ) {
+            // Arrange
+            let torrents = u32::try_from(MAX_INFO_HASHES_PER_QUERY).unwrap() + 1;
+            let mut expected = NumberOfDownloadsPerInfoHash::new();
+            for number in 100..100 + torrents {
+                driver
+                    .save_torrent_downloads(&numbered_info_hash(number), number)
+                    .await
+                    .unwrap();
+                expected.insert(numbered_info_hash(number), number);
+            }
+            let info_hashes: Vec<InfoHash> = expected.keys().copied().collect();
+
+            // Act
+            let downloads = driver.load_torrents_downloads(&info_hashes).await.unwrap();
+
+            // Assert
+            assert_eq!(
+                downloads, expected,
+                "all {torrents} torrents should be loaded across chunks of {MAX_INFO_HASHES_PER_QUERY} info-hashes"
+            );
         }
 
         // Aggregate metrics for all torrents

@@ -46,6 +46,8 @@ declare -a STEPS=(
     "Checking format with nightly toolchain|cargo +nightly fmt --check"
     "Checking workspace with nightly toolchain|cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features"
     "Building documentation with nightly toolchain|cargo +nightly doc --no-deps --bins --examples --workspace --all-features"
+    # Separate from the binaries step: some dev-tool crates share a lib and bin name, which collides in one run.
+    "Building library documentation with nightly toolchain|cargo +nightly doc --no-deps --lib --workspace --all-features"
     "Running all tests|cargo +stable test --tests --benches --examples --workspace --all-targets --all-features"
 )
 
