@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/services/announce.rs
-status: in-progress
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/services/announce.rs
@@ -62,13 +62,22 @@ in-file announce request builder; `udp-server`'s builder is not shared across pa
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests to refactor. | Recorded above. |
-| R2 | TODO | Add R2a-R2g. | Focused `services::announce` tests, nightly formatting, `git diff --check`, prose-first AAA review. |
+| R2 | DONE | Add R2a-R2g. | 7 focused `services::announce` tests passed; nightly formatting, pedantic Clippy, and `git diff --check` clean; R2d failed under a temporary authenticate/authorize order swap. |
 | R3 | SKIPPED | No integration increment: the service has no network boundary. | Explicit rationale. |
-| R4 | TODO | Re-run unit-only coverage; record before/after. | File and package results in this plan and `coverage-evidence.md`. |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 0 / 101 to 338 / 347 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals):** 0 / 101 (0.00%) to 338 / 347 (97.41%)
+  lines; 0 / 14 to 41 / 44 functions; 0 / 102 to 376 / 389 regions. The denominator grows because the
+  measurement includes the new test module.
+- **Residual uncovered lines:** the `configuration_instance_id()` and `public_url()` accessors
+  and the deliberately unselected `From<AnnounceError>` adaptation. No untested service decision
+  remains.
+- **Tests added:** 7 (R2a-R2g), using an in-file fixture that owns the torrent repository for
+  state assertions.
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-04.
 
 ## Approval
 
@@ -83,3 +92,9 @@ Approved by Jose Celano on 2026-10-02: R2a-R2g, the fixture approach, and not te
 - 2026-10-02 18:43 UTC - Jose Celano - Approved the plan. R2 is paused until the maintainer's
   bug-fix PR, which adds tests to this package, merges. After rebasing, re-check R2a-R2g against
   those tests and drop any they already cover.
+- 2026-10-04 09:48 UTC - GitHub Copilot - Rebased onto `develop` after PR #2423 merged. #2423
+  changed only doc comments in `udp-core` and added no tests overlapping R2a-R2g, so all seven
+  were kept. Implemented R2 and measured R4 (stable Rust 1.99.0, nightly 1.101.0,
+  `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-04 10:35 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.

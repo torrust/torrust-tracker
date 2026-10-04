@@ -22,7 +22,7 @@ maintainer approves it.
 
 | Order | Plan | State | Result |
 | ---: | --- | --- | --- |
-| 1 | [services-announce-tests.md](services-announce-tests.md) | IN_PROGRESS | Plan approved; R2 paused for the maintainer's bug-fix PR |
+| 1 | [services-announce-tests.md](services-announce-tests.md) | DONE | 7 unit tests added; unit-only 0.00% → 97.41% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

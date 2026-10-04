@@ -284,7 +284,7 @@ lines are the T1 measurement.
 
 | Order | Source module | Rank | Unit-only lines | T1 hypothesis | State | Plan |
 | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
+| 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
@@ -359,6 +359,11 @@ lines are the T1 measurement.
   T4 is paused: the maintainer is fixing a bug that adds tests to this package. Rebase onto
   `develop` after that PR merges, then re-check the announce plan against the new tests before
   starting R2.
+- 2026-10-04 09:48 UTC - GitHub Copilot - PR #2423 merged; rebased onto `develop`. #2423 touched
+  only doc comments in `udp-core`, so the announce plan was kept unchanged. Added 7 announce
+  service unit tests (unit-only file lines 0 / 101 to 338 / 347). Awaiting completed-file review.
+- 2026-10-04 10:35 UTC - Jose Celano - Approved the `services/announce.rs` completed-file review;
+  ledger row 1 is `DONE`.
 
 ## Acceptance Criteria
 

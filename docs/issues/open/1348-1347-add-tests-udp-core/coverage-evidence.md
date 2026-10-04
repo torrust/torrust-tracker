@@ -79,6 +79,19 @@ Every source file has one T1 hypothesis. It determines processing order but is n
 3. `connection_cookie.rs`, `crypto/keys.rs`, and `services/banning.rs` need their natural property candidates assessed before deciding whether example-based tests are sufficient.
 4. `statistics/repository.rs` and `statistics/metrics.rs` have focused package-owned gaps; they follow tracker-answering behavior because metrics defects do not change tracker responses.
 
+## Per-File Results
+
+Unit-only (`--lib`) file totals after each completed file plan, measured with the same clean command
+as the baseline. Totals include in-file test modules, so denominators grow as tests are added.
+
+| Source module | Baseline lines | Latest lines | Latest regions | Latest functions | Plan |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `services/announce.rs` | 0 / 101 (0.00%) | 338 / 347 (97.41%) | 376 / 389 (96.66%) | 41 / 44 (93.18%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
+
+Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
+PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
+(81.04%). The final package comparison is recorded at T7.
+
 ## Next Evidence
 
 - `test-refactor-plans/README.md` records shared guardrails and the plan index.
