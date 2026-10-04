@@ -281,8 +281,8 @@ The article's observations on the tools it tried bear on #2003:
   be deterministic, not a checklist an agent reads.
 - **One workflow for all sizes.** Kiro turned a small bug into 4 user stories with 16 acceptance
   criteria. The repository's single [issue template](../../../templates/ISSUE.md) asks every issue
-  for a bug-fix process, a regression test strategy, and a design and ownership review, so it
-  carries the same risk.
+  to address a bug-fix process, a regression test strategy, and a design and ownership review,
+  even if only to mark them `Not applicable`, so it carries the same risk.
 - **Reviewing Markdown instead of code.** The generated Markdown was repetitive and tedious to
   review, and she would "rather review code". Each specification, audit, and report a change
   produces here adds to that review load.
