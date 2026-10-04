@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-03 20:43"
+last-updated-utc: "2026-10-04 19:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -343,9 +343,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2.2 | Frontmatter | [#2281 - Add frontmatter validator command and pre-commit rollout](../../closed/2281-2264-frontmatter-validator-command/ISSUE.md) | Read-only command for explicit paths, `--staged`, and whole-tree validation with NDJSON diagnostics, location-dependent severity, repository-aware checks for strict v1 specs, and a pre-commit step. | DONE |
 | 3 | Frontmatter | Extend strict profiles and author guidance | Add approved profiles for ADRs, skills, agents, evidence records, and other known classes; keep prose and editor/agent discovery derived from the canonical Rust model. Protect `docs/templates/` against drift from the v1 contract, which #2281 excludes from validation. | TODO |
 | 4 | Conventions | Split convention ownership and migration policy | Move mixed normative content to clearly owned convention documents without a repository-wide document migration. | TODO |
-| 5 | Semantic links | Normalize the semantic-link model | Canonical relation and target types, graph semantics, accepted/rejected fixtures, and compatibility rules represented by the shared Rust model. | TODO |
+| 5 | Semantic links | Normalize the semantic-link model | Canonical relation and target types, graph semantics, accepted/rejected fixtures, and compatibility rules represented by the shared Rust model. Starts with a tracked inventory script and its output pinned to a named `develop` commit; targets without a path take one `kind:value` form, and the `issue` sweep recounts its scope at its starting head (decided 2026-10-03; see Decisions Recorded on This EPIC). | TODO |
 | 6 | Semantic links | Design and implement semantic-link validation | Validate target syntax, type, existence where applicable, uniqueness, and invalid combinations through a replaceable check. | TODO |
-| 7 | Path references | Decide path-reference scope and syntax | Decide whether machine-checkable prose paths are semantic links, a separate typed reference, or intentionally outside validation. | TODO |
+| 7 | Path references | Decide path-reference scope and syntax | Decide whether machine-checkable prose paths are semantic links, a separate typed reference, or intentionally outside validation. Bounded by the 2026-10-03 decisions: targets without a path take one `kind:value` form, links are validated by the purpose of their field, and the graph reads tracked files only (see Decisions Recorded on This EPIC). | TODO |
 | 8 | Path references | Specify and implement path-reference validation | If the path-reference scope issue approves validation, define historical handling, exclusions, diagnostics, and staged enforcement. | TODO |
 | 9 | External links | Classify link importance and checker limitations | Use the #2185 handoff to decide whether link importance belongs in typed metadata, prose policy, or checker configuration. | TODO |
 | 10 | Integration | Reconcile validators with the #2003 architecture decision | Preserve domain semantics while migrating checks to the selected execution, output, policy, and caching architecture when required. | TODO |
@@ -443,6 +443,14 @@ the residual report and the #2185
 baseline as its evidence and may conclude that the answer is prose policy, a small typed
 annotation, or a different checker configuration; the EPIC does not presume which.
 
+## Decisions Recorded on This EPIC
+
+- **Inventory first (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome)).** Order 5, "Normalize the semantic-link model", starts with an inventory, following this EPIC's precedent of inventorying frontmatter before fixing its model. The inventory is a tracked script plus its output pinned to a named `develop` commit; it classifies the corpus by source document class and target kind, including the free-form values and the 48 dropped `issue` entries as candidate target kinds.
+- **One `kind:value` form for targets without a path (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome)).** In direction, every target without a path takes one `kind:value` form. A plain scalar such as `issue:2264` loads as written and matches this EPIC's candidate syntax, and the migration is mechanical even for the 48 damaged entries, whose numbers survive as YAML comments. The sweep's specification recounts its scope at the head it starts from, because the register records 53 entries in 34 files where the discussion and its review find 48 in 30. This changes the frozen v1 reference convention, which this EPIC reserves to its semantic-link subissues.
+- **Tracked files only (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome)).** The graph that gates and agents rely on reads tracked files only. GitHub-hosted records may enter as a separately derived data set stamped with its capture time; if the friction register's links are to feed the graph, a tracked, dated export serves it, as `docs/external-snapshots/` does for external sources.
+- **Links validated by the purpose of their field (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** ADR links are context links, validated leniently, and the convention's existing rule is enforced: issue specifications are referenced by number, which would have kept three of the five broken ADR links valid. Historical records (ADRs, PR-review audits, closed specifications) carry context links checked for syntax only. The change-impact field definition in `docs/skills/semantic-skill-link-convention.md` is split from a context field, or qualified, as part of this EPIC's convention work.
+- **Where these decisions are recorded (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [semantic-linking Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome), [goals-and-boundaries Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** In this specification: this section, the Progress Log entry of 2026-10-04, and the Expected output cells of orders 5 and 7, which carry the scope changes. The four-aspect frame and the discussions convention are recorded on #2003, and the audit-record contract on #2278; the discussions are not cited in place of these records.
+
 ## Open Questions
 
 - Which existing frontmatter variations are intentional compatibility cases, and which are errors
@@ -454,11 +462,11 @@ annotation, or a different checker configuration; the EPIC does not presume whic
   repository-aware validation?
 - Which generated schema format best serves editors and AI agents without becoming a second source
   of truth?
-- Should semantic-link target types be URI-like strings, YAML maps, or both?
+- Should semantic-link target types be URI-like strings, YAML maps, or both? *Answered in direction (2026-10-03):* one `kind:value` string form for every target without a path; see Decisions Recorded on This EPIC.
 - Should a file path be represented as `path:...`, a typed YAML object, or a plain string in selected
   fields?
-- Which references should be considered knowledge-graph edges, and which are only validation aids?
-- Should historical closed issues and PR review records be exempt from new reference syntax?
+- Which references should be considered knowledge-graph edges, and which are only validation aids? *Answered in part (2026-10-03):* the graph that gates and agents rely on reads tracked files only, and GitHub-hosted records enter only as a dated derived export; see Decisions Recorded on This EPIC.
+- Should historical closed issues and PR review records be exempt from new reference syntax? *Answered in part (2026-10-03):* historical records carry context links checked for syntax only, and issue specifications are referenced by number; see Decisions Recorded on This EPIC.
 - How should comments in Rust, shell, TOML, YAML, and Dockerfiles represent typed links without
   harming the host language parser?
 - Which OKF principles should be copied directly, adapted, or rejected for a repository whose
@@ -626,6 +634,7 @@ For each completed subissue, the default completion policy is:
 - 2026-09-30 10:22 UTC - GitHub Copilot - Added the unordered Draft Subissue Proposals list with
   the maintainer-requested draft for multiple related PRs in issue frontmatter; its order in the
   table is left to the EPIC's planner.
+- 2026-10-04 19:18 UTC - da2ce7 - Recorded the semantic-linking discussion's outcome and the goals-and-boundaries parts that name this EPIC (PR #2428, review 5400754664) under Decisions Recorded on This EPIC; marked the Open Questions they answer and noted the scope of orders 5 and 7 in the subissue table
 
 ## Risks and Trade-offs
 
