@@ -72,6 +72,7 @@ The comment opens with an explicit `[Major][F1]` bracket, so the row records `Ma
 - 2026-10-04 19:57 UTC - Re-derived F1 at the branch head: both Outcome sections still said none of their answers was recorded. Committed the fix as `docs(discussions): link the #2264 and #2278 records from their Outcomes`.
 - 2026-10-04 19:57 UTC - Recorded this audit with F1 `FIXED`/`RESOLVED`. The reply is prepared and is posted after the fix and this record are pushed; its URL replaces the Reply URL placeholder then, and the audit validator runs in the gate of record.
 - 2026-10-04 19:59 UTC - Pushed the fix and this record; replied on the F1 thread (reply 4179101218) and recorded its URL; the thread is resolved after the gate of record passes.
+- 2026-10-04 20:00 UTC - The Docs Lint workflow failed on the pushed head: cspell flagged `backlink` in F1's quoted concern. Added the word to `project-words.txt`; the concern text is the reviewer's and is not reworded.
 
 ## Completion Rules
 

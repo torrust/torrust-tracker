@@ -157,6 +157,7 @@ autoclean
 autolinks
 automock
 autoremove
+backlink
 backlinks
 backpressure
 bdecode
