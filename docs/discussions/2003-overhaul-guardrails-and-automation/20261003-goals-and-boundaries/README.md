@@ -232,4 +232,44 @@ examines what outlives them. In brief:
 
 ## Outcome
 
-Pending review.
+Cameron (`da2ce7`), owner of EPIC #2003, answered the six open questions in
+[review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664)
+(round 1). The answers are transcribed here at his request, for him to confirm against the review
+text. Each is marked there as a decision for the EPIC owner to record; none has been recorded in
+EPIC #2003, #2264, or #2278 yet.
+
+1. **The four-aspect frame** is right for sorting proposals. The gates are the layer every
+   aspect's contract is expressed through, not a fifth aspect. What the frame does not yet name is
+   who owns the gates (where each runs, its output contract, how one is added): the subject of the
+   architecture decision of EPIC #2003 and of
+   `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`.
+   Proposed record: "gates are the shared enforcement layer, owned by #2003's architecture
+   decision".
+2. **Contract or technique.** A requirement is contract when a gate can check it from tracked
+   bytes or GitHub state without knowing which tool produced the work: a recorded independent
+   review of the acceptance criteria, acceptance-criteria evidence in the specification, the
+   pre-commit gate and linters, Conventional Commit subjects, and the PR-review audit record.
+   Technique: which named profile performs a step, pair review, model routing, and a complexity
+   audit after every step, which belongs in a gate. The issue template's Committer checkpoint is the
+   clearest case to reword. Rewording the orchestration guide and the template is follow-up work.
+3. **ADR links are context links,** validated leniently, with the existing rule enforced: issue
+   specifications are referenced by number. That rule would have kept three of the five broken ADR
+   links valid. One rule answers this and the two related register labels: a link is validated
+   according to the purpose of its field, so historical records (ADRs, PR-review audits, closed
+   specifications) carry context links checked for syntax only. This needs the change-impact field
+   definition in the semantic-link convention to be split from a context field, or qualified.
+4. **A coordination claim lives in the issue assignee,** the only claim GitHub keeps as structured
+   state. Rule: assign the issue before starting; open a draft pull request that references it as
+   the second, observable signal; and let the proposed overlap check flag open pull requests that
+   reference the same issue or touch the same files.
+5. **Copies of GitHub state.** Identifiers (`github-issue`, `related-pr`) stay; states drift unless
+   stamped or checked. Specification `status` and folder: keep, checked at archive time. The Status
+   column of EPIC subissue tables: remove it or check it. PR-review audit thread states: already
+   checked. The friction register's stamped state line is the honest form of a copy. `epic-owner`:
+   repaired by this pull request, but it can drift again unless checked or deferred to the
+   assignee.
+6. **The `docs/discussions/` convention works.** Two additions would make it hold: once the
+   Outcome is recorded and links the canonical record, a discussion is no longer edited except to
+   repair links; and the guide should say whether discussions are kept permanently or pruned. The
+   four-aspect frame belongs in #2003's "Decisions Recorded on This EPIC", and the per-EPIC parts in
+   EPICs #2264 and #2278.

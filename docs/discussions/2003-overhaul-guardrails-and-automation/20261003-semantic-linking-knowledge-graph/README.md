@@ -227,4 +227,28 @@ These are drafts for review.
 
 ## Outcome
 
-Pending review.
+Cameron (`da2ce7`), owner of EPIC #2003 and #2264, answered the four open questions in
+[review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664)
+(round 1). The answers are transcribed here at his request, for him to confirm against the review
+text. Each is marked there as a decision for the EPIC owner to record; none has been recorded in
+EPIC #2264 yet.
+
+1. **Yes, start "Normalize the semantic-link model" with the inventory,** following #2264's own
+   precedent of inventorying frontmatter before fixing its model. The inventory is a tracked
+   script plus its output pinned to a named `develop` commit, classifying the corpus by source
+   document class and target kind, including the free-form values and the 48 dropped `issue`
+   entries as candidate target kinds.
+2. **Yes, one `kind:value` form,** in direction. A plain scalar such as `issue:2264` loads as
+   written and matches #2264's candidate syntax. The migration is mechanical even for the 48
+   damaged entries, whose numbers survive as YAML comments. The sweep's specification should
+   recount its scope at the head it starts from, because the register records 53 entries in 34
+   files where this discussion and the review find 48 in 30. This changes the frozen v1 reference
+   convention, which #2264 reserves to its semantic-link subissues.
+3. **Tracked files only** for the graph that gates and agents rely on. GitHub-hosted records may
+   enter as a separately derived data set stamped with its capture time; if the register's links
+   are to feed the graph, a tracked, dated export serves it, as `docs/external-snapshots/` does for
+   external sources.
+4. **Record the outcome in #2264's specification:** a Progress Log entry for the decision, the
+   "Expected output" cells of the rows whose scope changes (orders 5 and 7), and this Outcome
+   section linking that entry, so the discussion is never cited in place of it. The four-aspect
+   frame belongs in #2003.
