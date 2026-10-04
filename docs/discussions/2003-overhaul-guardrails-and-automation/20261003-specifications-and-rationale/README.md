@@ -338,12 +338,14 @@ design, the answer leaves it to the specification that implements it.
    is a property of a rule rather than a place, and moving rules costs every citation of them.
    Where a rule's tier is unclear, the rule itself can say "always", "ask first", or "never". The
    issue template review goes with question 4.
-3. **Product decisions are recorded as ADRs now; a separate log is deferred** until product ADRs
-   are numerous enough to need a capability index. The repository already has an ADR template and
-   skill, and issue #2417 already plans the HTTP scrape cap as an ADR. **Impact maps are deferred**
-   until they have a consumer; a capability's goal lives in its EPIC's Goal section. `docs/features/`
-   holds design notes, not product decisions. Where a log would live, its ID scheme, and its
-   citation check are engineering for a specification under #2003.
+3. **Where a product decision lives is for the prose-tests ADR to settle** (revised in round 4,
+   below). Until that ADR is accepted, both homes are in use: Rustdoc beside the tests that
+   specify the rule, as `ScrapeHandler`'s documentation does for scrape's `downloaded` rule
+   (`packages/tracker-core/src/scrape_handler.rs`), and an ADR, as issue #2417 plans for the HTTP
+   scrape cap. **The decision log and impact maps stay deferred** until then; a capability's goal
+   lives in its EPIC's Goal section. `docs/features/` holds design notes, not product decisions.
+   Where a log would live, its ID scheme, and its citation check are engineering for a
+   specification under #2003.
 4. **One issue template, with optional and conditional sections marked; no short form.** A second
    form would be another copy to keep in step, and conditional sections can already be answered
    `Not applicable`; the gap is that the template does not say which sections a small change may
@@ -351,4 +353,19 @@ design, the answer leaves it to the specification that implements it.
    `create-issue-init-list-omits-conditional-sections`), and the work belongs to #2003's
    planning-template follow-up, not to #2278.
 
-With answer 3, the product-decision home in the "Where the Why Lives" table is an ADR for now.
+With answer 3, the product-decision home in the "Where the Why Lives" table is open until the
+prose-tests ADR is accepted.
+
+**Round 4.** In
+[review 5407197495](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5407197495),
+the EPIC owner asked to reference the draft
+[`adopt-prose-tests-as-executable-specification`](../../../issues/drafts/adopt-prose-tests-as-executable-specification/ISSUE.md)
+now rather than wait for its ADR:
+
+- That draft is the record that will carry answer 1 and conclusions 1 and 2. Its ADR would record
+  that tests named as requirements are the executable specification of behavior, and that no
+  separate behavior-specification document type is introduced.
+- Its ADR would also record business behavior in Rustdoc that names its specifying tests, with ADRs
+  for technical decisions only. That conflicts with the first version of answer 3 ("product
+  decisions are recorded as ADRs now"), so answer 3 now leaves the choice to that ADR.
+- Attaching the draft to EPIC #2003 when its issue is created is for the draft's owner.
