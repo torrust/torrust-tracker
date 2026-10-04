@@ -2,6 +2,7 @@
 # skill-link: use-rest-api
 # Disposable concurrent-control M1 verification trigger.
 # Disposable queued-run M1 control trigger.
+# Disposable queued-job M1 control trigger.
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
