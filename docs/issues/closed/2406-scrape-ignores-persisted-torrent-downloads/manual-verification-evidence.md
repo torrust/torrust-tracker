@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
-last-updated-utc: 2026-10-03 07:35
+issue-spec: docs/issues/closed/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
+last-updated-utc: 2026-10-04 07:57
 ---
 
 # Manual Verification Evidence
