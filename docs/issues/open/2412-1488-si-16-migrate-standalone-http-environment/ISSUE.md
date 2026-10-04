@@ -7,9 +7,9 @@ priority: p2
 epic: 1488
 github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-04 10:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -195,7 +195,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                       | Notes / Expected Output                                                                                                                                    |
 | --- | ------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                            | Package and health-check API test results before changes; current example behavior on SIGTERM (expected: not handled, process killed by default action). |
+| T0  | DONE   | Record baseline                            | Both packages pass (36 + 61; 3 + 8). Example SIGTERM: the library catches it, stops only the server, and the process stays up; a later SIGINT makes `stop()` panic (exit 101). See evidence V1. |
 | T1  | TODO   | Public token-aware health-check start (D4) | Additive public method with a unit test that the injected callback is registered. Legacy API untouched.                                                    |
 | T2  | TODO   | Migrate `Environment` start/stop (D1-D3)   | Token-aware start, fresh tokens, one-token stop that joins everything, no `abort()`. Tests below. Design-review checkpoint.                                  |
 | T3  | TODO   | Migrate direct field consumers (D5)        | Health-check API contract test uses `Environment::stop()`; drop its 100 ms "let the OS release the port" sleep if T2's binding test proves it redundant.   |
@@ -237,7 +237,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2412)
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2421)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -254,6 +254,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-01 14:35 UTC - GitHub Copilot - Refreshed against current code: added the public health-check seam (D4), the direct `server` field consumer (D5), fresh tokens per start (D2), and ordered stop (D3); converted to the current issue template. Sequenced before SI-20 so package tests cover the production shutdown path.
 - 2026-10-01 15:13 UTC - GitHub Copilot - Maintainer review: replaced the ordered stop with one token, same as the application (D3), because listeners drop queued events on cancellation. That pre-existing bug moves to SI-22. Renamed `verification.md` to `manual-verification-evidence.md`.
 - 2026-10-02 06:39 UTC - GitHub Copilot - Maintainer approved this spec (2026-10-01). Next: GitHub issue creation and the shared #1488 spec-only pull request.
+- 2026-10-04 10:34 UTC - GitHub Copilot - T0 done. The SIGTERM baseline differs from the expected one: the legacy `Halted` path subscribes to SIGTERM inside the library (`torrust-server-lib` `global_shutdown_signal`), so the server stops while the example keeps running, and the later Ctrl-C makes `Environment::stop()` panic. T2 and T4 remove both causes.
 
 ## Acceptance Criteria
 
@@ -298,7 +299,7 @@ so the signal reaches the example's own PID.
 
 | ID  | Scenario                       | Human-oriented command/steps                                                                                                 | Expected Result                                                                    | Status | Evidence                                     |
 | --- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Baseline SIGTERM (before T4)   | Start the example, wait for `Listening on`, `kill -TERM <pid>`, record output and `$?`.                                      | Current behavior recorded (expected: no `Stopped.`, terminated by signal).        | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Baseline SIGTERM (before T4)   | Start the example, wait for `Listening on`, `kill -TERM <pid>`, record output and `$?`.                                      | Recorded: SIGTERM caught by the library, process stays up; SIGINT then panics `stop()` (exit 101). | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Announce, then SIGTERM         | Start the example, announce with `tracker_client http announce` to its address, `kill -TERM <pid>`, record output and `$?`. | Announce succeeds; output shows shutdown and `Stopped.`; exit code 0.             | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | SIGINT                         | Repeat M2 with `kill -INT <pid>`.                                                                                            | Same orderly stop as M2; exit code 0.                                              | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | No library signal subscription | `rg -n 'tokio::signal' packages/axum-http-server/src`                                                                        | No matches.                                                                        | TODO   | `manual-verification-evidence.md` section V4 |
