@@ -33,6 +33,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `adrs/`                                                                                   | Architectural Decision Records (ADRs)                                                                   |
 | `analysis/`                                                                               | In-depth analysis of features, components, or aspects of the app                                        |
 | `research/`                                                                               | External research on technologies, patterns, and best practices                                         |
+| `discussions/`                                                                            | Design discussions and draft conclusions awaiting review by the owner of the affected work              |
 | `external-snapshots/`                                                                     | Immutable licensed snapshots of external sources with provenance and integrity metadata                 |
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                                                   |
 | `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                                          |
@@ -54,6 +55,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | New refactor plan                             | `docs/refactor-plans/<lifecycle>/<short-slug>/REFACTOR-PLAN.md`                                                                   |
 | New PR-review audit                           | `docs/pr-reviews/pr-<number>-<suffix>/PR-REVIEW.md`                                                                               |
 | Durable testing guide or pattern catalog       | `docs/testing/`                                                                                                                     |
+| Design discussion for maintainer review        | `docs/discussions/<issue-number>-<slug>/YYYYMMDD-<topic>/README.md` — see `docs/discussions/AGENTS.md`                              |
 | Immutable external source snapshot             | `docs/external-snapshots/<source>/<version-or-revision>/` with provenance, checksums, and license                               |
 | New document template                          | `docs/templates/`                                                                                                                   |
 | New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |
