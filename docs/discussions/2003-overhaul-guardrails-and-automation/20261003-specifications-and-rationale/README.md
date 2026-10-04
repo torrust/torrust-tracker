@@ -318,4 +318,37 @@ The article's observations on the tools it tried bear on #2003:
 
 ## Outcome
 
-Pending review.
+Cameron (`da2ce7`), owner of EPIC #2003, answered the four open questions in
+[review 5402713128](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5402713128)
+(round 3), as decisions for the author to record here. Where a question is engineering rather than
+design, the answer leaves it to the specification that implements it.
+
+1. **The long-term specification is the tests that drive a public interface:** package integration
+   tests under `packages/*/tests/`, the application-level tests under `tests/`, and behavior-named
+   handler tests such as the UDP scrape tree above. Unit tests of private seams do not count. This
+   follows the line `tests/AGENTS.md` already draws (prefer package-level tests; use main-level
+   integration tests only when the full application context is needed). The naming contract is the
+   existing `it_should_{expected_behavior}_when_{condition}` rule of the `write-unit-test` skill,
+   with module names carrying the context. The tree does not follow it uniformly yet (register
+   label `write-unit-test-it-should-absolute`), so a naming check comes before any outline is
+   relied on. Marking and indexing are engineering for the implementing specification; if tests
+   become link targets, the target kind is #2264's candidate `rust-item`, which needs a resolver
+   first.
+2. **`AGENTS.md` keeps its subject grouping** (deferral). Rules are looked up by subject, a tier
+   is a property of a rule rather than a place, and moving rules costs every citation of them.
+   Where a rule's tier is unclear, the rule itself can say "always", "ask first", or "never". The
+   issue template review goes with question 4.
+3. **Product decisions are recorded as ADRs now; a separate log is deferred** until product ADRs
+   are numerous enough to need a capability index. The repository already has an ADR template and
+   skill, and issue #2417 already plans the HTTP scrape cap as an ADR. **Impact maps are deferred**
+   until they have a consumer; a capability's goal lives in its EPIC's Goal section. `docs/features/`
+   holds design notes, not product decisions. Where a log would live, its ID scheme, and its
+   citation check are engineering for a specification under #2003.
+4. **One issue template, with optional and conditional sections marked; no short form.** A second
+   form would be another copy to keep in step, and conditional sections can already be answered
+   `Not applicable`; the gap is that the template does not say which sections a small change may
+   skip. Two register labels already track it (`issue-template-checkpoint-optionality-unmarked`,
+   `create-issue-init-list-omits-conditional-sections`), and the work belongs to #2003's
+   planning-template follow-up, not to #2278.
+
+With answer 3, the product-decision home in the "Where the Why Lives" table is an ADR for now.
