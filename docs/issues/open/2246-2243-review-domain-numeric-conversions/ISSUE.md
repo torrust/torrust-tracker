@@ -67,8 +67,16 @@ child processes, asynchronous I/O, network readiness, resource cleanup, or reusa
 
 ## Review Outcomes
 
-Approved by the maintainer on 2026-10-05. Every entry takes decision-framework outcome 1: remove the
-allowance with a fix that preserves behaviour for all reachable values.
+Approved by the maintainer on 2026-10-05. All three allowances are removed, with different
+outcomes:
+
+- A129 takes decision-framework outcome 1: a behaviour-preserving fix.
+- A099 and A123 change behaviour for out-of-range values only. The old casts silently truncated or
+  wrapped; the new conversions fail explicitly, with a serde error (A099) or a panic (A123). This
+  is the EPIC review policy's safer-conversion outcome. For A099, the public function's documented
+  error contract gains a case, which decision-framework outcome 2 permits ahead of 4.0.0. Neither
+  out-of-range value is reachable in production: peer timestamps come from the clock, and A123 is
+  in a benchmarking-only crate.
 
 | Entry | Source | Source/target bounds | Outcome | Validation |
 | ----- | ------ | -------------------- | ------- | ---------- |
