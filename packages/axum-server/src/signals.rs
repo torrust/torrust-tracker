@@ -45,13 +45,17 @@ pub async fn graceful_shutdown_on_cancellation(
         tokio::select! {
             () = &mut drain_timer => {
                 tracing::warn!(
-                    "Shutdown timeout of {:?} reached in address {} with {} active connections.",
+                    "Shutdown timeout of {:?} reached in address {} with {} active connections. Forcing shutdown.",
                     drain_timeout,
                     address,
                     handle.connection_count()
                 );
+                // The graceful phase has no deadline of its own; without this the server task never finishes.
+                handle.shutdown();
                 return GracefulShutdownOutcome::TimedOut;
             }
+            // Polling adds up to 1 s per drain with idle keep-alive connections (e.g. tests). If that becomes a
+            // bottleneck: wake on connection-count changes, or add a cancellation kind that skips the drain.
             () = sleep(Duration::from_secs(1)) => (),
         }
     }
@@ -207,6 +211,39 @@ mod tests {
 
         drop(server.connection);
         wait_for_server(server.task).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_force_close_a_connection_still_open_when_the_drain_times_out() {
+        // Arrange
+        let StartedServer {
+            handle,
+            address,
+            connection: held_connection,
+            task: server_task,
+            ..
+        } = start_server_with_in_flight_request().await;
+        let cancellation_token = CancellationToken::new();
+        let shutdown = tokio::spawn(graceful_shutdown_on_cancellation(
+            handle,
+            cancellation_token.clone(),
+            String::from("shutting down test server"),
+            address,
+            Duration::from_millis(500),
+        ));
+
+        // Act
+        cancellation_token.cancel();
+        let outcome = shutdown.await.expect("shutdown task should not panic");
+
+        // Assert
+        assert_eq!(outcome, GracefulShutdownOutcome::TimedOut);
+        tokio::time::timeout(Duration::from_secs(1), server_task)
+            .await
+            .expect("the server should stop after a drain timeout even while a client holds its connection open")
+            .expect("server task should not panic");
+
+        drop(held_connection);
     }
 
     struct StartedServer {

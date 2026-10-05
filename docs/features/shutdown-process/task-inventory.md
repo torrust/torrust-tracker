@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: 2026-09-30
+last-updated-utc: "2026-10-05 12:38"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -207,9 +207,11 @@ sole legacy job is separately conditional as shown above.
   observes `jobs.cancel()` and reports cooperative cancellation; torrent
   cleanup is a direct token-aware component after SI-4.
 4. The production tracker no longer uses private `Halted` channels or
-   library-level OS signals for any server component. The legacy `Halted` APIs
-   remain for standalone consumers (SI-16, SI-17) until deprecation and
-   removal in SI-18 and SI-19. The legacy UDP launcher is now an adapter over
+   library-level OS signals for any server component. The HTTP test
+   environment and example use the token-aware path after SI-16 (#2412). The
+   legacy `Halted` APIs remain for the UDP standalone consumer (SI-17) and
+   other legacy callers until deprecation and removal in SI-18 and SI-19.
+   The legacy UDP launcher is now an adapter over
    the token-aware receive loop, so it can no longer panic or detach it.
 5. HTTP, REST, and health-check drain controllers are component-owned and
    joined. Aligning their drain budgets with the manager deadline is SI-20.
@@ -218,9 +220,11 @@ sole legacy job is separately conditional as shown above.
 7. UDP stops its receive loop cooperatively after SI-14 and, after SI-15, joins
    every request processor under a five-second drain and reports their
    outcomes in one log summary. Making the drain deadline configurable is SI-20.
-8. Standalone HTTP and UDP examples retain Ctrl-C-based shutdown: SI-16 and
-   SI-17. Final process outcome-to-exit-code and configured-deadline policy is
-   SI-20.
+8. The standalone HTTP example stops on SIGINT or Unix SIGTERM at its own
+   `main` and its test environment cancels and joins every owned task (SI-16,
+   #2412). The standalone UDP example still uses Ctrl-C-based shutdown
+   (SI-17). Final process outcome-to-exit-code and configured-deadline policy
+   is SI-20.
 
 No implementation evidence identified a missing independently releasable
 shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.
