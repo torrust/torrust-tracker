@@ -10,7 +10,9 @@ last-updated-utc: 2026-10-05
 
 - Date and time (UTC): 2026-10-05 15:00-15:04.
 - Artifact under test: `target/debug/torrust-tracker` and `target/debug/tracker_client`, built
-  from branch `2246-2243-review-domain-numeric-conversions` at `631be16cb`.
+  from branch `2246-2243-review-domain-numeric-conversions` at commit
+  `docs(issues): [#2246] reconcile domain conversion outcomes in #2158 inventory` (all code changes
+  applied).
 - Operating system / environment: Linux; repository root as current working directory.
 - Setup: an isolated configuration at `.tmp/m1-2246/tracker.toml` with a single UDP tracker on
   `127.0.0.1:16969`, SQLite under `.tmp/m1-2246/`, and
