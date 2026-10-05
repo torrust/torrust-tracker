@@ -303,7 +303,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_finish_the_event_listener_through_cancellation_when_stopped() {
+    async fn it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation() {
         // Arrange
         let environment = unstarted_environment().await.start().await;
 
@@ -365,6 +365,7 @@ mod tests {
             let listener_finished = listener_finished.clone();
             async move {
                 cancellation_token.cancelled().await;
+                // Finish after the failed server task, so returning on its failure would see this unfinished.
                 tokio::task::yield_now().await;
                 listener_finished.store(true, Ordering::SeqCst);
             }

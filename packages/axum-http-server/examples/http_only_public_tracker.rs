@@ -48,11 +48,12 @@
 //! cargo tree -p torrust-tracker-axum-http-server --example http_only_public_tracker
 //! ```
 
-use std::future::Future;
 use std::io::Write as _;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
+#[cfg(unix)]
+use tokio::signal::unix::{SignalKind, signal};
 use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::database::Database;
@@ -98,7 +99,7 @@ async fn main() {
     let http_tracker_config = Arc::new(http_tracker);
     let env = Started::new(&core_config, &http_tracker_config).await;
 
-    // Installed before announcing readiness, so a signal sent after "Listening on" is never lost.
+    // On Unix the handlers are installed here, before readiness is printed, so a later signal is never lost.
     let shutdown_signal = install_shutdown_signal_handlers();
 
     writeln!(output, "Listening on {}", env.bind_address()).expect("stdout should be writable");
@@ -119,8 +120,6 @@ async fn main() {
 /// with the name of the first signal received.
 #[cfg(unix)]
 fn install_shutdown_signal_handlers() -> impl Future<Output = &'static str> {
-    use tokio::signal::unix::{SignalKind, signal};
-
     let mut interrupt = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
     let mut terminate = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
 
@@ -132,7 +131,8 @@ fn install_shutdown_signal_handlers() -> impl Future<Output = &'static str> {
     }
 }
 
-/// Returns a future that resolves when Ctrl-C is received.
+/// Returns a future that resolves when Ctrl-C is received. `ctrl_c()` registers
+/// its handler on first poll, so it is not installed before readiness is printed.
 #[cfg(not(unix))]
 fn install_shutdown_signal_handlers() -> impl Future<Output = &'static str> {
     async {
