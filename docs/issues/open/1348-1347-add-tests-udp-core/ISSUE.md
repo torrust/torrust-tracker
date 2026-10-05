@@ -285,7 +285,7 @@ lines are the T1 measurement.
 | Order | Source module | Rank | Unit-only lines | T1 hypothesis | State | Plan |
 | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
-| 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | PENDING | - |
+| 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
 | 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
@@ -364,6 +364,11 @@ lines are the T1 measurement.
   service unit tests (unit-only file lines 0 / 101 to 338 / 347). Awaiting completed-file review.
 - 2026-10-04 10:35 UTC - Jose Celano - Approved the `services/announce.rs` completed-file review;
   ledger row 1 is `DONE`.
+- 2026-10-05 12:56 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `peer_builder.rs` plan was approved; added 5 unit tests (unit-only file lines 11 / 14 to
+  79 / 79). Awaiting completed-file review.
+- 2026-10-05 13:19 UTC - Jose Celano - Approved the `peer_builder.rs` completed-file review;
+  ledger row 2 is `DONE`.
 
 ## Acceptance Criteria
 
