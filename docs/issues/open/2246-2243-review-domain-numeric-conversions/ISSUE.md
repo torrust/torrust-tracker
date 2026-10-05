@@ -9,7 +9,7 @@ github-issue: 2246
 spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
 related-pr: null
-last-updated-utc: "2026-10-05 15:04"
+last-updated-utc: "2026-10-05 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -124,6 +124,7 @@ outcomes:
 - 2026-10-05 12:54 UTC - josecelano - Approved T1-T2 outcomes (all three allowances removed), in-place #2158 inventory update, and replacing M2 because the REST API never calls `ser_unix_time_value` - Chat decision
 - 2026-10-05 13:18 UTC - GitHub Copilot - Implemented T3 (three per-package commits) and T4 (inventory reconciliation); M1, pre-push checks, and the completion review remain - In progress
 - 2026-10-05 15:04 UTC - GitHub Copilot - M1 passed against a local tracker (cap 2; `numwant` 0, -1, 1, 2, 3, `i32::MAX`); pre-push checks passed; no retrospective needed (see Implementation Completion Review) - Ready for PR
+- 2026-10-05 18:39 UTC - GitHub Copilot - Applied PR #2440 round-1 review fixes: Review Outcomes now separate A129 (behaviour-preserving) from A099 and A123 (explicit failure out of range); added `peer_count_as_u32` boundary tests for A123 and updated AC3; reran M1 with verbatim output and the embedded config; audit in `docs/pr-reviews/pr-2440-review/PR-REVIEW.md` - In review
 
 ## Acceptance Criteria
 
