@@ -18,6 +18,7 @@ semantic-links:
     - docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
+    - docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
     - docs/adrs/index.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - AGENTS.md
@@ -861,6 +862,17 @@ extraction). The table below analyses every extraction candidate against this co
 > Workspace renames (this EPIC's current subissues) are independent of extraction ordering —
 > a crate can be renamed in-workspace before it is published or extracted.
 
+### Pre-publish API checklist
+
+Before the first crates.io publish of each package, audit its public error API
+([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
+
+1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
+   variant later is not a breaking change.
+2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
+3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
+   placeholder for future failures.
+
 ### Analysis tooling
 
 Four complementary analyses are recommended to assess whether the current package structure
@@ -928,10 +940,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-06-09 20:00 UTC - josecelano - Updated Package Inventory, Desired Package State,
   and dependency lists to reflect completion of SI-18, SI-19, SI-20, SI-22 extractions
   and SI-21 InfoHash migration.
-- 2026-10-05 15:53 UTC - GitHub Copilot - Synced the spec with the workspace: marked #1859,
-  #1860, #1861, #1864, SI-23 to SI-28, SI-34 and SI-35 as done; replaced `rest-api-core` with
-  the #1938 REST API packages; regenerated the dependency lists from `cargo metadata`; recorded
   that the baseline analysis is largely done but not yet tracked in a GitHub issue.
+- 2026-10-05 21:07 UTC - Copilot - Added the Pre-publish API checklist (`#[non_exhaustive]`
+  audit of public error enums) from issue #2435 and its ADR, with maintainer approval.
 - 2026-10-06 08:41 UTC - GitHub Copilot - Applied PR #2441 review feedback: added Details rows
   for the newly listed subissues and SI-29; replaced the publication Yes/No column with the
   latest crates.io version and added the published root `torrust-tracker` crate; marked

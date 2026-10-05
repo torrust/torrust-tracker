@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 19:56"
+last-updated-utc: "2026-10-05 21:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -57,7 +57,7 @@ Found during PR #2423 (issue #2406) review.
 
 - Other `expect`/`unwrap` uses outside `InMemoryTorrentRepository` and the registry methods it calls (for example the `MetricCollection::merge` `expect` calls in the REST labeled-stats adapter).
 - `.unwrap()`/`.expect()` on registry or repository results in test code, test-support modules (`src/testing/`), examples, and benchmarks.
-- Adding `#[non_exhaustive]` to existing public error enums before the first crates.io publish. This belongs to the package-publishing work in EPIC #1669; this issue only drafts the checklist item for maintainer approval.
+- Adding `#[non_exhaustive]` to existing public error enums before the first crates.io publish. This belongs to the package-publishing work in EPIC #1669; this issue only adds the checklist item to the EPIC (T11, maintainer-approved).
 - Changing swarm-coordination behavior.
 
 ## Architectural Decisions
@@ -142,7 +142,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T8 | DONE | Rewrite the ADR for the revised policy | `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md` (same timestamp, new slug; not merged yet); index row and `handle-errors-in-code` skill updated |
 | T9 | DONE | Revert T6 and T5 | Two `git revert` commits (T6, then T5); spec edits from those commits kept; each revert compiled with `cargo check --workspace --all-targets --all-features` |
 | T10 | DONE | Registry returns plain values | `Error`, its `Display` impl, the doctest, and all `# Errors` sections deleted; 62 test `.unwrap()` calls in `registry.rs`, plus one each in `statistics/mod.rs` and `tracker-core/tests/common/test_env.rs`, removed; `in_memory.rs` is plain delegation |
-| T11 | IN_PROGRESS | Draft the #1669 pre-publish checklist item | Draft proposed to the maintainer in chat; not committed to the EPIC |
+| T11 | DONE | Draft the #1669 pre-publish checklist item | Maintainer approved; added as the "Pre-publish API checklist" section of EPIC #1669 |
 
 ### T1 Inventory
 
