@@ -51,6 +51,8 @@ claim) is handled under F1.
 | F3 | `review-finding:pr-2440-f3` | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2440-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2440-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2440-f6` | Human | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F7 | `review-finding:pr-2440-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -119,11 +121,38 @@ claim) is handled under F1.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2440#discussion_r4187247158>
 
+### F6 - PR body cited an audit record that did not exist yet
+
+- PR number: 2440
+- Source review ID: 5418840707
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2440#pullrequestreview-5418840707>
+- Concern: At the reviewed head, the PR body said review findings are tracked in `docs/pr-reviews/pr-2440-review/PR-REVIEW.md`, but that file did not exist yet. Raised in the review body because the PR body has no diff line.
+- Solution: The PR body was updated before the audit was committed, and the audit commit is the next commit after the reviewed head. No body change is needed now that the file exists.
+- Current-tree verification: `validate-audit-record.py --pr-number 2440` exits 0 against the committed record.
+- Resolution reference: `docs(pr-reviews): [#2246] audit round-1 review findings on #2440`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F7 - Spec lacked a Progress Log entry for the review round
+
+- PR number: 2440
+- Source review ID: 5418840707
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2440#discussion_r4187308488>
+- Concern: The round-1 fixes changed Review Outcomes, the A123 validation, and AC3, but the spec's Progress Log had no entry for them and `last-updated-utc` still read 15:04.
+- Solution: Added a Progress Log entry for the round-1 review fixes and moved the stamp with it.
+- Current-tree verification: the spec frontmatter reads `last-updated-utc: "2026-10-05 18:39"`, matching the new Progress Log entry.
+- Resolution reference: `docs(issues): [#2246] log the PR #2440 review-round update in the spec`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2440#discussion_r4187491287>
+
 ## Processing Log
 
 - 2026-10-05 16:01 UTC - Copilot review 5417339974 submitted findings F1-F3.
 - 2026-10-05 16:14 UTC - Human review 5417497236 (da2ce7, round 1) requested changes: endorsed F1-F3 and added F4 and F5, numbered after Copilot's.
 - 2026-10-05 18:13 UTC - Fixed F1-F5 in separate commits, pushed after the pre-push suite passed, updated the PR body (F1, F5), replied to each thread, and started this audit.
+- 2026-10-05 18:41 UTC - Human review 5418840707 (da2ce7, round 2, 18:20 UTC, at `docs(issues): [#2246] name the reverse conversion in the A123 inventory row`) confirmed F1-F5 fixed and added F6 (review body) and F7 (inline). F6 was already fixed by the audit commit, pushed after that head. Fixed F7, pushed, and replied on its thread.
 
 ## Completion Rules
 
