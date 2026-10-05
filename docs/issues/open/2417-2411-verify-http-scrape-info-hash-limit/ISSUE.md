@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 18:07"
+last-updated-utc: "2026-10-05 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -266,7 +266,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
 | T7 | DONE | Client: no cap, truncation warning | K1 proven red before removing the cap; K1-K4 green; V4 shows the warning for UDP 75 and HTTP 1000, none for HTTP 74 |
 | T8 | DONE | Binary-level client tests with fake trackers | K5-K8 green; mutation-checked (dropping the warning fails K5 and K7; counting raw HTTP params fails K8); fakes in `console/tracker-client/tests/tracker_client/fake_trackers/` |
-| T9 | TODO | Ride-along: monitor success-path test | Deferred item 14 of the closed refactor plan #1178, unblocked by T8's fakes. Move the fakes to `console/tracker-client/tests/common/fake_trackers/` (shared by both test binaries); `FakeUdpTracker` answers announces and gains `silent()`, which replaces the monitor test's ad-hoc sink; add a test that `check monitor udp` reports `ok` probes with populated latency stats. Not an acceptance criterion of this issue |
+| T9 | DONE | Ride-along: monitor success-path test | Deferred item 14 of the closed refactor plan #1178, unblocked by T8's fakes. Fakes moved to `console/tracker-client/tests/common/fake_trackers/`; `FakeUdpTracker` answers announces and has `silent()`, replacing the ad-hoc sink; the success-path test is mutation-checked; the refactor plan records the resolution. Not an acceptance criterion of this issue |
 
 ## Commit Points
 
@@ -366,6 +366,9 @@ because the response dictionary can collapse them.
 - 2026-10-05 18:07 UTC - Maintainer asked to implement the monitor
   success-path test deferred in refactor plan #1178 (item 14) on top of the
   new fakes, in this PR; added T9.
+- 2026-10-05 18:33 UTC - T9 done: the monitor tests run against
+  `FakeUdpTracker::answering()` and `silent()`; `keeping_all()` became
+  `answering()` on both fakes.
 
 ### Acceptance Verification
 

@@ -244,6 +244,11 @@ its own repository shortly; implementing this heavier integration harness in the
 would likely be duplicated effort. The success-path integration/e2e test will be implemented in
 the future tracker-client repository once the move is completed.
 
+**Resolution (2026-10-05, #2417)**: Implemented in this repository after all, because #2417 added
+reusable fake trackers (`console/tracker-client/tests/common/fake_trackers/`). The monitor tests
+now run against `FakeUdpTracker::answering()` (success path) and `FakeUdpTracker::silent()`
+(timeout path), replacing the ad-hoc UDP sink.
+
 ---
 
 ## Order of Execution
