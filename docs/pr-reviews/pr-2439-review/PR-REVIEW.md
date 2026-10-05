@@ -46,11 +46,24 @@ those IDs. The review body is an overview only, so it creates no additional find
 markup rates the two Major findings `Medium severity` and F3 `Low severity`; the inline brackets
 are recorded as given.
 
+da2ce7 review 5417753246 (round 2, APPROVED at `bb54338c`) left seven inline findings numbered
+F4-F10 to avoid colliding with Copilot's IDs; the audit keeps them. Its body adds one actionable
+assertion without a thread, recorded as F11: the PR description's Validation still gave the
+round-1 test counts.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | `review-finding:pr-2439-f2` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F1 | `review-finding:pr-2439-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2439-f3` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2439-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2439-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2439-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2439-f7` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2439-f8` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2439-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2439-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2439-f11` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -61,9 +74,10 @@ are recorded as given.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4185609583>
 - Concern: `Environment::start_with_health_check` spawned the statistics listener before the
-  fallible server start. On a bind or registration failure, `expect` panicked and dropped the
+  fallible server start. On a bind or listener-setup failure, `expect` panicked and dropped the
   listener's handle while the task kept the only remaining token clone, so it was never
-  cancelled.
+  cancelled. (A registration failure was not affected: that path cancels the token it was given,
+  a clone of the environment's token, so the listener finished. Narrowed per da2ce7 F10.)
 - Solution: take the event receiver before the start, so the subscription exists before the
   server can publish, and spawn the listener only after the start succeeds. A failed start now
   leaves no task behind.
@@ -119,6 +133,140 @@ are recorded as given.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186115566>
 
+### F4 - Evidence V2 names its tree by a pre-rebase commit id
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389282>
+- Concern: V2 cited branch commit `2f8a58bd`, which a rebase rewrote, so a reader could not tell
+  which tree V2 and V3 ran against; the evidence template asks for commit subjects.
+- Solution: V2 now names the commit by subject plus the then-uncommitted T4 example change; V1's
+  durable `develop` id stays.
+- Current-tree verification: `grep -n 2f8a58bd` in `manual-verification-evidence.md` finds
+  nothing.
+- Resolution reference: `docs(issues): [#2412] address da2ce7 review spec findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187152197>
+
+### F5 - Token-aware start docs list errors the path cannot return
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389288>
+- Concern: the `# Errors` docs of `start_with_cancellation_and_health_check` (and the older
+  `start_with_cancellation`) mentioned startup-notification errors; the token-aware path has no
+  startup oneshot.
+- Solution: both now name only `Error::Bind`, `Error::Listener`, and `Error::Registration`.
+- Current-tree verification: `packages/axum-http-server/src/server.rs` docs of both methods;
+  `cargo doc -p torrust-tracker-axum-http-server` reports no warnings.
+- Resolution reference: `refactor(axum-http-server): [#2412] address da2ce7 review code findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187152498>
+
+### F6 - Example doc claims the whole HTTP library never listens for signals
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389292>
+- Concern: AC7 was narrowed to direct subscriptions because the legacy path still subscribes
+  indirectly until SI-19; the example's module doc still made the broad claim.
+- Solution: the sentence now says the token-aware path the example uses never listens for
+  signals.
+- Current-tree verification: `packages/axum-http-server/examples/http_only_public_tracker.rs`
+  module doc.
+- Resolution reference: `refactor(axum-http-server): [#2412] address da2ce7 review code findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187152790>
+
+### F7 - Binding test's recorded mutation fails before its assertion
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389297>
+- Concern: the listener-abort mutation made `stop()` panic before
+  `it_should_release_the_http_binding_when_stopped` reached its bind, so it did not show the test
+  guards binding release; the reviewer suggested a `stop()` that does not await the server task.
+- Solution: ran the suggested mutation and two variants. Not awaiting the server task, and
+  awaiting neither the server task nor the drain controller, both survive: cancellation alone
+  makes axum stop accepting and drop the listening socket. A `stop()` that never stops the server
+  (no cancel, handles dropped) fails the test at its own bind with `AddrInUse`; that is recorded
+  as the proof (spec progress log 17:40 UTC, T2 row).
+- Current-tree verification: mutations applied in the working tree only and reverted by hand;
+  `git diff` after the revert held only the F8 test changes; the environment tests pass.
+- Resolution reference: `docs(issues): [#2412] address da2ce7 review spec findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187153097>
+
+### F8 - Test startups are not bounded by a deadline
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389309>
+- Concern: the spec requires every test await to have an explicit deadline; `stop()` was bounded
+  but the environment starts were not.
+- Solution: a `start_within_deadline` helper bounds every start; the failed-start test bounds its
+  spawned task from outside, so a hang fails the test instead of passing as the expected panic.
+- Current-tree verification: `grep -n '\.start()'` in `environment.rs` finds only the production
+  `Environment::new` and the two bounded calls; `cargo test -p torrust-tracker-axum-http-server`
+  passes (43 + 61).
+- Resolution reference: `refactor(axum-http-server): [#2412] address da2ce7 review code findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187153391>
+
+### F9 - Shared drain-helper change missing from the spec's scope and completion review
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389323>
+- Concern: the `handle.shutdown()` change affects every production caller but was recorded only in
+  a log entry; its observable effect (the health-check API's 5 s budget now force-closes instead of
+  being aborted at the 10 s supervisor deadline) was not stated.
+- Solution: added design decision D7 and an In Scope item stating the production effect, and
+  revisited the completion review.
+- Current-tree verification: D7 in the spec; checked against
+  `axum-health-check-api-server/src/server.rs` (5 s budget), `src/bootstrap/jobs/health_check_api.rs`
+  (reports `TimedOut` as a component error), and `src/main.rs` (10 s deadline).
+- Resolution reference: `docs(issues): [#2412] address da2ce7 review spec findings`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187153616>
+
+### F10 - F2's Concern includes registration failures
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4186389342>
+- Concern: on a registration failure the start path cancels the token it was given, a clone of
+  the environment's token, so the listener finished; only bind and listener-setup failures
+  detached it.
+- Solution: narrowed F2's Concern in this record, noting the correction.
+- Current-tree verification: this record's F2 entry; `server.rs` cancels the token on
+  registration failure.
+- Resolution reference: `docs(pr-reviews): record da2ce7 review on #2439`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187153859>
+
+### F11 - PR description gives stale test counts
+
+- PR number: 2439
+- Source review ID: 5417753246
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#pullrequestreview-5417753246>
+- Concern: the review body notes the PR description's Validation still said five environment
+  tests and 42 + 61.
+- Solution: edited the PR description to list 1 + 6 + 1 new tests and the current counts for the
+  four packages that use the changed code, and to point to this record.
+- Current-tree verification: `gh pr view 2439 --json body` shows the updated Validation section.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2439#issuecomment-6000204904>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#issuecomment-6000204904>
+
 ## Processing Log
 
 - 2026-10-05 15:32 UTC - Fetched review 5416744478 and its three inline threads with the
@@ -126,6 +274,11 @@ are recorded as given.
 - 2026-10-05 15:54 UTC - Committed fixes for F2 (15:45), F1 (15:52), and F3 separately; pushed.
 - 2026-10-05 16:11 UTC - Replied on all three threads (16:07); updated the PR description;
   recorded the audit.
+- 2026-10-05 17:40 UTC - Fetched da2ce7 review 5417753246 (seven inline threads, one review-body
+  finding); committed the code fixes (F5, F6, F8) and the spec fixes (F4, F7, F9) separately;
+  pushed.
+- 2026-10-05 18:03 UTC - Replied on the seven threads (18:02); updated the PR description (F11);
+  posted the consolidated round-2 response; recorded round 2 and the F10 correction.
 
 ## Completion Rules
 
