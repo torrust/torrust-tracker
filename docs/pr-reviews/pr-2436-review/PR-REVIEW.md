@@ -43,6 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2436-f1` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2436-f2` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -59,11 +60,26 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2436#discussion_r4182399935>
 
+### F2 - Review not recorded in an audit and F1 thread unanswered
+
+- PR number: 2436
+- Source review ID: 5412275418
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2436#discussion_r4182364047>
+- Concern: At the round-2 head the PR had acted on F1 by commit but had no audit record, and F1's thread had no reply.
+- Solution: The audit commit, pushed after round 2, created this record with the F1 row and its Reply URL, logged Copilot's overview remark as a summary, and validated at 0 failures. F1's thread was replied to before the audit commit.
+- Current-tree verification: this record has F1 and F2 rows with detail entries; `validate-audit-record.py --pr-number 2436 --base torrust/develop` reports 0 failures.
+- Resolution reference: `docs(pr-reviews): [#2435] audit the review of #2436`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2436#discussion_r4183507273>
+
 ## Processing Log
 
 - 2026-10-05 08:01 UTC - Copilot review 5411559700 posted an overview without inline findings. Its remark that the specification bypasses the semantic bug workflow is not a separate row: human review 5411949365 assessed it and recorded the wording concern as F1.
 - 2026-10-05 08:37 UTC - Human review 5411949365 (da2ce7, round 1) approved with one Nit, F1.
+- 2026-10-05 09:09 UTC - Human review 5412275418 (da2ce7, round 2, at `docs(issues): [#2435] record the task classification as outside the bug rule`) confirmed F1 fixed and added F2; the audit push at 11:29 dismissed it.
 - 2026-10-05 09:13 UTC - Rebased onto `develop`, fixed F1, pushed after the pre-push suite passed, and replied on its thread before recording it here.
+- 2026-10-05 11:33 UTC - Replied on F2 after its fix was already pushed, then recorded F2 here.
 
 ## Completion Rules
 
