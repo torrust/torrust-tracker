@@ -170,7 +170,7 @@ mod tests {
                 .to_string()
             }
 
-            fn scrape(raw_query: &str) -> Result<Scrape, ParseScrapeQueryError> {
+            fn parse_scrape(raw_query: &str) -> Result<Scrape, ParseScrapeQueryError> {
                 Scrape::try_from(raw_query.parse::<Query>().unwrap())
             }
 
@@ -180,7 +180,7 @@ mod tests {
                 let info_hashes = distinct_info_hashes(100);
 
                 // Act
-                let scrape_request = scrape(&raw_query_for(&info_hashes)).unwrap();
+                let scrape_request = parse_scrape(&raw_query_for(&info_hashes)).unwrap();
 
                 // Assert
                 assert_eq!(scrape_request.info_hashes, info_hashes);
@@ -192,7 +192,7 @@ mod tests {
                 let info_hashes = distinct_info_hashes(101);
 
                 // Act
-                let scrape_request = scrape(&raw_query_for(&info_hashes)).unwrap();
+                let scrape_request = parse_scrape(&raw_query_for(&info_hashes)).unwrap();
 
                 // Assert
                 assert_eq!(scrape_request.info_hashes, info_hashes[..100]);
@@ -205,7 +205,7 @@ mod tests {
                 let raw_query = format!("{}&info_hash=INVALID_INFO_HASH_VALUE", raw_query_for(&info_hashes));
 
                 // Act
-                let scrape_request = scrape(&raw_query).unwrap();
+                let scrape_request = parse_scrape(&raw_query).unwrap();
 
                 // Assert
                 assert_eq!(scrape_request.info_hashes, info_hashes);
@@ -220,10 +220,13 @@ mod tests {
                 );
 
                 // Act
-                let result = scrape(&raw_query);
+                let result = parse_scrape(&raw_query);
 
                 // Assert
-                assert!(result.is_err());
+                assert!(
+                    matches!(result, Err(ParseScrapeQueryError::InvalidInfoHashParam { .. })),
+                    "expected an invalid info_hash error, got {result:?}"
+                );
             }
 
             #[test]
@@ -234,7 +237,7 @@ mod tests {
                     std::iter::once(distinct[0]).chain(distinct.iter().copied()).collect();
 
                 // Act
-                let scrape_request = scrape(&raw_query_for(&info_hashes_with_first_repeated)).unwrap();
+                let scrape_request = parse_scrape(&raw_query_for(&info_hashes_with_first_repeated)).unwrap();
 
                 // Assert
                 assert_eq!(scrape_request.info_hashes, info_hashes_with_first_repeated[..100]);

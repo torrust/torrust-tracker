@@ -624,6 +624,7 @@ pub(crate) mod tests {
                 issue_time: sample_issue_time(),
                 valid_range: sample_cookie_valid_range(),
             },
+            // The sample connection ID has no valid cookie; validation is not under test.
             torrust_tracker_udp_core::ConnectionIdValidationPolicy::Disabled,
         )
         .await;

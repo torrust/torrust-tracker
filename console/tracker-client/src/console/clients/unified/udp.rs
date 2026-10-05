@@ -254,7 +254,8 @@ mod tests {
     }
 
     /// The scrape limit belongs to each tracker, not to the client, so the
-    /// client must be able to send more than our tracker's 74.
+    /// client must be able to send more than our tracker's 74. See
+    /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
     #[test]
     fn it_should_accept_more_than_74_info_hashes_for_a_scrape() {
         // Arrange

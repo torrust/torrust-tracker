@@ -380,7 +380,7 @@ mod tests {
             bytes
         }
 
-        fn parsed_info_hashes(bytes: &[u8]) -> Vec<InfoHash> {
+        fn parse_scrape_info_hashes(bytes: &[u8]) -> Vec<InfoHash> {
             match Request::parse_bytes(bytes, MAX_SCRAPE_INFO_HASHES).unwrap() {
                 Request::Scrape(scrape_request) => scrape_request.info_hashes,
                 other => panic!("expected a scrape request, got {other:?}"),
@@ -406,9 +406,10 @@ mod tests {
         fn it_should_keep_all_74_info_hashes_when_the_request_has_exactly_74() {
             // Arrange
             let request = scrape_request_with_distinct_info_hashes(74);
+            let bytes = encode(&request);
 
             // Act
-            let info_hashes = parsed_info_hashes(&encode(&request));
+            let info_hashes = parse_scrape_info_hashes(&bytes);
 
             // Assert
             assert_eq!(info_hashes, request.info_hashes);
@@ -418,9 +419,10 @@ mod tests {
         fn it_should_keep_only_the_first_74_info_hashes_in_request_order_when_the_request_has_75() {
             // Arrange
             let request = scrape_request_with_distinct_info_hashes(75);
+            let bytes = encode(&request);
 
             // Act
-            let info_hashes = parsed_info_hashes(&encode(&request));
+            let info_hashes = parse_scrape_info_hashes(&bytes);
 
             // Assert
             assert_eq!(info_hashes, request.info_hashes[..74]);
