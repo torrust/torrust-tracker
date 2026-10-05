@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md
 branch: "chore/2003-adopt-prose-tests-as-executable-specification-spec"
 related-pr: null
-last-updated-utc: "2026-10-05 07:49"
+last-updated-utc: "2026-10-05 12:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,8 +29,7 @@ semantic-links:
 # Issue #[To be assigned] - Adopt Prose-Style Tests as the Executable Specification
 
 **Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails (EPIC owner:
-@da2ce7). The maintainer proposed this issue under #2003 on 2026-10-05; the EPIC owner accepts or
-rejects the placement in the spec-only pull request.
+@da2ce7). The maintainer placed this issue under #2003 on 2026-10-05.
 
 ## Goal
 
@@ -122,6 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-03 10:14 UTC - Copilot - Drafted from the maintainer's direction during PR #2423 review.
 - 2026-10-05 07:49 UTC - Copilot - Maintainer proposed EPIC #2003 as the parent: the ADR applies its first design principle (prefer executable tests over instructions), and the EPIC owner already asked in PR #2428 review 5407197495 to reference this draft from the #2003 specifications discussion. Renamed the draft folder with the `2003-` prefix and set `epic: 2003`. No GitHub issue yet; the EPIC owner reviews the placement in the spec-only pull request.
+- 2026-10-05 12:04 UTC - Copilot - The EPIC owner accepted the placement in PR #2437 review 5411959049: #2003 depends on this draft's ADR for one of its recorded decisions. Stated the parent line as a dated fact (review finding F1).
 
 ## Acceptance Criteria
 
