@@ -103,12 +103,9 @@ impl Environment<Stopped> {
     pub async fn start_with_health_check(self, health_check: FnSpawnServiceHeathCheck) -> Environment<Running> {
         let cancellation_token = CancellationToken::new();
 
-        let event_listener_job = run_event_listener(
-            self.container.http_tracker_core_container.event_bus.receiver(),
-            cancellation_token.clone(),
-            &self.container.http_tracker_core_container.stats_repository,
-            [(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0), true)].into(),
-        );
+        // Subscribe before the server can publish, but spawn the listener only after a successful start,
+        // so a failed start leaves no detached task behind.
+        let event_receiver = self.container.http_tracker_core_container.event_bus.receiver();
 
         let server = self
             .state
@@ -122,6 +119,13 @@ impl Environment<Stopped> {
             )
             .await
             .expect("Failed to start the HTTP tracker server");
+
+        let event_listener_job = run_event_listener(
+            event_receiver,
+            cancellation_token.clone(),
+            &self.container.http_tracker_core_container.stats_repository,
+            [(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0), true)].into(),
+        );
 
         Environment {
             container: self.container,
@@ -296,6 +300,15 @@ mod tests {
         Unstarted::new(&core_config, &http_tracker_config).await
     }
 
+    async fn unstarted_environment_bound_to(bind_address: SocketAddr) -> Unstarted {
+        let mut configuration = ephemeral_public();
+        configuration.http_trackers.as_mut().expect("test configuration enables HTTP")[0].bind_address = bind_address;
+        let core_config = Arc::new(configuration.core.clone());
+        let http_tracker_config = Arc::new(configuration.http_trackers.expect("test configuration enables HTTP")[0].clone());
+
+        Unstarted::new(&core_config, &http_tracker_config).await
+    }
+
     async fn stop_within_deadline(environment: Started) -> Unstarted {
         tokio::time::timeout(TEST_DEADLINE, environment.stop())
             .await
@@ -314,6 +327,29 @@ mod tests {
         assert!(
             stop.is_ok(),
             "stop() should join every owned task, including the listener, without a join failure"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_not_leave_the_statistics_listener_running_when_the_http_server_fails_to_start() {
+        // Arrange
+        let occupied_port = TcpListener::bind("127.0.0.1:0").expect("occupy a local TCP port");
+        let environment = unstarted_environment_bound_to(occupied_port.local_addr().unwrap()).await;
+        // Keeping the container keeps its event bus open, so a detached listener would keep running.
+        let container = environment.container.clone();
+
+        // Act
+        let start = tokio::spawn(environment.start()).await;
+
+        // Assert
+        assert!(
+            start.is_err_and(|error| error.is_panic()),
+            "start() should fail when its port is occupied"
+        );
+        assert_eq!(
+            Arc::strong_count(&container.http_tracker_core_container.stats_repository),
+            1,
+            "only the container should hold the statistics repository; a second holder is a detached listener"
         );
     }
 
