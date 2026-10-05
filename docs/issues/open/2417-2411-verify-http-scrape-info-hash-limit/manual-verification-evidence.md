@@ -89,7 +89,8 @@ Superseded by V2 and V3 below.
 ## Environment for V2 and V3
 
 - Linux, branch `2417-2411-verify-http-scrape-info-hash-limit` with the fix
-  applied on top of `82dfe2ff` (uncommitted at run time); dev-profile binaries.
+  applied on top of the commit `docs(adrs): [#2417] cap scrape info hashes per
+  protocol` (uncommitted at run time); dev-profile binaries.
 - `rustc 1.101.0-nightly (282215592 2026-10-04)`.
 - Isolated config `.tmp/2417-manual/tracker.toml` (git-ignored): SQLite at
   `.tmp/2417-manual/sqlite3.db`, public mode, persistent completed statistics
