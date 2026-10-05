@@ -406,8 +406,7 @@ pub(crate) mod tests {
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                    .await
-                    .unwrap();
+                    .await;
 
                 let expected_peer = PeerBuilder::default()
                     .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -502,8 +501,7 @@ pub(crate) mod tests {
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                    .await
-                    .unwrap();
+                    .await;
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
@@ -563,8 +561,7 @@ pub(crate) mod tests {
 
                 in_memory_torrent_repository
                     .handle_announcement(&info_hash.0.into(), &peer_using_ipv6, None)
-                    .await
-                    .unwrap();
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv4(
@@ -725,8 +722,7 @@ pub(crate) mod tests {
                     let peers = core_tracker_services
                         .in_memory_torrent_repository
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                        .await
-                        .unwrap();
+                        .await;
 
                     let external_ip_in_tracker_configuration: IpAddr =
                         config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
@@ -781,8 +777,7 @@ pub(crate) mod tests {
                     let second_listener_peers = core_tracker_services
                         .in_memory_torrent_repository
                         .get_torrent_peers(&second_info_hash.0.into(), usize::MAX)
-                        .await
-                        .unwrap();
+                        .await;
                     let second_listener_external_ip: IpAddr = config.udp_trackers.as_ref().expect("UDP tracker configuration")[1]
                         .network
                         .external_ip
@@ -867,8 +862,7 @@ pub(crate) mod tests {
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                    .await
-                    .unwrap();
+                    .await;
 
                 let expected_peer = PeerBuilder::default()
                     .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -966,8 +960,7 @@ pub(crate) mod tests {
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                    .await
-                    .unwrap();
+                    .await;
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
@@ -987,8 +980,7 @@ pub(crate) mod tests {
 
                 in_memory_torrent_repository
                     .handle_announcement(&info_hash.0.into(), &peer_using_ipv4, None)
-                    .await
-                    .unwrap();
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv6(
@@ -1233,8 +1225,7 @@ pub(crate) mod tests {
                     .unwrap();
                     let peers = in_memory_torrent_repository
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
-                        .await
-                        .unwrap();
+                        .await;
 
                     assert_external_ipv6_peer_address(peers[0].peer_addr.ip());
                 }

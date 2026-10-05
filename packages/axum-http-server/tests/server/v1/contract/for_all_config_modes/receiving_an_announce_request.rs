@@ -1028,8 +1028,7 @@ mod when_the_ip_parameter_is_not_accepted {
             .tracker_core_container
             .in_memory_torrent_repository
             .get_torrent_peers(&info_hash, usize::MAX)
-            .await
-            .unwrap();
+            .await;
         let peer_addr = peers[0].peer_addr;
 
         let ext_ip: IpAddr = http_tracker_config.network.external_ip.unwrap().into();
@@ -1083,8 +1082,7 @@ mod when_the_ip_parameter_is_not_accepted {
             .tracker_core_container
             .in_memory_torrent_repository
             .get_torrent_peers(&info_hash, usize::MAX)
-            .await
-            .unwrap();
+            .await;
         let peer_addr = peers[0].peer_addr;
 
         let ext_ip: IpAddr = http_tracker_config.network.external_ip.unwrap().into();
@@ -1132,8 +1130,7 @@ mod when_the_ip_parameter_is_not_accepted {
             .tracker_core_container
             .in_memory_torrent_repository
             .get_torrent_peers(&info_hash, usize::MAX)
-            .await
-            .unwrap();
+            .await;
         let peer_addr = peers[0].peer_addr;
 
         assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());

@@ -57,10 +57,8 @@ pub fn run_job(
                     match weak_torrents_manager.upgrade() { Some(torrents_manager) => {
                         let start_time = Utc::now().time();
                         tracing::info!("Cleaning up torrents (executed every {} secs) ...", interval_in_secs);
-                        match torrents_manager.cleanup_torrents().await {
-                            Ok(()) => tracing::info!("Cleaned up torrents in: {} ms", (Utc::now().time() - start_time).num_milliseconds()),
-                            Err(error) => tracing::error!(%error, "Torrent cleanup failed; retrying on the next interval"),
-                        }
+                        torrents_manager.cleanup_torrents().await;
+                        tracing::info!("Cleaned up torrents in: {} ms", (Utc::now().time() - start_time).num_milliseconds());
                     } _ => {
                         return Completion::Completed;
                     }}

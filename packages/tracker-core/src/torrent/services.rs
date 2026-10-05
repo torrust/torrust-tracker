@@ -253,8 +253,7 @@ mod tests {
             let info_hash = InfoHash::from_str(&hash).unwrap();
             in_memory_torrent_repository
                 .handle_announcement(&info_hash, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let torrent_info = get_torrent_info(&in_memory_torrent_repository, &info_hash).await.unwrap();
 
@@ -300,8 +299,7 @@ mod tests {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default())).await;
 
@@ -328,12 +326,10 @@ mod tests {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash1, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
             in_memory_torrent_repository
                 .handle_announcement(&info_hash2, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let offset = 0;
             let limit = 1;
@@ -355,12 +351,10 @@ mod tests {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash1, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
             in_memory_torrent_repository
                 .handle_announcement(&info_hash2, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let offset = 1;
             let limit = 4000;
@@ -387,15 +381,13 @@ mod tests {
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
             in_memory_torrent_repository
                 .handle_announcement(&info_hash1, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
             in_memory_torrent_repository
                 .handle_announcement(&info_hash2, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default())).await;
 
@@ -445,8 +437,7 @@ mod tests {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash, &sample_peer(), None)
-                .await
-                .unwrap();
+                .await;
 
             let torrent_info = get_torrents(&in_memory_torrent_repository, &[info_hash]).await;
 

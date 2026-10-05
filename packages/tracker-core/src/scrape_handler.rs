@@ -158,8 +158,7 @@ impl ScrapeHandler {
     ///
     /// # Errors
     ///
-    /// Returns an error if loading the persisted downloads counts fails or if
-    /// the swarm registry fails.
+    /// Returns an error if loading the persisted downloads counts fails.
     ///
     /// # BEP Reference:
     ///
@@ -173,7 +172,7 @@ impl ScrapeHandler {
                 Ok(()) => self
                     .in_memory_torrent_repository
                     .get_swarm_metadata(info_hash)
-                    .await?
+                    .await
                     .unwrap_or_else(|| {
                         absent_from_memory.insert(*info_hash);
                         SwarmMetadata::zeroed()
@@ -240,8 +239,7 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         in_memory_torrent_repository
             .handle_announcement(&sample_info_hash(), &seeder(), Some(3))
-            .await
-            .unwrap();
+            .await;
         let store_without_expectations = MockTorrentMetricsStore::new();
         let scrape_handler = scrape_handler_with_persisted_downloads(store_without_expectations, &in_memory_torrent_repository);
 
@@ -265,8 +263,7 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         in_memory_torrent_repository
             .handle_announcement(&in_memory, &seeder(), Some(3))
-            .await
-            .unwrap();
+            .await;
         let mut store = MockTorrentMetricsStore::new();
         store
             .expect_load_torrents_downloads()

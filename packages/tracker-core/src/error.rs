@@ -11,7 +11,6 @@ use std::panic::Location;
 
 use torrust_info_hash::InfoHash;
 use torrust_located_error::LocatedError;
-use torrust_tracker_swarm_coordination_registry::swarm::registry::Error as SwarmRegistryError;
 
 use super::authentication::key::ParseKeyError;
 use super::databases;
@@ -77,10 +76,6 @@ pub enum AnnounceError {
     /// Wraps errors related to database.
     #[error("Database error: {0}")]
     Database(#[from] databases::error::Error),
-
-    /// Wraps errors from the swarm coordination registry.
-    #[error("Swarm registry error: {0}")]
-    SwarmRegistry(#[from] SwarmRegistryError),
 }
 
 /// Errors related to scrape requests.
@@ -93,10 +88,6 @@ pub enum ScrapeError {
     /// Wraps errors related to database.
     #[error("Database error: {0}")]
     Database(#[from] databases::error::Error),
-
-    /// Wraps errors from the swarm coordination registry.
-    #[error("Swarm registry error: {0}")]
-    SwarmRegistry(#[from] SwarmRegistryError),
 }
 
 /// Errors related to torrent whitelisting.

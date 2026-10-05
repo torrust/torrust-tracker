@@ -36,7 +36,6 @@ use std::sync::Arc;
 
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
-use torrust_tracker_swarm_coordination_registry::swarm::registry::Error as SwarmRegistryError;
 
 use crate::statistics::metrics::Metrics;
 use crate::statistics::repository::Repository;
@@ -56,23 +55,19 @@ pub struct TrackerMetrics {
 }
 
 /// It returns all the [`TrackerMetrics`]
-///
-/// # Errors
-///
-/// Propagates the swarm registry error from the torrent repository.
 pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     stats_repository: Arc<Repository>,
-) -> Result<TrackerMetrics, SwarmRegistryError> {
-    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata().await?;
+) -> TrackerMetrics {
+    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
     let stats = stats_repository.get_stats().await;
 
-    Ok(TrackerMetrics {
+    TrackerMetrics {
         torrents_metrics,
         protocol_metrics: Metrics {
             metric_collection: stats.metric_collection.clone(),
         },
-    })
+    }
 }
 
 #[cfg(test)]
@@ -92,7 +87,7 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let stats_repository = Arc::new(Repository::new());
 
-        let tracker_metrics = get_metrics(in_memory_torrent_repository, stats_repository).await.unwrap();
+        let tracker_metrics = get_metrics(in_memory_torrent_repository, stats_repository).await;
 
         assert_eq!(
             tracker_metrics,

@@ -60,11 +60,7 @@ impl TrackerStatsAdapter {
 #[async_trait]
 impl StatsQueryPort for TrackerStatsAdapter {
     async fn get_stats(&self) -> Result<Stats, StatsError> {
-        let aggregate_swarm_metadata = self
-            .in_memory_torrent_repository
-            .get_aggregate_swarm_metadata()
-            .await
-            .map_err(|e| StatsError::TorrentRepository(e.to_string()))?;
+        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
 
         let total_downloaded = self.tracker_core_stats_repository.get_torrents_downloads_total().await;
         let completed_in_session = self
