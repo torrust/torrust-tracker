@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2411
 github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-02 18:45"
+last-updated-utc: "2026-10-05 13:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -107,7 +107,64 @@ has one; the reasons differ (see above):
 Maintainer input (2026-10-02): a 74 cap on HTTP for abuse mitigation is a
 plausible outcome, but it is a hypothesis to reconsider in T2, not a decision.
 
-Questions T2 must answer:
+### T2 Decision (Maintainer, 2026-10-05)
+
+1. **Cap HTTP scrape: yes, option A.** Keep the first N info hashes and
+   silently ignore the rest, like UDP. No log or metric for truncation.
+2. **HTTP value: 100.** A standalone policy value, not derived from the UDP
+   limit nor from the database batch size. That 100 hashes fit one persisted
+   downloads query (`MAX_INFO_HASHES_PER_QUERY`) is a consequence, not a
+   coupling: no shared constant.
+3. **Enforcement point: the HTTP request parser** (`Scrape::try_from` in
+   `http-protocol`). It stops decoding at the cap, so `info_hash` values past
+   the cap are ignored without validation, mirroring the UDP parser.
+4. **Constants: one per protocol, symmetric names, owned by the protocol
+   package whose reason they carry.**
+   - `udp-protocol`: `MAX_SCRAPE_INFO_HASHES = 74` (UDP packet budget, BEP 15).
+   - `http-protocol`: `MAX_SCRAPE_INFO_HASHES = 100` (HTTP abuse-mitigation
+     policy).
+   - Remove `torrust_tracker_core::MAX_SCRAPE_TORRENTS` (public API change,
+     accepted for `3.0.0-develop`); rename the UDP parser parameter
+     `max_scrape_torrents` to `max_scrape_info_hashes`.
+5. **Tests:** an HTTP parser unit test, an HTTP server test with 101 hashes,
+   and UDP parser and server tests pinning 74 (no test references the UDP
+   limit today).
+6. **M2:** run the UDP 75-hash control manually with `tracker_client`,
+   verifying the transmitted hash count.
+7. **No external research:** the decision rests on the project's own reasons.
+8. **One PR** for the spec update, ADR, tests, fix, and documentation, in
+   separate commits.
+
+### Edge-Case Decisions (Maintainer, 2026-10-05)
+
+Every decision below is pinned by a test in the matrix under "Regression Test
+Strategy", so the tests state where each limit lives and why.
+
+1. **HTTP counts `info_hash` parameters as sent.** Duplicates count toward
+   the cap, like UDP's raw 20-byte slots, and counting stops before decoding.
+2. **Parameters past the HTTP cap are not validated.** An invalid value after
+   the 100th parameter is ignored; an invalid value within the first 100 still
+   fails the request.
+3. **The UDP value is computed from the packet size in code:**
+   `(MAX_PACKET_SIZE - 16-byte scrape request header) / 20-byte info hash`,
+   which is 74 for `MAX_PACKET_SIZE = 1496`. The reason then lives in the
+   expression, not in a comment next to a literal.
+4. **UDP has two truncation points.** The server reads datagrams into a
+   `MAX_PACKET_SIZE` buffer, so the kernel already drops the 75th hash of a
+   datagram sent over a socket. A socket-level test alone cannot prove that the
+   server passes the cap to the parser; a `handle_packet` unit test sends a
+   75-hash payload directly to cover that wiring.
+5. **tracker-core has no cap.** A `ScrapeHandler` test with more than 100
+   hashes shows that the caps live in the protocol parsers.
+6. **Boundary tests use literal counts** (100/101, 74/75), not the constants,
+   so changing a limit fails the tests and forces an ADR update. Each test's
+   doc comment names the reason and links the ADR.
+
+History (from the #2003 specifications discussion): the original Warp HTTP
+tracker rejected scrapes above `MAX_SCRAPE_TORRENTS` (option B); the Axum
+rewrite dropped the check without a recorded decision.
+
+Questions T2 had to answer (answered above):
 
 1. Should HTTP cap scrape requests at all (A/B versus C)? Weigh the bounded
    per-request cost against the fact that parallel requests bypass any
@@ -151,20 +208,41 @@ documentation mismatch separately from the unmeasured overload risk.
 
 ## Regression Test Strategy
 
-Preferred boundary: a unit test of HTTP scrape request parsing in
-`packages/http-protocol` with 75 or more `info_hash` parameters, if the limit
-is applied there. Otherwise, the smallest boundary where the limit is applied.
+The limit is applied in the HTTP request parser, so the causal seam is a unit
+test of `Scrape::try_from` in `packages/http-protocol` with 101 distinct
+`info_hash` parameters, proven red before the fix. Because the HTTP limit was
+once lost silently in a server rewrite, an HTTP server test in
+`packages/axum-http-server` also sends 101 hashes through the public interface
+and expects 100 entries. UDP parser and server tests pin the 74 limit with 75
+hashes; they are characterization tests (UDP already behaves correctly).
+
+Test matrix (one test per row; "red" rows must fail before the fix):
+
+| ID | Package / seam | Input | Expected | Pins | Red first |
+| --- | --- | --- | --- | --- | --- |
+| H1 | `http-protocol` `Scrape::try_from` | 100 distinct hashes | All 100, in request order | Cap is inclusive | No |
+| H2 | `http-protocol` `Scrape::try_from` | 101 distinct hashes | First 100, in request order | Truncation (option A), value 100 | Yes |
+| H3 | `http-protocol` `Scrape::try_from` | 100 valid + invalid 101st | Ok, first 100 | Values past the cap are not validated | Yes |
+| H4 | `http-protocol` `Scrape::try_from` | Invalid value within the first 100, 101 total | Error | Validation unchanged within the cap | No |
+| H5 | `http-protocol` `Scrape::try_from` | 101 params, first one repeated | First 100 params (99 distinct) | Duplicates count | Yes |
+| S1 | `axum-http-server` contract | 101 distinct hashes | 100 files: the first 100 | End-to-end HTTP contract | Yes |
+| U1 | `udp-protocol` `Request::parse_bytes` | 74 hashes, `MAX_SCRAPE_INFO_HASHES` | All 74 | Cap is inclusive | No |
+| U2 | `udp-protocol` `Request::parse_bytes` | 75 hashes, `MAX_SCRAPE_INFO_HASHES` | First 74 | UDP value 74 | No |
+| U3 | `udp-protocol` | Largest scrape request fitting `MAX_PACKET_SIZE` | Carries exactly `MAX_SCRAPE_INFO_HASHES` hashes | Value derived from the packet size | No |
+| W1 | `udp-server` `handle_packet` | 75-hash payload, no socket | 74 entries | Server passes the cap to the parser | No |
+| US1 | `udp-server` contract (socket) | 75 hashes | 74 entries | End-to-end UDP contract (receive buffer and parser) | No |
+| C1 | `tracker-core` `ScrapeHandler` | 101 hashes | 101 entries | Core has no cap | No |
 
 ## Implementation Plan
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | IN_PROGRESS | M1 and M2 manual verification | M1 confirms 75/1000 HTTP results; M2 UDP control remains pending |
-| T2 | TODO | Reconsider whether HTTP should cap scrape requests | Answers to the four T2 questions agreed with the maintainer |
+| T2 | DONE | Reconsider whether HTTP should cap scrape requests | See "T2 Decision": truncate at 100 in the HTTP parser |
 | T3 | TODO | ADR for the decision | Root ADR with per-protocol reasons and rejected options; index updated |
-| T4 | TODO | Regression test for the agreed contract | Red before a behavior fix; characterization if retaining current behavior; justify no new test for a documentation-only correction |
-| T5 | TODO | Implement and fix docs | Test green; doc comments and user docs match behavior, state each protocol's reason, and link the ADR |
-| T6 | TODO | Final recheck | M1 repeated |
+| T4 | TODO | Regression tests for the agreed contract | Test matrix H1-H5, S1, U1-U3, W1, US1, C1; rows marked "red first" fail before the fix |
+| T5 | TODO | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES` constants, tracker-core constant removed, tests green; doc comments and user docs state each protocol's reason and link the ADR |
+| T6 | TODO | Final recheck | M1 repeated: 74, 75, and 1000 hashes return 74, 75, and 100 entries |
 
 ## Commit Points
 
@@ -178,10 +256,12 @@ is applied there. Otherwise, the smallest boundary where the limit is applied.
 
 - [x] AC1: Whether HTTP scrape enforces the documented 74-hash cap is shown by
   recorded manual evidence (V1: it does not on the tested requests).
-- [ ] AC2: HTTP scrape behavior with more than 74 info hashes matches the
-      decided option and the documentation.
-- [ ] AC3: A maintained test covers the decided behavior, or a documentation-only
-  outcome explains why existing coverage suffices without a new test.
+- [ ] AC2: An HTTP scrape with more than 100 info hashes returns entries for
+      only the first 100, matching the documentation; a UDP scrape keeps the
+      first 74.
+- [ ] AC3: Maintained tests cover every decision and edge case in the test
+      matrix (H1-H5, S1, U1-U3, W1, US1, C1), using literal counts and doc
+      comments that name each limit's reason and link the ADR.
 - [ ] AC4: An ADR records whether HTTP caps scrape requests, the value and
       behavior if so, and the reason per protocol (UDP packet size; HTTP
       policy), noting that parallel requests bypass a per-request cap and that
@@ -236,6 +316,15 @@ because the response dictionary can collapse them.
   correction. #2406 is a separate scrape issue (persisted download counts for
   torrents with no swarm), unrelated to this limit; the UDP control M2 stays
   here.
+- 2026-10-05 12:35 UTC - T2 decided with the maintainer (see "T2
+  Decision"): truncate HTTP scrapes at 100 in the parser, per-protocol
+  `MAX_SCRAPE_INFO_HASHES` constants, tracker-core constant removed. Fixed
+  the `branch` frontmatter, which pointed at an unrelated spec branch.
+- 2026-10-05 13:10 UTC - Maintainer asked for tests covering every edge case
+  and decision. Found that the UDP receive buffer (`MAX_PACKET_SIZE` = 1496 =
+  16 + 74 x 20) already truncates a 75-hash datagram, so a socket test cannot
+  prove the parser cap. Recorded the edge-case decisions and the test matrix;
+  the UDP value is now computed from `MAX_PACKET_SIZE`.
 
 ### Acceptance Verification
 
@@ -258,4 +347,5 @@ code commit.
 ## References
 
 - Related issues: spam and abuse EPIC (draft)
-- Related code: `MAX_SCRAPE_TORRENTS`
+- Related code: `MAX_SCRAPE_TORRENTS` (removed by this issue), the
+  per-protocol `MAX_SCRAPE_INFO_HASHES` constants that replace it
