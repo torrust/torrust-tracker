@@ -461,18 +461,19 @@ impl Registry {
 ///
 /// There are no variants yet: no registry operation can fail today. The
 /// fallible signatures and `#[non_exhaustive]` let future failures be added
-/// without breaking consumers, who must already handle `Err`. See ADR
-/// `20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis`.
+/// without breaking consumers, who cannot treat this type as uninhabited. See
+/// ADR `20261005145329_use_crate_owned_non_exhaustive_errors_for_potentially_fallible_public_apis`.
 ///
 /// ```compile_fail,E0005
 /// use torrust_tracker_swarm_coordination_registry::swarm::registry::Error;
 ///
 /// fn ignore_error(result: Result<usize, Error>) -> usize {
+///     // Intentionally rejected: downstream crates must not rely on `Error` being uninhabited.
 ///     let Ok(value) = result;
 ///     value
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum Error {}
 

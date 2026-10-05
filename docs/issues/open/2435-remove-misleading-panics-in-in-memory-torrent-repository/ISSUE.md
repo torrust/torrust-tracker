@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 15:49"
+last-updated-utc: "2026-10-05 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,7 +74,7 @@ Why not `Infallible`: `Result<_, Infallible>` does not give that forward compati
 
 Chosen shape:
 
-- `swarm-coordination-registry` replaces `pub type Error = Infallible` with `#[non_exhaustive] pub enum Error {}` (implementing `Debug`, `Clone`, `Display`, and `std::error::Error`). Inside the registry it is uninhabited, so internal code stays trivial. Other crates must treat it as inhabited, so they are forced to handle `Err` now, and adding variants later is not a breaking change. Verified on 2026-10-05 with a two-crate scratch build: `let Ok(v) = lib::count();` compiles in the defining crate and fails with `E0005: pattern Err(_) not covered` in the consumer crate.
+- `swarm-coordination-registry` replaces `pub type Error = Infallible` with `#[non_exhaustive] pub enum Error {}` (implementing `Debug`, `Clone`, `Display`, and `std::error::Error`). Inside the registry it is uninhabited, so internal code stays trivial. Other crates cannot treat it as uninhabited (they cannot use exhaustive patterns to prove that `Err` is impossible), so their code stays valid when variants are added, and adding variants later is not a breaking change. Verified on 2026-10-05 with a two-crate scratch build: `let Ok(v) = lib::count();` compiles in the defining crate and fails with `E0005: pattern Err(_) not covered` in the consumer crate.
 - `InMemoryTorrentRepository` returns `Result<T, registry::Error>` from the 10 registry-backed methods; no `expect`, no `# Panics`.
 - Propagation boundaries (all the way to delivery layers):
   - Announce: `AnnounceError` gains a `SwarmRegistry` variant. HTTP maps it through the existing `TrackerCoreError` → `failure_reason` path. UDP maps it to `ErrorKind::InternalServer` in `udp-server/src/event.rs`.
@@ -107,7 +107,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Inventory fallible registry methods and repository callers | See [T1 Inventory](#t1-inventory) |
 | T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) |
-| T3 | DONE | Write the ADR | `docs/adrs/20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
+| T3 | DONE | Write the ADR | `docs/adrs/20261005145329_use_crate_owned_non_exhaustive_errors_for_potentially_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
 | T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
@@ -157,6 +157,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 15:01 UTC - Copilot - T3 committed (ADR). T4: replaced the `Infallible` alias with `#[non_exhaustive] pub enum Error {}`. `Display` uses the same `match *self {}` as `std`'s `Display for Infallible`, with a documented `expect` for `clippy::uninhabited_references`. The registry crate does not depend on `thiserror`, and adding it for one empty enum was not justified.
 - 2026-10-05 15:09 UTC - Copilot - T5: the port error lives in `rest-api-protocol` (`StatsError::TorrentRepository(String)`), following the existing `WhitelistError` boundary pattern, so the application layer does not depend on tracker internals. Added `async-trait = "0.1"` as an `axum-rest-api-server` dev-dependency (already in the lockfile and used by sibling crates) for the stub port. Mutation proof: returning `ok_response()` from the error branch made the test fail (`left: 200, right: 500`); restored by hand.
 - 2026-10-05 15:49 UTC - Copilot - T6: propagated the registry error through `tracker-core` and every production caller (see the T6 row). Test seeding helpers in `axum-http-server`/`axum-rest-api-server` `src/testing/environment.rs` use a documented `expect` (test support, out of scope). Test code uses `.unwrap()`. Verified that all 37 added `unwrap`/`expect` lines sit in `#[cfg(test)]` modules or test targets, with none in production. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2976 tests with 0 failures. Completion review: no retrospective needed. The one material discovery (that `Infallible` defeats forward compatibility) changed the design before implementation and is recorded in the Decision (T2) section and the ADR; the `clippy::uninhabited_references` workaround is recorded in the T4 entry.
+- 2026-10-05 18:03 UTC - Copilot - Revised the ADR after an external AI review; the decision is unchanged. Renamed it to "Use Crate-Owned Non-Exhaustive Errors for Potentially Fallible Public APIs". Revisions: separated the abstraction's semantics from the current implementation's capabilities; explained that `Infallible` states the wrong contract; replaced "forced to handle `Err`" with "cannot treat the error as uninhabited" (consumers can still `unwrap`); limited the scope to independently consumed API boundaries; presented the empty-enum pattern as a repository convention built on established practice rather than a standard idiom; added a generic-error alternative and expanded consequences; cited RFC 2008, C-GOOD-ERR, the Reference, and `std::convert::Infallible` (all checked against the live pages). Following the new derive guidance, dropped `PartialEq, Eq` from the registry `Error` because no caller used them and a future variant may not support them. Added an intent comment to the `compile_fail` doctest.
 
 ## Acceptance Criteria
 
