@@ -8,6 +8,12 @@ fn tracker_client_bin() -> Command {
     Command::new(common::resolve_tracker_client_binary())
 }
 
+#[path = "tracker_client/fake_trackers/mod.rs"]
+mod fake_trackers;
+
+#[path = "tracker_client/scrape.rs"]
+mod scrape;
+
 #[test]
 fn it_should_show_unified_subcommands_in_help() {
     let output = tracker_client_bin()
