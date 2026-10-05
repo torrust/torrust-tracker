@@ -231,12 +231,15 @@ mod tests {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
-    use torrust_tracker_core::error::WhitelistError;
+    use torrust_tracker_core::databases::error::Error as DatabaseError;
+    use torrust_tracker_core::databases::{MockTorrentMetricsStore, TorrentMetricsStore};
+    use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+    use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_primitives::peer::Peer;
-    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, NumberOfBytes, PeerId, ServiceRole};
+    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, Driver, NumberOfBytes, PeerId, ServiceRole};
     use torrust_tracker_udp_protocol::{
         AnnounceActionPlaceholder, AnnounceRequest, ConnectionId, NumberOfPeers, PeerKey, Port, TransactionId,
     };
@@ -266,7 +269,7 @@ mod tests {
 
     impl AnnounceServiceFixture {
         fn public_tracker() -> Self {
-            Self::new(&Core::default(), None, None)
+            Self::new(&Core::default(), None, None, None)
         }
 
         fn listed_tracker_without_whitelisted_torrents() -> Self {
@@ -277,24 +280,45 @@ mod tests {
                 },
                 None,
                 None,
+                None,
             )
         }
 
         fn public_tracker_with_external_ip(external_ip: IpAddr) -> Self {
-            Self::new(&Core::default(), Some(external_ip), None)
+            Self::new(&Core::default(), Some(external_ip), None, None)
         }
 
         fn public_tracker_publishing_events_to(event_sender: MockUdpCoreStatsEventSender) -> Self {
-            Self::new(&Core::default(), None, Some(Arc::new(event_sender)))
+            Self::new(&Core::default(), None, None, Some(Arc::new(event_sender)))
         }
 
-        fn new(core: &Core, tracker_external_ip: Option<IpAddr>, event_sender: crate::event::sender::Sender) -> Self {
+        fn tracker_with_persisted_downloads_from(store: MockTorrentMetricsStore) -> Self {
+            Self::new(&Core::default(), None, Some(store), None)
+        }
+
+        fn new(
+            core: &Core,
+            tracker_external_ip: Option<IpAddr>,
+            persisted_downloads_store: Option<MockTorrentMetricsStore>,
+            event_sender: crate::event::sender::Sender,
+        ) -> Self {
             let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core, &Arc::new(InMemoryWhitelist::default())));
             let torrents = Arc::new(InMemoryTorrentRepository::default());
-            let announce_handler = Arc::new(AnnounceHandler::new_public(core, &whitelist_authorization, &torrents));
+            let announce_handler = persisted_downloads_store.map_or_else(
+                || AnnounceHandler::new_public(core, &whitelist_authorization, &torrents),
+                |store| {
+                    let store: Arc<dyn TorrentMetricsStore> = Arc::new(store);
+                    AnnounceHandler::new_with_persistent_completed_statistics(
+                        core,
+                        &whitelist_authorization,
+                        &torrents,
+                        &Arc::new(DatabaseDownloadsMetricRepository::new(&store)),
+                    )
+                },
+            );
 
             let service = AnnounceService::new(
-                announce_handler,
+                Arc::new(announce_handler),
                 whitelist_authorization,
                 Arc::new(fixed_test_cipher()),
                 event_sender,
@@ -443,6 +467,40 @@ mod tests {
             Err(UdpAnnounceError::TrackerCoreWhitelistError {
                 source: WhitelistError::TorrentNotWhitelisted { info_hash, .. }
             }) if info_hash == InfoHash::from(INFO_HASH)
+        ));
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_failing_persisted_downloads_lookup_as_a_tracker_core_announce_error() {
+        // Arrange
+        let mut failing_store = MockTorrentMetricsStore::new();
+        failing_store.expect_load_torrent_downloads().returning(|_| {
+            Box::pin(future::ready(Err(DatabaseError::MalformedDatabaseRecord {
+                message: "corrupt record".to_string(),
+                driver: Driver::Sqlite3,
+            })))
+        });
+        let fixture = AnnounceServiceFixture::tracker_with_persisted_downloads_from(failing_store);
+        let request = announce_request(valid_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::TrackerCoreAnnounceError {
+                source: AnnounceError::Database(_)
+            })
         ));
     }
 

@@ -376,6 +376,9 @@ lines are the T1 measurement.
   completed-file review.
 - 2026-10-05 18:44 UTC - Jose Celano - Approved the `services/scrape.rs` completed-file review;
   ledger row 3 is `DONE`.
+- 2026-10-05 18:49 UTC - GitHub Copilot - Reopened `services/announce.rs` (ledger row 1) for the
+  approved R2h test. Unit-only file lines 338 / 347 to 390 / 396. Awaiting completed-file review.
+- 2026-10-05 21:06 UTC - Jose Celano - Approved R2h; ledger row 1 is `DONE` again.
 
 ## Acceptance Criteria
 

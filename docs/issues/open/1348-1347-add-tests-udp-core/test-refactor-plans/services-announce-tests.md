@@ -47,7 +47,7 @@ No existing tests. R1 is skipped.
 | External-IP pass-through | Collaboration | R2f: loopback client with a configured external IP registers the peer with the external IP. The assignment rule is `tracker-core`'s; the test protects only that the service forwards its configuration. |
 | Event publication | 3A unit | R2g: a successful announce sends exactly one `UdpAnnounce` event with the full connection context including public URL, the info hash, and the announced peer. |
 | Absent event sender | 3A unit | No dedicated test: R2a-R2f run without a sender and therefore cover it. |
-| `TrackerCoreAnnounceError` adaptation | Collaborator-owned | Not selected. Reachable only through a `tracker-core` database failure with persistent statistics, or a whitelist mismatch between the service and handler that the container never wires. The `From` impl is a one-field wrap. |
+| `TrackerCoreAnnounceError` adaptation | Collaboration | Originally not selected. Reopened as R2h: `tracker-core` exports `MockTorrentMetricsStore`, so a failing persisted-downloads lookup returns `TrackerCoreAnnounceError` wrapping `AnnounceError::Database` without a real database. |
 | `peers_wanted` limit, peer selection, swarm statistics | Collaborator-owned | `tracker-core` owns them; no test here. |
 | Property-based testing | Not selected | No natural property: the decisions are enumerable branches. |
 
@@ -65,19 +65,21 @@ in-file announce request builder; `udp-server`'s builder is not shared across pa
 | R2 | DONE | Add R2a-R2g. | 7 focused `services::announce` tests passed; nightly formatting, pedantic Clippy, and `git diff --check` clean; R2d failed under a temporary authenticate/authorize order swap. |
 | R3 | SKIPPED | No integration increment: the service has no network boundary. | Explicit rationale. |
 | R4 | DONE | Re-run unit-only coverage; record before/after. | 0 / 101 to 338 / 347 lines; see Results. |
+| R2h | DONE | Reopened: add the tracker-core failure adaptation test. | 62 package tests passed; nightly formatting, pedantic Clippy, and `git diff --check` clean; file lines 338 / 347 to 390 / 396. |
 
 ## Results
 
 - **Unit-only coverage (test-inclusive file totals):** 0 / 101 (0.00%) to 338 / 347 (97.41%)
   lines; 0 / 14 to 41 / 44 functions; 0 / 102 to 376 / 389 regions. The denominator grows because the
-  measurement includes the new test module.
-- **Residual uncovered lines:** the `configuration_instance_id()` and `public_url()` accessors
-  and the deliberately unselected `From<AnnounceError>` adaptation. No untested service decision
-  remains.
-- **Tests added:** 7 (R2a-R2g), using an in-file fixture that owns the torrent repository for
-  state assertions.
+  measurement includes the new test module. After R2h: 390 / 396 (98.48%) lines, 434 / 444
+  regions, 48 / 50 functions.
+- **Residual uncovered lines:** the `configuration_instance_id()` and `public_url()` accessors.
+  No untested service decision remains.
+- **Tests added:** 8 (R2a-R2h), using an in-file fixture that owns the torrent repository for
+  state assertions and optionally backs persisted downloads with a `tracker-core` store mock.
 - **Integration selected:** No.
-- **Completed-file review:** Approved by Jose Celano on 2026-10-04.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-04 for R2a-R2g and on 2026-10-05
+  for R2h.
 
 ## Approval
 
@@ -98,3 +100,8 @@ Approved by Jose Celano on 2026-10-02: R2a-R2g, the fixture approach, and not te
   `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-04 10:35 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-05 18:49 UTC - GitHub Copilot - Reopened with maintainer approval after the scrape plan
+  showed the `tracker-core` store mock makes the database failure path cheap to reach. Added R2h,
+  extended the fixture with an optional persisted-downloads store, and re-measured coverage.
+  Awaiting completed-file review of R2h.
+- 2026-10-05 21:06 UTC - Jose Celano - Approved the R2h completed-file review.
