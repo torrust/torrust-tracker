@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 13:18"
+last-updated-utc: "2026-10-05 14:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,7 +201,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
 | T4  | DONE   | Example signal boundary (D6)               | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
 | T5  | DONE   | Documentation                              | Task inventory findings 4 and 8 record the migrated HTTP consumer; the feature README's stale "implementation has not started" status now points to EPIC #1488. |
-| T6  | IN_PROGRESS | Verification and completion review         | Automatic checks, manual scenarios, and AC review done; a drain-timeout test was added for AC3. Pending: pre-push checks and the independent review. |
+| T6  | DONE   | Verification and completion review         | Automatic checks, manual scenarios, AC review, pre-push checks (pass, 58 s), and two Task Reviewer passes (second: REVIEW PASSED). A drain-timeout test was added for AC3. |
 
 T2 tests (use the `write-unit-test` skill, no OS signals):
 
@@ -239,13 +239,13 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec (#2412)
 - [x] Spec-only PR merged into `develop` before implementation (#2421)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -263,6 +263,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 12:48 UTC - GitHub Copilot - AC review against the current tree. AC3 had no test for the drain-timeout case; added `it_should_report_a_drain_timeout_even_when_every_task_joins`, proven by ignoring `TimedOut`. Completion review: no `implementation-retrospective.md` needed; the two material discoveries (the SIGTERM baseline caught inside the library, and the 1 s drain polling) are recorded in this log, the evidence, and a code comment. Pending: pre-push checks and the independent Task Reviewer report.
 - 2026-10-05 13:18 UTC - GitHub Copilot - Task Reviewer report (REVIEW FAILED: two Major documentation gaps, no code defects) recorded in `agent-review-reports.md`. Fixes: (1) prose-first AAA comparison for the five environment tests, below; (2) the evidence file's template placeholders replaced by a table of the automated tests; (3) AC7 text scoped to direct subscriptions; (4) the first environment test renamed to what it asserts, `it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation`; (5) the example's readiness comment qualified as Unix-only, since non-Unix `ctrl_c()` registers on first poll; (6) the Unix signal import moved to the file top under `cfg(unix)`; (7) the `Future` import dropped (edition 2024 prelude); (8) spec status set to `in-progress`. The drain-cost suggestion needs no action.
 - 2026-10-05 13:18 UTC - GitHub Copilot - Prose-first AAA comparison for the environment tests. (a) Stop without a join failure: Arrange a started environment; Act stop it within the deadline; Assert the stop task finished without a panic. The code says exactly this; the old name claimed more, so it was renamed. (b) Release binding: Arrange a started environment and its actual binding; Act stop; Assert the same address binds immediately. Matches. (c) Restart: Arrange an environment stopped once; Act start it again; Assert its health check answers 200. Matches. (d) Server failure: Arrange a panicking server task, a drained controller, and a listener that finishes only after cancellation and one more scheduling turn; Act join them; Assert the server failure is reported and the listener finished. The extra scheduling turn was causal but implicit, so a one-line comment now says why. (e) Drain timeout: Arrange a finished server, a timed-out controller, and a finished listener; Act join them; Assert exactly the drain-timeout failure. Matches.
+- 2026-10-05 14:55 UTC - GitHub Copilot - Second Task Reviewer pass: REVIEW PASSED; all first-pass findings resolved; one optional Nit (non-Unix `ctrl_c()` called by full path) left as is, since a single-use `cfg(not(unix))` import adds nothing. Pre-push checks pass in 58 s (nightly `rustc 1.101.0-nightly (282215592 2026-10-04)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). T6 done; next: the implementation PR.
 
 ## Acceptance Criteria
 

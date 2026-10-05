@@ -62,3 +62,29 @@ semantic-links:
     qualify the readiness comment as Unix-only; optionally fix the three nits; run the pre-push
     checks and record them under T6.
   - Caller: request a new Task Reviewer pass before the implementation PR.
+
+### 2026-10-05 14:30 UTC - Task Reviewer (second pass)
+
+- Invocation scope: Re-review at `1985b683` of the three remediation commits (`602e8713`,
+  `7bec00c8`, `1985b683`) against every finding of the 13:10 UTC report; search for new
+  problems; re-confirm AC1-AC8. Read-only.
+- Inputs: `ISSUE.md` (both 13:18 UTC progress-log entries), `manual-verification-evidence.md`,
+  this file, `git show 7bec00c8` and `git show 1985b683`, current `environment.rs`,
+  `http_only_public_tracker.rs`, health-check `contract.rs`, the `review-task` skill's test
+  design checklist, and `AGENTS.md`.
+- Evidence: clean worktree; the three commits are signed Conventional Commits;
+  `cargo test -p torrust-tracker-axum-http-server` 42 + 61 passed;
+  `cargo test -p torrust-tracker-axum-health-check-api-server` 3 + 8 passed;
+  `cargo test -p torrust-tracker-axum-http-server --lib testing::environment` 5 passed, matching
+  the evidence file; `cargo clippy -p torrust-tracker-axum-http-server --all-targets -- -D warnings`
+  clean; `linter all` exit 0; example build finished; no `abort()` in `environment.rs`; no
+  `tokio::signal` in `packages/axum-http-server/src`. All nine first-pass findings resolved or
+  closed (the drain-cost suggestion was accepted by the maintainer). AC1-AC8 pass; AC6 relies on
+  evidence V2/V3, and the later example change is non-behavioral.
+- Findings:
+  - Nit (optional): the non-Unix branch calls `tokio::signal::ctrl_c()` by full path
+    (`http_only_public_tracker.rs:139`) while the Unix import is now at the top.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Caller: record this entry and tick the reviewer checkboxes.
+  - Implementer: run the pre-push checks and record them under T6. The Nit is optional.
