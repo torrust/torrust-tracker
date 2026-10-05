@@ -73,7 +73,7 @@ allowance with a fix that preserves behaviour for all reachable values.
 | Entry | Source | Source/target bounds | Outcome | Validation |
 | ----- | ------ | -------------------- | ------- | ---------- |
 | A099 | `primitives` `ser_unix_time_value` | `Duration::as_millis()` is `u128`; `u64` milliseconds cover ~584 million years, but `Duration` can exceed that and `as u64` silently truncates. | Replace with `u64::try_from` and fail serialization with `serde::ser::Error::custom` when out of range. | Unit tests: a normal timestamp, `u64::MAX` ms, and the first value beyond it (error). |
-| A123 | `torrent-repository-benchmarking` `EntrySingle::get_swarm_metadata` | Seeder/leecher counts are `usize`; `SwarmMetadata` fields are `u32`. A swarm above `u32::MAX` peers is not realistic, but `as u32` would silently wrap. | Replace with `u32::try_from(..).expect(..)`, mirroring the reverse conversion in the production `Coordinator::seeders_and_leechers`. | Existing benchmarking repository tests assert swarm metadata. |
+| A123 | `torrent-repository-benchmarking` `EntrySingle::get_swarm_metadata` | Seeder/leecher counts are `usize`; `SwarmMetadata` fields are `u32`. A swarm above `u32::MAX` peers is not realistic, but `as u32` would silently wrap. | Replace with `u32::try_from(..).expect(..)` in a `peer_count_as_u32` helper, mirroring the reverse conversion in the production `Coordinator::seeders_and_leechers`. | Unit tests on the helper: `u32::MAX` converts; on 64-bit targets `u32::MAX + 1` panics (on 32-bit targets the conversion cannot fail). |
 | A129 | `tracker-core` `PeersWanted::from_client_request` | Guarded `i32` with `value > 0`; target `usize`. | Replace `value as usize` with `Self::only(value.unsigned_abs())`: `u32` carries the non-negative invariant, the function stays `const`, and `u32 -> usize` is not linted. | Existing tests for -1, 0, max-1, max, and max+1. |
 
 ## Implementation Plan
@@ -147,7 +147,7 @@ with serde. A123 lives in a benchmarking-only crate. Both are covered by unit te
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Review Outcomes table; #2158 inventory rows A099, A123, A129. |
 | AC2 | DONE | No cast retained: all three allowances removed; `grep -rn "#2246"` over Rust sources finds no remaining temporary reason. |
-| AC3 | DONE | A099: three new `unix_time_value_serialization` tests (the out-of-range test failed against the old cast). A129: existing `from_client_request` boundary tests. A123: existing benchmarking repository metadata tests. |
+| AC3 | DONE | A099: three new `unix_time_value_serialization` tests (the out-of-range test failed against the old cast). A129: existing `from_client_request` boundary tests. A123: two new `peer_count_as_u32` tests (the 64-bit `u32::MAX + 1` test failed against a wrapping cast). |
 | AC4 | DONE | Focused Clippy and tests pass for the three packages; `linter all` passes in every pre-commit run; pre-push checks (nightly fmt/check/doc and the full test suite) pass. |
 
 ## Risks and Trade-offs
