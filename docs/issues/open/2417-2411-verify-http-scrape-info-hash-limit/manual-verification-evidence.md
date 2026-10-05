@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
-last-updated-utc: "2026-10-05 15:11"
+last-updated-utc: "2026-10-05 21:05"
 ---
 
 # HTTP Scrape Limit Verification

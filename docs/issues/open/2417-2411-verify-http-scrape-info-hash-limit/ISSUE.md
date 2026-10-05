@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 18:33"
+last-updated-utc: "2026-10-05 21:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -265,7 +265,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | T5 | DONE | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES`, UDP value computed from `MAX_PACKET_SIZE`, tracker-core constant removed; server docs and EPIC A3 updated |
 | T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
 | T7 | DONE | Client: no cap, truncation warning | K1 proven red before removing the cap; K1-K4 green; V4 shows the warning for UDP 75 and HTTP 1000, none for HTTP 74 |
-| T8 | DONE | Binary-level client tests with fake trackers | K5-K8 green; mutation-checked (dropping the warning fails K5 and K7; counting raw HTTP params fails K8); fakes in `console/tracker-client/tests/tracker_client/fake_trackers/` |
+| T8 | DONE | Binary-level client tests with fake trackers | K5-K8 green; mutation-checked (dropping the warning fails K5 and K7; counting raw HTTP params fails K8); fakes originally in `console/tracker-client/tests/tracker_client/fake_trackers/`, moved to `tests/common/fake_trackers/` by T9 |
 | T9 | DONE | Ride-along: monitor success-path test | Deferred item 14 of the closed refactor plan #1178, unblocked by T8's fakes. Fakes moved to `console/tracker-client/tests/common/fake_trackers/`; `FakeUdpTracker` answers announces and has `silent()`, replacing the ad-hoc sink; the success-path test is mutation-checked; the refactor plan records the resolution. Not an acceptance criterion of this issue |
 
 ## Commit Points
@@ -307,7 +307,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
 | M1 | HTTP scrape with 1000 info hashes (repeated in T6) | Maintained client sent 74/75 numeric hashes and 1000 compact ASCII hashes; decoded result counted with jq; tracker response log checked | Returned 74/75/1000 respectively; 1000 logged HTTP 200; longer numeric URL failed client-side; URL length not captured (V1) | DONE |
-| M2 | UDP scrape control | Send one 75-hash request with a valid connection ID to the local tracker; verify actual transmitted hash count so client truncation cannot hide server behavior | 1516 bytes (75 hashes) sent; 74 entries returned (V2). Maintained client caps CLI args at 74, so an inline Python snippet sent the datagram | DONE |
+| M2 | UDP scrape control | Send one 75-hash request with a valid connection ID to the local tracker; verify actual transmitted hash count so client truncation cannot hide server behavior | 1516 bytes (75 hashes) sent; 74 entries returned (V2). Maintained client caps CLI args at 74, so an inline Python snippet sent the datagram; rerun with the maintained client in V4 after T7 | DONE |
 
 A small disposable script may generate the 1000-hash URL; record its path and
 removal owner in this spec before creating it.
@@ -324,7 +324,7 @@ because the response dictionary can collapse them.
 - [x] Draft reviewed; HTTP mismatch reproduced, final behavior choice still pending
 - [x] GitHub issue created and parent linked
 - [x] Manual baseline, reconsidered decision, and ADR recorded
-- [x] Implementation, automatic checks, and manual recheck completed
+- [x] Implementation, focused checks, and manual recheck completed
 - [ ] Acceptance criteria re-reviewed and independent Task Reviewer report recorded
 
 ### Progress Log
@@ -369,12 +369,19 @@ because the response dictionary can collapse them.
 - 2026-10-05 18:33 UTC - T9 done: the monitor tests run against
   `FakeUdpTracker::answering()` and `silent()`; `keeping_all()` became
   `answering()` on both fakes.
+- 2026-10-05 21:05 UTC - The first Task Reviewer report failed: the
+  prose-first Arrange-Act-Assert comparison was planned but not recorded. It
+  is now done and recorded in
+  [prose-first-test-review.md](prose-first-test-review.md); it led to small
+  test changes (specific H4 error, visible U1/U2 Acts, W1 context, K1 ADR
+  link). The reviewer's spec findings are fixed. Reports are in
+  [agent-review-reports.md](agent-review-reports.md).
 
 ### Acceptance Verification
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1 | DONE | [V1: HTTP baseline](manual-verification-evidence.md#v1-documented-74-hash-cap); final implementation acceptance remains pending |
+| AC1 | DONE | [V1: HTTP baseline](manual-verification-evidence.md#v1-documented-74-hash-cap) |
 | AC2 | DONE | S1 and US1 tests; [V2](manual-verification-evidence.md#v2-udp-control-m2) and [V3](manual-verification-evidence.md#v3-http-recheck-after-the-fix-t6) |
 | AC3 | DONE | Test matrix rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core`, and `tracker-client` (K1-K4 unit, K5-K8 binary-level against fake trackers; [V4](manual-verification-evidence.md#v4-maintained-client-without-the-74-cap-t7)) |
 | AC4 | DONE | ADR 20261005124222; HTTP and UDP constant docs and server crate docs link it |
