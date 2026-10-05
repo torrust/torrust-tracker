@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 12:19"
+last-updated-utc: "2026-10-05 12:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -199,7 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Public token-aware health-check start (D4) | `start_with_cancellation_and_health_check` made public (name kept: mirrors legacy `start_with_health_check`). Unit test proves the registry runs the injected callback; mutation-proven. Maintainer approved 2026-10-05. |
 | T2  | DONE   | Migrate `Environment` start/stop (D1-D3)   | Implemented with the four planned tests, each mutation-proven. Design approved 2026-10-05. |
 | T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
-| T4  | TODO   | Example signal boundary (D6)               | `http_only_public_tracker` stops on SIGINT or Unix SIGTERM; module docs updated.                                                                           |
+| T4  | DONE   | Example signal boundary (D6)               | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
 | T5  | TODO   | Documentation                              | Shutdown task inventory and feature README record the HTTP standalone consumer as migrated.                                                                |
 | T6  | TODO   | Verification and completion review         | Automatic checks, manual scenarios, AC review, completion review.                                                                                          |
 
@@ -259,6 +259,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 11:44 UTC - GitHub Copilot - Maintainer approved T1; committed. Next: T2.
 - 2026-10-05 12:06 UTC - GitHub Copilot - T2 first passing slice. Environment states are private `Stopped`/`Running` types with `Unstarted`/`Started` aliases (mirroring the UDP environment); each start creates a fresh token; `stop()` cancels once and joins server, drain controller, and listener through `join_owned_tasks`, which awaits all three before reporting every failure. Tests and mutation proofs: listener aborted (3 stop-path tests fail, naming the listener); early return on server failure (the listener-join test fails); start with a pre-cancelled token (the restart test fails with connection reset). Finding: a stop with an idle keep-alive connection takes about 1 s, because `graceful_shutdown_on_cancellation` re-checks the connection count every second; the integration suite went from 0.28 s to 2.24 s. That is production drain behavior, previously hidden because the legacy path did not join its drain task. Tokio's `time` feature added as a dev-dependency for bounded test waits.
 - 2026-10-05 12:19 UTC - GitHub Copilot - Maintainer approved the T2 design and accepted the ~1 s drain cost (2.24 s suite is fine). No follow-up issue: a short comment in `graceful_shutdown_on_cancellation` records the future options (wake on connection-count changes, or a cancellation kind that skips the drain), which are outside the shutdown refactor. T3 done; workspace `cargo check --all-targets` and `linter all` pass.
+- 2026-10-05 12:36 UTC - GitHub Copilot - T4 done. Handlers are installed before readiness is printed, so a signal sent after `Listening on` cannot hit the default action; on Unix this uses signal streams, which register immediately (`ctrl_c()` registers on first poll). Non-Unix uses `ctrl_c()`; only the Linux target is installed locally, so CI's Windows/macOS builds check that branch. M2 (SIGTERM) and M3 (SIGINT) stop in order and exit 0. M4: no direct signal use in the HTTP library; the legacy path still subscribes indirectly until SI-19, so AC7 is read as direct subscriptions only.
 
 ## Acceptance Criteria
 
@@ -304,9 +305,9 @@ so the signal reaches the example's own PID.
 | ID  | Scenario                       | Human-oriented command/steps                                                                                                 | Expected Result                                                                    | Status | Evidence                                     |
 | --- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Baseline SIGTERM (before T4)   | Start the example, wait for `Listening on`, `kill -TERM <pid>`, record output and `$?`.                                      | Recorded: SIGTERM caught by the library, process stays up; SIGINT then panics `stop()` (exit 101). | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Announce, then SIGTERM         | Start the example, announce with `tracker_client http announce` to its address, `kill -TERM <pid>`, record output and `$?`. | Announce succeeds; output shows shutdown and `Stopped.`; exit code 0.             | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | SIGINT                         | Repeat M2 with `kill -INT <pid>`.                                                                                            | Same orderly stop as M2; exit code 0.                                              | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | No library signal subscription | `rg -n 'tokio::signal' packages/axum-http-server/src`                                                                        | No matches.                                                                        | TODO   | `manual-verification-evidence.md` section V4 |
+| M2  | Announce, then SIGTERM         | Start the example, announce with `tracker_client http announce` to its address, `kill -TERM <pid>`, record output and `$?`. | Announce succeeds; output shows shutdown and `Stopped.`; exit code 0.             | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | SIGINT                         | Repeat M2 with `kill -INT <pid>`.                                                                                            | Same orderly stop as M2; exit code 0.                                              | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | No library signal subscription | `rg -n 'tokio::signal' packages/axum-http-server/src`                                                                        | No matches. The legacy path still subscribes indirectly via `axum-server`/`torrust-server-lib` until SI-19. | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 

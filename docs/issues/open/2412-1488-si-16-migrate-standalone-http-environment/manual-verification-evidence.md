@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-last-updated-utc: "2026-10-04 10:34"
+last-updated-utc: "2026-10-05 12:36"
 ---
 
 # Verification Evidence — Standalone HTTP Environment and Example
@@ -108,23 +108,67 @@ discarded and the orphan stopped with SIGINT before the run above.
 
 ### V2: Announce, Then SIGTERM
 
-- [ ] Run `http_only_public_tracker` and send SIGTERM to the example binary.
-- [ ] Record the signal-boundary output, orderly stop, and final process result.
+- [x] Run `http_only_public_tracker` and send SIGTERM to the example binary.
+- [x] Record the signal-boundary output, orderly stop, and final process result.
+
+Run on 2026-10-05 against `2f8a58bd` plus the uncommitted T4 example change,
+same toolchain as above. The announce used the maintained client.
+
+```text
+$ target/debug/examples/http_only_public_tracker > m2.log 2>&1 &
+# wait for "Listening on", then:
+$ target/debug/tracker_client http announce http://127.0.0.1:53503/announce 9c38422213e30bff212b30c360d26f9a02136422
+{"complete":1,"incomplete":0,"interval":120,"min interval":120,"peers":[]}
+$ kill -TERM 2632630
+exit_status=0
+
+m2.log (tail):
+Listening on 127.0.0.1:53503
+Press Ctrl-C (or send SIGTERM on Unix) to stop.
+Received SIGTERM. Shutting down...
+Stopped.
+```
 
 ### V3: SIGINT
 
-- [ ] Repeat with Ctrl+C and record the same lifecycle path.
+- [x] Repeat with Ctrl+C and record the same lifecycle path.
+
+```text
+$ target/debug/examples/http_only_public_tracker > m3.log 2>&1 &
+$ target/debug/tracker_client http announce http://127.0.0.1:49771/announce 9c38422213e30bff212b30c360d26f9a02136422
+{"complete":1,"incomplete":0,"interval":120,"min interval":120,"peers":[]}
+$ kill -INT 2639322
+exit_status=0
+
+m3.log (tail):
+Listening on 127.0.0.1:49771
+Press Ctrl-C (or send SIGTERM on Unix) to stop.
+Received SIGINT. Shutting down...
+Stopped.
+```
+
+No example process remained after either run.
 
 ### V4: Library Boundary and Compatibility
 
-- [ ] Confirm no HTTP library module gains an OS-signal subscription.
-- [ ] Confirm legacy HTTP start/stop callers still compile and behave as before.
+- [x] Confirm no HTTP library module gains an OS-signal subscription.
+- [x] Confirm legacy HTTP start/stop callers still compile and behave as before.
 
 **Evidence:**
 
 ```text
-(paste commands and output)
+$ rg -n 'tokio::signal' packages/axum-http-server/src
+(no matches; exit 1)
 ```
+
+Scope of that claim: no module in `packages/axum-http-server/src` subscribes
+to OS signals directly. The legacy `HttpServer::start`/`stop` path still does
+so indirectly, through `axum-server` `graceful_shutdown` and
+`torrust-server-lib` `global_shutdown_signal` (see V1). This issue keeps that
+path for compatibility; the environment and the example no longer use it, and
+SI-19 removes it. The legacy unit test
+`it_should_preserve_the_launcher_bind_address_after_starting_and_stopping`
+still passes.
 
 ## Summary
 
@@ -133,6 +177,6 @@ discarded and the orphan stopped with SIGINT before the run above.
 | Environment token cancellation   | Pending |                       |
 | Owned tasks joined               | Pending |                       |
 | Listener cancellation, not abort | Pending |                       |
-| Example SIGTERM                  | Baseline recorded (V1): library catches it, process stays up | V1 |
-| Example SIGINT                   | Pending |                       |
-| Legacy compatibility             | Pending |                       |
+| Example SIGTERM                  | Baseline (V1): library catches it, process stays up. After T4 (V2): orderly stop, exit 0 | V1, V2 |
+| Example SIGINT                   | Orderly stop, exit 0 | V3 |
+| Legacy compatibility             | Legacy unit test passes; legacy path still subscribes indirectly until SI-19 | V4 |
