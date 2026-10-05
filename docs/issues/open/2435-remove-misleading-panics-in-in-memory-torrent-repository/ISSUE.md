@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
-branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository-spec"
+branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 08:43"
+last-updated-utc: "2026-10-05 14:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,16 +49,43 @@ Found during PR #2423 (issue #2406) review.
   - **B.** Remove `Result` from the infallible registry methods so they return values directly.
   - **C.** Introduce a real registry error and propagate it through `InMemoryTorrentRepository` to its callers.
 - Implement the chosen option and update the affected doc comments.
+- Fix the registry's own misleading `# Errors` sections (they claim a panic when a lock "cannot be acquired"; `tokio::sync::Mutex::lock` cannot fail).
+- Propagate the registry error through every production caller up to the delivery layers (see [Decision (T2)](#decision-t2)).
+- Write an ADR for the forward-compatible error policy.
 
 ### Out of Scope
 
-- Other `expect`/`unwrap` uses outside `InMemoryTorrentRepository` and the registry methods it calls.
+- Other `expect`/`unwrap` uses outside `InMemoryTorrentRepository` and the registry methods it calls (for example the `MetricCollection::merge` `expect` calls in the REST labeled-stats adapter).
+- `.unwrap()`/`.expect()` on registry or repository results in test code, test-support modules (`src/testing/`), examples, and benchmarks.
 - Changing swarm-coordination behavior.
 
 ## Architectural Decisions
 
 - Related ADRs: none known.
-- ADRs to create: only if option C introduces a new error-propagation contract between `swarm-coordination-registry` and `tracker-core`.
+- ADRs to create: a root ADR in `docs/adrs/` recording that public workspace packages keep `Result` on operations that may plausibly become fallible, using a crate-owned uninhabited `#[non_exhaustive]` error enum instead of `Infallible`. It is root-scoped because every workspace package can be consumed independently.
+
+## Decision (T2)
+
+Maintainer decision, 2026-10-05: **option C, with an uninhabited `#[non_exhaustive]` error type and full propagation**.
+
+Rationale (maintainer): every package in this workspace is public and usable independently of the tracker. Implementations often change and suddenly need to return an error. Unless an operation can never fail, it should return `Result`, so consumers are ready to handle the error case when it appears. Consumers who investigate can see that no errors happen today. The decision must be documented and honest: if the API returns `Result`, callers propagate it instead of hiding it behind `expect`.
+
+Why not `Infallible`: `Result<_, Infallible>` does not give that forward compatibility. Consumers can write `let Ok(v) = ...;`, `match e {}`, or `impl From<Infallible> for MyError`, and all of these break when the alias becomes a real type. Consumers that `.unwrap()` keep compiling and silently start panicking.
+
+Chosen shape:
+
+- `swarm-coordination-registry` replaces `pub type Error = Infallible` with `#[non_exhaustive] pub enum Error {}` (implementing `Debug`, `Clone`, `Display`, and `std::error::Error`). Inside the registry it is uninhabited, so internal code stays trivial. Other crates must treat it as inhabited, so they are forced to handle `Err` now, and adding variants later is not a breaking change. Verified on 2026-10-05 with a two-crate scratch build: `let Ok(v) = lib::count();` compiles in the defining crate and fails with `E0005: pattern Err(_) not covered` in the consumer crate.
+- `InMemoryTorrentRepository` returns `Result<T, registry::Error>` from the 10 registry-backed methods; no `expect`, no `# Panics`.
+- Propagation boundaries (all the way to delivery layers):
+  - Announce: `AnnounceError` gains a `SwarmRegistry` variant. HTTP maps it through the existing `TrackerCoreError` → `failure_reason` path. UDP maps it to `ErrorKind::InternalServer` in `udp-server/src/event.rs`.
+  - Scrape: `ScrapeError` gains a `SwarmRegistry` variant, mapped the same way as announce.
+  - Torrent cleanup: `TorrentsManager::cleanup_torrents` returns `Result`. The cleanup job runner logs the error and keeps running on the next tick (`Completion` has no error variant, and one failed pass must not stop future cleanups).
+  - REST stats: `StatsQueryPort::get_stats` and `StatsApiService::get_stats` return `Result` with a `rest-api-application`-owned port error. The `get_stats_handler` responds `500` through the existing `unhandled_rejection_response` pattern.
+  - `udp-core` and `udp-server` `statistics::services::get_metrics` return `Result` (public functions with no production caller; their callers are their own tests).
+
+Rejected: option A (keeps the misleading `Infallible` and hides the result in one consumer) and option B (removes `Result`, contrary to the forward-compatibility policy above).
+
+Test consequence: the registry error has no values today, so registry-originated error paths cannot be exercised at runtime. AC3 is guarded by a `compile_fail` doctest on the registry error. The REST `500` mapping is tested with a stub `StatsQueryPort` returning the constructible port error.
 
 ## Design and Ownership Review
 
@@ -70,7 +97,7 @@ Not applicable. The bug rule in the `create-issue` and `fix-bug` skills covers o
 
 ## Regression Test Strategy
 
-Not applicable. Options A and B are compile-time guarantees; option C needs tests for the propagated error path.
+Option C was chosen. Registry-originated failures cannot be constructed while the error enum has no variants, so the guard is a `compile_fail` doctest proving that consumer crates cannot ignore `Err`. The REST stats `500` mapping gets a handler-level test with a stub port that returns an error.
 
 ## Implementation Plan
 
@@ -78,16 +105,31 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Inventory fallible registry methods and repository callers | List of methods, callers, and whether any can fail |
-| T2 | TODO | Choose option A, B, or C | Record the decision, rationale, and maintainer approval here before implementation |
-| T3 | TODO | Implement the chosen option | No `expect` on registry results in `in_memory.rs`; doc comments match behavior |
+| T1 | DONE | Inventory fallible registry methods and repository callers | See [T1 Inventory](#t1-inventory) |
+| T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) |
+| T3 | TODO | Write the ADR | Root ADR plus index row |
+| T4 | TODO | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
+| T5 | TODO | REST stats port returns `Result` | Port error type, use case, handler `500` mapping, stub-port test |
+| T6 | TODO | Propagate through `tracker-core` and delivery layers | Repository, announce/scrape errors, manager, cleanup job, UDP/HTTP mappings, stats services; no `expect` on registry results in `in_memory.rs` |
+
+### T1 Inventory
+
+Registry methods returning `Result<_, Error>` (all infallible today): `handle_announcement`, `get_swarm_metadata`, `get_swarm_metadata_or_default`, `get_peers_peers_excluding`, `get_swarm_peers`, `remove_inactive_peers`, `remove_peerless_torrents`, `get_aggregate_swarm_metadata`, `count_peerless_torrents`, `count_peers`.
+
+- `tracker-core`: `in_memory.rs` is the only caller, with one `expect` per method (10 in total) and a matching `# Panics` section.
+- Other direct callers: about 63 `.unwrap()` calls in the registry's own tests, `examples/bench_peers.rs`, and `statistics/mod.rs` tests.
+- Production callers of the repository methods: `AnnounceHandler`, `ScrapeHandler`, `TorrentsManager` (cleanup and metadata logging), `TrackerStatsAdapter::get_stats` (REST), and `udp-core`/`udp-server` `statistics::services::get_metrics`.
+- None of these calls can fail today: every registry method returns `Ok`, and `tokio::sync::Mutex::lock` is infallible.
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T2 | Decision recorded in the spec | Commit after maintainer approval |
-| T3 | Production change and doc updates | Commit after focused validation and review |
+| T3 | ADR and index row | One `docs(adrs)` commit |
+| T4 | Registry error type and docs | One commit; the workspace still compiles because callers only need `Debug` for `expect` |
+| T5 | REST stats port `Result` | One commit; the adapter returns `Ok` until T6 |
+| T6 | Propagation through `tracker-core` and delivery layers | One commit (signature changes must land together to compile) |
 
 ## Progress Tracking
 
@@ -98,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -111,6 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-03 07:58 UTC - Copilot - Maintainer approved the draft; the A/B/C decision is deferred until the draft moves to `docs/issues/open/`. Committed as a draft in PR #2423; no GitHub issue yet.
 - 2026-10-05 07:05 UTC - Copilot - Maintainer confirmed the task classification (no runtime defect). Created GitHub issue #2435 and moved the spec to `docs/issues/open/` on a spec-only branch; the A/B/C decision remains open for T2.
 - 2026-10-05 08:43 UTC - Copilot - Reworded the Bug-Fix Process paragraph after PR #2436 review (F1): the classification is recorded as outside the bug rule's scope (no observable behavior), not as an exception to it, and AC3 is named as the regression protection.
+- 2026-10-05 14:26 UTC - Copilot - Created implementation branch `2435-remove-misleading-panics-in-in-memory-torrent-repository`. T1 inventory recorded. Maintainer chose option C (keep `Result` for forward compatibility of public packages) with a `#[non_exhaustive]` uninhabited error instead of `Infallible`, full propagation to delivery layers, a root ADR, and registry `# Errors` doc fixes. Manual scenario M1 dropped. Work stops at local commits (no push or PR).
 
 ## Acceptance Criteria
 
@@ -118,8 +161,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: No method of `InMemoryTorrentRepository` calls `expect` or `unwrap` on a registry result.
 - [ ] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
 - [ ] `linter all` exits with code `0`
+- [ ] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
+- [ ] AC5: Registry errors propagate to the HTTP/UDP announce and scrape responses, the REST stats response (`500`), and the cleanup job log; no new `expect`/`unwrap` is introduced in production code on that path.
+- [ ] AC6: The ADR records the forward-compatible error policy.
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -128,16 +173,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Automatic Checks
 
 - `linter all`
-- `cargo test -p torrust-tracker-core -p torrust-tracker-swarm-coordination-registry`
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (signatures change across several packages)
+- `cargo test --doc --workspace` (includes the AC3 `compile_fail` doctest)
 - Pre-push checks
 
 ### Manual Verification Scenarios
 
-Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
-
-| ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| M1 | Tracker smoke test | Start a local tracker, announce and scrape one torrent over UDP and HTTP with `tracker_client` | Normal announce and scrape responses; no panics in the logs | TODO | `manual-verification-evidence.md` section V1 |
+None. Maintainer decision on 2026-10-05: the change alters types and error plumbing only; compile-time checks and automated tests are sufficient.
 
 ### Disposable Verification Scripts
 
@@ -149,12 +191,15 @@ None planned.
 | --- | --- | --- |
 | AC1 | TODO | Doc comments in `in_memory.rs` |
 | AC2 | TODO | `grep` of `in_memory.rs` |
-| AC3 | TODO | Chosen option and its compile-time or test evidence |
+| AC3 | TODO | `compile_fail` doctest on the registry error |
+| AC4 | TODO | Registry doc comments |
+| AC5 | TODO | Signatures, error mappings, REST `500` test |
+| AC6 | TODO | ADR file and index row |
 
 ## Risks and Trade-offs
 
-- Option B or C changes public signatures of `swarm-coordination-registry`; check downstream callers and benchmarks.
-- Option A keeps the `Result` wrapper; it is the smallest change but leaves an unusual API shape.
+- Option C changes public signatures in `tracker-core`, `rest-api-application`, `udp-core`, and `udp-server`, and adds variants to `AnnounceError` and `ScrapeError` (which are not `#[non_exhaustive]`). This is acceptable on `3.0.0-develop`.
+- Propagating an error that has no values adds plumbing that has no runtime effect today. The maintainer accepts this as the cost of an honest, forward-compatible API.
 
 ## Implementation Completion Review
 
