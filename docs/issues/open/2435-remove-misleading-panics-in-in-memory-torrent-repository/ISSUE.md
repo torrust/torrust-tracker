@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p3
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
-branch: "{issue-number}-remove-misleading-panics-in-in-memory-torrent-repository"
+github-issue: 2435
+spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
+branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 07:58"
+last-updated-utc: "2026-10-05 08:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove Misleading Panics From the In-Memory Torrent Repository
+# Issue #2435 - Remove Misleading Panics From the In-Memory Torrent Repository
 
 ## Goal
 
@@ -66,7 +66,7 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable. No incorrect runtime behavior is known; the defect is a misleading contract and a latent risk.
+Not applicable. The bug rule in the `create-issue` and `fix-bug` skills covers observed behavior, and none is observable here: the registry's error type is `Infallible`, so the documented panics cannot occur. Regression protection is AC3.
 
 ## Regression Test Strategy
 
@@ -79,7 +79,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Inventory fallible registry methods and repository callers | List of methods, callers, and whether any can fail |
-| T2 | TODO | Choose option A, B, or C | Deferred until the draft moves to `docs/issues/open/`; record the decision, rationale, and maintainer approval here |
+| T2 | TODO | Choose option A, B, or C | Record the decision, rationale, and maintainer approval here before implementation |
 | T3 | TODO | Implement the chosen option | No `expect` on registry results in `in_memory.rs`; doc comments match behavior |
 
 ## Commit Points
@@ -95,7 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -109,6 +109,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-03 07:45 UTC - Copilot - Drafted from a maintainer observation during PR #2423 review; confirmed the registry error type is `Infallible`.
 - 2026-10-03 07:58 UTC - Copilot - Maintainer approved the draft; the A/B/C decision is deferred until the draft moves to `docs/issues/open/`. Committed as a draft in PR #2423; no GitHub issue yet.
+- 2026-10-05 07:05 UTC - Copilot - Maintainer confirmed the task classification (no runtime defect). Created GitHub issue #2435 and moved the spec to `docs/issues/open/` on a spec-only branch; the A/B/C decision remains open for T2.
+- 2026-10-05 08:43 UTC - Copilot - Reworded the Bug-Fix Process paragraph after PR #2436 review (F1): the classification is recorded as outside the bug rule's scope (no observable behavior), not as an exception to it, and AC3 is named as the regression protection.
 
 ## Acceptance Criteria
 
