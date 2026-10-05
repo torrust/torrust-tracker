@@ -51,6 +51,10 @@ F4-F10 to avoid colliding with Copilot's IDs; the audit keeps them. Its body add
 assertion without a thread, recorded as F11: the PR description's Validation still gave the
 round-1 test counts.
 
+da2ce7 review 5418725511 (round 3, CHANGES_REQUESTED at `17f17864`) left one inline finding that
+it numbered F11. That ID was already this record's review-body finding, so it is recorded as F12
+with the original ID kept. The review body raises no other new assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | `review-finding:pr-2439-f2` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +68,7 @@ round-1 test counts.
 | F9 | `review-finding:pr-2439-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2439-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2439-f11` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | `review-finding:pr-2439-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -267,6 +272,23 @@ round-1 test counts.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#issuecomment-6000204904>
 
+### F12 - Progress log claimed the F10 audit correction before it was committed
+
+- PR number: 2439
+- Source review ID: 5418725511
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187209512>
+- Concern: at `17f17864` the spec's 17:40 entry said "F10: corrected in the PR #2439 audit
+  record", but this record was unchanged there: F2's Concern still included registration failures
+  and rows F4-F11 were missing.
+- Solution: the record commit was pushed next (`e27c0f29`), making the sentence true. The cause
+  was ordering: the spec commit was pushed before the record commit.
+- Current-tree verification: at `e27c0f29` this record's F2 Concern names bind and listener-setup
+  failures only, and rows F4-F11 exist; the validator reports 11 rows, 0 failures.
+- Resolution reference: `docs(pr-reviews): record da2ce7 review on #2439`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187408212>
+
 ## Processing Log
 
 - 2026-10-05 15:32 UTC - Fetched review 5416744478 and its three inline threads with the
@@ -279,6 +301,9 @@ round-1 test counts.
   pushed.
 - 2026-10-05 18:03 UTC - Replied on the seven threads (18:02); updated the PR description (F11);
   posted the consolidated round-2 response; recorded round 2 and the F10 correction.
+- 2026-10-05 18:31 UTC - Before resolving, the reply guard found da2ce7 review 5418725511
+  (submitted 18:08, at `17f17864`, before the record commit was pushed). Recorded its finding as
+  F12 and replied (18:31).
 
 ## Completion Rules
 
