@@ -1,15 +1,16 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-last-updated-utc: "2026-10-05 12:36"
+last-updated-utc: "2026-10-05 13:18"
 ---
 
 # Verification Evidence — Standalone HTTP Environment and Example
 
 <!-- cspell:ignore ltnp -->
 
-> **Status**: In progress — T0 baseline recorded; implementation evidence
-> pending.
+> **Status**: Complete — T0 baseline (V1) and post-implementation runs (V2-V4)
+> recorded. The deterministic `stop()` guarantees are automated tests, listed
+> below rather than repeated as manual evidence.
 
 ## Environment
 
@@ -35,31 +36,25 @@ test result: ok. 8 passed; 0 failed
 
 ## Deterministic Environment Tests
 
-### Test 1: `stop()` cancels and joins owned work
+These guarantees are covered by automated tests in
+`packages/axum-http-server/src/testing/environment.rs` (no OS signals). Each
+was proven by a mutation recorded in the spec's progress log.
 
-- [ ] Start the HTTP environment with controllable listener/server tasks.
-- [ ] Call `Environment::stop()` without delivering an OS signal.
-- [ ] Verify it cancels its token and awaits listener, server, and drain work.
-- [ ] Verify it returns only after owned work completes or returns a defined
-      failure result.
-
-**Evidence:**
-
-```text
-(paste focused test output)
-```
-
-### Test 2: Listener is not aborted
-
-- [ ] Verify `event_listener_job.abort()` is absent from the HTTP environment.
-- [ ] Use a controllable listener to prove cancellation, rather than abort,
-      causes its normal completion.
-
-**Evidence:**
+| Guarantee | Test |
+| --- | --- |
+| `stop()` cancels once and joins every owned task without a join failure | `it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation` |
+| The listener is not aborted (aborting it fails the stop-path tests) | Same test, plus the two below |
+| The HTTP binding is free when `stop()` returns | `it_should_release_the_http_binding_when_stopped` |
+| A stopped environment can start again and serve requests | `it_should_serve_requests_after_being_stopped_and_started_again` |
+| An early server failure is reported only after the listener joins | `it_should_join_the_event_listener_before_reporting_an_http_server_task_failure` |
+| A drain timeout is reported by name | `it_should_report_a_drain_timeout_even_when_every_task_joins` |
 
 ```text
-(paste focused test output or source-review evidence)
+$ cargo test -p torrust-tracker-axum-http-server --lib testing::environment
+test result: ok. 5 passed; 0 failed
 ```
+
+Source review: `environment.rs` contains no `abort()` call.
 
 ## Example Executable Evidence
 
@@ -174,9 +169,9 @@ still passes.
 
 | Check                            | Result  | Evidence link or note |
 | -------------------------------- | ------- | --------------------- |
-| Environment token cancellation   | Pending |                       |
-| Owned tasks joined               | Pending |                       |
-| Listener cancellation, not abort | Pending |                       |
+| Environment token cancellation   | Automated test | Deterministic Environment Tests |
+| Owned tasks joined               | Automated tests | Deterministic Environment Tests |
+| Listener cancellation, not abort | Automated tests (mutation-proven); no `abort()` in source | Deterministic Environment Tests |
 | Example SIGTERM                  | Baseline (V1): library catches it, process stays up. After T4 (V2): orderly stop, exit 0 | V1, V2 |
 | Example SIGINT                   | Orderly stop, exit 0 | V3 |
 | Legacy compatibility             | Legacy unit test passes; legacy path still subscribes indirectly until SI-19 | V4 |

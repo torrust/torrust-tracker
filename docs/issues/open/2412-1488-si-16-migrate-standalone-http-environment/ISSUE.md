@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 12:48"
+last-updated-utc: "2026-10-05 13:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -261,6 +261,8 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 12:19 UTC - GitHub Copilot - Maintainer approved the T2 design and accepted the ~1 s drain cost (2.24 s suite is fine). No follow-up issue: a short comment in `graceful_shutdown_on_cancellation` records the future options (wake on connection-count changes, or a cancellation kind that skips the drain), which are outside the shutdown refactor. T3 done; workspace `cargo check --all-targets` and `linter all` pass.
 - 2026-10-05 12:36 UTC - GitHub Copilot - T4 done. Handlers are installed before readiness is printed, so a signal sent after `Listening on` cannot hit the default action; on Unix this uses signal streams, which register immediately (`ctrl_c()` registers on first poll). Non-Unix uses `ctrl_c()`; only the Linux target is installed locally, so CI's Windows/macOS builds check that branch. M2 (SIGTERM) and M3 (SIGINT) stop in order and exit 0. M4: no direct signal use in the HTTP library; the legacy path still subscribes indirectly until SI-19, so AC7 is read as direct subscriptions only.
 - 2026-10-05 12:48 UTC - GitHub Copilot - AC review against the current tree. AC3 had no test for the drain-timeout case; added `it_should_report_a_drain_timeout_even_when_every_task_joins`, proven by ignoring `TimedOut`. Completion review: no `implementation-retrospective.md` needed; the two material discoveries (the SIGTERM baseline caught inside the library, and the 1 s drain polling) are recorded in this log, the evidence, and a code comment. Pending: pre-push checks and the independent Task Reviewer report.
+- 2026-10-05 13:18 UTC - GitHub Copilot - Task Reviewer report (REVIEW FAILED: two Major documentation gaps, no code defects) recorded in `agent-review-reports.md`. Fixes: (1) prose-first AAA comparison for the five environment tests, below; (2) the evidence file's template placeholders replaced by a table of the automated tests; (3) AC7 text scoped to direct subscriptions; (4) the first environment test renamed to what it asserts, `it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation`; (5) the example's readiness comment qualified as Unix-only, since non-Unix `ctrl_c()` registers on first poll; (6) the Unix signal import moved to the file top under `cfg(unix)`; (7) the `Future` import dropped (edition 2024 prelude); (8) spec status set to `in-progress`. The drain-cost suggestion needs no action.
+- 2026-10-05 13:18 UTC - GitHub Copilot - Prose-first AAA comparison for the environment tests. (a) Stop without a join failure: Arrange a started environment; Act stop it within the deadline; Assert the stop task finished without a panic. The code says exactly this; the old name claimed more, so it was renamed. (b) Release binding: Arrange a started environment and its actual binding; Act stop; Assert the same address binds immediately. Matches. (c) Restart: Arrange an environment stopped once; Act start it again; Assert its health check answers 200. Matches. (d) Server failure: Arrange a panicking server task, a drained controller, and a listener that finishes only after cancellation and one more scheduling turn; Act join them; Assert the server failure is reported and the listener finished. The extra scheduling turn was causal but implicit, so a one-line comment now says why. (e) Drain timeout: Arrange a finished server, a timed-out controller, and a finished listener; Act join them; Assert exactly the drain-timeout failure. Matches.
 
 ## Acceptance Criteria
 
@@ -276,8 +278,10 @@ before maintainer review and commit. Sign every commit with GPG.
       environment's `server` field to stop the HTTP tracker.
 - [x] AC6: `http_only_public_tracker` stops gracefully on SIGINT and on Unix
       SIGTERM and exits with code 0.
-- [x] AC7: No HTTP library module subscribes to OS signals; the legacy
-      `HttpServer::start`/`stop` API still compiles and its tests pass.
+- [x] AC7: No HTTP library module subscribes to OS signals directly; the
+      legacy `HttpServer::start`/`stop` API still compiles and its tests pass,
+      and keeps its indirect subscription (via `axum-server` and
+      `torrust-server-lib`) until SI-19.
 - [x] AC8: The shutdown task inventory and feature documentation reflect the
       migration.
 - [x] `linter all` exits with code `0`
