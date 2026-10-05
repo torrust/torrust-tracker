@@ -48,6 +48,7 @@ thiserror = "2.0.12"
 rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
+tokio = { version = "1", features = [ "time" ] }
 tower = { version = "0", features = [ "util" ] }
 torrust-peer-id = "0.1.0"
 torrust-tracker-client-lib = { version = "0.1.0", path = "../tracker-client" }

@@ -253,12 +253,11 @@ mod http {
             ssl_key_path: "tests/fixtures/https-health-check-key.pem".into(),
         });
 
-        let service = torrust_tracker_axum_http_server::testing::environment::Environment::<
-            torrust_tracker_axum_http_server::server::Stopped,
-        >::new(&core_config, &Arc::new(http_tracker_config))
-        .await
-        .start_with_health_check(trusted_test_check_fn)
-        .await;
+        let service =
+            torrust_tracker_axum_http_server::testing::environment::Unstarted::new(&core_config, &Arc::new(http_tracker_config))
+                .await
+                .start_with_health_check(trusted_test_check_fn)
+                .await;
 
         let registar = service.registar.clone();
 
@@ -310,10 +309,7 @@ mod http {
 
         let registar = service.registar.clone();
 
-        service.server.stop().await.expect("it should stop udp server");
-
-        // Give the OS a moment to fully release the TCP port after the server stops.
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        let _stopped = service.stop().await;
 
         {
             let config = configuration.health_check_api.clone();

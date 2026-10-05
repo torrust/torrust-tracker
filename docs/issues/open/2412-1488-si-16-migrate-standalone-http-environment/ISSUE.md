@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 11:44"
+last-updated-utc: "2026-10-05 12:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -197,8 +197,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T0  | DONE   | Record baseline                            | Both packages pass (36 + 61; 3 + 8). Example SIGTERM: the library catches it, stops only the server, and the process stays up; a later SIGINT makes `stop()` panic (exit 101). See evidence V1. |
 | T1  | DONE   | Public token-aware health-check start (D4) | `start_with_cancellation_and_health_check` made public (name kept: mirrors legacy `start_with_health_check`). Unit test proves the registry runs the injected callback; mutation-proven. Maintainer approved 2026-10-05. |
-| T2  | TODO   | Migrate `Environment` start/stop (D1-D3)   | Token-aware start, fresh tokens, one-token stop that joins everything, no `abort()`. Tests below. Design-review checkpoint.                                  |
-| T3  | TODO   | Migrate direct field consumers (D5)        | Health-check API contract test uses `Environment::stop()`; drop its 100 ms "let the OS release the port" sleep if T2's binding test proves it redundant.   |
+| T2  | DONE   | Migrate `Environment` start/stop (D1-D3)   | Implemented with the four planned tests, each mutation-proven. Design approved 2026-10-05. |
+| T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
 | T4  | TODO   | Example signal boundary (D6)               | `http_only_public_tracker` stops on SIGINT or Unix SIGTERM; module docs updated.                                                                           |
 | T5  | TODO   | Documentation                              | Shutdown task inventory and feature README record the HTTP standalone consumer as migrated.                                                                |
 | T6  | TODO   | Verification and completion review         | Automatic checks, manual scenarios, AC review, completion review.                                                                                          |
@@ -257,6 +257,8 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-04 10:34 UTC - GitHub Copilot - T0 done. The SIGTERM baseline differs from the expected one: the legacy `Halted` path subscribes to SIGTERM inside the library (`torrust-server-lib` `global_shutdown_signal`), so the server stops while the example keeps running, and the later Ctrl-C makes `Environment::stop()` panic. T2 and T4 remove both causes.
 - 2026-10-04 16:53 UTC - GitHub Copilot - T1 implemented: the existing private method is public with the same name, since it is the token-aware counterpart of `start_with_health_check`. Test `it_should_register_the_injected_health_check_when_starting_the_token_aware_http_server` was proven by registering `check_fn` instead of the injected callback (failed with `left: Ok("200 OK")`), then reverted by hand. Prose-first AAA review: the code states the causal input (the injected callback in the Act) and the independent expected marker; no extra prose kept.
 - 2026-10-05 11:44 UTC - GitHub Copilot - Maintainer approved T1; committed. Next: T2.
+- 2026-10-05 12:06 UTC - GitHub Copilot - T2 first passing slice. Environment states are private `Stopped`/`Running` types with `Unstarted`/`Started` aliases (mirroring the UDP environment); each start creates a fresh token; `stop()` cancels once and joins server, drain controller, and listener through `join_owned_tasks`, which awaits all three before reporting every failure. Tests and mutation proofs: listener aborted (3 stop-path tests fail, naming the listener); early return on server failure (the listener-join test fails); start with a pre-cancelled token (the restart test fails with connection reset). Finding: a stop with an idle keep-alive connection takes about 1 s, because `graceful_shutdown_on_cancellation` re-checks the connection count every second; the integration suite went from 0.28 s to 2.24 s. That is production drain behavior, previously hidden because the legacy path did not join its drain task. Tokio's `time` feature added as a dev-dependency for bounded test waits.
+- 2026-10-05 12:19 UTC - GitHub Copilot - Maintainer approved the T2 design and accepted the ~1 s drain cost (2.24 s suite is fine). No follow-up issue: a short comment in `graceful_shutdown_on_cancellation` records the future options (wake on connection-count changes, or a cancellation kind that skips the drain), which are outside the shutdown refactor. T3 done; workspace `cargo check --all-targets` and `linter all` pass.
 
 ## Acceptance Criteria
 
