@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 13:10"
+last-updated-utc: "2026-10-05 13:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -237,12 +237,12 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | IN_PROGRESS | M1 and M2 manual verification | M1 confirms 75/1000 HTTP results; M2 UDP control remains pending |
+| T1 | DONE | M1 and M2 manual verification | M1 (V1) and M2 (V2) recorded |
 | T2 | DONE | Reconsider whether HTTP should cap scrape requests | See "T2 Decision": truncate at 100 in the HTTP parser |
-| T3 | TODO | ADR for the decision | Root ADR with per-protocol reasons and rejected options; index updated |
-| T4 | TODO | Regression tests for the agreed contract | Test matrix H1-H5, S1, U1-U3, W1, US1, C1; rows marked "red first" fail before the fix |
-| T5 | TODO | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES` constants, tracker-core constant removed, tests green; doc comments and user docs state each protocol's reason and link the ADR |
-| T6 | TODO | Final recheck | M1 repeated: 74, 75, and 1000 hashes return 74, 75, and 100 entries |
+| T3 | DONE | ADR for the decision | `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`; index updated |
+| T4 | DONE | Regression tests for the agreed contract | Matrix H1-H5, S1, U1-U3, W1, US1, C1 added; H2, H3, H5, S1 proven red before the fix; W1 proven to catch a mutated cap |
+| T5 | DONE | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES`, UDP value computed from `MAX_PACKET_SIZE`, tracker-core constant removed; server docs and EPIC A3 updated |
+| T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
 
 ## Commit Points
 
@@ -256,13 +256,13 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 
 - [x] AC1: Whether HTTP scrape enforces the documented 74-hash cap is shown by
   recorded manual evidence (V1: it does not on the tested requests).
-- [ ] AC2: An HTTP scrape with more than 100 info hashes returns entries for
+- [x] AC2: An HTTP scrape with more than 100 info hashes returns entries for
       only the first 100, matching the documentation; a UDP scrape keeps the
       first 74.
-- [ ] AC3: Maintained tests cover every decision and edge case in the test
+- [x] AC3: Maintained tests cover every decision and edge case in the test
       matrix (H1-H5, S1, U1-U3, W1, US1, C1), using literal counts and doc
       comments that name each limit's reason and link the ADR.
-- [ ] AC4: An ADR records whether HTTP caps scrape requests, the value and
+- [x] AC4: An ADR records whether HTTP caps scrape requests, the value and
       behavior if so, and the reason per protocol (UDP packet size; HTTP
       policy), noting that parallel requests bypass a per-request cap and that
       rate limiting is EPIC #2411. Doc comments and user docs link it.
@@ -283,7 +283,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
 | M1 | HTTP scrape with 1000 info hashes (repeated in T6) | Maintained client sent 74/75 numeric hashes and 1000 compact ASCII hashes; decoded result counted with jq; tracker response log checked | Returned 74/75/1000 respectively; 1000 logged HTTP 200; longer numeric URL failed client-side; URL length not captured (V1) | DONE |
-| M2 | UDP scrape control | Send one 75-hash request with a valid connection ID to the local tracker; verify actual transmitted hash count so client truncation cannot hide server behavior | Records accepted hashes or transport rejection; parser control separately verifies its 74-hash cap | TODO |
+| M2 | UDP scrape control | Send one 75-hash request with a valid connection ID to the local tracker; verify actual transmitted hash count so client truncation cannot hide server behavior | 1516 bytes (75 hashes) sent; 74 entries returned (V2). Maintained client caps CLI args at 74, so an inline Python snippet sent the datagram | DONE |
 
 A small disposable script may generate the 1000-hash URL; record its path and
 removal owner in this spec before creating it.
@@ -299,8 +299,8 @@ because the response dictionary can collapse them.
 
 - [x] Draft reviewed; HTTP mismatch reproduced, final behavior choice still pending
 - [x] GitHub issue created and parent linked
-- [ ] Manual baseline, reconsidered decision, and ADR recorded
-- [ ] Implementation, automatic checks, and manual recheck completed
+- [x] Manual baseline, reconsidered decision, and ADR recorded
+- [x] Implementation, automatic checks, and manual recheck completed
 - [ ] Acceptance criteria re-reviewed and independent Task Reviewer report recorded
 
 ### Progress Log
@@ -325,15 +325,20 @@ because the response dictionary can collapse them.
   16 + 74 x 20) already truncates a 75-hash datagram, so a socket test cannot
   prove the parser cap. Recorded the edge-case decisions and the test matrix;
   the UDP value is now computed from `MAX_PACKET_SIZE`.
+- 2026-10-05 13:20 UTC - ADR, tests, and fix done. The UDP parser parameter
+  became `max_scrape_info_hashes: usize` so the computed constant needs no
+  truncating cast. M2 and T6 recorded (V2, V3). Open question for the
+  maintainer: the UDP client CLI hardcodes `num_args = 1..=74` in two places, a
+  third copy of the UDP limit, which blocked M2 with the maintained client.
 
 ### Acceptance Verification
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
 | AC1 | DONE | [V1: HTTP baseline](manual-verification-evidence.md#v1-documented-74-hash-cap); final implementation acceptance remains pending |
-| AC2 | TODO | Approved decision, docs, and final recheck |
-| AC3 | TODO | Maintained test or justified documentation-only outcome |
-| AC4 | TODO | ADR, plus doc comments and user docs linking it |
+| AC2 | DONE | S1 and US1 tests; [V2](manual-verification-evidence.md#v2-udp-control-m2) and [V3](manual-verification-evidence.md#v3-http-recheck-after-the-fix-t6) |
+| AC3 | DONE | Test matrix rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core` |
+| AC4 | DONE | ADR 20261005124222; HTTP and UDP constant docs and server crate docs link it |
 
 ## Implementation Completion Review
 

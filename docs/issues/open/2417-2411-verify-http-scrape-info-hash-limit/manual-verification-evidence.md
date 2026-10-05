@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
-last-updated-utc: "2026-10-02 15:38"
+last-updated-utc: "2026-10-05 13:20"
 ---
 
 # HTTP Scrape Limit Verification
@@ -84,10 +84,88 @@ completion and successful shutdown at `2026-10-02T15:35:02.176203Z`.
 
 ## Remaining Verification
 
-- UDP control (M2) has not run; its parser limit remains source evidence only.
-- Behavior choice remains a maintainer decision: truncate, reject, or document
-  a different intentional HTTP contract. No runtime fix was made here.
-- After that decision, prove the maintained regression test red if behavior
-  changes, then green, and repeat these exact probes. Record results here.
-- No new disposable script was created; the shell commands above are the full
-  probe and use the maintained client for protocol parsing.
+Superseded by V2 and V3 below.
+
+## Environment for V2 and V3
+
+- Linux, branch `2417-2411-verify-http-scrape-info-hash-limit` with the fix
+  applied on top of `82dfe2ff` (uncommitted at run time); dev-profile binaries.
+- `rustc 1.101.0-nightly (282215592 2026-10-04)`.
+- Isolated config `.tmp/2417-manual/tracker.toml` (git-ignored): SQLite at
+  `.tmp/2417-manual/sqlite3.db`, public mode, persistent completed statistics
+  enabled, UDP `127.0.0.1:48969`, HTTP `127.0.0.1:48070`, health API
+  `127.0.0.1:48313`, `info` logging. Health check reported both trackers OK.
+
+```sh
+env -u TORRUST_TRACKER_CONFIG_TOML -u TORRUST_TRACKER_CONFIG_TOML_PATH \
+  ./target/debug/torrust-tracker -c .tmp/2417-manual/tracker.toml
+```
+
+## V2: UDP Control (M2)
+
+Status: `DONE`. Classification: **Confirmed**; UDP keeps the first 74.
+
+The maintained client could not run this probe: `tracker_client udp scrape`
+rejects a 75th argument because its CLI declares `num_args = 1..=74`
+(`console/tracker-client/src/console/clients/udp/app.rs` and
+`console/tracker-client/src/console/clients/unified/udp.rs`). The datagram was
+sent with an inline Python snippet instead (no script file was created):
+
+```sh
+python3 - <<'EOF'
+import socket, struct
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(5); s.connect(("127.0.0.1", 48969))
+s.send(struct.pack(">qii", 0x41727101980, 0, 1))
+action, tx, connection_id = struct.unpack(">iiq", s.recv(2048))
+hashes = b"".join(b"%020d" % i for i in range(1, 76))
+sent = s.send(struct.pack(">qii", connection_id, 2, 2) + hashes)
+data = s.recv(65535)
+action, tx = struct.unpack(">ii", data[:8])
+print(f"connect action={action}; scrape sent_bytes={sent} hashes_sent={(sent - 16) // 20}")
+print(f"response action={action} bytes={len(data)} entries={(len(data) - 8) // 12}")
+EOF
+```
+
+```text
+connect action=2; scrape sent_bytes=1516 hashes_sent=75
+response action=2 bytes=896 entries=74
+```
+
+The first line's `action` label reuses the scrape response variable; the
+connect exchange succeeded, since a scrape response requires a valid connection
+ID. 1516 bytes carried 75 hashes; the 896-byte response (8 + 74 x 12) has 74
+entries. The server's 1496-byte receive buffer already drops the 75th hash, so
+this probe cannot isolate the parser cap; the `handle_packet` unit test does
+(mutating the cap to 75 fails that test while the socket test still passes).
+
+## V3: HTTP Recheck After the Fix (T6)
+
+Status: `DONE`. Classification: **Fixed**; HTTP keeps the first 100.
+
+Same compact ASCII hashes as V1, for 74, 75, and 1000:
+
+```sh
+set -o pipefail
+for hash_count in 74 75 1000; do
+    hashes=()
+    for ((hash_index=1; hash_index<=hash_count; hash_index++)); do
+        printf -v ascii_hash '%020d' "$hash_index"
+        hashes+=("$(printf '%s' "$ascii_hash" | xxd -p)")
+    done
+    ./target/debug/tracker_client http scrape http://127.0.0.1:48070/scrape \
+        "${hashes[@]}" | jq -c --argjson requested "$hash_count" \
+        '{requested: $requested, returned: length, last: (keys | sort | last)}' || break
+done
+```
+
+```text
+{"requested":74,"returned":74,"last":"3030303030303030303030303030303030303734"}
+{"requested":75,"returned":75,"last":"3030303030303030303030303030303030303735"}
+{"requested":1000,"returned":100,"last":"3030303030303030303030303030303030313030"}
+```
+
+The last key of the 1000-hash response is `00000000000000000100`: the first 100
+were kept. The tracker logged HTTP `200 OK` at
+`2026-10-05T13:07:56.756693Z`, request ID
+`e0adc46b-efed-421d-bd5b-8b20ff6b634c`. The owned tracker was stopped with
+SIGINT and logged a successful shutdown at `2026-10-05T13:15:20.726927Z`.

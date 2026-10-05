@@ -452,6 +452,7 @@ serialisation
 setgroups
 setsid
 setsockopt
+settimeout
 sharktorrent
 shellcheck
 signingkey
