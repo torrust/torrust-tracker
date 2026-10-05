@@ -652,7 +652,7 @@ Status: TODO unless noted.
 - [x] [#1904](https://github.com/torrust/torrust-tracker/issues/1904) SI-24: Relocate `axum-http-server` test environment to `src/testing/` _(DEC-13)_ — **DONE**
 - [x] [#1906](https://github.com/torrust/torrust-tracker/issues/1906) SI-25: Relocate `udp-server` test environment to `src/testing/` _(DEC-13)_ — **DONE**
 - [x] [#1907](https://github.com/torrust/torrust-tracker/issues/1907) SI-26: Remove `udp-protocol` re-export of `PeerId`/`PeerClient` — **DONE**
-- [x] [#1908](https://github.com/torrust/torrust-tracker/issues/1908) SI-27: Move `Driver` enum from configuration to primitives — **DONE**
+- [x] [#1908](https://github.com/torrust/torrust-tracker/issues/1908) SI-27: Move `Driver` enum from configuration to primitives — **DONE** (DEC-17)
 - [x] [#1909](https://github.com/torrust/torrust-tracker/issues/1909) SI-28: Extract `torrust-server-lib` to standalone repository _(Rule E)_ — **DONE**
 - [x] [#1910](https://github.com/torrust/torrust-tracker/issues/1910) SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_ — **DONE**
 - [x] [#1965](https://github.com/torrust/torrust-tracker/issues/1965) SI-34: Consolidate duplicate HTTP types into `http-protocol` — **DONE**
