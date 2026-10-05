@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 15:53"
+last-updated-utc: "2026-10-05 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -108,6 +108,8 @@ Facts found while refreshing this draft (2026-10-01) that shape the design:
 - Make `http_only_public_tracker` stop on SIGINT or Unix SIGTERM.
 - Deterministic tests for the new `stop()` guarantees, without OS signals.
 - Update the shutdown task inventory and feature documentation.
+- Bound the shared token-aware drain helper (D7), found during PR review: it
+  must force-close connections at its deadline so `stop()` cannot hang.
 
 ### Out of Scope
 
@@ -153,6 +155,18 @@ Facts found while refreshing this draft (2026-10-01) that shape the design:
   SIGTERM (Ctrl-C only on non-Unix) in its own `main`, following the pattern in
   `src/main.rs`, then calls `Environment::stop()`. No library module subscribes
   to OS signals.
+- **D7 - The token-aware drain force-closes at its deadline.** Added during PR
+  #2439 review (Copilot F1). `graceful_shutdown_on_cancellation` in
+  `axum-server` began an unbounded graceful phase (`graceful_shutdown(None)`),
+  so after `TimedOut` a held connection kept the server task alive and
+  `stop()` (which joins it) could wait forever. It now calls
+  `handle.shutdown()` at the deadline, as the legacy path's bounded
+  `graceful_shutdown(Some(90 s))` did. The helper is shared by the HTTP, REST
+  API, and health-check servers. Production effect in the tracker binary: the
+  HTTP and REST API budgets (90 s) are still cut short by the 10 s supervisor
+  deadline in `src/main.rs`, but the health-check API's 5 s budget is not, so a
+  health-check connection held past 5 s is now force-closed and the component
+  reports its drain timeout, instead of being aborted at 10 s.
 
 ## Architectural Decisions
 
@@ -197,7 +211,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T0  | DONE   | Record baseline                            | Both packages pass (36 + 61; 3 + 8). Example SIGTERM: the library catches it, stops only the server, and the process stays up; a later SIGINT makes `stop()` panic (exit 101). See evidence V1. |
 | T1  | DONE   | Public token-aware health-check start (D4) | `start_with_cancellation_and_health_check` made public (name kept: mirrors legacy `start_with_health_check`). Unit test proves the registry runs the injected callback; mutation-proven. Maintainer approved 2026-10-05. |
-| T2  | DONE   | Migrate `Environment` start/stop (D1-D3)   | Implemented with the four planned tests, each mutation-proven. Design approved 2026-10-05. |
+| T2  | DONE   | Migrate `Environment` start/stop (D1-D3)   | Implemented with the planned tests, each mutation-proven (the binding test by a `stop()` that never stops the server; see the 2026-10-05 17:40 UTC log entry). Design approved 2026-10-05. |
 | T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
 | T4  | DONE   | Example signal boundary (D6)               | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
 | T5  | DONE   | Documentation                              | Task inventory findings 4 and 8 record the migrated HTTP consumer; the feature README's stale "implementation has not started" status now points to EPIC #1488. |
@@ -265,6 +279,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 13:18 UTC - GitHub Copilot - Prose-first AAA comparison for the environment tests. (a) Stop without a join failure: Arrange a started environment; Act stop it within the deadline; Assert the stop task finished without a panic. The code says exactly this; the old name claimed more, so it was renamed. (b) Release binding: Arrange a started environment and its actual binding; Act stop; Assert the same address binds immediately. Matches. (c) Restart: Arrange an environment stopped once; Act start it again; Assert its health check answers 200. Matches. (d) Server failure: Arrange a panicking server task, a drained controller, and a listener that finishes only after cancellation and one more scheduling turn; Act join them; Assert the server failure is reported and the listener finished. The extra scheduling turn was causal but implicit, so a one-line comment now says why. (e) Drain timeout: Arrange a finished server, a timed-out controller, and a finished listener; Act join them; Assert exactly the drain-timeout failure. Matches.
 - 2026-10-05 14:55 UTC - GitHub Copilot - Second Task Reviewer pass: REVIEW PASSED; all first-pass findings resolved; one optional Nit (non-Unix `ctrl_c()` called by full path) left as is, since a single-use `cfg(not(unix))` import adds nothing. Pre-push checks pass in 58 s (nightly `rustc 1.101.0-nightly (282215592 2026-10-04)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). T6 done; next: the implementation PR.
 - 2026-10-05 15:53 UTC - GitHub Copilot - PR #2439 Copilot review (three findings, all valid). F1 (Major): `graceful_shutdown_on_cancellation` started an unbounded graceful phase (`graceful_shutdown(None)`), so after `TimedOut` a held connection kept the server task alive and `stop()` could wait forever; it now calls `handle.shutdown()` at the deadline, as the legacy path's bounded grace did. This changes the shared helper used by the HTTP, REST API, and health-check servers; their tests pass. New test `it_should_force_close_a_connection_still_open_when_the_drain_times_out` holds a real connection; removing the force-close makes it fail. F2 (Major): the environment spawned the listener before the fallible server start, so a failed start detached it while its bus stayed open; it now subscribes first and spawns after a successful start. New test `it_should_not_leave_the_statistics_listener_running_when_the_http_server_fails_to_start` keeps the container (and so the bus) alive and checks no extra holder of the statistics repository remains; the pre-fix order makes it fail with 2 holders. A first version that dropped the container passed even before the fix, because closing the bus ends the leaked listener; the test now states that condition. F3 (Minor): the T4 entry's macOS claim is corrected above.
+- 2026-10-05 17:40 UTC - GitHub Copilot - da2ce7 review on PR #2439 (APPROVED; seven non-blocking findings F4-F10). F4: evidence V2/V3 now name their tree by commit subject, not a pre-rebase id. F5: the token-aware start methods document only the errors they can return. F6: the example's no-signals sentence is scoped to the token-aware path. F7: the binding test's recorded mutation (listener aborted) failed inside `stop()`, before its bind assertion. The suggested targeted mutation, `stop()` not awaiting the server task, survives: so does one that awaits neither the server task nor the drain controller, because cancellation alone makes axum stop accepting and drop the listening socket. The mutation that keeps the port held, a `stop()` that never stops the server (no cancel, handles dropped), fails the test at its own bind with `AddrInUse`; that is the recorded proof. F8: every test start is now bounded by the test deadline. F9: the shared drain-helper change is now design decision D7 and in scope, with its production effect. F10: corrected in the PR #2439 audit record. Completion review revisited: the material discoveries are now the SIGTERM baseline, the 1 s drain polling, the unbounded drain helper (D7), and that port release follows cancellation rather than the server task's end. Each is recorded in this spec (log, D7) or a code comment, so a separate retrospective is still not needed.
 
 ## Acceptance Criteria
 
@@ -364,7 +379,7 @@ added by this migration have been reverted or migrated away from it.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not needed` (see the 2026-10-05 12:48 UTC progress-log entry)
+- Retrospective: `Not needed` (see the 2026-10-05 12:48 and 17:40 UTC progress-log entries)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.

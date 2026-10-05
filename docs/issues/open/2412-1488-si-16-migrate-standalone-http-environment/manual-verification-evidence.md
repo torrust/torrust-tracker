@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-last-updated-utc: "2026-10-05 13:18"
+last-updated-utc: "2026-10-05 17:40"
 ---
 
 # Verification Evidence — Standalone HTTP Environment and Example
@@ -106,8 +106,9 @@ discarded and the orphan stopped with SIGINT before the run above.
 - [x] Run `http_only_public_tracker` and send SIGTERM to the example binary.
 - [x] Record the signal-boundary output, orderly stop, and final process result.
 
-Run on 2026-10-05 against `2f8a58bd` plus the uncommitted T4 example change,
-same toolchain as above. The announce used the maintained client.
+Run on 2026-10-05 against the commit `feat(axum-http-server): [#2412] migrate the
+test environment to the token lifecycle` plus the then-uncommitted T4 example
+change, same toolchain as above. The announce used the maintained client.
 
 ```text
 $ target/debug/examples/http_only_public_tracker > m2.log 2>&1 &
