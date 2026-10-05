@@ -15,10 +15,9 @@ use error::handle_error;
 use scrape::handle_scrape;
 use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_core::MAX_SCRAPE_TORRENTS;
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
-use torrust_tracker_udp_protocol::{Request, Response, TransactionId};
+use torrust_tracker_udp_protocol::{MAX_SCRAPE_INFO_HASHES, Request, Response, TransactionId};
 use tracing::{Level, instrument};
 use uuid::Uuid;
 
@@ -85,53 +84,28 @@ pub(crate) async fn handle_packet(
 
     let start_time = Instant::now();
 
-    let (response, opt_req_kind) =
-        match Request::parse_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(Error::from) {
-            Ok(request) => match handle_request(
-                request,
-                udp_request.from,
-                server_service_binding.clone(),
-                udp_tracker_core_container.clone(),
-                udp_tracker_server_container.clone(),
-                cookie_time_values.clone(),
-                connection_id_validation,
-            )
-            .await
-            {
-                Ok((response, req_kid)) => return (response, Some(req_kid)),
-                Err(boxed_err) => {
-                    let (error, transaction_id, req_kind) = *boxed_err;
-                    let response = handle_error(
-                        Some(req_kind.clone()),
-                        udp_request.from,
-                        server_service_binding,
-                        udp_tracker_core_container.configuration_instance_id,
-                        udp_tracker_core_container
-                            .udp_tracker_config
-                            .public_url
-                            .as_ref()
-                            .map(ToString::to_string),
-                        request_id,
-                        &udp_tracker_server_container.stats_event_sender,
-                        cookie_time_values.valid_range.clone(),
-                        &error,
-                        Some(transaction_id),
-                    )
-                    .await;
-
-                    (response, Some(req_kind))
-                }
-            },
-            Err(e) => {
-                // The request payload could not be parsed, so we handle it as an error.
-
-                let opt_transaction_id = match e.clone() {
-                    Error::InvalidRequest { request_parse_error } => request_parse_error.opt_transaction_id,
-                    _ => None,
-                };
-
+    let (response, opt_req_kind) = match Request::parse_bytes(
+        &udp_request.payload[..udp_request.payload.len()],
+        MAX_SCRAPE_INFO_HASHES,
+    )
+    .map_err(Error::from)
+    {
+        Ok(request) => match handle_request(
+            request,
+            udp_request.from,
+            server_service_binding.clone(),
+            udp_tracker_core_container.clone(),
+            udp_tracker_server_container.clone(),
+            cookie_time_values.clone(),
+            connection_id_validation,
+        )
+        .await
+        {
+            Ok((response, req_kid)) => return (response, Some(req_kid)),
+            Err(boxed_err) => {
+                let (error, transaction_id, req_kind) = *boxed_err;
                 let response = handle_error(
-                    None,
+                    Some(req_kind.clone()),
                     udp_request.from,
                     server_service_binding,
                     udp_tracker_core_container.configuration_instance_id,
@@ -143,14 +117,43 @@ pub(crate) async fn handle_packet(
                     request_id,
                     &udp_tracker_server_container.stats_event_sender,
                     cookie_time_values.valid_range.clone(),
-                    &e,
-                    opt_transaction_id,
+                    &error,
+                    Some(transaction_id),
                 )
                 .await;
 
-                (response, None)
+                (response, Some(req_kind))
             }
-        };
+        },
+        Err(e) => {
+            // The request payload could not be parsed, so we handle it as an error.
+
+            let opt_transaction_id = match e.clone() {
+                Error::InvalidRequest { request_parse_error } => request_parse_error.opt_transaction_id,
+                _ => None,
+            };
+
+            let response = handle_error(
+                None,
+                udp_request.from,
+                server_service_binding,
+                udp_tracker_core_container.configuration_instance_id,
+                udp_tracker_core_container
+                    .udp_tracker_config
+                    .public_url
+                    .as_ref()
+                    .map(ToString::to_string),
+                request_id,
+                &udp_tracker_server_container.stats_event_sender,
+                cookie_time_values.valid_range.clone(),
+                &e,
+                opt_transaction_id,
+            )
+            .await;
+
+            (response, None)
+        }
+    };
 
     let latency = start_time.elapsed();
     tracing::trace!(?latency, "responded");
@@ -267,7 +270,7 @@ pub(crate) mod tests {
     use torrust_tracker_udp_core::services::scrape::ScrapeService;
     use torrust_tracker_udp_core::{self, event as core_event};
     use torrust_tracker_udp_protocol::{
-        ConnectRequest, ConnectionId, ErrorResponse, Request, Response, ScrapeRequest, TransactionId,
+        ConnectRequest, ConnectionId, ErrorResponse, InfoHash, Request, Response, ScrapeRequest, TransactionId,
     };
     use zerocopy::byteorder::network_endian::{I32, I64};
 
@@ -590,5 +593,45 @@ pub(crate) mod tests {
             }) if actual_transaction_id == transaction_id
         ));
         assert_eq!(request_kind, None);
+    }
+
+    /// The socket receive buffer also drops hashes past the 74th, so only a
+    /// payload handed to `handle_packet` directly proves that the server passes
+    /// the parser cap. See
+    /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+    #[tokio::test]
+    async fn it_should_scrape_only_the_first_74_info_hashes_of_a_payload_with_75() {
+        // Arrange
+        let environment = initialize_udp_handler_environment().await;
+        let request = Request::Scrape(ScrapeRequest {
+            connection_id: ConnectionId(I64::new(7)),
+            transaction_id: TransactionId(I32::new(42)),
+            info_hashes: (0..75u8).map(|index| InfoHash([index; 20])).collect(),
+        });
+        let mut payload = Vec::new();
+        request.write_bytes(&mut payload).expect("scrape request should serialize");
+
+        // Act
+        let (response, _request_kind) = handle_packet(
+            RawRequest {
+                payload,
+                from: sample_ipv4_remote_addr(),
+            },
+            environment.udp_tracker_core_container,
+            environment.udp_tracker_server_container,
+            ServiceBinding::new(Protocol::UDP, sample_ipv4_socket_address()).expect("UDP service binding should be valid"),
+            super::CookieTimeValues {
+                issue_time: sample_issue_time(),
+                valid_range: sample_cookie_valid_range(),
+            },
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Disabled,
+        )
+        .await;
+
+        // Assert
+        match response {
+            Response::Scrape(scrape_response) => assert_eq!(scrape_response.torrent_stats.len(), 74),
+            other => panic!("expected a scrape response, got {other:?}"),
+        }
     }
 }

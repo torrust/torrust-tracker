@@ -15,7 +15,7 @@ use tokio::net::TcpListener;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_client::http::client::Client;
-use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder::{Query, QueryBuilder};
 use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::{self, File, ResponseBuilder};
 use torrust_tracker_primitives::PeerId;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -203,6 +203,49 @@ async fn should_accept_multiple_infohashes() {
     let expected_scrape_response = ResponseBuilder::default()
         .add_file(info_hash1, File::zeroed())
         .add_file(info_hash2, File::zeroed())
+        .build();
+
+    assert_scrape_response(response, &expected_scrape_response).await;
+
+    env.stop().await;
+}
+
+/// The HTTP abuse-mitigation cap of 100 must survive server rewrites; the Axum
+/// rewrite once dropped it silently. See
+/// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+#[tokio::test]
+async fn should_return_only_the_first_100_files_when_the_request_has_101_infohashes() {
+    logging::setup();
+
+    // Arrange
+    let cfg = configuration::ephemeral_public();
+    let core_config = Arc::new(cfg.core.clone());
+    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+    let env = Started::new(&core_config, &http_tracker_config).await;
+
+    let info_hashes: Vec<InfoHash> = (0..101u16)
+        .map(|index| {
+            let mut bytes = [0u8; 20];
+            bytes[..2].copy_from_slice(&index.to_be_bytes());
+            InfoHash(bytes)
+        })
+        .collect();
+
+    // Act
+    let response = Client::new(env.base_url(), Duration::from_secs(5))
+        .unwrap()
+        .scrape(&Query {
+            info_hash: info_hashes.clone(),
+        })
+        .await
+        .unwrap();
+
+    // Assert
+    let expected_scrape_response = info_hashes[..100]
+        .iter()
+        .fold(ResponseBuilder::default(), |builder, info_hash| {
+            builder.add_file(*info_hash, File::zeroed())
+        })
         .build();
 
     assert_scrape_response(response, &expected_scrape_response).await;

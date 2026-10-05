@@ -233,6 +233,23 @@ mod tests {
         )
     }
 
+    /// Scrape limits belong to the protocol parsers (UDP 74, HTTP 100), each
+    /// for its own reason; core reports every info hash it receives. See
+    /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+    #[tokio::test]
+    async fn it_should_report_every_requested_torrent_without_a_limit_on_the_number_of_info_hashes() {
+        // Arrange
+        let scrape_handler =
+            ScrapeHandler::new_public(&whitelist_authorization(), &Arc::new(InMemoryTorrentRepository::default()));
+        let info_hashes: Vec<InfoHash> = (0..101u8).map(|index| InfoHash([index; 20])).collect();
+
+        // Act
+        let scrape_data = scrape_handler.handle_scrape(&info_hashes).await.unwrap();
+
+        // Assert
+        assert_eq!(scrape_data.files.len(), 101);
+    }
+
     #[tokio::test]
     async fn it_should_report_an_in_memory_swarm_without_reading_the_persisted_downloads() {
         // Arrange

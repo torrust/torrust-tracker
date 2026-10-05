@@ -14,6 +14,16 @@ use crate::v1::responses;
 // Query param names
 const INFO_HASH: &str = "info_hash";
 
+/// The maximum number of `info_hash` params kept from an HTTP scrape request.
+///
+/// An abuse-mitigation policy value that bounds the work of one request. Unlike
+/// UDP, HTTP has no transport reason for a limit. Params past the limit,
+/// duplicates included, are ignored without being decoded. A per-request cap
+/// does not replace rate limiting: parallel requests bypass it.
+///
+/// See `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+pub const MAX_SCRAPE_INFO_HASHES: usize = 100;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Scrape {
     pub info_hashes: Vec<InfoHash>,
@@ -65,7 +75,7 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
         Some(raw_params) => {
             let mut info_hashes = vec![];
 
-            for raw_param in raw_params {
+            for raw_param in raw_params.into_iter().take(MAX_SCRAPE_INFO_HASHES) {
                 let info_hash =
                     percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
                         param_name: INFO_HASH.to_owned(),
@@ -128,6 +138,106 @@ mod tests {
                 let raw_query = Query::from(vec![(INFO_HASH, "INVALID_INFO_HASH_VALUE")]).to_string();
 
                 assert!(Scrape::try_from(raw_query.parse::<Query>().unwrap()).is_err());
+            }
+        }
+
+        /// HTTP keeps the first 100 `info_hash` params, an abuse-mitigation
+        /// policy value with no transport reason (unlike UDP's 74). Counts are
+        /// literals so that changing the limit fails here; see
+        /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+        mod limiting_the_number_of_info_hashes {
+
+            use torrust_info_hash::InfoHash;
+
+            use crate::v1::query::Query;
+            use crate::v1::requests::scrape::{ParseScrapeQueryError, Scrape};
+            use crate::v1::requests::scrape_builder;
+
+            fn distinct_info_hashes(count: u16) -> Vec<InfoHash> {
+                (0..count)
+                    .map(|index| {
+                        let mut bytes = [0u8; 20];
+                        bytes[..2].copy_from_slice(&index.to_be_bytes());
+                        InfoHash(bytes)
+                    })
+                    .collect()
+            }
+
+            fn raw_query_for(info_hashes: &[InfoHash]) -> String {
+                scrape_builder::Query {
+                    info_hash: info_hashes.to_vec(),
+                }
+                .to_string()
+            }
+
+            fn scrape(raw_query: &str) -> Result<Scrape, ParseScrapeQueryError> {
+                Scrape::try_from(raw_query.parse::<Query>().unwrap())
+            }
+
+            #[test]
+            fn it_should_keep_all_100_info_hashes_when_the_request_has_exactly_100() {
+                // Arrange
+                let info_hashes = distinct_info_hashes(100);
+
+                // Act
+                let scrape_request = scrape(&raw_query_for(&info_hashes)).unwrap();
+
+                // Assert
+                assert_eq!(scrape_request.info_hashes, info_hashes);
+            }
+
+            #[test]
+            fn it_should_keep_only_the_first_100_info_hashes_in_request_order_when_the_request_has_101() {
+                // Arrange
+                let info_hashes = distinct_info_hashes(101);
+
+                // Act
+                let scrape_request = scrape(&raw_query_for(&info_hashes)).unwrap();
+
+                // Assert
+                assert_eq!(scrape_request.info_hashes, info_hashes[..100]);
+            }
+
+            #[test]
+            fn it_should_ignore_an_invalid_info_hash_after_the_first_100_without_validating_it() {
+                // Arrange
+                let info_hashes = distinct_info_hashes(100);
+                let raw_query = format!("{}&info_hash=INVALID_INFO_HASH_VALUE", raw_query_for(&info_hashes));
+
+                // Act
+                let scrape_request = scrape(&raw_query).unwrap();
+
+                // Assert
+                assert_eq!(scrape_request.info_hashes, info_hashes);
+            }
+
+            #[test]
+            fn it_should_still_fail_for_an_invalid_info_hash_within_the_first_100() {
+                // Arrange
+                let raw_query = format!(
+                    "info_hash=INVALID_INFO_HASH_VALUE&{}",
+                    raw_query_for(&distinct_info_hashes(100))
+                );
+
+                // Act
+                let result = scrape(&raw_query);
+
+                // Assert
+                assert!(result.is_err());
+            }
+
+            #[test]
+            fn it_should_count_repeated_info_hashes_toward_the_limit_of_100() {
+                // Arrange
+                let distinct = distinct_info_hashes(100);
+                let info_hashes_with_first_repeated: Vec<InfoHash> =
+                    std::iter::once(distinct[0]).chain(distinct.iter().copied()).collect();
+
+                // Act
+                let scrape_request = scrape(&raw_query_for(&info_hashes_with_first_repeated)).unwrap();
+
+                // Assert
+                assert_eq!(scrape_request.info_hashes, info_hashes_with_first_repeated[..100]);
             }
         }
     }

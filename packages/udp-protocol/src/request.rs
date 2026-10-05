@@ -13,9 +13,20 @@ use zerocopy::FromBytes;
 use zerocopy::byteorder::network_endian::I32;
 
 use super::announce::AnnounceRequest;
-use super::common::{ConnectionId, InfoHash, TransactionId, read_i32_ne, read_i64_ne};
+use super::common::{ConnectionId, InfoHash, MAX_PACKET_SIZE, TransactionId, read_i32_ne, read_i64_ne};
 use super::connect::{ConnectRequest, PROTOCOL_IDENTIFIER};
 pub use super::scrape::ScrapeRequest;
+
+/// Bytes before the info hashes in a scrape request: connection ID, action, and transaction ID.
+const SCRAPE_REQUEST_HEADER_SIZE: usize = size_of::<ConnectionId>() + size_of::<I32>() + size_of::<TransactionId>();
+
+/// The maximum number of info hashes kept from a UDP scrape request.
+///
+/// As many as fit in one [`MAX_PACKET_SIZE`] datagram after the request header,
+/// which is 74 (BEP 15's "up to about 74 torrents"). The parser ignores the rest.
+///
+/// See `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+pub const MAX_SCRAPE_INFO_HASHES: usize = (MAX_PACKET_SIZE - SCRAPE_REQUEST_HEADER_SIZE) / size_of::<InfoHash>();
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Request {
@@ -36,10 +47,13 @@ impl Request {
         }
     }
 
+    /// Scrape requests keep only their first `max_scrape_info_hashes` info
+    /// hashes; the tracker passes [`MAX_SCRAPE_INFO_HASHES`].
+    ///
     /// # Errors
     ///
     /// Returns an error if `bytes` does not contain a valid UDP tracker request.
-    pub fn parse_bytes(bytes: &[u8], max_scrape_torrents: u8) -> Result<Self, RequestParseError> {
+    pub fn parse_bytes(bytes: &[u8], max_scrape_info_hashes: usize) -> Result<Self, RequestParseError> {
         let action_bytes = bytes
             .get(8..12)
             .ok_or_else(|| RequestParseError::unsendable_text("Couldn't parse action"))?;
@@ -123,7 +137,7 @@ impl Request {
 
                 let info_hashes = chunks.iter().copied().map(InfoHash).collect::<Vec<_>>();
 
-                let info_hashes = Vec::from(&info_hashes[..(max_scrape_torrents as usize).min(info_hashes.len())]);
+                let info_hashes = Vec::from(&info_hashes[..max_scrape_info_hashes.min(info_hashes.len())]);
 
                 Ok((ScrapeRequest {
                     connection_id,
@@ -262,7 +276,7 @@ mod tests {
 
         // Act
         request.write_bytes(&mut bytes).unwrap();
-        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, usize::MAX).unwrap();
 
         // Assert
         ::pretty_assertions::assert_eq!(request, parsed_request);
@@ -276,7 +290,7 @@ mod tests {
 
         // Act
         request.write_bytes(&mut bytes).unwrap();
-        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, usize::MAX).unwrap();
 
         // Assert
         ::pretty_assertions::assert_eq!(request, parsed_request);
@@ -294,7 +308,7 @@ mod tests {
 
         // Act
         request.write_bytes(&mut bytes).unwrap();
-        let parsed_request = Request::parse_bytes(&bytes, u8::MAX).unwrap();
+        let parsed_request = Request::parse_bytes(&bytes, usize::MAX).unwrap();
 
         // Assert
         TestResult::from_bool(request == parsed_request)
@@ -303,7 +317,7 @@ mod tests {
     #[test]
     fn it_should_not_panic_when_parsing_all_action_codes_at_all_packet_lengths() {
         for action in 0i32..4 {
-            for max_scrape_torrents in 0..3 {
+            for max_scrape_info_hashes in 0..3 {
                 for num_bytes in 0..256 {
                     // Arrange
                     let mut request_bytes = ::std::iter::repeat_n(0, num_bytes).collect::<Vec<_>>();
@@ -313,12 +327,13 @@ mod tests {
                     }
 
                     // Act
-                    let parsing_result = std::panic::catch_unwind(|| Request::parse_bytes(&request_bytes, max_scrape_torrents));
+                    let parsing_result =
+                        std::panic::catch_unwind(|| Request::parse_bytes(&request_bytes, max_scrape_info_hashes));
 
                     // Assert
                     assert!(
                         parsing_result.is_ok(),
-                        "parsing action {action} with {num_bytes} bytes and max scrape torrents {max_scrape_torrents} panicked"
+                        "parsing action {action} with {num_bytes} bytes and max scrape info hashes {max_scrape_info_hashes} panicked"
                     );
                 }
             }
@@ -339,5 +354,76 @@ mod tests {
 
         // Assert
         assert!(parsing_result.is_err());
+    }
+
+    /// UDP keeps 74 scrape info hashes because no more fit in one
+    /// `MAX_PACKET_SIZE` datagram. Counts are literals so that changing the
+    /// packet size or the limit fails here; see
+    /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+    mod limiting_the_number_of_scrape_info_hashes {
+        use zerocopy::network_endian::{I32, I64};
+
+        use crate::common::{ConnectionId, InfoHash, MAX_PACKET_SIZE, TransactionId};
+        use crate::request::{MAX_SCRAPE_INFO_HASHES, Request, ScrapeRequest};
+
+        fn scrape_request_with_distinct_info_hashes(count: u8) -> ScrapeRequest {
+            ScrapeRequest {
+                connection_id: ConnectionId(I64::new(1)),
+                transaction_id: TransactionId(I32::new(2)),
+                info_hashes: (0..count).map(|index| InfoHash([index; 20])).collect(),
+            }
+        }
+
+        fn encode(request: &ScrapeRequest) -> Vec<u8> {
+            let mut bytes = Vec::new();
+            request.write_bytes(&mut bytes).unwrap();
+            bytes
+        }
+
+        fn parsed_info_hashes(bytes: &[u8]) -> Vec<InfoHash> {
+            match Request::parse_bytes(bytes, MAX_SCRAPE_INFO_HASHES).unwrap() {
+                Request::Scrape(scrape_request) => scrape_request.info_hashes,
+                other => panic!("expected a scrape request, got {other:?}"),
+            }
+        }
+
+        #[test]
+        fn it_should_fit_74_info_hashes_and_no_more_in_one_scrape_request_packet() {
+            // Arrange
+            let request_with_74 = scrape_request_with_distinct_info_hashes(74);
+            let request_with_75 = scrape_request_with_distinct_info_hashes(75);
+
+            // Act
+            let size_with_74 = encode(&request_with_74).len();
+            let size_with_75 = encode(&request_with_75).len();
+
+            // Assert
+            assert!(size_with_74 <= MAX_PACKET_SIZE, "74 info hashes take {size_with_74} bytes");
+            assert!(size_with_75 > MAX_PACKET_SIZE, "75 info hashes take {size_with_75} bytes");
+        }
+
+        #[test]
+        fn it_should_keep_all_74_info_hashes_when_the_request_has_exactly_74() {
+            // Arrange
+            let request = scrape_request_with_distinct_info_hashes(74);
+
+            // Act
+            let info_hashes = parsed_info_hashes(&encode(&request));
+
+            // Assert
+            assert_eq!(info_hashes, request.info_hashes);
+        }
+
+        #[test]
+        fn it_should_keep_only_the_first_74_info_hashes_in_request_order_when_the_request_has_75() {
+            // Arrange
+            let request = scrape_request_with_distinct_info_hashes(75);
+
+            // Act
+            let info_hashes = parsed_info_hashes(&encode(&request));
+
+            // Assert
+            assert_eq!(info_hashes, request.info_hashes[..74]);
+        }
     }
 }
