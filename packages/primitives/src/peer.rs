@@ -139,13 +139,12 @@ pub struct Peer {
 /// Serializes a `DurationSinceUnixEpoch` as a Unix timestamp in milliseconds.
 /// # Errors
 ///
-/// Will return `serde::Serializer::Error` if unable to serialize the `unix_time_value`.
+/// Will return `serde::Serializer::Error` if unable to serialize the `unix_time_value`,
+/// or if the timestamp in milliseconds does not fit in a `u64`.
 pub fn ser_unix_time_value<S: serde::Serializer>(unix_time_value: &DurationSinceUnixEpoch, ser: S) -> Result<S::Ok, S::Error> {
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2246 reviews lossless or checked domain conversion boundaries"
-    )]
-    ser.serialize_u64(unix_time_value.as_millis() as u64)
+    let millis = u64::try_from(unix_time_value.as_millis())
+        .map_err(|_| serde::ser::Error::custom("unix timestamp in milliseconds does not fit in u64"))?;
+    ser.serialize_u64(millis)
 }
 
 #[derive(Serialize)]
@@ -651,6 +650,43 @@ pub mod test {
 
             assert_eq!(seeder1, seeder2);
             assert_ne!(seeder1, leecher1);
+        }
+    }
+
+    mod unix_time_value_serialization {
+        use std::time::Duration;
+
+        use serde_json::json;
+        use serde_json::value::Serializer;
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::ser_unix_time_value;
+
+        #[test]
+        fn it_should_serialize_the_timestamp_as_unix_milliseconds() {
+            let timestamp = DurationSinceUnixEpoch::new(1_669_397_478, 934_000_000);
+
+            let serialized = ser_unix_time_value(&timestamp, Serializer).unwrap();
+
+            assert_eq!(serialized, json!(1_669_397_478_934_u64));
+        }
+
+        #[test]
+        fn it_should_serialize_the_largest_timestamp_that_fits_in_u64_milliseconds() {
+            let timestamp = Duration::from_millis(u64::MAX);
+
+            let serialized = ser_unix_time_value(&timestamp, Serializer).unwrap();
+
+            assert_eq!(serialized, json!(u64::MAX));
+        }
+
+        #[test]
+        fn it_should_fail_instead_of_truncating_a_timestamp_beyond_u64_milliseconds() {
+            let timestamp = Duration::from_millis(u64::MAX) + Duration::from_millis(1);
+
+            let result = ser_unix_time_value(&timestamp, Serializer);
+
+            assert!(result.is_err());
         }
     }
 
