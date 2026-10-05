@@ -392,4 +392,24 @@ mod tests {
             "the event listener should have finished before the failure was reported"
         );
     }
+
+    #[tokio::test]
+    async fn it_should_report_a_drain_timeout_even_when_every_task_joins() {
+        // Arrange
+        let finished_server_task = tokio::spawn(async { Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, false) });
+        let timed_out_controller = tokio::spawn(async { GracefulShutdownOutcome::TimedOut });
+        let finished_event_listener = tokio::spawn(async {});
+
+        // Act
+        let result = tokio::time::timeout(
+            TEST_DEADLINE,
+            join_owned_tasks(finished_server_task, timed_out_controller, finished_event_listener),
+        )
+        .await
+        .expect("joining the owned tasks should finish within the test deadline");
+
+        // Assert
+        let failures = result.map(|_: Launcher| ()).expect_err("a drain timeout should be reported");
+        assert_eq!(failures, "HTTP drain controller timed out");
+    }
 }
