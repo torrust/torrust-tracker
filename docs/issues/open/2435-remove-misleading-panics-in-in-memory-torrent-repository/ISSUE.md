@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 18:03"
+last-updated-utc: "2026-10-05 18:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,21 +50,48 @@ Found during PR #2423 (issue #2406) review.
   - **C.** Introduce a real registry error and propagate it through `InMemoryTorrentRepository` to its callers.
 - Implement the chosen option and update the affected doc comments.
 - Fix the registry's own misleading `# Errors` sections (they claim a panic when a lock "cannot be acquired"; `tokio::sync::Mutex::lock` cannot fail).
-- Propagate the registry error through every production caller up to the delivery layers (see [Decision (T2)](#decision-t2)).
-- Write an ADR for the forward-compatible error policy.
+- Write an ADR for the error-signature policy of public packages.
+- Undo the option C work (T4 to T6) after the switch to option B (see [Decision Revision (T7)](#decision-revision-t7)).
 
 ### Out of Scope
 
 - Other `expect`/`unwrap` uses outside `InMemoryTorrentRepository` and the registry methods it calls (for example the `MetricCollection::merge` `expect` calls in the REST labeled-stats adapter).
 - `.unwrap()`/`.expect()` on registry or repository results in test code, test-support modules (`src/testing/`), examples, and benchmarks.
+- Adding `#[non_exhaustive]` to existing public error enums before the first crates.io publish. This belongs to the package-publishing work in EPIC #1669; this issue only drafts the checklist item for maintainer approval.
 - Changing swarm-coordination behavior.
 
 ## Architectural Decisions
 
-- Related ADRs: none known.
-- ADRs to create: a root ADR in `docs/adrs/` recording that public workspace packages keep `Result` on operations that may plausibly become fallible, using a crate-owned uninhabited `#[non_exhaustive]` error enum instead of `Infallible`. It is root-scoped because every workspace package can be consumed independently.
+- Related ADRs: [independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md).
+- ADRs to create: a root ADR in `docs/adrs/` recording when public package APIs return `Result`. It is root-scoped because every workspace package will be published and consumed independently (EPIC #1669).
+
+## Decision Revision (T7)
+
+Maintainer decision, 2026-10-05 (supersedes [Decision (T2)](#decision-t2)): **option B**. The registry methods return plain values, and the `Error` type is deleted.
+
+Why the decision changed: after T4 to T6 were implemented, the maintainer asked whether counting the swarms (`Registry::len`) could ever fail, and neither of us could imagine a case. The argument for the counting methods returning `Result` was just as weak: a different backend would affect `len()` equally, and the only remaining candidate, a future lock-acquisition timeout, is speculative. The maintainer prefers a breaking change over filling the code with `Result` "just in case".
+
+The cost of option C was already visible on the branch: `SwarmRegistry` variants in `AnnounceError` and `ScrapeError`, a `StatsError` and a REST `500` path, error handling in the cleanup job, and 37 new `.unwrap()` calls in tests, all for an error that cannot occur and cannot be tested. The plumbing also recreated the original problem: readers infer a failure mode that does not exist.
+
+Publishing context: every workspace package will be published on crates.io within weeks (EPIC #1669), with new crates starting at `0.x`. A breaking change then costs consumers a semver-signalled migration (for example `0.1` to `0.2`), paid once and only if a real failure ever appears. A speculative `Result` costs every consumer from day one.
+
+Policy (recorded in the ADR): a public API returns `Result` when at least one of these holds:
+
+1. a failure can happen today (I/O, parsing, validation, limits);
+2. the operation crosses an I/O boundary (database, network, filesystem);
+3. it is a trait or port designed for swappable backends, and a realistic backend can fail.
+
+Otherwise it returns a plain value, and a real failure is introduced later as a semver-signalled breaking change. Existing public error enums that have real variants should get `#[non_exhaustive]` before their first publish, so that adding variants is not a breaking change. That is a #1669 checklist item.
+
+Shape:
+
+- `Registry`: the 10 methods return `T` directly; `pub enum Error` and its `compile_fail` doctest are deleted; the `# Errors` sections go away.
+- `InMemoryTorrentRepository`: plain delegation with no `expect` and no `# Panics`.
+- Revert T6 (propagation) and T5 (REST `StatsError` and `500` path) with `git revert` commits, keeping the history visible.
 
 ## Decision (T2)
+
+Superseded by [Decision Revision (T7)](#decision-revision-t7). Kept as history.
 
 Maintainer decision, 2026-10-05: **option C, with an uninhabited `#[non_exhaustive]` error type and full propagation**.
 
@@ -97,7 +124,7 @@ Not applicable. The bug rule in the `create-issue` and `fix-bug` skills covers o
 
 ## Regression Test Strategy
 
-Option C was chosen. Registry-originated failures cannot be constructed while the error enum has no variants, so the guard is a `compile_fail` doctest proving that consumer crates cannot ignore `Err`. The REST stats `500` mapping gets a handler-level test with a stub port that returns an error.
+Option B was chosen (T7). It is a compile-time guarantee: if a registry operation ever becomes fallible, its signature changes to `Result` and every caller fails to compile until it handles the error. No runtime test can exercise a failure that does not exist.
 
 ## Implementation Plan
 
@@ -111,6 +138,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
 | T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
+| T7 | DONE | Revise the decision | Option B; see [Decision Revision (T7)](#decision-revision-t7) |
+| T8 | TODO | Rewrite the ADR for the revised policy | Same timestamp, new slug (the ADR is not merged yet); update the index row and the `handle-errors-in-code` skill |
+| T9 | TODO | Revert T6 and T5 | `git revert` commits; spec edits from those commits are kept |
+| T10 | TODO | Registry returns plain values | Delete `Error` and the doctest; drop `.unwrap()` on registry calls in tests and examples; remove `expect` and `# Panics` from `in_memory.rs` |
+| T11 | TODO | Draft the #1669 pre-publish checklist item | `#[non_exhaustive]` audit of existing public error enums; wording proposed to the maintainer, not committed to the EPIC |
 
 ### T1 Inventory
 
@@ -130,6 +162,10 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 | T4 | Registry error type and docs | One commit; the workspace still compiles because callers only need `Debug` for `expect` |
 | T5 | REST stats port `Result` | One commit; the adapter returns `Ok` until T6 |
 | T6 | Propagation through `tracker-core` and delivery layers | One commit (signature changes must land together to compile) |
+| T7 | Revised decision in the spec | One `docs(issues)` commit |
+| T8 | Rewritten ADR, index row, and skill | One `docs(adrs)` commit |
+| T9 | One revert commit per reverted task (T6, then T5) | Each revert compiles on its own |
+| T10 | Registry plain values and all callers | One commit |
 
 ## Progress Tracking
 
@@ -138,11 +174,11 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Folder-style spec drafted in `docs/issues/drafts/remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): `linter all` and the full stable test suite pass; pre-push checks not run yet (no push requested)
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
-- [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -158,19 +194,20 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 15:09 UTC - Copilot - T5: the port error lives in `rest-api-protocol` (`StatsError::TorrentRepository(String)`), following the existing `WhitelistError` boundary pattern, so the application layer does not depend on tracker internals. Added `async-trait = "0.1"` as an `axum-rest-api-server` dev-dependency (already in the lockfile and used by sibling crates) for the stub port. Mutation proof: returning `ok_response()` from the error branch made the test fail (`left: 200, right: 500`); restored by hand.
 - 2026-10-05 15:49 UTC - Copilot - T6: propagated the registry error through `tracker-core` and every production caller (see the T6 row). Test seeding helpers in `axum-http-server`/`axum-rest-api-server` `src/testing/environment.rs` use a documented `expect` (test support, out of scope). Test code uses `.unwrap()`. Verified that all 37 added `unwrap`/`expect` lines sit in `#[cfg(test)]` modules or test targets, with none in production. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2976 tests with 0 failures. Completion review: no retrospective needed. The one material discovery (that `Infallible` defeats forward compatibility) changed the design before implementation and is recorded in the Decision (T2) section and the ADR; the `clippy::uninhabited_references` workaround is recorded in the T4 entry.
 - 2026-10-05 18:03 UTC - Copilot - Revised the ADR after an external AI review; the decision is unchanged. Renamed it to "Use Crate-Owned Non-Exhaustive Errors for Potentially Fallible Public APIs". Revisions: separated the abstraction's semantics from the current implementation's capabilities; explained that `Infallible` states the wrong contract; replaced "forced to handle `Err`" with "cannot treat the error as uninhabited" (consumers can still `unwrap`); limited the scope to independently consumed API boundaries; presented the empty-enum pattern as a repository convention built on established practice rather than a standard idiom; added a generic-error alternative and expanded consequences; cited RFC 2008, C-GOOD-ERR, the Reference, and `std::convert::Infallible` (all checked against the live pages). Following the new derive guidance, dropped `PartialEq, Eq` from the registry `Error` because no caller used them and a future variant may not support them. Added an intent comment to the `compile_fail` doctest.
+- 2026-10-05 18:42 UTC - Copilot - Maintainer reversed the decision to option B (T7); see [Decision Revision (T7)](#decision-revision-t7). Trigger: no plausible failure for `Registry::len`, and an equally weak case for the counting methods. Packages will be published within weeks (EPIC #1669), so the trade-off was re-assessed in that context: a semver-signalled breaking change, paid once if a failure ever appears, is cheaper than a speculative `Result` every consumer pays for. Reopened AC3, AC5, and AC6 and reworded them for option B. Plan: rewrite the ADR (T8), revert T6 and T5 with `git revert` (T9), make the registry methods return plain values (T10), and draft the #1669 checklist item (T11).
 
 ## Acceptance Criteria
 
 - [x] AC1: No method of `InMemoryTorrentRepository` documents a panic that cannot occur.
 - [x] AC2: No method of `InMemoryTorrentRepository` calls `expect` or `unwrap` on a registry result.
-- [x] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
-- [x] `linter all` exits with code `0`
+- [ ] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
+- [ ] `linter all` exits with code `0`
 - [x] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
-- [x] AC5: Registry errors propagate to the HTTP/UDP announce and scrape responses, the REST stats response (`500`), and the cleanup job log; no new `expect`/`unwrap` is introduced in production code on that path.
-- [x] AC6: The ADR records the forward-compatible error policy.
-- [x] Relevant tests pass
-- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [x] Documentation is updated when behavior/workflow changes
+- [ ] AC5: The infallible registry methods return plain values; no `Result`, error variant, or error-response path exists for an error that cannot occur.
+- [ ] AC6: The ADR records when public package APIs return `Result`.
+- [ ] Relevant tests pass
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -178,7 +215,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 
 - `linter all`
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (signatures change across several packages)
-- `cargo test --doc --workspace` (includes the AC3 `compile_fail` doctest)
+- `cargo test --doc --workspace`
 - Pre-push checks
 
 ### Manual Verification Scenarios
@@ -193,17 +230,17 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | DONE | `grep -nE 'expect\(\|unwrap\(\|# Panics' in_memory.rs` finds nothing; each method documents `# Errors` (propagates the registry error) |
-| AC2 | DONE | Same `grep`; the methods delegate and return the registry `Result` |
-| AC3 | DONE | `compile_fail,E0005` doctest on `registry::Error` passes on stable and nightly (nightly checks the code). Mutation proof: removing `#[non_exhaustive]` made the doctest fail (`compile fail ... FAILED`); restored by hand. |
-| AC4 | DONE | All 10 registry `# Errors` sections now read "Currently never fails; see [`Error`]." |
-| AC5 | DONE | Signatures listed in the T6 row; the REST `500` is covered by the stub-port handler test (T5); the added-`unwrap`/`expect` classification is in the 15:49 progress-log entry |
-| AC6 | DONE | ADR file and `docs/adrs/index.md` row |
+| AC1 | TODO | Re-check `in_memory.rs` after T10 |
+| AC2 | TODO | Re-check `in_memory.rs` after T10 |
+| AC3 | TODO | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
+| AC4 | DONE | The misleading sections were corrected in T4; under option B they are removed entirely with T10 |
+| AC5 | TODO | Signatures after T9 and T10 |
+| AC6 | TODO | Rewritten ADR (T8) |
 
 ## Risks and Trade-offs
 
-- Option C changes public signatures in `tracker-core`, `rest-api-application`, `udp-core`, and `udp-server`, and adds variants to `AnnounceError` and `ScrapeError` (which are not `#[non_exhaustive]`). This is acceptable on `3.0.0-develop`.
-- Propagating an error that has no values adds plumbing that has no runtime effect today. The maintainer accepts this as the cost of an honest, forward-compatible API.
+- Option B changes public `swarm-coordination-registry` signatures (`Result<T, Error>` to `T`) and deletes `Error`. The crate is unpublished, and every caller is in this workspace.
+- If a registry operation becomes fallible later, its signature changes again. That is accepted as a semver-signalled breaking change (see the ADR).
 
 ## Implementation Completion Review
 
@@ -211,7 +248,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not needed` (see the 2026-10-05 15:49 UTC progress-log entry)
+- Retrospective: `Not yet assessed` (the T7 reversal is a material design change; assess after T10)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
