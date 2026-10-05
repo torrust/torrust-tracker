@@ -38,7 +38,7 @@ impl FakeHttpTracker {
     }
 
     pub fn url(&self) -> String {
-        format!("http://{}", self.address)
+        format!("http://{}", self.address) // DevSkim: ignore DS137138
     }
 }
 
