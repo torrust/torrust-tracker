@@ -262,12 +262,7 @@ impl PeersWanted {
         if value <= 0 {
             Self::AsManyAsPossible
         } else {
-            // Safe: value > 0, so casting to usize is lossless on all supported platforms.
-            #[allow(
-                clippy::cast_sign_loss,
-                reason = "temporary: #2246 reviews lossless or checked domain conversion boundaries"
-            )]
-            Self::Only { amount: value as usize }
+            Self::only(value.unsigned_abs())
         }
     }
 
