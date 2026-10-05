@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 12:36"
+last-updated-utc: "2026-10-05 12:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,7 +200,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Migrate `Environment` start/stop (D1-D3)   | Implemented with the four planned tests, each mutation-proven. Design approved 2026-10-05. |
 | T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
 | T4  | DONE   | Example signal boundary (D6)               | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
-| T5  | TODO   | Documentation                              | Shutdown task inventory and feature README record the HTTP standalone consumer as migrated.                                                                |
+| T5  | DONE   | Documentation                              | Task inventory findings 4 and 8 record the migrated HTTP consumer; the feature README's stale "implementation has not started" status now points to EPIC #1488. |
 | T6  | TODO   | Verification and completion review         | Automatic checks, manual scenarios, AC review, completion review.                                                                                          |
 
 T2 tests (use the `write-unit-test` skill, no OS signals):
