@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
-last-updated-utc: 2026-10-05
+last-updated-utc: "2026-10-05 15:04"
 ---
 
 # Manual Verification Evidence
