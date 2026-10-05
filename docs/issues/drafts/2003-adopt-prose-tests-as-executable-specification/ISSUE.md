@@ -4,12 +4,12 @@ doc-type: issue
 issue-type: task
 status: draft
 priority: p2
-epic: null
+epic: 2003
 github-issue: null
-spec-path: docs/issues/drafts/adopt-prose-tests-as-executable-specification/ISSUE.md
-branch: "{issue-number}-adopt-prose-tests-as-executable-specification"
+spec-path: docs/issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md
+branch: "chore/2003-adopt-prose-tests-as-executable-specification-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 10:14"
+last-updated-utc: "2026-10-05 07:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,7 @@ semantic-links:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/testing.md
+    - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/skills/semantic-skill-link-convention.md
     - packages/tracker-core/src/scrape_handler.rs
 ---
@@ -26,6 +27,10 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Adopt Prose-Style Tests as the Executable Specification
+
+**Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails (EPIC owner:
+@da2ce7). The maintainer proposed this issue under #2003 on 2026-10-05; the EPIC owner accepts or
+rejects the placement in the spec-only pull request.
 
 ## Goal
 
@@ -101,7 +106,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/adopt-prose-tests-as-executable-specification/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
@@ -116,6 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-10-03 10:14 UTC - Copilot - Drafted from the maintainer's direction during PR #2423 review.
+- 2026-10-05 07:49 UTC - Copilot - Maintainer proposed EPIC #2003 as the parent: the ADR applies its first design principle (prefer executable tests over instructions), and the EPIC owner already asked in PR #2428 review 5407197495 to reference this draft from the #2003 specifications discussion. Renamed the draft folder with the `2003-` prefix and set `epic: 2003`. No GitHub issue yet; the EPIC owner reviews the placement in the spec-only pull request.
 
 ## Acceptance Criteria
 

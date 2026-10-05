@@ -359,7 +359,7 @@ prose-tests ADR is accepted.
 **Round 4.** In
 [review 5407197495](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5407197495),
 the EPIC owner asked to reference the draft
-[`adopt-prose-tests-as-executable-specification`](../../../issues/drafts/adopt-prose-tests-as-executable-specification/ISSUE.md)
+[`adopt-prose-tests-as-executable-specification`](../../../issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md)
 now rather than wait for its ADR:
 
 - That draft is the record that will carry answer 1 and conclusions 1 and 2. Its ADR would record
