@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository-spec"
 related-pr: null
-last-updated-utc: "2026-10-05 07:05"
+last-updated-utc: "2026-10-05 08:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable. No incorrect runtime behavior is known; the defect is a misleading contract and a latent risk. Although the `create-issue` skill treats misleading behavior as a bug, the maintainer kept this a task: there is no runtime defect to reproduce, so the `fix-bug` reproduction and regression-test sections have nothing to act on.
+Not applicable. The bug rule in the `create-issue` and `fix-bug` skills covers observed behavior, and none is observable here: the registry's error type is `Infallible`, so the documented panics cannot occur. Regression protection is AC3.
 
 ## Regression Test Strategy
 
@@ -110,6 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-03 07:45 UTC - Copilot - Drafted from a maintainer observation during PR #2423 review; confirmed the registry error type is `Infallible`.
 - 2026-10-03 07:58 UTC - Copilot - Maintainer approved the draft; the A/B/C decision is deferred until the draft moves to `docs/issues/open/`. Committed as a draft in PR #2423; no GitHub issue yet.
 - 2026-10-05 07:05 UTC - Copilot - Maintainer confirmed the task classification (no runtime defect). Created GitHub issue #2435 and moved the spec to `docs/issues/open/` on a spec-only branch; the A/B/C decision remains open for T2.
+- 2026-10-05 08:43 UTC - Copilot - Reworded the Bug-Fix Process paragraph after PR #2436 review (F1): the classification is recorded as outside the bug rule's scope (no observable behavior), not as an exception to it, and AC3 is named as the regression protection.
 
 ## Acceptance Criteria
 
