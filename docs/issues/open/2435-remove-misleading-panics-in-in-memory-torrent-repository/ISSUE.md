@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 15:01"
+last-updated-utc: "2026-10-05 15:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -109,7 +109,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) |
 | T3 | DONE | Write the ADR | `docs/adrs/20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
-| T5 | TODO | REST stats port returns `Result` | Port error type, use case, handler `500` mapping, stub-port test |
+| T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
 | T6 | TODO | Propagate through `tracker-core` and delivery layers | Repository, announce/scrape errors, manager, cleanup job, UDP/HTTP mappings, stats services; no `expect` on registry results in `in_memory.rs` |
 
 ### T1 Inventory
@@ -155,6 +155,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 08:43 UTC - Copilot - Reworded the Bug-Fix Process paragraph after PR #2436 review (F1): the classification is recorded as outside the bug rule's scope (no observable behavior), not as an exception to it, and AC3 is named as the regression protection.
 - 2026-10-05 14:26 UTC - Copilot - Created implementation branch `2435-remove-misleading-panics-in-in-memory-torrent-repository`. T1 inventory recorded. Maintainer chose option C (keep `Result` for forward compatibility of public packages) with a `#[non_exhaustive]` uninhabited error instead of `Infallible`, full propagation to delivery layers, a root ADR, and registry `# Errors` doc fixes. Manual scenario M1 dropped. Work stops at local commits (no push or PR).
 - 2026-10-05 15:01 UTC - Copilot - T3 committed (ADR). T4: replaced the `Infallible` alias with `#[non_exhaustive] pub enum Error {}`. `Display` uses the same `match *self {}` as `std`'s `Display for Infallible`, with a documented `expect` for `clippy::uninhabited_references`. The registry crate does not depend on `thiserror`, and adding it for one empty enum was not justified.
+- 2026-10-05 15:09 UTC - Copilot - T5: the port error lives in `rest-api-protocol` (`StatsError::TorrentRepository(String)`), following the existing `WhitelistError` boundary pattern, so the application layer does not depend on tracker internals. Added `async-trait = "0.1"` as an `axum-rest-api-server` dev-dependency (already in the lockfile and used by sibling crates) for the stub port. Mutation proof: returning `ok_response()` from the error branch made the test fail (`left: 200, right: 500`); restored by hand.
 
 ## Acceptance Criteria
 

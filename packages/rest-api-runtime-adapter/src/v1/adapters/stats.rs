@@ -12,7 +12,7 @@ use async_trait::async_trait;
 use torrust_metrics::metric_collection::MetricCollection;
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use torrust_tracker_rest_api_application::v1::ports::stats::StatsQueryPort;
-use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
+use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats, StatsError};
 /// Adapter that queries all tracker-internal data sources and converts
 /// domain types to protocol DTOs.
 #[allow(
@@ -59,7 +59,7 @@ impl TrackerStatsAdapter {
 
 #[async_trait]
 impl StatsQueryPort for TrackerStatsAdapter {
-    async fn get_stats(&self) -> Stats {
+    async fn get_stats(&self) -> Result<Stats, StatsError> {
         let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
 
         let total_downloaded = self.tracker_core_stats_repository.get_torrents_downloads_total().await;
@@ -75,7 +75,7 @@ impl StatsQueryPort for TrackerStatsAdapter {
         let http_stats = self.http_stats_repository.get_stats().await;
         let udp_server_stats = self.udp_server_stats_repository.get_stats().await;
 
-        Stats {
+        Ok(Stats {
             // Torrent metrics
             torrents: aggregate_swarm_metadata.total_torrents,
             seeders: aggregate_swarm_metadata.total_complete,
@@ -119,7 +119,7 @@ impl StatsQueryPort for TrackerStatsAdapter {
             udp6_scrapes_handled: udp_server_stats.udp6_scrape_requests_accepted_total(),
             udp6_responses: udp_server_stats.udp6_responses_sent_total(),
             udp6_errors_handled: udp_server_stats.udp6_errors_total(),
-        }
+        })
     }
 
     async fn get_labeled_stats(&self) -> LabeledStats {

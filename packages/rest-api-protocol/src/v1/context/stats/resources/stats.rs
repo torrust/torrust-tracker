@@ -2,8 +2,31 @@
 //!
 //! These types define the serialization contract for the `/api/v1/stats`
 //! and `/api/v1/metrics` endpoint responses.
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 use torrust_metrics::metric_collection::MetricCollection;
+
+/// Errors that can occur while collecting tracker statistics.
+///
+/// This type is used in the port trait's return type so that the application
+/// layer and Axum handlers can handle errors without depending on
+/// tracker-internal error types.
+#[derive(Debug)]
+pub enum StatsError {
+    /// The torrent repository failed while aggregating swarm metadata.
+    TorrentRepository(String),
+}
+
+impl fmt::Display for StatsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::TorrentRepository(msg) => write!(f, "torrent repository error: {msg}"),
+        }
+    }
+}
+
+impl std::error::Error for StatsError {}
 
 /// Tracker statistics response for the `GET /api/v1/stats` endpoint.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
