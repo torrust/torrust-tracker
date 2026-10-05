@@ -16,6 +16,11 @@ pub struct FakeHttpTracker {
 }
 
 impl FakeHttpTracker {
+    /// Answers every scrape with a file per requested info hash.
+    pub fn answering() -> Self {
+        Self::keeping_first(usize::MAX)
+    }
+
     /// Answers scrapes with files for only the first `max_info_hashes` `info_hash` params.
     pub fn keeping_first(max_info_hashes: usize) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").expect("fake HTTP tracker should bind");
@@ -30,10 +35,6 @@ impl FakeHttpTracker {
             address,
             _server: server,
         }
-    }
-
-    pub fn keeping_all() -> Self {
-        Self::keeping_first(usize::MAX)
     }
 
     pub fn url(&self) -> String {

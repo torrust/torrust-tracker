@@ -1,5 +1,8 @@
 //! Shared test utilities for tracker-client integration tests.
 
+#[allow(dead_code, unused_imports, reason = "each test binary uses a different subset of the fakes")]
+pub mod fake_trackers;
+
 use std::path::PathBuf;
 
 /// Resolves the path to the `tracker_client` binary for integration tests.

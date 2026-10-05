@@ -1,8 +1,8 @@
 //! Fake trackers for `tracker_client` integration tests.
 //!
-//! Each fake keeps only the first N info hashes of a scrape, like a tracker that
-//! truncates silently, so tests can check client behavior for any tracker limit
-//! without depending on the tracker servers.
+//! They speak the tracker protocols and can misbehave in controlled ways, like
+//! keeping only the first N info hashes of a scrape or never answering, so
+//! tests can check client behavior without depending on the tracker servers.
 mod http;
 mod udp;
 

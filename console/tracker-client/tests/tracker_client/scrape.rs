@@ -66,7 +66,7 @@ fn distinct_info_hashes(count: u8) -> Vec<String> {
 
 mod udp {
     use super::{Run, TruncationWarning, distinct_info_hashes};
-    use crate::fake_trackers::FakeUdpTracker;
+    use crate::common::fake_trackers::FakeUdpTracker;
 
     fn scrape(tracker: &FakeUdpTracker, info_hashes: &[String]) -> Run {
         let args = ["udp".to_owned(), "scrape".to_owned(), tracker.address().to_string()];
@@ -104,7 +104,7 @@ mod udp {
     #[test]
     fn it_should_leave_stderr_empty_when_the_tracker_returns_every_requested_entry() {
         // Arrange
-        let tracker = FakeUdpTracker::keeping_all();
+        let tracker = FakeUdpTracker::answering();
 
         // Act
         let run = scrape(&tracker, &distinct_info_hashes(3));
@@ -122,7 +122,7 @@ mod udp {
 
 mod http {
     use super::{Run, TruncationWarning, distinct_info_hashes};
-    use crate::fake_trackers::FakeHttpTracker;
+    use crate::common::fake_trackers::FakeHttpTracker;
 
     fn scrape(tracker: &FakeHttpTracker, info_hashes: &[String]) -> Run {
         let args = ["http".to_owned(), "scrape".to_owned(), tracker.url()];
@@ -157,7 +157,7 @@ mod http {
     #[test]
     fn it_should_not_warn_when_repeated_info_hashes_collapse_into_one_file() {
         // Arrange
-        let tracker = FakeHttpTracker::keeping_all();
+        let tracker = FakeHttpTracker::answering();
         let distinct = distinct_info_hashes(2);
         let info_hashes_with_first_repeated = [distinct[0].clone(), distinct[1].clone(), distinct[0].clone()];
 
