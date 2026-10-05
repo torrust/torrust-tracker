@@ -365,7 +365,19 @@ impl HttpServer<Stopped> {
         })
     }
 
-    async fn start_with_cancellation_and_health_check(
+    /// Starts the HTTP tracker using an injected cancellation token and
+    /// registers the supplied health-check callback.
+    ///
+    /// This is the token-aware counterpart of [`Self::start_with_health_check`].
+    /// The application uses [`check_fn`] through [`Self::start_with_cancellation`];
+    /// this seam lets integration tests use a client that trusts their test
+    /// certificate. It does not subscribe to operating-system signals; the caller
+    /// owns the returned runtime task and drain controller.
+    ///
+    /// # Errors
+    ///
+    /// Returns listener, startup-notification, or service-registration errors.
+    pub async fn start_with_cancellation_and_health_check(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
         form: ServiceRegistrationForm<RuntimeServiceMetadata>,
@@ -514,7 +526,9 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration, ServiceRegistrationForm};
+    use torrust_server_lib::registar::{
+        Registar, RegisteredService, RegistrationError, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
+    };
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
@@ -829,6 +843,54 @@ mod tests {
         // Assert
         assert_eq!(launcher.bind_to, scenario.bind_to);
         assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    const INJECTED_HEALTH_CHECK_RESULT: &str = "injected health check ran";
+
+    fn injected_health_check(_service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new(
+            "injected health check".to_owned(),
+            tokio::spawn(async { Ok(INJECTED_HEALTH_CHECK_RESULT.to_owned()) }),
+        )
+    }
+
+    #[tokio::test]
+    async fn it_should_register_the_injected_health_check_when_starting_the_token_aware_http_server() {
+        // Arrange
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let http_tracker_container = scenario.container().await;
+        let cancellation_token = CancellationToken::new();
+
+        // Act
+        let running = HttpServer::new(scenario.launcher().await)
+            .start_with_cancellation_and_health_check(
+                http_tracker_container,
+                scenario.registration_form(),
+                scenario.metadata(),
+                cancellation_token.clone(),
+                injected_health_check,
+            )
+            .await
+            .expect("the token-aware HTTP server should start");
+
+        // Assert
+        let registered_services = scenario.registar.services().await;
+        let health_check = registered_services
+            .first()
+            .and_then(RegisteredService::spawn_check)
+            .expect("the started HTTP server should register a health check");
+        assert_eq!(
+            health_check.job.await.expect("the health-check job should not panic"),
+            Ok(INJECTED_HEALTH_CHECK_RESULT.to_owned()),
+            "the registry should run the injected callback, not the default HTTP check"
+        );
+
+        cancellation_token.cancel();
+        running.task.await.expect("the HTTP server task should not panic");
+        running
+            .shutdown_controller
+            .await
+            .expect("the HTTP drain controller should not panic");
     }
 
     #[tokio::test]

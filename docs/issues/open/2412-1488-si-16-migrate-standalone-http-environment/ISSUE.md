@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-04 10:34"
+last-updated-utc: "2026-10-05 11:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -196,7 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                       | Notes / Expected Output                                                                                                                                    |
 | --- | ------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T0  | DONE   | Record baseline                            | Both packages pass (36 + 61; 3 + 8). Example SIGTERM: the library catches it, stops only the server, and the process stays up; a later SIGINT makes `stop()` panic (exit 101). See evidence V1. |
-| T1  | TODO   | Public token-aware health-check start (D4) | Additive public method with a unit test that the injected callback is registered. Legacy API untouched.                                                    |
+| T1  | DONE   | Public token-aware health-check start (D4) | `start_with_cancellation_and_health_check` made public (name kept: mirrors legacy `start_with_health_check`). Unit test proves the registry runs the injected callback; mutation-proven. Maintainer approved 2026-10-05. |
 | T2  | TODO   | Migrate `Environment` start/stop (D1-D3)   | Token-aware start, fresh tokens, one-token stop that joins everything, no `abort()`. Tests below. Design-review checkpoint.                                  |
 | T3  | TODO   | Migrate direct field consumers (D5)        | Health-check API contract test uses `Environment::stop()`; drop its 100 ms "let the OS release the port" sleep if T2's binding test proves it redundant.   |
 | T4  | TODO   | Example signal boundary (D6)               | `http_only_public_tracker` stops on SIGINT or Unix SIGTERM; module docs updated.                                                                           |
@@ -255,6 +255,8 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-01 15:13 UTC - GitHub Copilot - Maintainer review: replaced the ordered stop with one token, same as the application (D3), because listeners drop queued events on cancellation. That pre-existing bug moves to SI-22. Renamed `verification.md` to `manual-verification-evidence.md`.
 - 2026-10-02 06:39 UTC - GitHub Copilot - Maintainer approved this spec (2026-10-01). Next: GitHub issue creation and the shared #1488 spec-only pull request.
 - 2026-10-04 10:34 UTC - GitHub Copilot - T0 done. The SIGTERM baseline differs from the expected one: the legacy `Halted` path subscribes to SIGTERM inside the library (`torrust-server-lib` `global_shutdown_signal`), so the server stops while the example keeps running, and the later Ctrl-C makes `Environment::stop()` panic. T2 and T4 remove both causes.
+- 2026-10-04 16:53 UTC - GitHub Copilot - T1 implemented: the existing private method is public with the same name, since it is the token-aware counterpart of `start_with_health_check`. Test `it_should_register_the_injected_health_check_when_starting_the_token_aware_http_server` was proven by registering `check_fn` instead of the injected callback (failed with `left: Ok("200 OK")`), then reverted by hand. Prose-first AAA review: the code states the causal input (the injected callback in the Act) and the independent expected marker; no extra prose kept.
+- 2026-10-05 11:44 UTC - GitHub Copilot - Maintainer approved T1; committed. Next: T2.
 
 ## Acceptance Criteria
 
