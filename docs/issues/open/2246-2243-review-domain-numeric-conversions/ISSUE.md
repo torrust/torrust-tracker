@@ -9,7 +9,7 @@ github-issue: 2246
 spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
 related-pr: null
-last-updated-utc: "2026-10-05 13:18"
+last-updated-utc: "2026-10-05 15:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -102,11 +102,11 @@ allowance with a fix that preserves behaviour for all reachable values.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (#2247)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -115,13 +115,14 @@ allowance with a fix that preserves behaviour for all reachable values.
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
 - 2026-10-05 12:54 UTC - josecelano - Approved T1-T2 outcomes (all three allowances removed), in-place #2158 inventory update, and replacing M2 because the REST API never calls `ser_unix_time_value` - Chat decision
 - 2026-10-05 13:18 UTC - GitHub Copilot - Implemented T3 (three per-package commits) and T4 (inventory reconciliation); M1, pre-push checks, and the completion review remain - In progress
+- 2026-10-05 15:04 UTC - GitHub Copilot - M1 passed against a local tracker (cap 2; `numwant` 0, -1, 1, 2, 3, `i32::MAX`); pre-push checks passed; no retrospective needed (see Implementation Completion Review) - Ready for PR
 
 ## Acceptance Criteria
 
-- [ ] A099, A123, and A129 each have a documented source/target range contract and outcome.
-- [ ] Every retained cast carries a native `reason` stating its invariant.
-- [ ] Every changed conversion has a focused test for the stated bound or new behavior.
-- [ ] `linter all` exits with code `0` and relevant package tests pass.
+- [x] A099, A123, and A129 each have a documented source/target range contract and outcome.
+- [x] Every retained cast carries a native `reason` stating its invariant.
+- [x] Every changed conversion has a focused test for the stated bound or new behavior.
+- [x] `linter all` exits with code `0` and relevant package tests pass.
 
 ## Verification Plan
 
@@ -134,7 +135,7 @@ allowance with a fix that preserves behaviour for all reachable values.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce `numwant` boundary | Announce to a local UDP tracker with a positive `numwant` at the documented boundary and with `numwant=0`. | Positive values cap at the tracker limit; zero returns as many peers as possible. | TODO | `manual-verification-evidence.md` section M1 |
+| M1 | Announce `numwant` boundary | Announce to a local UDP tracker with a positive `numwant` at the documented boundary and with `numwant=0`. | Positive values cap at the tracker limit; zero returns as many peers as possible. | DONE | `manual-verification-evidence.md` section V1 - M1 |
 
 A099 and A123 have no manual scenario. The REST API peer resource computes its own `u128`
 timestamps and never calls `ser_unix_time_value`; only tracker-core tests serialize `peer::Peer`
@@ -147,7 +148,7 @@ with serde. A123 lives in a benchmarking-only crate. Both are covered by unit te
 | AC1 | DONE | Review Outcomes table; #2158 inventory rows A099, A123, A129. |
 | AC2 | DONE | No cast retained: all three allowances removed; `grep -rn "#2246"` over Rust sources finds no remaining temporary reason. |
 | AC3 | DONE | A099: three new `unix_time_value_serialization` tests (the out-of-range test failed against the old cast). A129: existing `from_client_request` boundary tests. A123: existing benchmarking repository metadata tests. |
-| AC4 | TODO | Focused Clippy and tests pass for the three packages; `linter all` passes in pre-commit. Pre-push checks pending. |
+| AC4 | DONE | Focused Clippy and tests pass for the three packages; `linter all` passes in every pre-commit run; pre-push checks (nightly fmt/check/doc and the full test suite) pass. |
 
 ## Risks and Trade-offs
 
@@ -156,7 +157,10 @@ with serde. A123 lives in a benchmarking-only crate. Both are covered by unit te
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. The design held: every entry took the approved outcome with no
+  surprises during implementation. The only invalidated assumption (M2 targeting the REST API,
+  which never calls `ser_unix_time_value`) was caught and corrected during spec review and is
+  recorded in the Progress Log and Manual Verification Scenarios.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in
   this folder if the work invalidates an assumption, changes design materially, or yields a reusable
   lesson; otherwise add a progress-log entry stating why none is needed.
