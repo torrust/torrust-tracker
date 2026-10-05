@@ -33,12 +33,17 @@ where
     S: std::fmt::Debug + std::fmt::Display + Sync,
 {
     /// Add a torrent to the tracker
+    ///
+    /// # Panics
+    ///
+    /// Panics if the swarm registry fails to record the peer.
     pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.container
             .tracker_core_container
             .in_memory_torrent_repository
             .handle_announcement(info_hash, peer, None)
-            .await;
+            .await
+            .expect("the test environment should be able to seed a torrent peer");
     }
 }
 

@@ -62,7 +62,8 @@ impl ScrapeBenchmarkContext {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash.0.into(), &peer, None)
-                .await;
+                .await
+                .unwrap();
         }
 
         let issue_time = torrust_clock::clock::Working::now().as_secs_f64();

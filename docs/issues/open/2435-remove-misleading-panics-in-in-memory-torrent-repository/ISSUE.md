@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 15:09"
+last-updated-utc: "2026-10-05 15:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -110,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Write the ADR | `docs/adrs/20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
-| T6 | TODO | Propagate through `tracker-core` and delivery layers | Repository, announce/scrape errors, manager, cleanup job, UDP/HTTP mappings, stats services; no `expect` on registry results in `in_memory.rs` |
+| T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
 
 ### T1 Inventory
 
@@ -138,11 +138,11 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Folder-style spec drafted in `docs/issues/drafts/remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): `linter all` and the full stable test suite pass; pre-push checks not run yet (no push requested)
 - [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -156,19 +156,20 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 14:26 UTC - Copilot - Created implementation branch `2435-remove-misleading-panics-in-in-memory-torrent-repository`. T1 inventory recorded. Maintainer chose option C (keep `Result` for forward compatibility of public packages) with a `#[non_exhaustive]` uninhabited error instead of `Infallible`, full propagation to delivery layers, a root ADR, and registry `# Errors` doc fixes. Manual scenario M1 dropped. Work stops at local commits (no push or PR).
 - 2026-10-05 15:01 UTC - Copilot - T3 committed (ADR). T4: replaced the `Infallible` alias with `#[non_exhaustive] pub enum Error {}`. `Display` uses the same `match *self {}` as `std`'s `Display for Infallible`, with a documented `expect` for `clippy::uninhabited_references`. The registry crate does not depend on `thiserror`, and adding it for one empty enum was not justified.
 - 2026-10-05 15:09 UTC - Copilot - T5: the port error lives in `rest-api-protocol` (`StatsError::TorrentRepository(String)`), following the existing `WhitelistError` boundary pattern, so the application layer does not depend on tracker internals. Added `async-trait = "0.1"` as an `axum-rest-api-server` dev-dependency (already in the lockfile and used by sibling crates) for the stub port. Mutation proof: returning `ok_response()` from the error branch made the test fail (`left: 200, right: 500`); restored by hand.
+- 2026-10-05 15:49 UTC - Copilot - T6: propagated the registry error through `tracker-core` and every production caller (see the T6 row). Test seeding helpers in `axum-http-server`/`axum-rest-api-server` `src/testing/environment.rs` use a documented `expect` (test support, out of scope). Test code uses `.unwrap()`. Verified that all 37 added `unwrap`/`expect` lines sit in `#[cfg(test)]` modules or test targets, with none in production. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2976 tests with 0 failures. Completion review: no retrospective needed. The one material discovery (that `Infallible` defeats forward compatibility) changed the design before implementation and is recorded in the Decision (T2) section and the ADR; the `clippy::uninhabited_references` workaround is recorded in the T4 entry.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No method of `InMemoryTorrentRepository` documents a panic that cannot occur.
-- [ ] AC2: No method of `InMemoryTorrentRepository` calls `expect` or `unwrap` on a registry result.
-- [ ] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
-- [ ] `linter all` exits with code `0`
-- [ ] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
-- [ ] AC5: Registry errors propagate to the HTTP/UDP announce and scrape responses, the REST stats response (`500`), and the cleanup job log; no new `expect`/`unwrap` is introduced in production code on that path.
-- [ ] AC6: The ADR records the forward-compatible error policy.
-- [ ] Relevant tests pass
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: No method of `InMemoryTorrentRepository` documents a panic that cannot occur.
+- [x] AC2: No method of `InMemoryTorrentRepository` calls `expect` or `unwrap` on a registry result.
+- [x] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
+- [x] `linter all` exits with code `0`
+- [x] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
+- [x] AC5: Registry errors propagate to the HTTP/UDP announce and scrape responses, the REST stats response (`500`), and the cleanup job log; no new `expect`/`unwrap` is introduced in production code on that path.
+- [x] AC6: The ADR records the forward-compatible error policy.
+- [x] Relevant tests pass
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -191,11 +192,11 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Doc comments in `in_memory.rs` |
-| AC2 | TODO | `grep` of `in_memory.rs` |
+| AC1 | DONE | `grep -nE 'expect\(\|unwrap\(\|# Panics' in_memory.rs` finds nothing; each method documents `# Errors` (propagates the registry error) |
+| AC2 | DONE | Same `grep`; the methods delegate and return the registry `Result` |
 | AC3 | DONE | `compile_fail,E0005` doctest on `registry::Error` passes on stable and nightly (nightly checks the code). Mutation proof: removing `#[non_exhaustive]` made the doctest fail (`compile fail ... FAILED`); restored by hand. |
 | AC4 | DONE | All 10 registry `# Errors` sections now read "Currently never fails; see [`Error`]." |
-| AC5 | TODO | Signatures, error mappings, REST `500` test |
+| AC5 | DONE | Signatures listed in the T6 row; the REST `500` is covered by the stub-port handler test (T5); the added-`unwrap`/`expect` classification is in the 15:49 progress-log entry |
 | AC6 | DONE | ADR file and `docs/adrs/index.md` row |
 
 ## Risks and Trade-offs
@@ -209,7 +210,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` (see the 2026-10-05 15:49 UTC progress-log entry)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.

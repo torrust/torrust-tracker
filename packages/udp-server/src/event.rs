@@ -130,6 +130,7 @@ impl From<Error> for ErrorKind {
                 UdpAnnounceError::TrackerCoreAnnounceError { source } => match source {
                     AnnounceError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
                     AnnounceError::Database(error) => Self::Database(error.to_string()),
+                    AnnounceError::SwarmRegistry(error) => Self::InternalServer(error.to_string()),
                 },
                 UdpAnnounceError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
@@ -138,6 +139,7 @@ impl From<Error> for ErrorKind {
                 UdpScrapeError::TrackerCoreScrapeError { source } => match source {
                     ScrapeError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
                     ScrapeError::Database(error) => Self::Database(error.to_string()),
+                    ScrapeError::SwarmRegistry(error) => Self::InternalServer(error.to_string()),
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },

@@ -459,7 +459,8 @@ mod tests {
 
             in_memory_torrent_repository
                 .handle_announcement(&info_hash.0.into(), &peer, None)
-                .await;
+                .await
+                .unwrap();
         }
 
         async fn add_seeders(
@@ -478,7 +479,8 @@ mod tests {
 
                 in_memory_torrent_repository
                     .handle_announcement(&info_hash.0.into(), &peer, None)
-                    .await;
+                    .await
+                    .unwrap();
             }
         }
 

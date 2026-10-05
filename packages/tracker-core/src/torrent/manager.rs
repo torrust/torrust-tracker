@@ -5,6 +5,7 @@ use std::time::Duration;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
 use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_swarm_coordination_registry::swarm::registry::Error as SwarmRegistryError;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -82,39 +83,46 @@ impl TorrentsManager {
     /// 2. If the tracker is configured to remove peerless torrents
     ///    (`remove_peerless_torrents` is set), it removes entire torrent
     ///    entries that have no active peers.
-    pub async fn cleanup_torrents(&self) {
-        self.log_aggregate_swarm_metadata().await;
+    ///
+    /// # Errors
+    ///
+    /// Returns the swarm registry error if any cleanup step fails; later steps
+    /// are skipped.
+    pub async fn cleanup_torrents(&self) -> Result<(), SwarmRegistryError> {
+        self.log_aggregate_swarm_metadata().await?;
 
-        self.remove_inactive_peers().await;
+        self.remove_inactive_peers().await?;
 
-        self.log_aggregate_swarm_metadata().await;
+        self.log_aggregate_swarm_metadata().await?;
 
-        self.remove_peerless_torrents().await;
+        self.remove_peerless_torrents().await?;
 
-        self.log_aggregate_swarm_metadata().await;
+        self.log_aggregate_swarm_metadata().await
     }
 
-    async fn remove_inactive_peers(&self) {
+    async fn remove_inactive_peers(&self) -> Result<(), SwarmRegistryError> {
         self.in_memory_torrent_repository
             .remove_inactive_peers(self.current_cutoff())
-            .await;
+            .await?;
+        Ok(())
     }
 
     fn current_cutoff(&self) -> DurationSinceUnixEpoch {
         CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout))).unwrap_or_default()
     }
 
-    async fn remove_peerless_torrents(&self) {
+    async fn remove_peerless_torrents(&self) -> Result<(), SwarmRegistryError> {
         if self.config.tracker_policy.remove_peerless_torrents {
             self.in_memory_torrent_repository
                 .remove_peerless_torrents(&self.config.tracker_policy)
-                .await;
+                .await?;
         }
+        Ok(())
     }
 
-    async fn log_aggregate_swarm_metadata(&self) {
+    async fn log_aggregate_swarm_metadata(&self) -> Result<(), SwarmRegistryError> {
         // Pre-calculated data
-        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
+        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await?;
 
         tracing::info!(name: "pre_calculated_aggregate_swarm_metadata",
             torrents = aggregate_swarm_metadata.total_torrents,
@@ -124,13 +132,15 @@ impl TorrentsManager {
         );
 
         // Hot data (iterating over data structures)
-        let peerless_torrents = self.in_memory_torrent_repository.count_peerless_torrents().await;
-        let peers = self.in_memory_torrent_repository.count_peers().await;
+        let peerless_torrents = self.in_memory_torrent_repository.count_peerless_torrents().await?;
+        let peers = self.in_memory_torrent_repository.count_peers().await?;
 
         tracing::info!(name: "hot_aggregate_swarm_metadata",
             peerless_torrents = peerless_torrents,
             peers = peers,
         );
+
+        Ok(())
     }
 }
 
@@ -235,7 +245,8 @@ mod tests {
             services
                 .in_memory_torrent_repository
                 .handle_announcement(&infohash, &peer, None)
-                .await;
+                .await
+                .unwrap();
 
             // Simulate the time has passed 1 second more than the max peer timeout.
             clock::Stopped::local_add(&Duration::from_secs(
@@ -243,7 +254,7 @@ mod tests {
             ))
             .unwrap();
 
-            torrents_manager.cleanup_torrents().await;
+            torrents_manager.cleanup_torrents().await.unwrap();
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_none());
         }
@@ -252,12 +263,16 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            in_memory_torrent_repository.handle_announcement(infohash, &peer, None).await;
+            in_memory_torrent_repository
+                .handle_announcement(infohash, &peer, None)
+                .await
+                .unwrap();
 
             // Remove the peer. The torrent is now peerless.
             in_memory_torrent_repository
                 .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
-                .await;
+                .await
+                .unwrap();
         }
 
         #[tokio::test]
@@ -271,7 +286,7 @@ mod tests {
 
             add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository).await;
 
-            torrents_manager.cleanup_torrents().await;
+            torrents_manager.cleanup_torrents().await.unwrap();
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_none());
         }
@@ -287,7 +302,7 @@ mod tests {
 
             add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository).await;
 
-            torrents_manager.cleanup_torrents().await;
+            torrents_manager.cleanup_torrents().await.unwrap();
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_some());
         }

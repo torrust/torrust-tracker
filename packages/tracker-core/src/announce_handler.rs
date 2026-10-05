@@ -96,6 +96,7 @@ use std::sync::Arc;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
+use torrust_tracker_swarm_coordination_registry::swarm::registry::Error as SwarmRegistryError;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -171,7 +172,8 @@ impl AnnounceHandler {
     /// # Errors
     ///
     /// Returns an error if the tracker is running in `listed` mode and the
-    /// torrent is not whitelisted.
+    /// torrent is not whitelisted, if loading the persisted downloads count
+    /// fails, or if the swarm registry fails.
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
@@ -186,9 +188,9 @@ impl AnnounceHandler {
 
         self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
-            .await;
+            .await?;
 
-        Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
+        Ok(self.build_announce_data(info_hash, peer, peers_wanted).await?)
     }
 
     /// Loads the number of downloads for a torrent if needed.
@@ -209,7 +211,12 @@ impl AnnounceHandler {
     /// tracker core, separating peer selection from response statistics.
     /// Until then, persistent completed metrics are loaded before this method
     /// so the returned swarm metadata is complete for a first announcement.
-    async fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
+    async fn build_announce_data(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        peers_wanted: &PeersWanted,
+    ) -> Result<AnnounceData, SwarmRegistryError> {
         let peers = self
             .in_memory_torrent_repository
             .get_peers_for(
@@ -217,18 +224,18 @@ impl AnnounceHandler {
                 peer,
                 peers_wanted.limit(self.config.announce_policy.max_peers_per_announce),
             )
-            .await;
+            .await?;
 
         let swarm_metadata = self
             .in_memory_torrent_repository
             .get_swarm_metadata_or_default(info_hash)
-            .await;
+            .await?;
 
-        AnnounceData {
+        Ok(AnnounceData {
             peers,
             stats: swarm_metadata,
             policy: self.config.announce_policy,
-        }
+        })
     }
 }
 

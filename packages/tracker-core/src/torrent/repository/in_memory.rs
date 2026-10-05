@@ -6,6 +6,7 @@ use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash, TrackerPolicy, peer};
+use torrust_tracker_swarm_coordination_registry::swarm::registry::Error;
 use torrust_tracker_swarm_coordination_registry::{CoordinatorHandle, Registry};
 
 /// In-memory repository for torrent entries.
@@ -44,19 +45,16 @@ impl InMemoryTorrentRepository {
     ///
     /// `true` if the peer stats were updated.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
+    /// Propagates the swarm registry [`Error`].
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<NumberOfDownloads>,
-    ) {
-        self.swarms
-            .handle_announcement(info_hash, peer, opt_persistent_torrent)
-            .await
-            .expect("Failed to upsert the peer in swarms");
+    ) -> Result<(), Error> {
+        self.swarms.handle_announcement(info_hash, peer, opt_persistent_torrent).await
     }
 
     /// Removes inactive peers from all torrent entries.
@@ -69,14 +67,11 @@ impl InMemoryTorrentRepository {
     /// * `current_cutoff` - The cutoff timestamp; peers not updated since this
     ///   time will be removed.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    pub(crate) async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        self.swarms
-            .remove_inactive_peers(current_cutoff)
-            .await
-            .expect("Failed to remove inactive peers from swarms");
+    /// Propagates the swarm registry [`Error`].
+    pub(crate) async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<usize, Error> {
+        self.swarms.remove_inactive_peers(current_cutoff).await
     }
 
     /// Removes torrent entries that have no active peers.
@@ -89,14 +84,11 @@ impl InMemoryTorrentRepository {
     /// * `policy` - The tracker policy containing the configuration for
     ///   removing peerless torrents.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    pub(crate) async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        self.swarms
-            .remove_peerless_torrents(policy)
-            .await
-            .expect("Failed to remove peerless torrents from swarms");
+    /// Propagates the swarm registry [`Error`].
+    pub(crate) async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
+        self.swarms.remove_peerless_torrents(policy).await
     }
 
     /// Retrieves a torrent entry by its infohash.
@@ -137,15 +129,11 @@ impl InMemoryTorrentRepository {
     /// peer counts) for the torrent specified by the infohash, or `None` if the
     /// torrent is not in memory.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub(crate) async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.swarms
-            .get_swarm_metadata(info_hash)
-            .await
-            .expect("Failed to get swarm metadata")
+    /// Propagates the swarm registry [`Error`].
+    pub(crate) async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
+        self.swarms.get_swarm_metadata(info_hash).await
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -162,15 +150,11 @@ impl InMemoryTorrentRepository {
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub(crate) async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        self.swarms
-            .get_swarm_metadata_or_default(info_hash)
-            .await
-            .expect("Failed to get swarm metadata")
+    /// Propagates the swarm registry [`Error`].
+    pub(crate) async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
+        self.swarms.get_swarm_metadata_or_default(info_hash).await
     }
 
     /// Retrieves torrent peers for a given torrent and client, excluding the
@@ -190,15 +174,16 @@ impl InMemoryTorrentRepository {
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent, excluding the requesting client.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub(crate) async fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
-        self.swarms
-            .get_peers_peers_excluding(info_hash, peer, limit)
-            .await
-            .expect("Failed to get other peers in swarm")
+    /// Propagates the swarm registry [`Error`].
+    pub(crate) async fn get_peers_for(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        limit: usize,
+    ) -> Result<Vec<Arc<peer::Peer>>, Error> {
+        self.swarms.get_peers_peers_excluding(info_hash, peer, limit).await
     }
 
     /// Retrieves the list of peers for a given torrent.
@@ -216,15 +201,11 @@ impl InMemoryTorrentRepository {
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, max_peers: usize) -> Vec<Arc<peer::Peer>> {
-        self.swarms
-            .get_swarm_peers(info_hash, max_peers)
-            .await
-            .expect("Failed to get other peers in swarm")
+    /// Propagates the swarm registry [`Error`].
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, max_peers: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
+        self.swarms.get_swarm_peers(info_hash, max_peers).await
     }
 
     /// Calculates and returns overall torrent metrics.
@@ -237,38 +218,29 @@ impl InMemoryTorrentRepository {
     ///
     /// A [`AggregateActiveSwarmMetadata`] struct with the aggregated metrics.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub async fn get_aggregate_swarm_metadata(&self) -> AggregateActiveSwarmMetadata {
-        self.swarms
-            .get_aggregate_swarm_metadata()
-            .await
-            .expect("Failed to get aggregate swarm metadata")
+    /// Propagates the swarm registry [`Error`].
+    pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateActiveSwarmMetadata, Error> {
+        self.swarms.get_aggregate_swarm_metadata().await
     }
 
     /// Counts the number of peerless torrents in the repository.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub async fn count_peerless_torrents(&self) -> usize {
-        self.swarms
-            .count_peerless_torrents()
-            .await
-            .expect("Failed to count peerless torrents")
+    /// Propagates the swarm registry [`Error`].
+    pub async fn count_peerless_torrents(&self) -> Result<usize, Error> {
+        self.swarms.count_peerless_torrents().await
     }
 
     /// Counts the number of peers in the repository.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the underlying swarms return an error.
-    #[must_use]
-    pub async fn count_peers(&self) -> usize {
-        self.swarms.count_peers().await.expect("Failed to count peers")
+    /// Propagates the swarm registry [`Error`].
+    pub async fn count_peers(&self) -> Result<usize, Error> {
+        self.swarms.count_peers().await
     }
 
     /// Imports persistent torrent data into the in-memory repository.
