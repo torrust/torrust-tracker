@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 13:40"
+last-updated-utc: "2026-10-05 15:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -260,7 +260,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | T4 | DONE | Regression tests for the agreed contract | Matrix H1-H5, S1, U1-U3, W1, US1, C1 added; H2, H3, H5, S1 proven red before the fix; W1 proven to catch a mutated cap |
 | T5 | DONE | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES`, UDP value computed from `MAX_PACKET_SIZE`, tracker-core constant removed; server docs and EPIC A3 updated |
 | T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
-| T7 | TODO | Client: no cap, truncation warning | Rows K1-K4; M2 rerun with the maintained client shows the warning |
+| T7 | DONE | Client: no cap, truncation warning | K1 proven red before removing the cap; K1-K4 green; V4 shows the warning for UDP 75 and HTTP 1000, none for HTTP 74 |
 
 ## Commit Points
 
@@ -277,7 +277,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 - [x] AC2: An HTTP scrape with more than 100 info hashes returns entries for
       only the first 100, matching the documentation; a UDP scrape keeps the
       first 74.
-- [ ] AC3: Maintained tests cover every decision and edge case in the test
+- [x] AC3: Maintained tests cover every decision and edge case in the test
       matrix (H1-H5, S1, U1-U3, W1, US1, C1, K1-K4), using literal counts and doc
       comments that name each limit's reason and link the ADR.
 - [x] AC4: An ADR records whether HTTP caps scrape requests, the value and
@@ -350,6 +350,8 @@ because the response dictionary can collapse them.
   third copy of the UDP limit, which blocked M2 with the maintained client.
 - 2026-10-05 13:40 UTC - Maintainer chose to remove the client cap and warn on
   truncation, in this PR (see "Client Decision"); added T7 and rows K1-K4.
+- 2026-10-05 15:11 UTC - T7 done: client cap removed, truncation warning
+  added for UDP and HTTP; M2 rerun with the maintained client (V4).
 
 ### Acceptance Verification
 
@@ -357,7 +359,7 @@ because the response dictionary can collapse them.
 | --- | --- | --- |
 | AC1 | DONE | [V1: HTTP baseline](manual-verification-evidence.md#v1-documented-74-hash-cap); final implementation acceptance remains pending |
 | AC2 | DONE | S1 and US1 tests; [V2](manual-verification-evidence.md#v2-udp-control-m2) and [V3](manual-verification-evidence.md#v3-http-recheck-after-the-fix-t6) |
-| AC3 | IN_PROGRESS | K1-K4 pending; other rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core` |
+| AC3 | DONE | Test matrix rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core`, and `tracker-client` (K1-K4; [V4](manual-verification-evidence.md#v4-maintained-client-without-the-74-cap-t7)) |
 | AC4 | DONE | ADR 20261005124222; HTTP and UDP constant docs and server crate docs link it |
 
 ## Implementation Completion Review

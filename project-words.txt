@@ -446,6 +446,7 @@ savepath
 scanf
 sccache
 schemars
+sendmsg
 sendto
 serde
 serialisation

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
-last-updated-utc: "2026-10-05 13:20"
+last-updated-utc: "2026-10-05 15:11"
 ---
 
 # HTTP Scrape Limit Verification
@@ -169,3 +169,36 @@ were kept. The tracker logged HTTP `200 OK` at
 `2026-10-05T13:07:56.756693Z`, request ID
 `e0adc46b-efed-421d-bd5b-8b20ff6b634c`. The owned tracker was stopped with
 SIGINT and logged a successful shutdown at `2026-10-05T13:15:20.726927Z`.
+
+## V4: Maintained Client Without the 74 Cap (T7)
+
+Status: `DONE`. Classification: **Confirmed**; the client sends what it is
+given and reports truncation.
+
+Same isolated config and a fresh database, after removing the client's
+`num_args = 1..=74`. Stdout and stderr were captured separately, following the
+global CLI output contract ADR.
+
+```sh
+# 75 distinct ASCII hashes, UDP, with the datagram sizes traced
+strace -f -e trace=sendto,sendmsg -o .tmp/2417-manual/udp-client-k.strace \
+  ./target/debug/tracker_client udp scrape 127.0.0.1:48969 "${hashes[@]}" \
+  > .tmp/2417-manual/udp-k.stdout 2> .tmp/2417-manual/udp-k.stderr
+# 1000 and the first 74 hashes, HTTP
+./target/debug/tracker_client http scrape http://127.0.0.1:48070/scrape "${hashes[@]}" \
+  > .tmp/2417-manual/http-k.stdout 2> .tmp/2417-manual/http-k.stderr
+```
+
+| Probe | Exit | Datagrams sent | Stdout entries | Stderr |
+| --- | --- | --- | --- | --- |
+| UDP, 75 hashes | 0 | 16 bytes (connect), 1516 bytes (75 hashes) | 74 (`.Scrape.torrent_stats`) | one warning record |
+| HTTP, 1000 hashes | 0 | - | 100 | one warning record |
+| HTTP, 74 hashes | 0 | - | 74 | empty |
+
+```ndjson
+{"warning":{"kind":"scrape_response_truncated","requested":75,"returned":74,"message":"requested 75 info hashes, tracker returned 74; the tracker may truncate scrapes"}}
+{"warning":{"kind":"scrape_response_truncated","requested":1000,"returned":100,"message":"requested 1000 info hashes, tracker returned 100; the tracker may truncate scrapes"}}
+```
+
+M2 is now reproducible with the maintained client. The owned tracker was stopped
+with SIGINT and logged a successful shutdown at `2026-10-05T15:11:38.559047Z`.
