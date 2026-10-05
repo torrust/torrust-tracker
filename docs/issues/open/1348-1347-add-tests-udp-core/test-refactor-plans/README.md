@@ -24,6 +24,7 @@ maintainer approves it.
 | ---: | --- | --- | --- |
 | 1 | [services-announce-tests.md](services-announce-tests.md) | DONE | 7 unit tests added; unit-only 0.00% → 97.41% lines |
 | 2 | [peer-builder-tests.md](peer-builder-tests.md) | DONE | 5 unit tests added; unit-only 78.57% → 100.00% lines |
+| 3 | [services-scrape-tests.md](services-scrape-tests.md) | DONE | 6 unit tests added; unit-only 0.00% → 96.70% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

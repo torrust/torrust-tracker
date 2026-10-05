@@ -88,11 +88,14 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | --- | ---: | ---: | ---: | ---: | --- |
 | `services/announce.rs` | 0 / 101 (0.00%) | 338 / 347 (97.41%) | 376 / 389 (96.66%) | 41 / 44 (93.18%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | `peer_builder.rs` | 0 / 14 (0.00%) | 79 / 79 (100.00%) | 115 / 115 (100.00%) | 8 / 8 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
+| `services/scrape.rs` | 0 / 77 (0.00%) | 264 / 273 (96.70%) | 303 / 316 (95.89%) | 37 / 40 (92.50%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
 (81.04%). After `peer_builder.rs` (rebased onto `develop` again; no `udp-core` change): 1,392 /
-1,656 lines (84.06%), 1,979 / 2,271 regions (87.14%), 178 / 218 functions (81.65%). The final
+1,656 lines (84.06%), 1,979 / 2,271 regions (87.14%), 178 / 218 functions (81.65%). After
+`services/scrape.rs` (rebased onto `develop` again; no `udp-core` change): 1,656 / 1,852 lines
+(89.42%), 2,282 / 2,509 regions (90.95%), 215 / 244 functions (88.11%). The final
 package comparison is recorded at T7.
 
 ## Next Evidence

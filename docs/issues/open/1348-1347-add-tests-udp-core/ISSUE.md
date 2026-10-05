@@ -286,7 +286,7 @@ lines are the T1 measurement.
 | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
-| 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
+| 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
 | 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
 | 6 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
@@ -369,6 +369,13 @@ lines are the T1 measurement.
   79 / 79). Awaiting completed-file review.
 - 2026-10-05 13:19 UTC - Jose Celano - Approved the `peer_builder.rs` completed-file review;
   ledger row 2 is `DONE`.
+- 2026-10-05 18:03 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `services/scrape.rs` plan was approved; added 6 unit tests (unit-only file lines 0 / 77 to
+  264 / 273). Maintainer also approved reopening `services/announce.rs` for one more test (R2h,
+  tracker-core failure adaptation) as a separate commit after scrape. Awaiting scrape
+  completed-file review.
+- 2026-10-05 18:44 UTC - Jose Celano - Approved the `services/scrape.rs` completed-file review;
+  ledger row 3 is `DONE`.
 
 ## Acceptance Criteria
 
