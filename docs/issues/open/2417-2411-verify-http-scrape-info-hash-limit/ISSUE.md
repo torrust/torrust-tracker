@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 13:20"
+last-updated-utc: "2026-10-05 13:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -160,6 +160,19 @@ Strategy", so the tests state where each limit lives and why.
    so changing a limit fails the tests and forces an ADR update. Each test's
    doc comment names the reason and links the ADR.
 
+### Client Decision (Maintainer, 2026-10-05)
+
+The unified `tracker_client` stops capping UDP scrape arguments at 74
+(`num_args = 1..=74`). The limit belongs to a tracker, not to the protocol
+client: other trackers may accept more or fewer, and a diagnostic client must be
+able to probe truncation (it blocked M2). Because trackers truncate silently,
+the client instead warns when a scrape returns fewer entries than requested:
+one NDJSON record on stderr (`kind: scrape_response_truncated`), stdout
+unchanged, per the global CLI output contract ADR. UDP compares entries with
+requested hashes; HTTP compares files with distinct requested hashes, because
+the response dictionary collapses duplicates. The frozen legacy
+`udp_tracker_client` is left unchanged until it is removed.
+
 History (from the #2003 specifications discussion): the original Warp HTTP
 tracker rejected scrapes above `MAX_SCRAPE_TORRENTS` (option B); the Axum
 rewrite dropped the check without a recorded decision.
@@ -232,6 +245,10 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | W1 | `udp-server` `handle_packet` | 75-hash payload, no socket | 74 entries | Server passes the cap to the parser | No |
 | US1 | `udp-server` contract (socket) | 75 hashes | 74 entries | End-to-end UDP contract (receive buffer and parser) | No |
 | C1 | `tracker-core` `ScrapeHandler` | 101 hashes | 101 entries | Core has no cap | No |
+| K1 | `tracker-client` CLI parsing | `udp scrape` with 75 hashes | Accepted | Client does not cap | Yes |
+| K2 | `tracker-client` truncation check | 75 requested, 74 returned | Warning record with both counts | Client reports silent truncation | Yes |
+| K3 | `tracker-client` truncation check | 74 requested, 74 returned | No warning | No false warning | No |
+| K4 | `tracker-client` HTTP distinct count | 3 params, 2 distinct | 2 | Duplicates do not cause a false warning | Yes |
 
 ## Implementation Plan
 
@@ -243,6 +260,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | T4 | DONE | Regression tests for the agreed contract | Matrix H1-H5, S1, U1-U3, W1, US1, C1 added; H2, H3, H5, S1 proven red before the fix; W1 proven to catch a mutated cap |
 | T5 | DONE | Implement and fix docs | Per-protocol `MAX_SCRAPE_INFO_HASHES`, UDP value computed from `MAX_PACKET_SIZE`, tracker-core constant removed; server docs and EPIC A3 updated |
 | T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
+| T7 | TODO | Client: no cap, truncation warning | Rows K1-K4; M2 rerun with the maintained client shows the warning |
 
 ## Commit Points
 
@@ -259,8 +277,8 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 - [x] AC2: An HTTP scrape with more than 100 info hashes returns entries for
       only the first 100, matching the documentation; a UDP scrape keeps the
       first 74.
-- [x] AC3: Maintained tests cover every decision and edge case in the test
-      matrix (H1-H5, S1, U1-U3, W1, US1, C1), using literal counts and doc
+- [ ] AC3: Maintained tests cover every decision and edge case in the test
+      matrix (H1-H5, S1, U1-U3, W1, US1, C1, K1-K4), using literal counts and doc
       comments that name each limit's reason and link the ADR.
 - [x] AC4: An ADR records whether HTTP caps scrape requests, the value and
       behavior if so, and the reason per protocol (UDP packet size; HTTP
@@ -330,6 +348,8 @@ because the response dictionary can collapse them.
   truncating cast. M2 and T6 recorded (V2, V3). Open question for the
   maintainer: the UDP client CLI hardcodes `num_args = 1..=74` in two places, a
   third copy of the UDP limit, which blocked M2 with the maintained client.
+- 2026-10-05 13:40 UTC - Maintainer chose to remove the client cap and warn on
+  truncation, in this PR (see "Client Decision"); added T7 and rows K1-K4.
 
 ### Acceptance Verification
 
@@ -337,7 +357,7 @@ because the response dictionary can collapse them.
 | --- | --- | --- |
 | AC1 | DONE | [V1: HTTP baseline](manual-verification-evidence.md#v1-documented-74-hash-cap); final implementation acceptance remains pending |
 | AC2 | DONE | S1 and US1 tests; [V2](manual-verification-evidence.md#v2-udp-control-m2) and [V3](manual-verification-evidence.md#v3-http-recheck-after-the-fix-t6) |
-| AC3 | DONE | Test matrix rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core` |
+| AC3 | IN_PROGRESS | K1-K4 pending; other rows implemented in `http-protocol`, `axum-http-server`, `udp-protocol`, `udp-server`, `tracker-core` |
 | AC4 | DONE | ADR 20261005124222; HTTP and UDP constant docs and server crate docs link it |
 
 ## Implementation Completion Review
