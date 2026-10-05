@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-28 09:21"
+last-updated-utc: "2026-10-05 15:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -56,9 +56,9 @@ concerns are mixed together:
   [#1926](https://github.com/torrust/torrust-tracker/issues/1926).
 - **Only 6 of originally 27 packages were published on crates.io** (as of May 2026);
   the remaining 21 packages were unpublished, in particular every `bittorrent-*` crate.
-  As of June 2026, 4 more packages have been published from standalone repositories
-  (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`),
-  bringing the total published across the organisation to 10. Publishing them in-workspace
+  As of October 2026, 5 more packages have been published from standalone repositories
+  (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`,
+  `torrust-server-lib`), bringing the total published across the organisation to 11. Publishing them in-workspace
   conflicted with giving them independent versions; extraction resolved this tension.
   ADR [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md) now
   formalises independent versioning for all remaining workspace packages.
@@ -69,8 +69,10 @@ landscape shifts (new packages, splits, significant growth).
 
 ## Package Inventory
 
-The workspace currently contains **23 packages** (including the root `torrust-tracker` crate) across three crate-name prefixes.
-"Published" means a crate with that name exists on crates.io (verified June 2026).
+The workspace currently contains **25 tracker packages** (24 `torrust-tracker-*` crates plus the root
+`torrust-tracker` crate). Internal developer tools under `contrib/dev-tools/` that are workspace
+members with `publish = []` are not listed.
+"Published" means a crate with that name exists on crates.io (verified October 2026).
 
 Packages that have been extracted to standalone repositories are listed as `(extracted)`.
 
@@ -94,12 +96,16 @@ Packages that have been extracted to standalone repositories are listed as `(ext
 | No                     | `torrust-tracker-axum-server`                     | `axum-server`                     |
 | No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   |
+| No                     | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       |
 | No                     | `torrust-tracker-events`                          | `events`                          |
 | No                     | `torrust-tracker-http-core`                       | `http-core`                       |
 | No                     | `torrust-tracker-http-protocol`                   | `http-protocol`                   |
+| No                     | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           |
 | Yes                    | `torrust-tracker-primitives`                      | `primitives`                      |
+| No                     | `torrust-tracker-rest-api-application`            | `rest-api-application`            |
 | No                     | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 |
-| No                     | `torrust-tracker-rest-api-core`                   | `rest-api-core`                   |
+| No                     | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               |
+| No                     | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        |
 | No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     |
 | Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    |
 | No                     | `torrust-tracker-core`                            | `tracker-core`                    |
@@ -109,7 +115,13 @@ Packages that have been extracted to standalone repositories are listed as `(ext
 | No                     | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    |
 | No                     | `torrust-tracker-udp-server`                      | `udp-server`                      |
 
-**Observation**: 10 packages across the organisation (including extracted) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`. Of those still in this workspace, 3 are published. Every `torrust-axum-` crate is
+**Observation**: 11 packages across the organisation (including extracted) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-server-lib` 0.3.0, `torrust-tracker-configuration` 3.0.0, `torrust-tracker-primitives` 3.0.0, and `torrust-tracker-test-helpers` 3.0.0. Of those still in this workspace, 3 are published.
+
+The REST API packages were restructured outside this EPIC by
+[#1938](https://github.com/torrust/torrust-tracker/issues/1938) (contract-first migration):
+`torrust-tracker-rest-api-core` was removed in SI-5
+([#1943](https://github.com/torrust/torrust-tracker/issues/1943)) and replaced by
+`rest-api-protocol`, `rest-api-application`, and `rest-api-runtime-adapter`. Every `torrust-axum-` crate is
 unpublished. This confirms issue #1659's note that "many new crates have not been published
 yet after we refactored the packages."
 
@@ -195,24 +207,28 @@ These packages will remain in the `torrust-tracker` workspace long-term.
 | No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            | —                                  | `axum-rest-tracker-api-server` |
 | No                     | `torrust-tracker-axum-server`                     | `axum-server`                     | —                                  | —                              |
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   | —                                  | —                              |
+| No                     | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       | —                                  | —                              |
 | No                     | `torrust-tracker-events`                          | `events`                          | —                                  | —                              |
 | No                     | `torrust-tracker-http-core`                       | `http-core`                       | `bittorrent-http-core`             | —                              |
+| No                     | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           | —                                  | —                              |
 | Yes                    | `torrust-tracker-primitives`[^fu1]                | `primitives`                      | —                                  | —                              |
+| No                     | `torrust-tracker-rest-api-application`            | `rest-api-application`            | —                                  | —                              |
 | No                     | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 | —                                  | `rest-tracker-api-client`      |
-| No                     | `torrust-tracker-rest-api-core`                   | `rest-api-core`                   | —                                  | `rest-tracker-api-core`        |
+| No                     | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               | —                                  | —                              |
+| No                     | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        | —                                  | —                              |
 | No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —                                  | —                              |
 | Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    | —                                  | —                              |
 | No                     | `torrust-tracker-core`                            | `tracker-core`                    | `bittorrent-tracker-core`          | —                              |
 | No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —                                  | —                              |
-| No                     | `torrust-tracker-client`                          | `tracker-client`                  | `bittorrent-tracker-client`        | —                              |
+| No                     | `torrust-tracker-client-lib`                      | `tracker-client`                  | `bittorrent-tracker-client`        | —                              |
 | No                     | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`  | —                              |
 | No                     | `torrust-tracker-http-protocol`                   | `http-protocol`                   | `bittorrent-http-tracker-protocol` | —                              |
 | No                     | `torrust-tracker-udp-core`                        | `udp-core`                        | `bittorrent-udp-core`              | —                              |
 | No                     | `torrust-tracker-udp-server`                      | `udp-server`                      | —                                  | `udp-tracker-server`           |
 
-> **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tsl.rs` imports `TslConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-located-error` (renamed in SI-10, #1823). `TslConfig` remains the temporary tracker-specific dependency: it is a small two-field struct with no tracker-specific logic and could be moved to a generic package. Once that change lands, the package could move to the `torrust-` group as a generic `torrust-axum-server` reusable across the Torrust organisation. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
+> **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tsl.rs` imports `TslConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-located-error` (renamed in SI-10, #1823). [#1860](https://github.com/torrust/torrust-tracker/issues/1860) evaluated moving `TslConfig` out of configuration and decided to keep it there, so the package stays tracker-scoped (see [DECISIONS.md](./DECISIONS.md) DEC-08). A generic `torrust-axum-server` can be reconsidered if another Torrust project needs it. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
 
-[^fu1]: FU-1 (#1859): `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` were moved here from `torrust-tracker-configuration` (completed in #1859, PR #1865). See [DECISIONS.md](./DECISIONS.md) DEC-07.
+[^fu1]: FU-1 (#1859): `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` were moved here from `torrust-tracker-configuration` (completed in #1859, PR #1865). See [DECISIONS.md](./DECISIONS.md) DEC-07. `TORRENT_PEERS_LIMIT` was later replaced by `AnnouncePolicy::max_peers_per_announce` (#1864, DEC-10).
 
 ### `torrust/torrust-bittorrent` workspace
 
@@ -273,7 +289,7 @@ These packages are extracted to their own repositories under the Torrust organis
 | `torrust-metrics`        | `torrust-tracker-metrics`       | SI-08 (rename first)                          | **DONE** — published v0.1.0; all 7 consumers migrated                                                                                                          |
 | `torrust-net-primitives` | `torrust-net-primitives`        | Extraction issue TBD (SI-20)                  | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives); all 10 consumers migrated |
 | `torrust-server-lib`     | `torrust-server-lib`            | None                                          | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib); all 6 consumers migrated          |
-| `torrust-tracker-client` | `console/tracker-client`        | `bittorrent-*` publication (external to EPIC) | Standalone CLI tool; LGPL-3.0                                                                                                                                  |
+| `torrust-tracker-client` | `console/tracker-client`        | Publication of protocol crates and client lib | Standalone CLI tool; LGPL-3.0                                                                                                                                  |
 
 ### Torrust Dependency Lists (Direct, Non-dev)
 
@@ -281,11 +297,14 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
 
 #### `torrust/torrust-tracker` workspace
 
+Verified with `cargo metadata --no-deps` on 2026-10-05. The root `torrust-tracker` crate is omitted.
+
 - `torrust-tracker-axum-health-check-api-server`
   - `torrust-net-primitives`
   - `torrust-server-lib`
   - `torrust-tracker-axum-server`
   - `torrust-tracker-configuration`
+  - `torrust-tracker-primitives`
 - `torrust-tracker-axum-http-server`
   - `torrust-clock`
   - `torrust-info-hash`
@@ -298,7 +317,6 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-tracker-http-protocol`
   - `torrust-tracker-primitives`
   - `torrust-tracker-swarm-coordination-registry`
-  - `torrust-tracker-udp-protocol`
 - `torrust-tracker-axum-rest-api-server`
   - `torrust-clock`
   - `torrust-info-hash`
@@ -310,11 +328,13 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-tracker-core`
   - `torrust-tracker-http-core`
   - `torrust-tracker-primitives`
+  - `torrust-tracker-rest-api-application`
   - `torrust-tracker-rest-api-client`
-  - `torrust-tracker-rest-api-core`
+  - `torrust-tracker-rest-api-protocol`
+  - `torrust-tracker-rest-api-runtime-adapter`
   - `torrust-tracker-swarm-coordination-registry`
-  - `torrust-tracker-udp-server`
   - `torrust-tracker-udp-core`
+  - `torrust-tracker-udp-server`
 - `torrust-tracker-axum-server`
   - `torrust-located-error`
   - `torrust-server-lib`
@@ -322,6 +342,8 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
 - `torrust-tracker-configuration`
   - `torrust-located-error`
   - `torrust-tracker-primitives`
+- `torrust-tracker-e2e-tools`
+  - `torrust-tracker`
 - `torrust-tracker-events`
   - None
 - `torrust-tracker-http-core`
@@ -341,27 +363,40 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-info-hash`
   - `torrust-located-error`
   - `torrust-peer-id`
+- `torrust-tracker-persistence-benchmark`
+  - `torrust-info-hash`
+  - `torrust-tracker-configuration`
+  - `torrust-tracker-core`
+  - `torrust-tracker-primitives`
 - `torrust-tracker-primitives`
   - `torrust-clock`
   - `torrust-info-hash`
   - `torrust-net-primitives`
   - `torrust-peer-id`
+- `torrust-tracker-rest-api-application`
+  - `torrust-info-hash`
+  - `torrust-tracker-primitives`
+  - `torrust-tracker-rest-api-protocol`
 - `torrust-tracker-rest-api-client`
-  - None
-- `torrust-tracker-rest-api-core`
+  - `torrust-tracker-rest-api-protocol`
+- `torrust-tracker-rest-api-protocol`
+  - `torrust-metrics`
+- `torrust-tracker-rest-api-runtime-adapter`
+  - `torrust-info-hash`
   - `torrust-metrics`
   - `torrust-tracker-configuration`
   - `torrust-tracker-core`
   - `torrust-tracker-http-core`
   - `torrust-tracker-primitives`
+  - `torrust-tracker-rest-api-application`
+  - `torrust-tracker-rest-api-protocol`
   - `torrust-tracker-swarm-coordination-registry`
-  - `torrust-tracker-udp-server`
   - `torrust-tracker-udp-core`
+  - `torrust-tracker-udp-server`
 - `torrust-tracker-swarm-coordination-registry`
   - `torrust-clock`
   - `torrust-info-hash`
   - `torrust-metrics`
-  - `torrust-tracker-configuration`
   - `torrust-tracker-events`
   - `torrust-tracker-primitives`
 - `torrust-tracker-core`
@@ -374,21 +409,28 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-tracker-primitives`
   - `torrust-tracker-swarm-coordination-registry`
 - `torrust-tracker-test-helpers`
+  - `torrust-info-hash`
+  - `torrust-peer-id`
+  - `torrust-tracker-client-lib`
   - `torrust-tracker-configuration`
+  - `torrust-tracker-http-protocol`
+  - `torrust-tracker-primitives`
+  - `torrust-tracker-udp-protocol`
 - `torrust-tracker-torrent-repository-benchmarking`
   - `torrust-clock`
   - `torrust-info-hash`
-  - `torrust-tracker-configuration`
   - `torrust-tracker-primitives`
-- `torrust-tracker-client` (`packages/tracker-client`)
-  - `torrust-info-hash`
+- `torrust-tracker-client-lib` (`packages/tracker-client`)
   - `torrust-located-error`
   - `torrust-net-primitives`
-  - `torrust-tracker-primitives`
+  - `torrust-peer-id`
+  - `torrust-tracker-http-protocol`
   - `torrust-tracker-udp-protocol`
 - `torrust-tracker-client` (`console/tracker-client`)
   - `torrust-info-hash`
-  - `torrust-tracker-client` (`torrust-tracker-client-lib`)
+  - `torrust-peer-id`
+  - `torrust-tracker-client-lib` (renamed to `torrust-tracker-client` in `Cargo.toml`)
+  - `torrust-tracker-http-protocol`
   - `torrust-tracker-udp-protocol`
 - `torrust-tracker-udp-protocol`
   - `torrust-peer-id`
@@ -408,8 +450,9 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-info-hash`
   - `torrust-metrics`
   - `torrust-net-primitives`
+  - `torrust-peer-id`
   - `torrust-server-lib`
-  - `torrust-tracker-client` (`torrust-tracker-client-lib`)
+  - `torrust-tracker-client-lib` (renamed to `torrust-tracker-client` in `Cargo.toml`)
   - `torrust-tracker-configuration`
   - `torrust-tracker-core`
   - `torrust-tracker-events`
@@ -566,8 +609,11 @@ Every subissue touching package boundaries should include:
 Current known smells to prioritize under these rules:
 
 - ~~`http-protocol` depending on `udp-protocol`~~ — **fixed** by SI-13 (#1834).
-- `rest-api-core` depending on `udp-server` (cross-service orchestration dep, not a layer inversion). Tracked in
-  [`docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md`](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md).
+- ~~`rest-api-core` depending on `udp-server`~~ — **resolved**: SI-30 (#1924) extracted the UDP trait
+  abstractions, and `rest-api-core` was removed in SI-5
+  ([#1943](https://github.com/torrust/torrust-tracker/issues/1943)). The remaining `udp-server`
+  consumers (`rest-api-runtime-adapter`, `axum-rest-api-server`) are runtime/server packages, which
+  `deny.toml` allows.
 
 ### Quick list
 
@@ -589,9 +635,10 @@ Status: TODO unless noted.
 
 - [x] [#1829](https://github.com/torrust/torrust-tracker/issues/1829) SI-11: Rename crates and folder names to match desired `torrust-tracker` workspace state _(Rule U; one package at a time)_
 - [x] [#1830](https://github.com/torrust/torrust-tracker/issues/1830) SI-12: Decouple `http-protocol` from `tracker-core` _(Rule M; remove forbidden `protocol -> tracker-core` edge)_
-- [ ] [#1859](https://github.com/torrust/torrust-tracker/issues/1859) Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives` _(Rule M; FU-1 from #1856)_
-- [ ] [#1860](https://github.com/torrust/torrust-tracker/issues/1860) Evaluate moving `TslConfig` from `torrust-tracker-configuration` into `torrust-tracker-axum-server` _(Rule M candidate; FU-2 from #1856)_
-- [ ] [#1861](https://github.com/torrust/torrust-tracker/issues/1861) Revisit `EnvContainer::initialize` to accept narrower config slices _(design/analysis; FU-3 from #1856)_
+- [x] [#1859](https://github.com/torrust/torrust-tracker/issues/1859) Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives` _(Rule M; FU-1 from #1856)_ — **DONE**
+- [x] [#1860](https://github.com/torrust/torrust-tracker/issues/1860) Evaluate moving `TslConfig` from `torrust-tracker-configuration` into `torrust-tracker-axum-server` _(Rule M candidate; FU-2 from #1856)_ — **DONE** (kept in configuration; DEC-08)
+- [x] [#1861](https://github.com/torrust/torrust-tracker/issues/1861) Revisit `EnvContainer::initialize` to accept narrower config slices _(design/analysis; FU-3 from #1856)_ — **DONE** (DEC-09)
+- [x] [#1864](https://github.com/torrust/torrust-tracker/issues/1864) Review `TORRENT_PEERS_LIMIT`: hardcoded constant vs. config option — **DONE** (DEC-10)
 
 #### 3. Numbered Subissues (GitHub Issues Open)
 
@@ -601,11 +648,19 @@ Status: TODO unless noted.
 - [x] [#1884](https://github.com/torrust/torrust-tracker/issues/1884) SI-19: Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` _(Rule E; no workspace deps; first `bittorrent-*` extraction)_
 - [x] [#1885](https://github.com/torrust/torrust-tracker/issues/1885) SI-20: Extract `torrust-net-primitives` to standalone repository _(Rule E; no workspace deps; no prerequisites)_ — **DONE**
 - [x] [#1894](https://github.com/torrust/torrust-tracker/issues/1894) SI-22: Extract `torrust-located-error` to standalone repository _(Rule E; no workspace deps; requires completed rename SI-10 #1823)_ — **DONE**
+- [x] [#1903](https://github.com/torrust/torrust-tracker/issues/1903) SI-23: Relocate `axum-rest-api-server` test environment to `src/testing/` _(DEC-13)_ — **DONE**
+- [x] [#1904](https://github.com/torrust/torrust-tracker/issues/1904) SI-24: Relocate `axum-http-server` test environment to `src/testing/` _(DEC-13)_ — **DONE**
+- [x] [#1906](https://github.com/torrust/torrust-tracker/issues/1906) SI-25: Relocate `udp-server` test environment to `src/testing/` _(DEC-13)_ — **DONE**
+- [x] [#1907](https://github.com/torrust/torrust-tracker/issues/1907) SI-26: Remove `udp-protocol` re-export of `PeerId`/`PeerClient` — **DONE**
+- [x] [#1908](https://github.com/torrust/torrust-tracker/issues/1908) SI-27: Move `Driver` enum from configuration to primitives — **DONE**
+- [x] [#1909](https://github.com/torrust/torrust-tracker/issues/1909) SI-28: Extract `torrust-server-lib` to standalone repository _(Rule E)_ — **DONE**
 - [x] [#1910](https://github.com/torrust/torrust-tracker/issues/1910) SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_ — **DONE**
+- [x] [#1965](https://github.com/torrust/torrust-tracker/issues/1965) SI-34: Consolidate duplicate HTTP types into `http-protocol` — **DONE**
+- [x] [#1966](https://github.com/torrust/torrust-tracker/issues/1966) SI-35: Consolidate duplicate UDP types — **DONE**
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
-- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_
+- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — largely done (coupling reports and `readme-audit.md` in this folder) but not yet recorded in a GitHub issue or spec
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
@@ -613,7 +668,7 @@ Status: TODO unless noted.
 - [x] Extract `torrust-metrics` to standalone repository — [#1882](https://github.com/torrust/torrust-tracker/issues/1882) _(Rule E; requires completed metrics rename work)_ — **DONE**
 - [x] Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` — [#1884](https://github.com/torrust/torrust-tracker/issues/1884) _(Rule E; no workspace deps; first `bittorrent-*` extraction)_ — **DONE**
 - [x] Extract `torrust-net-primitives` to standalone repository — [#1885](https://github.com/torrust/torrust-tracker/issues/1885) _(Rule E; no workspace deps; no prerequisites)_ — **DONE**
-- [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
+- [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by publication of `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol`, and `torrust-tracker-client-lib`)_
 - [x] [#1910](https://github.com/torrust/torrust-tracker/issues/1910) SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_ — **DONE**
 - [x] [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API _(Rule M; core → server dep kept; interface segregation only)_
 - [x] [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement _(tooling; create deny.toml with bans for all forbidden edges)_
@@ -625,7 +680,7 @@ Details:
 
 | Item                       | Issue                                                                                                                                                                                     | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                                                                         |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline analysis          | #TBD — Establish baseline: dependency graph + README audit                                                                                                                                | [docs/issues/drafts/1669-01-establish-baseline-analysis/ISSUE.md](../../drafts/1669-01-establish-baseline-analysis/ISSUE.md)                                                                               | TODO   | No blockers; informs extraction decisions                                                                                                     |
+| Baseline analysis          | #TBD — Establish baseline: dependency graph + README audit                                                                                                                                | [docs/issues/drafts/1669-01-establish-baseline-analysis/ISSUE.md](../../drafts/1669-01-establish-baseline-analysis/ISSUE.md)                                                                               | TODO   | Largely done (coupling reports, `readme-audit.md`); not yet recorded in a GitHub issue                                                        |
 | Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                              | [docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md)                             | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                                                                   |
 | Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`          | [docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md](../../closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md)                                   | DONE   | Rule M; completed                                                                                                                             |
 | Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                              | [docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md](../../closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md)                       | DONE   | Rule M; completed                                                                                                                             |
@@ -644,15 +699,15 @@ Details:
 | Net-primitives extraction  | [#1885](https://github.com/torrust/torrust-tracker/issues/1885) — Extract `torrust-net-primitives` to standalone repository                                                               | [docs/issues/closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo/ISSUE.md](../../closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo/ISSUE.md)                         | DONE   | Rule E; no workspace deps; no prerequisites; 10 consumers migrated; crate v0.1.0 published                                                    |
 | Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                                   | [docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                             | [docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md](../../closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md)             | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
-| Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-protocol` publication (external to this EPIC)                                                         |
+| Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by publication of `udp-protocol`, `http-protocol`, and `tracker-client` lib                                                   |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option                                            |
 | Cargo deny enforcement     | [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement                                                    | [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)               | DONE   | Tooling; create deny.toml with bans for all forbidden edges; add to CI and hooks                                                              |
 | Versioning policy          | [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy                                                                                 | [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)                                                 | DONE   | Policy; all packages version independently; path deps make linked versions unnecessary                                                        |
 | REST API architecture      | [#1930](https://github.com/torrust/torrust-tracker/issues/1930) SI-33: Define REST API contract-first package architecture                                                                | [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)                                             | DONE   | Policy reminder only in this EPIC; validate via PoC, then execute migration in a dedicated API EPIC; defer API package extraction/publication |
 | Configuration coupling     | [#1856](https://github.com/torrust/torrust-tracker/issues/1856) — Analyse configuration package coupling and evaluate splitting strategies                                                | [docs/issues/closed/1856-1669-analyse-configuration-package-coupling/ISSUE.md](../../closed/1856-1669-analyse-configuration-package-coupling/ISSUE.md)                                         | DONE   | DEC-07: keep single package; move TrackerPolicy/TORRENT_PEERS_LIMIT/PrivateMode to primitives (FU-1); see DECISIONS.md                        |
-| Move domain primitives     | [#1859](https://github.com/torrust/torrust-tracker/issues/1859) — Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives`                          | [docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md](../../closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md)                 | TODO   | Rule M; FU-1 from #1856; removes `swarm-coordination-registry` and `torrent-repository-benchmarking` config dep                               |
-| TslConfig evaluation       | [#1860](https://github.com/torrust/torrust-tracker/issues/1860) — Evaluate moving `TslConfig` from `torrust-tracker-configuration` into `torrust-tracker-axum-server`                     | [docs/issues/closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md](../../closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)                                         | TODO   | Rule M candidate; FU-2 from #1856; may enable `axum-server` → `torrust-axum-server` reclassification                                          |
-| Narrow init config slices  | [#1861](https://github.com/torrust/torrust-tracker/issues/1861) — Revisit `EnvContainer::initialize` to accept narrower config slices                                                     | [docs/issues/closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md](../../closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md)                             | TODO   | Design/analysis; FU-3 from #1856; addresses root forcing function for full-config compile-in when only one server runs                        |
+| Move domain primitives     | [#1859](https://github.com/torrust/torrust-tracker/issues/1859) — Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives`                          | [docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md](../../closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md)                 | DONE   | Rule M; FU-1 from #1856; PR #1865                                                                                                             |
+| TslConfig evaluation       | [#1860](https://github.com/torrust/torrust-tracker/issues/1860) — Evaluate moving `TslConfig` from `torrust-tracker-configuration` into `torrust-tracker-axum-server`                     | [docs/issues/closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md](../../closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)                                         | DONE   | FU-2 from #1856; DEC-08: keep `TslConfig` in configuration; `axum-server` stays tracker-scoped                                                |
+| Narrow init config slices  | [#1861](https://github.com/torrust/torrust-tracker/issues/1861) — Revisit `EnvContainer::initialize` to accept narrower config slices                                                     | [docs/issues/closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md](../../closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md)                             | DONE   | FU-3 from #1856; DEC-09: per-service config slices                                                                                            |
 | Rename-to-desired-state    | [#1829](https://github.com/torrust/torrust-tracker/issues/1829) — Rename crates and folder names to match desired `torrust-tracker` workspace state                                       | [docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace/ISSUE.md](../../closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace/ISSUE.md)   | DONE   | SI-11 complete; spec archived to `docs/issues/closed/` after issue closure                                                                    |
 | HTTP protocol decoupling   | [#1830](https://github.com/torrust/torrust-tracker/issues/1830) — Decouple `http-protocol` from `tracker-core`                                                                            | [docs/issues/closed/1830-1669-12-decouple-http-protocol-from-tracker-core/ISSUE.md](../../closed/1830-1669-12-decouple-http-protocol-from-tracker-core/ISSUE.md)                                           | DONE   | SI-12 complete; removed `http-protocol -> tracker-core` edge and moved mapping to higher layer                                                |
 | HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                            | [docs/issues/closed/1834-1669-13-decouple-http-protocol-from-udp-protocol/ISSUE.md](../../closed/1834-1669-13-decouple-http-protocol-from-udp-protocol/ISSUE.md)                                           | DONE   | SI-13 complete; removed `http-protocol -> udp-protocol` edge                                                                                  |
@@ -730,11 +785,10 @@ The following decisions have been made (see DEC-14 for the naming and ownership 
   as `torrust-bencode` 3.0.0 (#1881 ✅).
 - ~~**`bittorrent-peer-id`** (`torrust-tracker-peer-id`)~~ — migrated to `torrust/torrust-bittorrent` as
   `torrust-peer-id` 0.1.0 (#1884 ✅).
-- **Utility crates** (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`) —
-  already extracted to standalone repositories.
-- **`torrust-server-lib`** — extraction candidate (depends only on published crates).
+- **Utility crates** (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`,
+  `torrust-server-lib`) — already extracted to standalone repositories.
 - **`torrust-tracker-client`** (console CLI) — extraction candidate (blocked by publication of
-  `torrust-tracker-udp-protocol`).
+  `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol`, and `torrust-tracker-client-lib`).
 
 Decision criteria to apply per candidate:
 
@@ -774,13 +828,13 @@ extraction). The table below analyses every extraction candidate against this co
 | `torrust-tracker-clock` → `torrust-clock` 3.0.0             | ✅ #1879 |
 | `torrust-tracker-metrics` → `torrust-metrics` 0.1.0         | ✅ #1882 |
 | `torrust-net-primitives` → `torrust-net-primitives` 0.1.0   | ✅ #1885 |
+| `torrust-server-lib` → `torrust-server-lib` 0.1.0           | ✅ #1909 |
 
 **Current candidates** (under consideration):
 
-| Package                                | Crates.io status | Unpublished runtime workspace deps                           | Can be extracted? | Blocked by                             |
-| -------------------------------------- | ---------------- | ------------------------------------------------------------ | ----------------- | -------------------------------------- |
-| `torrust-server-lib`                   | Yes              | None (dep only on published crates)                          | ✅                | No blockers                            |
-| `torrust-tracker-client` (console CLI) | No               | `torrust-tracker-udp-protocol`, `torrust-tracker-client-lib` | ❌                | Publication of the two blocking crates |
+| Package                                | Crates.io status | Unpublished runtime workspace deps                                                            | Can be extracted? | Blocked by                               |
+| -------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------- |
+| `torrust-tracker-client` (console CLI) | No               | `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol`, `torrust-tracker-client-lib` | ❌                | Publication of the three blocking crates |
 
 **Not extraction candidates** (per DEC-14, remain in tracker workspace):
 
@@ -863,6 +917,10 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-06-09 20:00 UTC - josecelano - Updated Package Inventory, Desired Package State,
   and dependency lists to reflect completion of SI-18, SI-19, SI-20, SI-22 extractions
   and SI-21 InfoHash migration.
+- 2026-10-05 15:53 UTC - GitHub Copilot - Synced the spec with the workspace: marked #1859,
+  #1860, #1861, #1864, SI-23 to SI-28, SI-34 and SI-35 as done; replaced `rest-api-core` with
+  the #1938 REST API packages; regenerated the dependency lists from `cargo metadata`; recorded
+  that the baseline analysis is largely done but not yet tracked in a GitHub issue.
 
 ## Acceptance Criteria
 
