@@ -174,7 +174,6 @@ impl TestEnv {
             .swarms
             .get_swarm_metadata(info_hash)
             .await
-            .unwrap()
     }
 
     /// Waits until the global download count in the database reaches `expected`, with a 5-second

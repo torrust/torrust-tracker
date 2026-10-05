@@ -173,7 +173,7 @@ mod tests {
 
             let mut peer = sample_peer();
             peer.updated = startup_time;
-            swarms.handle_announcement(&sample_info_hash(), &peer, None).await.unwrap();
+            swarms.handle_announcement(&sample_info_hash(), &peer, None).await;
 
             Self {
                 startup_time,

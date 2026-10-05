@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 18:42"
+last-updated-utc: "2026-10-05 19:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -141,8 +141,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7 | DONE | Revise the decision | Option B; see [Decision Revision (T7)](#decision-revision-t7) |
 | T8 | DONE | Rewrite the ADR for the revised policy | `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md` (same timestamp, new slug; not merged yet); index row and `handle-errors-in-code` skill updated |
 | T9 | DONE | Revert T6 and T5 | Two `git revert` commits (T6, then T5); spec edits from those commits kept; each revert compiled with `cargo check --workspace --all-targets --all-features` |
-| T10 | TODO | Registry returns plain values | Delete `Error` and the doctest; drop `.unwrap()` on registry calls in tests and examples; remove `expect` and `# Panics` from `in_memory.rs` |
-| T11 | TODO | Draft the #1669 pre-publish checklist item | `#[non_exhaustive]` audit of existing public error enums; wording proposed to the maintainer, not committed to the EPIC |
+| T10 | DONE | Registry returns plain values | `Error`, its `Display` impl, the doctest, and all `# Errors` sections deleted; 62 test `.unwrap()` calls in `registry.rs`, plus one each in `statistics/mod.rs` and `tracker-core/tests/common/test_env.rs`, removed; `in_memory.rs` is plain delegation |
+| T11 | IN_PROGRESS | Draft the #1669 pre-publish checklist item | Draft proposed to the maintainer in chat; not committed to the EPIC |
 
 ### T1 Inventory
 
@@ -174,11 +174,11 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Folder-style spec drafted in `docs/issues/drafts/remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): `linter all` (pre-commit) and the full stable test suite pass; pre-push checks not run yet (no push requested)
 - [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -195,19 +195,20 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 15:49 UTC - Copilot - T6: propagated the registry error through `tracker-core` and every production caller (see the T6 row). Test seeding helpers in `axum-http-server`/`axum-rest-api-server` `src/testing/environment.rs` use a documented `expect` (test support, out of scope). Test code uses `.unwrap()`. Verified that all 37 added `unwrap`/`expect` lines sit in `#[cfg(test)]` modules or test targets, with none in production. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2976 tests with 0 failures. Completion review: no retrospective needed. The one material discovery (that `Infallible` defeats forward compatibility) changed the design before implementation and is recorded in the Decision (T2) section and the ADR; the `clippy::uninhabited_references` workaround is recorded in the T4 entry.
 - 2026-10-05 18:03 UTC - Copilot - Revised the ADR after an external AI review; the decision is unchanged. Renamed it to "Use Crate-Owned Non-Exhaustive Errors for Potentially Fallible Public APIs". Revisions: separated the abstraction's semantics from the current implementation's capabilities; explained that `Infallible` states the wrong contract; replaced "forced to handle `Err`" with "cannot treat the error as uninhabited" (consumers can still `unwrap`); limited the scope to independently consumed API boundaries; presented the empty-enum pattern as a repository convention built on established practice rather than a standard idiom; added a generic-error alternative and expanded consequences; cited RFC 2008, C-GOOD-ERR, the Reference, and `std::convert::Infallible` (all checked against the live pages). Following the new derive guidance, dropped `PartialEq, Eq` from the registry `Error` because no caller used them and a future variant may not support them. Added an intent comment to the `compile_fail` doctest.
 - 2026-10-05 18:42 UTC - Copilot - Maintainer reversed the decision to option B (T7); see [Decision Revision (T7)](#decision-revision-t7). Trigger: no plausible failure for `Registry::len`, and an equally weak case for the counting methods. Packages will be published within weeks (EPIC #1669), so the trade-off was re-assessed in that context: a semver-signalled breaking change, paid once if a failure ever appears, is cheaper than a speculative `Result` every consumer pays for. Reopened AC3, AC5, and AC6 and reworded them for option B. Plan: rewrite the ADR (T8), revert T6 and T5 with `git revert` (T9), make the registry methods return plain values (T10), and draft the #1669 checklist item (T11).
+- 2026-10-05 19:56 UTC - Copilot - T8 to T10 done. The ADR was rewritten, T6 and T5 were reverted with `git revert` (the spec conflicts were resolved by keeping the current spec), and the registry methods now return plain values. A subagent did the mechanical removal of 62 test `.unwrap()` calls in `registry.rs`, using file-edit tools and verified by the compiler. Also removed the false `# Returns ... true` sections on both `handle_announcement` methods, which return `()`. Net code diff against `develop`: four files, +96/-263. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2975 tests with 0 failures (one fewer than T6 because the reverted REST stub-port test is gone). Completion review: the reversal is the material discovery, and its lesson (do not reserve `Result` for speculative failures) is recorded permanently in the ADR's Description and Alternatives and in the T7 decision, so no separate retrospective file was created.
 
 ## Acceptance Criteria
 
 - [x] AC1: No method of `InMemoryTorrentRepository` documents a panic that cannot occur.
 - [x] AC2: No method of `InMemoryTorrentRepository` calls `expect` or `unwrap` on a registry result.
-- [ ] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
-- [ ] `linter all` exits with code `0`
+- [x] AC3: If the registry gains a real error variant, the repository fails to compile or propagates the error, rather than panicking.
+- [x] `linter all` exits with code `0`
 - [x] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
-- [ ] AC5: The infallible registry methods return plain values; no `Result`, error variant, or error-response path exists for an error that cannot occur.
+- [x] AC5: The infallible registry methods return plain values; no `Result`, error variant, or error-response path exists for an error that cannot occur.
 - [x] AC6: The ADR records when public package APIs return `Result`.
-- [ ] Relevant tests pass
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Relevant tests pass
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -230,11 +231,11 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Re-check `in_memory.rs` after T10 |
-| AC2 | TODO | Re-check `in_memory.rs` after T10 |
-| AC3 | TODO | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
-| AC4 | DONE | The misleading sections were corrected in T4; under option B they are removed entirely with T10 |
-| AC5 | TODO | Signatures after T9 and T10 |
+| AC1 | DONE | `grep -nE 'expect\(\|unwrap\(\|# Panics\|# Errors\|Result' in_memory.rs` finds nothing |
+| AC2 | DONE | Same `grep`; every method is plain delegation |
+| AC3 | DONE | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
+| AC4 | DONE | Corrected in T4, then removed entirely with the `# Errors` sections in T10 |
+| AC5 | DONE | `rg 'registry::Error\|SwarmRegistry\|StatsError'` over the workspace finds nothing; the net code diff against `develop` touches only `registry.rs`, `in_memory.rs`, `statistics/mod.rs`, and `tracker-core/tests/common/test_env.rs` |
 | AC6 | DONE | [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) and its index row |
 
 ## Risks and Trade-offs
@@ -248,7 +249,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed` (the T7 reversal is a material design change; assess after T10)
+- Retrospective: `Not needed` (see the 2026-10-05 19:56 UTC progress-log entry)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
