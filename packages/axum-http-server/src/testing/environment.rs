@@ -309,6 +309,12 @@ mod tests {
         Unstarted::new(&core_config, &http_tracker_config).await
     }
 
+    async fn start_within_deadline(environment: Unstarted) -> Started {
+        tokio::time::timeout(TEST_DEADLINE, environment.start())
+            .await
+            .expect("start() should finish within the test deadline")
+    }
+
     async fn stop_within_deadline(environment: Started) -> Unstarted {
         tokio::time::timeout(TEST_DEADLINE, environment.stop())
             .await
@@ -318,7 +324,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation() {
         // Arrange
-        let environment = unstarted_environment().await.start().await;
+        let environment = start_within_deadline(unstarted_environment().await).await;
 
         // Act
         let stop = tokio::spawn(stop_within_deadline(environment)).await;
@@ -339,7 +345,9 @@ mod tests {
         let container = environment.container.clone();
 
         // Act
-        let start = tokio::spawn(environment.start()).await;
+        let start = tokio::time::timeout(TEST_DEADLINE, tokio::spawn(environment.start()))
+            .await
+            .expect("start() should fail within the test deadline");
 
         // Assert
         assert!(
@@ -356,7 +364,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_release_the_http_binding_when_stopped() {
         // Arrange
-        let environment = unstarted_environment().await.start().await;
+        let environment = start_within_deadline(unstarted_environment().await).await;
         let binding: SocketAddr = *environment.bind_address();
 
         // Act
@@ -369,10 +377,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_serve_requests_after_being_stopped_and_started_again() {
         // Arrange
-        let stopped = stop_within_deadline(unstarted_environment().await.start().await).await;
+        let stopped = stop_within_deadline(start_within_deadline(unstarted_environment().await).await).await;
 
         // Act
-        let restarted = stopped.start().await;
+        let restarted = start_within_deadline(stopped).await;
 
         // Assert
         let status = tokio::time::timeout(

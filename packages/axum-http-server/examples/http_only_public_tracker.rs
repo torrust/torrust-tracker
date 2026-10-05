@@ -37,7 +37,7 @@
 //!
 //! Stop it with Ctrl-C (SIGINT) or, on Unix, SIGTERM (`kill <pid>`). The example's `main` is
 //! the only place that subscribes to OS signals; it then calls `Environment::stop()`, which
-//! cancels and joins the tracker's tasks. The HTTP library itself never listens for signals.
+//! cancels and joins the tracker's tasks. The token-aware path it uses never listens for signals.
 //! When sending signals by PID, run the built binary
 //! (`target/debug/examples/http_only_public_tracker`) so the signal reaches this process
 //! rather than `cargo`.

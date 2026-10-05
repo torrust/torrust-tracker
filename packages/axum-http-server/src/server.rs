@@ -295,7 +295,8 @@ impl HttpServer<Stopped> {
     ///
     /// # Errors
     ///
-    /// Returns listener, startup-notification, or service-registration errors.
+    /// Returns [`Error::Bind`] or [`Error::Listener`] if the listener cannot be
+    /// set up, or [`Error::Registration`] if the service cannot be registered.
     pub async fn start_with_cancellation(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
@@ -376,7 +377,8 @@ impl HttpServer<Stopped> {
     ///
     /// # Errors
     ///
-    /// Returns listener, startup-notification, or service-registration errors.
+    /// Returns [`Error::Bind`] or [`Error::Listener`] if the listener cannot be
+    /// set up, or [`Error::Registration`] if the service cannot be registered.
     pub async fn start_with_cancellation_and_health_check(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
