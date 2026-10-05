@@ -9,7 +9,7 @@ github-issue: 2246
 spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
 related-pr: null
-last-updated-utc: "2026-10-05 12:54"
+last-updated-utc: "2026-10-05 13:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,8 +72,8 @@ allowance with a fix that preserves behaviour for all reachable values.
 
 | Entry | Source | Source/target bounds | Outcome | Validation |
 | ----- | ------ | -------------------- | ------- | ---------- |
-| A099 | `primitives` `ser_unix_time_value` | `Duration::as_millis()` is `u128`; `u64` milliseconds cover ~584 million years, but `Duration` can exceed that and `as u64` silently truncates. | Replace with `u64::try_from` and fail serialization with `serde::ser::Error::custom` when out of range. | Unit tests: a normal timestamp, `u64::MAX` ms, and `Duration::MAX` (error). |
-| A123 | `torrent-repository-benchmarking` `EntrySingle::get_swarm_metadata` | Seeder/leecher counts are `usize`; `SwarmMetadata` fields are `u32`. A swarm above `u32::MAX` peers is not realistic, but `as u32` would silently wrap. | Replace with `u32::try_from(..).expect(..)`, mirroring the reverse conversion in the production `Coordinator::seeders_and_leechers`. | Existing benchmarking tests. |
+| A099 | `primitives` `ser_unix_time_value` | `Duration::as_millis()` is `u128`; `u64` milliseconds cover ~584 million years, but `Duration` can exceed that and `as u64` silently truncates. | Replace with `u64::try_from` and fail serialization with `serde::ser::Error::custom` when out of range. | Unit tests: a normal timestamp, `u64::MAX` ms, and the first value beyond it (error). |
+| A123 | `torrent-repository-benchmarking` `EntrySingle::get_swarm_metadata` | Seeder/leecher counts are `usize`; `SwarmMetadata` fields are `u32`. A swarm above `u32::MAX` peers is not realistic, but `as u32` would silently wrap. | Replace with `u32::try_from(..).expect(..)`, mirroring the reverse conversion in the production `Coordinator::seeders_and_leechers`. | Existing benchmarking repository tests assert swarm metadata. |
 | A129 | `tracker-core` `PeersWanted::from_client_request` | Guarded `i32` with `value > 0`; target `usize`. | Replace `value as usize` with `Self::only(value.unsigned_abs())`: `u32` carries the non-negative invariant, the function stays `const`, and `u32 -> usize` is not linted. | Existing tests for -1, 0, max-1, max, and max+1. |
 
 ## Implementation Plan
@@ -82,8 +82,8 @@ allowance with a fix that preserves behaviour for all reachable values.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | State each local invariant | See Review Outcomes. |
 | T2 | DONE | Judge each cast | See Review Outcomes. |
-| T3 | TODO | Apply outcomes | Add native reasons; implement and test alternatives or fixes where chosen. |
-| T4 | TODO | Reconcile inventory | Edit the A099, A123, and A129 rows of the closed #2158 inventory in place with each outcome. |
+| T3 | DONE | Apply outcomes | One commit per package: tracker-core (A129), primitives (A099), torrent-repository-benchmarking (A123). |
+| T4 | DONE | Reconcile inventory | Edited the A099, A123, and A129 rows of the closed #2158 inventory in place, following the #2261 precedent. |
 
 ## Commit Points
 
@@ -101,7 +101,7 @@ allowance with a fix that preserves behaviour for all reachable values.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (#2247)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -114,6 +114,7 @@ allowance with a fix that preserves behaviour for all reachable values.
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from the #2158 domain numeric conversion design input - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
 - 2026-10-05 12:54 UTC - josecelano - Approved T1-T2 outcomes (all three allowances removed), in-place #2158 inventory update, and replacing M2 because the REST API never calls `ser_unix_time_value` - Chat decision
+- 2026-10-05 13:18 UTC - GitHub Copilot - Implemented T3 (three per-package commits) and T4 (inventory reconciliation); M1, pre-push checks, and the completion review remain - In progress
 
 ## Acceptance Criteria
 
@@ -143,10 +144,10 @@ with serde. A123 lives in a benchmarking-only crate. Both are covered by unit te
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Pending review. |
-| AC2 | TODO | Source attributes. |
-| AC3 | TODO | Pending tests. |
-| AC4 | TODO | Pending validation. |
+| AC1 | DONE | Review Outcomes table; #2158 inventory rows A099, A123, A129. |
+| AC2 | DONE | No cast retained: all three allowances removed; `grep -rn "#2246"` over Rust sources finds no remaining temporary reason. |
+| AC3 | DONE | A099: three new `unix_time_value_serialization` tests (the out-of-range test failed against the old cast). A129: existing `from_client_request` boundary tests. A123: existing benchmarking repository metadata tests. |
+| AC4 | TODO | Focused Clippy and tests pass for the three packages; `linter all` passes in pre-commit. Pre-push checks pending. |
 
 ## Risks and Trade-offs
 
