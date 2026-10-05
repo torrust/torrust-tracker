@@ -55,6 +55,9 @@ da2ce7 review 5418725511 (round 3, CHANGES_REQUESTED at `17f17864`) left one inl
 it numbered F11. That ID was already this record's review-body finding, so it is recorded as F12
 with the original ID kept. The review body raises no other new assertion.
 
+da2ce7 review 5418876195 (round 4, CHANGES_REQUESTED at `e27c0f29`) left one inline finding,
+F13, kept as given; its body confirms the F12 handling and adds no other assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | `review-finding:pr-2439-f2` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -69,6 +72,7 @@ with the original ID kept. The review body raises no other new assertion.
 | F10 | `review-finding:pr-2439-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2439-f11` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F12 | `review-finding:pr-2439-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2439-f13` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -289,6 +293,22 @@ with the original ID kept. The review body raises no other new assertion.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187408212>
 
+### F13 - Processing Log entry stamped before the events it records
+
+- PR number: 2439
+- Source review ID: 5418876195
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187339307>
+- Concern: the 17:40 UTC entry records the spec-fix commit and the push, which happened later
+  (17:52:42Z and 17:58:46Z); only the code-fix commit (17:39:48Z) precedes the stamp.
+- Solution: kept the 17:40 entry unchanged and appended a correction naming it, with the actual
+  commit and push times, as the append-only rule requires.
+- Current-tree verification: commit author times from `git log`; push time from the
+  `review_dismissed` event of review 5417753246 at tip `17f17864`.
+- Resolution reference: `docs(pr-reviews): correct the 17:40 audit log entry on #2439`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2439#discussion_r4187505083>
+
 ## Processing Log
 
 - 2026-10-05 15:32 UTC - Fetched review 5416744478 and its three inline threads with the
@@ -304,6 +324,10 @@ with the original ID kept. The review body raises no other new assertion.
 - 2026-10-05 18:31 UTC - Before resolving, the reply guard found da2ce7 review 5418725511
   (submitted 18:08, at `17f17864`, before the record commit was pushed). Recorded its finding as
   F12 and replied (18:31).
+- 2026-10-05 18:42 UTC - Correction to the 17:40 UTC entry (F13): it was stamped before two of the
+  events it records. Actual times: code-fix commit 17:39:48Z, spec-fix commit 17:52:42Z, push
+  17:58:46Z. The 17:40 entry is left unchanged. Recorded da2ce7 review 5418876195 (submitted
+  18:23, at `e27c0f29`) as F13 and replied (18:42).
 
 ## Completion Rules
 
