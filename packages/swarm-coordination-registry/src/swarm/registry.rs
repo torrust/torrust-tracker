@@ -1,4 +1,4 @@
-use std::convert::Infallible;
+use std::fmt;
 use std::sync::Arc;
 
 use crossbeam_skiplist::SkipMap;
@@ -49,7 +49,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function panics if the lock for the swarm handle cannot be acquired.
+    /// Currently never fails; see [`Error`].
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
@@ -164,7 +164,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function panics if the lock for the swarm handle cannot be acquired.
+    /// Currently never fails; see [`Error`].
     pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
         match self.swarms.get(info_hash) {
             None => Ok(None),
@@ -184,13 +184,12 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
-        match self.get_swarm_metadata(info_hash).await {
-            Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
-            Ok(None) => Ok(SwarmMetadata::zeroed()),
-        }
+        Ok(self
+            .get_swarm_metadata(info_hash)
+            .await?
+            .unwrap_or_else(SwarmMetadata::zeroed))
     }
 
     /// Retrieves torrent peers for a given torrent and client, excluding the
@@ -206,8 +205,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn get_peers_peers_excluding(
         &self,
         info_hash: &InfoHash,
@@ -235,8 +233,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
         match self.get(info_hash) {
             None => Ok(vec![]),
@@ -290,8 +287,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<usize, Error> {
         tracing::info!(
             "Removing inactive peers since: {:?} ...",
@@ -317,8 +313,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
         tracing::info!("Removing peerless torrents ...");
 
@@ -386,8 +381,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateActiveSwarmMetadata, Error> {
         let mut metrics = AggregateActiveSwarmMetadata::default();
 
@@ -412,8 +406,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn count_peerless_torrents(&self) -> Result<usize, Error> {
         let mut peerless_torrents = 0;
 
@@ -436,8 +429,7 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
+    /// Currently never fails; see [`Error`].
     pub async fn count_peers(&self) -> Result<usize, Error> {
         let mut peers = 0;
 
@@ -465,8 +457,36 @@ impl Registry {
     }
 }
 
-/// The registry currently exposes no recoverable error cases.
-pub type Error = Infallible;
+/// Errors returned by the [`Registry`].
+///
+/// There are no variants yet: no registry operation can fail today. The
+/// fallible signatures and `#[non_exhaustive]` let future failures be added
+/// without breaking consumers, who must already handle `Err`. See ADR
+/// `20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis`.
+///
+/// ```compile_fail,E0005
+/// use torrust_tracker_swarm_coordination_registry::swarm::registry::Error;
+///
+/// fn ignore_error(result: Result<usize, Error>) -> usize {
+///     let Ok(value) = result;
+///     value
+/// }
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Error {}
+
+impl fmt::Display for Error {
+    #[expect(
+        clippy::uninhabited_references,
+        reason = "same exhaustive empty match as `Display for Infallible`; no `Error` value can exist"
+    )]
+    fn fmt(&self, _formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {}
+    }
+}
+
+impl std::error::Error for Error {}
 
 #[derive(Clone, Debug, Default)]
 pub struct AggregateActivityMetadata {

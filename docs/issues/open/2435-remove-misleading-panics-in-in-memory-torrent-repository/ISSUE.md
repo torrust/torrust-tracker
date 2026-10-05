@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 14:26"
+last-updated-utc: "2026-10-05 15:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -107,8 +107,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Inventory fallible registry methods and repository callers | See [T1 Inventory](#t1-inventory) |
 | T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) |
-| T3 | TODO | Write the ADR | Root ADR plus index row |
-| T4 | TODO | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
+| T3 | DONE | Write the ADR | `docs/adrs/20261005145329_keep_result_with_non_exhaustive_errors_for_possibly_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
+| T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | TODO | REST stats port returns `Result` | Port error type, use case, handler `500` mapping, stub-port test |
 | T6 | TODO | Propagate through `tracker-core` and delivery layers | Repository, announce/scrape errors, manager, cleanup job, UDP/HTTP mappings, stats services; no `expect` on registry results in `in_memory.rs` |
 
@@ -154,6 +154,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 07:05 UTC - Copilot - Maintainer confirmed the task classification (no runtime defect). Created GitHub issue #2435 and moved the spec to `docs/issues/open/` on a spec-only branch; the A/B/C decision remains open for T2.
 - 2026-10-05 08:43 UTC - Copilot - Reworded the Bug-Fix Process paragraph after PR #2436 review (F1): the classification is recorded as outside the bug rule's scope (no observable behavior), not as an exception to it, and AC3 is named as the regression protection.
 - 2026-10-05 14:26 UTC - Copilot - Created implementation branch `2435-remove-misleading-panics-in-in-memory-torrent-repository`. T1 inventory recorded. Maintainer chose option C (keep `Result` for forward compatibility of public packages) with a `#[non_exhaustive]` uninhabited error instead of `Infallible`, full propagation to delivery layers, a root ADR, and registry `# Errors` doc fixes. Manual scenario M1 dropped. Work stops at local commits (no push or PR).
+- 2026-10-05 15:01 UTC - Copilot - T3 committed (ADR). T4: replaced the `Infallible` alias with `#[non_exhaustive] pub enum Error {}`. `Display` uses the same `match *self {}` as `std`'s `Display for Infallible`, with a documented `expect` for `clippy::uninhabited_references`. The registry crate does not depend on `thiserror`, and adding it for one empty enum was not justified.
 
 ## Acceptance Criteria
 
@@ -191,10 +192,10 @@ None planned.
 | --- | --- | --- |
 | AC1 | TODO | Doc comments in `in_memory.rs` |
 | AC2 | TODO | `grep` of `in_memory.rs` |
-| AC3 | TODO | `compile_fail` doctest on the registry error |
-| AC4 | TODO | Registry doc comments |
+| AC3 | DONE | `compile_fail,E0005` doctest on `registry::Error` passes on stable and nightly (nightly checks the code). Mutation proof: removing `#[non_exhaustive]` made the doctest fail (`compile fail ... FAILED`); restored by hand. |
+| AC4 | DONE | All 10 registry `# Errors` sections now read "Currently never fails; see [`Error`]." |
 | AC5 | TODO | Signatures, error mappings, REST `500` test |
-| AC6 | TODO | ADR file and index row |
+| AC6 | DONE | ADR file and `docs/adrs/index.md` row |
 
 ## Risks and Trade-offs
 
