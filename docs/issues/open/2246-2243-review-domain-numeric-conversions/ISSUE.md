@@ -1,14 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2243
 github-issue: 2246
 spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
 related-pr: null
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: "2026-10-05 12:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -64,14 +65,25 @@ shared conclusion.
 Not applicable: this work changes synchronous domain conversion boundaries and does not introduce
 child processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures.
 
+## Review Outcomes
+
+Approved by the maintainer on 2026-10-05. Every entry takes decision-framework outcome 1: remove the
+allowance with a fix that preserves behaviour for all reachable values.
+
+| Entry | Source | Source/target bounds | Outcome | Validation |
+| ----- | ------ | -------------------- | ------- | ---------- |
+| A099 | `primitives` `ser_unix_time_value` | `Duration::as_millis()` is `u128`; `u64` milliseconds cover ~584 million years, but `Duration` can exceed that and `as u64` silently truncates. | Replace with `u64::try_from` and fail serialization with `serde::ser::Error::custom` when out of range. | Unit tests: a normal timestamp, `u64::MAX` ms, and `Duration::MAX` (error). |
+| A123 | `torrent-repository-benchmarking` `EntrySingle::get_swarm_metadata` | Seeder/leecher counts are `usize`; `SwarmMetadata` fields are `u32`. A swarm above `u32::MAX` peers is not realistic, but `as u32` would silently wrap. | Replace with `u32::try_from(..).expect(..)`, mirroring the reverse conversion in the production `Coordinator::seeders_and_leechers`. | Existing benchmarking tests. |
+| A129 | `tracker-core` `PeersWanted::from_client_request` | Guarded `i32` with `value > 0`; target `usize`. | Replace `value as usize` with `Self::only(value.unsigned_abs())`: `u32` carries the non-negative invariant, the function stays `const`, and `u32 -> usize` is not linted. | Existing tests for -1, 0, max-1, max, and max+1. |
+
 ## Implementation Plan
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | State each local invariant | Document source and target bounds for A099, A123, and A129, including platform assumptions. |
-| T2 | TODO | Judge each cast | Per entry: lossless by invariant (retain with reason), clearer alternative available, or defective. |
+| T1 | DONE | State each local invariant | See Review Outcomes. |
+| T2 | DONE | Judge each cast | See Review Outcomes. |
 | T3 | TODO | Apply outcomes | Add native reasons; implement and test alternatives or fixes where chosen. |
-| T4 | TODO | Reconcile inventory | Update #2158 evidence by ID with each outcome. |
+| T4 | TODO | Reconcile inventory | Edit the A099, A123, and A129 rows of the closed #2158 inventory in place with each outcome. |
 
 ## Commit Points
 
@@ -86,9 +98,9 @@ child processes, asynchronous I/O, network readiness, resource cleanup, or reusa
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/numeric-conversion-domain-review/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2247)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -101,6 +113,7 @@ child processes, asynchronous I/O, network readiness, resource cleanup, or reusa
 
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from the #2158 domain numeric conversion design input - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
+- 2026-10-05 12:54 UTC - josecelano - Approved T1-T2 outcomes (all three allowances removed), in-place #2158 inventory update, and replacing M2 because the REST API never calls `ser_unix_time_value` - Chat decision
 
 ## Acceptance Criteria
 
@@ -120,8 +133,11 @@ child processes, asynchronous I/O, network readiness, resource cleanup, or reusa
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce `numwant` boundary | Announce to a local tracker with a positive `numwant` at the documented boundary and with `numwant=0`. | Positive values cap at the tracker limit; zero returns as many peers as possible. | TODO | `manual-verification-evidence.md` section M1 |
-| M2 | Timestamp serialization | Query the REST API torrent endpoint for a torrent with a recently announced peer. | The serialized peer timestamp matches the documented millisecond contract. | TODO | `manual-verification-evidence.md` section M2 |
+| M1 | Announce `numwant` boundary | Announce to a local UDP tracker with a positive `numwant` at the documented boundary and with `numwant=0`. | Positive values cap at the tracker limit; zero returns as many peers as possible. | TODO | `manual-verification-evidence.md` section M1 |
+
+A099 and A123 have no manual scenario. The REST API peer resource computes its own `u128`
+timestamps and never calls `ser_unix_time_value`; only tracker-core tests serialize `peer::Peer`
+with serde. A123 lives in a benchmarking-only crate. Both are covered by unit tests.
 
 ### Acceptance Verification
 
