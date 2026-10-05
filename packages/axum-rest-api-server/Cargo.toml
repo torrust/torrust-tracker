@@ -54,7 +54,6 @@ tracing = "0"
 url = "2"
 
 [dev-dependencies]
-async-trait = "0.1"
 torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 url = { version = "2", features = [ "serde" ] }

@@ -140,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
 | T7 | DONE | Revise the decision | Option B; see [Decision Revision (T7)](#decision-revision-t7) |
 | T8 | DONE | Rewrite the ADR for the revised policy | `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md` (same timestamp, new slug; not merged yet); index row and `handle-errors-in-code` skill updated |
-| T9 | TODO | Revert T6 and T5 | `git revert` commits; spec edits from those commits are kept |
+| T9 | DONE | Revert T6 and T5 | Two `git revert` commits (T6, then T5); spec edits from those commits kept; each revert compiled with `cargo check --workspace --all-targets --all-features` |
 | T10 | TODO | Registry returns plain values | Delete `Error` and the doctest; drop `.unwrap()` on registry calls in tests and examples; remove `expect` and `# Panics` from `in_memory.rs` |
 | T11 | TODO | Draft the #1669 pre-publish checklist item | `#[non_exhaustive]` audit of existing public error enums; wording proposed to the maintainer, not committed to the EPIC |
 

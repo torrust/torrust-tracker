@@ -1,18 +1,8 @@
 //! API responses for the [`stats`](crate::v1::context::stats)
 //! API context.
-use std::error::Error;
-
 use axum::response::{IntoResponse, Json, Response};
 use torrust_metrics::prometheus::PrometheusSerializable;
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
-
-use crate::v1::responses::unhandled_rejection_response;
-
-/// `500` error response when the tracker statistics cannot be collected.
-#[must_use]
-pub fn failed_to_get_stats_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to get tracker stats: {e}"))
-}
 
 /// `200` response that contains the [`LabeledStats`] resource as json.
 #[must_use]
