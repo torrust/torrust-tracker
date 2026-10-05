@@ -103,11 +103,12 @@ fn it_should_parse_valid_config() {
 }
 ```
 
-## Possibly Fallible Public APIs
+## When Public APIs Return `Result`
 
-Return `Result` from public operations that are conceptually fallible, even if the current implementation
-cannot fail. Use a crate-owned `#[non_exhaustive] pub enum Error {}` instead of `Infallible`, and propagate
-it instead of calling `expect`. See [ADR 20261005145329](../../../../../docs/adrs/20261005145329_use_crate_owned_non_exhaustive_errors_for_potentially_fallible_public_apis.md).
+Return `Result` only when an operation can fail today, crosses an I/O boundary, or is a swappable port
+with a realistically fallible backend. Otherwise return a plain value; a real failure later is a
+semver-signalled breaking change. Never use `Infallible` or an empty error enum as a placeholder, and mark
+existing public error enums `#[non_exhaustive]` before first publish. See [ADR 20261005145329](../../../../../docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
 
 ## Quick Checklist
 

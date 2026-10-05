@@ -139,7 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
 | T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
 | T7 | DONE | Revise the decision | Option B; see [Decision Revision (T7)](#decision-revision-t7) |
-| T8 | TODO | Rewrite the ADR for the revised policy | Same timestamp, new slug (the ADR is not merged yet); update the index row and the `handle-errors-in-code` skill |
+| T8 | DONE | Rewrite the ADR for the revised policy | `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md` (same timestamp, new slug; not merged yet); index row and `handle-errors-in-code` skill updated |
 | T9 | TODO | Revert T6 and T5 | `git revert` commits; spec edits from those commits are kept |
 | T10 | TODO | Registry returns plain values | Delete `Error` and the doctest; drop `.unwrap()` on registry calls in tests and examples; remove `expect` and `# Panics` from `in_memory.rs` |
 | T11 | TODO | Draft the #1669 pre-publish checklist item | `#[non_exhaustive]` audit of existing public error enums; wording proposed to the maintainer, not committed to the EPIC |
@@ -204,7 +204,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [ ] `linter all` exits with code `0`
 - [x] AC4: The registry `# Errors` docs no longer claim a lock-acquisition failure.
 - [ ] AC5: The infallible registry methods return plain values; no `Result`, error variant, or error-response path exists for an error that cannot occur.
-- [ ] AC6: The ADR records when public package APIs return `Result`.
+- [x] AC6: The ADR records when public package APIs return `Result`.
 - [ ] Relevant tests pass
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
@@ -235,7 +235,7 @@ None planned.
 | AC3 | TODO | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
 | AC4 | DONE | The misleading sections were corrected in T4; under option B they are removed entirely with T10 |
 | AC5 | TODO | Signatures after T9 and T10 |
-| AC6 | TODO | Rewritten ADR (T8) |
+| AC6 | DONE | [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) and its index row |
 
 ## Risks and Trade-offs
 
