@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: null
-last-updated-utc: "2026-10-05 12:38"
+last-updated-utc: "2026-10-05 12:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,7 +201,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Migrate direct field consumers (D5)        | Health-check API contract tests use `Unstarted` and `Environment::stop()`; the 100 ms port-release sleep is removed (T2's binding test proves `stop()` releases it). 3/3 runs pass. |
 | T4  | DONE   | Example signal boundary (D6)               | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
 | T5  | DONE   | Documentation                              | Task inventory findings 4 and 8 record the migrated HTTP consumer; the feature README's stale "implementation has not started" status now points to EPIC #1488. |
-| T6  | TODO   | Verification and completion review         | Automatic checks, manual scenarios, AC review, completion review.                                                                                          |
+| T6  | IN_PROGRESS | Verification and completion review         | Automatic checks, manual scenarios, and AC review done; a drain-timeout test was added for AC3. Pending: pre-push checks and the independent review. |
 
 T2 tests (use the `write-unit-test` skill, no OS signals):
 
@@ -238,11 +238,11 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2412)
 - [x] Spec-only PR merged into `develop` before implementation (#2421)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
@@ -260,29 +260,30 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 12:06 UTC - GitHub Copilot - T2 first passing slice. Environment states are private `Stopped`/`Running` types with `Unstarted`/`Started` aliases (mirroring the UDP environment); each start creates a fresh token; `stop()` cancels once and joins server, drain controller, and listener through `join_owned_tasks`, which awaits all three before reporting every failure. Tests and mutation proofs: listener aborted (3 stop-path tests fail, naming the listener); early return on server failure (the listener-join test fails); start with a pre-cancelled token (the restart test fails with connection reset). Finding: a stop with an idle keep-alive connection takes about 1 s, because `graceful_shutdown_on_cancellation` re-checks the connection count every second; the integration suite went from 0.28 s to 2.24 s. That is production drain behavior, previously hidden because the legacy path did not join its drain task. Tokio's `time` feature added as a dev-dependency for bounded test waits.
 - 2026-10-05 12:19 UTC - GitHub Copilot - Maintainer approved the T2 design and accepted the ~1 s drain cost (2.24 s suite is fine). No follow-up issue: a short comment in `graceful_shutdown_on_cancellation` records the future options (wake on connection-count changes, or a cancellation kind that skips the drain), which are outside the shutdown refactor. T3 done; workspace `cargo check --all-targets` and `linter all` pass.
 - 2026-10-05 12:36 UTC - GitHub Copilot - T4 done. Handlers are installed before readiness is printed, so a signal sent after `Listening on` cannot hit the default action; on Unix this uses signal streams, which register immediately (`ctrl_c()` registers on first poll). Non-Unix uses `ctrl_c()`; only the Linux target is installed locally, so CI's Windows/macOS builds check that branch. M2 (SIGTERM) and M3 (SIGINT) stop in order and exit 0. M4: no direct signal use in the HTTP library; the legacy path still subscribes indirectly until SI-19, so AC7 is read as direct subscriptions only.
+- 2026-10-05 12:48 UTC - GitHub Copilot - AC review against the current tree. AC3 had no test for the drain-timeout case; added `it_should_report_a_drain_timeout_even_when_every_task_joins`, proven by ignoring `TimedOut`. Completion review: no `implementation-retrospective.md` needed; the two material discoveries (the SIGTERM baseline caught inside the library, and the 1 s drain polling) are recorded in this log, the evidence, and a code comment. Pending: pre-push checks and the independent Task Reviewer report.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the HTTP server through the token-aware path,
+- [x] AC1: `Environment` starts the HTTP server through the token-aware path,
       including when a custom health-check callback is injected.
-- [ ] AC2: `Environment::stop()` cancels the environment token and joins the
+- [x] AC2: `Environment::stop()` cancels the environment token and joins the
       server task, the drain controller, and the event listener; it never
       calls `abort()`.
-- [ ] AC3: `stop()` panics with a message naming the failing task on any join
+- [x] AC3: `stop()` panics with a message naming the failing task on any join
       error or drain timeout, and keeps its current signature.
-- [ ] AC4: A stopped environment can be started again and serves requests.
-- [ ] AC5: The health-check API contract tests pass without using the
+- [x] AC4: A stopped environment can be started again and serves requests.
+- [x] AC5: The health-check API contract tests pass without using the
       environment's `server` field to stop the HTTP tracker.
-- [ ] AC6: `http_only_public_tracker` stops gracefully on SIGINT and on Unix
+- [x] AC6: `http_only_public_tracker` stops gracefully on SIGINT and on Unix
       SIGTERM and exits with code 0.
-- [ ] AC7: No HTTP library module subscribes to OS signals; the legacy
+- [x] AC7: No HTTP library module subscribes to OS signals; the legacy
       `HttpServer::start`/`stop` API still compiles and its tests pass.
-- [ ] AC8: The shutdown task inventory and feature documentation reflect the
+- [x] AC8: The shutdown task inventory and feature documentation reflect the
       migration.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -322,14 +323,14 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC1   | DONE                   | `Environment::start_with_health_check` calls `start_with_cancellation_and_health_check`; HTTPS health-check contract test passes with the injected trusted client. |
+| AC2   | DONE                   | `stop()` cancels once and calls `join_owned_tasks`; no `abort()` in `environment.rs`. Tests: listener finishes through cancellation (mutation: abort fails 3 tests). |
+| AC3   | DONE                   | Signature unchanged; `join_owned_tasks` names each failing task. Tests: server failure reported after the listener joins; drain timeout reported (both mutation-proven). |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again` (mutation: pre-cancelled token fails it). |
+| AC5   | DONE                   | Contract tests use `Unstarted` and `Environment::stop()`; 3/3 runs pass without the port-release sleep. |
+| AC6   | DONE                   | Evidence V2 (SIGTERM) and V3 (SIGINT): orderly stop, exit 0. |
+| AC7   | DONE                   | Evidence V4: no direct `tokio::signal` in `packages/axum-http-server/src`; legacy path keeps its indirect subscription until SI-19; legacy unit test passes. |
+| AC8   | DONE                   | Task inventory findings 4 and 8; feature README status. |
 
 ## Dependencies
 
@@ -357,7 +358,7 @@ added by this migration have been reverted or migrated away from it.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` (see the 2026-10-05 12:48 UTC progress-log entry)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
