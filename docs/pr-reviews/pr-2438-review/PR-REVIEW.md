@@ -59,7 +59,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: the A2 row of `docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md` inspected; the EPIC's 60 `path:line` citations resolve at `050726d46` with 0 failures; `linter markdown` and `linter cspell` run in the orchestrator's gate.
 - Resolution reference: `docs(issues): [#2411] correct the A2, A6 and connection-ID rows after review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4184991883>
 
 ### F2 - A6's case and effect contradict its confirmed status
 
@@ -72,7 +72,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: the A6 row inspected against `packages/tracker-core/src/scrape_handler.rs:72` and `packages/tracker-core/src/scrape_handler.rs:186` at `050726d46`; `linter markdown` and `linter cspell` run in the orchestrator's gate.
 - Resolution reference: `docs(issues): [#2411] correct the A2, A6 and connection-ID rows after review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4184992253>
 
 ### F3 - Connection-ID control overstates source-address binding
 
@@ -85,7 +85,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: the connection-ID row inspected against `packages/udp-core/src/connection_cookie.rs:66` at `050726d46`, whose cited line is the module's "Fingerprint is NOT client authentication" section; `linter markdown` and `linter cspell` run in the orchestrator's gate.
 - Resolution reference: `docs(issues): [#2411] correct the A2, A6 and connection-ID rows after review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4184992626>
 
 ## Processing Log
 
@@ -93,6 +93,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-10-05 13:40 UTC - Copilot review 5415361603 (round 1) recommended changes with three inline findings, recorded as F1 (`F001`, Minor), F2 (`F002`, Major) and F3 (`F003`, Major). Its overview restates them and adds no separate request, so it is summary context, not a row.
 - 2026-10-05 13:43 UTC - Fixed F1, F2 and F3 in `docs(issues): [#2411] correct the A2, A6 and connection-ID rows after review`, changing only the three rows; the EPIC's citations resolve at `050726d46` with 0 failures.
 - 2026-10-05 13:44 UTC - Recorded F1 to F3 here in `docs(pr-reviews): [#2411] add the PR #2438 review audit record`. The thread replies follow the push, so each Reply URL is the template's placeholder until its reply exists.
+- 2026-10-05 14:16 UTC - Pushed the fix and the record after the hub gate passed, replied on the three threads, and recorded each reply URL in its entry.
 
 ## Completion Rules
 
