@@ -8,6 +8,7 @@ use torrust_tracker_udp_protocol::{AnnounceEvent, Response, TransactionId};
 use url::Url;
 
 use super::app::OutputFormat;
+use super::scrape;
 use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::udp::checker::AnnounceParams;
 use crate::console::clients::udp::responses::dto::SerializableResponse;
@@ -66,7 +67,7 @@ pub enum Command {
     Scrape {
         #[arg(value_parser = parse_socket_addr)]
         tracker_socket_addr: SocketAddr,
-        #[arg(value_parser = parse_info_hash, num_args = 1..=74, value_delimiter = ' ')]
+        #[arg(value_parser = parse_info_hash, num_args = 1.., value_delimiter = ' ')]
         info_hashes: Vec<TorrustInfoHash>,
         #[arg(long, value_enum, default_value_t = OutputFormat::Json)]
         format: OutputFormat,
@@ -118,7 +119,17 @@ pub async fn run(command: Command) -> anyhow::Result<()> {
             tracker_socket_addr: remote_addr,
             info_hashes,
             format,
-        } => (handle_scrape(remote_addr, &info_hashes).await?, format),
+        } => {
+            let response = handle_scrape(remote_addr, &info_hashes).await?;
+
+            if let Response::Scrape(scrape_response) = &response
+                && let Some(warning) = scrape::truncation_warning(info_hashes.len(), scrape_response.torrent_stats.len())
+            {
+                eprintln!("{warning}");
+            }
+
+            (response, format)
+        }
     };
 
     let response: SerializableResponse = response.into();
@@ -228,4 +239,39 @@ fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
     }
 
     Ok(port)
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser;
+
+    use super::Command;
+
+    #[derive(Parser)]
+    struct Cli {
+        #[command(subcommand)]
+        command: Command,
+    }
+
+    /// The scrape limit belongs to each tracker, not to the client, so the
+    /// client must be able to send more than our tracker's 74.
+    #[test]
+    fn it_should_accept_more_than_74_info_hashes_for_a_scrape() {
+        // Arrange
+        let info_hashes: Vec<String> = (1..=75).map(|index: u32| format!("{index:040x}")).collect();
+
+        // Act
+        let parsed = Cli::try_parse_from(
+            ["tracker_client", "scrape", "127.0.0.1:6969"]
+                .into_iter()
+                .map(String::from)
+                .chain(info_hashes),
+        );
+
+        // Assert
+        match parsed.expect("75 info hashes should be accepted").command {
+            Command::Scrape { info_hashes, .. } => assert_eq!(info_hashes.len(), 75),
+            Command::Announce { .. } => panic!("expected a scrape command"),
+        }
+    }
 }
