@@ -52,6 +52,8 @@ pub async fn graceful_shutdown_on_cancellation(
                 );
                 return GracefulShutdownOutcome::TimedOut;
             }
+            // Polling adds up to 1 s per drain with idle keep-alive connections (e.g. tests). If that becomes a
+            // bottleneck: wake on connection-count changes, or add a cancellation kind that skips the drain.
             () = sleep(Duration::from_secs(1)) => (),
         }
     }
