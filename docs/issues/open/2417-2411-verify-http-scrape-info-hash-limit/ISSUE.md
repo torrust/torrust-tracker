@@ -61,7 +61,8 @@ the spam and abuse EPIC draft
 ### Why 74 Has Different Reasons per Protocol
 
 - **UDP: protocol constraint.** 74 is the number of info hashes whose scrape
-  response fits in the conventional UDP packet budget (BEP 15). It comes from
+  request fits in the tracker's UDP packet budget: (1496 - 16) / 20 (BEP 15's
+  "up to about 74 torrents"). It comes from
   the transport, not from a policy choice.
 - **HTTP: no such constraint.** The response is a TCP stream and the request
   URL has no protocol-level length limit relevant here (V1 returned 1000
@@ -193,7 +194,8 @@ Questions T2 had to answer (answered above):
 
 ## Architectural Decisions
 
-- Related ADRs: none known.
+- Related ADRs: [20261005124222](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md),
+  created by this issue (T3).
 - ADRs to create: one root ADR in `docs/adrs/` (the decision spans
   `udp-protocol`, `http-protocol`, `http-core`, and `tracker-core`), following
   `.github/skills/dev/planning/create-adr/SKILL.md`. It records the T2
@@ -215,8 +217,8 @@ The reproduced defect is the mismatch between documentation and behavior; the
 correction may change the code (A/B) or only the documentation (C), depending
 on the T2 decision.
 
-M1 was reproduced during the requested draft review. M2 remains pending;
-record it before selecting the final behavior. V1 classifies the observed
+M1 was reproduced during the requested draft review, and M2 was recorded
+before the final behavior was selected (V2). V1 classifies the observed
 documentation mismatch separately from the unmeasured overload risk.
 
 ## Regression Test Strategy
@@ -266,7 +268,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | T6 | DONE | Final recheck | V3: 74, 75, and 1000 hashes returned 74, 75, and 100 entries |
 | T7 | DONE | Client: no cap, truncation warning | K1 proven red before removing the cap; K1-K4 green; V4 shows the warning for UDP 75 and HTTP 1000, none for HTTP 74 |
 | T8 | DONE | Binary-level client tests with fake trackers | K5-K8 green; mutation-checked (dropping the warning fails K5 and K7; counting raw HTTP params fails K8); fakes originally in `console/tracker-client/tests/tracker_client/fake_trackers/`, moved to `tests/common/fake_trackers/` by T9 |
-| T9 | DONE | Ride-along: monitor success-path test | Deferred item 14 of the closed refactor plan #1178, unblocked by T8's fakes. Fakes moved to `console/tracker-client/tests/common/fake_trackers/`; `FakeUdpTracker` answers announces and has `silent()`, replacing the ad-hoc sink; the success-path test is mutation-checked; the refactor plan records the resolution. Not an acceptance criterion of this issue |
+| T9 | DONE | Ride-along: monitor success-path test | Deferred item 14 of the closed refactor plan #1178, unblocked by T8's fakes. Fakes moved to `console/tracker-client/tests/common/fake_trackers/`; `FakeUdpTracker` answers announces and has `start_silent()` (named `silent()` when T9 was done), replacing the ad-hoc sink; the success-path test is mutation-checked; the refactor plan records the resolution. Not an acceptance criterion of this issue |
 
 ## Commit Points
 
