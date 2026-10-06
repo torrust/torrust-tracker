@@ -153,7 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC5: EPIC #1669's Pre-publish API checklist records completion for the covered crates.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`, or the maintainer has explicitly waived them
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -168,15 +168,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Manual Verification Scenarios
 
-Open question for review: the change is a compile-time API attribute with no runtime behavior
-change, so the proposal is to waive manual scenarios, as was done for #2435. If the maintainer
-prefers one, a candidate is M1: a scratch crate outside the workspace depends on one changed crate
-by path and shows that an exhaustive `match` on its error enum fails to compile with `E0004`
-(non-exhaustive patterns).
+Manual verification is mandatory even when automated tests pass. `#[non_exhaustive]` has no effect
+inside the defining crate, so only a dependent crate shows the change: M1 is that real downstream use.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1  | Downstream exhaustive match is rejected (only if not waived) | Scratch crate depending on a changed crate by path; `cargo check` | `E0004` naming the wildcard requirement | TODO | `manual-verification-evidence.md` section V1 |
+| M1  | A downstream crate must handle new variants | Scratch crate outside the workspace depending on one changed crate by path; write an exhaustive `match` on its error enum and run `cargo check`; then add a `_` arm and run `cargo check` again | The exhaustive `match` fails with `E0004` (non-exhaustive patterns); the same `match` with a `_` arm compiles | TODO | `manual-verification-evidence.md` section V1 |
 
 ### Disposable Verification Scripts
 
