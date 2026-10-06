@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 16:02"
+last-updated-utc: "2026-10-06 16:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -251,8 +251,8 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -267,6 +267,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 15:51 UTC - GitHub Copilot - T3 done, mirroring SI-16's HTTP example: `main` installs the Unix signal streams before printing readiness (non-Unix uses `ctrl_c()`), prints which signal it received, and calls `Environment::stop()`. M2 (SIGTERM) and M3 (SIGINT): announce succeeds, orderly stop, exit 0, socket released (evidence V2, V3). M4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps its indirect subscription until SI-19 (V4).
 - 2026-10-06 15:55 UTC - GitHub Copilot - T4 done: task inventory findings 4 and 8 now record the migrated UDP environment and example, and name SI-23 and SI-24 as the remaining legacy test-environment users. `questions.md` is the decision record and stays unchanged, as in SI-16. The EPIC's findings 2 and 8 still say "until SI-17"; they are updated at archive time, as SI-16's were.
 - 2026-10-06 16:02 UTC - GitHub Copilot - AC review against the current tree: AC1-AC9 hold, each with its evidence in Acceptance Verification. Pre-push checks pass in 1 m 22 s (nightly `rustc 1.101.0-nightly (ea137335b 2026-10-05)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). Completion review: no `implementation-retrospective.md` needed. The design held as specified (D1-D7, no D5 fallback needed). The two material discoveries are recorded in the 15:31 entry: the UDP socket is freed only when the receive-loop task ends, so the socket test also guards the await (unlike HTTP); and the UDP stop adds no measurable suite time. Next: the independent Task Reviewer report, then the implementation PR.
+- 2026-10-06 16:15 UTC - GitHub Copilot - Task Reviewer: REVIEW PASSED (report in `agent-review-reports.md`), with one Minor and five Nits. Fixed: (1) the failed-start test now asserts the panic comes from the server start, not any panic; (2) the join-order test matches the exact failure text, which also proves no listener failure is reported; (4) `std::io` is imported instead of written in full; (5) the evidence file's "None yet" now records the reviewer's re-run. Kept: (3) the restart test's trailing cleanup `stop`, the same shape as SI-16's restart test; (6) the REST API test's "udp server" message, out of scope here; SI-23's T2 replaces that line when it migrates the consumer. The 7 environment tests pass after the fixes.
 
 ## Acceptance Criteria
 

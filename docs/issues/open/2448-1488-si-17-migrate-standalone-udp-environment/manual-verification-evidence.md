@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
-last-updated-utc: "2026-10-06 15:51"
+last-updated-utc: "2026-10-06 16:15"
 ---
 
 # Manual Verification Evidence - Standalone UDP Environment and Example
@@ -197,4 +197,5 @@ example no longer use that path.
 
 ## Failures and Follow-up
 
-None yet.
+None. The Task Reviewer re-ran V2 and V3 on the committed head and got the same
+result (see `agent-review-reports.md`).
