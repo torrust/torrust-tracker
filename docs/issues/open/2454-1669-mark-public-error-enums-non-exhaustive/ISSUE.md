@@ -115,7 +115,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
-| T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. |
+| T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. |
 | T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
 | T5  | TODO   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. |
