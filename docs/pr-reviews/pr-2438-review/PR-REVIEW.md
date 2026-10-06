@@ -45,6 +45,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | `review-finding:pr-2438-f1` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2438-f2` | Copilot | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2438-f3` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2438-f4` | Human | Minor | metadata | ORIGINAL | FIXED | UNRESOLVED |
+| F5 | `review-finding:pr-2438-f5` | Human | Nit | metadata | ORIGINAL | FIXED | UNRESOLVED |
+| F6 | `review-finding:pr-2438-f6` | Human | Suggestion | documentation | ORIGINAL | FIXED | UNRESOLVED |
 
 ## Finding Details
 
@@ -87,6 +90,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4184992626>
 
+### F4 - The #2417 sub-issue row claims an in-progress status
+
+- PR number: 2438
+- Source review ID: 5431638596
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4197940880>
+- Concern: The alignment set the #2417 sub-issue row to `IN_PROGRESS`, but #2417 closed when #2444 merged, so the status is false at merge time; the archive PR #2457 sets the row to `DONE` and moves its link to the closed folder, and both PRs edit the row.
+- Solution: The maintainer's first option: the row is restored to its `develop` text (`TODO`, the open-folder link), so this PR no longer changes it and #2457 owns the change; that also removes one of the hunks both PRs edit.
+- Current-tree verification: the #2417 row of `docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md` is identical to the row on `develop` at `9be79fc5a`; the Review basis line makes no claim about the row; `linter markdown` and `linter cspell` run in the orchestrator's gate.
+- Resolution reference: `docs(issues): [#2411] record the HTTP request-size control and stamp the alignment after review`
+- Follow-up PR URL: N/A
+- Reply URL: (pending — recorded after the reply is posted)
+
+### F5 - The stamp and the Progress Log predate the alignment commit
+
+- PR number: 2438
+- Source review ID: 5431638596
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4197940902>
+- Concern: `last-updated-utc` still read `2026-10-05 13:13` after the alignment commit edited the EPIC on 2026-10-06, and the Progress Log had no entry for that edit; no convention exempts review-alignment commits from the stamp.
+- Solution: `last-updated-utc` now carries the minute of the fix commit, and one Progress Log entry in the log's form (actor `da2ce7`) records what the alignment restated and what the fix adds.
+- Current-tree verification: the EPIC's `last-updated-utc` reads `2026-10-06 16:43`, and its last Progress Log entry carries the same stamp and covers both commits; `linter markdown` and `linter cspell` run in the orchestrator's gate.
+- Resolution reference: `docs(issues): [#2411] record the HTTP request-size control and stamp the alignment after review`
+- Follow-up PR URL: N/A
+- Reply URL: (pending — recorded after the reply is posted)
+
+### F6 - The HTTP scrape cap does not bound query parsing
+
+- PR number: 2438
+- Source review ID: 5431638596
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2438#discussion_r4197940916>
+- Concern: The HTTP scrape cap bounds decoding, but the whole query string is split and every `name=value` pair stored in a `MultiMap` before `Scrape::try_from` applies it, and the server configures no header or URI size limit, so only Hyper's default request buffer limit bounds that parsing; the Existing Controls table did not record it.
+- Solution: A new `HTTP request size` row in Existing Controls (cases A1 and A3) cites the server's header-read and keep-alive timeout lines, states that no header or URI size limit is configured so Hyper's default buffer limit applies, and cites the parse order from the extractor through `Query::from_str` and its `MultiMap` insertion to the cap in `Scrape::try_from`; the A3 note gains the clause that the cap bounds decoding, not query parsing.
+- Current-tree verification: at `9be79fc5a`, `packages/axum-server/src/custom_axum_server.rs:68` and `packages/axum-server/src/custom_axum_server.rs:72` set only the timeouts, and no `max_buf_size`, `max_headers`, body or URI limit appears in `packages/axum-server/src`, `packages/axum-http-server/src` or `src`; `packages/axum-http-server/src/v1/extractors/scrape_request.rs:70`, `packages/http-protocol/src/v1/query.rs:112`, `packages/http-protocol/src/v1/query.rs:120` and `packages/http-protocol/src/v1/requests/scrape.rs:66` confirm the parse order; the EPIC's 65 citations resolve at `7970cdf0a` with 0 failures; `linter markdown` and `linter cspell` run in the orchestrator's gate.
+- Resolution reference: `docs(issues): [#2411] record the HTTP request-size control and stamp the alignment after review`
+- Follow-up PR URL: N/A
+- Reply URL: (pending — recorded after the reply is posted)
+
 ## Processing Log
 
 - 2026-10-05 13:22 UTC - Opened the pull request with the inventory review commit, `docs(issues): [#2411] review the abuse-case inventory against the code`.
@@ -94,6 +136,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-10-05 13:43 UTC - Fixed F1, F2 and F3 in `docs(issues): [#2411] correct the A2, A6 and connection-ID rows after review`, changing only the three rows; the EPIC's citations resolve at `050726d46` with 0 failures.
 - 2026-10-05 13:44 UTC - Recorded F1 to F3 here in `docs(pr-reviews): [#2411] add the PR #2438 review audit record`. The thread replies follow the push, so each Reply URL is the template's placeholder until its reply exists.
 - 2026-10-05 14:16 UTC - Pushed the fix and the record after the hub gate passed, replied on the three threads, and recorded each reply URL in its entry.
+- 2026-10-06 16:35 UTC - Human review 5431638596 (josecelano, round 2, at `docs(issues): [#2411] align the A3 note and the scrape-count control with #2444`) found the citations sound and raised three inline findings, recorded under his own IDs F4 (Minor), F5 (Nit) and F6 (Suggestion), which follow F1 to F3. He noted the merge order with the archive PR #2457, which edits the same #2417 row.
+- 2026-10-06 16:43 UTC - Fixed F4, F5 and F6 in `docs(issues): [#2411] record the HTTP request-size control and stamp the alignment after review`: the #2417 row is back to its `develop` text, the stamp and a Progress Log entry record the alignment, and the HTTP request size control and the A3 clause are added; the EPIC's citations resolve at `7970cdf0a` with 0 failures.
+- 2026-10-06 16:44 UTC - Recorded F4 to F6 here in `docs(pr-reviews): [#2411] record the PR #2438 round-2 findings F4-F6`. The replies follow the push, so each Reply URL is pending and each thread stays `UNRESOLVED` until its reply is posted.
 
 ## Completion Rules
 
