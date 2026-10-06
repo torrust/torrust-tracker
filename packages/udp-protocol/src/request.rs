@@ -135,9 +135,12 @@ impl Request {
                     ));
                 }
 
-                let info_hashes = chunks.iter().copied().map(InfoHash).collect::<Vec<_>>();
-
-                let info_hashes = Vec::from(&info_hashes[..max_scrape_info_hashes.min(info_hashes.len())]);
+                let info_hashes = chunks
+                    .iter()
+                    .take(max_scrape_info_hashes)
+                    .copied()
+                    .map(InfoHash)
+                    .collect::<Vec<_>>();
 
                 Ok((ScrapeRequest {
                     connection_id,
