@@ -84,12 +84,7 @@ pub(crate) async fn handle_packet(
 
     let start_time = Instant::now();
 
-    let (response, opt_req_kind) = match Request::parse_bytes(
-        &udp_request.payload[..udp_request.payload.len()],
-        MAX_SCRAPE_INFO_HASHES,
-    )
-    .map_err(Error::from)
-    {
+    let (response, opt_req_kind) = match Request::parse_bytes(&udp_request.payload, MAX_SCRAPE_INFO_HASHES).map_err(Error::from) {
         Ok(request) => match handle_request(
             request,
             udp_request.from,
