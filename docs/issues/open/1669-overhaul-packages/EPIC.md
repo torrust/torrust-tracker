@@ -71,7 +71,7 @@ landscape shifts (new packages, splits, significant growth).
 
 The workspace currently contains **25 tracker packages** (24 `torrust-tracker-*` crates plus the root
 `torrust-tracker` crate). Internal developer tools under `contrib/dev-tools/` that are workspace
-members with `publish = []` are not listed.
+members with `publish = false` are not listed.
 "Published" means a crate with that name exists on crates.io (verified October 2026).
 
 Packages that have been extracted to standalone repositories are listed as `(extracted)`.
