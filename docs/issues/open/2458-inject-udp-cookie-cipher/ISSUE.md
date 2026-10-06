@@ -282,11 +282,15 @@ Arrange-Act-Assert review.
 - [x] Reproduction attempted and classified before review
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
