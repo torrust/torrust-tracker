@@ -88,10 +88,6 @@ pub struct BasicInfo {
 /// An [`Option<Info>`] which is:
 /// - `Some(Info)` if the torrent exists in the repository.
 /// - `None` if the torrent is not found.
-///
-/// # Panics
-///
-/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub async fn get_torrent_info(
     in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
@@ -133,10 +129,6 @@ pub async fn get_torrent_info(
 ///
 /// A vector of [`BasicInfo`] structs representing the summarized data of the
 /// torrents.
-///
-/// # Panics
-///
-/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub async fn get_torrents_page(
     in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
@@ -175,10 +167,6 @@ pub async fn get_torrents_page(
 /// # Returns
 ///
 /// A vector of [`BasicInfo`] structs for the requested torrents.
-///
-/// # Panics
-///
-/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub async fn get_torrents(
     in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,

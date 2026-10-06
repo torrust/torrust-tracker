@@ -1,4 +1,8 @@
-use std::convert::Infallible;
+//! Swarm coordination registry.
+//!
+//! Methods that cannot fail return plain values, per
+//! [ADR-20261005145329](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
+// adr: docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
 use std::sync::Arc;
 
 use crossbeam_skiplist::SkipMap;
@@ -41,21 +45,12 @@ impl Registry {
     /// * `peer` - The peer to upsert.
     /// * `opt_persistent_torrent` - The optional persisted data about a torrent
     ///   (number of downloads for the torrent).
-    ///
-    /// # Returns
-    ///
-    /// Returns `true` if the number of downloads was increased because the peer
-    /// completed the download.
-    ///
-    /// # Errors
-    ///
-    /// This function panics if the lock for the swarm handle cannot be acquired.
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<NumberOfDownloads>,
-    ) -> Result<(), Error> {
+    ) {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {
                 let number_of_downloads = opt_persistent_torrent.unwrap_or_default();
@@ -80,8 +75,6 @@ impl Registry {
         };
 
         swarm_handle.value().lock().await.handle_announcement(peer).await;
-
-        Ok(())
     }
 
     /// Inserts a new swarm. Only used for testing purposes.
@@ -161,16 +154,13 @@ impl Registry {
     /// # Returns
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if found.
-    ///
-    /// # Errors
-    ///
-    /// This function panics if the lock for the swarm handle cannot be acquired.
-    pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
+    #[must_use]
+    pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
         match self.swarms.get(info_hash) {
-            None => Ok(None),
+            None => None,
             Some(swarm_handle) => {
                 let swarm = swarm_handle.value().lock().await;
-                Ok(Some(swarm.metadata()))
+                Some(swarm.metadata())
             }
         }
     }
@@ -181,16 +171,9 @@ impl Registry {
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if it's
     /// found or a zeroed metadata struct if not.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
-    pub async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
-        match self.get_swarm_metadata(info_hash).await {
-            Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
-            Ok(None) => Ok(SwarmMetadata::zeroed()),
-        }
+    #[must_use]
+    pub async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
+        self.get_swarm_metadata(info_hash).await.unwrap_or_else(SwarmMetadata::zeroed)
     }
 
     /// Retrieves torrent peers for a given torrent and client, excluding the
@@ -203,22 +186,13 @@ impl Registry {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent, excluding the requesting client.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
-    pub async fn get_peers_peers_excluding(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-        limit: usize,
-    ) -> Result<Vec<Arc<peer::Peer>>, Error> {
+    #[must_use]
+    pub async fn get_peers_peers_excluding(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
-            None => Ok(vec![]),
+            None => vec![],
             Some(swarm_handle) => {
                 let swarm = swarm_handle.lock().await;
-                Ok(swarm.peers_excluding(&peer.peer_addr, Some(limit)))
+                swarm.peers_excluding(&peer.peer_addr, Some(limit))
             }
         }
     }
@@ -232,17 +206,13 @@ impl Registry {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
-    pub async fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
+    #[must_use]
+    pub async fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
-            None => Ok(vec![]),
+            None => vec![],
             Some(swarm_handle) => {
                 let swarm = swarm_handle.lock().await;
-                Ok(swarm.peers(Some(limit)))
+                swarm.peers(Some(limit))
             }
         }
     }
@@ -287,12 +257,7 @@ impl Registry {
     ///
     /// A peer is considered inactive if its last update timestamp is older than
     /// the provided cutoff time.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<usize, Error> {
+    pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> usize {
         tracing::info!(
             "Removing inactive peers since: {:?} ...",
             convert_from_timestamp_to_datetime_utc(current_cutoff)
@@ -307,19 +272,14 @@ impl Registry {
 
         tracing::info!(inactive_peers_removed = inactive_peers_removed);
 
-        Ok(inactive_peers_removed)
+        inactive_peers_removed
     }
 
     /// Removes torrent entries that have no active peers.
     ///
     /// Depending on the tracker policy, torrents without any peers may be
     /// removed to conserve memory.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
+    pub async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> u64 {
         tracing::info!("Removing peerless torrents ...");
 
         let mut peerless_torrents_removed = 0;
@@ -342,7 +302,7 @@ impl Registry {
 
         tracing::info!(peerless_torrents_removed = peerless_torrents_removed);
 
-        Ok(peerless_torrents_removed)
+        peerless_torrents_removed
     }
 
     /// Imports persistent torrent data into the in-memory repository.
@@ -383,12 +343,8 @@ impl Registry {
     /// # Returns
     ///
     /// An [`AggregateActiveSwarmMetadata`] struct with the aggregated metrics.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateActiveSwarmMetadata, Error> {
+    #[must_use]
+    pub async fn get_aggregate_swarm_metadata(&self) -> AggregateActiveSwarmMetadata {
         let mut metrics = AggregateActiveSwarmMetadata::default();
 
         for swarm_handle in &self.swarms {
@@ -400,7 +356,7 @@ impl Registry {
             metrics.total_torrents += 1;
         }
 
-        Ok(metrics)
+        metrics
     }
 
     /// Counts the number of torrents that are peerless (i.e., have no active
@@ -409,12 +365,8 @@ impl Registry {
     /// # Returns
     ///
     /// A `usize` representing the number of peerless torrents.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub async fn count_peerless_torrents(&self) -> Result<usize, Error> {
+    #[must_use]
+    pub async fn count_peerless_torrents(&self) -> usize {
         let mut peerless_torrents = 0;
 
         for swarm_handle in &self.swarms {
@@ -425,7 +377,7 @@ impl Registry {
             }
         }
 
-        Ok(peerless_torrents)
+        peerless_torrents
     }
 
     /// Counts the total number of peers across all torrents.
@@ -433,12 +385,8 @@ impl Registry {
     /// # Returns
     ///
     /// A `usize` representing the total number of peers.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub async fn count_peers(&self) -> Result<usize, Error> {
+    #[must_use]
+    pub async fn count_peers(&self) -> usize {
         let mut peers = 0;
 
         for swarm_handle in &self.swarms {
@@ -447,7 +395,7 @@ impl Registry {
             peers += swarm.len();
         }
 
-        Ok(peers)
+        peers
     }
 
     #[must_use]
@@ -464,9 +412,6 @@ impl Registry {
         self.swarms.contains_key(key)
     }
 }
-
-/// The registry currently exposes no recoverable error cases.
-pub type Error = Infallible;
 
 #[derive(Clone, Debug, Default)]
 pub struct AggregateActivityMetadata {
@@ -544,7 +489,7 @@ mod tests {
             let swarms = Arc::new(Registry::default());
             let info_hash = sample_info_hash();
             let peer = sample_peer();
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
             assert_eq!(swarms.len(), 1);
         }
 
@@ -555,7 +500,7 @@ mod tests {
 
             let info_hash = sample_info_hash();
             let peer = sample_peer();
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
             assert!(!swarms.is_empty());
         }
 
@@ -564,7 +509,7 @@ mod tests {
             let swarms = Arc::new(Registry::default());
             let info_hash = sample_info_hash();
             let peer = sample_peer();
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
 
             assert!(!swarms.is_empty());
         }
@@ -582,7 +527,7 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await;
 
                 assert!(swarms.get(&info_hash).is_some());
             }
@@ -593,8 +538,8 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
-                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await;
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await;
 
                 assert!(swarms.get(&info_hash).is_some());
             }
@@ -620,9 +565,9 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &peer, None).await;
 
-                let peers = swarms.get_swarm_peers(&info_hash, 74).await.unwrap();
+                let peers = swarms.get_swarm_peers(&info_hash, 74).await;
 
                 assert_eq!(peers, vec![Arc::new(peer)]);
             }
@@ -631,7 +576,7 @@ mod tests {
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
                 let swarms = Arc::new(Registry::default());
 
-                let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).await.unwrap();
+                let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).await;
 
                 assert_eq!(peers, Vec::new());
             }
@@ -653,10 +598,10 @@ mod tests {
                         event: AnnounceEvent::Completed,
                     };
 
-                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &peer, None).await;
                 }
 
-                let peers = swarms.get_swarm_peers(&info_hash, 74).await.unwrap();
+                let peers = swarms.get_swarm_peers(&info_hash, 74).await;
 
                 assert_eq!(peers.len(), 74);
             }
@@ -682,8 +627,7 @@ mod tests {
 
                     let peers = swarms
                         .get_peers_peers_excluding(&sample_info_hash(), &sample_peer(), MAX_PEERS)
-                        .await
-                        .unwrap();
+                        .await;
 
                     assert_eq!(peers, vec![]);
                 }
@@ -695,9 +639,9 @@ mod tests {
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &peer, None).await;
 
-                    let peers = swarms.get_peers_peers_excluding(&info_hash, &peer, MAX_PEERS).await.unwrap();
+                    let peers = swarms.get_peers_peers_excluding(&info_hash, &peer, MAX_PEERS).await;
 
                     assert_eq!(peers, vec![]);
                 }
@@ -710,7 +654,7 @@ mod tests {
 
                     let excluded_peer = sample_peer();
 
-                    swarms.handle_announcement(&info_hash, &excluded_peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &excluded_peer, None).await;
 
                     // Add 74 peers
                     for idx in 2..=75 {
@@ -724,13 +668,10 @@ mod tests {
                             event: AnnounceEvent::Completed,
                         };
 
-                        swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash, &peer, None).await;
                     }
 
-                    let peers = swarms
-                        .get_peers_peers_excluding(&info_hash, &excluded_peer, MAX_PEERS)
-                        .await
-                        .unwrap();
+                    let peers = swarms.get_peers_peers_excluding(&info_hash, &excluded_peer, MAX_PEERS).await;
 
                     assert_eq!(peers.len(), 74);
                 }
@@ -755,7 +696,7 @@ mod tests {
                 let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
-                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await;
 
                 let _unused = swarms.remove(&info_hash).await;
 
@@ -774,7 +715,7 @@ mod tests {
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
 
-                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &peer, None).await;
 
                 // Cut off time is 1 second after the peer was updated
                 let inactive_peers_total = swarms.count_inactive_peers(peer.updated.add(Duration::from_secs(1))).await;
@@ -790,21 +731,12 @@ mod tests {
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
 
-                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &peer, None).await;
 
                 // Cut off time is 1 second after the peer was updated
-                swarms
-                    .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
-                    .await
-                    .unwrap();
+                swarms.remove_inactive_peers(peer.updated.add(Duration::from_secs(1))).await;
 
-                assert!(
-                    !swarms
-                        .get_swarm_peers(&info_hash, 74)
-                        .await
-                        .unwrap()
-                        .contains(&Arc::new(peer))
-                );
+                assert!(!swarms.get_swarm_peers(&info_hash, 74).await.contains(&Arc::new(peer)));
             }
 
             async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Registry> {
@@ -813,13 +745,10 @@ mod tests {
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
-                swarms.handle_announcement(info_hash, &peer, None).await.unwrap();
+                swarms.handle_announcement(info_hash, &peer, None).await;
 
                 // Remove the peer
-                swarms
-                    .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
-                    .await
-                    .unwrap();
+                swarms.remove_inactive_peers(peer.updated.add(Duration::from_secs(1))).await;
 
                 swarms
             }
@@ -835,7 +764,7 @@ mod tests {
                     ..Default::default()
                 };
 
-                swarms.remove_peerless_torrents(&tracker_policy).await.unwrap();
+                swarms.remove_peerless_torrents(&tracker_policy).await;
 
                 assert!(swarms.get(&info_hash).is_none());
             }
@@ -883,7 +812,7 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &peer, None).await;
 
                 let torrent_entry_info = torrent_entry_info(swarms.get(&info_hash).unwrap()).await;
 
@@ -918,7 +847,7 @@ mod tests {
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
-                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &peer, None).await;
 
                     let torrent_entries = swarms.get_paginated(None);
 
@@ -962,12 +891,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await;
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await;
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 0, limit: 1 }));
@@ -997,12 +926,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await;
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await;
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
@@ -1032,12 +961,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await;
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await;
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
@@ -1064,7 +993,7 @@ mod tests {
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
                 let swarms = Arc::new(Registry::default());
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await;
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1081,12 +1010,9 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
                 let swarms = Arc::new(Registry::default());
 
-                swarms
-                    .handle_announcement(&sample_info_hash(), &leecher(), None)
-                    .await
-                    .unwrap();
+                swarms.handle_announcement(&sample_info_hash(), &leecher(), None).await;
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await;
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1103,12 +1029,9 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
                 let swarms = Arc::new(Registry::default());
 
-                swarms
-                    .handle_announcement(&sample_info_hash(), &seeder(), None)
-                    .await
-                    .unwrap();
+                swarms.handle_announcement(&sample_info_hash(), &seeder(), None).await;
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await;
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1125,12 +1048,9 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
                 let swarms = Arc::new(Registry::default());
 
-                swarms
-                    .handle_announcement(&sample_info_hash(), &complete_peer(), None)
-                    .await
-                    .unwrap();
+                swarms.handle_announcement(&sample_info_hash(), &complete_peer(), None).await;
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await;
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1149,15 +1069,12 @@ mod tests {
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
-                    swarms
-                        .handle_announcement(&gen_seeded_infohash(i), &leecher(), None)
-                        .await
-                        .unwrap();
+                    swarms.handle_announcement(&gen_seeded_infohash(i), &leecher(), None).await;
                 }
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await;
                 let result_b = start_time.elapsed();
 
                 assert_eq!(
@@ -1183,7 +1100,7 @@ mod tests {
                 #[tokio::test]
                 async fn no_peerless_torrents() {
                     let swarms = Arc::new(Registry::default());
-                    assert_eq!(swarms.count_peerless_torrents().await.unwrap(), 0);
+                    assert_eq!(swarms.count_peerless_torrents().await, 0);
                 }
 
                 #[tokio::test]
@@ -1192,12 +1109,12 @@ mod tests {
                     let peer = sample_peer();
 
                     let swarms = Arc::new(Registry::default());
-                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &peer, None).await;
 
                     let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
-                    swarms.remove_inactive_peers(current_cutoff).await.unwrap();
+                    swarms.remove_inactive_peers(current_cutoff).await;
 
-                    assert_eq!(swarms.count_peerless_torrents().await.unwrap(), 1);
+                    assert_eq!(swarms.count_peerless_torrents().await, 1);
                 }
             }
 
@@ -1210,7 +1127,7 @@ mod tests {
                 #[tokio::test]
                 async fn no_peers() {
                     let swarms = Arc::new(Registry::default());
-                    assert_eq!(swarms.count_peers().await.unwrap(), 0);
+                    assert_eq!(swarms.count_peers().await, 0);
                 }
 
                 #[tokio::test]
@@ -1219,9 +1136,9 @@ mod tests {
                     let peer = sample_peer();
 
                     let swarms = Arc::new(Registry::default());
-                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+                    swarms.handle_announcement(&info_hash, &peer, None).await;
 
-                    assert_eq!(swarms.count_peers().await.unwrap(), 1);
+                    assert_eq!(swarms.count_peers().await, 1);
                 }
             }
         }
@@ -1241,9 +1158,9 @@ mod tests {
 
                 let infohash = sample_info_hash();
 
-                swarms.handle_announcement(&infohash, &leecher(), None).await.unwrap();
+                swarms.handle_announcement(&infohash, &leecher(), None).await;
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await;
 
                 assert_eq!(
                     swarm_metadata,
@@ -1259,7 +1176,7 @@ mod tests {
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
                 let swarms = Arc::new(Registry::default());
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&sample_info_hash()).await.unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&sample_info_hash()).await;
 
                 assert_eq!(swarm_metadata, SwarmMetadata::zeroed());
             }
@@ -1286,7 +1203,7 @@ mod tests {
 
                 swarms.import_persistent(&persistent_torrents);
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await;
 
                 // Only the number of downloads is persisted.
                 assert_eq!(swarm_metadata.downloaded, 1);
@@ -1307,7 +1224,7 @@ mod tests {
 
                 swarms.import_persistent(&persistent_torrents);
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await;
 
                 // It takes the last value
                 assert_eq!(swarm_metadata.downloaded, 2);
@@ -1320,8 +1237,8 @@ mod tests {
                 let infohash = sample_info_hash();
 
                 // Insert a new the torrent entry
-                swarms.handle_announcement(&infohash, &leecher(), None).await.unwrap();
-                let initial_number_of_downloads = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap().downloaded;
+                swarms.handle_announcement(&infohash, &leecher(), None).await;
+                let initial_number_of_downloads = swarms.get_swarm_metadata_or_default(&infohash).await.downloaded;
 
                 // Try to import the torrent entry
                 let new_number_of_downloads = initial_number_of_downloads + 1;
@@ -1331,7 +1248,7 @@ mod tests {
 
                 // The number of downloads should not be changed
                 assert_eq!(
-                    swarms.get_swarm_metadata_or_default(&infohash).await.unwrap().downloaded,
+                    swarms.get_swarm_metadata_or_default(&infohash).await.downloaded,
                     initial_number_of_downloads
                 );
             }
@@ -1370,7 +1287,7 @@ mod tests {
 
             let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
         }
 
         #[tokio::test]
@@ -1394,7 +1311,7 @@ mod tests {
 
             let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
 
             swarms.remove(&info_hash).await.unwrap();
         }
@@ -1422,11 +1339,11 @@ mod tests {
             let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
             // Add the new torrent
-            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            swarms.handle_announcement(&info_hash, &peer, None).await;
 
             // Remove the peer
             let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
-            swarms.remove_inactive_peers(current_cutoff).await.unwrap();
+            swarms.remove_inactive_peers(current_cutoff).await;
 
             // Remove peerless torrents
 
@@ -1435,7 +1352,7 @@ mod tests {
                 ..Default::default()
             };
 
-            swarms.remove_peerless_torrents(&tracker_policy).await.unwrap();
+            swarms.remove_peerless_torrents(&tracker_policy).await;
         }
     }
 }

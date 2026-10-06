@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 09:12"
+last-updated-utc: "2026-10-06 10:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
+    - docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
     - docs/adrs/index.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - AGENTS.md
@@ -780,6 +781,17 @@ Each subsequent cycle produces one or more of:
 
 There is no predetermined end date or total subissue count.
 
+### Pre-publish API checklist
+
+Before the first crates.io publish of each package, audit its public error API
+([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
+
+1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
+   variant later is not a breaking change.
+2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
+3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
+   placeholder for future failures.
+
 ## Open Questions
 
 These questions do not block starting work, but need answers before specific subissues can
@@ -932,12 +944,16 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   #1860, #1861, #1864, SI-23 to SI-28, SI-34 and SI-35 as done; replaced `rest-api-core` with
   the #1938 REST API packages; regenerated the dependency lists from `cargo metadata`; recorded
   that the baseline analysis is largely done but not yet tracked in a GitHub issue.
+- 2026-10-05 21:07 UTC - Copilot - Added the Pre-publish API checklist (`#[non_exhaustive]`
+  audit of public error enums) from issue #2435 and its ADR, with maintainer approval.
 - 2026-10-06 08:41 UTC - GitHub Copilot - Applied PR #2441 review feedback: added Details rows
   for the newly listed subissues and SI-29; replaced the publication Yes/No column with the
   latest crates.io version and added the published root `torrust-tracker` crate; marked
   `bittorrent-primitives` as superseded and archived.
 - 2026-10-06 09:12 UTC - GitHub Copilot - Stated that the published count excludes
   `bittorrent-primitives`, and marked the repository as archived in the desired-state notes.
+- 2026-10-06 10:40 UTC - Copilot - Moved the Pre-publish API checklist from Open Questions to
+  Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 
 ## Acceptance Criteria
 

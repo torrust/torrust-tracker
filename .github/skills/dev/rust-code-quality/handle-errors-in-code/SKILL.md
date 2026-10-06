@@ -103,6 +103,13 @@ fn it_should_parse_valid_config() {
 }
 ```
 
+## When Public APIs Return `Result`
+
+Return `Result` only when an operation can fail today, crosses an I/O boundary, or is a trait or port
+with an existing or planned backend that can fail. Otherwise return a plain value; a real failure later is a
+semver-signalled breaking change. Never use `Infallible` or an empty error enum as a placeholder, and mark
+existing public error enums `#[non_exhaustive]` before first publish. See [ADR 20261005145329](../../../../../docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
+
 ## Quick Checklist
 
 - [ ] Error type uses `thiserror::Error` derive
