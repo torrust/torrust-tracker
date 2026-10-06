@@ -49,6 +49,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | `review-finding:pr-2441-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2441-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2441-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2441-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2441-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -143,6 +145,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193316929>
 
+### F8 - Published count does not say it excludes bittorrent-primitives
+
+- PR number: 2441
+- Source review ID: 5426172701
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193483447>
+- Concern: The Observation said "12 packages across the organisation" were published, but the `bittorrent-primitives` table now shows a thirteenth published Torrust crate (0.3.0), so the total read as one short.
+- Solution: The Observation now says "12 current-name packages ... excluding the superseded `bittorrent-primitives` 0.3.0"; the list itself was already correct.
+- Current-tree verification: Observation paragraph in the Package Inventory section of `docs/issues/open/1669-overhaul-packages/EPIC.md` inspected; pre-commit passed.
+- Resolution reference: `docs(issues): [#1669] state that the published count excludes bittorrent-primitives`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193557183>
+
+### F9 - Note 4 still says the bittorrent-primitives repository can be archived
+
+- PR number: 2441
+- Source review ID: 5426172701
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193483457>
+- Concern: The `bittorrent-primitives` section now says the repository is archived, but note 4 under the `torrust/torrust-bittorrent` desired-state table still said it "can be archived".
+- Solution: Note 4 now says the repository is archived. The same commit bumps the EPIC `last-updated-utc` with a matching Progress Log entry, avoiding a repeat of F7.
+- Current-tree verification: `gh api repos/torrust/bittorrent-primitives -q .archived` returned `true`; `grep -n "can be archived"` on the EPIC returns nothing.
+- Resolution reference: `docs(issues): [#1669] mark bittorrent-primitives repository archived in note 4`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193557441>
+
 ## Processing Log
 
 - 2026-10-05 18:28 UTC - Copilot review 5418930104 posted one inline finding, F1, and recommended approval.
@@ -151,6 +179,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-10-06 08:06 UTC - Rebased onto the latest `develop`, fixed F2 to F6 in one commit each, pushed once after the pre-push suite passed, and replied on each thread before recording them here.
 - 2026-10-06 08:27 UTC - Human review 5425730536 (da2ce7, round 2) approved the rebased head, confirmed F2 to F6, resolved their threads, and raised one optional Nit, F7.
 - 2026-10-06 08:49 UTC - Committed the F2 to F6 audit rows, added the crates.io version column to the EPIC at the maintainer's request, fixed F7, pushed once after the pre-push suite passed, and replied on the F7 thread before recording it here.
+- 2026-10-06 09:08 UTC - Human review 5426172701 (da2ce7, round 3) approved, verified the crates.io version cells and the F2 to F7 rows, and raised two optional Nits, F8 and F9.
+- 2026-10-06 09:16 UTC - Fixed F8 and F9, pushed after the pre-push suite passed, and replied on both threads before recording them here.
 
 ## Completion Rules
 
