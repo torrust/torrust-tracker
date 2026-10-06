@@ -257,6 +257,15 @@ reviewability.
 - [ ] Dependency diagram updated (T11)
 - [ ] New findings reviewed and recorded (T12)
 - [ ] EPIC #1669 updated to `DONE` (T13)
+- [ ] Spec-only PR merged into `develop` before implementation
+- [ ] Automatic verification completed (`linter all` and pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in issue-local
+      `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective
+      created for material discoveries, or progress log states why none was needed
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -290,18 +299,23 @@ Original criteria (T1 to T8), met by the work recorded above:
 
 Remaining criteria (T9 to T13):
 
-- [ ] A new dated coupling report covers every current workspace member reported by
+- [ ] AC1: A new dated coupling report covers every current workspace member reported by
       `cargo metadata --no-deps`, and no longer mentions `rest-api-core`.
-- [ ] Every package with workspace-level dependencies lists at least one import path per
+- [ ] AC2: Every package with workspace-level dependencies lists at least one import path per
       dependency, or a documented reason why none was found.
-- [ ] The new report's Observations section has no placeholder text, compares against the
+- [ ] AC3: The new report's Observations section has no placeholder text, compares against the
       2026-06-10 report, and records new findings or states that none were found.
-- [ ] `readme-audit.md` rates every current package README and no longer lists removed packages.
-- [ ] Every node and edge in `docs/media/packages/dependencies-workspace-packages.md` matches the
-      current normal dependencies.
-- [ ] Each new finding warranting a change has a draft subissue listed in EPIC #1669.
-- [ ] EPIC #1669 marks the baseline `DONE` and ticks AC1.
-- [ ] `linter all` exits with code `0`.
+- [ ] AC4: `readme-audit.md` rates every current package README and no longer lists removed
+      packages.
+- [ ] AC5: Every node and edge in `docs/media/packages/dependencies-workspace-packages.md`
+      matches the current normal dependencies.
+- [ ] AC6: Each new finding warranting a change has a draft subissue listed in EPIC #1669.
+- [ ] AC7: EPIC #1669 marks the baseline `DONE` and ticks its own AC1.
+- [ ] AC8: `linter all` exits with code `0`.
+- [ ] AC9: Manual verification scenarios MV1 to MV4 are executed and documented in issue-local
+      `manual-verification-evidence.md`.
+- [ ] AC10: The acceptance criteria are re-reviewed after implementation and reflect the
+      delivered artifacts.
 
 ## Verification Plan
 
@@ -330,6 +344,34 @@ Notes:
   than as references to temporary files.
 - Record the Rust toolchain for each `cargo` command whose result is recorded.
 - If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
+
+### Acceptance Verification
+
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                            |
+| ----- | ---------------------- | --------------------------------------------------- |
+| AC1   | TODO                   | {new report path; MV1 evidence}                     |
+| AC2   | TODO                   | {new report sections}                               |
+| AC3   | TODO                   | {new report Observations section}                   |
+| AC4   | TODO                   | {`readme-audit.md` commit; MV4 evidence}            |
+| AC5   | TODO                   | {diagram commit; MV3 evidence}                      |
+| AC6   | TODO                   | {draft subissue paths, or the "none found" record} |
+| AC7   | TODO                   | {EPIC commit}                                       |
+| AC8   | TODO                   | {pre-commit / pre-push log}                         |
+| AC9   | TODO                   | {`manual-verification-evidence.md`}                 |
+| AC10  | TODO                   | {progress-log entry for the re-review}              |
+
+## Implementation Completion Review
+
+After implementation, compare the result with this specification. Record invalidated
+assumptions, material design changes, unexpected validation findings, and reusable lessons.
+
+- Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue folder.
+- If no retrospective is needed, add a concise progress-log entry explaining why the work had
+  no material discovery.
+- When an independent reviewer receives this folder-style specification, it records its result
+  in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
 ## References
 
