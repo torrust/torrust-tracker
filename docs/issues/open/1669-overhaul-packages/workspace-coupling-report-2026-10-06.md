@@ -1184,8 +1184,9 @@ count grew for the same reason, plus the new `rest-api-protocol`, minus `torrust
 `torrust-tracker-test-helpers` is published on crates.io (3.0.0), but its normal dependencies
 now include `torrust-tracker-client-lib`, `torrust-tracker-http-protocol` and
 `torrust-tracker-udp-protocol`, none of which is published. A new `test-helpers` release cannot
-be published until those crates are, or until the protocol-specific helpers move out. Follow-up
-decision: T12 of #2446.
+be published until those crates are, or until the protocol-specific helpers move out. Draft
+subissue:
+[`1669-decouple-test-helpers-from-unpublished-crates`](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md).
 
 #### 2. Server `testing` modules turn test-only edges into runtime dependencies
 
@@ -1199,8 +1200,9 @@ they compile into release builds. The report now shows the cost of that trade-of
 - `axum-http-server` → `swarm-coordination-registry` and `udp-server` →
   `swarm-coordination-registry` are imported only by their `src/testing/` modules and tests.
 
-Gating each `testing` module behind a Cargo feature would make these edges optional. Follow-up
-decision: T12 of #2446.
+Gating each `testing` module behind a Cargo feature would make these edges optional. Draft
+subissue:
+[`1669-gate-server-testing-modules-behind-feature`](../../drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md).
 
 #### 3. The tool misses renamed crates and custom library names
 
@@ -1214,7 +1216,8 @@ four edges that are used:
   (already noted in the previous report).
 
 Reading the library target name and the dependency rename from `cargo metadata` would fix
-this. Follow-up decision: T12 of #2446.
+this. Draft subissue:
+[`1669-coupling-tool-resolve-lib-names-and-renames`](../../drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md).
 
 #### Acceptable thin dependencies (not worth addressing)
 
