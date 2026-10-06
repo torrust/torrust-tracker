@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-06 10:55"
+last-updated-utc: "2026-10-06 12:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -420,6 +420,11 @@ because the response dictionary can collapse them.
   pre-push suite passed again at the head that includes every round-1 code
   fix (F4); the Task Reviewer passes predate these fixes, which round-2 PR
   review covers.
+- 2026-10-06 12:27 UTC - Review rounds 2-4: the F2 re-raise (F12, the M2
+  sentence) was fixed at 11:35 UTC and the audit completed; round 4 approved
+  with one Nit (F13, this stamp). Rebased on the latest `develop` (one
+  conflict in `docs/adrs/index.md`: both new ADR rows kept, in timestamp
+  order); pre-push passed.
 
 ### Acceptance Verification
 
