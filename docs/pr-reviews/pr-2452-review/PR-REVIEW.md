@@ -155,6 +155,7 @@ settled", which agrees with declining F1 and F2.
 - 2026-10-06 12:46 UTC - Copilot review 5428540203 submitted findings F1 and F2.
 - 2026-10-06 12:58 UTC - The maintainer agreed to decline F1 and F2 as conflicting with the archival lifecycle. Replied to both threads with the evidence and started this audit. No human review had been submitted at this time.
 - 2026-10-06 14:42 UTC - Correction to the 12:58 entry: human review 5428696523 (da2ce7, round 1) had been submitted at 12:58:26 UTC. It was not visible when the entry was written and was found when the reply status was checked after the push. It requested changes with five findings, recorded here as F3-F7. Fixed all five in separate commits, rebased onto `develop` (resolving one test-module conflict with #2417), pushed after the pre-push suite passed, updated the PR body, and replied to each thread.
+- 2026-10-06 15:09 UTC - Human review 5430228175 (da2ce7, round 2, 14:50 UTC, at `docs(issues): [#2245] note the configuration-load follow-up on the EPIC row`) approved with no new findings, verified F3-F7 fixed, and resolved their threads. Resolved the two replied Copilot threads (F1, F2); no unresolved thread remains.
 
 ## Completion Rules
 
