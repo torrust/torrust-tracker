@@ -9,7 +9,7 @@ github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: "2026-10-06 11:53"
+last-updated-utc: "2026-10-06 14:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,6 +66,39 @@ whether the crate-level allowance can become item-level reasons.
 Not applicable: this work changes protocol conversion boundaries and does not introduce child
 processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures.
 
+## Bug-Fix Process
+
+A171 is a reproduced defect, handled with `.github/skills/dev/debugging/fix-bug/SKILL.md`. A156 is
+not a defect: its cast could not truncate.
+
+1. Analysis: `build_response` narrowed three `u32` values (announce interval, leechers, seeders) to
+   BEP 15's signed 32-bit fields with `as i32`, so any value from `2^31` to `u32::MAX` wrapped
+   negative. The interval is the reachable case, because configuration does not bound it.
+2. Reproduction: on `develop` at 10:19 UTC, a local tracker with `interval = 2147483648` answered
+   `"announce_interval": -2147483648`. See `manual-verification-evidence.md`, V1.
+3. Boundary: a `build_response` unit test, chosen in Regression Test Strategy below.
+4. Red run: with the six call sites mutated back to the original cast, the regression test fails;
+   the helper's out-of-range test fails against a wrapping helper. Both outputs are in the evidence
+   file, Regression-Test Boundary.
+5. Fix: a `saturating_wire_i32` helper clamps to `i32::MAX`.
+6. Green run and recheck: the focused tests pass, and M1, repeated after the fix, encodes both
+   `2147483647` and `2147483648` as `2147483647`.
+
+The regression test was added during review, after the fix. Its red run therefore uses the
+skill's mutate-then-restore procedure rather than a run against the original commit.
+
+## Regression Test Strategy
+
+The maintained boundary is the unit test
+`it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families` in
+`packages/udp-server/src/handlers/announce.rs`. It calls `build_response` directly with a
+hand-built `Core` (`interval = i32::MAX + 1`) and `SwarmMetadata` (`incomplete = i32::MAX + 1`,
+`complete = u32::MAX`), and asserts all three fixed fields for both address families. This is the
+smallest deterministic seam that covers all six call sites. The helper's own tests
+(`handlers::tests::wire_i32_conversion`) cannot detect a call site that bypasses the helper, and an
+integration test through a running server would add a socket and a swarm without covering more.
+M1 remains the real-artifact recheck for the interval.
+
 ## Review Outcomes
 
 Approved by the maintainer on 2026-10-06. Both allowances are removed.
@@ -113,9 +146,10 @@ follow-up.**
 - Rejected: amending the ADR to allow the `Validator` check (it reverses a recent ADR for one
   field), and doing the newtype in this issue (scope).
 
-**A171 seeders and leechers: clamp to `i32::MAX`.** One private helper converts all three wire
-fields, `saturating_wire_i32`, so the wire value is never negative, and the boundary tests target
-the helper directly.
+**A171 seeders and leechers: clamp to `i32::MAX`.** One helper, `saturating_wire_i32`, converts all
+three wire fields, so the wire value is never negative. During review it moved to
+`handlers/mod.rs` and replaced the scrape handler's identical `udp_counter_from_u32`, so announce and
+scrape share one tested clamp.
 Rejected: an item-level allowance with a "swarms never reach 2^31 peers" reason (an unenforced
 bound next to code being fixed anyway), and `expect` (a panic in a request handler driven by swarm
 size).
@@ -162,6 +196,7 @@ size).
 - 2026-10-06 11:41 UTC - josecelano - Revised the A171 interval decision: clamp in this issue; configuration-load rejection moves to a follow-up issue as an ADR-conforming newtype, because a `Validator` check conflicts with the configuration validation ADR - Chat decision
 - 2026-10-06 11:49 UTC - GitHub Copilot - M1 passed: with the fix, `interval` 2147483647 and 2147483648 both encode as 2147483647 (2147483648 was sent as -2147483648 before the fix) - In progress
 - 2026-10-06 11:53 UTC - GitHub Copilot - Reconciled the #2158 inventory (T4); pre-push checks passed; acceptance criteria reviewed; recorded an implementation retrospective, because the two design revisions (A156 `expect` to a parse error, interval validation to a follow-up) yield a reusable lesson. The configuration-load follow-up issue still needs its specification drafted and reviewed - Ready for PR
+- 2026-10-06 14:15 UTC - GitHub Copilot - Applied PR #2452 review fixes: shared the BEP 15 clamp with the scrape handler, added a `build_response` regression test for all six call sites, and added the Bug-Fix Process and Regression Test Strategy sections with red/green evidence - In review
 
 ## Acceptance Criteria
 
@@ -186,7 +221,7 @@ size).
 
 The A156 error branch is unreachable by construction, so A156 is covered by the existing scrape
 round-trip tests. Seeder and leecher clamping cannot be reached with a realistic swarm, so it is
-covered by the `saturating_wire_i32` unit tests only.
+covered by the `build_response` regression test and the `saturating_wire_i32` unit tests.
 
 ### Acceptance Verification
 
@@ -194,7 +229,7 @@ covered by the `saturating_wire_i32` unit tests only.
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Review Outcomes: Conversion Inventory and Decisions; #2158 inventory rows A156 and A171. |
 | AC2 | DONE | No cast retained: the crate-level A156 attribute and the item-level A171 attribute are removed; `grep -rn "#2245"` over Rust sources finds no remaining temporary reason. |
-| AC3 | DONE | A171: three `saturating_wire_i32` tests cover an in-range value, `i32::MAX`, `i32::MAX + 1`, and `u32::MAX`; the out-of-range test failed against a wrapping cast. A156 exception, recorded: its error branch is unreachable by construction (the cursor offset is always 16 and bounded by the slice length), so no test can reach it; the existing scrape round-trip and rejection tests cover the changed line. |
+| AC3 | DONE | A171: the `build_response` regression test pins all six call sites (red with the call sites mutated back to the original cast); the three `saturating_wire_i32` tests cover an in-range value, `i32::MAX`, `i32::MAX + 1`, and `u32::MAX` (red against a wrapping helper). Both red and green outputs are in `manual-verification-evidence.md`, Regression-Test Boundary. A156 exception, recorded: its error branch is unreachable by construction (the cursor offset is always 16 and bounded by the slice length), so no test can reach it; the existing scrape round-trip and rejection tests cover the changed line. |
 | AC4 | DONE | Focused Clippy and tests pass for `udp-protocol` and `udp-server`; `linter all` passes in every pre-commit run; pre-push checks (nightly fmt/check/doc and the full test suite) pass. |
 
 ## Risks and Trade-offs
