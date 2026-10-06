@@ -6,7 +6,7 @@ epic: null
 github-issue: 2243
 spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-05 12:54"
+last-updated-utc: "2026-10-06 09:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,7 +72,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2244 - Review metric aggregate conversions | `docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | TODO | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. |
 | 2 | #2245 - Review numeric protocol wire conversions | `docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md` | TODO | Owns A156 and A171 only. |
-| 3 | #2246 - Review domain numeric conversions | `docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md` | IN_PROGRESS | Owns A099, A123, and A129. |
+| 3 | #2246 - Review domain numeric conversions | `docs/issues/closed/2246-2243-review-domain-numeric-conversions/ISSUE.md` | DONE | Owns A099, A123, and A129. |
 
 ## Delivery Strategy
 
@@ -125,6 +125,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from #2158's three approved-for-review numeric design inputs - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review: undocumented exceptions may be legitimate; each conversion is judged on semantics, alternatives, and then documented with a native reason if retained - Chat decision
+- 2026-10-06 09:10 UTC - GitHub Copilot - #2246 done: PR #2440 merged with all three domain allowances (A099, A123, A129) removed; spec archived to `docs/issues/closed/` - 1 of 3 subissues done; #2244 and #2245 remain TODO
 
 ## Acceptance Criteria
 
@@ -158,5 +159,5 @@ For each subissue implementation in this EPIC, the default completion policy is:
 ## References
 
 - Related issues: #2158
-- Related PRs: None
+- Related PRs: #2247 (specification bundle), #2440 (#2246)
 - Related ADRs: None

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2243
 github-issue: 2246
-spec-path: docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md
+spec-path: docs/issues/closed/2246-2243-review-domain-numeric-conversions/ISSUE.md
 branch: "2246-2243-review-domain-numeric-conversions"
-related-pr: null
-last-updated-utc: "2026-10-05 18:39"
+related-pr: 2440
+last-updated-utc: "2026-10-06 09:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,7 +115,7 @@ outcomes:
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -125,6 +125,7 @@ outcomes:
 - 2026-10-05 13:18 UTC - GitHub Copilot - Implemented T3 (three per-package commits) and T4 (inventory reconciliation); M1, pre-push checks, and the completion review remain - In progress
 - 2026-10-05 15:04 UTC - GitHub Copilot - M1 passed against a local tracker (cap 2; `numwant` 0, -1, 1, 2, 3, `i32::MAX`); pre-push checks passed; no retrospective needed (see Implementation Completion Review) - Ready for PR
 - 2026-10-05 18:39 UTC - GitHub Copilot - Applied PR #2440 round-1 review fixes: Review Outcomes now separate A129 (behaviour-preserving) from A099 and A123 (explicit failure out of range); added `peer_count_as_u32` boundary tests for A123 and updated AC3; reran M1 with verbatim output and the embedded config; audit in `docs/pr-reviews/pr-2440-review/PR-REVIEW.md` - In review
+- 2026-10-06 09:10 UTC - GitHub Copilot - PR #2440 merged and GitHub closed the issue as completed; archived this spec to `docs/issues/closed/` - Done
 
 ## Acceptance Criteria
 
@@ -177,5 +178,5 @@ with serde. A123 lives in a benchmarking-only crate. Both are covered by unit te
 ## References
 
 - Related issues: #2158
-- Related PRs: None
+- Related PRs: #2247 (specification), #2440 (implementation)
 - Related ADRs: None
