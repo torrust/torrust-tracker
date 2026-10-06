@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 09:12"
+last-updated-utc: "2026-10-06 10:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -781,6 +781,17 @@ Each subsequent cycle produces one or more of:
 
 There is no predetermined end date or total subissue count.
 
+### Pre-publish API checklist
+
+Before the first crates.io publish of each package, audit its public error API
+([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
+
+1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
+   variant later is not a breaking change.
+2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
+3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
+   placeholder for future failures.
+
 ## Open Questions
 
 These questions do not block starting work, but need answers before specific subissues can
@@ -862,17 +873,6 @@ extraction). The table below analyses every extraction candidate against this co
 > Workspace renames (this EPIC's current subissues) are independent of extraction ordering —
 > a crate can be renamed in-workspace before it is published or extracted.
 
-### Pre-publish API checklist
-
-Before the first crates.io publish of each package, audit its public error API
-([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
-
-1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
-   variant later is not a breaking change.
-2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
-3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
-   placeholder for future failures.
-
 ### Analysis tooling
 
 Four complementary analyses are recommended to assess whether the current package structure
@@ -949,6 +949,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `bittorrent-primitives` as superseded and archived.
 - 2026-10-06 09:12 UTC - GitHub Copilot - Stated that the published count excludes
   `bittorrent-primitives`, and marked the repository as archived in the desired-state notes.
+- 2026-10-06 10:40 UTC - Copilot - Moved the Pre-publish API checklist from Open Questions to
+  Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 
 ## Acceptance Criteria
 
