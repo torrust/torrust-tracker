@@ -6,7 +6,7 @@ epic: null
 github-issue: 2243
 spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-09-26 12:43"
+last-updated-utc: "2026-10-05 12:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,7 +72,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2244 - Review metric aggregate conversions | `docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | TODO | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. |
 | 2 | #2245 - Review numeric protocol wire conversions | `docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md` | TODO | Owns A156 and A171 only. |
-| 3 | #2246 - Review domain numeric conversions | `docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md` | TODO | Owns A099, A123, and A129. |
+| 3 | #2246 - Review domain numeric conversions | `docs/issues/open/2246-2243-review-domain-numeric-conversions/ISSUE.md` | IN_PROGRESS | Owns A099, A123, and A129. |
 
 ## Delivery Strategy
 

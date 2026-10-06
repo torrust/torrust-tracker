@@ -10,17 +10,13 @@ use super::Entry;
 use crate::EntrySingle;
 
 impl Entry for EntrySingle {
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2246 reviews lossless or checked domain conversion boundaries"
-    )]
     fn get_swarm_metadata(&self) -> SwarmMetadata {
         let (seeders, leechers) = self.swarm.seeders_and_leechers();
 
         SwarmMetadata {
             downloaded: self.downloaded,
-            complete: seeders as u32,
-            incomplete: leechers as u32,
+            complete: peer_count_as_u32(seeders),
+            incomplete: peer_count_as_u32(leechers),
         }
     }
 
@@ -79,5 +75,31 @@ impl Entry for EntrySingle {
 
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
         self.swarm.remove_inactive_peers(current_cutoff);
+    }
+}
+
+fn peer_count_as_u32(count: usize) -> u32 {
+    u32::try_from(count).expect("peer count does not fit in u32")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::peer_count_as_u32;
+
+    #[test]
+    fn it_should_convert_the_largest_peer_count_that_fits_in_u32() {
+        let count = usize::try_from(u32::MAX).unwrap();
+
+        assert_eq!(peer_count_as_u32(count), u32::MAX);
+    }
+
+    // On 32-bit targets `usize` cannot exceed `u32::MAX`, so the conversion cannot fail.
+    #[cfg(target_pointer_width = "64")]
+    #[test]
+    #[should_panic(expected = "peer count does not fit in u32")]
+    fn it_should_panic_instead_of_wrapping_a_peer_count_beyond_u32() {
+        let count = usize::try_from(u32::MAX).unwrap() + 1;
+
+        peer_count_as_u32(count);
     }
 }
