@@ -4,11 +4,16 @@ use std::io::{BufRead, BufReader, ErrorKind, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
+use std::time::Duration;
 
 use torrust_tracker_http_protocol::percent_encoding::percent_decode_info_hash;
 use torrust_tracker_http_protocol::v1::query::Query;
 
 use super::{POLL_INTERVAL, ServerThread};
+
+/// Bounds the wait for a connected client's request, so a silent peer fails
+/// the test instead of blocking the fake's stop-and-join.
+const REQUEST_READ_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub struct FakeHttpTracker {
     address: SocketAddr,
@@ -57,6 +62,9 @@ fn answer_scrape(stream: &TcpStream, max_info_hashes: usize) {
     stream
         .set_nonblocking(false)
         .expect("fake HTTP tracker should read the request blocking");
+    stream
+        .set_read_timeout(Some(REQUEST_READ_TIMEOUT))
+        .expect("fake HTTP tracker should bound the request read");
 
     let mut reader = BufReader::new(stream);
     let mut request_line = String::new();
