@@ -117,7 +117,7 @@ Packages that have been extracted to standalone repositories are listed as `(ext
 | Not published          | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    |
 | Not published          | `torrust-tracker-udp-server`                      | `udp-server`                      |
 
-**Observation**: 12 packages across the organisation (including extracted) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-server-lib` 0.3.0, `torrust-tracker` 3.0.0, `torrust-tracker-configuration` 3.0.0, `torrust-tracker-primitives` 3.0.0, and `torrust-tracker-test-helpers` 3.0.0. Of those still in this workspace, 4 are published (including the root `torrust-tracker` crate). Every `torrust-tracker-axum-*` crate is
+**Observation**: 12 current-name packages across the organisation (including extracted, excluding the superseded `bittorrent-primitives` 0.3.0) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-server-lib` 0.3.0, `torrust-tracker` 3.0.0, `torrust-tracker-configuration` 3.0.0, `torrust-tracker-primitives` 3.0.0, and `torrust-tracker-test-helpers` 3.0.0. Of those still in this workspace, 4 are published (including the root `torrust-tracker` crate). Every `torrust-tracker-axum-*` crate is
 unpublished. This confirms issue #1659's note that "many new crates have not been published
 yet after we refactored the packages."
 
