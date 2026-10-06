@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 12:26"
+last-updated-utc: "2026-10-06 12:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -63,8 +63,10 @@ and is not in the EPIC roadmap:
 3. **`stop()` returns a `Result`.** Unlike the HTTP, UDP, and REST API
    environments, `stop()` returns `Result<Environment<Stopped>, Error>`, with a
    single string variant `Error::Error(String)`; 8 contract-test calls use it.
-4. **Caller-provided registar.** `new` takes the registar of the services under
-   check, so the environment does not own the services it reports on.
+4. **Caller-provided `registar`.** `new` takes the `registar` (the
+   `Registar<RuntimeServiceMetadata>` service registry, spelled as in the code)
+   of the services under check, so the environment does not own the services it
+   reports on.
 5. **No owned listeners, no example.** No event listener, no example binary.
 6. **The drain is bounded.** The shared helper force-closes at the 5 s
    `HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT` deadline (SI-16 D7).
@@ -114,7 +116,8 @@ and is not in the EPIC roadmap:
 ## Design and Ownership Review
 
 - **Owner**: `Environment<Running>` owns the server task, the drain controller,
-  and the token that stops them. It does not own the services in its registar.
+  and the token that stops them. It does not own the services in its
+  `registar`.
 - **Normal path**: `stop()` cancels the token, joins both tasks, and returns
   `Environment<Stopped>`; the binding is released when it returns.
 - **Failure path**: join both tasks before returning an error (D1).
