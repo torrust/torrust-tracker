@@ -52,7 +52,11 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
   and one or two in each of twelve more packages. Some may sit in private modules or binary-only
   code and so are not public API; others may be error types whose name lacks `Error`.
 - `torrust-tracker-configuration`'s `Error` has an `Infallible` variant ("The error for errors
-  that can never happen."), which checklist item 3 asks to evaluate.
+  that can never happen."). It is never constructed: its declaration in
+  `packages/configuration/src/lib.rs` is the only `Infallible` in `packages/`, `console/`, and
+  `src/`. EPIC checklist item 3 covers `Result<_, Infallible>` and empty error enums, not variants;
+  the rule that covers this variant is the `handle-errors-in-code` skill's "Never use `Infallible`
+  or an empty error enum as a placeholder".
 
 ## Scope
 
@@ -66,8 +70,11 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
   `udp-server/src/event.rs`).
 - Record, per enum, whether its derives are ones every future variant can keep (checklist item 2).
   Change a derive only with a recorded reason and maintainer approval.
-- Evaluate placeholder variants and types such as `configuration::Error::Infallible` (checklist
-  item 3), and confirm no public API returns `Result<_, Infallible>` or an empty error enum.
+- Evaluate placeholder variants such as `configuration::Error::Infallible` under the
+  `handle-errors-in-code` skill rule ("Never use `Infallible` or an empty error enum as a
+  placeholder"), and confirm that no public API returns `Result<_, Infallible>` or an empty error
+  enum (EPIC checklist item 3). Removing a never-constructed placeholder variant is in scope, with
+  maintainer approval.
 - Tick the checklist's completion in EPIC #1669 for each crate covered.
 
 ### Out of Scope
@@ -75,7 +82,8 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
 - `#[non_exhaustive]` on public structs, configuration types, or non-error enums (a separate EPIC
   #1669 decision if wanted).
 - `#[non_exhaustive]` on individual enum variants.
-- Changing error semantics, messages, or adding or removing variants.
+- Changing error semantics or messages, or adding or removing variants, except removing a
+  never-constructed placeholder variant (see In Scope; maintainer approval required).
 - Publishing crates (owned by other EPIC #1669 subissues).
 
 ## Architectural Decisions
