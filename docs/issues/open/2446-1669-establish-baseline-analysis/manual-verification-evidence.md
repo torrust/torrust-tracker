@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
-last-updated-utc: 2026-10-06 16:17
+last-updated-utc: 2026-10-06 16:47
 ---
 
 <!-- cspell:ignore cdir isdir listdir startswith -->
@@ -22,15 +22,15 @@ relevant output are recorded inline below.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-06 16:17
+- Date and time (UTC): 2026-10-06 16:47
 - Artifact under test: branch `2446-1669-establish-baseline-analysis` up to
-  "docs(issues): [#2446] link coupling findings to their draft subissues", on top of
-  `develop` after the merge of PR #2447
+  "docs(issues): [#2446] regenerate the coupling report after rebasing onto develop", rebased
+  onto the latest `develop`
 - Operating system / environment: Linux 7.0.0-34-generic; stable Rust toolchain
   (`rustc 1.99.0 (b940084d7 2026-09-28)`, `cargo 1.99.0 (5f94df478 2026-08-27)`)
 - Prerequisites and setup performed: clean working tree (`git status --short` printed
-  nothing). MV1, MV2 and MV4 were also run before their task commits at 12:55 UTC with the
-  same results.
+  nothing). The scenarios were first run at 12:55 and 16:17 UTC before the rebase, with the
+  same results; this record is the run on the rebased head.
 
 ## Verification Processes
 
@@ -110,9 +110,9 @@ its removal by #1938).
 ```text
 tool exit=0
 3c3
-< Generated: 2026-10-06 12:34 UTC
+< Generated: 2026-10-06 16:35 UTC
 ---
-> Generated: 2026-10-06 16:17 UTC
+> Generated: 2026-10-06 16:47 UTC
 ```
 
 #### Conclusion
@@ -207,3 +207,8 @@ Met. 25 rows, one per audited package; no removed package and no `contrib/dev-to
 None. The first MV3 comparison used a regular expression without digits and silently skipped
 the `e2e-tools --> tracker` edge on both sides (152 = 152); the corrected expression above
 matches all 153 edges.
+
+After rebasing onto `develop` (76 new commits, none touching a manifest), the pre-rebase
+report no longer reproduced exactly: a few import paths changed in six edges, with no
+dependency edge added or removed. The report was regenerated ("docs(issues): [#2446]
+regenerate the coupling report after rebasing onto develop") and MV1 to MV4 rerun above.
