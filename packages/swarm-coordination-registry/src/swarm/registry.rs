@@ -149,6 +149,7 @@ impl Registry {
     /// # Returns
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if found.
+    #[must_use]
     pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
         match self.swarms.get(info_hash) {
             None => None,
@@ -165,6 +166,7 @@ impl Registry {
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if it's
     /// found or a zeroed metadata struct if not.
+    #[must_use]
     pub async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
         self.get_swarm_metadata(info_hash).await.unwrap_or_else(SwarmMetadata::zeroed)
     }
@@ -179,6 +181,7 @@ impl Registry {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent, excluding the requesting client.
+    #[must_use]
     pub async fn get_peers_peers_excluding(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
@@ -198,6 +201,7 @@ impl Registry {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent.
+    #[must_use]
     pub async fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
@@ -334,6 +338,7 @@ impl Registry {
     /// # Returns
     ///
     /// An [`AggregateActiveSwarmMetadata`] struct with the aggregated metrics.
+    #[must_use]
     pub async fn get_aggregate_swarm_metadata(&self) -> AggregateActiveSwarmMetadata {
         let mut metrics = AggregateActiveSwarmMetadata::default();
 
@@ -355,6 +360,7 @@ impl Registry {
     /// # Returns
     ///
     /// A `usize` representing the number of peerless torrents.
+    #[must_use]
     pub async fn count_peerless_torrents(&self) -> usize {
         let mut peerless_torrents = 0;
 
@@ -374,6 +380,7 @@ impl Registry {
     /// # Returns
     ///
     /// A `usize` representing the total number of peers.
+    #[must_use]
     pub async fn count_peers(&self) -> usize {
         let mut peers = 0;
 
