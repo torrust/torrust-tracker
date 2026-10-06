@@ -15,10 +15,9 @@ use torrust_tracker_udp_protocol::{
     Port, Response, ResponsePeer,
 };
 use tracing::{Level, instrument};
-use zerocopy::byteorder::network_endian::I32;
 
 use crate::event::{ErrorKind, Event, UdpRequestKind};
-use crate::handlers::{CookieValidationContext, HandlerError};
+use crate::handlers::{CookieValidationContext, HandlerError, saturating_wire_i32};
 
 /// It handles the `Announce` request.
 ///
@@ -129,17 +128,13 @@ fn build_response(
     core_config: &Arc<Core>,
     announce_data: &AnnounceData,
 ) -> Response {
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
-    )]
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
+                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
+                seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
             peers: announce_data
                 .peers
@@ -162,9 +157,9 @@ fn build_response(
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
+                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
+                seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
             peers: announce_data
                 .peers
@@ -196,6 +191,7 @@ pub(crate) mod tests {
         use std::sync::Arc;
 
         use torrust_peer_id::PeerId;
+        use torrust_tracker_configuration::v3_0_0::core::Core;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
@@ -333,6 +329,59 @@ pub(crate) mod tests {
                         port: Port(ipv6_peer.port().into()),
                     }],
                 })
+            );
+        }
+
+        #[test]
+        fn it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families() {
+            // Arrange
+            let request = AnnounceRequestBuilder::default().into();
+            let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
+            let core_config = Arc::new(Core {
+                announce_policy: AnnouncePolicy {
+                    interval: first_out_of_range,
+                    ..AnnouncePolicy::default()
+                },
+                ..Core::default()
+            });
+            let announce_data = AnnounceData {
+                peers: vec![],
+                stats: SwarmMetadata {
+                    complete: u32::MAX,
+                    downloaded: 0,
+                    incomplete: first_out_of_range,
+                },
+                policy: AnnouncePolicy::default(),
+            };
+
+            // Act
+            let ipv4_response = build_response(
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), 8080),
+                &request,
+                &core_config,
+                &announce_data,
+            );
+            let ipv6_response = build_response(
+                SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080),
+                &request,
+                &core_config,
+                &announce_data,
+            );
+
+            // Assert
+            let fixed = AnnounceResponseFixedData {
+                transaction_id: request.transaction_id,
+                announce_interval: AnnounceInterval(I32::new(i32::MAX)),
+                leechers: NumberOfPeers(I32::new(i32::MAX)),
+                seeders: NumberOfPeers(I32::new(i32::MAX)),
+            };
+            assert_eq!(
+                ipv4_response,
+                Response::from(AnnounceResponse::<Ipv4AddrBytes> { fixed, peers: vec![] })
+            );
+            assert_eq!(
+                ipv6_response,
+                Response::from(AnnounceResponse::<Ipv6AddrBytes> { fixed, peers: vec![] })
             );
         }
 
