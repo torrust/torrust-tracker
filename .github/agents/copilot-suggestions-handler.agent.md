@@ -21,3 +21,7 @@ for all GPG-signed commits.
 If the pull request is already merged, perform only the skill's read-only post-merge triage, then
 stop for explicit maintainer approval before creating a branch, editing files, updating GitHub, or
 resolving threads. A pre-merge request to process suggestions does not carry across the merge.
+
+If the pull request was closed without merging and replaced by another, follow the skill's
+closed-and-superseded section: fix and audit on the replacement pull request, and reply on the
+closed one.

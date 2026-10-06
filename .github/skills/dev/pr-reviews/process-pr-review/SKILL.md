@@ -1,9 +1,9 @@
 ---
 name: process-pr-review
-description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, or triage review feedback submitted after merge.
+description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
 metadata:
   author: torrust
-  version: "1.4"
+  version: "1.5"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -144,6 +144,41 @@ unprocessed when it merged:
 
 If the maintainer declines follow-up work, record `NO_ACTION` with the reason only when the
 maintainer approved that audit update. Do not silently turn a late review into a new project.
+
+## Reviews on a Closed, Superseded Pull Request
+
+A pull request can be closed without merging and replaced by another that carries the same
+changes, for example after its source branch is renamed. A review can still arrive on the closed
+pull request, or be left unprocessed when it closed. The closed pull request cannot carry fixes or
+an audit, so its findings are handled on the replacement:
+
+1. **Triage read-only first.** Record the close time, each review's submission time, and the
+   replacement pull request. Check every finding against the replacement's current tree.
+2. **Fix on the replacement branch.** Use the normal pre-merge workflow: one signed commit per
+   independent fix.
+3. **Audit in the replacement's record.** Add the closed pull request's findings to
+   `docs/pr-reviews/pr-<REPLACEMENT>-review/PR-REVIEW.md`, alongside the replacement's own
+   findings:
+   - Set each detail entry's `PR number` to the pull request where the finding was raised.
+   - Build the reference from that number too, for example `review-finding:pr-<CLOSED>-f1`.
+   - Keep finding IDs unique across the whole audit, assigning new IDs on collision as usual.
+   - Say in the `## Findings` introduction which rows came from the closed pull request and why.
+4. **Validate with both comment sets.** The validation script reads review comments for one pull
+   request. Concatenate both pull requests' comments and pass them with `--comments-file`; the
+   script accepts several concatenated JSON arrays:
+
+   ```bash
+   { gh api repos/torrust/torrust-tracker/pulls/<CLOSED>/comments --paginate
+     gh api repos/torrust/torrust-tracker/pulls/<REPLACEMENT>/comments --paginate
+   } > .tmp/pr-<REPLACEMENT>-review-comments.json
+   python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py \
+     --pr-number <REPLACEMENT> --comments-file .tmp/pr-<REPLACEMENT>-review-comments.json
+   ```
+
+5. **Reply and resolve on the closed pull request.** Reply on each of its threads with the
+   disposition, the fixing commit subject, and a link to the replacement pull request, then
+   resolve the thread. A finding that no longer applies to the replacement tree is
+   `NO_ACTION`/`SUPERSEDED` with the prescribed `Superseded by` reply.
 
 ## Required Audit Fields
 
@@ -295,3 +330,5 @@ audit detail before resolving the finding.
       before any mutating action
 - [ ] For an approved post-merge follow-up: branch based on the current target branch and original
       audit (or the audit the follow-up created) updated through follow-up merge
+- [ ] For a review on a closed, superseded pull request: fixes and audit on the replacement pull
+      request, and every closed-pull-request thread replied to and resolved
