@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-deprecate-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-10-02 11:12"
+last-updated-utc: "2026-10-06 11:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 
 # Draft SI-18 — Deprecate Legacy Shutdown API
 
-> **EPIC position**: Roadmap step 15. Compatibility-preserving deprecation after
+> **EPIC position**: Roadmap step 17. Compatibility-preserving deprecation after
 > every supported in-workspace and standalone consumer uses token lifecycle APIs.
 
 ## Goal
@@ -54,6 +54,8 @@ Do not start this work until the following evidence is recorded:
       components use token-aware lifecycle paths.
 - [ ] Standalone HTTP and UDP environments/examples use token-aware lifecycle
       paths.
+- [ ] REST API and health-check API test environments use token-aware
+      lifecycle paths (SI-23, SI-24).
 - [ ] The task inventory confirms no supported in-workspace consumer depends on
       the legacy shutdown path.
 - [ ] The external `torrust-server-lib` release notes identify external consumer
@@ -112,7 +114,8 @@ Do not start this work until the following evidence is recorded:
 
 ## Dependencies
 
-- SI-11 through SI-17 are complete for the HTTP, REST, health-check, UDP, and
+- SI-11 through SI-17, SI-23, and SI-24 are complete for the HTTP, REST,
+  health-check, UDP, and
   standalone migrations.
 - SI-2's additive server lifecycle API is released and documented.
 - #1588 revalidates the final supported-consumer inventory.

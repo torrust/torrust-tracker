@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 09:03"
+last-updated-utc: "2026-10-06 11:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,8 @@ status as of 2026-10-02.
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
    **Status: fixed in the application** (sequences 3 to 11); the standalone
-   UDP test environment still uses `Halted` until SI-17, and the legacy
+   UDP test environment still uses `Halted` until SI-17, the REST API and
+   health-check API test environments until SI-23 and SI-24, and the legacy
    API is removed by SI-18 and SI-19.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
@@ -201,12 +202,14 @@ deterministic tests, and manual evidence.
 | 10       | #2342 | [Migrate UDP tracker to token lifecycle](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Done       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
 | 11       | #2370 | [Define UDP active-request shutdown policy](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)  | Done       | Loop-owned request processors; five-second drain with deadline abort and one outcome summary.        |
 | 12       | #2412 | [Migrate standalone HTTP environment/example](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md) | Done       | One supported standalone HTTP consumer migration; the token-aware drain now force-closes at its deadline (#2439). |
-| 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |
+| 13       | #2448 | [Migrate standalone UDP environment/example](../2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Planned    | SI-17. One supported standalone UDP consumer migration.                                                     |
 | 14       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
-| 15       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
-| 16       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
-| 17       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
-| 18       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
+| 15       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). |
+| 16       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). |
+| 17       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
+| 18       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
+| 19       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
+| 20       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
 | —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
@@ -224,7 +227,9 @@ applied to the application and both migrated test environments at once, and
 precedes SI-20 because it prevents possible loss of persisted data. The
 maintainer prefers safe, incremental steps over doing the highest-impact item
 first, and favors tasks that strengthen the test safety net before the changes
-that rely on it (review of 2026-10-01).
+that rely on it (review of 2026-10-01). SI-23 and SI-24 were added on
+2026-10-06, when the SI-17 refresh found the REST API and health-check API test
+environments still on the legacy path; they must precede SI-18 and SI-19.
 
 ### Superseded Draft Retention
 

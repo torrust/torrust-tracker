@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 09:36"
+last-updated-utc: "2026-10-06 11:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,7 +30,7 @@ semantic-links:
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-    - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
+    - docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
