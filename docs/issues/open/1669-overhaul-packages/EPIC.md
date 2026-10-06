@@ -940,6 +940,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-06-09 20:00 UTC - josecelano - Updated Package Inventory, Desired Package State,
   and dependency lists to reflect completion of SI-18, SI-19, SI-20, SI-22 extractions
   and SI-21 InfoHash migration.
+- 2026-10-05 15:53 UTC - GitHub Copilot - Synced the spec with the workspace: marked #1859,
+  #1860, #1861, #1864, SI-23 to SI-28, SI-34 and SI-35 as done; replaced `rest-api-core` with
+  the #1938 REST API packages; regenerated the dependency lists from `cargo metadata`; recorded
   that the baseline analysis is largely done but not yet tracked in a GitHub issue.
 - 2026-10-05 21:07 UTC - Copilot - Added the Pre-publish API checklist (`#[non_exhaustive]`
   audit of public error enums) from issue #2435 and its ADR, with maintainer approval.
