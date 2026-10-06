@@ -60,6 +60,12 @@ rows) raises no new finding. It confirms the round-1 rows and lists what the rec
 rows for F12 and F11 and log entries for rounds 2 and 3, all added in this update. F12 kept the
 review blocking until its fix was pushed.
 
+da2ce7 review 5427924536 (round 4, APPROVED at the head with the F12 fix and the round-2 and
+round-3 entries) verifies F12 and F11 and left one inline Nit, F13, kept as given. Its body owes a
+log entry for this review and the F13 row, and classifies the failed `Persistence Benchmark
+PostgreSQL` check as infrastructure (the job could not pull the `postgres:17` image); neither is a
+separate finding.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F8 | `review-finding:pr-2444-f8` | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -74,6 +80,7 @@ review blocking until its fix was pushed.
 | F7 | `review-finding:pr-2444-f7` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2444-f12` | Human | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2444-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2444-f13` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -233,6 +240,19 @@ review blocking until its fix was pushed.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194785278>
 
+### F13 - The spec stamp was not bumped for the F12 edit
+
+- PR number: 2444
+- Source review ID: 5427924536
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194917744>
+- Concern: the F12 fix changed ISSUE.md at 11:35 UTC, but its `last-updated-utc` and last Progress Log entry still read 10:55.
+- Solution: bumped `last-updated-utc` and added a Progress Log entry for the F12 fix, the round-4 approval, and the rebase onto the latest `develop`.
+- Current-tree verification: ISSUE.md's frontmatter reads `last-updated-utc: "2026-10-06 12:27"`, equal to its last Progress Log entry.
+- Resolution reference: `docs(issues): [#2417] bump the spec stamp and log review rounds 2-4`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4195259730>
+
 ## Processing Log
 
 - 2026-10-06 10:28 UTC - Fetched Copilot review 5426465610 (three inline threads) and da2ce7 review 5426677485 (seven inline threads) after authoring a local spec commit (10:12) and held its push; restored `related-pr: null`, which that commit had set before cleanup, per the da2ce7 review body; rebased on `develop`.
@@ -242,6 +262,8 @@ review blocking until its fix was pushed.
 - 2026-10-06 11:35 UTC - Fetched da2ce7 review 5427602231 (round 2: F1 and F3-F10 verified, two new inline findings); resolved the three verified Copilot threads; committed the F12 fix.
 - 2026-10-06 11:39 UTC - Pushed the F12 fix and replied on the F12 and F11 threads; recorded round 2.
 - 2026-10-06 11:41 UTC - Fetched da2ce7 review 5427730462 (round 3, at the round-1 audit head; no new finding); recorded it.
+- 2026-10-06 12:29 UTC - Fetched da2ce7 review 5427924536 (round 4, APPROVED; one Nit, F13); rebased on the latest `develop` (one conflict in `docs/adrs/index.md`, both rows kept); committed the F13 fix.
+- 2026-10-06 12:32 UTC - Ran pre-push (exit 0), pushed, and replied on the F13 thread; recorded round 4.
 
 ## Completion Rules
 
