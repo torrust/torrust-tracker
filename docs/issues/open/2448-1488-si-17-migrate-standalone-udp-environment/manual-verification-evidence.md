@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
-last-updated-utc: "2026-10-06 15:11"
+last-updated-utc: "2026-10-06 15:51"
 ---
 
 # Manual Verification Evidence - Standalone UDP Environment and Example
@@ -104,6 +104,96 @@ the halt channel is already closed. On SIGTERM the server stops and releases
 its socket, but the process keeps running; the later SIGINT panics the same
 way. T1 (token-aware path) and T3 (signal handling in `main`) remove both
 causes.
+
+### V2 - Announce, then SIGTERM (M2)
+
+- Goal: after T3, SIGTERM stops the example in order and it exits 0.
+- Initial state: tree with the commit `refactor(udp-server): [#2448] migrate
+  the UDP test environment to the token lifecycle` plus the uncommitted T3
+  example change; same toolchain as T0; binary rebuilt.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Start `target/debug/examples/udp_only_public_tracker`, wait for
+   `Listening on`.
+2. `target/debug/tracker_client udp announce "udp://<addr>/announce" 9c38422213e30bff212b30c360d26f9a02136422`
+3. `kill -TERM <pid>`; wait up to 10 s; record exit code; count UDP sockets
+   still bound to the port with `ss -lun`.
+
+#### Observed Result
+
+```text
+===== SIGTERM pid=1916474 addr=127.0.0.1:36311 15:51:21
+announce rc=0
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+alive after signal: no
+exit=0
+Listening on 127.0.0.1:36311
+Press Ctrl-C (or send SIGTERM on Unix) to stop.
+Received SIGTERM. Shutting down...
+Stopped.
+sockets still bound: 0
+```
+
+#### Conclusion
+
+Met: the announce succeeds, `main` receives SIGTERM, `Environment::stop()`
+joins every task, and the process exits 0 with the socket released.
+
+### V3 - Announce, then SIGINT (M3)
+
+- Goal: SIGINT follows the same path as SIGTERM.
+- Initial state: as V2.
+- Status: `DONE`
+
+#### Steps Performed
+
+As V2, with `kill -INT <pid>`.
+
+#### Observed Result
+
+```text
+===== SIGINT pid=1916574 addr=127.0.0.1:56282 15:51:21
+announce rc=0
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+alive after signal: no
+exit=0
+Listening on 127.0.0.1:56282
+Press Ctrl-C (or send SIGTERM on Unix) to stop.
+Received SIGINT. Shutting down...
+Stopped.
+sockets still bound: 0
+```
+
+#### Conclusion
+
+Met: same orderly stop as V2; the T0 panic (exit 101) is gone.
+
+### V4 - No direct library signal subscription (M4)
+
+- Goal: no UDP library module subscribes to OS signals directly.
+- Initial state: as V2.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. `rg -n 'tokio::signal' packages/udp-server/src`
+2. `rg -n 'global_shutdown_signal|shutdown_signal' packages/udp-server/src`
+
+#### Observed Result
+
+```text
+(no matches; rg exit 1)
+packages/udp-server/src/server/launcher.rs:15:use torrust_server_lib::signals::{Halted, Started, global_shutdown_signal};
+packages/udp-server/src/server/launcher.rs:523:        () = global_shutdown_signal() => ...
+```
+
+#### Conclusion
+
+Met for direct subscriptions. The legacy launcher still subscribes indirectly
+through `torrust-server-lib` until SI-19, as AC8 states; the environment and
+example no longer use that path.
 
 ## Failures and Follow-up
 
