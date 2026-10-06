@@ -166,6 +166,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` and `cargo test --doc --workspace`
 - Pre-push checks
 
+Record the Rust toolchain for each `cargo` command whose result is recorded (for example `stable
+Rust toolchain` or `nightly Rust toolchain`, with `rustc --version`). This includes M1, whose
+`E0004` diagnostic text depends on the rustc version, and the pre-push checks, which mix nightly and
+stable runs.
+
 ### Manual Verification Scenarios
 
 Manual verification is mandatory even when automated tests pass. `#[non_exhaustive]` has no effect
