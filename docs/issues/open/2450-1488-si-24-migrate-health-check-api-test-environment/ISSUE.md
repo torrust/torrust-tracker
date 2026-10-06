@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 12:24"
+last-updated-utc: "2026-10-06 12:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -220,7 +220,7 @@ The package has no example binary, so there is no signal scenario.
 
 | ID  | Scenario                  | Human-oriented command/steps                                               | Expected Result                                                 | Status | Evidence                                     |
 | --- | ------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `Halted` or `Started` usage. | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | TODO   | `manual-verification-evidence.md` section V2 |
 
 Notes:
