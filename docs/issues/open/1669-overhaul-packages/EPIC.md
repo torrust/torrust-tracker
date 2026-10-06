@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 16:05"
+last-updated-utc: "2026-10-06 20:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -793,6 +793,9 @@ Before the first crates.io publish of each package, audit its public error API
 2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
 3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
    placeholder for future failures.
+4. Publish a crate whose public error enum gained `#[non_exhaustive]` since its last publish with a
+   semver-major bump (a minor bump for `0.x` crates), because adding the attribute is a breaking
+   change.
 
 Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
 the workspace crates.
@@ -963,6 +966,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 - 2026-10-06 16:05 UTC - Copilot - Created #2454 (mark public error enums `#[non_exhaustive]`
   before first publish), linked as a sub-issue, to apply the Pre-publish API checklist.
+- 2026-10-06 20:06 UTC - Copilot - Added Pre-publish API checklist item 4 (a crate whose public
+  error enum gained `#[non_exhaustive]` is published with a semver-major bump), per the
+  maintainer's decision on a PR #2456 review finding.
 
 ## Acceptance Criteria
 

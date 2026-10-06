@@ -85,7 +85,8 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
 - `#[non_exhaustive]` on individual enum variants.
 - Changing error semantics or messages, or adding or removing variants, except removing a
   never-constructed placeholder variant (see In Scope; maintainer approval required).
-- Publishing crates (owned by other EPIC #1669 subissues).
+- Publishing crates and editing `Cargo.toml` versions (owned by the per-package publish flow of ADR
+  20260629000000 and other EPIC #1669 subissues). This issue records the required bump; see AC6.
 
 ## Architectural Decisions
 
@@ -114,7 +115,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
+| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates). Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
 | T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. |
 | T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
@@ -160,6 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC3: The workspace compiles with every downstream exhaustive match updated; no behavior changes.
 - [ ] AC4: Placeholder findings (including `configuration::Error::Infallible`) and derive decisions are resolved or explicitly deferred with a reason.
 - [ ] AC5: The T1 inventory records per-crate completion, and EPIC #1669's Pre-publish API checklist links to it.
+- [ ] AC6: For every already-published crate whose public error enum gains `#[non_exhaustive]`, the inventory records that its next publish must be a semver-major bump (a minor bump for `0.x`), and EPIC #1669's checklist states that publish-time rule.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -202,12 +204,15 @@ None planned.
 | AC3   | TODO   | Workspace check, clippy, and tests |
 | AC4   | TODO   | Inventory and T4 commits |
 | AC5   | TODO   | Inventory completion column and the EPIC #1669 link |
+| AC6   | TODO   | Inventory publish-bump column and EPIC #1669 checklist item 4 |
 
 ## Risks and Trade-offs
 
 - Adding `#[non_exhaustive]` breaks exhaustive matches in downstream crates. Inside the workspace
   the compiler finds them; for crates already on crates.io (for example
-  `torrust-tracker-configuration`), it is a semver-breaking change and needs a version bump.
+  `torrust-tracker-configuration`), it is a semver-breaking change. This issue does not edit
+  versions: the inventory records the required bump (AC6), and EPIC #1669's checklist item 4 makes
+  the per-package publish apply it.
 - Wildcard arms hide future variants from downstream code. Map them to the most specific existing
   handling and keep them few.
 - An inventory filtered only by name misses error types with other names; T1 uses public
