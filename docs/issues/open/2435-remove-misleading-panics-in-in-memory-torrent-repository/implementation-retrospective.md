@@ -52,16 +52,19 @@ FINDINGS. All findings are addressed or decided.
 The decision changed from option C (keep `Result` with an uninhabited `#[non_exhaustive]` error and
 propagate it to every delivery layer) to option B (return plain values).
 
-- Option C was fully implemented (commits `cab9fc7d6`, `c85d8202b`, `6e7ed1d80`): `SwarmRegistry`
+- Option C was fully implemented in three commits ("replace the Infallible error alias with a
+  non-exhaustive empty enum", "return a 500 when the tracker stats cannot be collected", and
+  "propagate swarm registry errors instead of expecting them"): `SwarmRegistry`
   variants in `AnnounceError` and `ScrapeError`, a REST `StatsError` with a `500` path, error
   handling in the cleanup job, and 37 new `.unwrap()` calls in tests.
-- The ADR was then refined after an external AI review (`441f58705`). The review sharpened the
-  wording but did not question the premise.
+- The ADR was then refined after an external AI review ("sharpen the non-exhaustive error ADR
+  around abstraction semantics"). The review sharpened the wording but did not question the
+  premise.
 - The premise broke on one concrete question from the maintainer: can counting the swarms
   (`Registry::len`) ever fail? Nobody could name a case, and the case for the counting methods that
-  returned `Result` was just as weak. The maintainer reversed the decision (T7, `7b51e9c97`). The
-  option C commits were reverted (`64b4bb590`, `2be641184`), and the registry was changed to return
-  plain values (`215af4402`).
+  returned `Result` was just as weak. The maintainer reversed the decision (T7). The option C
+  commits were reverted with two `revert(...)` commits, and the registry was changed to return
+  plain values ("return plain values from infallible registry methods").
 
 ## Root Cause
 
@@ -107,6 +110,6 @@ Three things let the premise through:
 
 - [Issue specification](ISSUE.md): Decision (T2), Decision Revision (T7), and the progress log
 - [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)
-- Commits on branch `2435-remove-misleading-panics-in-in-memory-torrent-repository`: option C
-  `cab9fc7d6`, `c85d8202b`, `6e7ed1d80`; ADR refinement `441f58705`; reversal `7b51e9c97`;
-  reverts `64b4bb590`, `2be641184`; option B `215af4402`; review fix `7e26215d1`
+- The PR for issue #2435: the option C commits, the ADR refinement, the decision switch, the two
+  `revert(...)` commits, the option B commit, and the `must_use` review fix, cited above by their
+  Conventional Commit subjects
