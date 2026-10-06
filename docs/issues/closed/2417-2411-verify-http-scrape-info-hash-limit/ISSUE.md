@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2411
 github-issue: 2417
-spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
+spec-path: docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
-related-pr: null
-last-updated-utc: "2026-10-06 12:27"
+related-pr: 2444
+last-updated-utc: "2026-10-06 17:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 # Issue #2417 - Verify Whether HTTP Scrape Enforces the 74 Info-Hash Limit
 
-Parent: [EPIC #2411 - Spam and abuse resistance](../2411-spam-and-abuse-resistance/EPIC.md).
+Parent: [EPIC #2411 - Spam and abuse resistance](../../open/2411-spam-and-abuse-resistance/EPIC.md).
 
 ## Goal
 
@@ -425,6 +425,11 @@ because the response dictionary can collapse them.
   with one Nit (F13, this stamp). Rebased on the latest `develop` (one
   conflict in `docs/adrs/index.md`: both new ADR rows kept, in timestamp
   order); pre-push passed.
+- 2026-10-06 16:00 UTC - PR #2444 merged at 14:17 UTC after the round-5
+  approval, and GitHub closed #2417 as completed. Archived this spec folder to
+  `docs/issues/closed/` and set `related-pr`.
+- 2026-10-06 17:51 UTC - Repaired the parent EPIC link, which the archive
+  move broke (PR #2457 review finding F1).
 
 ### Acceptance Verification
 
@@ -446,6 +451,6 @@ code commit.
 
 ## References
 
-- Related issues: spam and abuse EPIC (draft)
+- Related issues: spam and abuse EPIC #2411
 - Related code: `MAX_SCRAPE_TORRENTS` (removed by this issue), the
   per-protocol `MAX_SCRAPE_INFO_HASHES` constants that replace it

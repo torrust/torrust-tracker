@@ -9,7 +9,7 @@ github-issue: 2406
 spec-path: docs/issues/closed/2406-scrape-ignores-persisted-torrent-downloads/ISSUE.md
 branch: "2406-scrape-ignores-persisted-torrent-downloads"
 related-pr: 2423
-last-updated-utc: "2026-10-04 07:57"
+last-updated-utc: "2026-10-06 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,7 +73,7 @@ Relevant history:
 - Loading every torrent at startup, rejected by #1510.
 - Changing the global downloads metric from #1543.
 - Rate limiting or other scrape-abuse protections, tracked by the spam and abuse resistance EPIC #2411 (`docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md`, from the #1488 SI-22 work).
-- The HTTP scrape 74-info-hash limit, tracked by #2417 (`docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`).
+- The HTTP scrape 74-info-hash limit, tracked by #2417 (`docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`).
 - Batching persistence writes, tracked by #2418 (`docs/issues/open/2418-batch-persisted-download-writes/ISSUE.md`).
 - Changes to the #1488 SI-22 shutdown implementation or specifications.
 

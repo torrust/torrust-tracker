@@ -7,14 +7,14 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/scrape.rs
     - packages/udp-server/src/handlers/mod.rs
     - packages/tracker-core/src/scrape_handler.rs
-    - docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
+    - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 ---
 
 # Cap Scrape Info Hashes per Protocol, Each for Its Own Reason
 
 - **Date**: 2026-10-05
 - **Issue**: [#2417](https://github.com/torrust/torrust-tracker/issues/2417)
-- **Spec**: [ISSUE.md](../issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md)
+- **Spec**: [ISSUE.md](../issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md)
 
 ## Scope
 

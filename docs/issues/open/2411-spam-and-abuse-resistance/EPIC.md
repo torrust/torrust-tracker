@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-02 18:45"
+last-updated-utc: "2026-10-06 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -55,7 +55,7 @@ Add a row for every new case. "Source" says where it was found.
 | --- | --- | --- | --- | --- | --- |
 | A1 | No shared configurable request-rate policy | UDP, HTTP, REST API, health check | Aggregate work can exceed capacity despite existing local protections | To inventory | Known limitation |
 | A2 | Connections without a client timeout | HTTP, REST API | Idle connections hold resources | Open, needs research | #324 |
-| A3 | HTTP scrape exceeds the documented 74 info-hash limit | HTTP tracker | Local requests returned 75 and 1000 entries; overload impact not measured | Decided in #2417: HTTP keeps the first 100 as a per-request policy cap ([ADR](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md)); total load still needs rate limiting | [HTTP limit evidence](../2417-2411-verify-http-scrape-info-hash-limit/manual-verification-evidence.md) |
+| A3 | HTTP scrape exceeds the documented 74 info-hash limit | HTTP tracker | Local requests returned 75 and 1000 entries; overload impact not measured | Decided in #2417: HTTP keeps the first 100 as a per-request policy cap ([ADR](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md)); total load still needs rate limiting | [HTTP limit evidence](../../closed/2417-2411-verify-http-scrape-info-hash-limit/manual-verification-evidence.md) |
 | A4 | Announce for new info hashes adds torrents to memory when policy permits | UDP, HTTP tracker | Memory is retained while peers remain active; expiry and optional peerless cleanup affect retention | To inventory | SI-22 session, 2026-10-02 |
 | A5 | First announce of an unknown torrent reads the database when persistence is enabled | UDP, HTTP tracker | Database load from random info hashes | Open | `AnnounceHandler::load_downloads_metric_if_needed` |
 | A6 | Scrape may read the database (and, with option B, grow memory) after the scrape bug fix | UDP, HTTP tracker | Same as A4 and A5, via scrape | Pending the fix | #2406 |
@@ -77,7 +77,7 @@ Notes:
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
-| 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | TODO | A3 |
+| 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
 | 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | After the inventory is reviewed |
 
 ## Delivery Strategy

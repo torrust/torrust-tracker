@@ -253,6 +253,7 @@ fput
 fputwc
 fract
 frontmatter
+frontmattered
 fscanf
 gecos
 getaddrinfo

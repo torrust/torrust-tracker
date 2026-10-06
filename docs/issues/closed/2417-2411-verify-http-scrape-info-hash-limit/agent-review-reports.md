@@ -3,6 +3,7 @@ semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
     - docs/agents/orchestration.md
+    - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #2417 HTTP Scrape Info-Hash Limit
