@@ -9,7 +9,7 @@ github-issue: 2446
 spec-path: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
 branch: "2446-1669-establish-baseline-analysis-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 10:37"
+last-updated-utc: "2026-10-06 11:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -161,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Run binary; review output for obvious errors (missing packages, wrong module names)                                                                                                                                                                                                            | Report covers all 27 workspace packages                                   |
 | T3  | DONE   | Save report to `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and commit                                                                                                                                                                                               | File committed in the analysis branch                                     |
 | T4  | DONE   | Manually audit each package README; fill in `docs/issues/open/1669-overhaul-packages/readme-audit.md` table                                                                                                                                                                                    | Table covers all 27 packages; rating = good / minimal / stub              |
-| T5  | DONE   | Review coupling report; annotate thin-dependency findings (SI-02/SI-03 patterns and any new ones found)                                                                                                                                                                                        | Findings recorded in a "Observations" section at the bottom of the report |
+| T5  | DONE   | Review coupling report; annotate thin-dependency findings (SI-02 (#1790)/SI-03 (#1793) patterns and any new ones found)                                                                                                                                                                                        | Findings recorded in a "Observations" section at the bottom of the report |
 | T6  | DONE   | For each new thin-dependency finding: open (or update) a corresponding subissue in EPIC #1669 Active Subissues                                                                                                                                                                                 | New subissues added to EPIC quick list if applicable                      |
 | T7  | DONE   | Run `linter all`                                                                                                                                                                                                                                                                               | Exit code `0`                                                             |
 | T8  | DONE   | Research how to scope `packages/configuration` per service: (a) split into sub-packages, or (b) gate with Cargo features. Audit which config structs each service needs; prototype the two scenarios below for each approach; record findings and open a new subissue if a change is warranted | Findings section added to coupling report; new subissue opened if viable  |
@@ -183,7 +183,11 @@ GitHub issue. Evidence:
   (2 good, 9 minimal, 16 stub = 27) does not match its rows (2, 10, 14 = 26); T10 corrects it.
 - T5: the Observations section of the 2026-06-10 report (known thin dependencies, improvements
   since 2026-05-19, new findings). Its opening placeholder sentence was never replaced; T9 fixes
-  this in the new report.
+  this in the new report. SI-02 and SI-03 are the draft's names for the first thin-dependency
+  fixes: SI-02 is [#1790](https://github.com/torrust/torrust-tracker/issues/1790)
+  (`DurationSinceUnixEpoch` moved out of `torrust-tracker-primitives`) and SI-03 is
+  [#1793](https://github.com/torrust/torrust-tracker/issues/1793) (`DEFAULT_TIMEOUT` removed
+  from `torrust-tracker-configuration`).
 - T6: findings became EPIC #1669 subissues, including SI-26 (#1907) and SI-27 (#1908).
 - T7: `linter all` passes on `develop` with both reports and the README audit in the tree.
 - T8: carried out as [#1856](https://github.com/torrust/torrust-tracker/issues/1856), which kept a
@@ -294,6 +298,10 @@ reviewability.
   the outputs for the post-#1938 workspace and close the baseline in EPIC #1669.
 - 2026-10-06 10:37 UTC - GitHub Copilot - Maintainer approved the draft. Created issue #2446,
   linked it as a subissue of EPIC #1669, and moved the spec to `docs/issues/open/`.
+- 2026-10-06 11:51 UTC - GitHub Copilot - Addressed PR #2447 round-1 review: added Commit
+  Points, manual-verification status and evidence, Acceptance Verification and Implementation
+  Completion Review; defined the README audit package set; corrected the Background dating and
+  the T2/T4 counts; mapped SI-02 and SI-03 to #1790 and #1793.
 
 ## Acceptance Criteria
 
