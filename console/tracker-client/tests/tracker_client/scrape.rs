@@ -118,6 +118,26 @@ mod udp {
             run.stderr_records
         );
     }
+
+    /// 125 entries take 8 + 125 x 12 = 1508 bytes, more than the 1496-byte
+    /// `MAX_PACKET_SIZE`: the client must not truncate a tracker's answer itself.
+    #[test]
+    fn it_should_receive_every_entry_when_the_response_is_larger_than_the_tracker_packet_size() {
+        // Arrange
+        let tracker = FakeUdpTracker::start();
+
+        // Act
+        let run = scrape(&tracker, &distinct_info_hashes(125));
+
+        // Assert
+        assert_eq!(run.exit_code, Some(0));
+        assert_eq!(returned_entries(&run), 125);
+        assert!(
+            run.stderr_records.is_empty(),
+            "stderr should be empty: {:?}",
+            run.stderr_records
+        );
+    }
 }
 
 mod http {
