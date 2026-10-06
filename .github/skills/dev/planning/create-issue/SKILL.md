@@ -46,7 +46,7 @@ Lifecycle docs:
    `docs/templates/EPIC.md` for Epic). Concrete folder-style primary
    specifications use the allowed uppercase filenames `ISSUE.md` or `EPIC.md`.
 2. **User reviews** the draft specification
-3. **Create GitHub issue**
+3. **Create GitHub issue**, then decide whether to open a spec-only PR and name the branch to match
 4. **Move the spec directory to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
@@ -242,6 +242,21 @@ gh issue create \
   --body "{body}" \
   --label "{label}"
 ```
+
+#### Decide the Spec-Only PR and Name the Branch
+
+Right after the issue is created, and before you move, commit, or push anything, decide with the
+maintainer whether to open a spec-only PR first (see Optional Step 6). The answer sets the branch
+name:
+
+- Spec-only PR: `{issue-number}-{short-description}-spec`. The base name stays free for the
+  implementation branch.
+- No spec-only PR: `{issue-number}-{short-description}`.
+
+If you started on a temporary branch (for example, a draft name chosen before the issue number
+existed), rename it now to the name chosen above. Set the specification frontmatter `branch:` to
+the same name. Renaming a branch after its PR is open does not move the PR on GitHub. You have to
+open a new PR and close the old one.
 
 ### Step 4: Move the Specification to Open Issues
 
