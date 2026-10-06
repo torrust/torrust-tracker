@@ -315,10 +315,10 @@ Arrange-Act-Assert review.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Normal client flow | Start the tracker (`cargo run`); `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:6969/announce <info-hash>` | Connect then announce succeed | TODO | Not yet recorded |
+| M1 | Normal client flow | Start the tracker (`cargo run`); `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:6969/announce <info-hash>` | Connect then announce succeed | TODO | `manual-verification-evidence.md` section V2 (not yet recorded) |
 | M2a | Forged connection ID, before the fix | With the non-test cipher alias temporarily pointed at the all-zero cipher, start the tracker (`cargo run`) and run a disposable example that forges a connection ID with its own all-zero-key Blowfish and passes it to the production `check` | The tracker starts (`check_seed()` passes) and the forged connection ID is accepted | DONE | `manual-verification-evidence.md` section V1 |
-| M2b | Forged connection ID, after the fix | Repeat M2a against the fixed code: try to wire the fixed test key into a production build, and send an announce with an all-zero-key connection ID via `UdpTrackerClient::send` to the running tracker | The test key cannot be referenced in a production build, and the forged connection ID is rejected | TODO | Not yet recorded |
-| M3 | Key not logged | Run the tracker with debug/trace logging, exercise connect and announce, and search the logs for key material | No key bytes in logs | TODO | Not yet recorded |
+| M2b | Forged connection ID, after the fix | Repeat M2a against the fixed code: try to wire the fixed test key into a production build, and send an announce with an all-zero-key connection ID via `UdpTrackerClient::send` to the running tracker | The test key cannot be referenced in a production build, and the forged connection ID is rejected | TODO | `manual-verification-evidence.md` section V3 (not yet recorded) |
+| M3 | Key not logged | Run the tracker with debug/trace logging, exercise connect and announce, and search the logs for key material | No key bytes in logs | TODO | `manual-verification-evidence.md` section V4 (not yet recorded) |
 
 Record the toolchain for every validation command result (for example, `nightly Rust toolchain`
 for `cargo +nightly fmt --all -- --check`).
