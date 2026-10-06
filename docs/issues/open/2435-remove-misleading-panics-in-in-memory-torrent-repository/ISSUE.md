@@ -63,7 +63,7 @@ Found during PR #2423 (issue #2406) review.
 ## Architectural Decisions
 
 - Related ADRs: [independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md).
-- ADRs to create: a root ADR in `docs/adrs/` recording when public package APIs return `Result`. It is root-scoped because every workspace package will be published and consumed independently (EPIC #1669).
+- ADR created: [20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md), recording when public package APIs return `Result`. It is root-scoped because every workspace package will be published and consumed independently (EPIC #1669).
 
 ## Decision Revision (T7)
 
@@ -133,7 +133,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Inventory fallible registry methods and repository callers | See [T1 Inventory](#t1-inventory) |
-| T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) |
+| T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) (superseded by T7) |
 | T3 | DONE | Write the ADR | `docs/adrs/20261005145329_use_crate_owned_non_exhaustive_errors_for_potentially_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
@@ -149,7 +149,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Registry methods returning `Result<_, Error>` (all infallible today): `handle_announcement`, `get_swarm_metadata`, `get_swarm_metadata_or_default`, `get_peers_peers_excluding`, `get_swarm_peers`, `remove_inactive_peers`, `remove_peerless_torrents`, `get_aggregate_swarm_metadata`, `count_peerless_torrents`, `count_peers`.
 
 - `tracker-core`: `in_memory.rs` is the only caller, with one `expect` per method (10 in total) and a matching `# Panics` section.
-- Other direct callers: about 63 `.unwrap()` calls in the registry's own tests, `examples/bench_peers.rs`, and `statistics/mod.rs` tests.
+- Other direct callers: about 63 `.unwrap()` calls in the registry's own tests and `statistics/mod.rs` tests.
 - Production callers of the repository methods: `AnnounceHandler`, `ScrapeHandler`, `TorrentsManager` (cleanup and metadata logging), `TrackerStatsAdapter::get_stats` (REST), and `udp-core`/`udp-server` `statistics::services::get_metrics`.
 - None of these calls can fail today: every registry method returns `Ok`, and `tokio::sync::Mutex::lock` is infallible.
 
@@ -166,6 +166,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 | T8 | Rewritten ADR, index row, and skill | One `docs(adrs)` commit |
 | T9 | One revert commit per reverted task (T6, then T5) | Each revert compiles on its own |
 | T10 | Registry plain values and all callers | One commit |
+| T11 | EPIC #1669 pre-publish checklist | One `docs(issues)` commit after maintainer approval |
 
 ## Progress Tracking
 
@@ -179,7 +180,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -196,6 +197,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 18:03 UTC - Copilot - Revised the ADR after an external AI review; the decision is unchanged. Renamed it to "Use Crate-Owned Non-Exhaustive Errors for Potentially Fallible Public APIs". Revisions: separated the abstraction's semantics from the current implementation's capabilities; explained that `Infallible` states the wrong contract; replaced "forced to handle `Err`" with "cannot treat the error as uninhabited" (consumers can still `unwrap`); limited the scope to independently consumed API boundaries; presented the empty-enum pattern as a repository convention built on established practice rather than a standard idiom; added a generic-error alternative and expanded consequences; cited RFC 2008, C-GOOD-ERR, the Reference, and `std::convert::Infallible` (all checked against the live pages). Following the new derive guidance, dropped `PartialEq, Eq` from the registry `Error` because no caller used them and a future variant may not support them. Added an intent comment to the `compile_fail` doctest.
 - 2026-10-05 18:42 UTC - Copilot - Maintainer reversed the decision to option B (T7); see [Decision Revision (T7)](#decision-revision-t7). Trigger: no plausible failure for `Registry::len`, and an equally weak case for the counting methods. Packages will be published within weeks (EPIC #1669), so the trade-off was re-assessed in that context: a semver-signalled breaking change, paid once if a failure ever appears, is cheaper than a speculative `Result` every consumer pays for. Reopened AC3, AC5, and AC6 and reworded them for option B. Plan: rewrite the ADR (T8), revert T6 and T5 with `git revert` (T9), make the registry methods return plain values (T10), and draft the #1669 checklist item (T11).
 - 2026-10-05 19:56 UTC - Copilot - T8 to T10 done. The ADR was rewritten, T6 and T5 were reverted with `git revert` (the spec conflicts were resolved by keeping the current spec), and the registry methods now return plain values. A subagent did the mechanical removal of 62 test `.unwrap()` calls in `registry.rs`, using file-edit tools and verified by the compiler. Also removed the false `# Returns ... true` sections on both `handle_announcement` methods, which return `()`. Net code diff against `develop`: four files, +96/-263. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2975 tests with 0 failures (one fewer than T6 because the reverted REST stub-port test is gone). Completion review: the reversal is the material discovery, and its lesson (do not reserve `Result` for speculative failures) is recorded permanently in the ADR's Description and Alternatives and in the T7 decision, so no separate retrospective file was created.
+- 2026-10-06 09:16 UTC - Copilot - Rebased onto `torrust/develop` (38 commits, no conflicts). The `revert` commit messages still name the pre-rebase hashes: `6c4066e69` (T6 propagation) is now `6e7ed1d80`, and `bb769d1e9` (T5 REST stats) is now `c85d8202b`. A Task Reviewer review returned PASS WITH FINDINGS. Fixes: added `#[must_use]` to the seven registry query methods, which lost the unused-value warning when they stopped returning `Result`; linked the ADR from the Architectural Decisions and References sections; marked T2 as superseded; added the T11 commit point; removed `examples/bench_peers.rs` from the T1 inventory (it uses only `Coordinator`); and reworded the ADR's mention of the reverted enum variants.
 
 ## Acceptance Criteria
 
@@ -260,4 +262,4 @@ findings, and reusable lessons.
 
 - Related issues: #2406
 - Related PRs: #2423
-- Related ADRs: none
+- Related ADRs: [20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md), [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md)

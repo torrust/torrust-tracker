@@ -67,7 +67,8 @@ Related rules:
 - **Never `expect` or document `# Panics` for failures that cannot occur.** If the code cannot fail,
   the signature should say so.
 - **Mark existing public error enums `#[non_exhaustive]` before their first publish.** Enums with
-  real variants gain variants as features grow (#2435 had to add one to two enums). With
+  real variants gain variants as features grow (the reverted first attempt at #2435 had to add one
+  to two enums). With
   `#[non_exhaustive]`, adding a variant is not a breaking change. This is the cheap, standard tool;
   RFC 2008 names error types as its most common use. Derive only traits every future variant can
   keep, because removing a derive is a breaking change.
