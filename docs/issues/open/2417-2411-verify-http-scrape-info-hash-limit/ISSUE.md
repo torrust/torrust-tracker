@@ -8,8 +8,8 @@ epic: 2411
 github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
-related-pr: null
-last-updated-utc: "2026-10-06 07:11"
+related-pr: 2444
+last-updated-utc: "2026-10-06 09:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -382,6 +382,9 @@ because the response dictionary can collapse them.
 - 2026-10-06 07:11 UTC - Rebased on the latest `develop`; pre-commit
   (including `linter all`) passed on every commit and the full pre-push suite
   passed (nightly format, check, and docs; all stable tests).
+- 2026-10-06 09:58 UTC - Renamed the fake tracker constructors to `start()`,
+  `start_with_scrape_limit(n)`, and `start_silent()` after maintainer review;
+  pre-push passed again. Opened PR #2444.
 
 ### Acceptance Verification
 
