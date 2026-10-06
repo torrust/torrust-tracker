@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 10:40"
+last-updated-utc: "2026-10-06 16:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -665,6 +665,7 @@ Status: TODO unless noted.
 
 - [ ] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — original tasks done May to June 2026; outputs to be refreshed for the post-#1938 workspace
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
+- [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [x] Extract `torrust-located-error` to standalone repository — [#1894](https://github.com/torrust/torrust-tracker/issues/1894) _(Rule E; requires completed rename SI-10 #1823)_ — **DONE**
@@ -731,6 +732,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 ### Subissue Specs Index
 
 - [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)
+- [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
 - [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
@@ -791,6 +793,9 @@ Before the first crates.io publish of each package, audit its public error API
 2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
 3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
    placeholder for future failures.
+
+Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
+the workspace crates.
 
 ## Open Questions
 
@@ -956,6 +961,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   linked it as a subissue, and moved its spec to `docs/issues/open/`.
 - 2026-10-06 10:40 UTC - Copilot - Moved the Pre-publish API checklist from Open Questions to
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
+- 2026-10-06 16:05 UTC - Copilot - Created #2454 (mark public error enums `#[non_exhaustive]`
+  before first publish), linked as a sub-issue, to apply the Pre-publish API checklist.
 
 ## Acceptance Criteria
 
