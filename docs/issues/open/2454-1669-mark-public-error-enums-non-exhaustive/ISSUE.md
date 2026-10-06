@@ -9,7 +9,7 @@ github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 16:05"
+last-updated-utc: "2026-10-06 20:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,6 +153,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-06 15:55 UTC - Copilot - Drafted as the follow-up to issue #2435 and the EPIC #1669 Pre-publish API checklist, at the maintainer's request. Inventory hypothesis from `rg` at `develop`: 61 enums named `*Error*`, no `#[non_exhaustive]` anywhere, and a `configuration::Error::Infallible` variant. Not yet reviewed.
 - 2026-10-06 16:05 UTC - Copilot - The maintainer approved the draft as written, including the open manual-verification question, which is to be settled before implementation. Created GitHub issue #2454 with the `task` label, linked it as a sub-issue of EPIC #1669, and moved the spec to `docs/issues/open/` on the spec-only branch `2454-1669-mark-public-error-enums-non-exhaustive-spec`.
+- 2026-10-06 20:31 UTC - Copilot - Addressed the PR #2456 reviews (da2ce7 F1 to F6, plus Copilot's three findings, two of which match da2ce7's F1 and F3). Changes: M1 is mandatory with a positive half, and the template AC wording is restored; added the toolchain-evidence rule; the `Infallible` placeholder variant now falls under the `handle-errors-in-code` rule, and its approved removal is exempt from Out of Scope; T3 uses dependency order and the T1 inventory holds per-crate completion; added a conditional test loop for a doctest guard; added the EPIC Details row. On Copilot's SemVer finding, the maintainer decided that the publish flow owns version bumps: new AC6 and EPIC checklist item 4. Audit: `docs/pr-reviews/pr-2456-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
