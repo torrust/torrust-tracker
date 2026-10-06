@@ -663,7 +663,7 @@ Status: TODO unless noted.
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
-- [ ] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — original tasks done May to June 2026; outputs to be refreshed for the post-#1938 workspace
+- [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
 - [ ] Decouple published `test-helpers` from unpublished crates _(draft; finding 1 of the 2026-10-06 coupling report)_
@@ -687,7 +687,7 @@ Details:
 
 | Item                       | Issue                                                                                                                                                                                     | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                                                                         |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | TODO   | T1 to T8 done May to June 2026; T9 to T13 refresh the outputs for the post-#1938 workspace                                                    |
+| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | DONE   | T1 to T8 done May to June 2026; T9 to T13 refreshed the outputs on 2026-10-06 (report, README audit, diagram, three drafts)                    |
 | Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                              | [docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md)                             | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                                                                   |
 | Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`          | [docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md](../../closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md)                                   | DONE   | Rule M; completed                                                                                                                             |
 | Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                              | [docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md](../../closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md)                       | DONE   | Rule M; completed                                                                                                                             |
@@ -782,6 +782,9 @@ The EPIC is re-triggered (a new analysis round starts) whenever:
   extraction candidates identified and documented.
 - Exit criteria: Baseline analysis subissue merged; at least one extraction candidate has
   a scoped subissue ready.
+- Status (2026-10-06): baseline done in #2446; the `torrust-tracker-client` extraction has a
+  scoped draft (blocked by crate publication). The next cycle starts from the three findings
+  of the [2026-10-06 coupling report](workspace-coupling-report-2026-10-06.md).
 
 ### Subsequent cycles
 
@@ -977,6 +980,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 - 2026-10-06 16:05 UTC - Copilot - Created #2454 (mark public error enums `#[non_exhaustive]`
   before first publish), linked as a sub-issue, to apply the Pre-publish API checklist.
+- 2026-10-06 16:21 UTC - GitHub Copilot - Completed the baseline (#2446): 2026-10-06 coupling
+  report, refreshed README audit and dependency diagram; added three draft subissues from the
+  report's findings; marked AC1 done.
 - 2026-10-06 20:06 UTC - Copilot - Added Pre-publish API checklist item 4 (a crate whose public
   error enum gained `#[non_exhaustive]` is published with a semver-major bump), per the
   maintainer's decision on a PR #2456 review finding.
@@ -988,7 +994,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 Because this EPIC is ongoing, acceptance criteria are defined per cycle, not for the
 entire EPIC at once. The EPIC is considered healthy (not stale) when:
 
-- [ ] The baseline analysis is merged and the dependency graph is up to date.
+- [x] The baseline analysis is merged and the dependency graph is up to date.
 - [ ] Every clearly independent package either has an open extraction subissue or a recorded
       decision explaining why extraction was deferred.
 - [ ] `docs/packages.md` and `AGENTS.md` Package Catalog are accurate after each change.
@@ -999,7 +1005,7 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 
 | AC ID | Status | Evidence                                 |
 | ----- | ------ | ---------------------------------------- |
-| AC1   | TODO   | {baseline analysis PR link}              |
+| AC1   | DONE   | #2446: [2026-10-06 coupling report](workspace-coupling-report-2026-10-06.md), [README audit](readme-audit.md), [dependency diagram](../../../media/packages/dependencies-workspace-packages.md) |
 | AC2   | TODO   | {per-candidate issue or decision record} |
 | AC3   | TODO   | {PR link per structural change}          |
 | AC4   | TODO   | {per-subissue links}                     |
