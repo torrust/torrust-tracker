@@ -174,8 +174,13 @@ GitHub issue. Evidence:
 - T2, T3: the [2026-05-19](../../open/1669-overhaul-packages/workspace-coupling-report-2026-05-19.md)
   and [2026-06-10](../../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
   reports. They use dated file names instead of the single `workspace-coupling-report.md` the
-  draft planned, so successive baselines stay comparable.
+  draft planned, so successive baselines stay comparable. Deviation from T2's expected output:
+  the 2026-05-19 report covers 29 workspace packages (8 without workspace dependencies, 21
+  detailed), not 27.
 - T4: [`readme-audit.md`](../../open/1669-overhaul-packages/readme-audit.md), dated 2026-05-18.
+  Deviation from T4's expected output: it has 26 rows (24 `packages/`, `console/tracker-client`
+  and `contrib/bencode`), not 27, with no row for the root crate. Its Summary table
+  (2 good, 9 minimal, 16 stub = 27) does not match its rows (2, 10, 14 = 26); T10 corrects it.
 - T5: the Observations section of the 2026-06-10 report (known thin dependencies, improvements
   since 2026-05-19, new findings). Its opening placeholder sentence was never replaced; T9 fixes
   this in the new report.
@@ -189,7 +194,7 @@ Remaining work for the current workspace:
 | ID  | Status | Task                                                                                                                                                                       | Notes / Expected Output                                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | T9  | TODO   | Regenerate the coupling report with `cargo run -p workspace-coupling -- <dated path>` and write its Observations section, comparing against the 2026-06-10 report          | New `workspace-coupling-report-<YYYY-MM-DD>.md` covering every current workspace member; no placeholder text    |
-| T10 | TODO   | Refresh `readme-audit.md` for the 25 audited packages (see Goal item 2): add the root crate, the three REST API packages, `e2e-tools` and `persistence-benchmark`; use current folder and crate names; remove the rows for packages no longer in the workspace (`clock`, `located-error`, `metrics`, `peer-id`, `server-lib`, `rest-tracker-api-core` and `contrib/bencode`) | Exactly one row per audited package, each rated good, minimal, stub or missing, with an updated audit date |
+| T10 | TODO   | Refresh `readme-audit.md` for the 25 audited packages (see Goal item 2): add the root crate, the three REST API packages, `e2e-tools` and `persistence-benchmark`; use current folder and crate names; remove the rows for packages no longer in the workspace (`clock`, `located-error`, `metrics`, `peer-id`, `server-lib`, `rest-tracker-api-core` and `contrib/bencode`) | Exactly one row per audited package, each rated good, minimal, stub or missing, with a Summary table that matches the rows and an updated audit date |
 | T11 | TODO   | Update the Mermaid diagram in `docs/media/packages/dependencies-workspace-packages.md` to the current normal dependencies                                              | Every node and edge matches `cargo metadata --no-deps`; `rest-api-core` removed; link to the new report updated |
 | T12 | TODO   | Review the new report for thin-dependency or misplacement findings not covered by existing subissues                                                                     | Findings recorded in the report's Observations; a draft subissue added to EPIC #1669 for each one warranting a change, or "none found" recorded |
 | T13 | TODO   | Mark the baseline done in EPIC #1669: quick-list entry, Details row, AC1, and the first-cycle exit criteria                                                              | EPIC updated in the same PR                                                                                     |
