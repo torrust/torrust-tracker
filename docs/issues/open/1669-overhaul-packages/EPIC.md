@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-05 15:53"
+last-updated-utc: "2026-10-06 08:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -932,6 +932,10 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   #1860, #1861, #1864, SI-23 to SI-28, SI-34 and SI-35 as done; replaced `rest-api-core` with
   the #1938 REST API packages; regenerated the dependency lists from `cargo metadata`; recorded
   that the baseline analysis is largely done but not yet tracked in a GitHub issue.
+- 2026-10-06 08:41 UTC - GitHub Copilot - Applied PR #2441 review feedback: added Details rows
+  for the newly listed subissues and SI-29; replaced the publication Yes/No column with the
+  latest crates.io version and added the published root `torrust-tracker` crate; marked
+  `bittorrent-primitives` as superseded and archived.
 
 ## Acceptance Criteria
 
