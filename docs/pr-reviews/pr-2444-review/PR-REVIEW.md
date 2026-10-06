@@ -55,6 +55,11 @@ was pushed) verified F1 and F3-F10 and left two inline findings. Its F2 re-raise
 round-1 rewrite of the M2 sentence; it is recorded as F12 with `RE_RAISE_OF:F2`. Its F11 is kept
 as given. The review body summarizes these two and raises no other actionable assertion.
 
+da2ce7 review 5427730462 (round 3, CHANGES_REQUESTED at the head that added this record's round-1
+rows) raises no new finding. It confirms the round-1 rows and lists what the record still owed:
+rows for F12 and F11 and log entries for rounds 2 and 3, all added in this update. F12 kept the
+review blocking until its fix was pushed.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F8 | `review-finding:pr-2444-f8` | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -236,6 +241,7 @@ as given. The review body summarizes these two and raises no other actionable as
 - 2026-10-06 11:19 UTC - Recorded this audit.
 - 2026-10-06 11:35 UTC - Fetched da2ce7 review 5427602231 (round 2: F1 and F3-F10 verified, two new inline findings); resolved the three verified Copilot threads; committed the F12 fix.
 - 2026-10-06 11:39 UTC - Pushed the F12 fix and replied on the F12 and F11 threads; recorded round 2.
+- 2026-10-06 11:41 UTC - Fetched da2ce7 review 5427730462 (round 3, at the round-1 audit head; no new finding); recorded it.
 
 ## Completion Rules
 
