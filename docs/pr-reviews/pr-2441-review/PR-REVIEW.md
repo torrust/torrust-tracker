@@ -48,6 +48,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F4 | `review-finding:pr-2441-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2441-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2441-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2441-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -129,12 +130,27 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952920>
 
+### F7 - EPIC last-updated-utc not bumped after the 2026-10-06 edits
+
+- PR number: 2441
+- Source review ID: 5425730536
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193127463>
+- Concern: Four commits on 2026-10-06 changed the EPIC, but its `last-updated-utc` still read `2026-10-05 15:53`; `cleanup-completed-issues` asks the parent EPIC's stamp to be updated, as was done for the SI-27 spec in F6.
+- Solution: Set `last-updated-utc` to the time of the last edit and added a matching Progress Log entry for the 2026-10-06 changes, including the crates.io version column added in the same push.
+- Current-tree verification: EPIC frontmatter reads `last-updated-utc: "2026-10-06 08:41"`, equal to the new Progress Log stamp; pre-commit passed.
+- Resolution reference: `docs(issues): [#1669] bump EPIC last-updated-utc after review edits`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4193316929>
+
 ## Processing Log
 
 - 2026-10-05 18:28 UTC - Copilot review 5418930104 posted one inline finding, F1, and recommended approval.
 - 2026-10-05 18:44 UTC - Fixed F1, pushed after the pre-push suite passed, and replied on its thread before recording it here.
 - 2026-10-05 18:58 UTC - Human review 5419233306 (da2ce7, round 1) approved with five optional inline findings, F2 to F6.
 - 2026-10-06 08:06 UTC - Rebased onto the latest `develop`, fixed F2 to F6 in one commit each, pushed once after the pre-push suite passed, and replied on each thread before recording them here.
+- 2026-10-06 08:27 UTC - Human review 5425730536 (da2ce7, round 2) approved the rebased head, confirmed F2 to F6, resolved their threads, and raised one optional Nit, F7.
+- 2026-10-06 08:49 UTC - Committed the F2 to F6 audit rows, added the crates.io version column to the EPIC at the maintainer's request, fixed F7, pushed once after the pre-push suite passed, and replied on the F7 thread before recording it here.
 
 ## Completion Rules
 
