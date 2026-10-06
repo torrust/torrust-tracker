@@ -232,8 +232,12 @@
 //! In order to scrape multiple torrents at the same time you can pass multiple
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
-//! > **NOTICE**: the maximum number of torrents you can scrape at the same time
-//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_core::MAX_SCRAPE_TORRENTS).
+//! > **NOTICE**: the tracker keeps the first `100` `info_hash` parameters of a
+//! > scrape request and ignores the rest, duplicates included. This is an
+//! > abuse-mitigation policy, not a protocol limit (unlike UDP's `74`): it
+//! > bounds the work of one request, not the total load. Defined by
+//! > [`MAX_SCRAPE_INFO_HASHES`](torrust_tracker_http_protocol::v1::requests::scrape::MAX_SCRAPE_INFO_HASHES);
+//! > see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md).
 //!
 //! **Sample response**
 //!

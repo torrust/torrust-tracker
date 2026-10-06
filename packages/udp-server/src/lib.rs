@@ -473,11 +473,12 @@
 //! - [downloaded](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::downloaded)
 //! - [incomplete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::incomplete)
 //!
-//! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
-//! > can't be done with this protocol. This is a limitation of the UDP protocol.
-//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_core::MAX_SCRAPE_TORRENTS).
-//! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
-//! > for more information about this limitation.
+//! > **NOTICE**: up to 74 torrents can be scraped at once; the tracker ignores
+//! > the rest. A full scrape can't be done with this protocol. The limit is the
+//! > number of info hashes that fit in one UDP packet, computed in
+//! > [`MAX_SCRAPE_INFO_HASHES`](torrust_tracker_udp_protocol::MAX_SCRAPE_INFO_HASHES);
+//! > see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md)
+//! > and [issue 262](https://github.com/torrust/torrust-tracker/issues/262).
 //!
 //! #### Scrape Request
 //!

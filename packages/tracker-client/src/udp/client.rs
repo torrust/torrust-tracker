@@ -7,7 +7,7 @@ use std::time::Duration;
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_udp_protocol::{ConnectRequest, MAX_PACKET_SIZE, Request, Response, TransactionId};
+use torrust_tracker_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
 use zerocopy::byteorder::network_endian::I32;
 
 use super::Error;
@@ -15,6 +15,11 @@ use super::Error;
 pub const UDP_CLIENT_LOG_TARGET: &str = "UDP CLIENT";
 
 const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Fits any UDP datagram, so the client never truncates a tracker's reply. A
+/// tracker's packet size (`MAX_PACKET_SIZE`) limits what it reads, not what a
+/// client may receive.
+const RECEIVE_BUFFER_SIZE: usize = 65_535;
 
 #[allow(clippy::module_name_repetitions, reason = "public type identifies the UDP protocol client")]
 #[derive(Debug, Clone)]
@@ -156,7 +161,7 @@ impl UdpClient {
     pub async fn receive(&self) -> Result<Vec<u8>, Error> {
         tracing::trace!(target: UDP_CLIENT_LOG_TARGET, "receiving ...");
 
-        let mut buffer = [0u8; MAX_PACKET_SIZE];
+        let mut buffer = vec![0u8; RECEIVE_BUFFER_SIZE];
 
         let () = time::timeout(self.timeout, self.socket.readable())
             .await
@@ -168,8 +173,8 @@ impl UdpClient {
             .map_err(|_| Error::TimeoutWhileReceivingData)?
             .map_err(|e| Error::UnableToReceivingData { err: e.into() })?;
 
-        let mut received: Vec<u8> = buffer.to_vec();
-        Vec::truncate(&mut received, received_bytes);
+        buffer.truncate(received_bytes);
+        let received = buffer;
 
         tracing::debug!(target: UDP_CLIENT_LOG_TARGET, "received {received_bytes} bytes: {received:?}");
 

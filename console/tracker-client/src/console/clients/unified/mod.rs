@@ -11,4 +11,5 @@
 pub mod app;
 pub mod check;
 pub mod http;
+pub mod scrape;
 pub mod udp;

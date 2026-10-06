@@ -15,6 +15,7 @@ use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{De
 use torrust_tracker_http_protocol::v1::responses::scrape::deserialization;
 
 use super::app::OutputFormat;
+use super::scrape;
 use crate::DEFAULT_NETWORK_TIMEOUT;
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -228,6 +229,10 @@ async fn scrape_command(
     };
 
     let json = serialize_json(&scrape_response, output_format).context("failed to serialize scrape response into JSON")?;
+
+    if let Some(warning) = scrape::truncation_warning(scrape::distinct_count(&query.info_hash), scrape_response.files.len()) {
+        eprintln!("{warning}");
+    }
 
     println!("{json}");
 

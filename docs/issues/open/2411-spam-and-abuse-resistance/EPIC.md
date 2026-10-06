@@ -55,15 +55,15 @@ Add a row for every new case. "Source" says where it was found.
 | --- | --- | --- | --- | --- | --- |
 | A1 | No shared configurable request-rate policy | UDP, HTTP, REST API, health check | Aggregate work can exceed capacity despite existing local protections | To inventory | Known limitation |
 | A2 | Connections without a client timeout | HTTP, REST API | Idle connections hold resources | Open, needs research | #324 |
-| A3 | HTTP scrape exceeds the documented 74 info-hash limit | HTTP tracker | Local requests returned 75 and 1000 entries; overload impact not measured | Count mismatch reproduced; whether HTTP should cap (and why) to be reconsidered and recorded in an ADR | [HTTP limit evidence](../2417-2411-verify-http-scrape-info-hash-limit/manual-verification-evidence.md) |
+| A3 | HTTP scrape exceeds the documented 74 info-hash limit | HTTP tracker | Local requests returned 75 and 1000 entries; overload impact not measured | Decided in #2417: HTTP keeps the first 100 as a per-request policy cap ([ADR](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md)); total load still needs rate limiting | [HTTP limit evidence](../2417-2411-verify-http-scrape-info-hash-limit/manual-verification-evidence.md) |
 | A4 | Announce for new info hashes adds torrents to memory when policy permits | UDP, HTTP tracker | Memory is retained while peers remain active; expiry and optional peerless cleanup affect retention | To inventory | SI-22 session, 2026-10-02 |
 | A5 | First announce of an unknown torrent reads the database when persistence is enabled | UDP, HTTP tracker | Database load from random info hashes | Open | `AnnounceHandler::load_downloads_metric_if_needed` |
 | A6 | Scrape may read the database (and, with option B, grow memory) after the scrape bug fix | UDP, HTTP tracker | Same as A4 and A5, via scrape | Pending the fix | #2406 |
 
 Notes:
 
-- A3: the UDP scrape limit is enforced (`MAX_SCRAPE_TORRENTS` in
-  `Request::parse_bytes`).
+- A3: each protocol parser enforces its own scrape limit
+  (`MAX_SCRAPE_INFO_HASHES`: 74 in `udp-protocol`, 100 in `http-protocol`).
 - A5: sequential announces avoid a database read while the torrent remains in
   memory. Eviction permits another read, and concurrent first announces may
   both observe a miss. A6's caching policy remains an implementation decision

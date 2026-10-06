@@ -446,12 +446,14 @@ savepath
 scanf
 sccache
 schemars
+sendmsg
 sendto
 serde
 serialisation
 setgroups
 setsid
 setsockopt
+settimeout
 sharktorrent
 shellcheck
 signingkey

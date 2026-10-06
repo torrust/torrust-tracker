@@ -335,7 +335,7 @@ mod receiving_an_scrape_request {
 
     use torrust_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_test_helpers::{configuration, logging};
-    use torrust_tracker_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
+    use torrust_tracker_udp_protocol::{ConnectionId, InfoHash, Response, ScrapeRequest, TransactionId};
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::server::asserts::is_scrape_response;
@@ -381,6 +381,48 @@ mod receiving_an_scrape_request {
         };
 
         assert!(is_scrape_response(&response));
+
+        env.stop().await;
+    }
+
+    /// End-to-end UDP contract: 74 info hashes per scrape, because no more fit
+    /// in one packet. The receive buffer and the parser cap both truncate here;
+    /// the `handle_packet` unit test isolates the parser cap. See
+    /// `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+    #[tokio::test]
+    async fn should_return_only_the_first_74_torrent_stats_when_the_request_has_75_info_hashes() {
+        logging::setup();
+
+        // Arrange
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT)
+            .await
+            .expect("UDP client should connect to the ephemeral tracker");
+        let connection_id = send_connection_request(TransactionId::new(123), &client).await;
+        let scrape_request = ScrapeRequest {
+            connection_id: ConnectionId(connection_id.0),
+            transaction_id: TransactionId::new(123i32),
+            info_hashes: (0..75u8).map(|index| InfoHash([index; 20])).collect(),
+        };
+
+        // Act
+        client
+            .send(scrape_request.into())
+            .await
+            .expect("UDP client should send the scrape request");
+        let response = client
+            .receive()
+            .await
+            .expect("UDP tracker should respond to the scrape request");
+
+        // Assert
+        match response {
+            Response::Scrape(scrape_response) => assert_eq!(scrape_response.torrent_stats.len(), 74),
+            other => panic!("expected a scrape response, got {other:?}"),
+        }
 
         env.stop().await;
     }
