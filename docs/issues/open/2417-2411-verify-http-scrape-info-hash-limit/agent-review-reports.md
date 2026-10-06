@@ -86,3 +86,14 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - Run pre-push, then tick the linter/tests criterion.
+
+### 2026-10-06 10:51 UTC - Correction
+
+- Invocation scope: correction of the two Implementation Follow-up entries (2026-10-05 21:05 UTC and 2026-10-06 06:14 UTC), raised in PR #2444 review round 1 (finding F5).
+- Inputs: this file and `docs/templates/AGENT-REVIEW-REPORTS.md`.
+- Evidence: the template records completed independent reviews; an Implementation Follow-up is the implementer's remediation note, not a review.
+- Findings:
+  - The 21:05 entry's `REVIEW PENDING` and the 06:14 entry's `REVIEW PASSED` are not independent verdicts and are withdrawn. Neither follow-up entry carries a verdict of its own.
+- Verdict: none (correction only). The standing verdict is the 2026-10-05 21:07 UTC Task Reviewer REVIEW PASSED.
+- Follow-up actions:
+  - Future implementer follow-ups in this file record no verdict.
