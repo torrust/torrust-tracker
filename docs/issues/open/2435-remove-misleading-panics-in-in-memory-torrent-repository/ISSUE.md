@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: 2445
-last-updated-utc: "2026-10-06 10:40"
+last-updated-utc: "2026-10-06 11:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,6 +201,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-06 09:16 UTC - Copilot - Rebased onto `torrust/develop` (38 commits, no conflicts). The two `revert(...)` commit messages cite pre-rebase commit ids that no longer exist; the reverted commits are "propagate swarm registry errors instead of expecting them" (T6) and "return a 500 when the tracker stats cannot be collected" (T5). A Task Reviewer review returned PASS WITH FINDINGS. Fixes: added `#[must_use]` to the seven registry query methods, which lost the unused-value warning when they stopped returning `Result`; linked the ADR from the Architectural Decisions and References sections; marked T2 as superseded; added the T11 commit point; removed `examples/bench_peers.rs` from the T1 inventory (it uses only `Coordinator`); and reworded the ADR's mention of the reverted enum variants.
 - 2026-10-06 09:20 UTC - Copilot - Following the task review's major finding and the maintainer's request, added [`implementation-retrospective.md`](implementation-retrospective.md) covering the reversal from option C to option B. It supersedes the earlier "no separate retrospective" note in the 2026-10-05 19:56 UTC entry.
 - 2026-10-06 10:40 UTC - Copilot - Opened PR #2445. Processing its first review round (da2ce7 F1 to F7 and four Copilot findings), with the maintainer approving the dispositions. The ADR's no-`expect` rule is scoped to workspace APIs whose error cannot occur (F1). Condition 3 now requires an existing or planned backend that can fail, and "port" is defined (F4); the T7 policy wording above is kept as the decision record, and the ADR is authoritative. Added ADR back-links in the code (F2), removed three false `# Panics` sections from `torrent/services.rs` (F5), moved the EPIC checklist to Delivery Strategy (F7), recorded the task review in [`agent-review-reports.md`](agent-review-reports.md) with its checkpoint (F3), scoped the AC5 command (F6), named the final ADR file in the T3 row, marked the pre-push checkpoint done, and set `related-pr`. No `#[must_use]` on the two `remove_*` counts: every caller discards them on purpose. The PR audit record is `docs/pr-reviews/pr-2445-review/PR-REVIEW.md`.
+- 2026-10-06 11:20 UTC - Copilot - Round 2 of the PR #2445 review (F12 to F14). Restored three EPIC #1669 log lines that the rebase conflict resolution had dropped (F12). Corrected the AC5 and retrospective file lists, which became stale when the F5 fix touched `torrent/services.rs` (F13). Scoped F10's verification grep in the audit (F14).
 
 ## Acceptance Criteria
 
@@ -240,7 +241,7 @@ None planned.
 | AC2 | DONE | Same `grep`; every method is plain delegation |
 | AC3 | DONE | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
 | AC4 | DONE | Corrected in T4, then removed entirely with the `# Errors` sections in T10 |
-| AC5 | DONE | `rg 'registry::Error\|SwarmRegistry\|StatsError' -- packages src` finds nothing (unscoped, it also matches prose about the reverted work in the ADR, this spec, and the retrospective); the net code diff against `develop` touches only `registry.rs`, `in_memory.rs`, `statistics/mod.rs`, and `tracker-core/tests/common/test_env.rs` |
+| AC5 | DONE | `rg 'registry::Error\|SwarmRegistry\|StatsError' -- packages src` finds nothing (unscoped, it also matches prose about the reverted work in the ADR, this spec, and the retrospective); the net code diff against `develop` touches only `registry.rs`, `in_memory.rs`, `statistics/mod.rs`, `tracker-core/tests/common/test_env.rs`, and `tracker-core/src/torrent/services.rs` (doc-only: three false `# Panics` sections removed) (`git diff --stat torrust/develop -- packages src`) |
 | AC6 | DONE | [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) and its index row |
 
 ## Risks and Trade-offs

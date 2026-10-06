@@ -22,7 +22,8 @@ verification.
 The ten swarm registry methods that could never fail now return plain values, and the registry
 `Error` type is gone. `InMemoryTorrentRepository` passes calls straight through, with no `expect`
 and no `# Panics` sections. The seven read-only registry queries are `#[must_use]`. The net code
-diff against `develop` is four files, mostly deletions.
+diff against `develop` is five files, mostly deletions; one of them, `torrent/services.rs`, only
+loses three false `# Panics` doc sections (PR #2445 review).
 
 The policy is recorded in
 [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md):
