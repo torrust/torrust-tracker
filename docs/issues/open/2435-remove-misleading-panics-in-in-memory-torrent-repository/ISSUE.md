@@ -9,7 +9,7 @@ github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: null
-last-updated-utc: "2026-10-05 21:07"
+last-updated-utc: "2026-10-06 09:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -198,6 +198,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 18:42 UTC - Copilot - Maintainer reversed the decision to option B (T7); see [Decision Revision (T7)](#decision-revision-t7). Trigger: no plausible failure for `Registry::len`, and an equally weak case for the counting methods. Packages will be published within weeks (EPIC #1669), so the trade-off was re-assessed in that context: a semver-signalled breaking change, paid once if a failure ever appears, is cheaper than a speculative `Result` every consumer pays for. Reopened AC3, AC5, and AC6 and reworded them for option B. Plan: rewrite the ADR (T8), revert T6 and T5 with `git revert` (T9), make the registry methods return plain values (T10), and draft the #1669 checklist item (T11).
 - 2026-10-05 19:56 UTC - Copilot - T8 to T10 done. The ADR was rewritten, T6 and T5 were reverted with `git revert` (the spec conflicts were resolved by keeping the current spec), and the registry methods now return plain values. A subagent did the mechanical removal of 62 test `.unwrap()` calls in `registry.rs`, using file-edit tools and verified by the compiler. Also removed the false `# Returns ... true` sections on both `handle_announcement` methods, which return `()`. Net code diff against `develop`: four files, +96/-263. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2975 tests with 0 failures (one fewer than T6 because the reverted REST stub-port test is gone). Completion review: the reversal is the material discovery, and its lesson (do not reserve `Result` for speculative failures) is recorded permanently in the ADR's Description and Alternatives and in the T7 decision, so no separate retrospective file was created.
 - 2026-10-06 09:16 UTC - Copilot - Rebased onto `torrust/develop` (38 commits, no conflicts). The `revert` commit messages still name the pre-rebase hashes: `6c4066e69` (T6 propagation) is now `6e7ed1d80`, and `bb769d1e9` (T5 REST stats) is now `c85d8202b`. A Task Reviewer review returned PASS WITH FINDINGS. Fixes: added `#[must_use]` to the seven registry query methods, which lost the unused-value warning when they stopped returning `Result`; linked the ADR from the Architectural Decisions and References sections; marked T2 as superseded; added the T11 commit point; removed `examples/bench_peers.rs` from the T1 inventory (it uses only `Coordinator`); and reworded the ADR's mention of the reverted enum variants.
+- 2026-10-06 09:20 UTC - Copilot - Following the task review's major finding and the maintainer's request, added [`implementation-retrospective.md`](implementation-retrospective.md) covering the reversal from option C to option B. It supersedes the earlier "no separate retrospective" note in the 2026-10-05 19:56 UTC entry.
 
 ## Acceptance Criteria
 
@@ -251,7 +252,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not needed` (see the 2026-10-05 19:56 UTC progress-log entry)
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
