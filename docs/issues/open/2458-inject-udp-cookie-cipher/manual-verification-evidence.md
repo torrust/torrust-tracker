@@ -31,7 +31,7 @@ files, but never as the only copy of something the evidence relies on.
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-10-06 16:14
-- Artifact under test: uncommitted, reversible local mutation of `udp-core` on top of `develop`; no branch commit exists yet.
+- Artifact under test: `develop` at `9be79fc5a` ("Merge torrust/torrust-tracker#2452: fix(udp-server): [#2245] review numeric protocol wire conversions") with an uncommitted, reversible local mutation of `udp-core`. Both the 16:14 UTC run and the 17:06 UTC rerun used this code: the specification branch was created from `9be79fc5a`, and its own commits change only documentation.
 - Operating system / environment: Linux x86_64.
 - Toolchain: Rust 1.99.0 (`b940084d7`, LLVM 23.1.1), default Cargo development profile.
 - Prerequisites and setup performed: changed the non-test `CURRENT_CIPHER` alias from `RANDOM_CIPHER_BLOWFISH` to `ZEROED_TEST_CIPHER_BLOWFISH`; restored it after this verification. Added and removed an untracked `udp-core` example that independently encrypted the cookie plaintext with the all-zero Blowfish key.
