@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-06 09:36"
 semantic-links:
   skill-links:
     - create-issue
