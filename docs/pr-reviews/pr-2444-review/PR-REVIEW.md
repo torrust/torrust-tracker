@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
+    - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

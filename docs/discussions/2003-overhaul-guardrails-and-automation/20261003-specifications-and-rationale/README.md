@@ -5,7 +5,7 @@ semantic-links:
     - "issue #2417"
     - docs/discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md
     - docs/discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/initial-proposal.md
-    - docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
+    - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
     - docs/issues/closed/README.md
     - docs/templates/ISSUE.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
@@ -182,7 +182,7 @@ documentation records two reasons of different kinds:
    BEP 48 does not require, and gives where the limit is implemented as the reason ("it's applied
    at the domain level"). Issue #2417 found that the HTTP path does not enforce it: 75 and 1,000
    distinct hashes were returned in full. Its specification
-   ([2417 ISSUE.md](../../../issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md))
+   ([2417 ISSUE.md](../../../issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md))
    separates the reasons: for UDP, a protocol constraint; for HTTP, any cap is a policy choice to
    bound the work one request causes.
 

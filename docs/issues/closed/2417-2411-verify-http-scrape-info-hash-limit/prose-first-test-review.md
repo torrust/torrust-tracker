@@ -1,3 +1,11 @@
+---
+semantic-links:
+  skill-links:
+    - write-unit-test
+  related-artifacts:
+    - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
+---
+
 # Prose-First Test Review - Issue #2417
 
 Record of the mandatory prose-first Arrange-Act-Assert comparison

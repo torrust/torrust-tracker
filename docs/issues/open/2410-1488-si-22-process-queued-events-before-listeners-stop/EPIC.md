@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -554,7 +554,7 @@ Alternatives considered:
   a separate spam and abuse EPIC, #2411
   (`docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md`), which also
   tracks whether HTTP scrape enforces the 74 info-hash limit, #2417
-  (`docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`). The
+  (`docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`). The
   bug is tracked in #2406.
 
 ## Open Questions for Review
