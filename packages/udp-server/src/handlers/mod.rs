@@ -20,6 +20,7 @@ use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_protocol::{MAX_SCRAPE_INFO_HASHES, Request, Response, TransactionId};
 use tracing::{Level, instrument};
 use uuid::Uuid;
+use zerocopy::byteorder::network_endian::I32;
 
 use super::RawRequest;
 use crate::CurrentClock;
@@ -29,6 +30,11 @@ use crate::event::UdpRequestKind;
 
 /// Type alias for the common handler error returned by UDP request handlers.
 pub(crate) type HandlerError = Box<(Error, TransactionId, UdpRequestKind)>;
+
+/// BEP 15 encodes announce intervals and peer/download counters as signed 32-bit fields; clamp instead of wrapping negative.
+pub(crate) fn saturating_wire_i32(value: u32) -> I32 {
+    I32::new(i32::try_from(value).unwrap_or(i32::MAX))
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CookieTimeValues {
@@ -628,6 +634,30 @@ pub(crate) mod tests {
         match response {
             Response::Scrape(scrape_response) => assert_eq!(scrape_response.torrent_stats.len(), 74),
             other => panic!("expected a scrape response, got {other:?}"),
+        }
+    }
+
+    mod wire_i32_conversion {
+        use crate::handlers::saturating_wire_i32;
+
+        #[test]
+        fn it_should_keep_a_value_that_fits_in_the_signed_wire_field() {
+            assert_eq!(saturating_wire_i32(120).get(), 120);
+        }
+
+        #[test]
+        fn it_should_keep_the_largest_value_that_fits_in_the_signed_wire_field() {
+            let largest = u32::try_from(i32::MAX).unwrap();
+
+            assert_eq!(saturating_wire_i32(largest).get(), i32::MAX);
+        }
+
+        #[test]
+        fn it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field() {
+            let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
+
+            assert_eq!(saturating_wire_i32(first_out_of_range).get(), i32::MAX);
+            assert_eq!(saturating_wire_i32(u32::MAX).get(), i32::MAX);
         }
     }
 }

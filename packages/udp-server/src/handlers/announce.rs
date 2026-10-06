@@ -15,10 +15,9 @@ use torrust_tracker_udp_protocol::{
     Port, Response, ResponsePeer,
 };
 use tracing::{Level, instrument};
-use zerocopy::byteorder::network_endian::I32;
 
 use crate::event::{ErrorKind, Event, UdpRequestKind};
-use crate::handlers::{CookieValidationContext, HandlerError};
+use crate::handlers::{CookieValidationContext, HandlerError, saturating_wire_i32};
 
 /// It handles the `Announce` request.
 ///
@@ -180,11 +179,6 @@ fn build_response(
 
         Response::from(announce_response)
     }
-}
-
-/// BEP 15 encodes the interval and peer counts as signed 32-bit fields; clamp instead of wrapping negative.
-fn saturating_wire_i32(value: u32) -> I32 {
-    I32::new(i32::try_from(value).unwrap_or(i32::MAX))
 }
 
 #[cfg(test)]
@@ -1236,30 +1230,6 @@ pub(crate) mod tests {
                     assert_eq!(Ok(peer_ip), "::126.0.0.1".parse());
                 }
             }
-        }
-    }
-
-    mod wire_i32_conversion {
-        use crate::handlers::announce::saturating_wire_i32;
-
-        #[test]
-        fn it_should_keep_a_value_that_fits_in_the_signed_wire_field() {
-            assert_eq!(saturating_wire_i32(120).get(), 120);
-        }
-
-        #[test]
-        fn it_should_keep_the_largest_value_that_fits_in_the_signed_wire_field() {
-            let largest = u32::try_from(i32::MAX).unwrap();
-
-            assert_eq!(saturating_wire_i32(largest).get(), i32::MAX);
-        }
-
-        #[test]
-        fn it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field() {
-            let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
-
-            assert_eq!(saturating_wire_i32(first_out_of_range).get(), i32::MAX);
-            assert_eq!(saturating_wire_i32(u32::MAX).get(), i32::MAX);
         }
     }
 }

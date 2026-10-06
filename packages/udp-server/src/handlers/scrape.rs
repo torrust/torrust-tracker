@@ -12,10 +12,9 @@ use torrust_tracker_udp_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
 };
 use tracing::{Level, instrument};
-use zerocopy::byteorder::network_endian::I32;
 
 use crate::event::{ErrorKind, Event, UdpRequestKind};
-use crate::handlers::{CookieValidationContext, HandlerError};
+use crate::handlers::{CookieValidationContext, HandlerError, saturating_wire_i32};
 
 /// It handles the `Scrape` request.
 ///
@@ -100,12 +99,6 @@ pub async fn handle_scrape(
     Ok(build_response(request, &scrape_data))
 }
 
-fn udp_counter_from_u32(value: u32) -> i32 {
-    // Temporary saturation guard for UDP i32 counters. Proper type alignment across Rust and DB layers
-    // will be addressed in docs/issues/1525-07-align-rust-and-db-types.md.
-    i32::try_from(value).unwrap_or(i32::MAX)
-}
-
 fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response {
     let mut torrent_stats = Vec::with_capacity(request.info_hashes.len());
 
@@ -114,9 +107,9 @@ fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response
         let swarm_metadata = scrape_data.files.get(&info_hash).copied().unwrap_or_default();
 
         let scrape_entry = TorrentScrapeStatistics {
-            seeders: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.complete))),
-            completed: NumberOfDownloads(I32::new(udp_counter_from_u32(swarm_metadata.downloaded))),
-            leechers: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.incomplete))),
+            seeders: NumberOfPeers(saturating_wire_i32(swarm_metadata.complete)),
+            completed: NumberOfDownloads(saturating_wire_i32(swarm_metadata.downloaded)),
+            leechers: NumberOfPeers(saturating_wire_i32(swarm_metadata.incomplete)),
         };
 
         torrent_stats.push(scrape_entry);
@@ -776,33 +769,5 @@ mod tests {
             let event = receiver.recv().await.expect("accepted scrape event should be published");
             assert_eq!(event, expected_event);
         }
-    }
-
-    #[test]
-    fn it_should_encode_counters_that_fit_in_i32_as_is() {
-        // Arrange
-        let counter = 42;
-        let expected_encoded_counter = i32::try_from(counter).expect("counter should fit in i32");
-
-        // Act
-        let encoded_counter = super::udp_counter_from_u32(counter);
-
-        // Assert
-        assert_eq!(encoded_counter, expected_encoded_counter);
-    }
-
-    #[test]
-    fn it_should_saturate_counters_above_i32_max() {
-        // Arrange
-        let counter_just_above_i32_max = (i32::MAX as u32) + 1;
-        let maximum_u32_counter = u32::MAX;
-
-        // Act
-        let encoded_just_above_i32_max = super::udp_counter_from_u32(counter_just_above_i32_max);
-        let encoded_maximum_u32 = super::udp_counter_from_u32(maximum_u32_counter);
-
-        // Assert
-        assert_eq!(encoded_just_above_i32_max, i32::MAX);
-        assert_eq!(encoded_maximum_u32, i32::MAX);
     }
 }
