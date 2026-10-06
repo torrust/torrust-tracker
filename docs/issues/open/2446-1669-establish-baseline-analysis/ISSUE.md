@@ -68,10 +68,12 @@ spec was never updated:
 
 Since then the workspace changed: the REST API contract-first migration
 ([#1938](https://github.com/torrust/torrust-tracker/issues/1938)) removed `rest-api-core` and added
-`rest-api-protocol`, `rest-api-application` and `rest-api-runtime-adapter`; `torrust-server-lib`
-was extracted (#1909); and `e2e-tools` and `persistence-benchmark` were added. All three baseline
-outputs still describe the June workspace: each mentions `rest-api-core` and none mentions the new
-REST API packages. The 2026-06-10 report also still opens its Observations section with the
+`rest-api-protocol`, `rest-api-application` and `rest-api-runtime-adapter`, and `torrust-server-lib`
+was extracted (#1909). All three baseline outputs still mention `rest-api-core` and none mentions
+the new REST API packages. The README audit is older than both reports: it describes the
+2026-05-18 workspace, so it still rates packages extracted since (such as `clock` and `metrics`)
+and has no rows for `e2e-tools` and `persistence-benchmark`, which the 2026-06-10 report and the
+diagram already include. The 2026-06-10 report also still opens its Observations section with the
 placeholder "To be filled in after reviewing the report above."
 
 ## Scope
