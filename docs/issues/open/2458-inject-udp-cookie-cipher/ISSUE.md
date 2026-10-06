@@ -69,10 +69,12 @@ The key comes from global statics (`packages/udp-core/src/crypto/`):
 2. To catch a mistake there, `src/bootstrap/app.rs` runs `check_seed()` at startup in non-test
    builds. It asserts `Current::get_seed() == Instance::get_seed()` and otherwise panics with
    "maybe using zeroed seed in production!?".
-3. But no cookie uses the seed. Since commit `e3562f069` ("udp: symmetric encrypted cookie",
-   2024-11-18), cookies use the separately keyed cipher, despite its doc comment "The random cipher
-   from the seed". Before that commit, connection IDs were derived from the seed, which is when the
-   seed check made sense. The commit added the cipher next to the seed and kept the seed check.
+3. But no cookie uses the seed. Before commit `e3562f069` ("udp: symmetric encrypted cookie",
+   2024-11-18), connection IDs were a hash that included the seed, and nothing checked the seed at
+   startup. That commit replaced the hash with the Blowfish cipher and, in the same patch, added
+   `check_seed()`. The cipher is keyed with its own, separately drawn random bytes, despite its doc
+   comment "The random cipher from the seed". So the new safeguard checked the old, now unused,
+   seed instead of the new cipher.
 4. Therefore, if the cipher alias were wrong (for example, a refactor that points
    `#[cfg(not(test))] CURRENT_CIPHER` at `ZEROED_TEST_CIPHER_BLOWFISH`), production would encrypt
    cookies with the public all-zero key, anyone could forge connection IDs, and `check_seed()`
@@ -329,6 +331,7 @@ for `cargo +nightly fmt --all -- --check`).
 ## References
 
 - Origin: Issue #1348 (`udp-core` package tests), `crypto/keys.rs` file test plan.
-- Commit `e3562f069` "udp: symmetric encrypted cookie" (2024-11-18) introduced the cipher and the
-  seed check.
+- Commit `e3562f069` "udp: symmetric encrypted cookie" (2024-11-18) introduced the cipher and
+  `check_seed()` in the same patch. The seed itself (`RANDOM_SEED`) dates from commit `873293a6f`
+  "crypto: ephemeral instance seeds with keepers" (2022-09-21).
 - BEP 15: <https://www.bittorrent.org/beps/bep_0015.html>
