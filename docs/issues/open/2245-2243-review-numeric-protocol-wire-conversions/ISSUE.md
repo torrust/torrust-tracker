@@ -9,7 +9,7 @@ github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: "2026-10-06 11:49"
+last-updated-utc: "2026-10-06 11:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,8 +126,8 @@ size).
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Inventory narrowing conversions | See Conversion Inventory. |
 | T2 | DONE | Judge each cast | See Decisions. |
-| T3 | IN_PROGRESS | Apply outcomes | One commit per boundary: `udp-protocol` (A156), `udp-server` (A171 clamping). Configuration-load rejection of the interval is a follow-up issue. |
-| T4 | TODO | Reconcile inventory | Edit the A156 and A171 rows of the closed #2158 inventory in place, following the #2246 precedent. |
+| T3 | DONE | Apply outcomes | One commit per boundary: `udp-protocol` (A156), `udp-server` (A171 clamping). Configuration-load rejection of the interval is a follow-up issue. |
+| T4 | DONE | Reconcile inventory | Edited the A156 and A171 rows of the closed #2158 inventory in place, following the #2246 precedent. |
 
 ## Commit Points
 
@@ -145,12 +145,12 @@ size).
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (#2247)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -161,13 +161,14 @@ size).
 - 2026-10-06 11:32 UTC - josecelano - Revised A156 from `expect` to a mapped parse error, because `missing_panics_doc` would have made the public parser document an impossible panic - Chat decision
 - 2026-10-06 11:41 UTC - josecelano - Revised the A171 interval decision: clamp in this issue; configuration-load rejection moves to a follow-up issue as an ADR-conforming newtype, because a `Validator` check conflicts with the configuration validation ADR - Chat decision
 - 2026-10-06 11:49 UTC - GitHub Copilot - M1 passed: with the fix, `interval` 2147483647 and 2147483648 both encode as 2147483647 (2147483648 was sent as -2147483648 before the fix) - In progress
+- 2026-10-06 11:53 UTC - GitHub Copilot - Reconciled the #2158 inventory (T4); pre-push checks passed; acceptance criteria reviewed; recorded an implementation retrospective, because the two design revisions (A156 `expect` to a parse error, interval validation to a follow-up) yield a reusable lesson. The configuration-load follow-up issue still needs its specification drafted and reviewed - Ready for PR
 
 ## Acceptance Criteria
 
-- [ ] Every A156/A171 narrowing conversion has a recorded bound source and outcome.
-- [ ] Every retained cast carries a native item-level `reason`; the crate-level A156 attribute is retired.
-- [ ] Every changed conversion has a focused test covering valid extrema and out-of-range handling.
-- [ ] `linter all` exits with code `0` and relevant package tests pass.
+- [x] Every A156/A171 narrowing conversion has a recorded bound source and outcome.
+- [x] Every retained cast carries a native item-level `reason`; the crate-level A156 attribute is retired.
+- [x] Every changed conversion has a focused test covering valid extrema and out-of-range handling.
+- [x] `linter all` exits with code `0` and relevant package tests pass.
 
 ## Verification Plan
 
@@ -191,10 +192,10 @@ covered by the `saturating_wire_i32` unit tests only.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Pending implementation. |
-| AC2 | TODO | Pending tests. |
-| AC3 | TODO | #2158 inventory evidence. |
-| AC4 | TODO | Pending validation. |
+| AC1 | DONE | Review Outcomes: Conversion Inventory and Decisions; #2158 inventory rows A156 and A171. |
+| AC2 | DONE | No cast retained: the crate-level A156 attribute and the item-level A171 attribute are removed; `grep -rn "#2245"` over Rust sources finds no remaining temporary reason. |
+| AC3 | DONE | A171: three `saturating_wire_i32` tests cover an in-range value, `i32::MAX`, `i32::MAX + 1`, and `u32::MAX`; the out-of-range test failed against a wrapping cast. A156 exception, recorded: its error branch is unreachable by construction (the cursor offset is always 16 and bounded by the slice length), so no test can reach it; the existing scrape round-trip and rejection tests cover the changed line. |
+| AC4 | DONE | Focused Clippy and tests pass for `udp-protocol` and `udp-server`; `linter all` passes in every pre-commit run; pre-push checks (nightly fmt/check/doc and the full test suite) pass. |
 
 ## Risks and Trade-offs
 
@@ -205,7 +206,8 @@ covered by the `saturating_wire_i32` unit tests only.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md). Two approved
+  decisions were revised during implementation, which yields a reusable lesson.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in
   this folder if the work invalidates an assumption, changes design materially, or yields a reusable
   lesson; otherwise add a progress-log entry stating why none is needed.
