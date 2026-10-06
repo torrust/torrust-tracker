@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 16:26"
+last-updated-utc: "2026-10-06 18:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,30 +177,50 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
    in-process, which accepted it. A network announce via `UdpTrackerClient::send` was not sent
    before the fix; it is part of the post-fix recheck (M2b). Both changes were reverted. The code
    and output are in `manual-verification-evidence.md` section V1 (scenario M2a).
-3. **Regression-test boundary:** unit tests in `udp-core` (see Regression Test Strategy).
-4. **Red evidence:** write the regression tests first where practical; for tests that cannot
-   compile against the old API, use mutate-then-restore on the new code (for example, temporarily
-   wire a fixed key into production composition) and record the failure.
-5. **Fix:** the injection refactor.
-6. **Green and recheck:** rerun the tests and repeat the reproduction: the forged connection ID
-   must now be rejected (or the forging path must no longer be expressible in a production build),
-   recorded in `manual-verification-evidence.md`.
+3. **Regression-test boundary:** see Regression Test Strategy. One maintained `compile_fail`
+   doctest (R2) can be red against the current code; the other regression tests (R1, R3, R4) pin
+   guarantees of the new design.
+4. **Red evidence:** run R2 against the current code before any production change and record the
+   red output (T3). R1, R3 and R4 cannot be red before the fix: R1 and R4 test a key type that does
+   not exist yet, and R3 passes today because every service reads the same global cipher. For each
+   of them, the substitute is mutate-then-restore on the new code, recorded in
+   `manual-verification-evidence.md`. The Regression Test Strategy names each mutation.
+5. **Fix:** the injection refactor (T4 to T7).
+6. **Green and recheck:** rerun the tests and repeat the reproduction (T8): the forged connection
+   ID must now be rejected, and the fixed test key must not be reachable from a production build,
+   recorded in `manual-verification-evidence.md` (scenario M2b).
 
 ## Regression Test Strategy
 
 The defect is a missing guarantee, so the regression tests pin the guarantees that replace the
-seed check:
+seed check. Only R2 can be red against the current code. Each entry says how the test is shown to
+guard the bug.
 
+- **R2 (maintained `compile_fail` doctest, `udp-core`; written first):** a doctest that tries to
+  reach the fixed test key from outside the crate. A doctest builds the library without
+  `cfg(test)`, so it sees what a production build sees.
+  - Before the fix it references `crypto::ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH`,
+    which is public, so the doctest compiles and fails. A probe on 2026-10-06 confirmed this:
+    rustdoc reported "Test compiled successfully, but it's marked `compile_fail`".
+  - When the fix replaces that static with the new key type's test-only constructor, the doctest
+    references the constructor instead and passes, because the constructor exists only under
+    `#[cfg(test)]`. Mutate-then-restore confirms it: removing the `#[cfg(test)]` gate makes it fail.
+  - A `compile_fail` doctest also passes on unrelated errors, such as a typo. Pin the expected
+    error code (for example `compile_fail,E0599`), and keep a companion doctest that compiles with
+    the production constructor.
 - **R1 (unit, `udp-core`):** the production key constructor yields a key that does not encrypt a
   known block the way the all-zero key does, and two production keys differ (probabilistic,
-  negligible collision chance).
-- **R2 (compile-time):** the fixed test-key constructor and constant are under `#[cfg(test)]` (or a
-  test-only feature not enabled in production). Record the evidence that a production build cannot
-  reference them, for example a failed `cargo build` after a temporary reference.
+  negligible collision chance). No pre-fix red run is possible because the constructor does not
+  exist yet. Substitute: temporarily make the production constructor return the fixed key and
+  record the failure.
 - **R3 (container collaboration, `udp-core`):** a cookie issued by the container's
   `ConnectService` validates in the same container's `AnnounceService` and `ScrapeService`, proving
-  one shared key.
-- **R4 (unit):** the key's `Debug` output contains no key bytes.
+  one shared key. It passes today, because every service reads the same global cipher, so it
+  guards the new wiring rather than the old bug. Substitute: temporarily give one service its own
+  key and record the failure.
+- **R4 (unit):** the key's `Debug` output contains no key bytes. No pre-fix red run is possible
+  because the key type does not exist yet. Substitute: temporarily derive `Debug` and record the
+  failure.
 - Existing cookie tests (`connection_cookie.rs`, including the round-trip `quickcheck` property and
   the pinned-encoding test, which will now pin the encoding for the explicit fixed test key) keep
   passing with the key passed explicitly.
@@ -213,22 +233,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and record | `manual-verification-evidence.md` records a reproduced production-mode safeguard bypass and independently forged accepted cookie. |
 | T2 | TODO | ADR | ADR for injection versus the alternatives, in `docs/adrs/`, indexed. |
-| T3 | TODO | Key type and explicit-key `make`/`check` | Key type with redacted `Debug`; R1, R2, R4 recorded red then green; existing cookie tests pass with an explicit test key. |
-| T4 | TODO | Wire `udp-core` services and container | One shared key; R3 red then green. **Design-review checkpoint** with the maintainer. |
-| T5 | TODO | Wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
-| T6 | TODO | Remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
-| T7 | TODO | Verification and recheck | Automatic checks, manual recheck, acceptance review. |
+| T3 | TODO | Regression test R2, red before the fix | Write the R2 `compile_fail` doctest against the current code and record its red run in `manual-verification-evidence.md`. No production change in this task. |
+| T4 | TODO | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
+| T5 | TODO | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
+| T6 | TODO | Fix: wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
+| T7 | TODO | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
+| T8 | TODO | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1-T2 | Reproduction evidence and ADR | One `docs(...)` commit after maintainer review. |
-| T3 | Key type, explicit-key cookie API, and its tests | Commit after focused validation; note that callers are updated in the same commit only as far as needed to compile. |
-| T4 | `udp-core` wiring and container test | Commit after the design-review checkpoint. |
-| T5 | `udp-server` and remaining callers | Commit after focused validation. |
-| T6 | Removal of the global keys and doc corrections | Commit after focused validation. |
-| T7 | Verification evidence | Commit after maintainer review. |
+| T3 | R2 red-run evidence | One `docs(issues)` commit with the recorded red output. The red doctest itself is not committed here, because pre-commit runs `cargo test --doc` and would reject it; it is committed in T4, which makes it green. |
+| T4 | Key type, explicit-key cookie API, R2, and R1/R4 | Commit after focused validation; note that callers are updated in the same commit only as far as needed to compile. |
+| T5 | `udp-core` wiring and container test | Commit after the design-review checkpoint. |
+| T6 | `udp-server` and remaining callers | Commit after focused validation. |
+| T7 | Removal of the global keys and doc corrections | Commit after focused validation. |
+| T8 | Verification evidence | Commit after maintainer review. |
 
 All commits use Conventional Commits with the narrow scope (`udp-core`, `udp-server`, ...) and are
 GPG signed. Every test increment follows the `write-unit-test` skill's prose-first
@@ -258,6 +280,7 @@ Arrange-Act-Assert review.
 - 2026-10-06 16:14 UTC - Copilot - Independently reproduced the safeguard bypass and accepted a cookie forged with the public all-zero key after a reversible production-mode alias mutation. Evidence: `manual-verification-evidence.md` V1.
 - 2026-10-06 16:17 UTC - Copilot - Created GitHub issue #2458 and moved the approved draft and reproduction evidence to `docs/issues/open/2458-inject-udp-cookie-cipher/`.
 - 2026-10-06 16:26 UTC - Copilot - Renamed the specification branch to `2458-inject-udp-cookie-cipher-spec`, reserving `2458-inject-udp-cookie-cipher` for implementation.
+- 2026-10-06 18:13 UTC - Copilot - Review feedback (`review-finding:pr-2461-f13`): added T3, a regression test that is red before the fix, and split the fix from green-plus-recheck. A temporary `compile_fail` doctest probe that referenced `ZEROED_TEST_CIPHER_BLOWFISH` from outside the crate compiled on today's code, so rustdoc reported it as failing. The probe was reverted; T3 records the red run officially.
 
 ## Acceptance Criteria
 
@@ -314,7 +337,7 @@ for `cargo +nightly fmt --all -- --check`).
 ## Risks and Trade-offs
 
 - **Wide signature change.** Every cookie consumer changes. Mitigation: the design-review
-  checkpoint after T4; keep the key a single cheap `Arc` parameter.
+  checkpoint after T5; keep the key a single cheap `Arc` parameter.
 - **Two keys by accident.** A component that builds its own key breaks every announce. Mitigation:
   R3 and a single construction site.
 - **Logging leak.** Mitigation: redacted `Debug`, `skip` in spans, R4, M3.
