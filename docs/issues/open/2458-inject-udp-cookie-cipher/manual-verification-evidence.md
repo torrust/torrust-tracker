@@ -57,10 +57,10 @@ result.
 
 #### Temporary Code (Verbatim)
 
-The non-test alias mutation in `packages/udp-core/src/crypto/keys.rs`, as `git diff` printed it on the rerun:
+The non-test alias mutation in `packages/udp-core/src/crypto/keys.rs`, as `git diff` printed it on the rerun, without the file header lines and without the hunk's last context line, which is blank (line 135). The hunk header is adjusted from `-129,7 +129,7` to match the six lines shown:
 
 ```diff
-@@ -129,7 +129,7 @@ mod detail_seed {
+@@ -129,6 +129,6 @@ mod detail_seed {
  mod detail_cipher {
      #[allow(unused_imports)]
      #[cfg(not(test))]
