@@ -20,6 +20,11 @@ pub use super::scrape::ScrapeRequest;
 /// Bytes before the info hashes in a scrape request: connection ID, action, and transaction ID.
 const SCRAPE_REQUEST_HEADER_SIZE: usize = size_of::<ConnectionId>() + size_of::<I32>() + size_of::<TransactionId>();
 
+const _: () = assert!(
+    MAX_PACKET_SIZE >= SCRAPE_REQUEST_HEADER_SIZE + size_of::<InfoHash>(),
+    "a UDP packet must fit a scrape request with at least one info hash"
+);
+
 /// The maximum number of info hashes kept from a UDP scrape request.
 ///
 /// As many as fit in one [`MAX_PACKET_SIZE`] datagram after the request header,
