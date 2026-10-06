@@ -42,7 +42,7 @@ Add one section per manual verification process. A process may cover one or
 more issue-spec scenarios when its steps and evidence clearly identify each
 result.
 
-### V1 - M2: Production-Mode Safeguard Bypass and All-Zero-Key Forgery
+### V1 - M2a: Production-Mode Safeguard Bypass and All-Zero-Key Forgery
 
 - Goal: Verify that a production alias accidentally selecting the public all-zero cipher is not detected by `check_seed()`, and that a cookie independently forged with that key is accepted.
 - Initial state: The production alias was temporarily mutated to select `ZEROED_TEST_CIPHER_BLOWFISH`; the all-zero cipher is initialized by `torrust_tracker_udp_core::initialize_static()`. The independent example used a fingerprint of `0x7a31_0000_0000_0001` and issue time `1_728_000_000.0`.
