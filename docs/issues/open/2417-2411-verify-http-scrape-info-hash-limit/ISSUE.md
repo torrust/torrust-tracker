@@ -279,6 +279,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
 | K6 | `tracker_client` binary vs fake UDP tracker keeping all | 3 hashes | Exit 0; stdout 3 entries; stderr empty | No false warning end to end | No |
 | K7 | `tracker_client` binary vs fake HTTP tracker keeping 2 | 3 hashes | Exit 0; stdout 2 files; stderr exactly one warning (3 requested, 2 returned) | Same, over HTTP | No |
 | K8 | `tracker_client` binary vs fake HTTP tracker keeping all | 3 params, 2 distinct | Exit 0; stdout 2 files; stderr empty | Duplicates do not warn end to end | No |
+| K9 | `tracker_client` binary vs fake UDP tracker keeping all | 125 hashes (a 1508-byte response, above the 1496-byte `MAX_PACKET_SIZE`) | Exit 0; stdout 125 entries; stderr empty | The client does not truncate a tracker's answer itself (PR #2444 review finding F1) | Yes |
 
 ## Implementation Plan
 
@@ -310,7 +311,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
       only the first 100, matching the documentation; a UDP scrape keeps the
       first 74.
 - [x] AC3: Maintained tests cover every decision and edge case in the test
-      matrix (H1-H5, S1, U1-U3, W1, US1, C1, K1-K8), using literal counts and doc
+      matrix (H1-H5, S1, U1-U3, W1, US1, C1, K1-K9), using literal counts and doc
       comments that name each limit's reason and link the ADR.
 - [x] AC4: An ADR records whether HTTP caps scrape requests, the value and
       behavior if so, and the reason per protocol (UDP packet size; HTTP

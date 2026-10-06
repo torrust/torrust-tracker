@@ -75,6 +75,7 @@ values derived from the parser.
 | K6 | A fake UDP tracker that answers everything | Run it with 3 hashes | Exit 0; 3 entries; empty stderr | Changed before commit (empty-stderr assertion) |
 | K7 | A fake HTTP tracker that keeps 2 | Run `tracker_client http scrape` with 3 | Exit 0; 2 files; stderr is exactly one warning (3, 2) | Matches |
 | K8 | A fake HTTP tracker that answers everything | Run it with the first hash repeated | Exit 0; 2 files; empty stderr | Changed before commit (arrangement, empty-stderr assertion) |
+| K9 | A fake UDP tracker that answers everything | Run `tracker_client udp scrape` with 125 hashes, whose answer (1508 bytes) is larger than the tracker packet size | Exit 0; all 125 entries; empty stderr | Matches; failed with 124 entries before the fix (PR #2444 review finding F1) |
 
 `Run` and `stderr_warnings()` are incidental mechanics: they split the output
 channels and fail on any non-JSON line or unexpected stderr record, so the
