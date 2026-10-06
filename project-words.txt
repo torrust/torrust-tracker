@@ -104,6 +104,7 @@ Signedness
 Subissues
 Swatinem
 Swiftbit
+Symfony
 TSIG
 Tebibytes
 Tera

@@ -663,7 +663,7 @@ Status: TODO unless noted.
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
-- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — largely done (coupling reports and `readme-audit.md` in this folder); the draft spec does not yet record the completed artifacts and has no GitHub issue
+- [ ] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — original tasks done May to June 2026; outputs to be refreshed for the post-#1938 workspace
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
@@ -683,7 +683,7 @@ Details:
 
 | Item                       | Issue                                                                                                                                                                                     | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                                                                         |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline analysis          | #TBD — Establish baseline: dependency graph + README audit                                                                                                                                | [docs/issues/drafts/1669-01-establish-baseline-analysis/ISSUE.md](../../drafts/1669-01-establish-baseline-analysis/ISSUE.md)                                                                               | TODO   | Largely done (coupling reports, `readme-audit.md`); not yet recorded in a GitHub issue                                                        |
+| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | TODO   | T1 to T8 done May to June 2026; T9 to T13 refresh the outputs for the post-#1938 workspace                                                    |
 | Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                              | [docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md)                             | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                                                                   |
 | Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`          | [docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md](../../closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md)                                   | DONE   | Rule M; completed                                                                                                                             |
 | Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                              | [docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md](../../closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md)                       | DONE   | Rule M; completed                                                                                                                             |
@@ -730,7 +730,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 
 ### Subissue Specs Index
 
-- [docs/issues/drafts/1669-01-establish-baseline-analysis/ISSUE.md](../../drafts/1669-01-establish-baseline-analysis/ISSUE.md)
+- [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)
 - [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
@@ -924,7 +924,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - [x] Epic spec drafted in `docs/issues/open/`
 - [ ] Epic spec reviewed and approved by user/maintainer
 - [ ] GitHub epic issue already exists (#1669); issue number added to this spec
-- [ ] Baseline analysis subissue created and linked
+- [x] Baseline analysis subissue created and linked
 - [ ] Subissue statuses kept up to date in the `Active Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -952,6 +952,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `bittorrent-primitives` as superseded and archived.
 - 2026-10-06 09:12 UTC - GitHub Copilot - Stated that the published count excludes
   `bittorrent-primitives`, and marked the repository as archived in the desired-state notes.
+- 2026-10-06 10:37 UTC - GitHub Copilot - Created #2446 (SI-01) for the baseline analysis,
+  linked it as a subissue, and moved its spec to `docs/issues/open/`.
 - 2026-10-06 10:40 UTC - Copilot - Moved the Pre-publish API checklist from Open Questions to
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 
