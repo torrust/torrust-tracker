@@ -52,8 +52,14 @@ A public API returns `Result` when at least one of these holds:
 
 1. **A failure can happen today**: I/O, parsing, validation, resource limits.
 2. **The operation crosses an I/O boundary**: database, network, filesystem.
-3. **It is a trait or port designed for swappable backends**, and a realistic backend can fail.
-   The database driver traits are an example.
+3. **It is a trait or port with an existing or planned backend that can fail.** The database
+   driver traits are an example. A "port" is a trait that defines a boundary other
+   implementations can back, such as the REST application port traits in the
+   [contract-first REST API architecture](20260623200526_adopt_contract-first_architecture_for_rest_api.md).
+   Being swappable is not enough: some backend that is real or planned must be able to fail. For
+   example, the auth-key and whitelist ports return `Result` because their implementation does
+   database I/O (conditions 1 and 2). The stats and torrent query ports return plain values,
+   because no backend that can fail exists or is planned; they change to `Result` when one is.
 
 Otherwise, it returns a plain value. If a real failure appears later, the signature changes to
 `Result` as a semver-signalled breaking change: a `0.x` minor bump or a major bump after 1.0. The
@@ -112,7 +118,8 @@ Positive:
 Negative:
 
 - Introducing the first failure into an operation is a breaking change for its callers.
-- The rule needs judgement. "Can this fail today, does it do I/O, or is it a swappable port?" is
+- The rule needs judgement. "Can this fail today, does it do I/O, or does a real or planned backend
+  fail?" is
   usually clear, but borderline cases should be decided in review.
 
 ## Affected Code

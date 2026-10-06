@@ -26,8 +26,8 @@ diff against `develop` is four files, mostly deletions.
 
 The policy is recorded in
 [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md):
-return `Result` only when an operation can fail today, crosses an I/O boundary, or is a swappable
-port with a realistically fallible backend. EPIC #1669 gained a pre-publish checklist to audit
+return `Result` only when an operation can fail today, crosses an I/O boundary, or is a trait or
+port with an existing or planned backend that can fail. EPIC #1669 gained a pre-publish checklist to audit
 public error enums for `#[non_exhaustive]`.
 
 Validation: `cargo clippy --workspace --all-targets --all-features` is clean, the full stable test
@@ -97,9 +97,9 @@ Three things let the premise through:
 
 ## Avoiding Overcorrection
 
-- Do not ban `Result` on infallible implementations of ports or traits. A port whose realistic
-  backends can fail (for example the database driver traits) correctly returns `Result` even when
-  one implementation cannot fail.
+- Do not ban `Result` on infallible implementations of ports or traits. A port with an existing or
+  planned backend that can fail (for example the database driver traits) correctly returns `Result`
+  even when one implementation cannot fail. Being swappable alone does not qualify (ADR condition 3).
 - Do not require a prototype or a retrospective for every design decision. This one was warranted
   because the decision was fully implemented, then reversed, and produced a repository-wide ADR.
 - Do not treat breaking changes as free. They are acceptable because they are semver-signalled and
