@@ -8,7 +8,7 @@ github-issue: 1908
 spec-path: docs/issues/closed/1908-1669-si-27-move-driver-enum-to-primitives/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-06-20
+last-updated-utc: 2026-10-06
 semantic-links:
   skill-links:
     - create-issue
@@ -86,7 +86,7 @@ keep that dependency. But the coupling for `Driver` specifically is eliminated.
 
 ## Verification
 
-- [x] DEC-14 added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
+- [x] DEC-17 added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
 - [x] `Driver` defined in `primitives`, all consumers import it directly
 - [x] Duplicate in `tracker-core` removed
 - [x] Mapping in `setup.rs` simplified

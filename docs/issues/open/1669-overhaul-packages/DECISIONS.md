@@ -74,11 +74,12 @@ release version.
 
 ---
 
-## DEC-14 — Move `Driver` enum from `configuration` to `primitives`
+## DEC-17 — Move `Driver` enum from `configuration` to `primitives`
 
 **Date**: 2026-06-18
 **Status**: Adopted
 **Related issue**: [#1908](https://github.com/torrust/torrust-tracker/issues/1908)
+**Note**: Originally recorded as a duplicate DEC-14; renumbered on 2026-10-05.
 
 ### Proposal considered
 
