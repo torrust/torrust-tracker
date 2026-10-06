@@ -8,7 +8,7 @@ epic: 2411
 github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
-related-pr: 2444
+related-pr: null
 last-updated-utc: "2026-10-06 09:58"
 semantic-links:
   skill-links:
