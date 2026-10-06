@@ -8,7 +8,7 @@ github-issue: 1908
 spec-path: docs/issues/closed/1908-1669-si-27-move-driver-enum-to-primitives/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-06-20
+last-updated-utc: 2026-10-06
 semantic-links:
   skill-links:
     - create-issue
