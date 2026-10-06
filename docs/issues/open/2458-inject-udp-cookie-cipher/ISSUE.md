@@ -7,9 +7,9 @@ priority: p2
 epic: null
 github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-branch: "2458-inject-udp-cookie-cipher"
+branch: "2458-inject-udp-cookie-cipher-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 16:17"
+last-updated-utc: "2026-10-06 16:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -255,6 +255,7 @@ Arrange-Act-Assert review.
   to a separate agent: `.tmp/inject-udp-cookie-cipher/HANDOFF.md`.
 - 2026-10-06 16:14 UTC - Copilot - Independently reproduced the safeguard bypass and accepted a cookie forged with the public all-zero key after a reversible production-mode alias mutation. Evidence: `manual-verification-evidence.md` V1.
 - 2026-10-06 16:17 UTC - Copilot - Created GitHub issue #2458 and moved the approved draft and reproduction evidence to `docs/issues/open/2458-inject-udp-cookie-cipher/`.
+- 2026-10-06 16:26 UTC - Copilot - Renamed the specification branch to `2458-inject-udp-cookie-cipher-spec`, reserving `2458-inject-udp-cookie-cipher` for implementation.
 
 ## Acceptance Criteria
 
