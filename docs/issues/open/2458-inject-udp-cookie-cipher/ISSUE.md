@@ -14,11 +14,13 @@ semantic-links:
   skill-links:
     - create-issue
     - fix-bug
+    - handle-secrets
     - write-unit-test
   related-artifacts:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/udp-core/src/crypto/keys.rs
     - packages/udp-core/src/crypto/ephemeral_instance_keys.rs
     - packages/udp-core/src/connection_cookie.rs
@@ -136,7 +138,8 @@ duties this spec makes explicit: never log the key, and guarantee one shared key
 - Changing the cookie format, the cipher algorithm (Blowfish), or the fingerprint/time arithmetic.
 - Sharing one key across several tracker processes (for example, behind a load balancer). The
   injected design makes it possible later; record it as a follow-up idea only.
-- Key rotation and zeroing the key on drop.
+- Key rotation. Whether the key is zeroed on drop is decided in the new ADR (see Architectural
+  Decisions).
 - The other `udp-core` findings in Issue #1348's `lessons.md` (error-message wording, scrape
   whitelist variants, `is_finite` doc drift).
 - Test-coverage work owned by Issue #1348 beyond keeping existing tests passing and adding this
@@ -144,10 +147,22 @@ duties this spec makes explicit: never log the key, and guarantee one shared key
 
 ## Architectural Decisions
 
-- Related ADRs: none found for the cookie key design. Search `docs/adrs/` before starting.
+- Related ADRs: none found for the cookie key design.
+  [Adopt `secrecy` for sensitive values](../../../adrs/20260822094338_adopt_secrecy_for_sensitive_values.md)
+  governs how the key is kept out of diagnostics:
+  - The ADR asks to use `secrecy` directly. But `secrecy::SecretBox<T>` requires `T: Zeroize`, and
+    the `blowfish` 0.10 cipher implements only `ZeroizeOnDrop`, behind its `zeroize` feature.
+  - Wrapping just the raw key bytes in `SecretBox` would rerun the Blowfish key schedule on every
+    `make`/`check`.
+  - So the plan is a hand-written redacted `Debug` that prints `[REDACTED]`, the representation
+    the ADR uses, with no accessor that exposes key material. R4 asserts that exact output and that
+    a unique test key's bytes are absent, as the ADR asks of tests.
+  - The new ADR records this deviation and decides whether to enable `blowfish`'s `zeroize`
+    feature.
 - ADRs to create: **Inject the UDP connection-cookie cipher instead of using global statics**.
   The issue chooses among meaningful alternatives (keep statics with a `cfg(test)`-gated test key;
-  derive the cipher from the seed; injection), with consequences for every cookie consumer.
+  derive the cipher from the seed; injection), with consequences for every cookie consumer. It also
+  records the secrecy deviation and the zeroize decision above.
 
 ## Design and Ownership Review
 
@@ -218,7 +233,9 @@ guard the bug.
   one shared key. It passes today, because every service reads the same global cipher, so it
   guards the new wiring rather than the old bug. Substitute: temporarily give one service its own
   key and record the failure.
-- **R4 (unit):** the key's `Debug` output contains no key bytes. No pre-fix red run is possible
+- **R4 (unit):** the key's `Debug` output is exactly the redacted representation and contains no
+  bytes of a unique test key (see the secrecy ADR in Architectural Decisions). No pre-fix red run
+  is possible
   because the key type does not exist yet. Substitute: temporarily derive `Debug` and record the
   failure.
 - Existing cookie tests (`connection_cookie.rs`, including the round-trip `quickcheck` property and
