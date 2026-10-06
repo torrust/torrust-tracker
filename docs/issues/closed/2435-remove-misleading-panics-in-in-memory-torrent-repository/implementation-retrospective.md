@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
+    - docs/issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
     - docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
     - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
     - packages/swarm-coordination-registry/src/swarm/registry.rs

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 epic: null
 github-issue: 2435
-spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
+spec-path: docs/issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
 related-pr: 2445
-last-updated-utc: "2026-10-06 11:20"
+last-updated-utc: "2026-10-06 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -202,6 +202,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-06 09:20 UTC - Copilot - Following the task review's major finding and the maintainer's request, added [`implementation-retrospective.md`](implementation-retrospective.md) covering the reversal from option C to option B. It supersedes the earlier "no separate retrospective" note in the 2026-10-05 19:56 UTC entry.
 - 2026-10-06 10:40 UTC - Copilot - Opened PR #2445. Processing its first review round (da2ce7 F1 to F7 and four Copilot findings), with the maintainer approving the dispositions. The ADR's no-`expect` rule is scoped to workspace APIs whose error cannot occur (F1). Condition 3 now requires an existing or planned backend that can fail, and "port" is defined (F4); the T7 policy wording above is kept as the decision record, and the ADR is authoritative. Added ADR back-links in the code (F2), removed three false `# Panics` sections from `torrent/services.rs` (F5), moved the EPIC checklist to Delivery Strategy (F7), recorded the task review in [`agent-review-reports.md`](agent-review-reports.md) with its checkpoint (F3), scoped the AC5 command (F6), named the final ADR file in the T3 row, marked the pre-push checkpoint done, and set `related-pr`. No `#[must_use]` on the two `remove_*` counts: every caller discards them on purpose. The PR audit record is `docs/pr-reviews/pr-2445-review/PR-REVIEW.md`.
 - 2026-10-06 11:20 UTC - Copilot - Round 2 of the PR #2445 review (F12 to F14). Restored three EPIC #1669 log lines that the rebase conflict resolution had dropped (F12). Corrected the AC5 and retrospective file lists, which became stale when the F5 fix touched `torrent/services.rs` (F13). Scoped F10's verification grep in the audit (F14).
+- 2026-10-06 12:46 UTC - Copilot - PR #2445 merged after da2ce7's approval, and GitHub closed issue #2435 as completed. Archived this spec folder to `docs/issues/closed/`, and updated the live references to it in ADR 20261005145329 and the PR #2445 audit front matter. The PR #2436 audit's evidence sentence keeps the old path as a historical record.
 
 ## Acceptance Criteria
 
@@ -265,5 +266,5 @@ findings, and reusable lessons.
 ## References
 
 - Related issues: #2406
-- Related PRs: #2423
+- Related PRs: #2423, #2445
 - Related ADRs: [20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md), [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md)

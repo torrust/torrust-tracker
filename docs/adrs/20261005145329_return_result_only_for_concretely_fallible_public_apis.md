@@ -6,7 +6,7 @@ semantic-links:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
     - "issue #2435"
-    - docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
+    - docs/issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
     - packages/swarm-coordination-registry/src/swarm/registry.rs
     - packages/tracker-core/src/torrent/repository/in_memory.rs
 ---
@@ -133,7 +133,7 @@ Negative:
 
 ## References
 
-- Issue #2435 and its [specification](../issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md)
+- Issue #2435 and its [specification](../issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md)
 - Found during PR #2423 (issue #2406) review
 - EPIC #1669 (package overhaul and publishing)
 - [ADR: adopt independent package versioning](20260629000000_adopt_independent_package_versioning.md)
