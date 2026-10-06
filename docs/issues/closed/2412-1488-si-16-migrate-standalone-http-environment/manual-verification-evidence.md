@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-last-updated-utc: "2026-10-05 17:40"
+issue-spec: docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+last-updated-utc: "2026-10-06 09:36"
 ---
 
 # Verification Evidence — Standalone HTTP Environment and Example

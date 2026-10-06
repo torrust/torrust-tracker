@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
 branch: "1488-si-3-fix-environment-stop"
 related-pr: null
-last-updated-utc: "2026-09-29 11:47"
+last-updated-utc: "2026-10-06 09:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 # Superseded Draft SI-3 — Split Standalone Environment Migration
 
-> **Status**: Superseded for implementation planning. [SI-16](../../open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-16](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)
 > replaces the standalone HTTP environment/example and [SI-17](../1488-si-17-migrate-standalone-udp-environment/ISSUE.md)
 > replaces the standalone UDP environment/example, after the additive server
 > lifecycle API is available.

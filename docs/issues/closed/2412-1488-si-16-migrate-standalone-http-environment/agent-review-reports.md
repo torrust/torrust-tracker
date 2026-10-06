@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+    - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 ---
 
 # Agent Review Reports - Migrate Standalone HTTP Environment and Example to the Token Lifecycle

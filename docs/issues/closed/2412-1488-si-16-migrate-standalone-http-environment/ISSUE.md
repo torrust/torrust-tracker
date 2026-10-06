@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2412
-spec-path: docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+spec-path: docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
-related-pr: null
-last-updated-utc: "2026-10-05 17:40"
+related-pr: 2439
+last-updated-utc: "2026-10-06 09:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -260,7 +260,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -280,6 +280,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-05 14:55 UTC - GitHub Copilot - Second Task Reviewer pass: REVIEW PASSED; all first-pass findings resolved; one optional Nit (non-Unix `ctrl_c()` called by full path) left as is, since a single-use `cfg(not(unix))` import adds nothing. Pre-push checks pass in 58 s (nightly `rustc 1.101.0-nightly (282215592 2026-10-04)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). T6 done; next: the implementation PR.
 - 2026-10-05 15:53 UTC - GitHub Copilot - PR #2439 Copilot review (three findings, all valid). F1 (Major): `graceful_shutdown_on_cancellation` started an unbounded graceful phase (`graceful_shutdown(None)`), so after `TimedOut` a held connection kept the server task alive and `stop()` could wait forever; it now calls `handle.shutdown()` at the deadline, as the legacy path's bounded grace did. This changes the shared helper used by the HTTP, REST API, and health-check servers; their tests pass. New test `it_should_force_close_a_connection_still_open_when_the_drain_times_out` holds a real connection; removing the force-close makes it fail. F2 (Major): the environment spawned the listener before the fallible server start, so a failed start detached it while its bus stayed open; it now subscribes first and spawns after a successful start. New test `it_should_not_leave_the_statistics_listener_running_when_the_http_server_fails_to_start` keeps the container (and so the bus) alive and checks no extra holder of the statistics repository remains; the pre-fix order makes it fail with 2 holders. A first version that dropped the container passed even before the fix, because closing the bus ends the leaked listener; the test now states that condition. F3 (Minor): the T4 entry's macOS claim is corrected above.
 - 2026-10-05 17:40 UTC - GitHub Copilot - da2ce7 review on PR #2439 (APPROVED; seven non-blocking findings F4-F10). F4: evidence V2/V3 now name their tree by commit subject, not a pre-rebase id. F5: the token-aware start methods document only the errors they can return. F6: the example's no-signals sentence is scoped to the token-aware path. F7: the binding test's recorded mutation (listener aborted) failed inside `stop()`, before its bind assertion. The suggested targeted mutation, `stop()` not awaiting the server task, survives: so does one that awaits neither the server task nor the drain controller, because cancellation alone makes axum stop accepting and drop the listening socket. The mutation that keeps the port held, a `stop()` that never stops the server (no cancel, handles dropped), fails the test at its own bind with `AddrInUse`; that is the recorded proof. F8: every test start is now bounded by the test deadline. F9: the shared drain-helper change is now design decision D7 and in scope, with its production effect. F10: corrected in the PR #2439 audit record. Completion review revisited: the material discoveries are now the SIGTERM baseline, the 1 s drain polling, the unbounded drain helper (D7), and that port release follows cancellation rather than the server task's end. Each is recorded in this spec (log, D7) or a code comment, so a separate retrospective is still not needed.
+- 2026-10-06 09:03 UTC - GitHub Copilot - PR #2439 merged at 2026-10-05 21:04 UTC as `29afe946c` after da2ce7 approved the final head and CI passed (including Windows); it closed #2412. Further review findings F11-F13 are in the [PR #2439 review audit](../../../pr-reviews/pr-2439-review/PR-REVIEW.md). Archived this spec to `docs/issues/closed/` and marked SI-16 done in the EPIC #1488 roadmap.
 
 ## Acceptance Criteria
 

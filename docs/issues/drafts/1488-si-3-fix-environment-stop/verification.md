@@ -1,6 +1,6 @@
 # Verification Evidence — Superseded Combined Standalone Migration
 
-> **Status**: Do not populate. [SI-16](../../open/2412-1488-si-16-migrate-standalone-http-environment/manual-verification-evidence.md)
+> **Status**: Do not populate. [SI-16](../../closed/2412-1488-si-16-migrate-standalone-http-environment/manual-verification-evidence.md)
 > and [SI-17](../1488-si-17-migrate-standalone-udp-environment/verification.md)
 > require separate verification evidence for the HTTP and UDP consumers,
 > respectively.

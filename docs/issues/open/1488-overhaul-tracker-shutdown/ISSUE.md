@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-02 15:40"
+last-updated-utc: "2026-10-06 09:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,7 @@ status as of 2026-10-02.
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
    **Status: fixed in the application** (sequences 3 to 11); the standalone
-   test environments still use `Halted` until SI-16 and SI-17, and the legacy
+   UDP test environment still uses `Halted` until SI-17, and the legacy
    API is removed by SI-18 and SI-19.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
@@ -200,7 +200,7 @@ deterministic tests, and manual evidence.
 | 9        | #2324 | [Migrate health-check API to token lifecycle](../../closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)      | Done       | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
 | 10       | #2342 | [Migrate UDP tracker to token lifecycle](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Done       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
 | 11       | #2370 | [Define UDP active-request shutdown policy](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)  | Done       | Loop-owned request processors; five-second drain with deadline abort and one outcome summary.        |
-| 12       | #2412 | [Migrate standalone HTTP environment/example](../2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Planned    | One supported standalone HTTP consumer migration.                                                    |
+| 12       | #2412 | [Migrate standalone HTTP environment/example](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md) | Done       | One supported standalone HTTP consumer migration; the token-aware drain now force-closes at its deadline (#2439). |
 | 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |
 | 14       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
 | 15       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
