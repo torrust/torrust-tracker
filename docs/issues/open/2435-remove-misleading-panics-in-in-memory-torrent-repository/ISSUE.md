@@ -8,8 +8,8 @@ epic: null
 github-issue: 2435
 spec-path: docs/issues/open/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
 branch: "2435-remove-misleading-panics-in-in-memory-torrent-repository"
-related-pr: null
-last-updated-utc: "2026-10-06 09:20"
+related-pr: 2445
+last-updated-utc: "2026-10-06 10:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -134,7 +134,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Inventory fallible registry methods and repository callers | See [T1 Inventory](#t1-inventory) |
 | T2 | DONE | Choose option A, B, or C | Option C; see [Decision (T2)](#decision-t2) (superseded by T7) |
-| T3 | DONE | Write the ADR | `docs/adrs/20261005145329_use_crate_owned_non_exhaustive_errors_for_potentially_fallible_public_apis.md` plus index row and `handle-errors-in-code` skill link |
+| T3 | DONE | Write the ADR | Written for option C, then renamed and rewritten in T8; the final file is `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`, plus its index row and `handle-errors-in-code` skill link |
 | T4 | DONE | Registry error type | `#[non_exhaustive] pub enum Error {}`, honest `# Errors` docs, `compile_fail` doctest |
 | T5 | DONE | REST stats port returns `Result` | `StatsError` in `rest-api-protocol` (same pattern as `WhitelistError`); `StatsQueryPort`/`StatsApiService::get_stats` return `Result`; handler responds `500` via `failed_to_get_stats_response`; stub-port handler test |
 | T6 | DONE | Propagate through `tracker-core` and delivery layers | Repository returns `Result`; `AnnounceError`/`ScrapeError::SwarmRegistry`; `TorrentsManager::cleanup_torrents` returns `Result` and the job logs `tracing::error!`; UDP `ErrorKind::InternalServer`; `udp-core`/`udp-server` `get_metrics` return `Result`; REST adapter maps to `StatsError` |
@@ -176,11 +176,12 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): `linter all` (pre-commit) and the full stable test suite pass; pre-push checks not run yet (no push requested)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): pre-commit (`linter all`, doc tests), the full stable test suite, and the pre-push hook (nightly format/check/docs and all tests) passed before the first PR #2445 push
 - [x] Manual verification scenarios: not applicable (maintainer decision, 2026-10-05; compile-time and automated tests are sufficient)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -199,6 +200,7 @@ Registry methods returning `Result<_, Error>` (all infallible today): `handle_an
 - 2026-10-05 19:56 UTC - Copilot - T8 to T10 done. The ADR was rewritten, T6 and T5 were reverted with `git revert` (the spec conflicts were resolved by keeping the current spec), and the registry methods now return plain values. A subagent did the mechanical removal of 62 test `.unwrap()` calls in `registry.rs`, using file-edit tools and verified by the compiler. Also removed the false `# Returns ... true` sections on both `handle_announcement` methods, which return `()`. Net code diff against `develop`: four files, +96/-263. `cargo clippy --workspace --all-targets --all-features` is clean; `cargo test --tests --benches --examples --workspace --all-targets --all-features` passed 2975 tests with 0 failures (one fewer than T6 because the reverted REST stub-port test is gone). Completion review: the reversal is the material discovery, and its lesson (do not reserve `Result` for speculative failures) is recorded permanently in the ADR's Description and Alternatives and in the T7 decision, so no separate retrospective file was created.
 - 2026-10-06 09:16 UTC - Copilot - Rebased onto `torrust/develop` (38 commits, no conflicts). The two `revert(...)` commit messages cite pre-rebase commit ids that no longer exist; the reverted commits are "propagate swarm registry errors instead of expecting them" (T6) and "return a 500 when the tracker stats cannot be collected" (T5). A Task Reviewer review returned PASS WITH FINDINGS. Fixes: added `#[must_use]` to the seven registry query methods, which lost the unused-value warning when they stopped returning `Result`; linked the ADR from the Architectural Decisions and References sections; marked T2 as superseded; added the T11 commit point; removed `examples/bench_peers.rs` from the T1 inventory (it uses only `Coordinator`); and reworded the ADR's mention of the reverted enum variants.
 - 2026-10-06 09:20 UTC - Copilot - Following the task review's major finding and the maintainer's request, added [`implementation-retrospective.md`](implementation-retrospective.md) covering the reversal from option C to option B. It supersedes the earlier "no separate retrospective" note in the 2026-10-05 19:56 UTC entry.
+- 2026-10-06 10:40 UTC - Copilot - Opened PR #2445. Processing its first review round (da2ce7 F1 to F7 and four Copilot findings), with the maintainer approving the dispositions. The ADR's no-`expect` rule is scoped to workspace APIs whose error cannot occur (F1). Condition 3 now requires an existing or planned backend that can fail, and "port" is defined (F4); the T7 policy wording above is kept as the decision record, and the ADR is authoritative. Added ADR back-links in the code (F2), removed three false `# Panics` sections from `torrent/services.rs` (F5), moved the EPIC checklist to Delivery Strategy (F7), recorded the task review in [`agent-review-reports.md`](agent-review-reports.md) with its checkpoint (F3), scoped the AC5 command (F6), named the final ADR file in the T3 row, marked the pre-push checkpoint done, and set `related-pr`. No `#[must_use]` on the two `remove_*` counts: every caller discards them on purpose. The PR audit record is `docs/pr-reviews/pr-2445-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
@@ -238,7 +240,7 @@ None planned.
 | AC2 | DONE | Same `grep`; every method is plain delegation |
 | AC3 | DONE | Option B: the registry signatures are plain values, so introducing an error changes them and every caller fails to compile |
 | AC4 | DONE | Corrected in T4, then removed entirely with the `# Errors` sections in T10 |
-| AC5 | DONE | `rg 'registry::Error\|SwarmRegistry\|StatsError'` over the workspace finds nothing; the net code diff against `develop` touches only `registry.rs`, `in_memory.rs`, `statistics/mod.rs`, and `tracker-core/tests/common/test_env.rs` |
+| AC5 | DONE | `rg 'registry::Error\|SwarmRegistry\|StatsError' -- packages src` finds nothing (unscoped, it also matches prose about the reverted work in the ADR, this spec, and the retrospective); the net code diff against `develop` touches only `registry.rs`, `in_memory.rs`, `statistics/mod.rs`, and `tracker-core/tests/common/test_env.rs` |
 | AC6 | DONE | [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) and its index row |
 
 ## Risks and Trade-offs
