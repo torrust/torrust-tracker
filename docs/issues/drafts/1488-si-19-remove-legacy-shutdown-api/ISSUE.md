@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-remove-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-10-02 11:12"
+last-updated-utc: "2026-10-06 11:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
 
 # Draft SI-19 — Remove Legacy Shutdown API and Library OS Signals
 
-> **EPIC position**: Roadmap step 16. Breaking removal after all declared
+> **EPIC position**: Roadmap step 18. Breaking removal after all declared
 > compatibility, migration, deprecation, and release gates have been satisfied.
 
 ## Goal
@@ -56,6 +56,8 @@ Do not start implementation until every item below is complete and linked from
       components use only token-aware shutdown paths.
 - [ ] Standalone HTTP and UDP environments/examples use only token-aware
       shutdown paths.
+- [ ] REST API and health-check API test environments use only token-aware
+      shutdown paths (SI-23, SI-24).
 - [ ] #1588 revalidates the final task inventory and records no supported
       in-workspace legacy shutdown consumer.
 - [ ] `torrust-server-lib` release notes confirm the planned breaking release
@@ -135,7 +137,7 @@ Do not start implementation until every item below is complete and linked from
 ## Dependencies
 
 - SI-18 is complete and the declared external compatibility window has ended.
-- SI-11 through SI-17 token-lifecycle migrations are complete.
+- SI-11 through SI-17, SI-23, and SI-24 token-lifecycle migrations are complete.
 - #1588 completes final inventory evidence.
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
   end-to-end removal verification.
