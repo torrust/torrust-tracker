@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
-last-updated-utc: "2026-10-05 21:05"
+last-updated-utc: "2026-10-06 10:50"
 ---
 
 # HTTP Scrape Limit Verification
@@ -181,13 +181,28 @@ Same isolated config and a fresh database, after removing the client's
 global CLI output contract ADR.
 
 ```sh
-# 75 distinct ASCII hashes, UDP, with the datagram sizes traced
+# UDP: 75 distinct ASCII hashes, with the datagram sizes traced
+hashes=()
+for ((i=1; i<=75; i++)); do
+    printf -v a '%020d' "$i"
+    hashes+=("$(printf '%s' "$a" | xxd -p)")
+done
 strace -f -e trace=sendto,sendmsg -o .tmp/2417-manual/udp-client-k.strace \
   ./target/debug/tracker_client udp scrape 127.0.0.1:48969 "${hashes[@]}" \
   > .tmp/2417-manual/udp-k.stdout 2> .tmp/2417-manual/udp-k.stderr
-# 1000 and the first 74 hashes, HTTP
+jq -c '{returned: (.Scrape.torrent_stats | length)}' .tmp/2417-manual/udp-k.stdout
+
+# HTTP: 1000 distinct ASCII hashes, then the first 74, each to its own files
+hashes=()
+for ((i=1; i<=1000; i++)); do
+    printf -v a '%020d' "$i"
+    hashes+=("$(printf '%s' "$a" | xxd -p)")
+done
 ./target/debug/tracker_client http scrape http://127.0.0.1:48070/scrape "${hashes[@]}" \
   > .tmp/2417-manual/http-k.stdout 2> .tmp/2417-manual/http-k.stderr
+./target/debug/tracker_client http scrape http://127.0.0.1:48070/scrape "${hashes[@]:0:74}" \
+  > .tmp/2417-manual/http-74.stdout 2> .tmp/2417-manual/http-74.stderr
+jq -c '{returned: length}' .tmp/2417-manual/http-k.stdout .tmp/2417-manual/http-74.stdout
 ```
 
 | Probe | Exit | Datagrams sent | Stdout entries | Stderr |
