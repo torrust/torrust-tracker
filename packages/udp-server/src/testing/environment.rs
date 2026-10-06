@@ -1,3 +1,4 @@
+use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -304,7 +305,7 @@ fn initialize_static() {
 /// Joins every task a running environment owns and reports all failures at
 /// once, so an early failure never leaves a remaining task detached.
 async fn join_owned_tasks(
-    receive_loop: JoinHandle<Result<(), std::io::Error>>,
+    receive_loop: JoinHandle<Result<(), io::Error>>,
     event_listeners: OwnedEventListeners,
 ) -> Result<(), String> {
     let (receive_loop_result, udp_core_statistics, udp_server_statistics, udp_server_banning) = tokio::join!(
@@ -341,6 +342,7 @@ async fn join_owned_tasks(
 
 #[cfg(test)]
 mod tests {
+    use std::io;
     use std::net::{SocketAddr, UdpSocket};
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
@@ -452,9 +454,14 @@ mod tests {
             .expect("start() should fail within the test deadline");
 
         // Assert
+        let Err(start_failure) = start else {
+            panic!("start() should fail when its port is occupied");
+        };
+        let panic = start_failure.into_panic();
+        let panic_message = panic.downcast_ref::<String>().map_or("", String::as_str);
         assert!(
-            start.is_err_and(|error| error.is_panic()),
-            "start() should fail when its port is occupied"
+            panic_message.starts_with("Failed to start the UDP tracker server"),
+            "start() should fail because the server could not start, not for another reason: {panic_message}"
         );
         assert_eq!(
             listener_shared_state_holders(&container),
@@ -509,7 +516,7 @@ mod tests {
         let cancellation_token = CancellationToken::new();
         let finished_listeners = Arc::new(AtomicUsize::new(0));
 
-        let failed_receive_loop = tokio::spawn(async { Err(std::io::Error::other("simulated receive-loop failure")) });
+        let failed_receive_loop = tokio::spawn(async { Err(io::Error::other("simulated receive-loop failure")) });
         let listener_finishing_after_the_receive_loop = || {
             let cancellation_token = cancellation_token.clone();
             let finished_listeners = finished_listeners.clone();
@@ -534,9 +541,9 @@ mod tests {
 
         // Assert
         let failures = result.expect_err("a failed receive loop should be reported");
-        assert!(
-            failures.contains("UDP receive loop stopped with an error"),
-            "unexpected failures: {failures}"
+        assert_eq!(
+            failures, "UDP receive loop stopped with an error: simulated receive-loop failure",
+            "only the receive-loop failure should be reported"
         );
         assert_eq!(
             finished_listeners.load(Ordering::SeqCst),
