@@ -64,8 +64,12 @@ Related rules:
 - **Never use `Result<T, Infallible>` or an empty error enum to reserve room for future failures.**
   `Infallible` means "the error type for errors that can never happen". If an operation cannot
   fail, it returns `T`.
-- **Never `expect` or document `# Panics` for failures that cannot occur.** If the code cannot fail,
-  the signature should say so.
+- **Do not `expect` a workspace API's `Result` whose error cannot occur.** Change that API to
+  return a plain value instead, so the signature states the truth and no false `# Panics` section
+  is needed. A call-site `expect` on an API that can fail in general but not for this input, often
+  one we do not own (for example serializing plain data with `serde_json`), stays under the
+  `handle-errors-in-code` skill's Unwrap and Expect Policy, with the `# Panics` section that
+  `clippy::missing_panics_doc` requires.
 - **Mark existing public error enums `#[non_exhaustive]` before their first publish.** Enums with
   real variants gain variants as features grow (the reverted first attempt at #2435 had to add one
   to two enums). With
