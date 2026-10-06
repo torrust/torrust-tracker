@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 12:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,6 +153,7 @@ T1 tests (use the `write-unit-test` skill, every wait bounded):
 
 | Task  | Coherent change set                                       | Commit policy                                                      |
 | ----- | --------------------------------------------------------- | ------------------------------------------------------------------ |
+| T0    | Baseline evidence in `manual-verification-evidence.md`    | Commit with T1 or separately.                                      |
 | T1-T2 | Environment, tests, and direct field consumer migration   | Commit together after design review, since the field type changes. |
 | T3    | Shutdown documentation updates                            | Commit after `linter all`.                                         |
 | T4    | Verification evidence, AC review, and completion review   | Commit after all checks pass.                                      |
@@ -221,6 +222,13 @@ The package has no example binary, so there is no signal scenario.
 | M1  | No legacy stop in the env    | Read the final `environment.rs`; list every `ApiServer` method it calls.         | Only `start_with_cancellation`; no legacy `start` or `stop`.        | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Suite timing                 | Run the REST API package tests before and after; record wall time.              | Comparable time; any slowdown explained (SI-16 saw ~1 s per stop). | TODO   | `manual-verification-evidence.md` section V2 |
 
+Notes:
+
+- Manual verification is mandatory even when automated tests pass.
+- Record the toolchain for every command result that it can affect.
+- Create `manual-verification-evidence.md` from
+  `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` at T0.
+
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
@@ -255,6 +263,9 @@ available.
 ## Implementation Completion Review
 
 - Retrospective: `TODO`
+- If needed, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
+  otherwise add a progress-log entry explaining why it was not needed.
 - Independent reviewers record results in `agent-review-reports.md` using
   `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
