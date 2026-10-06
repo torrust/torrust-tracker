@@ -47,6 +47,10 @@ findings, F1-F4, kept as given. Its body repeats them and adds no other actionab
 PR-title note is explicitly not raised. F3 asks for the same change as Copilot's earlier F6, so it
 is recorded as a re-raise.
 
+da2ce7 review 5428606322 (round 2, APPROVED at `2dab46a2f`, 12:51 UTC) left one inline finding,
+F7, kept as given. Its body confirms the round-1 fixes and this record, and notes the owed log
+entry for the 12:41 push, recorded below; it adds no other actionable assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F5 | `review-finding:pr-2451-f5` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -55,6 +59,7 @@ is recorded as a re-raise.
 | F2 | `review-finding:pr-2451-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2451-f3` | Human | Nit | formatting | RE_RAISE_OF:F6 | NO_ACTION | SUPERSEDED |
 | F4 | `review-finding:pr-2451-f4` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2451-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -146,6 +151,20 @@ is recorded as a re-raise.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195268282>
 
+### F7 - Current-tree verification cites a commit id the rebase removed
+
+- PR number: 2451
+- Source review ID: 5428606322
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195469125>
+- Concern: five current-tree verification lines named the round-1 tip `776208a7d`, which the
+  rebase in the record's own push removed; branch ids change after a rebase.
+- Solution: say "at the PR head" instead. The 12:31 Processing Log entry keeps the id as history.
+- Current-tree verification: the id appears once at the PR head, in the 12:31 log entry.
+- Resolution reference: `docs(pr-reviews): cite the PR head instead of a rebased-away id in the #2451 record`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4196577877>
+
 ## Processing Log
 
 - 2026-10-06 12:31 UTC - Fetched Copilot review 5428029967 and da2ce7 review 5428068587 (six
@@ -155,6 +174,12 @@ is recorded as a re-raise.
   (12:33:04-12:33:12).
 - 2026-10-06 12:34 UTC - Recorded this audit and ran the validator (0 failures); the threads are
   resolved after it is pushed.
+- 2026-10-06 14:32 UTC - Late entry, owed per da2ce7 round 2: after the 12:34 entry, rebased onto
+  `develop` again (11 commits behind), force-pushed the record (12:41:10), found no new review in
+  the reply guard, and resolved all six threads.
+- 2026-10-06 14:32 UTC - Fetched da2ce7 review 5428606322 (round 2, APPROVED; F7); committed the
+  F7 fix (14:23:59); rebased onto `develop` (42 commits behind); force-pushed (14:31:08); replied
+  on the F7 thread (14:32:21).
 
 ## Completion Rules
 
