@@ -210,6 +210,30 @@ The manual runner owns its tracker process, temporary database, and ports.
 Bound startup, requests, and stop waits; clean up owned processes on failure.
 Do not interpret HTTP transport rejection as evidence of a hash-count limit.
 
+### Fake Trackers (T8, T9)
+
+Added after review (PR #2444, finding F3), describing the fixtures in
+`console/tracker-client/tests/common/fake_trackers/`:
+
+- **Ownership.** Each fake owns one socket bound to `127.0.0.1:0` and one
+  server thread. The socket moves into the thread; `ServerThread` owns the
+  stop flag and the join handle. A test owns the fake for its whole scope and
+  starts its own, so no socket or port is shared between tests.
+- **Normal and drop-path lifetime.** Dropping the fake sets the stop flag and
+  joins the thread, on success and on a failing assertion alike. A panic in the
+  fake thread fails the test through the join (unless the test is already
+  panicking), so fake errors are never silently ignored.
+- **Deadlines.** The UDP fake polls the stop flag through a 10 ms read
+  timeout; the HTTP fake polls its non-blocking listener every 10 ms and reads
+  each accepted request under a 5 s timeout, so a silent peer fails the test
+  instead of blocking the join. The `tracker_client` runs have no deadline of
+  their own: they rely on the binary's 5 s network timeout and, for the
+  monitor, its `--duration`.
+- **Design review.** No separate checkpoint was held after the first passing
+  slice: K5-K8 were written together, then mutation-checked (T8). This
+  section and the read timeout were added in review instead; the prose-first
+  review records the accepted timing exception.
+
 ## Bug-Fix Process
 
 Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`. The first step is M1.
