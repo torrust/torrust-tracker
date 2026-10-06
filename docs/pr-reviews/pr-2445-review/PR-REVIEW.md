@@ -220,8 +220,9 @@ The maintainer approved the dispositions before any change.
   logs them, and every caller discards them on purpose. `#[must_use]` would force unused bindings,
   and `()` would drop a count a caller may legitimately want. Review 5426703978 independently found
   the split matches the callers.
-- Current-tree verification: `grep -rnE 'remove_(inactive_peers|peerless_torrents)\(' packages --include=*.rs`
-  shows only `in_memory.rs` and registry tests calling them, each discarding the count.
+- Current-tree verification: `grep -rnE 'swarms\s*\.\s*remove_(inactive_peers|peerless_torrents)\(' packages --include=*.rs`
+  (scoped to the registry receiver; corrected per F14) matches eight lines: `in_memory.rs` (two)
+  and six registry test lines, each discarding the count.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194374698>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194374698>
