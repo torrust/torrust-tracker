@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: 2026-10-06 17:06
+last-updated-utc: "2026-10-06 17:06"
 ---
 
 # Manual Verification Evidence
@@ -127,8 +127,3 @@ The mutated production artifact started normally; `check_seed()` did not panic b
 ## Failures and Follow-up
 
 The first version of the disposable example built the protocol connection ID with `i64::from_ne_bytes` instead of `i64::from_be_bytes` and failed with `ValueFromFuture`. Correcting it to network-endian bytes produced the accepted forged cookie above. This confirmed the independent forgery construction rather than weakening the result. The disposable example and mutation were removed; no temporary verification source remains in the worktree. Their final code is recorded verbatim in [Temporary Code](#temporary-code-verbatim).
-
-## Failures and Follow-up
-
-Record any failed or blocked process, diagnosis, remediation, and whether the
-scenario was rerun.
