@@ -119,18 +119,18 @@ now own the remaining review and remediation work for their linked temporary ent
 | Candidate entries | Follow-up owner | Evidence and removal condition |
 | ----------------- | --------------- | ------------------------------ |
 | A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227 | #2244 | [`metric-aggregate-conversion-safety.md`](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md): establish typed or checked metric boundaries for negative, non-finite, fractional, and out-of-range `f64` values, then remove direct casts and allows. |
-| A156, A171 | #2245 | [`wire-numeric-conversion-validation.md`](numeric-conversion-follow-up-drafts/wire-numeric-conversion-validation.md): prove protocol-width bounds through types or checked conversions, then remove/narrow the allow. |
+| A156, A171 | #2245 | [`wire-numeric-conversion-validation.md`](numeric-conversion-follow-up-drafts/wire-numeric-conversion-validation.md): prove protocol-width bounds through types or checked conversions, then remove/narrow the allow. Resolved by #2245: both allows removed. |
 | A099, A123, A129 | #2246 | [`domain-numeric-conversion-contracts.md`](numeric-conversion-follow-up-drafts/domain-numeric-conversion-contracts.md): prove that each conversion is lossless or use deterministic checked conversions with boundary tests, then remove the allows. Resolved by #2246: all three allows removed. |
 | A112, A120 | Retain | Benchmark-only bounds and precision needs are documented locally: generated peer values fit their target widths, and a short benchmark duration is well within the `f64` exact-integer range; the info-hash generator intentionally retains only four low-order bytes. Add native reasons in the remediation pass. |
 
-The remaining numeric entries listed in the first two rows are temporary because their approved
-follow-up issues now own the final checked-boundary decisions. #2246 removed the third row's
-allowances.
+The remaining numeric entries listed in the first row are temporary because their approved
+follow-up issue now owns the final checked-boundary decisions. #2245 removed the second row's
+allowances and #2246 the third row's.
 
 ### UDP Protocol Crate Baseline
 
-The UDP protocol crate inherited broad allowances with its vendored foundation. A156 remains owned
-by wire numeric conversion follow-up #2245. Follow-up #2261 removed A157-A158 and A160-A168, and
+The UDP protocol crate inherited broad allowances with its vendored foundation. Wire numeric
+conversion follow-up #2245 removed A156. Follow-up #2261 removed A157-A158 and A160-A168, and
 retained A159 with a native reason after current nightly Clippy reported `FromBytes` derive-generated
 empty helper enums for inhabited protocol wire structs.
 
@@ -231,6 +231,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A157-A158, A160-A168 | Superseded by #2261: removed the nonnumeric UDP protocol baseline allowances after focused source fixes or confirmation that no current diagnostic emitted. | `cargo clippy -p torrust-tracker-udp-protocol --all-targets --all-features -- -D warnings` |
 | A235 | Removed the crate-level benchmarking style baseline by applying behavior-preserving repository style fixes and replacing broad lock-scope suppression with source-specific retained rationale where the measured critical section must stay unchanged. | `cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features`; anchored source scan reports `missing_reason 0` |
 | A099, A123, A129 | Superseded by #2246: removed the domain numeric conversion allowances with a checked `u64` timestamp conversion, checked `u32` benchmark swarm counts, and a `u32` non-negative `numwant` path. | `cargo clippy -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-primitives -p torrust-tracker-torrent-repository-benchmarking -p torrust-tracker-core` |
+| A156, A171 | Superseded by #2245: removed the wire numeric conversion allowances with a checked scrape cursor offset and a clamping `i32` conversion for the UDP announce interval and peer counts. | `cargo clippy -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server --all-targets --all-features -- -D warnings`; `cargo test -p torrust-tracker-udp-protocol -p torrust-tracker-udp-server` |
 
 ## Entries
 
@@ -391,7 +392,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A153 | `packages/udp-core/src/statistics/metrics.rs:114` | item | `cast_sign_loss` | Metric aggregate conversion | [Metric aggregate draft](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md) defines the checked-boundary removal condition | #2158 | Temporary |
 | A154 | `packages/udp-core/src/statistics/metrics.rs:115` | item | `cast_possible_truncation` | Metric aggregate conversion | [Metric aggregate draft](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md) defines the checked-boundary removal condition | #2158 | Temporary |
 | A155 | `packages/udp-core/src/statistics/repository.rs:15` | item | `double_must_use` | Macro-generated async trait future | Nearby comment identifies the duplicate must-use annotation generated by `async_trait` | #2158 | Retain |
-| A156 | `packages/udp-protocol/src/lib.rs:8` | crate | `cast_possible_truncation` | UDP protocol crate baseline | [Baseline draft](udp-protocol-clippy-baseline-draft.md): replace with checked wire conversion or a narrow documented exception | #2158 | Temporary |
+| A156 | Removed | crate | `cast_possible_truncation` | UDP protocol crate baseline | #2245 found one hidden cast, the scrape parser's cursor position, and replaced it with `usize::try_from` mapped to the parser's existing `invalid data` error. | #2245 | Removed |
 | A157 | Removed | crate | `default_trait_access` | UDP protocol crate baseline | #2261 replaced `Default::default` with `Vec::default`. | #2261 | Removed |
 | A158 | Removed | crate | `doc_markdown` | UDP protocol crate baseline | #2261 found no stable or nightly diagnostic after removing the crate-level allowance. | #2261 | Removed |
 | A159 | `packages/udp-protocol/src/lib.rs:14` | crate | `empty_enums` | UDP protocol macro expansion | Nightly Rust 1.100.0 emits `FromBytes` derive-generated empty helper enums for inhabited wire structs; native reason documents the tool limitation. | #2261 | Retain |
@@ -406,7 +407,7 @@ essential protocol, lifecycle-state, transport, repository, or macro-generated r
 | A168 | Removed | crate | `wildcard_imports` | UDP protocol crate baseline | #2261 replaced wildcard imports with explicit production and test imports. | #2261 | Removed |
 | A169 | `packages/udp-server/examples/udp_only_public_tracker.rs:35` | crate | `print_stdout` | Example executable output | Runnable public-tracker example intentionally prints service information | #2158 | Retain |
 | A170 | `packages/udp-server/src/banning/event/handler.rs:34` | item | `cast_precision_loss` | Metric aggregate conversion | [Metric aggregate draft](numeric-conversion-follow-up-drafts/metric-aggregate-conversion-safety.md) assesses whether count gauges need a typed conversion boundary | #2158 | Temporary |
-| A171 | `packages/udp-server/src/handlers/announce.rs:132` | item | `cast_possible_truncation` | Wire conversion validation | [Wire conversion draft](numeric-conversion-follow-up-drafts/wire-numeric-conversion-validation.md) defines the protocol-bound removal condition | #2158 | Temporary |
+| A171 | Removed | item | `cast_possible_truncation` | Wire conversion validation | #2245 replaced the casts with a `saturating_wire_i32` helper that clamps the announce interval and seeder/leecher counts to `i32::MAX`; this fixed a reproduced defect where an interval above `i32::MAX` was sent as a negative value. | #2245 | Removed |
 | A172 | `packages/udp-server/src/handlers/error.rs:18` | item | `too_many_arguments` | UDP error-dispatch boundary | Request dispatcher forwards independently meaningful request, server, event, and response inputs; keeping them explicit preserves error-path traceability | #2158 | Retain |
 | A173 | `packages/udp-server/src/server/mod.rs:54` | item | `module_name_repetitions` | Protocol-specific public type | `Server` is the UDP server module's canonical public state controller | #2158 | Retain |
 | A174 | `packages/udp-server/src/server/spawner.rs:31` | item | `redundant_field_names` | Proc-macro expansion | Existing nearby comment: MSRV-compatible `derive_more::Constructor` emits `field: field`; remove when it emits shorthand | #2158 | Retain |
