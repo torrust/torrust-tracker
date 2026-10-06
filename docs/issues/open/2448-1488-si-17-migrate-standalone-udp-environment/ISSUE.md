@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 15:51"
+last-updated-utc: "2026-10-06 15:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -211,7 +211,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Migrate `Environment` start/stop      | D1-D6 with the five T1 tests, each mutation-proven (see the 2026-10-06 15:31 UTC log entry). Design approved 2026-10-06. |
 | T2  | DONE   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`; 3 + 8 pass.                                      |
 | T3  | DONE   | Example signal boundary (D7)          | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
-| T4  | TODO   | Documentation                         | Task inventory records the migrated UDP consumer.                                                          |
+| T4  | DONE   | Documentation                         | Task inventory findings 4 and 8 record the migrated UDP consumer and point the remaining legacy users to SI-23 and SI-24. |
 | T5  | TODO   | Verification and completion review    | Automatic checks, manual scenarios, AC review, pre-push checks, independent Task Reviewer report.           |
 
 T1 tests (use the `write-unit-test` skill, no OS signals, every wait bounded):
@@ -265,6 +265,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 15:31 UTC - GitHub Copilot - T0 done (evidence V1): the baseline matches fact 1. T1 and T2 done as the first vertical slice. Environment states are private `Stopped`/`Running` types behind the existing aliases; each start creates a fresh token, takes the three event receivers, starts through `start_with_cancellation`, and spawns the listeners only after success; `stop()` cancels once and joins the receive loop and the three listeners through `join_owned_tasks`, with no outer timeout (D5); the start timeout stays, renamed `DEFAULT_SERVER_START_TIMEOUT`. The sleep-based `it_should_make_and_stop_udp_server` is replaced by five tests. Mutation proofs, each reverted by hand: (A) aborting one listener fails the three stop-path tests, naming the listener; (B) spawning a listener before the start fails the failed-start test with holders `[1, 2, 1]` against `[1, 1, 1]`; (C) a pre-cancelled token fails only the restart test (no answer within the 10 s deadline); (D) returning on a receive-loop failure before joining fails the join-order test (0 of 3 listeners finished); (E) a `stop()` that never stops the server fails the socket test with `AddrInUse`, and so does the narrower one that cancels but does not await the receive loop (3/3 runs), unlike HTTP in SI-16: the UDP socket is owned by the receive-loop task and freed only when it ends. Suite timing: unit 2.17 s (was 2.17 s), integration 5.04 s (was 5.05 s), so no drain slowdown, unlike HTTP. Prose-first AAA review of the five tests: (a) stop: Arrange a started environment, Act stop within the deadline, Assert no join failure; matches. (b) failed start: Arrange an occupied port and the holder counts of the listeners' shared state, Act start, Assert it panicked and the counts are unchanged; the kept container is causal and has a one-line comment. (c) socket: Arrange a started environment and its binding, Act stop, Assert the address binds; matches. (d) restart: Arrange an environment stopped once, Act start it again, Assert a connect request gets a connect response; matches. (e) join order: Arrange a failed receive loop and three listeners that finish only after cancellation and one more scheduling turn, Act join, Assert the failure is reported and all three finished; the extra turn is causal and commented. Clippy (pedantic) required renaming the listener fields to drop the shared `udp_` prefix. Checkpoint: design review before T3.
 - 2026-10-06 15:43 UTC - GitHub Copilot - Maintainer approved the T1 design (including the renamed listener fields and the still-public `connection_id_validation`); T0-T2 committed. Next: T3.
 - 2026-10-06 15:51 UTC - GitHub Copilot - T3 done, mirroring SI-16's HTTP example: `main` installs the Unix signal streams before printing readiness (non-Unix uses `ctrl_c()`), prints which signal it received, and calls `Environment::stop()`. M2 (SIGTERM) and M3 (SIGINT): announce succeeds, orderly stop, exit 0, socket released (evidence V2, V3). M4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps its indirect subscription until SI-19 (V4).
+- 2026-10-06 15:55 UTC - GitHub Copilot - T4 done: task inventory findings 4 and 8 now record the migrated UDP environment and example, and name SI-23 and SI-24 as the remaining legacy test-environment users. `questions.md` is the decision record and stays unchanged, as in SI-16. The EPIC's findings 2 and 8 still say "until SI-17"; they are updated at archive time, as SI-16's were.
 
 ## Acceptance Criteria
 
