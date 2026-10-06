@@ -22,29 +22,29 @@ enum Behavior {
 }
 
 impl FakeUdpTracker {
-    /// Answers every request; announces get no peers.
-    pub fn answering() -> Self {
-        Self::keeping_first(usize::MAX)
+    /// Starts a fake tracker that answers every request; announces get no peers.
+    pub fn start() -> Self {
+        Self::start_with_scrape_limit(usize::MAX)
     }
 
-    /// Like [`Self::answering`], but scrapes get entries for only the first
+    /// Like [`Self::start`], but scrapes get entries for only the first
     /// `max_info_hashes` info hashes.
-    pub fn keeping_first(max_info_hashes: usize) -> Self {
-        Self::start(Behavior::Answering {
+    pub fn start_with_scrape_limit(max_info_hashes: usize) -> Self {
+        Self::spawn(Behavior::Answering {
             max_scrape_info_hashes: max_info_hashes,
         })
     }
 
-    /// Receives and discards every request, so every client request times out.
-    pub fn silent() -> Self {
-        Self::start(Behavior::Silent)
+    /// Starts a fake tracker that discards every request, so every client request times out.
+    pub fn start_silent() -> Self {
+        Self::spawn(Behavior::Silent)
     }
 
     pub const fn address(&self) -> SocketAddr {
         self.address
     }
 
-    fn start(behavior: Behavior) -> Self {
+    fn spawn(behavior: Behavior) -> Self {
         let socket = UdpSocket::bind("127.0.0.1:0").expect("fake UDP tracker should bind");
         socket
             .set_read_timeout(Some(POLL_INTERVAL))

@@ -84,7 +84,7 @@ mod udp {
     #[test]
     fn it_should_warn_on_stderr_when_the_tracker_returns_fewer_entries_than_requested() {
         // Arrange
-        let tracker = FakeUdpTracker::keeping_first(2);
+        let tracker = FakeUdpTracker::start_with_scrape_limit(2);
 
         // Act
         let run = scrape(&tracker, &distinct_info_hashes(3));
@@ -104,7 +104,7 @@ mod udp {
     #[test]
     fn it_should_leave_stderr_empty_when_the_tracker_returns_every_requested_entry() {
         // Arrange
-        let tracker = FakeUdpTracker::answering();
+        let tracker = FakeUdpTracker::start();
 
         // Act
         let run = scrape(&tracker, &distinct_info_hashes(3));
@@ -137,7 +137,7 @@ mod http {
     #[test]
     fn it_should_warn_on_stderr_when_the_tracker_returns_fewer_files_than_requested() {
         // Arrange
-        let tracker = FakeHttpTracker::keeping_first(2);
+        let tracker = FakeHttpTracker::start_with_scrape_limit(2);
 
         // Act
         let run = scrape(&tracker, &distinct_info_hashes(3));
@@ -157,7 +157,7 @@ mod http {
     #[test]
     fn it_should_not_warn_when_repeated_info_hashes_collapse_into_one_file() {
         // Arrange
-        let tracker = FakeHttpTracker::answering();
+        let tracker = FakeHttpTracker::start();
         let distinct = distinct_info_hashes(2);
         let info_hashes_with_first_repeated = [distinct[0].clone(), distinct[1].clone(), distinct[0].clone()];
 

@@ -58,7 +58,7 @@ impl MonitorRun {
 #[test]
 fn it_should_report_ok_probes_with_latency_stats_when_the_tracker_answers() {
     // Arrange
-    let tracker = FakeUdpTracker::answering();
+    let tracker = FakeUdpTracker::start();
 
     // Act
     let run = MonitorRun::of(&tracker);
@@ -89,7 +89,7 @@ fn it_should_report_ok_probes_with_latency_stats_when_the_tracker_answers() {
 #[test]
 fn it_should_report_timeout_probes_without_latency_stats_when_the_tracker_never_answers() {
     // Arrange
-    let tracker = FakeUdpTracker::silent();
+    let tracker = FakeUdpTracker::start_silent();
 
     // Act
     let run = MonitorRun::of(&tracker);
