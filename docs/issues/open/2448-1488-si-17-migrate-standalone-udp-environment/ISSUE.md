@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 15:55"
+last-updated-utc: "2026-10-06 16:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -245,12 +245,12 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2448)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Spec-only PR merged into `develop` before implementation (#2451)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
@@ -266,28 +266,29 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 15:43 UTC - GitHub Copilot - Maintainer approved the T1 design (including the renamed listener fields and the still-public `connection_id_validation`); T0-T2 committed. Next: T3.
 - 2026-10-06 15:51 UTC - GitHub Copilot - T3 done, mirroring SI-16's HTTP example: `main` installs the Unix signal streams before printing readiness (non-Unix uses `ctrl_c()`), prints which signal it received, and calls `Environment::stop()`. M2 (SIGTERM) and M3 (SIGINT): announce succeeds, orderly stop, exit 0, socket released (evidence V2, V3). M4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps its indirect subscription until SI-19 (V4).
 - 2026-10-06 15:55 UTC - GitHub Copilot - T4 done: task inventory findings 4 and 8 now record the migrated UDP environment and example, and name SI-23 and SI-24 as the remaining legacy test-environment users. `questions.md` is the decision record and stays unchanged, as in SI-16. The EPIC's findings 2 and 8 still say "until SI-17"; they are updated at archive time, as SI-16's were.
+- 2026-10-06 16:02 UTC - GitHub Copilot - AC review against the current tree: AC1-AC9 hold, each with its evidence in Acceptance Verification. Pre-push checks pass in 1 m 22 s (nightly `rustc 1.101.0-nightly (ea137335b 2026-10-05)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). Completion review: no `implementation-retrospective.md` needed. The design held as specified (D1-D7, no D5 fallback needed). The two material discoveries are recorded in the 15:31 entry: the UDP socket is freed only when the receive-loop task ends, so the socket test also guards the await (unlike HTTP); and the UDP stop adds no measurable suite time. Next: the independent Task Reviewer report, then the implementation PR.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the UDP server through `start_with_cancellation`.
-- [ ] AC2: `Environment::stop()` cancels the environment token and joins the
+- [x] AC1: `Environment` starts the UDP server through `start_with_cancellation`.
+- [x] AC2: `Environment::stop()` cancels the environment token and joins the
       receive loop and the three event listeners; it never calls `abort()`.
-- [ ] AC3: `stop()` panics with a message naming each failing task, after
+- [x] AC3: `stop()` panics with a message naming each failing task, after
       joining every owned task, and keeps its current signature.
-- [ ] AC4: A stopped environment can be started again and serves requests.
-- [ ] AC5: A failed start leaves no event listener running.
-- [ ] AC6: The health-check API contract tests pass without using the
+- [x] AC4: A stopped environment can be started again and serves requests.
+- [x] AC5: A failed start leaves no event listener running.
+- [x] AC6: The health-check API contract tests pass without using the
       environment's `server` field to stop the UDP tracker.
-- [ ] AC7: `udp_only_public_tracker` stops gracefully on SIGINT and on Unix
+- [x] AC7: `udp_only_public_tracker` stops gracefully on SIGINT and on Unix
       SIGTERM and exits with code 0.
-- [ ] AC8: No UDP library module subscribes to OS signals directly; the legacy
+- [x] AC8: No UDP library module subscribes to OS signals directly; the legacy
       `Server::start`/`stop` API still compiles, its tests pass, and it keeps
       its indirect subscription until SI-19.
-- [ ] AC9: The shutdown task inventory reflects the migration.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC9: The shutdown task inventory reflects the migration.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -325,15 +326,15 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
+| AC1   | DONE                   | `Environment::start` calls `Server::start_with_cancellation`; the contract and environment tests pass. |
+| AC2   | DONE                   | `stop()` cancels once and calls `join_owned_tasks`; no `abort()` in `environment.rs`. Mutation A (abort a listener) fails 3 tests. |
+| AC3   | DONE                   | Signature unchanged; `join_owned_tasks` names each failing task after joining all four. Mutation D fails the join-order test. |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again` (mutation C, a pre-cancelled token, fails it). |
+| AC5   | DONE                   | `it_should_not_leave_event_listeners_running_when_the_udp_server_fails_to_start` (mutation B fails it with `[1, 2, 1]`). |
+| AC6   | DONE                   | The UDP contract test uses `let _stopped = service.stop().await;`; 3 + 8 pass. The remaining `service.server.stop()` is the REST API one (SI-23). |
+| AC7   | DONE                   | Evidence V2 (SIGTERM) and V3 (SIGINT): orderly stop, exit 0, socket released. |
+| AC8   | DONE                   | Evidence V4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps `global_shutdown_signal` until SI-19; its tests pass in the 216 unit tests. |
+| AC9   | DONE                   | Task inventory findings 4 and 8. |
 
 ## Dependencies
 
@@ -363,7 +364,7 @@ behavior.
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: `Not needed` (see the 2026-10-06 16:02 UTC progress-log entry)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
