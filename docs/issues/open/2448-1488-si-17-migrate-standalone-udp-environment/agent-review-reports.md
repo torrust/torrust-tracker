@@ -16,8 +16,12 @@ semantic-links:
 
 ### 2026-10-06 16:09 UTC - Task Reviewer (GitHub Copilot)
 
-- Invocation scope: branch `2448-migrate-standalone-udp-environment`, commits `90a045666`,
-  `47cb91b69`, `5de790d3c`, `2678653dc` over `develop` at `693162bb8`; AC1-AC9, D1-D7, the five
+- Invocation scope: branch `2448-migrate-standalone-udp-environment`, the commits
+  `refactor(udp-server): [#2448] migrate the UDP test environment to the token lifecycle`,
+  `feat(udp-server): [#2448] stop the UDP example on SIGINT or SIGTERM`,
+  `docs(shutdown): [#2448] record the migrated UDP environment in the task inventory`, and
+  `docs(issues): [#2448] record SI-17 acceptance review and verification`
+  over `develop` at `693162bb8`; AC1-AC9, D1-D7, the five
   T1 tests; files `packages/udp-server/src/testing/environment.rs`,
   `packages/udp-server/examples/udp_only_public_tracker.rs`,
   `packages/axum-health-check-api-server/tests/server/contract.rs`,
