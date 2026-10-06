@@ -1,14 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2243
 github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: "2026-10-06 11:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,14 +66,60 @@ whether the crate-level allowance can become item-level reasons.
 Not applicable: this work changes protocol conversion boundaries and does not introduce child
 processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures.
 
+## Review Outcomes
+
+Approved by the maintainer on 2026-10-06. Both allowances are removed.
+
+### Conversion Inventory (T1)
+
+| Entry | Source | Wire field | Source/target bounds |
+| ----- | ------ | ---------- | -------------------- |
+| A156 | `udp-protocol` `Request::parse_bytes`, scrape branch: `bytes.position() as usize` | None: a slice offset after reading the scrape header | Removing the crate-level allowance shows this is the only cast it hid. After three fixed-width reads (`i64`, `i32`, `i32`) the `Cursor` position is 16 and can never exceed the slice length, which is already a `usize`. The cast cannot truncate. |
+| A171 | `udp-server` `build_response`: announce interval | `announce_interval` (`i32`, BEP 15) | `announce_policy.interval` is a `u32` with no configuration bound. **Defect, reproduced:** with `interval = 2147483648` a local tracker answers `"announce_interval": -2147483648`. HTTP is unaffected (bencode carries the `u32`). |
+| A171 | `udp-server` `build_response`: seeders and leechers | `seeders`, `leechers` (`i32`, BEP 15) | `SwarmMetadata.complete`/`.incomplete` are `u32` counters. A swarm above `i32::MAX` peers is not realistic, but `as i32` would turn it negative on the wire. |
+
+### Decisions (T2)
+
+**A156: `usize::try_from(bytes.position()).expect(..)` (decision-framework outcome 1, behaviour-preserving).**
+The crate-level allowance is removed. A one-line source comment states the invariant that keeps
+the `expect` unreachable. Rejected alternatives:
+
+- Parse the fixed 16-byte scrape header straight from the slice (split it off, or use `zerocopy` as
+  the announce branch does), without a `Cursor`. This removes the conversion entirely, but it is a
+  larger rewrite of working vendored parser code. It also touches the error paths, which must keep
+  the same error kinds for short inputs, and that risk is not justified by an unreachable truncation.
+- Keep `as usize` behind an item-level allowance with a permanent reason. Rejected because a
+  behaviour-preserving fix exists (framework rule 1).
+
+**A171 interval: reject at configuration load, and clamp when encoding (defect fix).**
+
+- `Core::validate` (v3 schema), already run at startup by `bootstrap::app::setup`, rejects an
+  `announce_policy.interval` above `i32::MAX` with a new `SemanticValidationError` variant, so
+  the tracker fails fast instead of serving invalid UDP replies. This changes which configurations
+  are accepted, but only for values that already produced invalid replies; the 4.0.0 major release
+  permits that breaking change. No ADR: response handling stays within the BEP 15 contract. Only
+  `interval` is checked: `interval_min` is never sent over UDP, and the v2 schema is kept only for
+  backward compatibility.
+- `build_response` also clamps the interval to `i32::MAX`, because `Core` can be constructed
+  without validation (for example in tests or by code that uses the crates as libraries).
+- Rejected: clamping alone (an absurd configuration would be accepted without complaint, and UDP
+  and HTTP would report different intervals), and validation alone (the conversion in
+  `udp-server` would still need handling for unvalidated `Core` values).
+
+**A171 seeders and leechers: clamp to `i32::MAX`.** One private helper converts all three wire
+fields, so the wire value is never negative, and the boundary tests target the helper directly.
+Rejected: an item-level allowance with a "swarms never reach 2^31 peers" reason (an unenforced
+bound next to code being fixed anyway), and `expect` (a panic in a request handler driven by swarm
+size).
+
 ## Implementation Plan
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Inventory narrowing conversions | List each cast covered by A156 and A171 with its wire field and the source of its bound. |
-| T2 | TODO | Judge each cast | Per cast: bound guaranteed (retain with reason), bound assumed (decide enforce or document), or defective. |
-| T3 | TODO | Apply outcomes | Add item-level reasons; implement and test bounded alternatives where chosen; retire the crate-level attribute. |
-| T4 | TODO | Reconcile inventory | Update #2158 evidence for A156 and A171 with each outcome. |
+| T1 | DONE | Inventory narrowing conversions | See Conversion Inventory. |
+| T2 | DONE | Judge each cast | See Decisions. |
+| T3 | TODO | Apply outcomes | One commit per boundary: `udp-protocol` (A156), `configuration` (interval validation), `udp-server` (A171 clamping). |
+| T4 | TODO | Reconcile inventory | Edit the A156 and A171 rows of the closed #2158 inventory in place, following the #2246 precedent. |
 
 ## Commit Points
 
@@ -87,9 +134,9 @@ processes, asynchronous I/O, network readiness, resource cleanup, or reusable te
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/numeric-conversion-wire-review/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2247)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -102,6 +149,7 @@ processes, asynchronous I/O, network readiness, resource cleanup, or reusable te
 
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from #2158's wire numeric conversion design input; assigned exclusive ownership of A156 and A171 - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
+- 2026-10-06 11:24 UTC - josecelano - Approved T1-T2: A156 `try_from` + `expect` with the rationale recorded here; A171 interval rejected at configuration load and clamped when encoding (defect reproduced locally); seeders and leechers clamped through a shared helper; no ADR - Chat decision
 
 ## Acceptance Criteria
 
@@ -122,7 +170,11 @@ processes, asynchronous I/O, network readiness, resource cleanup, or reusable te
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce response bounds | Send a local UDP announce request with the interval configured at a documented boundary. | The response encodes the documented value. | TODO | `manual-verification-evidence.md` section M1 |
+| M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; then start it with `interval = 2147483648`. | The first response encodes `announce_interval` 2147483647; the second configuration fails validation at startup. | TODO | `manual-verification-evidence.md` section M1 |
+
+The A156 `expect` and the clamping in `build_response` cannot be reached through a validated
+configuration or a realistic swarm, so they are covered by unit tests only. A156 is covered by the
+existing scrape round-trip tests, because its failure path is unreachable by construction.
 
 ### Acceptance Verification
 
