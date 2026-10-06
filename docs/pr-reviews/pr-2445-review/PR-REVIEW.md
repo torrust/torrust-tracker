@@ -58,6 +58,9 @@ The maintainer approved the dispositions before any change.
 | F9 | `review-finding:pr-2445-f9` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2445-f10` | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F11 | `review-finding:pr-2445-f11` | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F12 | `review-finding:pr-2445-f12` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2445-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2445-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -240,6 +243,56 @@ The maintainer approved the dispositions before any change.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194374968>
 
+### F12 - Rebase dropped three EPIC log lines from #2441
+
+- PR number: 2445
+- Source review ID: 5427427892
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194514062>
+- Concern: Resolving the EPIC conflict while rebasing onto `develop` deleted the first three lines
+  of the 2026-10-05 15:53 UTC Progress Log entry merged with #2441, so the F7 reply and Solution
+  ("both log histories kept in chronological order") were false.
+- Solution: Restored the three base lines from `d0c97baef`, so the entry is whole and precedes the
+  21:07 entry.
+- Current-tree verification: `git diff -U0 d0c97baef -- docs/issues/open/1669-overhaul-packages/EPIC.md`
+  deletes only the intended `last-updated-utc` line.
+- Resolution reference: `docs(issues): restore the EPIC #1669 log lines lost in the #2445 rebase`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194736590>
+
+### F13 - AC5 file list stale after the F5 fix
+
+- PR number: 2445
+- Source review ID: 5427427892
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194514077>
+- Concern: The F5 fix made `tracker-core/src/torrent/services.rs` a fifth file in the net code diff,
+  but AC5, the retrospective, and the PR body still said four; the PR body also still described
+  #2441 as open.
+- Solution: AC5 and the retrospective now list five files with `services.rs` marked doc-only; the
+  PR body was updated with `gh pr edit` and its #2441 note replaced. The 2026-10-05 19:56 UTC
+  progress-log entry stays, since it was true when written.
+- Current-tree verification: `git diff --stat torrust/develop -- packages src` reports 5 files; the
+  live PR body no longer contains "four files" or "Open PR #2441".
+- Resolution reference: `docs(issues): list all five files in the #2435 net code diff`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194736857>
+
+### F14 - F10 verification grep did not reproduce
+
+- PR number: 2445
+- Source review ID: 5427427892
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194514089>
+- Concern: F10's verification grep matched 106 lines in 25 files, not only the callers it claimed.
+- Solution: Scoped the pattern to the registry receiver and recorded its exact result; F11 inherits
+  it through "same as F10".
+- Current-tree verification: `grep -rnE 'swarms\s*\.\s*remove_(inactive_peers|peerless_torrents)\(' packages --include=*.rs`
+  prints eight lines (`in_memory.rs:65,78` and six registry test lines).
+- Resolution reference: `docs(pr-reviews): scope the F10 verification grep in the #2445 audit`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2445#discussion_r4194737072>
+
 ## Processing Log
 
 - 2026-10-06 10:06 UTC - Started audit. Fetched 11 threads (all unresolved) and both round-1
@@ -250,6 +303,13 @@ The maintainer approved the dispositions before any change.
 - 2026-10-06 10:47 UTC - Rebased all fix commits (authored 10:33 to 10:43 UTC) onto `develop`,
   resolving the EPIC conflicts with #2441, and pushed; the pre-push hook passed.
 - 2026-10-06 10:51 UTC - Replied to all 11 threads; recorded reply URLs.
+- 2026-10-06 11:08 UTC - Round 2: review 5427427892 (da2ce7), at the head carrying this audit's
+  first commit, raised
+  F12 (Major), F13 and F14 (Minor), all blocking, and asked to hold the F7 thread until F12 was
+  fixed. No new Copilot review.
+- 2026-10-06 11:30 UTC - Committed the F12, F13, and F14 fixes (authored 11:19 to 11:25 UTC) and
+  pushed; the pre-push hook passed. Updated the PR body for F13.
+- 2026-10-06 11:33 UTC - Replied to the F12, F13, and F14 threads; recorded reply URLs.
 
 ## Completion Rules
 
