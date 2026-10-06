@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 12:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,8 +89,9 @@ status as of 2026-10-02.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
    **Status: fixed in the application**: production servers use the token
-   lifecycle; only the legacy UDP stop path still observes the OS signal
-   until SI-19 removes it.
+   lifecycle; only the legacy stop paths of the UDP, REST API, and
+   health-check API test environments still observe the OS signal, until
+   SI-17, SI-23, and SI-24 migrate them; SI-19 removes the legacy API.
 9. **Event listeners drop events on shutdown** — found on 2026-10-01, after
    the original analysis. Every event listener stops as soon as cancellation is
    requested, even with events still queued, and servers that are still
