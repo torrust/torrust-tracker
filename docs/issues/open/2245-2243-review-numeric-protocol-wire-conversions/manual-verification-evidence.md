@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
-last-updated-utc: "2026-10-06 11:49"
+last-updated-utc: "2026-10-06 14:20"
 ---
 
 # Manual Verification Evidence
@@ -113,3 +113,72 @@ After the fix, with `interval = 2147483648`:
 The fix clamps an out-of-range interval to `i32::MAX` instead of wrapping it to a negative value,
 and leaves in-range values unchanged. M1 passes. The tracker still accepts the out-of-range
 configuration; rejecting it at load is the follow-up recorded in the issue spec.
+
+## Regression-Test Boundary
+
+The maintained regression test is
+`it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families` in
+`packages/udp-server/src/handlers/announce.rs`, with the helper's tests in
+`handlers::tests::wire_i32_conversion` in `packages/udp-server/src/handlers/mod.rs`. The issue
+spec's Regression Test Strategy explains why `build_response` is the smallest deterministic seam
+that covers all six call sites.
+
+Both tests were added after the fix, so each red run follows the `fix-bug` skill's mutate-then-restore
+procedure. Each mutation lived only in the working tree: the file was copied to `.tmp/` first,
+mutated, tested, and restored from the copy. Nothing was staged.
+
+### Red Run: Call Sites Back to the Original Cast
+
+Run on 2026-10-06 at 13:18 UTC, on top of commit
+`refactor(udp-server): [#2245] share one BEP 15 i32 clamp between announce and scrape`, with the new
+test written but not yet committed. Each of the six `saturating_wire_i32(x)` calls in
+`build_response` was replaced with the original `I32::new(i64::from(x) as i32)`:
+
+```sh
+cargo test -q -p torrust-tracker-udp-server --lib it_should_clamp_an_out_of_range
+```
+
+```text
+handlers::announce::tests::announce_request::it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families --- FAILED
+assertion `left == right` failed
+  left: AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(0)), announce_interval: AnnounceInterval(I32(-2147483648)), leechers: NumberOfPeers(I32(-2147483648)), seeders: NumberOfPeers(I32(-1)) }, peers: [] })
+ right: AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(0)), announce_interval: AnnounceInterval(I32(2147483647)), leechers: NumberOfPeers(I32(2147483647)), seeders: NumberOfPeers(I32(2147483647)) }, peers: [] })
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 212 filtered out; finished in 0.00s
+```
+
+### Red Run: Wrapping Helper
+
+Run on 2026-10-06 at 14:15 UTC, at commit
+`test(udp-server): [#2245] pin the announce wire clamp at every build_response call site`. The
+helper's body was replaced with `I32::new(value as i32)`:
+
+```sh
+cargo test -q -p torrust-tracker-udp-server --lib wire_i32_conversion
+```
+
+```text
+handlers::tests::wire_i32_conversion::it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field --- FAILED
+assertion `left == right` failed
+  left: -2147483648
+ right: 2147483647
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 210 filtered out; finished in 0.00s
+```
+
+### Green Run
+
+Run on 2026-10-06 at 13:18 UTC, after restoring the call sites and before committing the test. The
+helper's red run at 14:15 UTC was restored from its copy, and the working tree was clean again.
+
+```sh
+cargo test -p torrust-tracker-udp-server --lib -- it_should_clamp_an_out_of_range wire_i32_conversion
+```
+
+```text
+test handlers::tests::wire_i32_conversion::it_should_keep_a_value_that_fits_in_the_signed_wire_field ... ok
+test handlers::tests::wire_i32_conversion::it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field ... ok
+test handlers::announce::tests::announce_request::it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families ... ok
+test handlers::tests::wire_i32_conversion::it_should_keep_the_largest_value_that_fits_in_the_signed_wire_field ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 209 filtered out; finished in 0.00s
+```
+
+The like-for-like recheck against the real artifact is M1 above, repeated after the fix.
