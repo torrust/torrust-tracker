@@ -1,4 +1,8 @@
 //! In-memory torrents repository.
+//!
+//! The swarm registry it wraps cannot fail, so these methods return plain values, per
+//! [ADR-20261005145329](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
+// adr: docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
 use std::sync::Arc;
 
 use torrust_clock::DurationSinceUnixEpoch;

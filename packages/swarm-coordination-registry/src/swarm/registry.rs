@@ -1,3 +1,8 @@
+//! Swarm coordination registry.
+//!
+//! Methods that cannot fail return plain values, per
+//! [ADR-20261005145329](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
+// adr: docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md
 use std::sync::Arc;
 
 use crossbeam_skiplist::SkipMap;
