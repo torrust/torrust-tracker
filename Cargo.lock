@@ -5370,6 +5370,7 @@ dependencies = [
  "futures",
  "mockall",
  "quickcheck",
+ "quickcheck_macros",
  "rand 0.9.5",
  "serde",
  "thiserror 2.0.21",

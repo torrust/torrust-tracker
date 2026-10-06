@@ -89,6 +89,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `services/announce.rs` | 0 / 101 (0.00%) | 390 / 396 (98.48%) | 434 / 444 (97.75%) | 48 / 50 (96.00%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | `peer_builder.rs` | 0 / 14 (0.00%) | 79 / 79 (100.00%) | 115 / 115 (100.00%) | 8 / 8 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | `services/scrape.rs` | 0 / 77 (0.00%) | 264 / 273 (96.70%) | 303 / 316 (95.89%) | 37 / 40 (92.50%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
+| `connection_cookie.rs` | 130 / 135 (96.30%) | 171 / 171 (100.00%) | 372 / 376 (98.94%) | 22 / 22 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -97,7 +98,9 @@ PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 2
 `services/scrape.rs` (rebased onto `develop` again; no `udp-core` change): 1,656 / 1,852 lines
 (89.42%), 2,282 / 2,509 regions (90.95%), 215 / 244 functions (88.11%). After reopening
 `services/announce.rs` for R2h: 1,708 / 1,901 lines (89.85%), 2,340 / 2,564 regions (91.26%),
-222 / 250 functions (88.80%). The final
+222 / 250 functions (88.80%). After `connection_cookie.rs` (rebased onto `develop` again; no
+`udp-core` change): 1,749 / 1,937 lines (90.29%), 2,429 / 2,654 regions (91.52%), 229 / 257
+functions (89.11%). The final
 package comparison is recorded at T7.
 
 ## Next Evidence

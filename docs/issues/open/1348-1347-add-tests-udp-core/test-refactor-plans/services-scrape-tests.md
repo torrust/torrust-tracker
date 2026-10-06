@@ -71,8 +71,8 @@ are built in-file, as in the announce service tests.
   tracker-core whitelist failure would arrive as `TrackerCoreScrapeError` wrapping
   `ScrapeError::Whitelist`. It appears to mirror the announce service, which authorizes itself.
 
-No action in this issue. Candidate for `lessons.md`: restore the reserved-variant rationale in the
-`ScrapeHandler` docs, and decide whether the UDP adapter variant should go.
+No action in this issue. Both points are recorded as follow-up candidates in
+[lessons.md](../lessons.md).
 
 ## Steps
 

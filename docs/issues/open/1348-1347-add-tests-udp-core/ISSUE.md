@@ -287,7 +287,7 @@ lines are the T1 measurement.
 | 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
-| 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
+| 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
 | 6 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
 | 7 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
@@ -379,6 +379,13 @@ lines are the T1 measurement.
 - 2026-10-05 18:49 UTC - GitHub Copilot - Reopened `services/announce.rs` (ledger row 1) for the
   approved R2h test. Unit-only file lines 338 / 347 to 390 / 396. Awaiting completed-file review.
 - 2026-10-05 21:06 UTC - Jose Celano - Approved R2h; ledger row 1 is `DONE` again.
+- 2026-10-06 11:41 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `connection_cookie.rs` plan and R1 refactor were approved; added 6 tests including the first
+  `quickcheck` property and the `quickcheck` dev-dependencies (unit-only file lines 130 / 135 to
+  171 / 171). Created [lessons.md](lessons.md) with four follow-up candidates. Awaiting
+  completed-file review.
+- 2026-10-06 11:51 UTC - Jose Celano - Approved the `connection_cookie.rs` completed-file review;
+  ledger row 4 is `DONE`.
 
 ## Acceptance Criteria
 

@@ -25,6 +25,7 @@ maintainer approves it.
 | 1 | [services-announce-tests.md](services-announce-tests.md) | DONE | 8 unit tests added (R2h reopened); unit-only 0.00% → 98.48% lines |
 | 2 | [peer-builder-tests.md](peer-builder-tests.md) | DONE | 5 unit tests added; unit-only 78.57% → 100.00% lines |
 | 3 | [services-scrape-tests.md](services-scrape-tests.md) | DONE | 6 unit tests added; unit-only 0.00% → 96.70% lines |
+| 4 | [connection-cookie-tests.md](connection-cookie-tests.md) | DONE | 8 tests refactored, 6 added (1 property); unit-only 96.30% → 100.00% lines |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
