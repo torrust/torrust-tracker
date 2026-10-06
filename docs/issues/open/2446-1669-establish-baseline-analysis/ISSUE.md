@@ -311,14 +311,25 @@ Remaining criteria (T9 to T13):
 - `linter all`
 - The pre-commit hook
 
-### Manual Verification
+### Manual Verification Scenarios
 
-| ID  | Scenario                                                                                                                      | Expected Result                                                                                         |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| MV1 | Compare the package list in the new report with `cargo metadata --no-deps --format-version 1` member names                  | Same set of packages; no `rest-api-core`; the three REST API packages, `e2e-tools` and `persistence-benchmark` present |
-| MV2 | Run `cargo run -p workspace-coupling -- /tmp/test-report.md` on a clean checkout and diff it with the committed new report | Only the `Generated:` timestamp, the frontmatter and the hand-written Observations section differ       |
-| MV3 | Check each edge in the Mermaid diagram against the direct `torrust*` dependencies from `cargo metadata --no-deps`           | No missing or extra edges                                                                               |
-| MV4 | Check `readme-audit.md` rows against the `packages/` folders and `console/tracker-client`                                   | One row per current package; no removed package                                                         |
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+| ID  | Scenario                                                       | Human-oriented command/steps                                                                                                    | Expected Result                                                                                                        | Status | Evidence                                      |
+| --- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------- |
+| MV1 | The new report covers the current workspace                    | Compare the report's package sections with the member names from `cargo metadata --no-deps --format-version 1`                  | Same set of packages; no `rest-api-core`; the three REST API packages, `e2e-tools` and `persistence-benchmark` present | TODO   | `manual-verification-evidence.md` section MV1 |
+| MV2 | The committed report is reproducible                           | On a clean checkout, run `cargo run -p workspace-coupling -- /tmp/test-report.md` and diff it with the committed new report     | Only the `Generated:` timestamp, the frontmatter and the hand-written Observations section differ                      | TODO   | `manual-verification-evidence.md` section MV2 |
+| MV3 | The dependency diagram matches the manifests                   | Check each edge in the Mermaid diagram against the direct `torrust*` dependencies from `cargo metadata --no-deps`               | No missing or extra edges                                                                                              | TODO   | `manual-verification-evidence.md` section MV3 |
+| MV4 | The README audit matches the package directories               | Check `readme-audit.md` rows against the `packages/` folders and `console/tracker-client`                                       | One row per current package; no removed package                                                                        | TODO   | `manual-verification-evidence.md` section MV4 |
+
+Notes:
+
+- Create `manual-verification-evidence.md` in this issue folder from
+  `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when executing these scenarios. Record the
+  actual commands, their output (or the relevant excerpt) and the outcome there, inline rather
+  than as references to temporary files.
+- Record the Rust toolchain for each `cargo` command whose result is recorded.
+- If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
 
 ## References
 
