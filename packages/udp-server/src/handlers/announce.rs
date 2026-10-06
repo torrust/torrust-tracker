@@ -129,17 +129,13 @@ fn build_response(
     core_config: &Arc<Core>,
     announce_data: &AnnounceData,
 ) -> Response {
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
-    )]
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
+                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
+                seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
             peers: announce_data
                 .peers
@@ -162,9 +158,9 @@ fn build_response(
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
+                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
+                seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
             peers: announce_data
                 .peers
@@ -184,6 +180,11 @@ fn build_response(
 
         Response::from(announce_response)
     }
+}
+
+/// BEP 15 encodes the interval and peer counts as signed 32-bit fields; clamp instead of wrapping negative.
+fn saturating_wire_i32(value: u32) -> I32 {
+    I32::new(i32::try_from(value).unwrap_or(i32::MAX))
 }
 
 #[cfg(test)]
@@ -1235,6 +1236,30 @@ pub(crate) mod tests {
                     assert_eq!(Ok(peer_ip), "::126.0.0.1".parse());
                 }
             }
+        }
+    }
+
+    mod wire_i32_conversion {
+        use crate::handlers::announce::saturating_wire_i32;
+
+        #[test]
+        fn it_should_keep_a_value_that_fits_in_the_signed_wire_field() {
+            assert_eq!(saturating_wire_i32(120).get(), 120);
+        }
+
+        #[test]
+        fn it_should_keep_the_largest_value_that_fits_in_the_signed_wire_field() {
+            let largest = u32::try_from(i32::MAX).unwrap();
+
+            assert_eq!(saturating_wire_i32(largest).get(), i32::MAX);
+        }
+
+        #[test]
+        fn it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field() {
+            let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
+
+            assert_eq!(saturating_wire_i32(first_out_of_range).get(), i32::MAX);
+            assert_eq!(saturating_wire_i32(u32::MAX).get(), i32::MAX);
         }
     }
 }

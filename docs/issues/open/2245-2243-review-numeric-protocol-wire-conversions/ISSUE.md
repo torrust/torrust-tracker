@@ -9,7 +9,7 @@ github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: "2026-10-06 11:32"
+last-updated-utc: "2026-10-06 11:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -57,7 +57,7 @@ whether the crate-level allowance can become item-level reasons.
 
 ## Architectural Decisions
 
-- Related ADRs: None.
+- Related ADRs: [Separate configuration value invariants from consistency validation](../../../adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md) (constrains where the interval bound is enforced).
 - ADRs to create: Create one if checked protocol-boundary behavior changes externally observable
   response handling beyond the current protocol contract.
 
@@ -95,23 +95,27 @@ panic-free at the same size. Rejected alternatives:
 - Keep `as usize` behind an item-level allowance with a permanent reason. Rejected because a
   behaviour-preserving fix exists (framework rule 1).
 
-**A171 interval: reject at configuration load, and clamp when encoding (defect fix).**
+**A171 interval: clamp to `i32::MAX` when encoding (defect fix); reject at configuration load in a
+follow-up.**
 
-- `Core::validate` (v3 schema), already run at startup by `bootstrap::app::setup`, rejects an
-  `announce_policy.interval` above `i32::MAX` with a new `SemanticValidationError` variant, so
-  the tracker fails fast instead of serving invalid UDP replies. This changes which configurations
-  are accepted, but only for values that already produced invalid replies; the 4.0.0 major release
-  permits that breaking change. No ADR: response handling stays within the BEP 15 contract. Only
-  `interval` is checked: `interval_min` is never sent over UDP, and the v2 schema is kept only for
-  backward compatibility.
-- `build_response` also clamps the interval to `i32::MAX`, because `Core` can be constructed
-  without validation (for example in tests or by code that uses the crates as libraries).
-- Rejected: clamping alone (an absurd configuration would be accepted without complaint, and UDP
-  and HTTP would report different intervals), and validation alone (the conversion in
-  `udp-server` would still need handling for unvalidated `Core` values).
+- `build_response` clamps the interval to `i32::MAX` (about 68 years), so the UDP reply is always a
+  valid BEP 15 interval. This fixes the wire defect in this issue.
+- Rejecting an `interval` above `i32::MAX` at configuration load is also wanted, so the tracker
+  fails fast instead of silently clamping. The first approved form, a check in `Core::validate`,
+  was revised during implementation. It conflicts with the
+  [configuration validation ADR](../../../adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md),
+  which requires a single-value bound to be a typed newtype rejected during deserialization and
+  explicitly rejects one-field rules in `Validator`. `interval` lives in the `primitives`
+  `AnnouncePolicy` domain type, read by about six crates, so an ADR-conforming bounded newtype is a
+  public API change beyond this review. It moves to a follow-up issue (pending maintainer review of
+  its specification). Once it lands, the type guarantees the bound and the clamp is no longer
+  reachable for the interval.
+- Rejected: amending the ADR to allow the `Validator` check (it reverses a recent ADR for one
+  field), and doing the newtype in this issue (scope).
 
 **A171 seeders and leechers: clamp to `i32::MAX`.** One private helper converts all three wire
-fields, so the wire value is never negative, and the boundary tests target the helper directly.
+fields, `saturating_wire_i32`, so the wire value is never negative, and the boundary tests target
+the helper directly.
 Rejected: an item-level allowance with a "swarms never reach 2^31 peers" reason (an unenforced
 bound next to code being fixed anyway), and `expect` (a panic in a request handler driven by swarm
 size).
@@ -122,7 +126,7 @@ size).
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Inventory narrowing conversions | See Conversion Inventory. |
 | T2 | DONE | Judge each cast | See Decisions. |
-| T3 | TODO | Apply outcomes | One commit per boundary: `udp-protocol` (A156), `configuration` (interval validation), `udp-server` (A171 clamping). |
+| T3 | IN_PROGRESS | Apply outcomes | One commit per boundary: `udp-protocol` (A156), `udp-server` (A171 clamping). Configuration-load rejection of the interval is a follow-up issue. |
 | T4 | TODO | Reconcile inventory | Edit the A156 and A171 rows of the closed #2158 inventory in place, following the #2246 precedent. |
 
 ## Commit Points
@@ -155,6 +159,7 @@ size).
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
 - 2026-10-06 11:24 UTC - josecelano - Approved T1-T2: A156 `try_from` + `expect` with the rationale recorded here; A171 interval rejected at configuration load and clamped when encoding (defect reproduced locally); seeders and leechers clamped through a shared helper; no ADR - Chat decision
 - 2026-10-06 11:32 UTC - josecelano - Revised A156 from `expect` to a mapped parse error, because `missing_panics_doc` would have made the public parser document an impossible panic - Chat decision
+- 2026-10-06 11:41 UTC - josecelano - Revised the A171 interval decision: clamp in this issue; configuration-load rejection moves to a follow-up issue as an ADR-conforming newtype, because a `Validator` check conflicts with the configuration validation ADR - Chat decision
 
 ## Acceptance Criteria
 
@@ -175,11 +180,11 @@ size).
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; then start it with `interval = 2147483648`. | The first response encodes `announce_interval` 2147483647; the second configuration fails validation at startup. | TODO | `manual-verification-evidence.md` section M1 |
+| M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; repeat with `interval = 2147483648`. | Both responses encode `announce_interval` 2147483647: the first unchanged, the second clamped instead of wrapping to -2147483648. | TODO | `manual-verification-evidence.md` section M1 |
 
-The A156 error branch and the clamping in `build_response` cannot be reached through a validated
-configuration or a realistic swarm, so they are covered by unit tests only. A156 is covered by the
-existing scrape round-trip tests, because its failure path is unreachable by construction.
+The A156 error branch is unreachable by construction, so A156 is covered by the existing scrape
+round-trip tests. Seeder and leecher clamping cannot be reached with a realistic swarm, so it is
+covered by the `saturating_wire_i32` unit tests only.
 
 ### Acceptance Verification
 
@@ -208,4 +213,4 @@ existing scrape round-trip tests, because its failure path is unreachable by con
 
 - Related issues: #2158
 - Related PRs: None
-- Related ADRs: None
+- Related ADRs: [Separate configuration value invariants from consistency validation](../../../adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md)
