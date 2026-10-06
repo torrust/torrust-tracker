@@ -4,6 +4,11 @@
 //! rest silently. The client does not assume any tracker's limit; it reports
 //! when fewer entries come back than were requested. See
 //! `docs/adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md`.
+//!
+//! The protocols differ: a UDP response has one entry per requested info hash,
+//! while an HTTP `files` dictionary collapses duplicates and may omit unknown
+//! torrents. So for HTTP, fewer files means truncation *or* omission, which is
+//! why the warning says the tracker *may* truncate.
 use std::collections::HashSet;
 
 use torrust_info_hash::InfoHash;
