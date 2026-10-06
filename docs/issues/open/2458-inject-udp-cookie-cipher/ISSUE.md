@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 18:13"
+last-updated-utc: "2026-10-06 18:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -302,6 +302,21 @@ Arrange-Act-Assert review.
 - 2026-10-06 16:17 UTC - Copilot - Created GitHub issue #2458 and moved the approved draft and reproduction evidence to `docs/issues/open/2458-inject-udp-cookie-cipher/`.
 - 2026-10-06 16:26 UTC - Copilot - Renamed the specification branch to `2458-inject-udp-cookie-cipher-spec`, reserving `2458-inject-udp-cookie-cipher` for implementation.
 - 2026-10-06 18:13 UTC - Copilot - Review feedback (`review-finding:pr-2461-f13`): added T3, a regression test that is red before the fix, and split the fix from green-plus-recheck. A temporary `compile_fail` doctest probe that referenced `ZEROED_TEST_CIPHER_BLOWFISH` from outside the crate compiled on today's code, so rustdoc reported it as failing. The probe was reverted; T3 records the red run officially.
+- 2026-10-06 18:26 UTC - Copilot - Logged all PR #2460/#2461 review fixes, as `review-finding:pr-2461-f19` asked. The audit is `docs/pr-reviews/pr-2461-review/PR-REVIEW.md`; findings are cited by audit ID.
+  - Spec changes:
+    - Corrected the `check_seed()` history (F8).
+    - Split M2 into M2a and M2b (F2, F3).
+    - Rewrote Bug-Fix step 2 as completed (F15).
+    - Planned the R2 red run and split the fix and recheck tasks (F13, logged above).
+    - Added the disposable-script record (F12).
+    - Gave pending scenarios planned evidence sections (F6).
+    - Linked the secrecy ADR and planned the redacted `Debug` (F17).
+    - Restored template checkpoints (F9).
+  - Evidence changes:
+    - Recorded the reproducer verbatim with a rerun and a control run (F1).
+    - Removed a duplicate section and quoted the timestamp (F4, F5).
+    - Named the `develop` commit under test (F11).
+    - Corrected the alias diff hunk (F21).
 
 ## Acceptance Criteria
 
