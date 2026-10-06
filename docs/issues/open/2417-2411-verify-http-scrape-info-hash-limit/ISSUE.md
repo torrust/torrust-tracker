@@ -241,8 +241,9 @@ The reproduced defect is the mismatch between documentation and behavior; the
 correction may change the code (A/B) or only the documentation (C), depending
 on the T2 decision.
 
-M1 was reproduced during the requested draft review, and M2 was recorded
-before the final behavior was selected (V2). V1 classifies the observed
+M1 was reproduced during the requested draft review. The draft planned M2
+before the behavior was selected, but that was not followed: M2 was recorded
+after T2, with the fix applied (V2). V1 classifies the observed
 documentation mismatch separately from the unmeasured overload risk.
 
 ## Regression Test Strategy
