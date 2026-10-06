@@ -5,10 +5,6 @@
 //
 // This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
 // under packages/aquatic-udp-protocol and packages/aquatic-peer-id.
-#![allow(
-    clippy::cast_possible_truncation,
-    reason = "temporary: #2245 reviews numeric protocol wire conversion bounds"
-)]
 // `FromBytes` derives expand to empty helper enums on current nightly Clippy.
 // The protocol wire structs are inhabited and cannot use Clippy's suggested replacement.
 #![allow(

@@ -117,7 +117,9 @@ impl Request {
                     .map_err(RequestParseError::unsendable_io)?;
 
                 let remaining_bytes = {
-                    let position = bytes.position() as usize;
+                    // Three fixed-width reads leave the cursor at 16 bytes, within the slice.
+                    let position =
+                        usize::try_from(bytes.position()).map_err(|_| RequestParseError::unsendable_text("invalid data"))?;
                     let inner = bytes.into_inner();
                     &inner[position..]
                 };

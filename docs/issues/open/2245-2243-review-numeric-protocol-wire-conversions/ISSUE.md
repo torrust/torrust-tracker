@@ -9,7 +9,7 @@ github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: "2026-10-06 11:24"
+last-updated-utc: "2026-10-06 11:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,9 +80,13 @@ Approved by the maintainer on 2026-10-06. Both allowances are removed.
 
 ### Decisions (T2)
 
-**A156: `usize::try_from(bytes.position()).expect(..)` (decision-framework outcome 1, behaviour-preserving).**
-The crate-level allowance is removed. A one-line source comment states the invariant that keeps
-the `expect` unreachable. Rejected alternatives:
+**A156: `usize::try_from(bytes.position())`, mapped to the parser's existing `invalid data` error
+(decision-framework outcome 1, behaviour-preserving).** The crate-level allowance is removed. A
+one-line source comment states the invariant that keeps the error branch unreachable. The first
+approved form, `try_from(..).expect(..)`, was revised during implementation: pedantic Clippy
+(`missing_panics_doc`) would have required the public `Request::parse_bytes`, which parses every
+incoming packet, to document a panic that cannot happen. A parse error keeps the network parser
+panic-free at the same size. Rejected alternatives:
 
 - Parse the fixed 16-byte scrape header straight from the slice (split it off, or use `zerocopy` as
   the announce branch does), without a `Cursor`. This removes the conversion entirely, but it is a
@@ -150,6 +154,7 @@ size).
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from #2158's wire numeric conversion design input; assigned exclusive ownership of A156 and A171 - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
 - 2026-10-06 11:24 UTC - josecelano - Approved T1-T2: A156 `try_from` + `expect` with the rationale recorded here; A171 interval rejected at configuration load and clamped when encoding (defect reproduced locally); seeders and leechers clamped through a shared helper; no ADR - Chat decision
+- 2026-10-06 11:32 UTC - josecelano - Revised A156 from `expect` to a mapped parse error, because `missing_panics_doc` would have made the public parser document an impossible panic - Chat decision
 
 ## Acceptance Criteria
 
@@ -172,7 +177,7 @@ size).
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; then start it with `interval = 2147483648`. | The first response encodes `announce_interval` 2147483647; the second configuration fails validation at startup. | TODO | `manual-verification-evidence.md` section M1 |
 
-The A156 `expect` and the clamping in `build_response` cannot be reached through a validated
+The A156 error branch and the clamping in `build_response` cannot be reached through a validated
 configuration or a realistic swarm, so they are covered by unit tests only. A156 is covered by the
 existing scrape round-trip tests, because its failure path is unreachable by construction.
 
