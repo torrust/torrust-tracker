@@ -69,7 +69,7 @@ is recorded as a re-raise.
 - Solution: `registar` is the code's field and parameter name (`Registar<RuntimeServiceMetadata>`),
   so it stays, formatted as code, with a one-time note that it is the service registry spelled as
   in the code. The Design and Ownership Review line also formats it as code.
-- Current-tree verification: SI-24 lines 66 and 120 at `776208a7d` show `` `registar` ``.
+- Current-tree verification: SI-24 lines 66 and 120 at the PR head show `` `registar` ``.
 - Resolution reference: `docs(issues): [#1488] format the registar field as code in SI-24`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195266902>
@@ -82,7 +82,7 @@ is recorded as a re-raise.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195004063>
 - Concern: the parenthetical "(join error, server error, or drain `TimedOut`." never closed.
 - Solution: close it after `TimedOut`.
-- Current-tree verification: SI-24 line 98 at `776208a7d` reads "`TimedOut`). Approved".
+- Current-tree verification: SI-24 line 98 at the PR head reads "`TimedOut`). Approved".
 - Resolution reference: `docs(issues): [#1488] close the parenthesis in SI-24 D1`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195267164>
@@ -99,7 +99,7 @@ is recorded as a re-raise.
 - Solution: widen finding 8 the same way: the legacy stop paths of the UDP, REST API, and
   health-check API test environments observe the signal until SI-17, SI-23, and SI-24 migrate
   them; SI-19 removes the legacy API.
-- Current-tree verification: EPIC lines 91-94 at `776208a7d`.
+- Current-tree verification: EPIC lines 91-94 at the PR head.
 - Resolution reference: `docs(issues): [#1488] widen EPIC finding 8 to the REST API and health-check test environments`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195267426>
@@ -113,7 +113,7 @@ is recorded as a re-raise.
 - Concern: the two new specs had no toolchain rule, no step creating the evidence file from the
   template, no T0 commit point, and no retrospective-or-log-entry rule.
 - Solution: copy SI-17's lines into both specs.
-- Current-tree verification: at `776208a7d`, each file matches all four lines (`grep -cE` returns
+- Current-tree verification: at the PR head, each file matches all four lines (`grep -cE` returns
   4 for each).
 - Resolution reference: `docs(issues): [#1488] add missing verification and completion-review items to SI-23 and SI-24`
 - Follow-up PR URL: N/A
@@ -141,7 +141,7 @@ is recorded as a re-raise.
 - Concern: the environment declares `pub type Started = Environment<Running>;`, which the spec
   keeps, so a literal M1 check would fail or force an out-of-scope removal.
 - Solution: name the legacy channel types, `signals::Halted` and `signals::Started`.
-- Current-tree verification: SI-24 line 226 at `776208a7d`.
+- Current-tree verification: SI-24 line 226 at the PR head.
 - Resolution reference: `docs(issues): [#1488] name the legacy signals::Started channel in SI-24 M1`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2451#discussion_r4195268282>
