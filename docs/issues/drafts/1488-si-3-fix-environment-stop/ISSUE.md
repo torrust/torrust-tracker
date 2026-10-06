@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
 branch: "1488-si-3-fix-environment-stop"
 related-pr: null
-last-updated-utc: "2026-09-29 11:47"
+last-updated-utc: "2026-10-06 09:36"
 semantic-links:
   skill-links:
     - create-issue
