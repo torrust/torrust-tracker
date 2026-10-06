@@ -50,6 +50,11 @@ seven inline findings with reviewer-provided IDs F1-F7, kept as given. Copilot's
 next audit-local IDs F8-F10 to avoid colliding with them. The review body summarizes the seven
 findings and raises no other actionable assertion.
 
+da2ce7 review 5427602231 (round 2, CHANGES_REQUESTED at the round-1 fix head, before this audit
+was pushed) verified F1 and F3-F10 and left two inline findings. Its F2 re-raises F2 against the
+round-1 rewrite of the M2 sentence; it is recorded as F12 with `RE_RAISE_OF:F2`. Its F11 is kept
+as given. The review body summarizes these two and raises no other actionable assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F8 | `review-finding:pr-2444-f8` | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -62,6 +67,8 @@ findings and raises no other actionable assertion.
 | F5 | `review-finding:pr-2444-f5` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2444-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2444-f7` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2444-f12` | Human | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2444-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -195,12 +202,40 @@ findings and raises no other actionable assertion.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194541893>
 
+### F12 - The corrected M2 sentence contradicted the spec's own record
+
+- PR number: 2444
+- Source review ID: 5427602231
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194650774>
+- Concern: the round-1 fix for F2 rewrote the Bug-Fix Process to say M2 was recorded before the final behavior was selected, but the spec records T2 at 12:35 UTC and M2 with the fix applied at 13:20 UTC.
+- Solution: the sentence now says the draft planned M2 before the selection, that this was not followed, and that M2 was recorded after T2 with the fix applied (V2).
+- Current-tree verification: ISSUE.md's Bug-Fix Process contains "M2 was recorded after T2, with the fix applied (V2)".
+- Resolution reference: `docs(issues): [#2417] state that M2 ran after the behavior was selected`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194785032>
+
+### F11 - The Progress Log cited an audit record that did not exist
+
+- PR number: 2444
+- Source review ID: 5427602231
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194650791>
+- Concern: at the reviewed head, ISSUE.md's Progress Log and the PR description cited `docs/pr-reviews/pr-2444-review/PR-REVIEW.md`, which did not exist yet.
+- Solution: this audit record was committed and pushed right after the reviewed head, with every round-1 row, reply URL, and fix subject, and a passing validator run.
+- Current-tree verification: the file exists; `validate-audit-record.py --pr-number 2444` passes.
+- Resolution reference: `docs(pr-reviews): [#2417] audit review round 1 of PR #2444`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2444#discussion_r4194785278>
+
 ## Processing Log
 
 - 2026-10-06 10:28 UTC - Fetched Copilot review 5426465610 (three inline threads) and da2ce7 review 5426677485 (seven inline threads) after authoring a local spec commit (10:12) and held its push; restored `related-pr: null`, which that commit had set before cleanup, per the da2ce7 review body; rebased on `develop`.
 - 2026-10-06 10:56 UTC - Committed the fixes for F1, F9, F8, F10, F3, F7, F2, F6, F5, and F4 separately (10:35-10:56).
 - 2026-10-06 11:10 UTC - Rebased on `develop`, reran pre-push (exit 0), checked for new reviews (none), pushed, updated the PR description, and replied on all ten threads (11:10-11:11).
 - 2026-10-06 11:19 UTC - Recorded this audit.
+- 2026-10-06 11:35 UTC - Fetched da2ce7 review 5427602231 (round 2: F1 and F3-F10 verified, two new inline findings); resolved the three verified Copilot threads; committed the F12 fix.
+- 2026-10-06 11:39 UTC - Pushed the F12 fix and replied on the F12 and F11 threads; recorded round 2.
 
 ## Completion Rules
 
