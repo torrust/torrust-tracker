@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 15:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -207,9 +207,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                  | Notes / Expected Output                                                                                     |
 | --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                       | Package test results; example SIGINT and SIGTERM behavior, with output and exit codes (evidence V1).        |
-| T1  | TODO   | Migrate `Environment` start/stop      | D1-D6, with the T1 tests below, each mutation-proven.                                                       |
-| T2  | TODO   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`.                                                  |
+| T0  | DONE   | Record baseline                       | Both packages pass (212 + 12 + 1; 3 + 8). SIGINT panics (exit 101); SIGTERM releases the socket but the process stays up, and a later SIGINT panics. Evidence V1. |
+| T1  | DONE   | Migrate `Environment` start/stop      | D1-D6 with the five T1 tests, each mutation-proven (see the 2026-10-06 15:31 UTC log entry). Design approved 2026-10-06. |
+| T2  | DONE   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`; 3 + 8 pass.                                      |
 | T3  | TODO   | Example signal boundary (D7)          | SIGINT and SIGTERM stop the example in order, exit 0.                                                       |
 | T4  | TODO   | Documentation                         | Task inventory records the migrated UDP consumer.                                                          |
 | T5  | TODO   | Verification and completion review    | Automatic checks, manual scenarios, AC review, pre-push checks, independent Task Reviewer report.           |
@@ -262,6 +262,8 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 11:18 UTC - GitHub Copilot - Refreshed against current code and SI-16's lessons: converted to the issue template; added facts 1-7 (library-level SIGTERM, listener leak on failed start, token reuse, bounded drain, stop-timeout race, direct `server` field consumer, one production token) and decisions D1-D7. Removed the draft `verification.md`; `manual-verification-evidence.md` is created from the template at T0, as in SI-16; the SI-3 draft's link now points to this spec.
 - 2026-10-06 11:34 UTC - GitHub Copilot - Maintainer review: D5 approved on the condition that the stop timeout is not needed, otherwise raised above the drain deadline; D5 now records the evidence (the receive loop and the listeners both end on cancellation). The REST API and health-check API environment gap became SI-23 and SI-24, one item each.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec with SI-23 and SI-24. Created #2448 (sub-issue of #1488) and moved the spec to `docs/issues/open/`. Next: the shared spec-only pull request.
+- 2026-10-06 15:31 UTC - GitHub Copilot - T0 done (evidence V1): the baseline matches fact 1. T1 and T2 done as the first vertical slice. Environment states are private `Stopped`/`Running` types behind the existing aliases; each start creates a fresh token, takes the three event receivers, starts through `start_with_cancellation`, and spawns the listeners only after success; `stop()` cancels once and joins the receive loop and the three listeners through `join_owned_tasks`, with no outer timeout (D5); the start timeout stays, renamed `DEFAULT_SERVER_START_TIMEOUT`. The sleep-based `it_should_make_and_stop_udp_server` is replaced by five tests. Mutation proofs, each reverted by hand: (A) aborting one listener fails the three stop-path tests, naming the listener; (B) spawning a listener before the start fails the failed-start test with holders `[1, 2, 1]` against `[1, 1, 1]`; (C) a pre-cancelled token fails only the restart test (no answer within the 10 s deadline); (D) returning on a receive-loop failure before joining fails the join-order test (0 of 3 listeners finished); (E) a `stop()` that never stops the server fails the socket test with `AddrInUse`, and so does the narrower one that cancels but does not await the receive loop (3/3 runs), unlike HTTP in SI-16: the UDP socket is owned by the receive-loop task and freed only when it ends. Suite timing: unit 2.17 s (was 2.17 s), integration 5.04 s (was 5.05 s), so no drain slowdown, unlike HTTP. Prose-first AAA review of the five tests: (a) stop: Arrange a started environment, Act stop within the deadline, Assert no join failure; matches. (b) failed start: Arrange an occupied port and the holder counts of the listeners' shared state, Act start, Assert it panicked and the counts are unchanged; the kept container is causal and has a one-line comment. (c) socket: Arrange a started environment and its binding, Act stop, Assert the address binds; matches. (d) restart: Arrange an environment stopped once, Act start it again, Assert a connect request gets a connect response; matches. (e) join order: Arrange a failed receive loop and three listeners that finish only after cancellation and one more scheduling turn, Act join, Assert the failure is reported and all three finished; the extra turn is causal and commented. Clippy (pedantic) required renaming the listener fields to drop the shared `udp_` prefix. Checkpoint: design review before T3.
+- 2026-10-06 15:43 UTC - GitHub Copilot - Maintainer approved the T1 design (including the renamed listener fields and the still-public `connection_id_validation`); T0-T2 committed. Next: T3.
 
 ## Acceptance Criteria
 
