@@ -323,6 +323,21 @@ Arrange-Act-Assert review.
 Record the toolchain for every validation command result (for example, `nightly Rust toolchain`
 for `cargo +nightly fmt --all -- --check`).
 
+### Disposable Verification Scripts
+
+- **`forge_zeroed_cookie` (scenario M2a, evidence V1).** A temporary Rust example at
+  `packages/udp-core/examples/forge_zeroed_cookie.rs`. It forges a connection ID with its own
+  all-zero-key Blowfish and passes it to the production `check`. It ran only together with a
+  temporary edit of the non-test cipher alias in `packages/udp-core/src/crypto/keys.rs`.
+  - **Why not a maintained test:** it proves the bug only in a production build whose cipher alias
+    has been deliberately broken. A maintained test cannot keep production code in that state. The
+    maintained regression tests R1 to R4 protect the guarantees instead.
+  - **Location and retention:** the file was removed after each run. Its source and the alias diff
+    are kept verbatim in `manual-verification-evidence.md` section V1, inside this issue folder, so
+    reviewers can inspect and repeat the run. The implementer of this issue may recreate it from
+    that record for the M2b recheck and must remove it again before committing.
+  - **Language:** Rust, so no Python rationale is needed.
+
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
