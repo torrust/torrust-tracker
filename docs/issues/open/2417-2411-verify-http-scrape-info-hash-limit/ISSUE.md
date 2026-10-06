@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-06 06:14"
+last-updated-utc: "2026-10-06 07:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -290,7 +290,7 @@ Test matrix (one test per row; "red" rows must fail before the fix):
       behavior if so, and the reason per protocol (UDP packet size; HTTP
       policy), noting that parallel requests bypass a per-request cap and that
       rate limiting is EPIC #2411. Doc comments and user docs link it.
-- [ ] `linter all` exits with code `0`; relevant tests pass.
+- [x] `linter all` exits with code `0`; relevant tests pass.
 
 ## Verification Plan
 
@@ -379,6 +379,9 @@ because the response dictionary can collapse them.
 - 2026-10-06 06:14 UTC - The Task Reviewer re-review passed (21:07 UTC);
   its optional retrospective and review-record findings are applied. Pre-push
   is next.
+- 2026-10-06 07:11 UTC - Rebased on the latest `develop`; pre-commit
+  (including `linter all`) passed on every commit and the full pre-push suite
+  passed (nightly format, check, and docs; all stable tests).
 
 ### Acceptance Verification
 
