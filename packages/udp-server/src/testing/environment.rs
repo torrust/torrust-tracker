@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::task::JoinHandle;
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
@@ -33,12 +33,15 @@ pub struct Stopped {
 }
 
 /// A test environment whose UDP receive loop and event listeners run on the
-/// token-aware lifecycle. The environment owns every task it started.
+/// token-aware lifecycle.
+///
+/// The environment owns every task it started. Dropping it without `stop()`
+/// still cancels them, but does not wait for them.
 pub struct Running {
     server: CancellationRunning,
     bind_to: SocketAddr,
     event_listeners: OwnedEventListeners,
-    cancellation_token: CancellationToken,
+    cancel_on_drop: DropGuard,
 }
 
 /// The three event listeners a running environment owns.
@@ -165,7 +168,7 @@ impl Environment<Stopped> {
                 server,
                 bind_to,
                 event_listeners,
-                cancellation_token,
+                cancel_on_drop: cancellation_token.drop_guard(),
             },
         }
     }
@@ -217,10 +220,10 @@ impl Environment<Running> {
             server,
             bind_to,
             event_listeners,
-            cancellation_token,
+            cancel_on_drop,
         } = self.state;
 
-        cancellation_token.cancel();
+        cancel_on_drop.disarm().cancel();
 
         join_owned_tasks(server.task, event_listeners)
             .await
@@ -481,6 +484,26 @@ mod tests {
 
         // Assert
         UdpSocket::bind(binding).expect("the UDP socket should be free as soon as stop() returns");
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_udp_socket_when_dropped_without_being_stopped() {
+        // Arrange
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let binding = environment.bind_address();
+
+        // Act
+        drop(environment);
+
+        // Assert
+        // Dropping cannot await the receive loop, so the socket is released shortly after, not at once.
+        tokio::time::timeout(TEST_DEADLINE, async {
+            while UdpSocket::bind(binding).is_err() {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the UDP socket should be released within the test deadline after the environment is dropped");
     }
 
     #[tokio::test]

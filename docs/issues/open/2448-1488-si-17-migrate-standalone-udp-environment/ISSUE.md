@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 16:15"
+last-updated-utc: "2026-10-06 17:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,8 +183,11 @@ SI-16 and its PR review (#2439):
   returns.
 - **Failure path**: join every owned task, then panic naming each failing task
   (D1). A failed start leaves no task running (D4).
-- **Drop path**: dropping a running environment without `stop()` keeps today's
-  behavior. No new detached task is added.
+- **Drop path**: dropping a running environment without `stop()` cancels its
+  token through a drop guard, so the receive loop drains and releases the
+  socket, as the legacy halt channel did when dropped. It cannot wait for the
+  tasks; only `stop()` joins them. (Corrected in PR #2459 review: the first
+  version kept a plain token, which dropping does not cancel.)
 - **Deadlines**: the drain is bounded by `REQUEST_DRAIN_DEADLINE`; tests bound
   every start and stop with an explicit test deadline.
 - **Checkpoint**: after the first passing vertical slice (T1), stop for a
