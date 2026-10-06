@@ -29,7 +29,7 @@ semantic-links:
     - packages/udp-server/src/testing/environment.rs
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+    - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md

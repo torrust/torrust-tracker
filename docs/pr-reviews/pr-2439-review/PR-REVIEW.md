@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+    - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
