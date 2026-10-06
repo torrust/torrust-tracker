@@ -75,7 +75,8 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
   placeholder"), and confirm that no public API returns `Result<_, Infallible>` or an empty error
   enum (EPIC checklist item 3). Removing a never-constructed placeholder variant is in scope, with
   maintainer approval.
-- Tick the checklist's completion in EPIC #1669 for each crate covered.
+- Record per-crate completion in the T1 inventory, and link that record from EPIC #1669's
+  Pre-publish API checklist.
 
 ### Out of Scope
 
@@ -113,11 +114,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
+| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
 | T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. |
-| T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order by EPIC #1669 publication order. |
+| T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
-| T5  | TODO   | Close the checklist in EPIC #1669 | Mark the Pre-publish API checklist items done for the covered crates, linking this issue. |
+| T5  | TODO   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. |
 
 ## Commit Points
 
@@ -127,7 +128,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | Guard mechanism (if any) | Commit with the first crate that uses it. |
 | T3   | One crate's enums plus the downstream match arms they force | One commit per crate after `cargo check --workspace --all-targets --all-features` and clippy. |
 | T4   | Each approved placeholder or derive change | One commit per change. |
-| T5   | EPIC #1669 checklist update | One `docs(issues)` commit. |
+| T5   | EPIC #1669 link to the per-crate record | One `docs(issues)` commit. |
 
 ## Progress Tracking
 
@@ -158,7 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: Every inventoried enum with real variants is `#[non_exhaustive]`, or the inventory records a maintainer-approved reason why not.
 - [ ] AC3: The workspace compiles with every downstream exhaustive match updated; no behavior changes.
 - [ ] AC4: Placeholder findings (including `configuration::Error::Infallible`) and derive decisions are resolved or explicitly deferred with a reason.
-- [ ] AC5: EPIC #1669's Pre-publish API checklist records completion for the covered crates.
+- [ ] AC5: The T1 inventory records per-crate completion, and EPIC #1669's Pre-publish API checklist links to it.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -200,7 +201,7 @@ None planned.
 | AC2   | TODO   | Inventory decisions and `rg '#\[non_exhaustive\]'` per crate |
 | AC3   | TODO   | Workspace check, clippy, and tests |
 | AC4   | TODO   | Inventory and T4 commits |
-| AC5   | TODO   | EPIC #1669 diff |
+| AC5   | TODO   | Inventory completion column and the EPIC #1669 link |
 
 ## Risks and Trade-offs
 
