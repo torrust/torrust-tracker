@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 17:51"
+last-updated-utc: "2026-10-06 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -215,7 +215,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`; 3 + 8 pass.                                      |
 | T3  | DONE   | Example signal boundary (D7)          | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
 | T4  | DONE   | Documentation                         | Task inventory findings 4 and 8 record the migrated UDP consumer and point the remaining legacy users to SI-23 and SI-24. |
-| T5  | TODO   | Verification and completion review    | Automatic checks, manual scenarios, AC review, pre-push checks, independent Task Reviewer report.           |
+| T5  | DONE   | Verification and completion review    | Automatic checks, M1-M4, AC review, pre-push checks (pass, 1 m 22 s), and the Task Reviewer report (REVIEW PASSED); see the 16:02 and 16:15 UTC entries. |
 
 T1 tests (use the `write-unit-test` skill, no OS signals, every wait bounded):
 
@@ -256,7 +256,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -271,6 +271,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 15:55 UTC - GitHub Copilot - T4 done: task inventory findings 4 and 8 now record the migrated UDP environment and example, and name SI-23 and SI-24 as the remaining legacy test-environment users. `questions.md` is the decision record and stays unchanged, as in SI-16. The EPIC's findings 2 and 8 still say "until SI-17"; they are updated at archive time, as SI-16's were.
 - 2026-10-06 16:02 UTC - GitHub Copilot - AC review against the current tree: AC1-AC9 hold, each with its evidence in Acceptance Verification. Pre-push checks pass in 1 m 22 s (nightly `rustc 1.101.0-nightly (ea137335b 2026-10-05)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). Completion review: no `implementation-retrospective.md` needed. The design held as specified (D1-D7, no D5 fallback needed). The two material discoveries are recorded in the 15:31 entry: the UDP socket is freed only when the receive-loop task ends, so the socket test also guards the await (unlike HTTP); and the UDP stop adds no measurable suite time. Next: the independent Task Reviewer report, then the implementation PR.
 - 2026-10-06 16:15 UTC - GitHub Copilot - Task Reviewer: REVIEW PASSED (report in `agent-review-reports.md`), with one Minor and five Nits. Fixed: (1) the failed-start test now asserts the panic comes from the server start, not any panic; (2) the join-order test matches the exact failure text, which also proves no listener failure is reported; (4) `std::io` is imported instead of written in full; (5) the evidence file's "None yet" now records the reviewer's re-run. Kept: (3) the restart test's trailing cleanup `stop`, the same shape as SI-16's restart test; (6) the REST API test's "udp server" message, out of scope here; SI-23's T2 replaces that line when it migrates the consumer. The 7 environment tests pass after the fixes.
+- 2026-10-06 18:03 UTC - GitHub Copilot - PR #2459 review (Copilot and da2ce7 round 1). Copilot's Major finding, confirmed by da2ce7: dropping a running environment without `stop()` left the receive loop running and its socket bound, because a dropped plain token is not cancelled; the legacy path stopped on drop because its halt sender closed. The running state now holds a `DropGuard`, which `stop()` disarms before cancelling and joining, and the spec's drop-path line is corrected. New test `it_should_release_the_udp_socket_when_dropped_without_being_stopped` failed before the fix (socket still bound after the 10 s deadline) and passes after it. da2ce7 F1: T5 marked `DONE` and the committer checkpoint ticked (this entry). F2: the Task Reviewer report now names the reviewed commits by subject, since the rebase removed their ids. F3 (Nit): the PR title becomes `feat(udp-server)`; the merged commit keeps its `refactor` subject, because history is not rewritten.
 
 ## Acceptance Criteria
 
