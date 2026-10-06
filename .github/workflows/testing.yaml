@@ -86,7 +86,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.22
+        uses: taiki-e/install-action@v2.87.23
         with:
           tool: cargo-llvm-cov, cargo-nextest
 
