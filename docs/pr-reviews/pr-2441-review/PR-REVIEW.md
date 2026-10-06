@@ -43,6 +43,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2441-f1` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2441-f2` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2441-f3` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2441-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2441-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2441-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -59,10 +64,77 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187506400>
 
+### F2 - Newly listed subissues have no Details row
+
+- PR number: 2441
+- Source review ID: 5419233306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187643908>
+- Concern: The subissues newly marked done in the quick list (#1864, SI-23 to SI-27, SI-34, SI-35), and SI-29 already at the base, had no row in the Details table, which is the only part of the EPIC with a Local Spec column.
+- Solution: Added a `DONE` row for each, linking its closed `ISSUE.md`, with the related decision in Notes where one exists.
+- Current-tree verification: the nine new rows at the end of the Details table in `docs/issues/open/1669-overhaul-packages/EPIC.md` inspected; `linter lychee` and `linter markdown` passed.
+- Resolution reference: `docs(issues): [#1669] add Details rows for subissues missing from the EPIC table`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952037>
+
+### F3 - Excluded dev-tools declare publish = false
+
+- PR number: 2441
+- Source review ID: 5419233306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187643926>
+- Concern: The inventory said the excluded dev-tools declare `publish = []`, but every manifest declares `publish = false`.
+- Solution: The sentence now quotes `publish = false`. The `[]` came from `cargo metadata`, which normalizes `false` to an empty registry list.
+- Current-tree verification: `grep -n '^publish' contrib/dev-tools/*/*/Cargo.toml` shows `publish = false` in all six manifests.
+- Resolution reference: `docs(issues): [#1669] quote publish = false for excluded dev-tools`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952316>
+
+### F4 - REST API paragraph splits the publication observation
+
+- PR number: 2441
+- Source review ID: 5419233306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187643929>
+- Concern: The inserted REST API paragraph separated the publication count from the `torrust-axum-` and #1659 sentences, so they read as a statement about the REST API restructure.
+- Solution: Moved those sentences back to the end of the Observation paragraph; the REST API restructure is its own paragraph after it.
+- Current-tree verification: the Observation paragraph and the following paragraph in the Package Inventory section inspected.
+- Resolution reference: `docs(issues): [#1669] keep the publication observation together`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952516>
+
+### F5 - Baseline entry reads as if no spec exists
+
+- PR number: 2441
+- Source review ID: 5419233306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187643941>
+- Concern: The quick-list entry said the baseline was "not yet recorded in a GitHub issue or spec", but a draft spec exists and the Details row links it.
+- Solution: The entry now says the draft spec does not yet record the completed artifacts and has no GitHub issue.
+- Current-tree verification: the baseline quick-list entry and Details row inspected; `docs/issues/drafts/1669-01-establish-baseline-analysis/ISSUE.md` exists with `github-issue: null`.
+- Resolution reference: `docs(issues): [#1669] clarify that the baseline draft spec exists`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952702>
+
+### F6 - SI-27 spec last-updated-utc not bumped
+
+- PR number: 2441
+- Source review ID: 5419233306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4187643946>
+- Concern: The SI-27 spec was edited for the DEC-17 reference repair, but its `last-updated-utc` still read 2026-06-20.
+- Solution: Set `last-updated-utc` to 2026-10-06, keeping the field's date-only format.
+- Current-tree verification: frontmatter of `docs/issues/closed/1908-1669-si-27-move-driver-enum-to-primitives/ISSUE.md` inspected; the staged frontmatter check passed.
+- Resolution reference: `docs(issues): [#1669] bump SI-27 spec last-updated-utc after DEC-17 repair`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2441#discussion_r4192952920>
+
 ## Processing Log
 
 - 2026-10-05 18:28 UTC - Copilot review 5418930104 posted one inline finding, F1, and recommended approval.
 - 2026-10-05 18:44 UTC - Fixed F1, pushed after the pre-push suite passed, and replied on its thread before recording it here.
+- 2026-10-05 18:58 UTC - Human review 5419233306 (da2ce7, round 1) approved with five optional inline findings, F2 to F6.
+- 2026-10-06 08:06 UTC - Rebased onto the latest `develop`, fixed F2 to F6 in one commit each, pushed once after the pre-push suite passed, and replied on each thread before recording them here.
 
 ## Completion Rules
 
