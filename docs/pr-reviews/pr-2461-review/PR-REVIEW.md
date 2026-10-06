@@ -73,6 +73,11 @@ F14, F16 and F7 needed no further change, so they are `NO_ACTION`/`SUPERSEDED`. 
 for more, which was fixed. Review bodies 5432546687, 5432547029, 5432547318 and 5432547627 are
 the empty containers GitHub created for this audit's replies.
 
+Human review 5432816779 by `da2ce7` (`CHANGES_REQUESTED`, 18:18 UTC) was computed at the head
+that carried only this audit's first version. Its four inline findings use the IDs `F12` to `F15`,
+which collide with this audit, so they take `F18` to `F21` in source order. Its body re-checks
+earlier findings and adds no other assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F8 | `review-finding:pr-2460-f8` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -92,6 +97,10 @@ the empty containers GitHub created for this audit's replies.
 | F9 | `review-finding:pr-2461-f9` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2461-f10` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2461-f11` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2461-f18` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2461-f19` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2461-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2461-f21` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -381,6 +390,73 @@ the empty containers GitHub created for this audit's replies.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4198956666>
 
+### F18 - The audit omitted review 5431860814
+
+- PR number: 2461
+- Source review ID: 5432816779
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4198937135>
+- Concern: The first version of this audit recorded only the two Copilot reviews. Human review
+  5431860814 had no rows, no log line, and no replies, and its eleven threads were unresolved.
+- Solution: Added that review's eleven findings (F6, F7, F9 to F17), replied to all eleven threads,
+  and resolved the six that the reviewer had not already resolved. Added a correction entry to the
+  Processing Log.
+- Current-tree verification: `validate-audit-record.py --pr-number 2461` with the combined #2460
+  and #2461 comments reports all rows with 0 failures. `reply-status` for PR #2461 lists none of
+  the eleven threads as lacking a reply.
+- Resolution reference: `docs(pr-reviews): audit the da2ce7 review round on #2461`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034102>
+
+### F19 - The spec's stamp and Progress Log did not record the review fixes
+
+- PR number: 2461
+- Source review ID: 5432816779
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4198937147>
+- Concern: `last-updated-utc` and the last Progress Log entry still read 16:26 after the spec
+  changed at 17:05 and 17:08.
+- Solution: Appended an entry listing every review-driven spec and evidence change by audit ID, and
+  set `last-updated-utc` to its time. The 18:13 entry for F13 already existed.
+- Current-tree verification: `ISSUE.md` frontmatter reads `last-updated-utc: "2026-10-06 18:26"`,
+  and its last Progress Log entry is at 18:26 UTC.
+- Resolution reference: `docs(issues): log the #2458 review fixes in the spec`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034398>
+
+### F20 - The PR body still described the first round's diff
+
+- PR number: 2461
+- Source review ID: 5432816779
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4198937152>
+- Concern: The PR body did not mention the process-pr-review skill change, the agent pointer, or
+  this audit. The merge commit copies the body.
+- Solution: Rewrote the PR body with every touched file and why each skill change is included.
+  The body is not part of the diff, so there is no commit; the resolution reference is the reply.
+- Current-tree verification: `gh pr view 2461 --json body` lists all six files that
+  `git diff --name-only torrust/develop...HEAD` reports, and keeps `Related to #2458` with no
+  closing keyword.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034655>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034655>
+
+### F21 - The recorded alias diff was not byte-exact
+
+- PR number: 2461
+- Source review ID: 5432816779
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4198937156>
+- Concern: The hunk header said `-129,7 +129,7`, but the block showed six old and six new lines,
+  because the blank trailing context line had been dropped.
+- Solution: Changed the header to `-129,6 +129,6`, and said that the file header lines and the
+  blank context line (line 135) were omitted.
+- Current-tree verification: `sed -n '129,135p' packages/udp-core/src/crypto/keys.rs` shows that
+  line 135 is blank. The block has five context lines, one `-` line, and one `+` line.
+- Resolution reference: `docs(issues): make the #2458 alias diff hunk self-consistent`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034887>
+
 ## Processing Log
 
 - 2026-10-06 16:54 UTC - Started audit at the maintainer's request. Fetched all threads of PR #2460
@@ -403,6 +479,16 @@ the empty containers GitHub created for this audit's replies.
 - 2026-10-06 18:14 UTC - Committed the F13, F12, F6, F17, F9, F11, and F10 fixes (through 18:18 UTC)
   and pushed after the pre-push checks passed.
 - 2026-10-06 18:20 UTC - Replied to all eleven threads; recorded reply URLs.
+- 2026-10-06 18:23 UTC - Correction: this record's first version (17:55 UTC) omitted human review
+  5431860814 because the 16:54 UTC fetch came before it. The 17:55 entry above records when the
+  omission was found; the rows were added at 18:23 UTC. Before the eleven replies were posted, the
+  reviewer had already resolved five of those threads (F12, F14, F16, F6, F7) after checking the
+  earlier pushed fixes.
+- 2026-10-06 18:24 UTC - Pushed the round-2 audit. Resolved the six remaining round-1 threads.
+  Found human review 5432816779 (`da2ce7`) with four new threads, F18 to F21.
+- 2026-10-06 18:26 UTC - Committed the F21 and F19 fixes (through 18:27 UTC), pushed after the pre-push checks passed,
+  and rewrote the PR body for F20.
+- 2026-10-06 18:29 UTC - Replied to the four threads; recorded reply URLs.
 
 ## Completion Rules
 
