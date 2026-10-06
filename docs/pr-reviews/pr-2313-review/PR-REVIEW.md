@@ -1,7 +1,7 @@
 ---
 pr-number: 2313
 pr-url: https://github.com/torrust/torrust-tracker/pull/2313
-last-updated-utc: "2026-09-28 11:48"
+last-updated-utc: "2026-09-28 17:15"
 ---
 
 # PR #2313 Review Audit
@@ -37,11 +37,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | `review-finding:pr-2313-f5` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
 | F6 | `review-finding:pr-2313-f6` | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
 | F7 | `review-finding:pr-2313-f7` | Human | Minor | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | `review-finding:pr-2313-f8` | Human | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
+| F8 | `review-finding:pr-2313-f8` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2313-f9` | Human | Suggestion | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F10 | `review-finding:pr-2313-f10` | Human | Nit | metadata | ORIGINAL | NO_ACTION | OPEN |
+| F10 | `review-finding:pr-2313-f10` | Human | Nit | metadata | ORIGINAL | NO_ACTION | RESOLVED |
 
-Rows F4-F10 come from review 5293099957, submitted after the merge and tracked by #2347. The reviewer numbered them `loop F4`-`loop F10` after this record's F1-F3, so no ID collides. F8 is fixed in follow-up PR #2363 and stays `FOLLOW_UP`/`OPEN` until it merges. F4, F5, F6, F7, and F9 are owned by #2362 (EPIC #2278 order 11). The F10 thread is resolved in the #2347 close-out.
+Rows F4-F10 come from review 5293099957, submitted after the merge and tracked by #2347. The reviewer numbered them `loop F4`-`loop F10` after this record's F1-F3, so no ID collides. F8 is fixed in follow-up PR #2363. PR #2363 merged on 2026-09-28, so F8 is `FIXED`/`RESOLVED`. F4, F5, F6, F7, and F9 are owned by #2362 (EPIC #2278 order 11) and stay `FOLLOW_UP`/`OPEN`. F10 is `NO_ACTION`/`RESOLVED`; its thread is resolved in the #2347 close-out.
 
 ## Finding Details
 
@@ -145,9 +145,9 @@ Rows F4-F10 come from review 5293099957, submitted after the merge and tracked b
 - Concern: V1's `rg` pattern matches the skill only at the re-raise rule, not at its fixed-outdated-thread rule. The earlier fix changed the assertion rather than the procedure.
 - Solution: `docs(issues): [#2347] make the #2308 V1 command reproduce its result` appends a correction to V1 with a command that matches both rules in both documents, and its output.
 - Current-tree verification: V1's recorded command, re-run on `develop` at `478516cf`, matches the skill once, at `68:   Every re-raise has its own tracking row and detail entry; never collapse it`. The corrected pattern also matches `If a code or documentation change fixed` in the skill.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4121107621>
+- Resolution reference: `docs(issues): [#2347] make the #2308 V1 command reproduce its result`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2363>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4121107621>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2313#discussion_r4124959323>
 
 ### F9 - F79's conditional was resolved toward the condition, so the single-round consolidated response F79 named remains unruled
 
@@ -182,6 +182,7 @@ Rows F4-F10 come from review 5293099957, submitted after the merge and tracked b
 - 2026-09-23 10:41 UTC - Confirmed all three threads had replies, resolved them, and refreshed GraphQL data; no unresolved actionable thread remains.
 - 2026-09-28 10:29 UTC - Posted a disposition reply on each of the seven post-merge threads of review 5293099957 (`created_at` 10:29:38Z-10:29:50Z). #2347 had posted tracking replies on 2026-09-26 from 12:05 UTC.
 - 2026-09-28 10:51 UTC - Added rows F4-F10 for review 5293099957, as #2347 approved. Changed the Ownership section's `Post-merge workflow approval` from `N/A` to the #2347 approval record; that is the only in-place edit to earlier content.
+- 2026-09-28 17:15 UTC - #2347 T7 close-out after PR #2363 merged into `develop` (17:00:27Z). josecelano posted the T7 replies on F8 (`created_at` 17:07:55Z), then resolved that thread and the F10 `NO_ACTION` thread. This close-out records F8 as `FIXED`/`RESOLVED`, citing its fixing commit with its T7 reply as Reply URL, and F10 as `RESOLVED`, keeping the disposition reply. F4 stays `FOLLOW_UP`/`OPEN` (#2362); F5 stays `FOLLOW_UP`/`OPEN` (#2362); F6 stays `FOLLOW_UP`/`OPEN` (#2362); F7 stays `FOLLOW_UP`/`OPEN` (#2362); F9 stays `FOLLOW_UP`/`OPEN` (#2362).
 
 ## Completion Rules
 
