@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 12:23"
+last-updated-utc: "2026-10-06 12:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,7 +93,7 @@ and is not in the EPIC roadmap:
 - **D1 - Keep the `stop()` signature.** `stop` keeps returning
   `Result<Environment<Stopped>, Error>`, so the 8 callers do not change. It
   joins both tasks, then returns an error naming each failing task (join
-  error, server error, or drain `TimedOut`. Approved at spec review
+  error, server error, or drain `TimedOut`). Approved at spec review
   (2026-10-06) over the panic contract of the other environments.
 - **D2 - One fresh token per start.** A stopped environment never reuses a
   cancelled token.
