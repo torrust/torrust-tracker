@@ -1,4 +1,6 @@
 ---
+spec-path: docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/implementation-retrospective.md
+last-updated-utc: "2026-10-06 16:47"
 semantic-links:
   related-artifacts:
     - docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
