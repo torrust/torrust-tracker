@@ -169,14 +169,14 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
 1. **Analysis:** done in this spec (Background). Re-verify with a search that no production code
    uses `RANDOM_SEED` for cryptography.
-2. **Reproduction (not yet attempted; must be done before maintainer review of this spec).** The
-   wrong outcome is internal, so use a temporary change at the nearest seam: in a non-test build,
-   point `detail_cipher`'s `#[cfg(not(test))] CURRENT_CIPHER` at `ZEROED_TEST_CIPHER_BLOWFISH`,
-   build and start the tracker (`cargo run`), and observe that `check_seed()` does not panic. Then,
-   from a separate Rust snippet or test that encrypts with the all-zero Blowfish key, forge a
-   connection ID for the client address and send an announce with `UdpTrackerClient::send`
-   (`packages/tracker-client`), skipping connect. Classify the outcome (Reproduced / Trigger only /
-   Infeasible), record it verbatim in `manual-verification-evidence.md`, and revert the change.
+2. **Reproduction (done before maintainer review; outcome: Reproduced).** The wrong outcome is
+   internal, so a temporary change was made at the nearest seam. The non-test `CURRENT_CIPHER`
+   alias in `detail_cipher` was pointed at `ZEROED_TEST_CIPHER_BLOWFISH`, and the tracker started
+   normally (`cargo run`): `check_seed()` did not panic. A disposable example then forged a
+   connection ID with its own all-zero-key Blowfish and passed it to the production `check`
+   in-process, which accepted it. A network announce via `UdpTrackerClient::send` was not sent
+   before the fix; it is part of the post-fix recheck (M2b). Both changes were reverted. The code
+   and output are in `manual-verification-evidence.md` section V1 (scenario M2a).
 3. **Regression-test boundary:** unit tests in `udp-core` (see Regression Test Strategy).
 4. **Red evidence:** write the regression tests first where practical; for tests that cannot
    compile against the old API, use mutate-then-restore on the new code (for example, temporarily
