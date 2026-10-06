@@ -11,7 +11,7 @@ semantic-links:
 
 # Workspace Coupling Report
 
-Generated: 2026-10-06 12:34 UTC
+Generated: 2026-10-06 16:35 UTC
 
 Workspace packages: 31
 
@@ -305,6 +305,7 @@ Workspace deps: 9
 - `torrust_tracker_http_protocol::v1::requests::announce::PeerIp`
 - `torrust_tracker_http_protocol::v1::requests::scrape::ParseScrapeQueryError`
 - `torrust_tracker_http_protocol::v1::requests::scrape::Scrape`
+- `torrust_tracker_http_protocol::v1::requests::scrape_builder::Query`
 - `torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder`
 - `torrust_tracker_http_protocol::v1::responses`
 - `torrust_tracker_http_protocol::v1::responses::announce::deserialization::CompactPeer`
@@ -482,6 +483,8 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 
 #### `torrust-tracker-http-protocol` [normal]
 
+- `torrust_tracker_http_protocol::percent_encoding::percent_decode_info_hash`
+- `torrust_tracker_http_protocol::v1::query::Query`
 - `torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder`
 - `torrust_tracker_http_protocol::v1::requests::announce::Compact`
 - `torrust_tracker_http_protocol::v1::requests::announce::Event`
@@ -504,12 +507,15 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 - `torrust_tracker_udp_protocol::Ipv4AddrBytes`
 - `torrust_tracker_udp_protocol::Ipv6AddrBytes`
 - `torrust_tracker_udp_protocol::NumberOfBytes`
+- `torrust_tracker_udp_protocol::NumberOfDownloads`
 - `torrust_tracker_udp_protocol::NumberOfPeers`
 - `torrust_tracker_udp_protocol::PeerKey`
 - `torrust_tracker_udp_protocol::Port`
+- `torrust_tracker_udp_protocol::Request`
 - `torrust_tracker_udp_protocol::Response`
 - `torrust_tracker_udp_protocol::ScrapeRequest`
 - `torrust_tracker_udp_protocol::ScrapeResponse`
+- `torrust_tracker_udp_protocol::TorrentScrapeStatistics`
 - `torrust_tracker_udp_protocol::TransactionId`
 - `torrust_tracker_udp_protocol::common::InfoHash`
 
@@ -525,7 +531,6 @@ Workspace deps: 2
 #### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_protocol::ConnectRequest`
-- `torrust_tracker_udp_protocol::MAX_PACKET_SIZE`
 - `torrust_tracker_udp_protocol::Request`
 - `torrust_tracker_udp_protocol::Response`
 - `torrust_tracker_udp_protocol::TransactionId`
@@ -1002,7 +1007,6 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 
 #### `torrust-tracker-core` [normal]
 
-- `torrust_tracker_core::MAX_SCRAPE_TORRENTS`
 - `torrust_tracker_core::announce_handler::AnnounceHandler`
 - `torrust_tracker_core::container::TrackerCoreContainer`
 - `torrust_tracker_core::databases::TorrentMetricsStore`
@@ -1095,6 +1099,7 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 - `torrust_tracker_udp_protocol::Ipv4AddrBytes`
 - `torrust_tracker_udp_protocol::Ipv6AddrBytes`
 - `torrust_tracker_udp_protocol::MAX_PACKET_SIZE`
+- `torrust_tracker_udp_protocol::MAX_SCRAPE_INFO_HASHES`
 - `torrust_tracker_udp_protocol::NumberOfBytes`
 - `torrust_tracker_udp_protocol::NumberOfDownloads`
 - `torrust_tracker_udp_protocol::NumberOfPeers`
