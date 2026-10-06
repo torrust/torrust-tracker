@@ -660,7 +660,7 @@ Status: TODO unless noted.
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
-- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — largely done (coupling reports and `readme-audit.md` in this folder) but not yet recorded in a GitHub issue or spec
+- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — largely done (coupling reports and `readme-audit.md` in this folder); the draft spec does not yet record the completed artifacts and has no GitHub issue
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
