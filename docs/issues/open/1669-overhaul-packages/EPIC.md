@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 08:41"
+last-updated-utc: "2026-10-06 09:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -257,7 +257,7 @@ Notes:
 1. Renamed from original `bencode` and replaced by the newer `contrib/bencode` code from tracker via SI-16 (#1881). Published on crates.io as `torrust-bencode` 3.0.0.
 2. May be inlined into consumers rather than published independently.
 3. Migrated from `packages/peer-id` in the tracker workspace via SI-19 (#1884). Published on crates.io as `torrust-peer-id` 0.1.0.
-4. Migrated from `bittorrent-primitives` v0.2.0 via SI-21 (#1889). Published on crates.io as `torrust-info-hash` 0.2.0. The old `torrust/bittorrent-primitives` repository can be archived.
+4. Migrated from `bittorrent-primitives` v0.2.0 via SI-21 (#1889). Published on crates.io as `torrust-info-hash` 0.2.0. The old `torrust/bittorrent-primitives` repository is archived.
 
 The following crates remain in `torrust/torrust-tracker` (and are expected to stay):
 
@@ -936,6 +936,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   for the newly listed subissues and SI-29; replaced the publication Yes/No column with the
   latest crates.io version and added the published root `torrust-tracker` crate; marked
   `bittorrent-primitives` as superseded and archived.
+- 2026-10-06 09:12 UTC - GitHub Copilot - Stated that the published count excludes
+  `bittorrent-primitives`, and marked the repository as archived in the desired-state notes.
 
 ## Acceptance Criteria
 
