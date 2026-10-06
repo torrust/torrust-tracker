@@ -52,3 +52,37 @@ semantic-links:
 - Verdict: REVIEW PENDING
 - Follow-up actions:
   - Request a Task Reviewer re-review, then run pre-push.
+
+### 2026-10-05 21:07 UTC - Task Reviewer
+
+- Invocation scope: read-only re-review of the full branch diff against `torrust/develop` (21 commits, clean tree), focused on the remediation commits `test: [#2417] align scrape limit tests with their prose-first specification` and `docs(issues): [#2417] record the prose-first test review and the first Task Reviewer report`; resolution of the 18:46 findings, the prose-first record, AC1-AC4, spec consistency, and commit-id hygiene. Persisted here by the implementer.
+- Inputs: `ISSUE.md`, `prose-first-test-review.md`, this file, `manual-verification-evidence.md`, `implementation-retrospective.md`, the `write-unit-test` prose-first procedure, the `review-task` Test Design checklist, and the final code of all 21 tests, the fake UDP tracker, and `ServerThread`.
+- Evidence:
+  - The remediation diff matches its claims (`parse_scrape`; H4 asserts `InvalidInfoHashParam`; U1/U2 encode in Arrange; W1 context comment; K1 ADR link); no production code changed.
+  - All 21 tests were compared with their review rows: Arrange, Act, and Assert match; expected values are literal and independent of production code; every production Act is visible; no parameter-bag fixtures.
+  - The timing exception is recorded and justified.
+  - All 18:46 findings are resolved, except the optional `MAX_INFO_HASHES_PER_QUERY` comment and the PR-body commit-scope note, deferred as stated.
+  - AC1-AC4 still pass; the linter/tests criterion and the final checkpoint are correctly left unchecked.
+  - The only commit id in the issue folder is a `develop` ancestor.
+  - Focused tests passed: `http-protocol --lib limiting` (5), `udp-protocol --lib limiting` (3), `udp-server --lib first_74` (1), `tracker-client --tests` (lib 50, `tracker_checker` 11, `tracker_client` 7).
+- Findings:
+  - MINOR: the retrospective does not record the late prose-first comparison as a lesson, and calls the fake-tracker tests "deterministic", conflicting with the timing exception.
+  - NIT: the review intro omits the kept per-test doc comments (S1, W1, US1, C1, K1).
+  - NIT: the timeout-path monitor row omits the URL and total-count assertions.
+  - NIT: the timing exception does not record the repeated-run command.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Optionally fix the MINOR and NITs in a focused `docs(issues)` commit.
+  - Run pre-push; tick the linter/tests criterion and the final checkpoint only after it passes.
+  - Mention in the PR body that `fix(http-protocol): [#2417] cap scrape info hashes per protocol` also changes `udp-protocol`, `udp-server`, and `tracker-core`, including removing the public `MAX_SCRAPE_TORRENTS` constant.
+
+### 2026-10-06 06:14 UTC - Implementation Follow-up
+
+- Invocation scope: the optional findings of the 21:07 Task Reviewer report.
+- Inputs: the report above.
+- Evidence: the retrospective records the late prose-first comparison as lesson 4 and no longer calls the timing-based tests deterministic; `prose-first-test-review.md` lists the kept per-test doc comments, adds the URL and total-count assertions to the timeout-path row, and records the repeated-run command. The PR body will carry the commit-scope note.
+- Findings:
+  - None.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Run pre-push, then tick the linter/tests criterion.

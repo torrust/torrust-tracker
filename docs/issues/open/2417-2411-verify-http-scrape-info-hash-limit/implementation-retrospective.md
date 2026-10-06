@@ -18,7 +18,8 @@ test deferred in refactor plan #1178.
 2. Proving tests red before the fix, and mutation-checking tests that could not
    be red first, caught a test that would have passed for the wrong reason.
 3. The fake trackers turned two manual checks (M2, V4) into automated,
-   deterministic tests and gave the client a reusable harness.
+   repeatable tests (with an accepted, bounded timing dependency) and gave the
+   client a reusable harness.
 
 ## What Changed During Implementation
 
@@ -50,6 +51,10 @@ incomplete.
    branch were created after a failing hook because the gate used `;` and a
    `grep` that exited 0 on the word `FAIL`; both failures were in files outside
    the commit, and later commits fixed them.
+4. Do the prose-first Arrange-Act-Assert comparison as each test is written,
+   and record it then. Here it was planned in the spec but skipped until the
+   Task Reviewer blocked the PR; doing it afterwards still found a weak
+   assertion (H4 accepted any error) and two hidden Acts.
 
 ## Avoiding Overcorrection
 

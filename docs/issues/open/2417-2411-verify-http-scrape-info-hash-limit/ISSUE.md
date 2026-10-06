@@ -9,7 +9,7 @@ github-issue: 2417
 spec-path: docs/issues/open/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md
 branch: "2417-2411-verify-http-scrape-info-hash-limit"
 related-pr: null
-last-updated-utc: "2026-10-05 21:05"
+last-updated-utc: "2026-10-06 06:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -325,7 +325,7 @@ because the response dictionary can collapse them.
 - [x] GitHub issue created and parent linked
 - [x] Manual baseline, reconsidered decision, and ADR recorded
 - [x] Implementation, focused checks, and manual recheck completed
-- [ ] Acceptance criteria re-reviewed and independent Task Reviewer report recorded
+- [x] Acceptance criteria re-reviewed and independent Task Reviewer report recorded
 
 ### Progress Log
 
@@ -376,6 +376,9 @@ because the response dictionary can collapse them.
   test changes (specific H4 error, visible U1/U2 Acts, W1 context, K1 ADR
   link). The reviewer's spec findings are fixed. Reports are in
   [agent-review-reports.md](agent-review-reports.md).
+- 2026-10-06 06:14 UTC - The Task Reviewer re-review passed (21:07 UTC);
+  its optional retrospective and review-record findings are applied. Pre-push
+  is next.
 
 ### Acceptance Verification
 

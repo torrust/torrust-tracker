@@ -6,7 +6,9 @@ added or materially changed. For each test, the temporary prose below was the
 specification; the code was compared with it, and the code was changed where
 it did not express the prose. The temporary prose was then removed from the
 code: the names, visible Acts, and assertions now carry it. Kept comments are
-the module-level reason and ADR link, and the one-line context noted below.
+the module-level reason and ADR link, short per-test doc comments that state
+the reason a limit test exists (S1, W1, US1, C1, K1), and the one-line W1
+context noted below.
 
 ## Changes the Comparison Required
 
@@ -83,7 +85,7 @@ assertions read as the prose.
 | Test | Arrange | Act | Assert | Result |
 | --- | --- | --- | --- | --- |
 | Success path | A fake UDP tracker that answers | Monitor it for two seconds | Exit 0; every probe is `ok` with a latency; the summary counts them, with no timeouts and populated min/max/average/last | Matches |
-| Timeout path | A silent fake UDP tracker | Monitor it for two seconds | Exit 0; every probe times out; `timeout_percent` is 100 and latencies are null | Matches |
+| Timeout path | A silent fake UDP tracker | Monitor it for two seconds | Exit 0; the summary names the monitored URL; every probe times out; the summary counts them, `timeout_percent` is 100, and latencies are null | Matches |
 
 ## Accepted Exception: Timing in Binary-Level Tests
 
@@ -93,4 +95,6 @@ path assumes a loopback round trip finishes within one second. This is
 accepted: these tests specify the CLI contract of a real process over real
 sockets, which a clock abstraction cannot reach without changing production
 code. Assertions do not depend on exact timing (they check that every probe has
-the expected status and that counts agree), and three repeated runs passed.
+the expected status and that counts agree). Three consecutive runs of
+`cargo test --manifest-path console/tracker-client/Cargo.toml --test tracker_checker --test tracker_client`
+passed (11 and 7 tests each run).
