@@ -42,10 +42,20 @@ Copilot's inline comments carry no `[Severity]` bracket. Its review overview rat
 `Medium severity` in badge markup; as in the PR #2423 audit, they are recorded as
 `Minor (inferred)`.
 
+Human review 5428696523 (da2ce7, round 1) numbered its findings F1-F5, which collide with
+Copilot's F1-F2 here. They are recorded as F3-F7, with the reviewer's IDs in each detail entry.
+That review also called Copilot's two comments "the cleanup-timing point the merged #2440
+settled", which agrees with declining F1 and F2.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2452-f1` | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F2 | `review-finding:pr-2452-f2` | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F3 | `review-finding:pr-2452-f3` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2452-f4` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2452-f5` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2452-f6` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2452-f7` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -75,10 +85,76 @@ Copilot's inline comments carry no `[Severity]` bracket. Its review overview rat
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195539245>
 
+### F3 - Spec lacks the bug-fix sections for a reproduced defect
+
+- PR number: 2452
+- Source review ID: 5428696523
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195543332>
+- Concern: A171 is a reproduced defect shipped as `fix(udp-server)`, but the spec omits the `Bug-Fix Process` and `Regression Test Strategy` sections that `fix-bug` and the v1 template require for bug work, whatever the `issue-type`.
+- Solution: Added both sections after `Design and Ownership Review`: the six-step process (analysis, reproduction on `develop` at 10:19 UTC, boundary, red, fix, green plus M1 recheck), a note that the red run used mutate-then-restore because the test was added during review, and the chosen `build_response` boundary with its rationale. Spec text made stale by F5 and F6 was aligned in the same commit.
+- Current-tree verification: both sections are present in `ISSUE.md`; the frontmatter validator passes.
+- Resolution reference: `docs(issues): [#2245] add bug-fix process and regression test strategy`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4196691543>
+
+### F4 - Evidence lacks the regression-test boundary and red/green output
+
+- PR number: 2452
+- Source review ID: 5428696523
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195543344>
+- Concern: AC3 and the PR body claimed mutation-checked tests, but the evidence recorded only M1, with no boundary, red run, or green run for a reviewer to audit.
+- Solution: Added a `Regression-Test Boundary` section with two mutate-then-restore red runs (call sites back to the original cast; wrapping helper) and the green run, each with its command, verbatim output, UTC time, and commit context. AC3 now cites it.
+- Current-tree verification: the quoted outputs match the saved runs (13:18 UTC call sites and green; 14:15 UTC helper).
+- Resolution reference: `docs(issues): [#2245] record the regression-test boundary and red/green runs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4196691874>
+
+### F5 - The new clamp helper duplicates the scrape handler's
+
+- PR number: 2452
+- Source review ID: 5428696523
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195543351>
+- Concern: `saturating_wire_i32` repeats the expression of the scrape handler's existing, tested `udp_counter_from_u32`.
+- Solution: One `saturating_wire_i32` now lives in `handlers/mod.rs`, used by announce and scrape, with one set of boundary tests; the scrape copy, its two tests, and its stale `#1525` comment are gone. A rebase onto `develop` conflicted with a #2417 test appended to the same test module; both were kept.
+- Current-tree verification: `grep -rn udp_counter_from_u32 packages/udp-server/src` finds nothing; `cargo test -p torrust-tracker-udp-server --lib` passes (213 tests); Clippy `-D warnings` is clean.
+- Resolution reference: `refactor(udp-server): [#2245] share one BEP 15 i32 clamp between announce and scrape`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4196692262>
+
+### F6 - No test pins the clamp at the build_response call sites
+
+- PR number: 2452
+- Source review ID: 5428696523
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195543355>
+- Concern: The helper tests stay green if a `build_response` call site goes back to `I32::new(x as i32)`, the original defect's shape.
+- Solution: Added `it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families`, which calls `build_response` with `interval` and `incomplete` at `i32::MAX + 1` and `complete` at `u32::MAX`, for both address families. It fails with the call sites mutated back to the original cast, and serves as the regression test F3 and F4 describe.
+- Current-tree verification: the focused test passes; its red output is in the evidence file.
+- Resolution reference: `test(udp-server): [#2245] pin the announce wire clamp at every build_response call site`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4196692613>
+
+### F7 - The deferred configuration-load rejection has no tracked artifact
+
+- PR number: 2452
+- Source review ID: 5428696523
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4195543361>
+- Concern: Once #2245 closes and its spec is archived, the deferred fail-fast work would have no live record.
+- Solution: The maintainer chose a note on the EPIC #2243 row for #2245 now, and keeps the follow-up specification draft local until this PR merges, to avoid switching branches mid-review.
+- Current-tree verification: the EPIC row's Notes cell names the follow-up; the frontmatter validator passes.
+- Resolution reference: `docs(issues): [#2245] note the configuration-load follow-up on the EPIC row`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2452#discussion_r4196692982>
+
 ## Processing Log
 
 - 2026-10-06 12:46 UTC - Copilot review 5428540203 submitted findings F1 and F2.
 - 2026-10-06 12:58 UTC - The maintainer agreed to decline F1 and F2 as conflicting with the archival lifecycle. Replied to both threads with the evidence and started this audit. No human review had been submitted at this time.
+- 2026-10-06 14:42 UTC - Correction to the 12:58 entry: human review 5428696523 (da2ce7, round 1) had been submitted at 12:58:26 UTC. It was not visible when the entry was written and was found when the reply status was checked after the push. It requested changes with five findings, recorded here as F3-F7. Fixed all five in separate commits, rebased onto `develop` (resolving one test-module conflict with #2417), pushed after the pre-push suite passed, updated the PR body, and replied to each thread.
 
 ## Completion Rules
 
