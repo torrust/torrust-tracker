@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2243
 github-issue: 2245
-spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
+spec-path: docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
-related-pr: null
-last-updated-utc: "2026-10-06 14:15"
+related-pr: 2452
+last-updated-utc: "2026-10-06 16:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,7 +185,7 @@ size).
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -197,6 +197,7 @@ size).
 - 2026-10-06 11:49 UTC - GitHub Copilot - M1 passed: with the fix, `interval` 2147483647 and 2147483648 both encode as 2147483647 (2147483648 was sent as -2147483648 before the fix) - In progress
 - 2026-10-06 11:53 UTC - GitHub Copilot - Reconciled the #2158 inventory (T4); pre-push checks passed; acceptance criteria reviewed; recorded an implementation retrospective, because the two design revisions (A156 `expect` to a parse error, interval validation to a follow-up) yield a reusable lesson. The configuration-load follow-up issue still needs its specification drafted and reviewed - Ready for PR
 - 2026-10-06 14:15 UTC - GitHub Copilot - Applied PR #2452 review fixes: shared the BEP 15 clamp with the scrape handler, added a `build_response` regression test for all six call sites, and added the Bug-Fix Process and Regression Test Strategy sections with red/green evidence - In review
+- 2026-10-06 16:03 UTC - GitHub Copilot - PR #2452 merged and GitHub closed the issue as completed; archived this spec to `docs/issues/closed/`. The configuration-load follow-up specification is drafted next, under its own issue - Done
 
 ## Acceptance Criteria
 
@@ -250,5 +251,5 @@ covered by the `build_response` regression test and the `saturating_wire_i32` un
 ## References
 
 - Related issues: #2158
-- Related PRs: None
+- Related PRs: #2247 (specification), #2452 (implementation)
 - Related ADRs: [Separate configuration value invariants from consistency validation](../../../adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md)

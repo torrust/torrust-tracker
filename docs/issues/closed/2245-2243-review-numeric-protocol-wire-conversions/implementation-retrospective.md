@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
+    - docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
 ---
 
