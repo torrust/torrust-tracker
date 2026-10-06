@@ -9,7 +9,7 @@ github-issue: 2245
 spec-path: docs/issues/open/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
 branch: "2245-2243-review-numeric-protocol-wire-conversions"
 related-pr: null
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 11:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -147,7 +147,7 @@ size).
 - [x] Spec-only PR merged into `develop` before implementation (#2247)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Committer verified spec progress is up to date before commit
@@ -160,6 +160,7 @@ size).
 - 2026-10-06 11:24 UTC - josecelano - Approved T1-T2: A156 `try_from` + `expect` with the rationale recorded here; A171 interval rejected at configuration load and clamped when encoding (defect reproduced locally); seeders and leechers clamped through a shared helper; no ADR - Chat decision
 - 2026-10-06 11:32 UTC - josecelano - Revised A156 from `expect` to a mapped parse error, because `missing_panics_doc` would have made the public parser document an impossible panic - Chat decision
 - 2026-10-06 11:41 UTC - josecelano - Revised the A171 interval decision: clamp in this issue; configuration-load rejection moves to a follow-up issue as an ADR-conforming newtype, because a `Validator` check conflicts with the configuration validation ADR - Chat decision
+- 2026-10-06 11:49 UTC - GitHub Copilot - M1 passed: with the fix, `interval` 2147483647 and 2147483648 both encode as 2147483647 (2147483648 was sent as -2147483648 before the fix) - In progress
 
 ## Acceptance Criteria
 
@@ -180,7 +181,7 @@ size).
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; repeat with `interval = 2147483648`. | Both responses encode `announce_interval` 2147483647: the first unchanged, the second clamped instead of wrapping to -2147483648. | TODO | `manual-verification-evidence.md` section M1 |
+| M1 | Announce interval bounds | Run a local UDP tracker with `interval = 2147483647` and announce; repeat with `interval = 2147483648`. | Both responses encode `announce_interval` 2147483647: the first unchanged, the second clamped instead of wrapping to -2147483648. | DONE | `manual-verification-evidence.md` section V1 - M1 |
 
 The A156 error branch is unreachable by construction, so A156 is covered by the existing scrape
 round-trip tests. Seeder and leecher clamping cannot be reached with a realistic swarm, so it is
