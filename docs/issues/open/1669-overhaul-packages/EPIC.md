@@ -58,7 +58,8 @@ concerns are mixed together:
   the remaining 21 packages were unpublished, in particular every `bittorrent-*` crate.
   As of October 2026, 5 more packages have been published from standalone repositories
   (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`,
-  `torrust-server-lib`), bringing the total published across the organisation to 11. Publishing them in-workspace
+  `torrust-server-lib`). See the Package Inventory observation for the current published list
+  and versions. Publishing them in-workspace
   conflicted with giving them independent versions; extraction resolved this tension.
   ADR [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md) now
   formalises independent versioning for all remaining workspace packages.
@@ -72,50 +73,51 @@ landscape shifts (new packages, splits, significant growth).
 The workspace currently contains **25 tracker packages** (24 `torrust-tracker-*` crates plus the root
 `torrust-tracker` crate). Internal developer tools under `contrib/dev-tools/` that are workspace
 members with `publish = false` are not listed.
-"Published" means a crate with that name exists on crates.io (verified October 2026).
+"Latest on crates.io" is the newest version published under that crate name (verified October 2026).
 
 Packages that have been extracted to standalone repositories are listed as `(extracted)`.
 
 ### `torrust-` prefix (non-`torrust-tracker-`)
 
-| Published on crates.io | Crate Name               | Folder      |
+| Latest on crates.io    | Crate Name               | Folder      |
 | ---------------------- | ------------------------ | ----------- |
-| Yes                    | `torrust-clock`          | (extracted) |
-| Yes                    | `torrust-located-error`  | (extracted) |
-| Yes                    | `torrust-metrics`        | (extracted) |
-| Yes                    | `torrust-net-primitives` | (extracted) |
-| Yes                    | `torrust-server-lib`     | (extracted) |
+| 3.0.0                  | `torrust-clock`          | (extracted) |
+| 3.0.0                  | `torrust-located-error`  | (extracted) |
+| 0.1.0                  | `torrust-metrics`        | (extracted) |
+| 0.1.0                  | `torrust-net-primitives` | (extracted) |
+| 0.3.0                  | `torrust-server-lib`     | (extracted) |
 
 ### `torrust-tracker-` prefix
 
-| Published on crates.io | Crate Name                                        | Folder                            |
+| Latest on crates.io    | Crate Name                                        | Folder                            |
 | ---------------------- | ------------------------------------------------- | --------------------------------- |
-| No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    |
-| No                     | `torrust-tracker-axum-http-server`                | `axum-http-server`                |
-| No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            |
-| No                     | `torrust-tracker-axum-server`                     | `axum-server`                     |
-| No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
-| Yes                    | `torrust-tracker-configuration`                   | `configuration`                   |
-| No                     | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       |
-| No                     | `torrust-tracker-events`                          | `events`                          |
-| No                     | `torrust-tracker-http-core`                       | `http-core`                       |
-| No                     | `torrust-tracker-http-protocol`                   | `http-protocol`                   |
-| No                     | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           |
-| Yes                    | `torrust-tracker-primitives`                      | `primitives`                      |
-| No                     | `torrust-tracker-rest-api-application`            | `rest-api-application`            |
-| No                     | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 |
-| No                     | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               |
-| No                     | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        |
-| No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     |
-| Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    |
-| No                     | `torrust-tracker-core`                            | `tracker-core`                    |
-| No                     | `torrust-tracker-client-lib`                      | `tracker-client`                  |
-| No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` |
-| No                     | `torrust-tracker-udp-core`                        | `udp-core`                        |
-| No                     | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    |
-| No                     | `torrust-tracker-udp-server`                      | `udp-server`                      |
+| 3.0.0                  | `torrust-tracker`                                 | (workspace root)                  |
+| Not published          | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    |
+| Not published          | `torrust-tracker-axum-http-server`                | `axum-http-server`                |
+| Not published          | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            |
+| Not published          | `torrust-tracker-axum-server`                     | `axum-server`                     |
+| Not published          | `torrust-tracker-client`                          | `console/tracker-client`          |
+| 3.0.0                  | `torrust-tracker-configuration`                   | `configuration`                   |
+| Not published          | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       |
+| Not published          | `torrust-tracker-events`                          | `events`                          |
+| Not published          | `torrust-tracker-http-core`                       | `http-core`                       |
+| Not published          | `torrust-tracker-http-protocol`                   | `http-protocol`                   |
+| Not published          | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           |
+| 3.0.0                  | `torrust-tracker-primitives`                      | `primitives`                      |
+| Not published          | `torrust-tracker-rest-api-application`            | `rest-api-application`            |
+| Not published          | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 |
+| Not published          | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               |
+| Not published          | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        |
+| Not published          | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     |
+| 3.0.0                  | `torrust-tracker-test-helpers`                    | `test-helpers`                    |
+| Not published          | `torrust-tracker-core`                            | `tracker-core`                    |
+| Not published          | `torrust-tracker-client-lib`                      | `tracker-client`                  |
+| Not published          | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` |
+| Not published          | `torrust-tracker-udp-core`                        | `udp-core`                        |
+| Not published          | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    |
+| Not published          | `torrust-tracker-udp-server`                      | `udp-server`                      |
 
-**Observation**: 11 packages across the organisation (including extracted) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-server-lib` 0.3.0, `torrust-tracker-configuration` 3.0.0, `torrust-tracker-primitives` 3.0.0, and `torrust-tracker-test-helpers` 3.0.0. Of those still in this workspace, 3 are published. Every `torrust-axum-` crate is
+**Observation**: 12 packages across the organisation (including extracted) are published on crates.io: `torrust-bencode` 3.0.0, `torrust-clock` 3.0.0, `torrust-info-hash` 0.2.0, `torrust-located-error` 3.0.0, `torrust-metrics` 0.1.0, `torrust-net-primitives` 0.1.0, `torrust-peer-id` 0.1.0, `torrust-server-lib` 0.3.0, `torrust-tracker` 3.0.0, `torrust-tracker-configuration` 3.0.0, `torrust-tracker-primitives` 3.0.0, and `torrust-tracker-test-helpers` 3.0.0. Of those still in this workspace, 4 are published (including the root `torrust-tracker` crate). Every `torrust-tracker-axum-*` crate is
 unpublished. This confirms issue #1659's note that "many new crates have not been published
 yet after we refactored the packages."
 
@@ -137,21 +139,21 @@ A Cargo workspace for BitTorrent protocol implementations (forked from
 been restructured with `torrust-` prefixed crate names. Packages migrated from
 `torrust/torrust-tracker` have been published on crates.io.
 
-**Packages** (verified June 2026):
+**Packages** (verified June 2026; crates.io versions verified October 2026):
 
-| Published on crates.io | Crate Name          | Folder               | Internal workspace deps                                                 | Description                                                             |
+| Latest on crates.io    | Crate Name          | Folder               | Internal workspace deps                                                 | Description                                                             |
 | ---------------------- | ------------------- | -------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Yes                    | `torrust-bencode`   | `packages/bencode`   | —                                                                       | Efficient decoding and encoding for bencode                             |
-| No                     | `torrust-dht`       | `packages/dht`       | `torrust-bencode`, `torrust-handshake`, `torrust-util`                  | Bittorrent Mainline DHT implementation                                  |
-| No                     | `torrust-disk`      | `packages/disk`      | `torrust-metainfo`, `torrust-util`                                      | Torrent piece filesystem interface                                      |
-| No                     | `torrust-handshake` | `packages/handshake` | `torrust-util`                                                          | BitTorrent handshake trait and implementation                           |
-| Yes                    | `torrust-info-hash` | `packages/info-hash` | —                                                                       | BitTorrent InfoHash v1 type (migrated from tracker SI-21)               |
-| No                     | `torrust-magnet`    | `packages/magnet`    | `torrust-util`                                                          | Parsing and constructing magnet links                                   |
-| No                     | `torrust-metainfo`  | `packages/metainfo`  | `torrust-bencode`, `torrust-util`                                       | Parsing and building `.torrent` metainfo files                          |
-| No                     | `torrust-peer`      | `packages/peer`      | `torrust-bencode`, `torrust-handshake`, `torrust-util`                  | Peer wire protocol communication                                        |
-| Yes                    | `torrust-peer-id`   | `packages/peer-id`   | —                                                                       | Peer ID parsing and client identification (migrated from tracker SI-19) |
-| No                     | `torrust-select`    | `packages/select`    | `torrust-handshake`, `torrust-metainfo`, `torrust-peer`, `torrust-util` | Piece selection algorithm                                               |
-| No                     | `torrust-util`      | `packages/util`      | —                                                                       | Shared utilities used across packages                                   |
+| 3.0.0                  | `torrust-bencode`   | `packages/bencode`   | —                                                                       | Efficient decoding and encoding for bencode                             |
+| Not published          | `torrust-dht`       | `packages/dht`       | `torrust-bencode`, `torrust-handshake`, `torrust-util`                  | Bittorrent Mainline DHT implementation                                  |
+| Not published          | `torrust-disk`      | `packages/disk`      | `torrust-metainfo`, `torrust-util`                                      | Torrent piece filesystem interface                                      |
+| Not published          | `torrust-handshake` | `packages/handshake` | `torrust-util`                                                          | BitTorrent handshake trait and implementation                           |
+| 0.2.0                  | `torrust-info-hash` | `packages/info-hash` | —                                                                       | BitTorrent InfoHash v1 type (migrated from tracker SI-21)               |
+| Not published          | `torrust-magnet`    | `packages/magnet`    | `torrust-util`                                                          | Parsing and constructing magnet links                                   |
+| Not published          | `torrust-metainfo`  | `packages/metainfo`  | `torrust-bencode`, `torrust-util`                                       | Parsing and building `.torrent` metainfo files                          |
+| Not published          | `torrust-peer`      | `packages/peer`      | `torrust-bencode`, `torrust-handshake`, `torrust-util`                  | Peer wire protocol communication                                        |
+| 0.1.0                  | `torrust-peer-id`   | `packages/peer-id`   | —                                                                       | Peer ID parsing and client identification (migrated from tracker SI-19) |
+| Not published          | `torrust-select`    | `packages/select`    | `torrust-handshake`, `torrust-metainfo`, `torrust-peer`, `torrust-util` | Piece selection algorithm                                               |
+| Not published          | `torrust-util`      | `packages/util`      | —                                                                       | Shared utilities used across packages                                   |
 
 **Observation**: the workspace has been restructured with `torrust-` prefixed crate names.
 Of the 11 packages, 3 have been published on crates.io (`torrust-bencode` 3.0.0,
@@ -172,14 +174,13 @@ primitive types, it has not grown beyond that single type.
 
 **Packages** (verified June 2026):
 
-| Published on crates.io | Crate Name              | Description                                                |
+| Latest on crates.io    | Crate Name              | Description                                                |
 | ---------------------- | ----------------------- | ---------------------------------------------------------- |
-| Yes                    | `bittorrent-primitives` | Core BitTorrent primitive types; currently only `InfoHash` |
+| 0.3.0                  | `bittorrent-primitives` | Core BitTorrent primitive types; currently only `InfoHash` |
 
-**Role in this EPIC**: planned for deprecation. `InfoHash` (and any other BitTorrent
-primitive types) will be migrated to a new package inside `torrust/torrust-bittorrent`;
-the `torrust/bittorrent-primitives` repository will be archived once the migration is
-complete and downstream consumers have updated.
+**Role in this EPIC**: superseded. `InfoHash` was migrated to `torrust-info-hash` in
+`torrust/torrust-bittorrent` (SI-21, #1889), and the tracker workspace no longer depends on
+`bittorrent-primitives`. The `torrust/bittorrent-primitives` repository is archived.
 
 ## Desired Package State
 
@@ -200,31 +201,32 @@ moving to their own standalone repository.
 
 These packages will remain in the `torrust-tracker` workspace long-term.
 
-| Published on crates.io | Crate Name                                        | Folder                            | Old crate name                     | Old folder name                |
+| Latest on crates.io    | Crate Name                                        | Folder                            | Old crate name                     | Old folder name                |
 | ---------------------- | ------------------------------------------------- | --------------------------------- | ---------------------------------- | ------------------------------ |
-| No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    | —                                  | —                              |
-| No                     | `torrust-tracker-axum-http-server`                | `axum-http-server`                | —                                  | `axum-http-tracker-server`     |
-| No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            | —                                  | `axum-rest-tracker-api-server` |
-| No                     | `torrust-tracker-axum-server`                     | `axum-server`                     | —                                  | —                              |
-| Yes                    | `torrust-tracker-configuration`                   | `configuration`                   | —                                  | —                              |
-| No                     | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       | —                                  | —                              |
-| No                     | `torrust-tracker-events`                          | `events`                          | —                                  | —                              |
-| No                     | `torrust-tracker-http-core`                       | `http-core`                       | `bittorrent-http-core`             | —                              |
-| No                     | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           | —                                  | —                              |
-| Yes                    | `torrust-tracker-primitives`[^fu1]                | `primitives`                      | —                                  | —                              |
-| No                     | `torrust-tracker-rest-api-application`            | `rest-api-application`            | —                                  | —                              |
-| No                     | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 | —                                  | `rest-tracker-api-client`      |
-| No                     | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               | —                                  | —                              |
-| No                     | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        | —                                  | —                              |
-| No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —                                  | —                              |
-| Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    | —                                  | —                              |
-| No                     | `torrust-tracker-core`                            | `tracker-core`                    | `bittorrent-tracker-core`          | —                              |
-| No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —                                  | —                              |
-| No                     | `torrust-tracker-client-lib`                      | `tracker-client`                  | `bittorrent-tracker-client`        | —                              |
-| No                     | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`  | —                              |
-| No                     | `torrust-tracker-http-protocol`                   | `http-protocol`                   | `bittorrent-http-tracker-protocol` | —                              |
-| No                     | `torrust-tracker-udp-core`                        | `udp-core`                        | `bittorrent-udp-core`              | —                              |
-| No                     | `torrust-tracker-udp-server`                      | `udp-server`                      | —                                  | `udp-tracker-server`           |
+| 3.0.0                  | `torrust-tracker`                                 | (workspace root)                  | —                                  | —                              |
+| Not published          | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    | —                                  | —                              |
+| Not published          | `torrust-tracker-axum-http-server`                | `axum-http-server`                | —                                  | `axum-http-tracker-server`     |
+| Not published          | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            | —                                  | `axum-rest-tracker-api-server` |
+| Not published          | `torrust-tracker-axum-server`                     | `axum-server`                     | —                                  | —                              |
+| 3.0.0                  | `torrust-tracker-configuration`                   | `configuration`                   | —                                  | —                              |
+| Not published          | `torrust-tracker-e2e-tools`                       | `e2e-tools`                       | —                                  | —                              |
+| Not published          | `torrust-tracker-events`                          | `events`                          | —                                  | —                              |
+| Not published          | `torrust-tracker-http-core`                       | `http-core`                       | `bittorrent-http-core`             | —                              |
+| Not published          | `torrust-tracker-persistence-benchmark`           | `persistence-benchmark`           | —                                  | —                              |
+| 3.0.0                  | `torrust-tracker-primitives`[^fu1]                | `primitives`                      | —                                  | —                              |
+| Not published          | `torrust-tracker-rest-api-application`            | `rest-api-application`            | —                                  | —                              |
+| Not published          | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 | —                                  | `rest-tracker-api-client`      |
+| Not published          | `torrust-tracker-rest-api-protocol`               | `rest-api-protocol`               | —                                  | —                              |
+| Not published          | `torrust-tracker-rest-api-runtime-adapter`        | `rest-api-runtime-adapter`        | —                                  | —                              |
+| Not published          | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —                                  | —                              |
+| 3.0.0                  | `torrust-tracker-test-helpers`                    | `test-helpers`                    | —                                  | —                              |
+| Not published          | `torrust-tracker-core`                            | `tracker-core`                    | `bittorrent-tracker-core`          | —                              |
+| Not published          | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —                                  | —                              |
+| Not published          | `torrust-tracker-client-lib`                      | `tracker-client`                  | `bittorrent-tracker-client`        | —                              |
+| Not published          | `torrust-tracker-udp-protocol`                    | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`  | —                              |
+| Not published          | `torrust-tracker-http-protocol`                   | `http-protocol`                   | `bittorrent-http-tracker-protocol` | —                              |
+| Not published          | `torrust-tracker-udp-core`                        | `udp-core`                        | `bittorrent-udp-core`              | —                              |
+| Not published          | `torrust-tracker-udp-server`                      | `udp-server`                      | —                                  | `udp-tracker-server`           |
 
 > **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tls.rs` imports `v3_0_0::tls::TlsConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-located-error` (renamed in SI-10, #1823). [#1860](https://github.com/torrust/torrust-tracker/issues/1860) evaluated moving `TslConfig` out of configuration and decided to keep it there, so the package stays tracker-scoped (see [DECISIONS.md](./DECISIONS.md) DEC-08). A generic `torrust-axum-server` can be reconsidered if another Torrust project needs it. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
 
