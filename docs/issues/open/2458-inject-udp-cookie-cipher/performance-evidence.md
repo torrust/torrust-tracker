@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 09:28"
+last-updated-utc: "2026-10-07 10:06"
 ---
 
 # Performance Evidence - UDP Cookie Cipher Before and After Injection
@@ -209,8 +209,60 @@ Date: 2026-10-07, 09:26 UTC.
 
 ## P2 - After the Fix
 
-Not yet measured (task B3).
+Code: the implementation branch at
+`fix(udp-core): [#2458] remove the global key statics and the startup seed check`, the last
+production change. Release build made right before the runs. Same machine, toolchain, tracker
+configuration, load-test configuration, and run loop (`run-load-tests.sh p2 5`).
+
+The benchmark code differs from P1 only where the new signatures require it:
+`connection_cookie_benchmark` builds one `CookieCipher::random()` outside the measured loop and
+passes it to `make` and `check`, and the `connect_once` helper passes a random key to
+`ConnectService::new`.
+
+The first attempt was postponed: at 09:57 UTC other development sessions on the machine were
+compiling (`rustc` processes using several cores; load average 18.37). The runs started once the
+1-minute load average was back to 2.45, close to the P1 conditions.
+
+### P2 Load Test
+
+Date: 2026-10-07, 10:01-10:04 UTC. Load average 2.15 at the start and 5.88 at the end.
+
+| Run | Responses/s | Connect/s | Announce/s | Scrape/s | Errors/s |
+| --- | ----------- | --------- | ---------- | -------- | -------- |
+| 1 | 155147.22 | 76784.86 | 76809.75 | 1552.61 | 0.00 |
+| 2 | 159091.53 | 78736.25 | 78759.98 | 1595.29 | 0.00 |
+| 3 | 145576.51 | 72069.46 | 72051.65 | 1455.41 | 0.00 |
+| 4 | 157456.07 | 77931.80 | 77947.24 | 1577.03 | 0.00 |
+| 5 | 154032.94 | 76249.84 | 76242.18 | 1540.92 | 0.00 |
+
+- Mean: 154260.85 responses/s.
+- Min-max spread: 145576.51 - 159091.53, about 8.8% of the mean.
+- Every tracker log was empty: no `error` or `panic` lines.
+
+### P2 Criterion
+
+Date: 2026-10-07, 10:04 UTC. Load average about 5.8 during the runs.
+
+| Run | `make` median | `check` median | `connect_once` median |
+| --- | ------------- | -------------- | --------------------- |
+| 1 | 43.99 ns | 46.56 ns | 60.06 ns |
+| 2 | 45.55 ns | 47.57 ns | 59.05 ns |
+| 3 | 44.77 ns | 46.99 ns | 58.98 ns |
 
 ## Comparison
 
-Not yet available.
+| Measurement | P1 | P2 | Limit (pass rule) | Result |
+| --- | --- | --- | --- | --- |
+| Load test, mean responses/s | 152197.78 | 154260.85 | not below 142155.29 (lowest P1 run) | Pass |
+| `make`, median of three runs | 43.67 ns | 44.77 ns | not above 49.93 ns (highest P1 median) | Pass |
+| `check`, median of three runs | 46.88 ns | 46.99 ns | not above 48.30 ns | Pass |
+| `connect_once`, median of three runs | 58.71 ns | 59.05 ns | not above 59.10 ns | Pass |
+
+- AC7 passes: no measurement crosses its one-sided limit.
+- The load-test mean is 1.4% above P1, and both spreads are about 8.8%, so the end-to-end test
+  shows no regression but can only rule out large ones.
+- The microbenchmarks are more precise. `check` is unchanged (+0.2%). `make` moved +2.5%, within
+  its P1 noise of about 14%. `connect_once` moved +0.6%, within its P1 noise of about 1%. Both
+  Criterion sessions ran on a loaded desktop (P1 ended at load 9.51, P2 ran at about 5.8). None of these differences
+  is attributed to the change: replacing a `LazyLock` read with a reference adds no work, and the
+  key schedule is still built once.
