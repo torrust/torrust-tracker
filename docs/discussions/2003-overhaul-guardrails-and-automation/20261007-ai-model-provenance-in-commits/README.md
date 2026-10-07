@@ -10,7 +10,7 @@ semantic-links:
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
 ---
 
-<!-- cspell:ignore Deployers valueonly -->
+<!-- cspell:ignore Deployers -->
 
 # AI Model Provenance in Commits
 
