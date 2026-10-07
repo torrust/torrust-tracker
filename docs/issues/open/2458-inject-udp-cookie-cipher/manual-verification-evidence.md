@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-06 17:06"
+last-updated-utc: "2026-10-06 18:26"
 ---
 
 # Manual Verification Evidence
