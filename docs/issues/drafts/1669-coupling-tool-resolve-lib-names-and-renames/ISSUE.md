@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "{issue-number}-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: null
-last-updated-utc: "2026-10-07 08:52"
+last-updated-utc: "2026-10-07 12:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ edges:
 | `e2e-tools` → `torrust-tracker`          | normal | Root library target named `torrust_tracker_lib`                                       |
 
 The 2026-10-06 report ([finding 3](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md#3-the-tool-misses-renamed-crates-and-custom-library-names),
-issue #2446) listed the four normal edges.
+issue #2446) now lists all five.
 
 `cargo metadata` already provides both facts: each dependency's `rename`, and each package's
 library target name (`targets[]` with kind `lib`).
@@ -161,6 +161,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
   review finding F5: plain-language explanation, reproduction run and recorded as
   **Reproduced** (R1; it also found a fifth affected edge, the `axum-http-server` dev
   dependency), red regression-test task, and a like-for-like recheck (R2).
+- 2026-10-07 12:29 UTC - GitHub Copilot - The link to finding 3 now says it lists all five
+  edges, per PR #2462 review finding F21.
 
 ## Acceptance Criteria
 
