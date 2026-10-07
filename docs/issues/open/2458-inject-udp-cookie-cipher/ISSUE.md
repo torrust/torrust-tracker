@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-branch: "2458-inject-udp-cookie-cipher-spec"
+branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-06 18:26"
+last-updated-utc: "2026-10-07 09:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -249,8 +249,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and record | `manual-verification-evidence.md` records a reproduced production-mode safeguard bypass and independently forged accepted cookie. |
-| T2 | TODO | ADR | ADR for injection versus the alternatives, in `docs/adrs/`, indexed. |
-| T3 | TODO | Regression test R2, red before the fix | Write the R2 `compile_fail` doctest against the current code and record its red run in `manual-verification-evidence.md`. No production change in this task. |
+| T2 | DONE | ADR | [`20261007085634_inject_the_udp_connection_cookie_cipher.md`](../../../adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md), indexed; includes the secrecy deviation and the zeroize decision. |
+| T3 | DONE | Regression test R2, red before the fix | Write the R2 `compile_fail` doctest against the current code and record its red run in `manual-verification-evidence.md`. No production change in this task. |
 | T4 | TODO | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
 | T5 | TODO | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
 | T6 | TODO | Fix: wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
@@ -282,7 +282,7 @@ Arrange-Act-Assert review.
 - [x] Reproduction attempted and classified before review
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
@@ -317,6 +317,8 @@ Arrange-Act-Assert review.
     - Removed a duplicate section and quoted the timestamp (F4, F5).
     - Named the `develop` commit under test (F11).
     - Corrected the alias diff hunk (F21).
+- 2026-10-07 08:56 UTC - Copilot - The spec-only PR #2461 merged as `develop` `7836471b3`. Implementation started on branch `2458-inject-udp-cookie-cipher`. Maintainer decision for the ADR: enable the `blowfish` `zeroize` feature, so the key schedule is wiped on drop. Design finding while reading the composition code: the production `AppContainer` builds `UdpTrackerCoreServices` once and shares it with every UDP tracker instance (the REST API takes only its ban service and statistics repository), so the shared key belongs there. The standalone constructors (`UdpTrackerCoreContainer::initialize`, `initialize_from_tracker_core`, and the REST API runtime adapter's `initialize`) are their own composition roots and each create one key; the guarantee is one key per composition root, which is one key per process in the tracker binary.
+- 2026-10-07 09:02 UTC - Copilot - T2: wrote the ADR (`docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md`), with the key type `CookieCipher`, ownership in `UdpTrackerCoreServices`, the secrecy deviation, and the `zeroize` decision. T3: ran the R2 `compile_fail` doctest (pinned `E0432`) and its compiling companion against `develop` `7836471b3`; R2 is red ("Test compiled successfully, but it's marked `compile_fail`"). The temporary doctests were reverted. Evidence: `manual-verification-evidence.md`, "R2 - Red Before the Fix (T3)".
 
 ## Acceptance Criteria
 

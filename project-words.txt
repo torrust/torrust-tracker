@@ -219,6 +219,7 @@ distros
 dler
 dockerhub
 doctest
+doctests
 downloadedi
 dpkg
 dport

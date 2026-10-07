@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-06 18:26"
+last-updated-utc: "2026-10-07 09:02"
 ---
 
 # Manual Verification Evidence
@@ -123,6 +123,75 @@ the forged cookie should validate: ValueExpired { expired_value: -1.203840196111
 #### Conclusion
 
 The mutated production artifact started normally; `check_seed()` did not panic because it compares only the unrelated seed. The independently generated all-zero-key cookie was accepted for the intended fingerprint and time. The control run shows that the same cookie is rejected when production uses the random cipher, so the acceptance comes from the mutation, not from a flaw in the example. This is a real-artifact reproduction of the missing production guarantee. A network-level `UdpTrackerClient::send` request was unnecessary to establish the causal security outcome: the production-mode `check` seam accepted a connection ID forged without using the tracker cipher.
+
+## Regression-Test Design
+
+The selected boundaries and their rationale are in the specification's Regression Test Strategy.
+This section records the runs.
+
+### R2 - Red Before the Fix (T3)
+
+- Date and time (UTC): 2026-10-07 08:59.
+- Code under test: `develop` at `7836471b3` ("Merge torrust/torrust-tracker#2461: docs(issues): [#2458] add cookie-cipher injection specification"), with the temporary doctests below added to the module documentation of `packages/udp-core/src/crypto/ephemeral_instance_keys.rs`. No production code was changed.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`), Cargo 1.99.0.
+- Why a doctest: rustdoc builds the library without `cfg(test)`, as any production build or downstream crate sees it. The expected error code is pinned (`E0432`, unresolved import, which is what removing the public static produces) so an unrelated compile error, such as a typo, cannot make the test pass. The companion doctest compiles against the production key, so the pair shows the test can tell the two keys apart.
+
+Temporary doctests, verbatim:
+
+````rust
+//! A production build must not be able to reach the fixed test key:
+//!
+//! ```rust,compile_fail,E0432
+//! use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH;
+//!
+//! let _test_key = &*ZEROED_TEST_CIPHER_BLOWFISH;
+//! ```
+//!
+//! A production build can reach the random key:
+//!
+//! ```rust
+//! use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
+//!
+//! let _production_key = &*RANDOM_CIPHER_BLOWFISH;
+//! ```
+````
+
+Command and output (cargo's file-lock wait lines removed):
+
+```text
+$ cargo test --doc -p torrust-tracker-udp-core ephemeral_instance_keys
+   Compiling torrust-tracker-udp-core v0.1.0 (.../packages/udp-core)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.33s
+   Doc-tests torrust_tracker_udp_core
+
+running 1 test
+test packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 16) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+
+running 1 test
+test packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8) - compile fail ... FAILED
+
+failures:
+
+---- packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8) stdout ----
+Test compiled successfully, but it's marked `compile_fail`.
+
+failures:
+    packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8)
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+all doctests ran in 0.75s; merged doctests compilation took 0.54s
+error: doctest failed, to rerun pass `-p torrust-tracker-udp-core --doc`
+```
+
+Conclusion: **red**. The fixed test key is reachable from a production build today. The temporary
+doctests were then removed with `git checkout`, so no production file changed. They are not
+committed in red form, because the pre-commit gate runs `cargo test --doc`. The fix (T4) commits R2
+against the new key type: the `compile_fail` doctest then names the test-only constructor, and the
+companion doctest names the production constructor.
 
 ## Failures and Follow-up
 
