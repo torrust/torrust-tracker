@@ -77,7 +77,7 @@ mod tests {
         use crate::handlers::handle_connect;
         use crate::handlers::tests::{
             MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, connection_id_issued_to, sample_ipv4_remote_addr,
-            sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_issue_time,
+            sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_issue_time, test_cookie_cipher,
         };
 
         const UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID: ConfigurationInstanceId =
@@ -112,6 +112,7 @@ mod tests {
             };
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -161,6 +162,7 @@ mod tests {
             };
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -224,6 +226,7 @@ mod tests {
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -280,6 +283,7 @@ mod tests {
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));

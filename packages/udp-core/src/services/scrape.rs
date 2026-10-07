@@ -19,7 +19,7 @@ use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 use torrust_tracker_udp_protocol::ScrapeRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
-use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
+use crate::crypto::cookie_cipher::CookieCipher;
 use crate::event::{ConnectionContext, Event};
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
@@ -29,6 +29,7 @@ use crate::event::{ConnectionContext, Event};
 /// - The number of UDP `scrape` requests handled by the UDP tracker.
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
+    cookie_cipher: Arc<CookieCipher>,
     opt_udp_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
     public_url: Option<String>,
@@ -40,14 +41,18 @@ impl ScrapeService {
         self.configuration_instance_id
     }
 
+    /// Creates the service. `cookie_cipher` must be the composition root's
+    /// shared key, the one the connect service issues connection IDs with.
     #[must_use]
     pub fn new(
         scrape_handler: Arc<ScrapeHandler>,
+        cookie_cipher: Arc<CookieCipher>,
         opt_udp_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
             scrape_handler,
+            cookie_cipher,
             opt_udp_stats_event_sender,
             configuration_instance_id,
             public_url: None,
@@ -84,7 +89,7 @@ impl ScrapeService {
         validate_cookie: bool,
     ) -> Result<ScrapeData, UdpScrapeError> {
         if validate_cookie {
-            Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+            self.authenticate(client_socket_addr, request, cookie_valid_range)?;
         }
 
         let scrape_data = self
@@ -97,13 +102,24 @@ impl ScrapeService {
         Ok(scrape_data)
     }
 
-    fn authenticate(
+    /// Checks the request's connection ID for the client address, without
+    /// handling the request.
+    ///
+    /// Callers that skip validation in [`Self::handle_scrape`] use it to
+    /// observe invalid connection IDs.
+    ///
+    /// # Errors
+    ///
+    /// It returns an error if the connection ID was not issued to this client
+    /// address within `cookie_valid_range`.
+    pub fn authenticate(
+        &self,
         remote_addr: SocketAddr,
         request: &ScrapeRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<f64, ConnectionCookieError> {
         check(
-            &RANDOM_CIPHER_BLOWFISH,
+            &self.cookie_cipher,
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,

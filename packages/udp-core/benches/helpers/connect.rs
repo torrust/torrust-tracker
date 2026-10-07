@@ -4,6 +4,7 @@ use std::sync::Arc;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
 use torrust_tracker_udp_core::event::bus::EventBus;
 use torrust_tracker_udp_core::event::sender::Broadcaster;
 use torrust_tracker_udp_core::services::connect::ConnectService;
@@ -31,7 +32,11 @@ impl ConnectBenchmarkContext {
         let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, Broadcaster::default()));
 
         Self {
-            connect_service: ConnectService::new(event_bus.sender(), ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+            connect_service: ConnectService::new(
+                Arc::new(CookieCipher::random()),
+                event_bus.sender(),
+                ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            ),
             client_socket_addr: sample_ipv4_remote_addr(),
             server_service_binding: ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap(),
         }

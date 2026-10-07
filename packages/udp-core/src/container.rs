@@ -8,6 +8,7 @@ use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
+use crate::crypto::cookie_cipher::CookieCipher;
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
 use crate::services::announce::AnnounceService;
@@ -105,6 +106,7 @@ impl UdpTrackerCoreContainer {
             ban_service: udp_tracker_core_services.ban_service.clone(),
             connect_service: Arc::new(
                 ConnectService::new(
+                    udp_tracker_core_services.cookie_cipher.clone(),
                     udp_tracker_core_services.stats_event_sender.clone(),
                     configuration_instance_id,
                 )
@@ -114,6 +116,7 @@ impl UdpTrackerCoreContainer {
                 AnnounceService::new(
                     tracker_core_container.announce_handler.clone(),
                     tracker_core_container.whitelist_authorization.clone(),
+                    udp_tracker_core_services.cookie_cipher.clone(),
                     udp_tracker_core_services.stats_event_sender.clone(),
                     configuration_instance_id,
                     udp_tracker_config.network.external_ip.map(Into::into),
@@ -123,6 +126,7 @@ impl UdpTrackerCoreContainer {
             scrape_service: Arc::new(
                 ScrapeService::new(
                     tracker_core_container.scrape_handler.clone(),
+                    udp_tracker_core_services.cookie_cipher.clone(),
                     udp_tracker_core_services.stats_event_sender.clone(),
                     configuration_instance_id,
                 )
@@ -132,7 +136,13 @@ impl UdpTrackerCoreContainer {
     }
 }
 
+/// The UDP tracker core services shared by every UDP tracker instance built
+/// from them.
 pub struct UdpTrackerCoreServices {
+    /// The connection-cookie key. It is created here, once per set of
+    /// services, so every connect, announce, and scrape service built from
+    /// these services issues and accepts the same connection IDs.
+    pub cookie_cipher: Arc<CookieCipher>,
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
@@ -158,10 +168,135 @@ impl UdpTrackerCoreServices {
         let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(max_connection_id_errors_per_ip)));
         Arc::new(Self {
+            cookie_cipher: Arc::new(CookieCipher::random()),
             event_bus,
             stats_event_sender: udp_core_stats_event_sender,
             stats_repository: udp_core_stats_repository,
             ban_service,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! A connection ID is only accepted by a service that holds the key it was
+    //! issued with, so every service built by one container must share one key.
+
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::num::NonZeroU16;
+    use std::ops::Range;
+    use std::sync::Arc;
+
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, PeerId, ServiceRole};
+    use torrust_tracker_udp_protocol::{
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerKey,
+        Port, ScrapeRequest, TransactionId,
+    };
+
+    use super::UdpTrackerCoreContainer;
+
+    const ISSUE_TIME: f64 = 1_000_000_000_f64;
+
+    /// A container built the way a standalone UDP tracker builds it: public
+    /// tracker, no database.
+    async fn standalone_udp_tracker_core_container() -> Arc<UdpTrackerCoreContainer> {
+        UdpTrackerCoreContainer::initialize(
+            &Arc::new(Core::default()),
+            &Arc::new(UdpTracker::default()),
+            10,
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+        )
+        .await
+    }
+
+    fn client_socket_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(198, 51, 100, 7)), 6881)
+    }
+
+    fn server_service_binding() -> ServiceBinding {
+        ServiceBinding::new(
+            Protocol::UDP,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+        )
+        .expect("a UDP service binding on a non-zero port")
+    }
+
+    fn valid_range() -> Range<f64> {
+        (ISSUE_TIME - 120.0)..(ISSUE_TIME + 120.0)
+    }
+
+    fn announce_request_with(connection_id: ConnectionId) -> AnnounceRequest {
+        AnnounceRequest {
+            connection_id,
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId::new(0),
+            info_hash: InfoHash([0; 20]),
+            peer_id: PeerId([0; 20]),
+            bytes_downloaded: NumberOfBytes::new(0),
+            bytes_uploaded: NumberOfBytes::new(0),
+            bytes_left: NumberOfBytes::new(0),
+            event: AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::UNSPECIFIED.into(),
+            key: PeerKey::new(0),
+            peers_wanted: NumberOfPeers::new(1),
+            port: Port::new(NonZeroU16::new(6881).expect("a non-zero port")),
+        }
+    }
+
+    fn scrape_request_with(connection_id: ConnectionId) -> ScrapeRequest {
+        ScrapeRequest {
+            connection_id,
+            transaction_id: TransactionId::new(0),
+            info_hashes: vec![],
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_accept_in_announce_a_connection_id_issued_by_the_connect_service_of_the_same_container() {
+        // Arrange
+        let container = standalone_udp_tracker_core_container().await;
+        let connection_id = container
+            .connect_service
+            .handle_connect(client_socket_addr(), server_service_binding(), ISSUE_TIME)
+            .await;
+
+        // Act
+        let result =
+            container
+                .announce_service
+                .authenticate(client_socket_addr(), &announce_request_with(connection_id), valid_range());
+
+        // Assert
+        assert_eq!(
+            result,
+            Ok(ISSUE_TIME),
+            "the announce service rejected a connection ID issued by the same container's connect service"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_accept_in_scrape_a_connection_id_issued_by_the_connect_service_of_the_same_container() {
+        // Arrange
+        let container = standalone_udp_tracker_core_container().await;
+        let connection_id = container
+            .connect_service
+            .handle_connect(client_socket_addr(), server_service_binding(), ISSUE_TIME)
+            .await;
+
+        // Act
+        let result =
+            container
+                .scrape_service
+                .authenticate(client_socket_addr(), &scrape_request_with(connection_id), valid_range());
+
+        // Assert
+        assert_eq!(
+            result,
+            Ok(ISSUE_TIME),
+            "the scrape service rejected a connection ID issued by the same container's connect service"
+        );
     }
 }

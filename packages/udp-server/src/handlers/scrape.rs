@@ -4,8 +4,6 @@ use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
-use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::scrape::ScrapeService;
 use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -55,12 +53,9 @@ pub async fn handle_scrape(
         let validate_cookie = match cookie_validation.connection_id_validation {
             ConnectionIdValidationPolicy::Strict => true,
             ConnectionIdValidationPolicy::Disabled => {
-                if let Err(cookie_error) = check(
-                    &RANDOM_CIPHER_BLOWFISH,
-                    &request.connection_id,
-                    gen_remote_fingerprint(&client_socket_addr),
-                    cookie_validation.valid_range.clone(),
-                ) {
+                if let Err(cookie_error) =
+                    scrape_service.authenticate(client_socket_addr, request, cookie_validation.valid_range.clone())
+                {
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         %client_socket_addr,

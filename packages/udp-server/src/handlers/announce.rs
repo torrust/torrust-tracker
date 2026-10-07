@@ -6,8 +6,6 @@ use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_primitives::AnnounceData;
-use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
-use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -68,12 +66,9 @@ pub async fn handle_announce(
         let validate_cookie = match cookie_validation.connection_id_validation {
             ConnectionIdValidationPolicy::Strict => true,
             ConnectionIdValidationPolicy::Disabled => {
-                if let Err(cookie_error) = check(
-                    &RANDOM_CIPHER_BLOWFISH,
-                    &request.connection_id,
-                    gen_remote_fingerprint(&client_socket_addr),
-                    cookie_validation.valid_range.clone(),
-                ) {
+                if let Err(cookie_error) =
+                    announce_service.authenticate(client_socket_addr, request, cookie_validation.valid_range.clone())
+                {
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         %client_socket_addr,
@@ -716,7 +711,7 @@ pub(crate) mod tests {
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
                     TrackerConfigurationBuilder, connection_id_issued_to, initialize_core_tracker_services_with_config,
-                    sample_strict_cookie_validation,
+                    sample_strict_cookie_validation, test_cookie_cipher,
                 };
 
                 #[tokio::test]
@@ -798,6 +793,7 @@ pub(crate) mod tests {
                         Arc::new(torrust_tracker_udp_core::services::announce::AnnounceService::new(
                             core_tracker_services.announce_handler.clone(),
                             core_tracker_services.whitelist_authorization.clone(),
+                            test_cookie_cipher(),
                             None,
                             torrust_tracker_primitives::ConfigurationInstanceId::new(
                                 torrust_tracker_primitives::ServiceRole::UdpTracker,
@@ -868,6 +864,7 @@ pub(crate) mod tests {
                 MockUdpServerStatsEventSender, connection_id_issued_to,
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_ipv6_remote_addr, sample_strict_cookie_validation,
+                test_cookie_cipher,
             };
 
             #[tokio::test]
@@ -1062,6 +1059,7 @@ pub(crate) mod tests {
                 let announce_service = Arc::new(AnnounceService::new(
                     announce_handler.clone(),
                     whitelist_authorization.clone(),
+                    test_cookie_cipher(),
                     udp_core_stats_event_sender.clone(),
                     udp_tracker_test_configuration_instance_id,
                     None,
@@ -1168,7 +1166,7 @@ pub(crate) mod tests {
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
                     MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder,
-                    connection_id_issued_to, sample_strict_cookie_validation,
+                    connection_id_issued_to, sample_strict_cookie_validation, test_cookie_cipher,
                 };
                 use crate::tests::{announce_events_match, sample_peer};
 
@@ -1250,6 +1248,7 @@ pub(crate) mod tests {
                     let announce_service = Arc::new(AnnounceService::new(
                         announce_handler.clone(),
                         whitelist_authorization.clone(),
+                        test_cookie_cipher(),
                         udp_core_stats_event_sender.clone(),
                         udp_tracker_test_configuration_instance_id,
                         config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
