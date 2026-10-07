@@ -43,6 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2469-f1 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2469-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2469-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -77,12 +78,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2469#discussion_r4207266220>
 
+### F3 - Update the PR description to the current head
+
+- PR number: 2469
+- Source review ID: 5442970434
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2469#discussion_r4207439620>
+- Concern: the PR description still described the round-1 head (the "next major release"
+  wording, one Progress Log entry, one changed file), and the merge tool copies it into the merge
+  commit.
+- Solution: rewrote the PR description to match the current head: the v4.0.0 row, both Progress
+  Log entries, and both changed files. The fix is on GitHub, so it has no commit.
+- Current-tree verification: `gh pr view 2469 --json body` shows the rewritten description.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2469#discussion_r4207467339>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2469#discussion_r4207467339>
+
 ## Processing Log
 
 - 2026-10-07 13:08 UTC - Started audit. Recorded F1 and F2 from da2ce7 review 5441331718
   (APPROVED, two inline findings; Copilot review 5440912489 has no findings). Before this entry,
   the branch was rebased onto the latest `develop`, both fixes were committed and pushed, and both
   threads were replied to and resolved. Refreshed review threads with GraphQL: no unresolved thread
+  remains.
+- 2026-10-07 13:27 UTC - Recorded F3 from da2ce7 review 5442970434 (round 2, APPROVED; F1 and
+  F2 verified, one inline finding). Before this entry, the PR description was rewritten and the F3
+  thread was replied to and resolved. Refreshed review threads with GraphQL: no unresolved thread
   remains.
 
 ## Completion Rules
