@@ -85,8 +85,10 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
 - `#[non_exhaustive]` on individual enum variants.
 - Changing error semantics or messages, or adding or removing variants, except removing a
   never-constructed placeholder variant (see In Scope; maintainer approval required).
-- Publishing crates and editing `Cargo.toml` versions (owned by the per-package publish flow of ADR
-  20260629000000 and other EPIC #1669 subissues). This issue records the required bump; see AC6.
+- Publishing crates and editing `Cargo.toml` versions (owned by the release paths of ADR
+  20260629000000: the tracker application release for the root `torrust-tracker` crate, the
+  per-package publish for the others, and other EPIC #1669 subissues). This issue records the
+  required bump; see AC6.
 
 ## Architectural Decisions
 
@@ -115,7 +117,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates). Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
+| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today the root `torrust-tracker`, `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates), and the path that applies it: the tracker application release for the root crate, the per-package publish for the others. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
 | T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. |
 | T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
@@ -213,7 +215,8 @@ None planned.
   the compiler finds them; for crates already on crates.io (for example
   `torrust-tracker-configuration`), it is a semver-breaking change. This issue does not edit
   versions: the inventory records the required bump (AC6), and EPIC #1669's checklist item 4 makes
-  the per-package publish apply it.
+  the publish apply it (the tracker application release for the root crate, the per-package
+  publish for the others).
 - Wildcard arms hide future variants from downstream code. Map them to the most specific existing
   handling and keep them few.
 - An inventory filtered only by name misses error types with other names; T1 uses public
