@@ -1,15 +1,17 @@
 ---
+schema-version: 1
 doc-type: epic
-status: done
+status: in-progress
+epic: null
 github-issue: 1978
-spec-path: docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md
+spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-01 10:27
+last-updated-utc: "2026-10-07 08:29"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - packages/configuration/src/v2_0_0/
+    - packages/configuration/src/v2_0_0
     - packages/configuration/src/lib.rs
     - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/closed/1417-1978-add-public-service-url-to-configuration/ISSUE.md
@@ -24,6 +26,7 @@ semantic-links:
     - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
     - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
+    - docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md
 ---
 
 # EPIC #1978 - Configuration Overhaul (schema v3.0.0)
@@ -108,6 +111,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 13    | [#2107](https://github.com/torrust/torrust-tracker/issues/2107) — Activate persistence-free v3 runtime composition                                  | `docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md`       | DONE   | Active v3 composition honors an omitted database while preserving capability-aware REST API routes and configured database-driver startup.                |
 | 14    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/closed/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md` | DONE   | Implemented with automated and reproducible local runtime verification; evidence is recorded in the issue folder.                                         |
 | 15    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/closed/2067-1978-analyze-flat-service-configuration/ISSUE.md`                     | DONE   | Analysis rejected a successor flat schema; its confirmed configuration-model bug was resolved by #2083.                                                   |
+| 16    | [#2466](https://github.com/torrust/torrust-tracker/issues/2466) — Bound announce intervals to what every delivery protocol can encode               | `docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md`                            | TODO   | Added after closure (EPIC reopened). Found by #2245: reject `interval` and `interval_min` above `i32::MAX` at configuration load. |
 
 ### Release-gated prerequisite
 
@@ -231,7 +235,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md`
+- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
 - [x] Subissues created and linked in this spec
@@ -239,8 +243,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] For each implemented subissue: automatic checks completed and recorded
 - [x] For each implemented subissue: manual verification completed and recorded
 - [x] For each implemented subissue: acceptance criteria reviewed post-implementation
-- [x] Epic acceptance criteria reviewed and checked off
-- [x] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] Epic acceptance criteria reviewed and checked off
+- [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -318,13 +322,14 @@ For each subissue implementation in this EPIC, the default completion policy is:
   contract is separately drafted under API EPIC #144.
 - 2026-08-26 16:45 UTC - GitHub Copilot/User - #1980 runtime activation is in review in draft PR #2103. It activates v3 consumers, all shipped templates, shared UDP policy, logging style, and HTTP query-IP wiring. Automatic checks and deferred #889/#1987 local manual evidence are recorded; the persistence-free activation follow-up remains deferred.
 - 2026-09-01 10:25 UTC - GitHub Copilot - Verified GitHub's native hierarchy has 16 of 16 subissues complete, confirmed the recorded verification evidence, closed #1978 as completed, and archived this EPIC specification.
+- 2026-10-07 08:29 UTC - josecelano - Reopened #1978 and moved this specification back to `docs/issues/open/` to add subissue #2466 (bound the announce interval to what every delivery protocol can encode), found while reviewing #2245. Configuration schema v3.0.0 is not yet published on crates.io, so the change still belongs to this EPIC - 16 of 17 subissues done
 
 ## Acceptance Criteria
 
 - [x] All required subissues are created and linked.
 - [x] Implementation order is explicit and justified.
 - [x] Dependencies and blockers are documented and current.
-- [x] Epic status reflects actual state of linked subissues.
+- [ ] Epic status reflects actual state of linked subissues.
 - [x] Every completed subissue includes automated verification evidence.
 - [x] Every completed subissue includes manual verification evidence.
 - [x] Every completed subissue includes post-implementation acceptance criteria review.
@@ -334,10 +339,10 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                          |
 | ----- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | GitHub EPIC #1978 reports 13 linked subissues in the documented order.                                            |
+| AC1   | DONE                   | GitHub EPIC #1978 reports 17 linked native subissues, including #2466 added after reopening.                      |
 | AC2   | DONE                   | The dependency graph, critical paths, phases, and conflict hotspot table document ordering and rationale.         |
 | AC3   | DONE                   | The EPIC table, dependency graph, and release-gated #2079 prerequisite record current prerequisites and blockers. |
-| AC4   | DONE                   | The `Subissues` table and progress log record the current status for each linked issue.                           |
+| AC4   | TODO                   | Reopened for #2466; recheck when it closes.                                                                       |
 | AC5   | DONE                   | The completed subissue specifications record their relevant automated-check evidence.                             |
 | AC6   | DONE                   | The completed subissue specifications record their applicable manual-verification evidence.                       |
 | AC7   | DONE                   | The completed subissue specifications record post-implementation acceptance reviews.                              |
@@ -357,7 +362,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ## References
 
-- Related issues: #1417, #1640, #1490, #999, #1453, #1415, #1136, #889, #1987
+- Related issues: #1417, #1640, #1490, #999, #1453, #1415, #1136, #889, #1987, #2466, #2245
 - Related PRs: #1937 (spec for #1640)
-- Related ADRs: `docs/adrs/20260617093046_reject_wildcard_external_ip.md`
+- Related ADRs: `docs/adrs/20260617093046_reject_wildcard_external_ip.md`, `docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md`
 - Related EPICs: #1669 (package overhaul)
