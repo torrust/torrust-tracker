@@ -100,8 +100,11 @@ validates connection IDs.
   representation the secrecy ADR uses, and tests assert that exact output and the absence of a
   unique test key's bytes. Every `#[instrument]` function that receives the key skips it.
 - **Memory.** Enable the `blowfish` crate's `zeroize` feature, so the key schedule is wiped when a
-  key is dropped. `zeroize` is already a workspace dependency through `secrecy`, so this adds no new
-  crate.
+  key is dropped, and build the cipher from raw key bytes held in a `zeroize::Zeroizing` buffer,
+  filled in place, so they are wiped as soon as the cipher exists. `zeroize` was already in the
+  dependency graph through `secrecy`; `udp-core` depends on it directly with default features off,
+  so this adds no new crate. Wiping is best effort: it cannot reach copies the compiler or the
+  operating system may have made, and a test cannot observe it without undefined behavior.
 
 ### Deviation from the Secrecy ADR
 
