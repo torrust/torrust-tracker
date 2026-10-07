@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-07 09:02"
+last-updated-utc: "2026-10-07 09:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,6 +132,11 @@ duties this spec makes explicit: never log the key, and guarantee one shared key
   `packages/axum-rest-api-server/src/testing/environment.rs`, and others found by search).
 - Update all affected tests, benches, and test environments in `udp-core` and `udp-server`.
 - Correct the module documentation in `connection_cookie.rs` and `crypto/` to match the new design.
+- Measure UDP performance before and after the change (see Performance Considerations), including
+  a new Criterion benchmark for `connection_cookie::make` and `check`, and a repair of the existing
+  `udp-core` `connect_once` benchmark, which does not await the code it claims to measure.
+- Update the benchmarking documentation with what this issue learns, and add a benchmarking skill
+  under `.github/skills/dev/benchmarking/` that points to it (task D1).
 
 ### Out of Scope
 
@@ -242,6 +247,46 @@ guard the bug.
   the pinned-encoding test, which will now pin the encoding for the explicit fixed test key) keep
   passing with the key passed explicitly.
 
+## Performance Considerations
+
+`make` runs for every UDP connect request, and `check` for every announce and scrape, so this
+change touches the UDP hot path. The maintainer asked for the cost to be measured, not reasoned
+about.
+
+Expected cost: none measurable. Today each call reads the key through a `LazyLock` static, which
+costs one atomic load per call. After the change it receives a reference to an already-built
+cipher. The Blowfish key schedule still runs once per key, at startup, and the `zeroize` wipe runs
+only when a key is dropped. A change that rebuilt the key schedule per call would be a large
+regression; the benchmarks below would expose it.
+
+Two instruments, following the issue #2314 and #2342 precedent and
+[`docs/benchmarking.md`](../../../benchmarking.md):
+
+- **Microbenchmark (precise):** a new Criterion benchmark in `udp-core` for
+  `connection_cookie::make` and `connection_cookie::check`, plus the existing `connect_once`
+  benchmark once it is repaired. Today `connect_once` passes the `async fn sync::connect_once` to
+  `b.iter` without awaiting it, so Criterion times only the creation of a future. B1 makes it
+  measure `ConnectService::handle_connect`, and records a before-and-after Criterion run that
+  shows the change.
+- **End-to-end load test (user-visible):** `aquatic_udp_load_test` against a release build started
+  with `share/default/config/tracker.udp.benchmarking.toml`, with the #2342 load-test settings
+  (connect and announce weights 50/50, scrape weight 1, 30-second runs, last 20 seconds
+  summarized), five runs per measurement, a fresh tracker per run.
+
+Method:
+
+- P1 (baseline) runs on the code before any production change (B2). P2 (after) runs after T8 (B3),
+  on the same machine with the same build profile, configuration, and load-test settings. The
+  benchmark code may change between P1 and P2 only as far as the new `make`/`check` signatures
+  require.
+- Record the machine, toolchain, aquatic commit, commands, and results in issue-local
+  `performance-evidence.md`.
+- Pass rule (one-sided, as the #2342 retrospective recommends): the P2 mean responses per second is
+  not below the lowest P1 run, and each P2 Criterion median is not above the highest of three P1
+  Criterion medians. State the observed P1 noise, so readers know which regressions the
+  measurement can detect. A failure is investigated, for example with
+  [`docs/profiling.md`](../../../profiling.md), before the issue closes.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -251,11 +296,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Reproduce and record | `manual-verification-evidence.md` records a reproduced production-mode safeguard bypass and independently forged accepted cookie. |
 | T2 | DONE | ADR | [`20261007085634_inject_the_udp_connection_cookie_cipher.md`](../../../adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md), indexed; includes the secrecy deviation and the zeroize decision. |
 | T3 | DONE | Regression test R2, red before the fix | Write the R2 `compile_fail` doctest against the current code and record its red run in `manual-verification-evidence.md`. No production change in this task. |
+| B1 | TODO | Add the cookie benchmark and repair `connect_once` | New Criterion benchmark for `make` and `check` in `udp-core`; `connect_once` awaits the connect it measures, with a Criterion run before and after the repair recorded. No production change. |
+| B2 | TODO | Record the performance baseline (P1) | Three Criterion runs and five `aquatic_udp_load_test` runs on the code before any production change, in `performance-evidence.md`. |
 | T4 | TODO | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
 | T5 | TODO | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
 | T6 | TODO | Fix: wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
 | T7 | TODO | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
 | T8 | TODO | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
+| B3 | TODO | Record the performance after the fix (P2) | Same measurements as B2 on the finished code; comparison against the one-sided pass rule in `performance-evidence.md`. |
+| D1 | TODO | Update the benchmarking docs and add a benchmarking skill | `docs/benchmarking.md` and related docs updated with what this issue learned (for example the benchmark levels and tools, criteria for choosing one, how to record evidence, stale package names); a new skill under `.github/skills/dev/benchmarking/` that points to them. Done last. |
 
 ## Commit Points
 
@@ -263,11 +312,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- |
 | T1-T2 | Reproduction evidence and ADR | One `docs(...)` commit after maintainer review. |
 | T3 | R2 red-run evidence | One `docs(issues)` commit with the recorded red output. The red doctest itself is not committed here, because pre-commit runs `cargo test --doc` and would reject it; it is committed in T4, which makes it green. |
+| B1 | Cookie benchmark and `connect_once` repair | One `perf(udp-core)` commit, before any production change. |
+| B2 | Performance baseline | One `docs(issues)` commit with `performance-evidence.md`, before any production change. |
 | T4 | Key type, explicit-key cookie API, R2, and R1/R4 | Commit after focused validation; note that callers are updated in the same commit only as far as needed to compile. |
 | T5 | `udp-core` wiring and container test | Commit after the design-review checkpoint. |
 | T6 | `udp-server` and remaining callers | Commit after focused validation. |
 | T7 | Removal of the global keys and doc corrections | Commit after focused validation. |
 | T8 | Verification evidence | Commit after maintainer review. |
+| B3 | Performance after the fix | One `docs(issues)` commit. |
+| D1 | Benchmarking docs and skill | Separate commits from the issue's own changes, made at the end: one `docs(...)` commit for the documentation and one for the skill. |
 
 All commits use Conventional Commits with the narrow scope (`udp-core`, `udp-server`, ...) and are
 GPG signed. Every test increment follows the `write-unit-test` skill's prose-first
@@ -319,6 +372,7 @@ Arrange-Act-Assert review.
     - Corrected the alias diff hunk (F21).
 - 2026-10-07 08:56 UTC - Copilot - The spec-only PR #2461 merged as `develop` `7836471b3`. Implementation started on branch `2458-inject-udp-cookie-cipher`. Maintainer decision for the ADR: enable the `blowfish` `zeroize` feature, so the key schedule is wiped on drop. Design finding while reading the composition code: the production `AppContainer` builds `UdpTrackerCoreServices` once and shares it with every UDP tracker instance (the REST API takes only its ban service and statistics repository), so the shared key belongs there. The standalone constructors (`UdpTrackerCoreContainer::initialize`, `initialize_from_tracker_core`, and the REST API runtime adapter's `initialize`) are their own composition roots and each create one key; the guarantee is one key per composition root, which is one key per process in the tracker binary.
 - 2026-10-07 09:02 UTC - Copilot - T2: wrote the ADR (`docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md`), with the key type `CookieCipher`, ownership in `UdpTrackerCoreServices`, the secrecy deviation, and the `zeroize` decision. T3: ran the R2 `compile_fail` doctest (pinned `E0432`) and its compiling companion against `develop` `7836471b3`; R2 is red ("Test compiled successfully, but it's marked `compile_fail`"). The temporary doctests were reverted. Evidence: `manual-verification-evidence.md`, "R2 - Red Before the Fix (T3)".
+- 2026-10-07 09:12 UTC - Copilot - Maintainer review: the ADR is approved, but the change touches the UDP hot path and the spec had no performance task. Added Performance Considerations, tasks B1-B3, AC7, and the issue #2314/#2342 method (a Criterion benchmark of the changed functions plus an `aquatic_udp_load_test` baseline before any production change, and a one-sided pass rule). While surveying the benchmarks, found that `udp-core`'s `connect_once` benchmark never awaits the connect it claims to measure; B1 repairs it. The maintainer also asked to fold a benchmarking documentation update and a new skill under `.github/skills/dev/benchmarking/` into this issue (D1, AC8), committed separately at the end. Survey findings for D1: `docs/benchmarking.md` lists four benchmark types but omits the `udp-core`, `udp-server`, and `http-core` Criterion benchmarks, the persistence benchmark, and the workflow benchmarks, has no criteria for choosing one, and, like `contrib/dev-tools/benches/run-benches.sh`, uses the old package name `torrust-tracker-torrent-repository`.
 
 ## Acceptance Criteria
 
@@ -334,6 +388,10 @@ Arrange-Act-Assert review.
 - [ ] AC5: The reproduction from Bug-Fix Process step 2 is repeated after the fix and recorded.
 - [ ] AC6: Cookie format and behavior are unchanged: existing cookie tests, including the
   round-trip property, pass with an explicit key.
+- [ ] AC7: UDP performance is measured before (P1) and after (P2) the change on the same machine,
+  and P2 meets the one-sided pass rule in Performance Considerations, with the observed noise stated.
+- [ ] AC8: The benchmarking documentation reflects what this issue learned, and a benchmarking skill
+  under `.github/skills/dev/benchmarking/` points to it.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in `manual-verification-evidence.md`
@@ -386,6 +444,8 @@ for `cargo +nightly fmt --all -- --check`).
 | AC4 | TODO | Diff and progress log |
 | AC5 | TODO | M2a (before), M2b (after) |
 | AC6 | TODO | Cookie test run |
+| AC7 | TODO | `performance-evidence.md` P1/P2 comparison |
+| AC8 | TODO | Documentation and skill diff |
 
 ## Risks and Trade-offs
 
