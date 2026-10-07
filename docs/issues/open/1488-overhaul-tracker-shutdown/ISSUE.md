@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 12:22"
+last-updated-utc: "2026-10-07 09:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -54,7 +54,7 @@ The accepted architecture and alternatives are recorded in the
 The current shutdown process has several problems identified in the
 [shutdown analysis](../../../analysis/20260716-shutdown-process/README.md).
 The list keeps the problems as originally found; each item ends with its
-status as of 2026-10-02.
+status as of 2026-10-07.
 
 1. **No `SIGTERM` in `main.rs`** — only `SIGINT` (Ctrl+C) is handled at the top
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
@@ -64,10 +64,10 @@ status as of 2026-10-02.
    direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
-   **Status: fixed in the application** (sequences 3 to 11); the standalone
-   UDP test environment still uses `Halted` until SI-17, the REST API and
-   health-check API test environments until SI-23 and SI-24, and the legacy
-   API is removed by SI-18 and SI-19.
+   **Status: fixed in the application** (sequences 3 to 11) and in the
+   standalone HTTP and UDP environments (SI-16 and SI-17); the REST API and
+   health-check API test environments still use `Halted` until SI-23 and
+   SI-24, and the legacy API is removed by SI-18 and SI-19.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
    **Status: fixed** by SI-4 (#2169) and #2221.
@@ -89,9 +89,9 @@ status as of 2026-10-02.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
    **Status: fixed in the application**: production servers use the token
-   lifecycle; only the legacy stop paths of the UDP, REST API, and
-   health-check API test environments still observe the OS signal, until
-   SI-17, SI-23, and SI-24 migrate them; SI-19 removes the legacy API.
+   lifecycle; only the legacy stop paths of the REST API and health-check
+   API test environments still observe the OS signal, until SI-23 and SI-24
+   migrate them; SI-19 removes the legacy API.
 9. **Event listeners drop events on shutdown** — found on 2026-10-01, after
    the original analysis. Every event listener stops as soon as cancellation is
    requested, even with events still queued, and servers that are still
@@ -203,7 +203,7 @@ deterministic tests, and manual evidence.
 | 10       | #2342 | [Migrate UDP tracker to token lifecycle](../../closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Done       | Cooperative token-aware UDP stop; owned receive loop; safe legacy adapter; request abort fallback unchanged. |
 | 11       | #2370 | [Define UDP active-request shutdown policy](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)  | Done       | Loop-owned request processors; five-second drain with deadline abort and one outcome summary.        |
 | 12       | #2412 | [Migrate standalone HTTP environment/example](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md) | Done       | One supported standalone HTTP consumer migration; the token-aware drain now force-closes at its deadline (#2439). |
-| 13       | #2448 | [Migrate standalone UDP environment/example](../2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Planned    | SI-17. One supported standalone UDP consumer migration.                                                     |
+| 13       | #2448 | [Migrate standalone UDP environment/example](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Done       | SI-17. One supported standalone UDP consumer migration; a dropped environment now releases its socket (#2459). |
 | 14       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
 | 15       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). |
 | 16       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). |

@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 12:23"
+last-updated-utc: "2026-10-07 08:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
     - packages/axum-http-server/src/testing/environment.rs
     - docs/issues/closed/2309-1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
-    - docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
+    - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
