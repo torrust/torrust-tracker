@@ -2,20 +2,20 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p3
 epic: 1669
-github-issue: null
-spec-path: docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-branch: "{issue-number}-1669-coupling-tool-resolve-lib-names-and-renames"
+github-issue: 2475
+spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
+branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 12:39"
+last-updated-utc: "2026-10-07 16:39"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
+    - docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/tests/parse_imports.rs
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Coupling tool misses renamed dependencies and custom library names
+# Issue #2475 - Coupling tool misses renamed dependencies and custom library names
 
 Subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md) (Overhaul: Packages).
 
@@ -142,9 +142,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Bug reproduced and classified in `manual-verification-evidence.md` before review (R1)
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local
@@ -165,6 +165,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
   per PR #2462 review finding F15. Backfilled at 12:39 UTC, per review finding F20.
 - 2026-10-07 12:29 UTC - GitHub Copilot - The link to finding 3 now says it lists all five
   edges, per PR #2462 review finding F21.
+- 2026-10-07 16:39 UTC - GitHub Copilot - Maintainer approved the draft (reviewed in PR #2462).
+  Created issue #2475, linked it as a subissue of EPIC #1669, and moved the spec to
+  `docs/issues/open/`.
 
 ## Acceptance Criteria
 
