@@ -162,8 +162,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4198285997>
 - Concern: AC1 was checked although the hand-written Observations mention `rest-api-core`; the narrowing to generated sections lived only in the log and evidence.
-- Solution: AC1 itself now states that only the generated sections must reproduce and no longer mention `rest-api-core`.
-- Current-tree verification: AC1 text in `docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md` inspected; MV2 rerun after the rebase shows generated sections identical apart from the stamp.
+- Solution: AC1 itself now limits the no-mention requirement to the generated sections (everything before `## Observations`); the hand-written Observations may name `rest-api-core` when recording its removal.
+- Current-tree verification: AC1 text in `docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md` inspected; `rest-api-core` appears only after `## Observations` in the 2026-10-06 report.
 - Resolution reference: `docs(issues): [#2446] state AC1's scope in the criterion itself`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4205413962>
