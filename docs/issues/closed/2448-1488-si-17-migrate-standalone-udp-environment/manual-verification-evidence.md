@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
-last-updated-utc: "2026-10-06 16:15"
+issue-spec: docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
+last-updated-utc: "2026-10-07 08:03"
 ---
 
 # Manual Verification Evidence - Standalone UDP Environment and Example

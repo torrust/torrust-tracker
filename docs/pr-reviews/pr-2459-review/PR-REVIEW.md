@@ -4,8 +4,8 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
-    - docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/agent-review-reports.md
+    - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
+    - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/agent-review-reports.md
     - packages/udp-server/src/testing/environment.rs
 ---
 
