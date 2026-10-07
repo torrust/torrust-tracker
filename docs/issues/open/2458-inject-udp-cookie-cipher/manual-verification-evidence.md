@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 09:37"
+last-updated-utc: "2026-10-07 09:44"
 ---
 
 # Manual Verification Evidence
@@ -195,9 +195,11 @@ companion doctest names the production constructor.
 
 ## R1, R2, and R4 - Green After the Key Type, and Mutate-Then-Restore (T4)
 
-- Date and time (UTC): 2026-10-07 09:30-09:37.
+- Date and time (UTC): 2026-10-07 09:30-09:37 (times from the saved output files and `git log`).
 - Code under test: the implementation branch at
-  `fix(udp-core): [#2458] pass the connection-cookie cipher explicitly and drop the public test key`.
+  `fix(udp-core): [#2458] pass the connection-cookie cipher explicitly and drop the public test key`
+  (09:36). The mutations ran at 09:32-09:35 on the working tree before that commit; the only file
+  they touch, `cookie_cipher.rs`, was committed unchanged. The green runs below ran on the commit.
 - Toolchains: stable Rust 1.99.0 (`b940084d7`); nightly Cargo 1.101.0 (`f3865b2a4 2026-09-29`)
   where marked.
 - Tests: R1 is `it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random` and
@@ -268,6 +270,59 @@ Following the `write-unit-test` skill, each test's temporary prose was compared 
   format it with `{:?}`. Assert: the output is exactly `CookieCipher([REDACTED])` and contains
   neither the key array's `Debug` form nor its hex byte. The test uses the private `from_key` to
   choose a unique key, as the secrecy ADR asks. No prose kept.
+
+## R3 - Shared Key Across the Container's Services, and Mutate-Then-Restore (T5)
+
+- Date and time (UTC): 2026-10-07 09:40-09:43 (times from the saved output files and `git log`,
+  not typed from memory).
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] inject one shared cookie cipher into the UDP services` (09:43).
+- Toolchain: stable Rust 1.99.0 (`b940084d7`).
+- Tests (`packages/udp-core/src/container.rs`):
+  `it_should_accept_in_announce_a_connection_id_issued_by_the_connect_service_of_the_same_container`
+  and `it_should_accept_in_scrape_a_connection_id_issued_by_the_connect_service_of_the_same_container`.
+  They build a real `UdpTrackerCoreContainer` with `initialize`, the standalone composition root,
+  from `Core::default()` (public tracker, no database).
+- Pre-fix red run: not possible. Before the change every service read the same global cipher, so
+  these tests would pass; they guard the new wiring (see the specification's Regression Test
+  Strategy).
+
+### Green Run
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib container
+test container::tests::it_should_accept_in_scrape_a_connection_id_issued_by_the_connect_service_of_the_same_container ... ok
+test container::tests::it_should_accept_in_announce_a_connection_id_issued_by_the_connect_service_of_the_same_container ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 45 filtered out; finished in 0.02s
+```
+
+The full `udp-core` (47 unit tests and the doctests) and `udp-server` (219 unit and 12 integration
+tests) suites passed on this commit, and `cargo clippy --workspace --all-targets --all-features
+-- -D warnings` was clean.
+
+### Mutations
+
+Each mutation replaced one service's `udp_tracker_core_services.cookie_cipher.clone()` argument in
+`container.rs` with `Arc::new(CookieCipher::random())`, never staged; the file was restored from a
+backup copy and checked with `cmp`.
+
+| ID | Mutation | Result |
+| --- | --- | --- |
+| M-R3-announce | The announce service gets its own key | The announce test fails: `the announce service rejected a connection ID issued by the same container's connect service`, `left: Err(ValueExpired { expired_value: 1.3694097858095883e-262, min_value: 999999880.0 })`, `right: Ok(1000000000.0)`. The scrape test passes. |
+| M-R3-scrape | The scrape service gets its own key | The scrape test fails: `the scrape service rejected a connection ID issued by the same container's connect service`, `left: Err(ValueFromFuture { future_value: 4.800879166681183e42, max_value: 1000000120.0 })`, `right: Ok(1000000000.0)`. The announce test passes. |
+
+### Prose-First Arrange-Act-Assert Review
+
+- **Arrange:** a standalone container, and a connection ID that its connect service issues to one
+  client at a known issue time. **Act:** the announce (or scrape) service of the same container
+  checks that connection ID for the same client. **Assert:** it accepts it and recovers the issue
+  time.
+- The code names the scenario `standalone_udp_tracker_core_container`; the client address, service
+  binding, and requests are incidental helpers. The production Act, `authenticate`, is the check
+  `handle_announce` and `handle_scrape` run when validation is on, so the test does not depend on
+  announce or scrape handling rules. The expected value, `Ok(ISSUE_TIME)`, is the issue time given
+  to the connect service, not one computed by the code under test. No prose kept besides the module
+  comment that states why one key matters.
 
 ## Failures and Follow-up
 
