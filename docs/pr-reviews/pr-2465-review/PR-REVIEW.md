@@ -42,11 +42,17 @@ inline findings numbered F1-F2 in the reviewer's series. F1 already belongs to C
 so they take the next free audit IDs, F2-F3, with their original IDs kept in the detail entries.
 da2ce7's F2 raises the same stale date as Copilot's F1, which was fixed first.
 
+da2ce7 review 5440236519 (round 2, CHANGES_REQUESTED, at the F1 fix head) confirmed F1 and
+re-raised its round-1 F1 inline before the F2 fix was pushed; that re-raise is F4. da2ce7 review
+5440392814 (round 3, approval at the F2 fix head, later dismissed by the push of this record)
+found nothing new.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2465-f1` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2465-f2` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2465-f3` | Human | Suggestion | documentation | RE_RAISE_OF:F1 | SUPERSEDED | RESOLVED |
+| F4 | `review-finding:pr-2465-f4` | Human | Minor | correctness | RE_RAISE_OF:F2 | SUPERSEDED | RESOLVED |
 
 ## Finding Details
 
@@ -97,6 +103,20 @@ da2ce7's F2 raises the same stale date as Copilot's F1, which was fixed first.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205276688>
 
+### F4 - The archive log entry's review history (re-raise)
+
+- PR number: 2465
+- Source review ID: 5440236519
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205192350>
+- Concern: the same misstated #2459 review history as F2, re-raised at the F1 fix head, where
+  the line was still unchanged.
+- Solution: none beyond F2; its fix commit, pushed after this re-raise, resolves it too.
+- Current-tree verification: same as F2; da2ce7 round 3 confirmed the new line at the bytes.
+- Resolution reference: `docs(issues): [#2448] correct the archive entry's #2459 review history`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205454707>
+
 ## Processing Log
 
 - 2026-10-07 09:11 UTC - Fetched Copilot review 5439917780; committed the F1 fix (09:00); the
@@ -106,6 +126,11 @@ da2ce7's F2 raises the same stale date as Copilot's F1, which was fixed first.
 - 2026-10-07 09:30 UTC - Fetched da2ce7 review 5440064083 (09:06:02, CHANGES_REQUESTED);
   committed the F2 fix (09:12), pushed, and replied on both threads (09:30:26 and 09:30:27).
   Recorded this audit; threads are resolved only after it is pushed.
+- 2026-10-07 09:50 UTC - The pushed record missed two da2ce7 reviews found by the post-push
+  reply guard: round 2 (09:21:16), whose re-raise is F4, and round 3 (09:34:49, approval, no
+  findings, dismissed by that push). da2ce7 had already resolved the F2-F4 threads. Replied on the
+  F4 thread (09:50:19) and added F4; the Copilot F1 thread is resolved after this update is
+  pushed.
 
 ## Completion Rules
 
