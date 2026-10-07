@@ -44,11 +44,13 @@ Copilot's review came first, so its `F1` to `F3` keep their IDs, and da2ce7's `F
 `F4` to `F9`; each detail entry records the reviewer's original ID. Copilot's inline comments carry
 `[Major]` brackets, which the rows follow, although its overview badges read `Low`. da2ce7's `F1`
 and `F3` ask for the same changes as Copilot's `F1` and `F3`, so `F4` and `F6` are re-raises
-answered by the original fixes. Neither review body adds an assertion beyond its inline threads.
+answered by the original fixes. Copilot's review body adds no assertion beyond its inline threads;
+da2ce7's review body asks for a PR-body correction, recorded as `F13`.
 
 da2ce7's round-2 review 5438683477 continued his numbering with `F7` and `F8`, which become `F10`
-and `F11`. Its body also flagged the PR body's "18 crates plus the root crate" (18 including the
-root); the PR body was corrected alongside `F10`.
+and `F11`. Its body repeats the PR-body correction, recorded as `F14`, a re-raise of `F13`. The
+PR-body edit has no commit, so `F13` and `F14` cite a PR conversation response that states the
+fix. Their severity is inferred from the prose ("One slip").
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +65,8 @@ root); the PR body was corrected alongside `F10`.
 | F9 | `review-finding:pr-2456-f9` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2456-f10` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2456-f11` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2456-f13` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F14 | `review-finding:pr-2456-f14` | Human | Nit (inferred) | documentation | RE_RAISE_OF:F13 | NO_ACTION | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -246,6 +250,34 @@ root); the PR body was corrected alongside `F10`.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4204765413>
 
+### F13 - The PR body miscounted the crates
+
+- PR number: 2456
+- Source review ID: 5431651745
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#pullrequestreview-5431651745>
+- Concern: The review body's Hygiene paragraph: the PR body's "18 crates plus the root crate"
+  should read 18 crates including the root.
+- Solution: Edited the PR body to "18 crates, including the root crate".
+- Current-tree verification: `gh pr view 2456 --json body` contains "18 crates, including the root
+  crate"; the spec's count (root plus seventeen packages) was already correct.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2456#issuecomment-6035692212>
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F14 - The PR body crate count, repeated
+
+- PR number: 2456
+- Source review ID: 5438683477
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#pullrequestreview-5438683477>
+- Concern: The round-2 review body repeats F13.
+- Solution: No separate change; F13's PR-body edit covers it.
+- Current-tree verification: same as F13.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2456#issuecomment-6035692212>
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-06 16:55 UTC - Started audit. Fetched nine unresolved threads from Copilot review
@@ -264,6 +296,12 @@ root); the PR body was corrected alongside `F10`.
 - 2026-10-07 08:34 UTC - Replied to F10 and F11; recorded reply URLs. da2ce7 had resolved his
   round-1 threads (F4 to F9).
 - 2026-10-07 08:35 UTC - Added F10 and F11 to this audit record.
+- 2026-10-07 10:07 UTC - Posted a PR conversation response for the review-body findings F13 and
+  F14, after da2ce7 review 5439927916 (round 3, 08:55 UTC, changes requested) raised F12 (his
+  F9).
+- 2026-10-07 10:08 UTC - Committed the `process-pr-review` rule for citing fixes outside the
+  tree, approved by the maintainer.
+- 2026-10-07 10:09 UTC - Corrected the review-body sentence and added F13 and F14.
 
 ## Completion Rules
 
