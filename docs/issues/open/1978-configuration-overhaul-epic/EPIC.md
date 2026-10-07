@@ -6,7 +6,7 @@ epic: null
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:29"
+last-updated-utc: "2026-10-07 08:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,6 +27,7 @@ semantic-links:
     - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
     - docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md
+    - docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
 ---
 
 # EPIC #1978 - Configuration Overhaul (schema v3.0.0)
