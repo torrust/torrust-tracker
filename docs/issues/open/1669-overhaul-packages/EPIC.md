@@ -786,7 +786,8 @@ There is no predetermined end date or total subissue count.
 
 ### Pre-publish API checklist
 
-Before the first crates.io publish of each package, audit its public error API
+Before each package's first crates.io publish, and before any later publish of a package whose
+public error API changed, audit its public error API
 ([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
 
 1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
