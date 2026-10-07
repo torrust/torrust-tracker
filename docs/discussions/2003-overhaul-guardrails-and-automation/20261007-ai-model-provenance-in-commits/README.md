@@ -3,7 +3,6 @@ semantic-links:
   related-artifacts:
     - "issue #2003"
     - "issue #2458"
-    - "pull request #2461"
     - AGENTS.md
     - .github/skills/dev/git-workflow/commit-changes/SKILL.md
     - .github/agents/committer.agent.md
