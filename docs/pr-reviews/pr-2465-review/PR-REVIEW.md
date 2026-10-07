@@ -66,7 +66,7 @@ found nothing new.
 
 - PR number: 2465
 - Source review ID: 5439917780
-- Reviewer finding ID: F1
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4204943246>
 - Concern: the reworded findings 2 and 8 of EPIC #1488 describe the tree on 2026-10-07, but the
   list's lead-in still says each status is current as of 2026-10-02.
