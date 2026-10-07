@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 13:19"
+last-updated-utc: "2026-10-07 15:03"
 ---
 
 # Manual Verification Evidence
@@ -547,6 +547,30 @@ test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 39 filtered out;
 
 The wipe itself has no automatic test: checking that memory was cleared after it is released is
 undefined behavior in Rust, and the guarantee comes from the `zeroize` crate.
+
+## Key Kept Inside `udp-core` (PR #2470 Review)
+
+- Date and time (UTC): 2026-10-07 15:00, from the saved output file.
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] keep the cookie key private to udp-core`, which makes
+  `UdpTrackerCoreServices::cookie_cipher` `pub(crate)` and adds a `compile_fail,E0616` doctest
+  (reading the field from outside the crate) and a compiling companion (reading the public
+  `event_bus` field) on `UdpTrackerCoreServices`.
+- Toolchains: stable Rust 1.99.0 (`b940084d7`); nightly Cargo 1.101.0.
+- Green: `cargo test --doc -p torrust-tracker-udp-core container` passed both doctests on stable and
+  on nightly; workspace `cargo clippy --all-targets --all-features -- -D warnings` was clean; the
+  `udp-core`, `udp-server`, and root-crate tests passed (441).
+
+Mutation: the field made `pub` again, restored afterwards from a backup copy and checked with `cmp`.
+
+```text
+$ cargo test --doc -p torrust-tracker-udp-core container
+test packages/udp-core/src/container.rs - container::UdpTrackerCoreServices (line 155) ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+test packages/udp-core/src/container.rs - container::UdpTrackerCoreServices (line 145) - compile fail ... FAILED
+Test compiled successfully, but it's marked `compile_fail`.
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.12s
+```
 
 ## Failures and Follow-up
 
