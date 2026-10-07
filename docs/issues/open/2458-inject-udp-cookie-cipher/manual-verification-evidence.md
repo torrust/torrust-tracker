@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 09:02"
+last-updated-utc: "2026-10-07 09:37"
 ---
 
 # Manual Verification Evidence
@@ -192,6 +192,82 @@ doctests were then removed with `git checkout`, so no production file changed. T
 committed in red form, because the pre-commit gate runs `cargo test --doc`. The fix (T4) commits R2
 against the new key type: the `compile_fail` doctest then names the test-only constructor, and the
 companion doctest names the production constructor.
+
+## R1, R2, and R4 - Green After the Key Type, and Mutate-Then-Restore (T4)
+
+- Date and time (UTC): 2026-10-07 09:30-09:37.
+- Code under test: the implementation branch at
+  `fix(udp-core): [#2458] pass the connection-cookie cipher explicitly and drop the public test key`.
+- Toolchains: stable Rust 1.99.0 (`b940084d7`); nightly Cargo 1.101.0 (`f3865b2a4 2026-09-29`)
+  where marked.
+- Tests: R1 is `it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random` and
+  `it_should_create_a_different_key_each_time_when_the_key_is_random`; R4 is
+  `it_should_redact_the_key_when_formatted_for_debugging`; R2 is the `compile_fail,E0599` doctest
+  on `CookieCipher` with its compiling companion. All are in
+  `packages/udp-core/src/crypto/cookie_cipher.rs`.
+
+### Green Runs
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib crypto::cookie_cipher
+test crypto::cookie_cipher::tests::it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random ... ok
+test crypto::cookie_cipher::tests::it_should_redact_the_key_when_formatted_for_debugging ... ok
+test crypto::cookie_cipher::tests::it_should_create_a_different_key_each_time_when_the_key_is_random ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 42 filtered out; finished in 0.00s
+
+$ cargo test --doc -p torrust-tracker-udp-core cookie_cipher            # stable
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 29) ... ok
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 38) - compile fail ... ok
+
+$ cargo +nightly test --doc -p torrust-tracker-udp-core cookie_cipher   # nightly
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 29) ... ok
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 38) - compile fail ... ok
+
+$ cargo test -p torrust-tracker-udp-core --lib connection_cookie
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+```
+
+The `connection_cookie` tests include `it_should_make_a_connection_cookie`, which pins the encoded
+bytes. It passes unchanged with the explicit fixed test key, which is the same all-zero key the
+`cfg(test)` alias selected before, so the cookie format did not change (AC6).
+
+The full `udp-core` and `udp-server` suites also passed on this commit: `udp-core` 45 unit tests
+and its doctests; `udp-server` 219 unit tests and 12 integration tests.
+
+### Mutations
+
+Each mutation was applied to `cookie_cipher.rs` in the working tree, never staged, and then
+restored from a backup copy, checked with `cmp`.
+
+| ID | Mutation | Guarding test | Result |
+| --- | --- | --- | --- |
+| M-R1 | `random()` builds the all-zero key | R1 | Both R1 tests fail: `a random key encrypted the zero block exactly like the fixed all-zero test key` and `two random keys encrypted the zero block identically` (left and right `Array([69, 151, 249, 78, 120, 221, 152, 97])`). |
+| M-R2a | `fixed_for_testing` without `#[cfg(test)]`, still `pub(crate)` and unused | Workspace lints | The library does not compile: `associated function fixed_for_testing is never used` (`-D dead-code`), so R2 does not get to run. |
+| M-R2b | `fixed_for_testing` public and without `#[cfg(test)]` | R2 | Fails on stable: `Test compiled successfully, but it's marked compile_fail`. |
+| M-R2c | `fixed_for_testing` without `#[cfg(test)]`, `pub(crate)`, called from `random()` | R2 on nightly | Passes on stable; fails on nightly with `error[E0624]: associated function fixed_for_testing is private` and `Some expected error codes were not found: ["E0599"]`. |
+| M-R4 | `#[derive(Debug)]` instead of the redacted implementation | R4 | Fails: `left: "CookieCipher(Blowfish<LE> { ... })"`, `right: "CookieCipher([REDACTED])"`. |
+
+Finding: rustdoc checks the error code of a `compile_fail` doctest only on the nightly toolchain;
+stable accepts any compile error. A probe build of an example that called the `pub(crate)`
+function from outside the crate confirmed rustc reports `E0624` there. The pinned `E0599` is
+still enforced, because the CI `unit` job runs `cargo test --doc --workspace` on nightly as well as
+stable, but the local pre-commit gate, which runs stable, catches only M-R2b-style mutations. This
+is recorded for the benchmarking and testing documentation work in task D1.
+
+### Prose-First Arrange-Act-Assert Review
+
+Following the `write-unit-test` skill, each test's temporary prose was compared with its code:
+
+- **R1, fixed key versus random key.** Arrange: a zero plain-text block and the fixed all-zero test
+  key, the key production must never use. Act: create a production key with `random()`. Assert:
+  the two keys encrypt the block differently. The code names `plain_text`, `fixed_test_key`, and
+  `random_key`; the `encrypted` helper hides only block construction. No prose kept.
+- **R1, two random keys.** Arrange: a zero plain-text block. Act: create two production keys.
+  Assert: they encrypt the block differently. No prose kept.
+- **R4, redacted `Debug`.** Arrange: a cipher built from distinctive key bytes (`0x5a`). Act:
+  format it with `{:?}`. Assert: the output is exactly `CookieCipher([REDACTED])` and contains
+  neither the key array's `Debug` form nor its hex byte. The test uses the private `from_key` to
+  choose a unique key, as the secrecy ADR asks. No prose kept.
 
 ## Failures and Follow-up
 

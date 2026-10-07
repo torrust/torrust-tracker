@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-07 09:27"
+last-updated-utc: "2026-10-07 09:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -298,7 +298,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Regression test R2, red before the fix | Write the R2 `compile_fail` doctest against the current code and record its red run in `manual-verification-evidence.md`. No production change in this task. |
 | B1 | DONE | Add the cookie benchmark and repair `connect_once` | New Criterion benchmark for `make` and `check` in `udp-core`; `connect_once` awaits the connect it measures, with a Criterion run before and after the repair recorded. No production change. |
 | B2 | DONE | Record the performance baseline (P1) | Three Criterion runs and five `aquatic_udp_load_test` runs on the code before any production change, in `performance-evidence.md`. |
-| T4 | TODO | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
+| T4 | DONE | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
 | T5 | TODO | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
 | T6 | TODO | Fix: wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
 | T7 | TODO | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
@@ -374,6 +374,7 @@ Arrange-Act-Assert review.
 - 2026-10-07 09:02 UTC - Copilot - T2: wrote the ADR (`docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md`), with the key type `CookieCipher`, ownership in `UdpTrackerCoreServices`, the secrecy deviation, and the `zeroize` decision. T3: ran the R2 `compile_fail` doctest (pinned `E0432`) and its compiling companion against `develop` `7836471b3`; R2 is red ("Test compiled successfully, but it's marked `compile_fail`"). The temporary doctests were reverted. Evidence: `manual-verification-evidence.md`, "R2 - Red Before the Fix (T3)".
 - 2026-10-07 09:12 UTC - Copilot - Maintainer review: the ADR is approved, but the change touches the UDP hot path and the spec had no performance task. Added Performance Considerations, tasks B1-B3, AC7, and the issue #2314/#2342 method (a Criterion benchmark of the changed functions plus an `aquatic_udp_load_test` baseline before any production change, and a one-sided pass rule). While surveying the benchmarks, found that `udp-core`'s `connect_once` benchmark never awaits the connect it claims to measure; B1 repairs it. The maintainer also asked to fold a benchmarking documentation update and a new skill under `.github/skills/dev/benchmarking/` into this issue (D1, AC8), committed separately at the end. Survey findings for D1: `docs/benchmarking.md` lists four benchmark types but omits the `udp-core`, `udp-server`, and `http-core` Criterion benchmarks, the persistence benchmark, and the workflow benchmarks, has no criteria for choosing one, and, like `contrib/dev-tools/benches/run-benches.sh`, uses the old package name `torrust-tracker-torrent-repository`.
 - 2026-10-07 09:27 UTC - Copilot - B1: added `connection_cookie_benchmark` (`make`, `check`) and repaired `connect_once`, which reported 3.49 ns before and 57.6 ns after awaiting the connect. B2: recorded the P1 baseline on the code before any production change, in `performance-evidence.md`: load-test mean 152197.78 responses/s (lowest run 142155.29, spread about 8.8%) and highest Criterion medians `make` 49.93 ns, `check` 48.30 ns, `connect_once` 59.10 ns, on a shared desktop whose load rose during the runs.
+- 2026-10-07 09:37 UTC - Copilot - T4: added `CookieCipher` (redacted `Debug`, no key accessor, `zeroize` on drop), passed it explicitly to `make`/`check`, and removed the public zero-key static and the cfg-switched cipher alias. Callers pass a transitional `RANDOM_CIPHER_BLOWFISH` static until T5-T7; `udp-server` handler tests issue connection IDs through one named helper, `connection_id_issued_to`, so T6 changes one place. R1, R2, and R4 are green, and mutate-then-restore made each red (evidence: "R1, R2, and R4 - Green After the Key Type"). Finding: rustdoc checks a `compile_fail` doctest's error code only on nightly, so R2's pinned `E0599` is enforced by the nightly CI job, not by the stable pre-commit gate; noted for D1.
 
 ## Acceptance Criteria
 
