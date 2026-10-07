@@ -230,6 +230,8 @@ Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
 `maintainability`, `security`, or `other`. Severity is `Blocker`, `Major`,
 `Minor`, `Nit`, or `Suggestion`; mark a severity inferred from free prose as
 inferred. `FIXED` resolution references are unique Conventional Commit subjects;
+when the fix lives outside the repository tree (for example a PR or issue body
+edit), use the durable URL of the PR conversation response that states it.
 `NO_ACTION`, `SUPERSEDED`, and `FOLLOW_UP` resolution references are durable
 reply URLs. Never use a branch SHA. Record a follow-up pull request only in the
 separate Follow-up PR URL field, using `N/A` when it does not apply. Historical

@@ -97,7 +97,9 @@ readable as prose; this section carries the source metadata and verification evi
 - Follow-up PR URL: <DURABLE_FOLLOW_UP_PR_URL_OR_NA>
 - Reply URL: <REPLY_URL_OR_NA>
 
-Use a unique Conventional Commit subject as the `Resolution reference` for `FIXED`. Use a durable
+Use a unique Conventional Commit subject as the `Resolution reference` for `FIXED`; for a fix outside
+the repository tree (for example a PR or issue body edit), use the durable URL of the PR
+conversation response that states it. Use a durable
 reply URL for `NO_ACTION`, `SUPERSEDED`, or `FOLLOW_UP`; record a follow-up pull request only in
 the separate Follow-up PR URL field.
 
