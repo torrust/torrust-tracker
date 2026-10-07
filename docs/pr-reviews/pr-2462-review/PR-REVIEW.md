@@ -61,6 +61,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F17 | `review-finding:pr-2462-f17` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | `review-finding:pr-2462-f18` | Human | Nit | documentation | RE_RAISE_OF:F8 | FIXED | RESOLVED |
 | F19 | `review-finding:pr-2462-f19` | Human | Suggestion | metadata | RE_RAISE_OF:F6 | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2462-f20` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2462-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2462-f22` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -311,11 +314,52 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4205416709>
 
+### F20 - Stamps and logs stop before later edits
+
+- PR number: 2462
+- Source review ID: 5440778746
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4205631816>
+- Concern: The spec's stamp and Progress Log stopped at the 08:36 UTC AC1 entry, though later commits rewrote its AC2 (08:56) and AC5 (09:11) evidence rows; the three drafts' stamps and logs predate the 09:25 completion-review edit.
+- Solution: Backfilled Progress Log entries at the commits' author times in the spec and the three drafts, each saying when it was backfilled, and moved the four `last-updated-utc` stamps past them.
+- Current-tree verification: Author times of the AC2, AC5 and completion-review commits read from `git log`; the Progress Logs and stamps in `docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md` and the three drafts inspected; pre-commit passed.
+- Resolution reference: `docs(issues): [#2446] log the AC2, AC5 and completion-review edits`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4207266382>
+
+### F21 - Coupling-tool draft says finding 3 lists four edges
+
+- PR number: 2462
+- Source review ID: 5440778746
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4205631829>
+- Concern: The draft said finding 3 "listed the four normal edges", but finding 3 has listed five since the dev-edge fix.
+- Solution: The sentence now says finding 3 "now lists all five". The evidence file's R1 conclusion is a dated record and stays.
+- Current-tree verification: Finding 3 in the 2026-10-06 report and the sentence after the edge table in `docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md` inspected.
+- Resolution reference: `docs(issues): [#2446] say finding 3 lists all five edges in the coupling-tool draft`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4207266684>
+
+### F22 - F8 Solution misstates AC1
+
+- PR number: 2462
+- Source review ID: 5440778746
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4205631797>
+- Concern: The F8 Solution said AC1 requires the generated sections to reproduce; AC1 only limits the no-mention requirement to the generated sections, and reproducibility is MV2's criterion. F18 inherits the cell.
+- Solution: F8's Solution now says AC1 limits the no-mention requirement to the generated sections and lets the hand-written Observations name `rest-api-core`; its verification now checks that claim.
+- Current-tree verification: AC1 in `docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md` inspected; `rest-api-core` appears in the 2026-10-06 report only at lines 1163 and 1174, after `## Observations` at line 1127.
+- Resolution reference: `docs(pr-reviews): [#2446] state what AC1 limits in the F8 audit row`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2462#discussion_r4207267016>
+
 ## Processing Log
 
 - 2026-10-06 17:12 UTC - Copilot review 5432054524 posted eight inline findings, F1 to F8, with its own IDs F1 to F8.
 - 2026-10-07 08:36 UTC - Human review 5439725107 (da2ce7) requested changes with eleven inline findings, his F1 to F11. They collide with the Copilot IDs, so they are recorded as F9 to F19 with the original ID in "Reviewer finding ID"; eight re-raise Copilot findings.
 - 2026-10-07 09:45 UTC - Fixed all findings in one commit per concern, rebased onto the latest `develop`, confirmed the report and diagram still reproduce, pushed once after the pre-push suite passed, and replied on all 19 threads before recording them here.
+- 2026-10-07 10:10 UTC - Human review 5440778746 (da2ce7, round 3) requested changes: it confirmed F9 to F19 and the record, restated two Nits from a round-2 review that was never posted (his F12 and F14, recorded as F20 and F21), and raised one Minor on this record (his F15, recorded as F22). His round-2 F13 (missing audit record) had no thread and was fixed by the record itself.
+- 2026-10-07 13:08 UTC - Fixed F20 to F22 in one commit each, rebased onto the latest `develop` (resolved two EPIC.md conflicts, keeping both sides), confirmed the report and diagram still reproduce, pushed once after the pre-push suite passed, and replied on the three threads before recording them here.
 
 ## Completion Rules
 
