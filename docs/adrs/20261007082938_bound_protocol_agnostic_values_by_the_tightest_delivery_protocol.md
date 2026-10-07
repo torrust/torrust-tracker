@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - issue #1978
-    - issue #2245
+    - "issue #1978"
+    - "issue #2245"
     - packages/primitives/src/announce.rs
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md
@@ -100,6 +100,16 @@ delivery adapters still need a fallible conversion or a clamp.
 - **Negative**: adding a protocol with a tighter limit is a breaking configuration change.
 - **Negative**: changing a `primitives` field type is a breaking public API change for its
   consumers.
+
+## Affected Code
+
+- [`packages/primitives/src/announce.rs`](../../packages/primitives/src/announce.rs):
+  `AnnouncePolicy::interval` and `interval_min`, which #2466 changes to the bounded type.
+- [`packages/udp-server/src/handlers/announce.rs`](../../packages/udp-server/src/handlers/announce.rs):
+  the UDP response encodes the interval through `saturating_wire_i32` until #2466 converts it
+  without clamping.
+
+Issue #2466 adds module-level doc comments in both places that link back to this ADR.
 
 ## Date
 
