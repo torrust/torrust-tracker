@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-02 18:43"
+last-updated-utc: "2026-10-07 10:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -288,7 +288,7 @@ lines are the T1 measurement.
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
-| 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
+| 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | IN_PROGRESS | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) |
 | 6 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
 | 7 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
 | 8 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
@@ -386,6 +386,17 @@ lines are the T1 measurement.
   completed-file review.
 - 2026-10-06 11:51 UTC - Jose Celano - Approved the `connection_cookie.rs` completed-file review;
   ledger row 4 is `DONE`.
+- 2026-10-06 13:38 UTC - Jose Celano / GitHub Copilot - The `crypto/keys.rs` plan (ledger row 5)
+  found that the startup `check_seed()` cannot detect a zeroed cookie key in production. The
+  maintainer chose to fix the design by injecting one cookie key, as a separate issue implemented
+  in parallel by another agent; the draft spec and hand-off were prepared in the local, git-ignored
+  `.tmp/inject-udp-cookie-cipher/`. **#1348 is paused** until that work merges. On resume: rebase,
+  adapt the committed cookie, announce, and scrape tests to the injected key, and re-plan rows 5-7
+  (`crypto/keys.rs`, `crypto/ephemeral_instance_keys.rs`, `services/connect.rs`) and row 10
+  (`container.rs`) against the new design.
+- 2026-10-07 10:59 UTC - GitHub Copilot - The hand-off became Issue #2458
+  ([spec](../2458-inject-udp-cookie-cipher/ISSUE.md)), implemented by another agent and in review
+  as PR #2470. #1348 stays paused until PR #2470 merges.
 
 ## Acceptance Criteria
 

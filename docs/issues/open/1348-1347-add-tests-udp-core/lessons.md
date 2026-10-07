@@ -18,6 +18,7 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Scrape plan](test-refactor-plans/services-scrape-tests.md) | Decide whether to remove `UdpScrapeError::TrackerCoreWhitelistError` and its `From<WhitelistError>`. | The scrape service never authorizes; a tracker-core whitelist failure would arrive as `TrackerCoreScrapeError`. |
 | [Cookie plan](test-refactor-plans/connection-cookie-tests.md) | Change the `ValueExpired`/`ValueFromFuture` messages from `expected >`/`expected <` to `expected >=`/`expected <=`. | `check` accepts both range ends; two tests pin that behavior. |
 | [Cookie plan](test-refactor-plans/connection-cookie-tests.md) | Correct the module docs that say special values are excluded by `is_finite()`; the code uses `is_normal()`, which also excludes zero and subnormal values. | `connection_cookie.rs` module docs versus `make`/`check`. |
+| [Keys plan](test-refactor-plans/crypto-keys-tests.md) | **Taken up as Issue #2458** ([spec](../2458-inject-udp-cookie-cipher/ISSUE.md)): inject one cookie key. The startup `check_seed()` compares an unused seed, so it cannot detect production encrypting cookies with the public all-zero test key, which is compiled into and initialized in production. | The cookie cipher has its own random key, not derived from `RANDOM_SEED`, since commit `e3562f069`. |
 
 ## Testing Lessons
 
@@ -31,3 +32,7 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 - **A property test earned its dependency by catching a mutation the examples missed.** Replacing
   the cookie's wrapping arithmetic with saturating arithmetic passed all 13 example tests in
   `connection_cookie.rs` (they use a small fingerprint) and failed only the round-trip property.
+- **Tests that pin a mechanism let its purpose drift.** The `crypto/keys.rs` tests assert that test
+  builds alias the zeroed key, but nothing asserted that production cookies use a secret key. When
+  the design moved from the seed to a separate cipher, the tests and the startup check kept
+  passing while guarding the wrong value. Test the security property, not the wiring trick.
