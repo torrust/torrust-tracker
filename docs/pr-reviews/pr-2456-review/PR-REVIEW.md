@@ -46,6 +46,10 @@ Copilot's review came first, so its `F1` to `F3` keep their IDs, and da2ce7's `F
 and `F3` ask for the same changes as Copilot's `F1` and `F3`, so `F4` and `F6` are re-raises
 answered by the original fixes. Neither review body adds an assertion beyond its inline threads.
 
+da2ce7's round-2 review 5438683477 continued his numbering with `F7` and `F8`, which become `F10`
+and `F11`. Its body also flagged the PR body's "18 crates plus the root crate" (18 including the
+root); the PR body was corrected alongside `F10`.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2456-f1` | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
@@ -57,6 +61,8 @@ answered by the original fixes. Neither review body adds an assertion beyond its
 | F7 | `review-finding:pr-2456-f7` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2456-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2456-f9` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2456-f10` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2456-f11` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -206,6 +212,40 @@ answered by the original fixes. Neither review body adds an assertion beyond its
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4203808995>
 
+### F10 - The published-crate list omitted the root crate
+
+- PR number: 2456
+- Source review ID: 5438683477
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4203951062>
+- Concern: T1's list of already-published crates named three, omitting the root `torrust-tracker`
+  3.0.0, which holds 11 of the 61 enums; and the root crate is published by the tracker
+  application release, not the per-package flow that Out of Scope and Risks named.
+- Solution: Added the root crate to T1's list; T1, Out of Scope, and Risks name the tracker
+  application release as the path that applies the root crate's bump and the per-package publish
+  for the others. The issue body's note and the PR body's crate count were updated to match.
+- Current-tree verification: T1, Out of Scope, and Risks in the #2454 `ISSUE.md`; the live issue
+  body names the root crate and the tracker application release.
+- Resolution reference: `docs(issues): [#2454] add the root crate to the published-crate bump record`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4204765072>
+
+### F11 - The checklist lead-in excluded later publishes
+
+- PR number: 2456
+- Source review ID: 5438683477
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4203951077>
+- Concern: The EPIC checklist lead-in limited it to a package's first publish, so item 4, which
+  governs already-published crates, never applied as written.
+- Solution: The lead-in now also covers any later publish of a package whose public error API
+  changed, as suggested.
+- Current-tree verification: the EPIC #1669 Pre-publish API checklist lead-in; `linter markdown`
+  passes.
+- Resolution reference: `docs(issues): [#2454] extend the pre-publish checklist lead-in to later publishes`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4204765413>
+
 ## Processing Log
 
 - 2026-10-06 16:55 UTC - Started audit. Fetched nine unresolved threads from Copilot review
@@ -216,6 +256,14 @@ answered by the original fixes. Neither review body adds an assertion beyond its
 - 2026-10-07 06:04 UTC - Rebased onto `develop` and pushed the fixes; pre-push passed.
 - 2026-10-07 06:33 UTC - Replied to all nine threads; recorded reply URLs.
 - 2026-10-07 06:52 UTC - Wrote this audit record.
+- 2026-10-07 08:03 UTC - Committed the F10 fix for da2ce7 review 5438683477 (round 2, 06:53 UTC,
+  changes requested); updated the issue body and the PR body's crate count.
+- 2026-10-07 08:04 UTC - Committed the F11 fix.
+- 2026-10-07 08:31 UTC - Rebased onto `develop` and pushed the round-2 fixes with this audit;
+  pre-push passed.
+- 2026-10-07 08:34 UTC - Replied to F10 and F11; recorded reply URLs. da2ce7 had resolved his
+  round-1 threads (F4 to F9).
+- 2026-10-07 08:35 UTC - Added F10 and F11 to this audit record.
 
 ## Completion Rules
 
