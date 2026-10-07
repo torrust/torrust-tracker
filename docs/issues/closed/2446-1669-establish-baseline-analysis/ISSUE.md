@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1669
 github-issue: 2446
-spec-path: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
+spec-path: docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md
 branch: "2446-1669-establish-baseline-analysis-spec"
-related-pr: null
-last-updated-utc: "2026-10-07 12:39"
+related-pr: 2462
+last-updated-utc: "2026-10-07 14:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -280,9 +280,9 @@ reviewability.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective
       created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -316,6 +316,9 @@ reviewability.
 - 2026-10-07 09:11 UTC - GitHub Copilot - AC5 evidence row now says "153 workspace edges" and
   names the external-to-external edge drawn for context, per PR #2462 review finding F17.
   This and the previous entry were backfilled at 12:39 UTC, per PR #2462 review finding F20.
+- 2026-10-07 14:54 UTC - GitHub Copilot - PR #2462 merged after da2ce7 approved it, having
+  verified the acceptance criteria; issue #2446 closed as completed. Archived the spec to
+  `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
@@ -386,10 +389,10 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | [`workspace-coupling-report-2026-10-06.md`](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md) lists the 31 members (MV1). `rest-api-core` appears only in the Observations, which record its removal; the generated sections do not mention it. |
+| AC1   | DONE                   | [`workspace-coupling-report-2026-10-06.md`](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md) lists the 31 members (MV1). `rest-api-core` appears only in the Observations, which record its removal; the generated sections do not mention it. |
 | AC2   | DONE                   | Every edge lists import paths except five whose missing paths Observations finding 3 explains (tool limitation, drafted as a subissue; the fifth, a dev-dependency edge, was found by the draft's reproduction on 2026-10-07). |
 | AC3   | DONE                   | Observations of the new report: comparison table, resolved items and three findings. |
-| AC4   | DONE                   | [`readme-audit.md`](../1669-overhaul-packages/readme-audit.md): 25 rows (4 good, 12 minimal, 9 stub, 0 missing) (MV4). |
+| AC4   | DONE                   | [`readme-audit.md`](../../open/1669-overhaul-packages/readme-audit.md): 25 rows (4 good, 12 minimal, 9 stub, 0 missing) (MV4). |
 | AC5   | DONE                   | [Dependency diagram](../../../media/packages/dependencies-workspace-packages.md): its 153 workspace edges equal `cargo metadata` (MV3); it also draws one external-to-external edge (`torrust-server-lib` to `torrust-net-primitives`) for context, stated in its prose. |
 | AC6   | DONE                   | Three drafts under `docs/issues/drafts/1669-*` linked from the report findings and listed in the EPIC quick list and Details table. |
 | AC7   | DONE                   | Commit "docs(issues): [#2446] mark the baseline analysis done in EPIC #1669". |
