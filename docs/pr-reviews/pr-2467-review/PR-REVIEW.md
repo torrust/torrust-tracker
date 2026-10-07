@@ -128,9 +128,10 @@ author's own round after merge.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2467#discussion_r4205093426>
 - Concern: `AGENTS.md` sends new technical terms to the shared dictionary. `valueonly` is a git
-  format option the follow-up work would reuse; `Deployers` fits the inline precedent.
+  format option the follow-up work would reuse; the regulation's term used once fits the inline
+  precedent.
 - Solution: Added `valueonly` to `project-words.txt` and removed it from the inline
-  `cspell:ignore`, which keeps `Deployers`.
+  `cspell:ignore`, which keeps the regulation's term.
 - Current-tree verification: `grep -n "^valueonly$" project-words.txt` finds :537;
   `format-project-words.sh` reports the file already formatted; `linter cspell` exits 0.
 - Resolution reference: docs(discussions): move valueonly to the project dictionary
@@ -174,6 +175,9 @@ author's own round after merge.
 - 2026-10-07 15:24 UTC - Pushed the five fix commits after the pre-commit gate passed.
 - 2026-10-07 15:24 UTC - Replied on all six threads after re-checking each claim against the pushed
   tree; responded to the position comment.
+- 2026-10-07 15:28 UTC - The audit commit `docs(pr-reviews): add the PR #2467 review audit` was
+  made although the pre-commit gate failed: a pipe through `tail` hid the gate's exit code. cspell
+  rejected one regulation term in the F4 entry, which the next commit rewords.
 
 ## Completion Rules
 
