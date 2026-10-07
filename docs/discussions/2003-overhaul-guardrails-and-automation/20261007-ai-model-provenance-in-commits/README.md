@@ -3,6 +3,7 @@ semantic-links:
   related-artifacts:
     - "issue #2003"
     - "issue #2458"
+    - docs/discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md
     - AGENTS.md
     - .github/skills/dev/git-workflow/commit-changes/SKILL.md
     - .github/agents/committer.agent.md
@@ -13,14 +14,14 @@ semantic-links:
 
 # AI Model Provenance in Commits
 
-| Field        | Value                                                                                                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | Draft for review in the pull request that adds it                                                                                                                         |
-| Started      | 2026-10-07                                                                                                                                                                |
-| Participants | Jose Celano (the concern and the three purposes: tracking, analytics, legal); AI assistant using the Copilot SDK in VS Code, model `claude-opus-5.5` (research and draft) |
-| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003                                                                                                                                |
-| Informs      | EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails                                                                                                           |
-| Scope        | How a commit records which AI models were involved in its changes                                                                                                         |
+| Field        | Value                                                                                                                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status       | Draft for review in the pull request that adds it                                                                                                                                                                                                              |
+| Started      | 2026-10-07                                                                                                                                                                                                                                                     |
+| Participants | Jose Celano (the concern and the three purposes: tracking, analytics, legal); AI assistant using the Copilot SDK in VS Code, model `claude-opus-5.5` (research and draft)                                                                                      |
+| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003                                                                                                                                                                                                                     |
+| Informs      | EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails                                                                                                                                                                                                |
+| Scope        | Aspect 2 (the commit-metadata contract and its format gate) and aspect 3 (the models an orchestration routes work to) of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md): how a commit records which AI models were involved in its changes |
 
 ## Why This Discussion
 
