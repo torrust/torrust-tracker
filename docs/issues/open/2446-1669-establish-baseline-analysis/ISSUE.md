@@ -382,7 +382,7 @@ Notes:
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | [`workspace-coupling-report-2026-10-06.md`](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md) lists the 31 members (MV1). `rest-api-core` appears only in the Observations, which record its removal; the generated sections do not mention it. |
-| AC2   | DONE                   | Every edge lists import paths except four whose missing paths Observations finding 3 explains (tool limitation, drafted as a subissue). |
+| AC2   | DONE                   | Every edge lists import paths except five whose missing paths Observations finding 3 explains (tool limitation, drafted as a subissue; the fifth, a dev-dependency edge, was found by the draft's reproduction on 2026-10-07). |
 | AC3   | DONE                   | Observations of the new report: comparison table, resolved items and three findings. |
 | AC4   | DONE                   | [`readme-audit.md`](../1669-overhaul-packages/readme-audit.md): 25 rows (4 good, 12 minimal, 9 stub, 0 missing) (MV4). |
 | AC5   | DONE                   | [Dependency diagram](../../../media/packages/dependencies-workspace-packages.md): its 153 edges equal `cargo metadata` (MV3). |

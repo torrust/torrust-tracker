@@ -1212,11 +1212,12 @@ subissue:
 #### 3. The tool misses renamed crates and custom library names
 
 The tool derives the import module from the package name, so it reports "no references" for
-four edges that are used:
+five edges that are used:
 
 - `client` → `client-lib` and `udp-server` → `client-lib`: the dependency is renamed to
   `torrust-tracker-client` in `Cargo.toml`.
-- `test-helpers` → `client-lib`: the library target is named `torrust_tracker_client`.
+- `test-helpers` → `client-lib` and `axum-http-server` → `client-lib` (a dev dependency): the
+  library target is named `torrust_tracker_client`.
 - `e2e-tools` → `torrust-tracker`: the root library target is named `torrust_tracker_lib`
   (already noted in the previous report).
 
