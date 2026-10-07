@@ -9,7 +9,7 @@ semantic-links:
     - docs/testing/refactoring-patterns/README.md
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Writing Unit Tests
@@ -143,6 +143,14 @@ be sufficient and a mutation showed it was not.
    expectation (for example the gauge name, the elapsed time, and the timeout). When two
    assertions in one test read the same value, their messages must say which step each belongs
    to.
+4. **Compile-time guarantees need a `compile_fail` doctest and a companion.** When the guarantee is
+   that code outside the crate cannot name something (for example a `#[cfg(test)]`-only
+   constructor), write a `compile_fail` doctest with the expected error code (for example
+   `compile_fail,E0599`) and a companion doctest that compiles with the allowed alternative. Doctests
+   build the library without `cfg(test)`, as downstream crates do. Stable rustdoc accepts any
+   compile error and ignores the code; only nightly checks it. Run the mutations with both
+   `cargo test --doc` and `cargo +nightly test --doc`, and rely on the nightly CI job, which runs
+   the doctests, to enforce the code.
 
 ### Lifecycle Fixture Design Review
 
