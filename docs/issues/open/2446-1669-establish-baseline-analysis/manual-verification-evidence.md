@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
-last-updated-utc: 2026-10-07 08:32
+last-updated-utc: 2026-10-07 09:06
 ---
 
 <!-- cspell:ignore cdir finditer isdir listdir startswith -->
@@ -22,15 +22,16 @@ relevant output are recorded inline below.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-06 16:47
-- Artifact under test: branch `2446-1669-establish-baseline-analysis` up to
-  "docs(issues): [#2446] regenerate the coupling report after rebasing onto develop", rebased
-  onto the latest `develop`
+- Date and time (UTC): MV4 at 2026-10-06 16:47; MV3 at 2026-10-07 08:32; MV1 and MV2 at
+  2026-10-07 09:06 (rerun to record every command that prints an observed line)
+- Artifact under test: branch `2446-1669-establish-baseline-analysis` from
+  "docs(issues): [#2446] regenerate the coupling report after rebasing onto develop" onwards;
+  the later commits change no generated report section, manifest or README
 - Operating system / environment: Linux 7.0.0-34-generic; stable Rust toolchain
   (`rustc 1.99.0 (b940084d7 2026-09-28)`, `cargo 1.99.0 (5f94df478 2026-08-27)`)
 - Prerequisites and setup performed: clean working tree (`git status --short` printed
-  nothing). The scenarios were first run at 12:55 and 16:17 UTC before the rebase, with the
-  same results; this record is the run on the rebased head.
+  nothing). The scenarios were first run at 12:55 and 16:17 UTC on 2026-10-06 before the
+  rebase, with the same results.
 
 ## Verification Processes
 
@@ -42,28 +43,23 @@ relevant output are recorded inline below.
 
 #### Steps Performed
 
-1. List the workspace member names (stable Rust toolchain):
+Rerun on 2026-10-07 09:06 UTC (stable Rust toolchain, `rustc 1.99.0`). Every observed line
+below is printed by one of these commands, in order:
 
-   ```sh
-   cargo metadata --no-deps --format-version 1 \
-     | python3 -c 'import json,sys;[print(p["name"]) for p in json.load(sys.stdin)["packages"]]' \
-     | sort > .tmp/mv1-metadata.txt
-   ```
-
-2. List the packages in the report (leaf list plus detail sections):
-
-   ```sh
-   R=docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
-   { sed -n '/^## Packages with no workspace dependencies/,/^## Package coupling/p' $R \
-       | grep -oP '^- `\K[^`]+'; grep -oP '^### `\K[^`]+' $R; } | sort > .tmp/mv1-report.txt
-   ```
-
-3. Compare them, and count `rest-api-core` in the generated part (before `## Observations`):
-
-   ```sh
-   diff .tmp/mv1-metadata.txt .tmp/mv1-report.txt && echo identical
-   sed -n '/^## Observations/q;p' $R | grep -c "rest-api-core"
-   ```
+```sh
+R=docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
+# Workspace member names, from cargo metadata
+cargo metadata --no-deps --format-version 1 \
+  | python3 -c 'import json,sys;[print(p["name"]) for p in json.load(sys.stdin)["packages"]]' \
+  | sort > .tmp/mv1-metadata.txt
+# Packages in the report: leaf list plus detail sections
+{ sed -n '/^## Packages with no workspace dependencies/,/^## Package coupling/p' $R \
+    | grep -oP '^- `\K[^`]+'; grep -oP '^### `\K[^`]+' $R; } | sort > .tmp/mv1-report.txt
+wc -l < .tmp/mv1-metadata.txt                            # line 1
+wc -l < .tmp/mv1-report.txt                              # line 2
+diff .tmp/mv1-metadata.txt .tmp/mv1-report.txt && echo identical   # line 3
+sed -n '/^## Observations/q;p' $R | grep -c "rest-api-core"        # line 4
+```
 
 #### Observed Result
 
@@ -92,18 +88,14 @@ its removal by #1938).
 
 #### Steps Performed
 
-1. Regenerate to a scratch file (stable Rust toolchain):
+Rerun on 2026-10-07 09:06 UTC (stable Rust toolchain, `rustc 1.99.0`), with `R` as in MV1.
+Every observed line is printed by one of these commands:
 
-   ```sh
-   cargo run -q -p workspace-coupling -- /tmp/test-report-2446.md
-   ```
-
-2. Diff the generated part (from the title to `## Observations`) of both files:
-
-   ```sh
-   diff <(sed -n '/^# Workspace Coupling Report/,/^## Observations/p' $R) \
-        <(sed -n '/^# Workspace Coupling Report/,/^## Observations/p' /tmp/test-report-2446.md)
-   ```
+```sh
+cargo run -q -p workspace-coupling -- /tmp/test-report-2446.md > /dev/null 2>&1; echo "tool exit=$?"
+diff <(sed -n '/^# Workspace Coupling Report/,/^## Observations/p' $R) \
+     <(sed -n '/^# Workspace Coupling Report/,/^## Observations/p' /tmp/test-report-2446.md)
+```
 
 #### Observed Result
 
@@ -112,7 +104,7 @@ tool exit=0
 3c3
 < Generated: 2026-10-06 16:35 UTC
 ---
-> Generated: 2026-10-06 16:47 UTC
+> Generated: 2026-10-07 09:06 UTC
 ```
 
 #### Conclusion
