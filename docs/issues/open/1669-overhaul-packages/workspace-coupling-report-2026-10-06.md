@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
-    - docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
+    - "issue #2446"
     - packages/
 ---
 
