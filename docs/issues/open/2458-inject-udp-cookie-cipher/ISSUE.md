@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-07 10:07"
+last-updated-utc: "2026-10-07 10:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,6 +22,10 @@ semantic-links:
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/udp-core/src/crypto/cookie_cipher.rs
+    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - docs/issues/open/2458-inject-udp-cookie-cipher/implementation-retrospective.md
+    - docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md
+    - docs/benchmarking.md
     - packages/udp-core/src/connection_cookie.rs
     - packages/udp-core/src/container.rs
     - packages/udp-core/src/lib.rs
@@ -303,7 +307,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7 | DONE | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
 | T8 | IN_PROGRESS | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
 | B3 | DONE | Record the performance after the fix (P2) | Same measurements as B2 on the finished code; comparison against the one-sided pass rule in `performance-evidence.md`. |
-| D1 | TODO | Update the benchmarking docs and add a benchmarking skill | `docs/benchmarking.md` and related docs updated with what this issue learned (for example the benchmark levels and tools, criteria for choosing one, how to record evidence, stale package names); a new skill under `.github/skills/dev/benchmarking/` that points to them. Done last. |
+| D1 | DONE | Update the benchmarking docs and add a benchmarking skill | `docs/benchmarking.md` and related docs updated with what this issue learned (for example the benchmark levels and tools, criteria for choosing one, how to record evidence, stale package names); a new skill under `.github/skills/dev/benchmarking/` that points to them. Done last. |
 
 ## Commit Points
 
@@ -335,11 +339,11 @@ Arrange-Act-Assert review.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -377,6 +381,7 @@ Arrange-Act-Assert review.
 - 2026-10-07 09:44 UTC - Copilot - T5: `UdpTrackerCoreServices` creates the one `Arc<CookieCipher>` and the container passes it to the connect, announce, and scrape services as a required constructor argument. R3 (two container collaboration tests) is green, and giving the announce or the scrape service its own key made the matching test red (evidence: "R3 - Shared Key Across the Container's Services"). Design change for the checkpoint: instead of exposing the key from the container to `udp-server`, `AnnounceService::authenticate` and `ScrapeService::authenticate` became public and the handlers' disabled-validation path calls them, so `udp-server` production code never holds the key; the ADR still describes the container exposing it. Because the constructors changed, the compiler required the `udp-server` test helpers and both benchmarks to change in this step: `udp-server` tests share one test-only key through `test_cookie_cipher`. That leaves T6 with no remaining wiring; only `initialize_static` still uses the transitional static, which T7 removes. **Design-review checkpoint reached; waiting for the maintainer.**
 - 2026-10-07 09:50 UTC - Copilot - The maintainer reviewed the code and approved the T4/T5 design, including the public `authenticate` methods and the shared test-only key in `udp-server` tests. The ADR was updated to match.
 - 2026-10-07 10:07 UTC - Copilot - T7: deleted `crypto::keys` and `crypto::ephemeral_instance_keys`, `check_seed()`, and `torrust_tracker_udp_core::initialize_static()` with its callers; corrected the `udp-server` crate docs (connection IDs described as a hash with a secret seed), the bootstrap docs, and `src/AGENTS.md`. A search found no consumer of the seed besides `check_seed()`. The `udp-core`, `udp-server`, `axum-rest-api-server`, and root-crate tests passed (503 tests). T8 so far: M1, M2b, and M3 done (evidence V2-V4); the forged connection ID is rejected by the running tracker and the test key cannot be named from a production build. B3: P2 measured after waiting for other sessions' compilations to finish; all four measurements meet the one-sided rule (load-test mean 154260.85 against a limit of 142155.29; `make`, `check`, and `connect_once` medians 44.77, 46.99, and 59.05 ns against 49.93, 48.30, and 59.10 ns). `linter all` passes. AC1-AC7 reviewed against the evidence and marked done; AC8 waits for D1. Remaining: D1, pre-push checks, and the completion review.
+- 2026-10-07 10:17 UTC - Copilot - D1: updated `docs/benchmarking.md` (benchmark levels and tools, choosing a benchmark, before-and-after evidence, checking that a benchmark measures something, and the `http-core` announce benchmark's defect (a future that is never awaited) as a known defect), added the `run-benchmarks` skill under `.github/skills/dev/benchmarking/`, fixed the stale package name in `run-benches.sh`, and added the nightly-only `compile_fail` error-code check to the `write-unit-test` skill, each in its own commit. AC8 done. Completion review: created `implementation-retrospective.md`. Remaining: the pre-push checks, which run on push, and the maintainer's review of the T8 evidence before the pull request.
 
 ## Acceptance Criteria
 
@@ -394,13 +399,13 @@ Arrange-Act-Assert review.
   round-trip property, pass with an explicit key.
 - [x] AC7: UDP performance is measured before (P1) and after (P2) the change on the same machine,
   and P2 meets the one-sided pass rule in Performance Considerations, with the observed noise stated.
-- [ ] AC8: The benchmarking documentation reflects what this issue learned, and a benchmarking skill
+- [x] AC8: The benchmarking documentation reflects what this issue learned, and a benchmarking skill
   under `.github/skills/dev/benchmarking/` points to it.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation (module docs, ADR) is updated
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation (module docs, ADR) is updated
 
 ## Verification Plan
 
@@ -449,7 +454,7 @@ for `cargo +nightly fmt --all -- --check`).
 | AC5 | DONE | M2a (V1, before), M2b (V3, after) |
 | AC6 | DONE | `connection_cookie` tests, including the pinned encoding, pass with the explicit fixed key |
 | AC7 | DONE | `performance-evidence.md` Comparison: all four measurements pass |
-| AC8 | TODO | Documentation and skill diff |
+| AC8 | DONE | `docs/benchmarking.md` (levels and tools, choosing a benchmark, before-and-after evidence, checking that a benchmark measures something, known defects) and `.github/skills/dev/benchmarking/run-benchmarks/SKILL.md` |
 
 ## Risks and Trade-offs
 
@@ -464,7 +469,7 @@ for `cargo +nightly fmt --all -- --check`).
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md), because the implementation changed the planned design (the key does not reach `udp-server`), left T6 empty, and produced reusable lessons (performance planning, `compile_fail` toolchains, broken benchmarks, evidence times).
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
   if the implementation invalidates assumptions here; otherwise add a progress-log entry saying why
   not.
