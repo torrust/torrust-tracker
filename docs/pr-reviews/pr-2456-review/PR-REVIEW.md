@@ -65,6 +65,7 @@ fix. Their severity is inferred from the prose ("One slip").
 | F9 | `review-finding:pr-2456-f9` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2456-f10` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2456-f11` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2456-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2456-f13` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2456-f14` | Human | Nit (inferred) | documentation | RE_RAISE_OF:F13 | NO_ACTION | NON_RESOLVABLE |
 
@@ -250,6 +251,23 @@ fix. Their severity is inferred from the prose ("One slip").
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4204765413>
 
+### F12 - The audit denied the review-body assertions
+
+- PR number: 2456
+- Source review ID: 5439927916
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4204950973>
+- Concern: The Findings intro said neither review body adds an assertion beyond its inline
+  threads, but review 5431651745's body asked for the PR-body crate count fix, and review
+  5438683477's body repeated it; the skill requires a row for each.
+- Solution: Corrected the sentence and added F13 and F14. The skill and template now name the
+  resolution reference for a fix outside the tree.
+- Current-tree verification: the Findings intro and the F13 and F14 rows;
+  `validate-audit-record.py --pr-number 2456` reports 0 failures.
+- Resolution reference: `docs(pr-reviews): record the review-body findings of #2456`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4205665766>
+
 ### F13 - The PR body miscounted the crates
 
 - PR number: 2456
@@ -302,6 +320,8 @@ fix. Their severity is inferred from the prose ("One slip").
 - 2026-10-07 10:08 UTC - Committed the `process-pr-review` rule for citing fixes outside the
   tree, approved by the maintainer.
 - 2026-10-07 10:09 UTC - Corrected the review-body sentence and added F13 and F14.
+- 2026-10-07 10:13 UTC - Rebased onto `develop` and pushed; pre-push passed. Replied to F12;
+  recorded its reply URL and added its row.
 
 ## Completion Rules
 
