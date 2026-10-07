@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
-last-updated-utc: 2026-10-06 16:47
+last-updated-utc: 2026-10-07 08:32
 ---
 
-<!-- cspell:ignore cdir isdir listdir startswith -->
+<!-- cspell:ignore cdir finditer isdir listdir startswith -->
 
 # Manual Verification Evidence
 
@@ -129,28 +129,88 @@ section are outside the compared range by design.
 
 #### Steps Performed
 
-1. Generate the expected edge list from `cargo metadata --no-deps`: for each `torrust*`
-   package, every dependency with `kind == null` whose name starts with `torrust`, mapped to
-   the diagram's node IDs. Count the edges:
+Rerun on 2026-10-07 08:32 UTC on the same head, after the layer-placement fix, with a single
+self-contained script (stable Rust toolchain, `rustc 1.99.0`). It builds the expected edge set
+from `cargo metadata --no-deps` (for each `torrust*` package, every dependency with
+`kind == null` whose name starts with `torrust`, mapped to the diagram's node IDs), extracts the
+diagram's edges, excluding `server-lib --> net-prim` (an edge between two external crates, drawn
+for context), and compares the two sets:
 
-   ```sh
-   cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys;p=json.load(sys.stdin)["packages"];print(sum(1 for x in p if x["name"].startswith("torrust") for d in x["dependencies"] if d["kind"] is None and d["name"].startswith("torrust")))'
-   ```
+```python
+import json
+import re
+import subprocess
 
-2. Extract the diagram's edges, excluding `server-lib --> net-prim` (an edge between two
-   external crates, drawn for context), and diff them with the expected list:
+NODE = {
+    "torrust-tracker": "tracker",
+    "torrust-tracker-axum-http-server": "axum-http",
+    "torrust-tracker-axum-rest-api-server": "axum-rest",
+    "torrust-tracker-axum-health-check-api-server": "axum-health",
+    "torrust-tracker-udp-server": "udp-srv",
+    "torrust-tracker-axum-server": "axum-base",
+    "torrust-tracker-core": "tracker-core",
+    "torrust-tracker-http-core": "http-core",
+    "torrust-tracker-udp-core": "udp-core",
+    "torrust-tracker-rest-api-application": "rest-app",
+    "torrust-tracker-rest-api-runtime-adapter": "rest-adapter",
+    "torrust-tracker-http-protocol": "http-proto",
+    "torrust-tracker-udp-protocol": "udp-proto",
+    "torrust-tracker-rest-api-protocol": "rest-proto",
+    "torrust-tracker-swarm-coordination-registry": "swarm",
+    "torrust-tracker-configuration": "config",
+    "torrust-tracker-primitives": "primitives",
+    "torrust-tracker-events": "events",
+    "torrust-tracker-client-lib": "client-lib",
+    "torrust-tracker-client": "tracker-client",
+    "torrust-tracker-rest-api-client": "rest-client",
+    "torrust-tracker-test-helpers": "test-helpers",
+    "torrust-tracker-torrent-repository-benchmarking": "torrent-bench",
+    "torrust-tracker-persistence-benchmark": "persist-bench",
+    "torrust-tracker-e2e-tools": "e2e-tools",
+    "torrust-clock": "clock",
+    "torrust-info-hash": "info-hash",
+    "torrust-located-error": "located-err",
+    "torrust-metrics": "metrics",
+    "torrust-net-primitives": "net-prim",
+    "torrust-peer-id": "peer-id",
+    "torrust-bencode": "bencode",
+    "torrust-server-lib": "server-lib",
+}
 
-   ```sh
-   D=docs/media/packages/dependencies-workspace-packages.md
-   grep -oE "^    [a-z0-9-]+ --> [a-z0-9-]+$" $D | sed 's/^ *//' | grep -v "^server-lib --> " | sort
-   ```
+metadata = json.loads(
+    subprocess.run(
+        ["cargo", "metadata", "--no-deps", "--format-version", "1"],
+        capture_output=True, check=True, text=True,
+    ).stdout
+)
+expected = {
+    f"{NODE[p['name']]} --> {NODE[d['name']]}"
+    for p in metadata["packages"]
+    if p["name"].startswith("torrust")
+    for d in p["dependencies"]
+    if d["kind"] is None and d["name"].startswith("torrust")
+}
+
+diagram = open("docs/media/packages/dependencies-workspace-packages.md").read()
+drawn = {
+    m.group(1)
+    for m in re.finditer(r"^    ([a-z0-9-]+ --> [a-z0-9-]+)$", diagram, re.M)
+    if not m.group(1).startswith("server-lib --> ")
+}
+
+print("expected edges:", len(expected))
+print("drawn edges:", len(drawn))
+print("missing from diagram:", sorted(expected - drawn))
+print("extra in diagram:", sorted(drawn - expected))
+```
 
 #### Observed Result
 
 ```text
-153
-153
-identical
+expected edges: 153
+drawn edges: 153
+missing from diagram: []
+extra in diagram: []
 ```
 
 #### Conclusion
