@@ -113,7 +113,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 | --- | --- | --- | --- | --- |
 | 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
 | 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
-| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for the effort (A1); deferred until after the next major release |
+| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after the next major release |
 
 ## Delivery Strategy
 
