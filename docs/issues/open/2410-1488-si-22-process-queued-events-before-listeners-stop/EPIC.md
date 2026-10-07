@@ -41,7 +41,7 @@ semantic-links:
 
 Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
 
-> **EPIC position**: Roadmap sequence 14 (SI-22). A bug found on 2026-10-01
+> **EPIC position**: Roadmap sequence 15 (SI-22). A bug found on 2026-10-01
 > while refreshing SI-16. It follows SI-17 so the fix lands in the application
 > and both migrated test environments at once, and precedes SI-20 because it
 > can lose persisted data.

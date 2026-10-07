@@ -31,7 +31,7 @@ semantic-links:
 
 # Draft SI-18 — Deprecate Legacy Shutdown API
 
-> **EPIC position**: Roadmap step 17. Compatibility-preserving deprecation after
+> **EPIC position**: Roadmap step 18. Compatibility-preserving deprecation after
 > every supported in-workspace and standalone consumer uses token lifecycle APIs.
 
 ## Goal

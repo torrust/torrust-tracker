@@ -35,7 +35,7 @@ semantic-links:
 
 Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
 
-> **EPIC position**: Roadmap sequence 15 (SI-23). Found while refreshing SI-17
+> **EPIC position**: Roadmap sequence 16 (SI-23). Found while refreshing SI-17
 > (2026-10-06): no roadmap item migrated this environment, and SI-18 and SI-19
 > cannot deprecate or remove the legacy path while it depends on it.
 

@@ -33,7 +33,7 @@ semantic-links:
 
 # Draft SI-19 — Remove Legacy Shutdown API and Library OS Signals
 
-> **EPIC position**: Roadmap step 18. Breaking removal after all declared
+> **EPIC position**: Roadmap step 19. Breaking removal after all declared
 > compatibility, migration, deprecation, and release gates have been satisfied.
 
 ## Goal
