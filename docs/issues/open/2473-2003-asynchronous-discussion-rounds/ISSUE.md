@@ -9,7 +9,7 @@ github-issue: 2473
 spec-path: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
 branch: "2473-asynchronous-discussion-rounds-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 16:15"
+last-updated-utc: "2026-10-07 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,6 +185,9 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - 2026-10-07 16:15 UTC - AI assistant (Copilot SDK in VS Code) - The maintainer approved the
   specification; created issue #2473, linked it under EPIC #2003, and moved the specification to
   `docs/issues/open/` for a spec-only pull request.
+- 2026-10-07 16:40 UTC - AI assistant (Copilot SDK in VS Code) - Reordered the manual scenarios so the scratch
+  discussion from M1 is kept for M2 and deleted only after V2 is recorded
+  (`review-finding:pr-2474-f1`).
 
 ## Acceptance Criteria
 
@@ -220,10 +223,10 @@ No Rust code changes, so no tests are added or required.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Human-oriented command/steps                                                                                                                                                                                                   | Expected Result                                                                                                   | Status | Evidence                                     |
-| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Open a discussion from the template    | Following only `docs/discussions/AGENTS.md`, copy the template into a scratch discussion folder, fill two topics, and run `linter markdown`, `linter cspell`, and `linter lychee`; then delete the scratch folder.              | The instructions suffice without other sources; linters exit 0.                                                   | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Simulate a contribution and a decision | In the scratch discussion, add a second participant's entries under both topics and an Outcome citing one entry per topic; ask a reader who did not write it to answer "who held which position on `Q1`, and in which PR?". | The answer comes from the `Q1` section alone; no entry was edited by another participant; linters exit 0.          | TODO   | `manual-verification-evidence.md` section V2 |
+| ID | Scenario                               | Human-oriented command/steps                                                                                                                                                                                                                                               | Expected Result                                                                                           | Status | Evidence                                     |
+| -- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1 | Open a discussion from the template    | Following only `docs/discussions/AGENTS.md`, copy the template into a scratch discussion folder, fill two topics, and run `linter markdown`, `linter cspell`, and `linter lychee`. Keep the scratch folder for M2.                                                         | The instructions suffice without other sources; linters exit 0.                                           | TODO   | `manual-verification-evidence.md` section V1 |
+| M2 | Simulate a contribution and a decision | In the scratch discussion, add a second participant's entries under both topics and an Outcome citing one entry per topic; ask a reader who did not write it to answer "who held which position on `Q1`, and in which PR?". After recording V2, delete the scratch folder. | The answer comes from the `Q1` section alone; no entry was edited by another participant; linters exit 0. | TODO   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
