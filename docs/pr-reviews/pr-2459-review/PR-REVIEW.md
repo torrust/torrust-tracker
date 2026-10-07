@@ -54,12 +54,20 @@ F1 at the bytes and leaves it under that finding; it adds no other actionable as
 F4 changed only the PR title, which is not a repository artifact, so it is `NO_ACTION` with the
 reply URL as its reference, as in the PR #2363 record.
 
+da2ce7 review 5433631723 (round 2, approval at the first fix head, later dismissed by a push)
+found nothing new. da2ce7 review 5434121120 (round 3, CHANGES_REQUESTED, 20:20 UTC) left two inline
+findings on this record, numbered F4 and F5 in the reviewer's series; F4 is taken, so they become
+F5 and F6. F5 needed only the thread resolution, so like F4 it is `NO_ACTION` with its reply URL.
+da2ce7 review 5434318741 (round 4, APPROVED, 20:39 UTC) found nothing new.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2459-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2459-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2459-f3` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2459-f4` | Human | Nit | metadata | ORIGINAL | NO_ACTION | RESOLVED |
+| F5 | `review-finding:pr-2459-f5` | Human | Minor | metadata | ORIGINAL | NO_ACTION | RESOLVED |
+| F6 | `review-finding:pr-2459-f6` | Human | Minor | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -130,6 +138,36 @@ reply URL as its reference, as in the PR #2363 record.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4199215559>
 
+### F5 - F1's `Thread state` said `RESOLVED` before Copilot's thread was resolved
+
+- PR number: 2459
+- Source review ID: 5434121120
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4200046641>
+- Concern: at the round-3 capture, Copilot's thread was still unresolved, so the F1 row recorded a
+  state that had not happened yet.
+- Solution: resolve the thread; the reply guard before resolving had found rounds 2 and 3, so
+  they were read first. No commit was needed.
+- Current-tree verification: GraphQL shows Copilot's thread resolved (20:25:02 UTC).
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4203606180>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4203606180>
+
+### F6 - The Status Values and Completion Rules blocks are not the template's verbatim text
+
+- PR number: 2459
+- Source review ID: 5434121120
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4200046652>
+- Concern: the record dropped template sentences and bullets that the template says to copy
+  verbatim, including the ones that govern the `NO_ACTION` rows.
+- Solution: copy both blocks from `docs/templates/PR-REVIEW-TEMPLATE.md` unchanged.
+- Current-tree verification: `diff` against the template shows Completion Rules identical and
+  Status Values differing only by the template's guidance comment.
+- Resolution reference: `docs(pr-reviews): restore the template status and completion blocks in the #2459 record`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2459#discussion_r4203606338>
+
 ## Processing Log
 
 - 2026-10-06 18:12 UTC - Fetched Copilot review 5431636272 and da2ce7 review 5431735067 (four
@@ -140,6 +178,13 @@ reply URL as its reference, as in the PR #2363 record.
   (F4); replied on all four threads (18:48:50-18:48:55).
 - 2026-10-06 19:33 UTC - Recorded this audit and ran the validator (0 failures); the threads are
   resolved after it is pushed.
+- 2026-10-07 06:02 UTC - Late entry for 2026-10-06. After pushing this record, the reply guard
+  found rounds 2 (approval, dismissed by the push; no findings) and 3 (F5, F6). Resolved Copilot's
+  thread (20:25:02, F5); committed the F6 fix; rebased onto `develop` (5 commits behind);
+  force-pushed (20:31:50). A combined command then ran the reply guard and posted the two round-3
+  replies without stopping on its output, which already listed round 4 (APPROVED, 20:39:52, no
+  findings); the replies landed at 06:00:56-06:00:57 on 2026-10-07, after that approval. da2ce7
+  had resolved both round-3 threads himself.
 
 ## Completion Rules
 
