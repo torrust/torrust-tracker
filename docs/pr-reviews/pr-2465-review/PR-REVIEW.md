@@ -57,8 +57,8 @@ found nothing new.
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2465-f1` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2465-f2` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F3 | `review-finding:pr-2465-f3` | Human | Suggestion | documentation | RE_RAISE_OF:F1 | SUPERSEDED | RESOLVED |
-| F4 | `review-finding:pr-2465-f4` | Human | Minor | correctness | RE_RAISE_OF:F2 | SUPERSEDED | RESOLVED |
+| F3 | `review-finding:pr-2465-f3` | Human | Suggestion | documentation | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F4 | `review-finding:pr-2465-f4` | Human | Minor | correctness | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -103,9 +103,9 @@ found nothing new.
 - Reviewer finding ID: F2
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205054974>
 - Concern: the same stale "as of 2026-10-02" lead-in as F1.
-- Solution: none beyond F1; its fix commit resolves this finding too.
+- Solution: no change of its own; the F1 fix covers it.
 - Current-tree verification: same as F1.
-- Resolution reference: `docs(issues): refresh EPIC #1488 status snapshot date`
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205276688>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205276688>
 
@@ -117,9 +117,9 @@ found nothing new.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205192350>
 - Concern: the same misstated #2459 review history as F2, re-raised at the F1 fix head, where
   the line was still unchanged.
-- Solution: none beyond F2; its fix commit, pushed after this re-raise, resolves it too.
+- Solution: no change of its own; the F2 fix, pushed after this re-raise, covers it.
 - Current-tree verification: same as F2; da2ce7 round 3 confirmed the new line at the bytes.
-- Resolution reference: `docs(issues): [#2448] correct the archive entry's #2459 review history`
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205454707>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2465#discussion_r4205454707>
 
