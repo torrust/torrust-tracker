@@ -29,8 +29,8 @@ main()
       ├─ bootstrap::app::setup(explicit_config_toml_path)
       │    ├─ bootstrap::config::initialize_configuration()   ← explicit path / TOML / env vars
       │    ├─ configuration.validate()                        ← returns typed startup errors
-       │    ├─ initialize_global_services()                    ← logging, crypto seed
-       │    └─ AppContainer::initialize(&configuration)        ← builds all containers
+       │    ├─ initialize_global_services()                    ← logging, clock
+       │    └─ AppContainer::initialize(&configuration)        ← builds all containers and the UDP cookie key
        │
        └─ app::start(&config, &app_container)
             ├─ load_data_from_database()                       ← peer keys, whitelist, metrics
