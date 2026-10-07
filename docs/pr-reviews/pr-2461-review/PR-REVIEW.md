@@ -78,6 +78,10 @@ that carried only this audit's first version. Its four inline findings use the I
 which collide with this audit, so they take `F18` to `F21` in source order. Its body re-checks
 earlier findings and adds no other assertion.
 
+Human review 5433841871 by `da2ce7` (`APPROVED`, 19:53 UTC) re-checked every earlier finding as
+fixed. It raised one non-blocking Nit, `F16`, which collides with this audit and takes `F22`. Its
+body adds no other assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F8 | `review-finding:pr-2460-f8` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -101,6 +105,7 @@ earlier findings and adds no other assertion.
 | F19 | `review-finding:pr-2461-f19` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2461-f20` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | `review-finding:pr-2461-f21` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2461-f22` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -457,6 +462,21 @@ earlier findings and adds no other assertion.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199034887>
 
+### F22 - The evidence file's timestamp lagged its last edit
+
+- PR number: 2461
+- Source review ID: 5433841871
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4199807888>
+- Concern: The evidence file's `last-updated-utc` still read 17:06 after edits at 18:17 and 18:26.
+- Solution: Set it to the time of the last edit.
+- Current-tree verification: The evidence frontmatter reads `last-updated-utc: "2026-10-06 18:26"`.
+  `git log -1` on the file before this fix showed its last edit at 18:26 UTC
+  (`docs(issues): make the #2458 alias diff hunk self-consistent`).
+- Resolution reference: `docs(issues): update the #2458 evidence timestamp`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2461#discussion_r4204500977>
+
 ## Processing Log
 
 - 2026-10-06 16:54 UTC - Started audit at the maintainer's request. Fetched all threads of PR #2460
@@ -489,6 +509,9 @@ earlier findings and adds no other assertion.
 - 2026-10-06 18:26 UTC - Committed the F21 and F19 fixes (through 18:27 UTC), pushed after the pre-push checks passed,
   and rewrote the PR body for F20.
 - 2026-10-06 18:29 UTC - Replied to the four threads; recorded reply URLs.
+- 2026-10-07 08:01 UTC - Found approving review 5433841871 (`da2ce7`) with one Nit, F22. Fixed
+  it, rebased onto `develop` `604b26c6c` (range-diff: 22 unchanged commits), pushed after the
+  pre-push checks passed, and replied.
 
 ## Completion Rules
 
