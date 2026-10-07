@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-07 10:17"
+last-updated-utc: "2026-10-07 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -246,9 +246,11 @@ guard the bug.
   is possible
   because the key type does not exist yet. Substitute: temporarily derive `Debug` and record the
   failure.
-- Existing cookie tests (`connection_cookie.rs`, including the round-trip `quickcheck` property and
-  the pinned-encoding test, which will now pin the encoding for the explicit fixed test key) keep
-  passing with the key passed explicitly.
+- Existing cookie tests (`connection_cookie.rs`, including the make-then-check round trip
+  `it_should_validate_a_valid_cookie` and the pinned-encoding test, which will now pin the encoding
+  for the explicit fixed test key) keep passing with the key passed explicitly. Correction: this
+  line first cited a round-trip `quickcheck` property; that property exists only on the #1348
+  branch, not on `develop`.
 
 ## Performance Considerations
 
@@ -344,8 +346,8 @@ Arrange-Act-Assert review.
 - [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
@@ -382,6 +384,7 @@ Arrange-Act-Assert review.
 - 2026-10-07 09:50 UTC - Copilot - The maintainer reviewed the code and approved the T4/T5 design, including the public `authenticate` methods and the shared test-only key in `udp-server` tests. The ADR was updated to match.
 - 2026-10-07 10:07 UTC - Copilot - T7: deleted `crypto::keys` and `crypto::ephemeral_instance_keys`, `check_seed()`, and `torrust_tracker_udp_core::initialize_static()` with its callers; corrected the `udp-server` crate docs (connection IDs described as a hash with a secret seed), the bootstrap docs, and `src/AGENTS.md`. A search found no consumer of the seed besides `check_seed()`. The `udp-core`, `udp-server`, `axum-rest-api-server`, and root-crate tests passed (503 tests). T8 so far: M1, M2b, and M3 done (evidence V2-V4); the forged connection ID is rejected by the running tracker and the test key cannot be named from a production build. B3: P2 measured after waiting for other sessions' compilations to finish; all four measurements meet the one-sided rule (load-test mean 154260.85 against a limit of 142155.29; `make`, `check`, and `connect_once` medians 44.77, 46.99, and 59.05 ns against 49.93, 48.30, and 59.10 ns). `linter all` passes. AC1-AC7 reviewed against the evidence and marked done; AC8 waits for D1. Remaining: D1, pre-push checks, and the completion review.
 - 2026-10-07 10:17 UTC - Copilot - D1: updated `docs/benchmarking.md` (benchmark levels and tools, choosing a benchmark, before-and-after evidence, checking that a benchmark measures something, and the `http-core` announce benchmark's defect (a future that is never awaited) as a known defect), added the `run-benchmarks` skill under `.github/skills/dev/benchmarking/`, fixed the stale package name in `run-benches.sh`, and added the nightly-only `compile_fail` error-code check to the `write-unit-test` skill, each in its own commit. AC8 done. Completion review: created `implementation-retrospective.md`. Remaining: the pre-push checks, which run on push, and the maintainer's review of the T8 evidence before the pull request.
+- 2026-10-07 10:25 UTC - Copilot - Independent Task Reviewer: REVIEW PASSED, AC1-AC8 pass, no blockers (report: `agent-review-reports.md`). Applied should-fix S1 (AC6 and the Regression Test Strategy cited a round-trip `quickcheck` property that exists only on the #1348 branch; they now cite `it_should_validate_a_valid_cookie`) and nit N3 (removed the template instruction left in Implementation Completion Review). Nit N1 (wiping the raw 32-byte key array in `random()`) is left for the maintainer, because it needs a direct `zeroize` dependency; N2, N4, and N5 need no action. The maintainer chose to review on GitHub.
 
 ## Acceptance Criteria
 
@@ -396,7 +399,7 @@ Arrange-Act-Assert review.
   in the progress log.
 - [x] AC5: The reproduction from Bug-Fix Process step 2 is repeated after the fix and recorded.
 - [x] AC6: Cookie format and behavior are unchanged: existing cookie tests, including the
-  round-trip property, pass with an explicit key.
+  make-then-check round trip, pass with an explicit key.
 - [x] AC7: UDP performance is measured before (P1) and after (P2) the change on the same machine,
   and P2 meets the one-sided pass rule in Performance Considerations, with the observed noise stated.
 - [x] AC8: The benchmarking documentation reflects what this issue learned, and a benchmarking skill
@@ -452,7 +455,7 @@ for `cargo +nightly fmt --all -- --check`).
 | AC3 | DONE | R4, M3; `make`, `check`, `encode`, and `decode` skip the key |
 | AC4 | DONE | T7 commit: `crypto::keys` and `crypto::ephemeral_instance_keys` deleted, `check_seed()` and `initialize_static()` removed; no survivors |
 | AC5 | DONE | M2a (V1, before), M2b (V3, after) |
-| AC6 | DONE | `connection_cookie` tests, including the pinned encoding, pass with the explicit fixed key |
+| AC6 | DONE | `connection_cookie` tests, including the pinned encoding (`it_should_make_a_connection_cookie`) and the round trip (`it_should_validate_a_valid_cookie`), pass with the explicit fixed key |
 | AC7 | DONE | `performance-evidence.md` Comparison: all four measurements pass |
 | AC8 | DONE | `docs/benchmarking.md` (levels and tools, choosing a benchmark, before-and-after evidence, checking that a benchmark measures something, known defects) and `.github/skills/dev/benchmarking/run-benchmarks/SKILL.md` |
 
@@ -470,9 +473,6 @@ for `cargo +nightly fmt --all -- --check`).
 ## Implementation Completion Review
 
 - Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md), because the implementation changed the planned design (the key does not reach `udp-server`), left T6 empty, and produced reusable lessons (performance planning, `compile_fail` toolchains, broken benchmarks, evidence times).
-- Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
-  if the implementation invalidates assumptions here; otherwise add a progress-log entry saying why
-  not.
 
 ## References
 
