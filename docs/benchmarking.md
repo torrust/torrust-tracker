@@ -5,20 +5,115 @@ semantic-links:
   related-artifacts:
     - docs/index.md
     - docs/profiling.md
-    - issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
+    - docs/testing.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
+    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - packages/udp-core/benches/
+    - packages/udp-server/benches/
+    - packages/http-core/benches/
     - packages/torrent-repository-benchmarking/
+    - packages/persistence-benchmark/
     - packages/swarm-coordination-registry/examples/bench_peers.rs
+    - contrib/dev-tools/benches/run-benches.sh
+    - contrib/dev-tools/workflow-benchmarks/
     - share/default/config/tracker.udp.benchmarking.toml
 ---
 
 # Benchmarking
 
-We have several types of benchmarking:
+Benchmarks measure performance under a defined workload. They complement the correctness tests
+described in [Testing Strategy](testing.md); use [profiling](profiling.md) to find where a workload
+spends its time.
 
-- **E2E UDP load testing** — using `aquatic_udp_load_test` against the running tracker.
-- **Comparative UDP benchmarking** — using `aquatic_bencher` to compare multiple trackers on the same machine.
-- **Repository microbenchmarks** — using `cargo bench` for internal data structure performance.
-- **Peer retrieval microbenchmarks** — measuring the `peers_excluding` path directly.
+## Benchmark Levels and Tools
+
+| Level                         | Tool and location                                                                                                                                                                    | Measures                                                               | Does not measure             | Run it with                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Function microbenchmark       | Criterion, `packages/udp-core/benches/connection_cookie_benchmark.rs`                                                                                                                | One `connection_cookie::make` or `check` call                          | Request handling, I/O        | `cargo bench -p torrust-tracker-udp-core --bench connection_cookie_benchmark`                               |
+| Service microbenchmark        | Criterion, `packages/udp-core/benches/udp_tracker_core_benchmark.rs`                                                                                                                 | One awaited `ConnectService::handle_connect`, events disabled          | Socket I/O, events           | `cargo bench -p torrust-tracker-udp-core --bench udp_tracker_core_benchmark`                                |
+| Service microbenchmark        | Criterion, `packages/udp-core/benches/ban_service_benchmark.rs` ([guide](../packages/udp-core/docs/benchmarking/banning.md))                                                         | `BanService` counter operations                                        | Socket I/O, lock contention  | `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark`                                     |
+| Handler microbenchmark        | Criterion, `packages/udp-server/benches/udp_tracker_server_benchmark.rs`                                                                                                             | One `handle_scrape` of 74 torrents                                     | Socket I/O, the receive loop | `cargo bench -p torrust-tracker-udp-server`                                                                 |
+| Handler microbenchmark        | Criterion, `packages/http-core/benches/http_tracker_core_benchmark.rs`                                                                                                               | Intended: HTTP announce handling. See [Known Defects](#known-defects). | Everything, today            | `cargo bench -p torrust-tracker-http-core`                                                                  |
+| Data-structure microbenchmark | Criterion, `packages/torrent-repository-benchmarking/`                                                                                                                               | Torrent repository implementations                                     | The tracker's other layers   | `cargo bench -p torrust-tracker-torrent-repository-benchmarking`                                            |
+| Example-based microbenchmark  | `packages/swarm-coordination-registry/examples/bench_peers.rs`                                                                                                                       | `Coordinator::peers_excluding`                                         | Serialization, I/O           | `cargo run -p torrust-tracker-swarm-coordination-registry --example bench_peers --release`                  |
+| Persistence benchmark         | `packages/persistence-benchmark/` ([README](../packages/persistence-benchmark/README.md)); reports in `packages/tracker-core/docs/benchmarking/`; CI workflow `db-benchmarking.yaml` | Database driver operations                                             | In-memory tracker paths      | `cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3` |
+| End-to-end load test          | `aquatic_udp_load_test` against a release build ([E2E UDP load testing](#e2e-udp-load-testing))                                                                                      | UDP responses per second through the real socket                       | Which function costs what    | See the section below                                                                                       |
+| Comparative benchmark         | `aquatic_bencher` ([section](#comparative-udp-benchmarking-with-aquatic_bencher))                                                                                                    | Throughput against other trackers                                      | Small regressions            | See the section below                                                                                       |
+| Workflow timing               | `contrib/dev-tools/workflow-benchmarks/`                                                                                                                                             | CI-equivalent step durations                                           | Tracker performance          | The scripts' usage comments                                                                                 |
+
+`contrib/dev-tools/benches/run-benches.sh` runs the Criterion benchmarks of several packages in one
+go for local exploration.
+
+## Choosing a Benchmark
+
+Pick the lowest level that measures the code you change, and add an end-to-end measurement when
+users would notice the change:
+
+- **A function or service on the request path** (for example connection IDs, announce, or scrape
+  handling): a Criterion microbenchmark of that code, plus the end-to-end UDP load test for
+  user-visible throughput. If no microbenchmark covers the code, add one in its own commit before
+  changing production code, so the baseline can use it.
+- **The in-memory torrent repository or swarm code:** the repository benchmarks or `bench_peers`.
+- **The persistence layer or a database driver:** the persistence benchmark.
+- **CI or workflow duration:** the workflow timing scripts.
+- **Comparing with other trackers:** `aquatic_bencher`. It is not precise enough to detect
+  regressions.
+- **Finding out why something is slow:** [profiling](profiling.md), not a benchmark.
+
+A microbenchmark is precise but says nothing about the whole request; the load test is
+user-visible but noisy (expect about ±5–10% between runs on a desktop). Use both when a change
+touches the hot path.
+
+## Recording Before-and-After Evidence
+
+When an issue changes performance-critical code, measure it before and after:
+
+1. **Plan it in the issue specification:** the instruments, the measurements, and a one-sided pass
+   rule, for example "the after mean is not below the lowest baseline run" and "each after
+   Criterion median is not above the highest baseline median". A two-sided band fails on an
+   improvement.
+2. **Record the baseline before any production change**, on the code the branch starts from plus
+   only documentation and benchmark-only commits.
+3. **Repeat the measurement after the change** on the same machine, with the same build profile,
+   configuration, and load-test settings. Change benchmark code only as far as new signatures
+   require.
+4. **Run each instrument several times:** for example three Criterion runs, reading each benchmark's
+   median from `target/criterion/<group>/<function>/new/estimates.json` (the group's `/` becomes
+   `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh
+   tracker.
+5. **Check the machine first.** On a shared desktop, run `uptime` and look for other builds; wait
+   until the load is close to the baseline's before measuring.
+6. **Record everything in issue-local `performance-evidence.md`:** machine, toolchain, commands,
+   configuration, every run, the observed noise, and times taken from output files or `git log`,
+   not from memory.
+
+Worked examples: issue #2458
+([`performance-evidence.md`](issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md)),
+issue #2342, and issue #2314.
+
+## Checking That a Benchmark Measures Something
+
+A benchmark can pass while measuring nothing. Before trusting one, compare its result with a cost
+you know: for example, one Blowfish block encryption takes tens of nanoseconds, so a connect
+benchmark reporting 3.5 ns cannot be encrypting.
+
+The common cause is an `async fn` passed to Criterion's `b.iter`: the closure returns a future that
+is never polled, so only the creation of the future is timed. Build the service once, outside the
+measured closure, and await it on a runtime:
+
+```rust
+let runtime = tokio::runtime::Runtime::new().expect("it should build a Tokio runtime");
+group.bench_function("connect_once", |b| {
+    b.to_async(&runtime).iter(|| context.connect_once());
+});
+```
+
+### Known Defects
+
+- `http_tracker_core_benchmark` (`packages/http-core/benches/`) passes the `async fn`
+  `sync::return_announce_data_once` to `b.iter` without awaiting it, and the runtime it builds is
+  unused, so it measures only the creation of a future. Its results are not meaningful until it is
+  fixed the same way.
 
 > For a detailed step-by-step guide with full command output and troubleshooting, see the
 > [Aquatic Benchmarking Guide](issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md)
@@ -137,7 +232,7 @@ Average responses per second: 171718.89
 ```
 
 > **Important**: The performance of the Torrust UDP tracker is **drastically decreased**
-> with verbose logging. Always use `threshold = "error"` for benchmarking.
+> with verbose logging. Always use `trace_filter = "error"` for benchmarking.
 
 ```text
 # With log threshold "info":
@@ -228,7 +323,7 @@ for more data.
 Tests the different implementations for the internal torrent storage.
 
 ```console
-cargo bench -p torrust-tracker-torrent-repository
+cargo bench -p torrust-tracker-torrent-repository-benchmarking
 ```
 
 Example output:
@@ -284,7 +379,7 @@ Source: `packages/swarm-coordination-registry/examples/bench_peers.rs`.
 
 - **Port convention**: The benchmarking config (`tracker.udp.benchmarking.toml`) binds to
   port **3000**, which matches the `aquatic_udp_load_test` default. No port change needed.
-- **Log level**: Always use `threshold = "error"` for benchmarking. Verbose logging
+- **Log level**: Always use `trace_filter = "error"` for benchmarking. Verbose logging
   (`info`, `debug`, `trace`) reduces throughput by ~10×.
 - **Workers**: The default UDP load test uses 1 worker. Increase for higher load:
   increase both `workers` in the config and add more CPU cores to the tracker.
