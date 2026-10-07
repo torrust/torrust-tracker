@@ -138,11 +138,32 @@ impl UdpTrackerCoreContainer {
 
 /// The UDP tracker core services shared by every UDP tracker instance built
 /// from them.
+///
+/// The connection-cookie key stays inside this crate: code that holds these
+/// services, such as the application container, cannot read it.
+///
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_udp_core::container::UdpTrackerCoreServices;
+///
+/// fn key_of(services: &UdpTrackerCoreServices) {
+///     let _key = services.cookie_cipher.clone();
+/// }
+/// ```
+///
+/// The other services are public:
+///
+/// ```rust
+/// use torrust_tracker_udp_core::container::UdpTrackerCoreServices;
+///
+/// fn event_bus_of(services: &UdpTrackerCoreServices) {
+///     let _event_bus = services.event_bus.clone();
+/// }
+/// ```
 pub struct UdpTrackerCoreServices {
     /// The connection-cookie key. It is created here, once per set of
     /// services, so every connect, announce, and scrape service built from
     /// these services issues and accepts the same connection IDs.
-    pub cookie_cipher: Arc<CookieCipher>,
+    pub(crate) cookie_cipher: Arc<CookieCipher>,
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
