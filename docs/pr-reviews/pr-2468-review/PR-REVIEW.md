@@ -267,6 +267,7 @@ and F15, with the reviewer's IDs in each detail entry.
 - 2026-10-07 09:46 UTC - Copilot review 5440515841 submitted findings F5, F6, F9, and F10.
 - 2026-10-07 09:56 UTC - Human review 5440619059 (da2ce7, round 1) requested changes with eleven findings, recorded as F1-F4, F7, F8, F11, and F12-F15.
 - 2026-10-07 10:49 UTC - Reproduced the defect for F1, fixed the other findings in four commits, edited the #1978 issue body for F5, rebased onto `develop` (9 commits behind), pushed after the pre-push suite passed, and replied to all fifteen threads. Copilot's overview remark that the `interval_min` bound lacks protocol justification has no inline thread; it was raised with the maintainer as an open specification question instead of being recorded as a finding.
+- 2026-10-07 13:12 UTC - The maintainer kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min`. Decision 2 states that reason in `docs(issues): [#2466] justify the shared interval_min type by meaning, not protocol`; the #2466 issue body was updated to match.
 
 ## Completion Rules
 
