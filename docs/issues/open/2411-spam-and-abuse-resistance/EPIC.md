@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 10:04"
+last-updated-utc: "2026-10-07 12:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -113,7 +113,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 | --- | --- | --- | --- | --- |
 | 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
 | 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
-| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after the next major release |
+| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after v4.0.0 |
 
 ## Delivery Strategy
 
@@ -158,6 +158,9 @@ Each control bounds one cost locally; none bounds aggregate work across requests
   the reviewed inventory (PR #2438 review) and marked AC1 done. Rate limiting
   (A1) has the highest impact for its effort, but it is deferred until after
   the next major release, which is the current focus.
+- 2026-10-07 12:55 UTC - GitHub Copilot - Named v4.0.0 as the release the
+  rate-limiting deferral waits for, so the sub-issue row stays true after
+  that release ships (PR #2469 review).
 
 ## Acceptance Criteria
 
