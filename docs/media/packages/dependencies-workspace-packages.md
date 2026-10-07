@@ -31,13 +31,21 @@ flowchart TB
         axum-base["axum-server"]
     end
 
+    subgraph runtime-adapter["Runtime Adapter"]
+        direction TB
+        rest-adapter["rest-api-runtime-adapter"]
+    end
+
+    subgraph rest-application["REST API Application"]
+        direction TB
+        rest-app["rest-api-application"]
+    end
+
     subgraph core["Core"]
         direction TB
         tracker-core["tracker-core"]
         http-core["http-core"]
         udp-core["udp-core"]
-        rest-app["rest-api-application"]
-        rest-adapter["rest-api-runtime-adapter"]
     end
 
     subgraph protocol["Protocols"]
@@ -281,7 +289,13 @@ flowchart TB
     class axum-http,axum-rest,axum-health,udp-srv,axum-base srv
 
     classDef core fill:#fce4ec,stroke:#e91e63
-    class tracker-core,http-core,udp-core,rest-app,rest-adapter core
+    class tracker-core,http-core,udp-core core
+
+    classDef adapter fill:#ede7f6,stroke:#673ab7
+    class rest-adapter adapter
+
+    classDef application fill:#e3f2fd,stroke:#1976d2
+    class rest-app application
 
     classDef proto fill:#f3e5f5,stroke:#9c27b0
     class http-proto,udp-proto,rest-proto proto
