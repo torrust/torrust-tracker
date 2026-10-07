@@ -68,6 +68,7 @@ fix. Their severity is inferred from the prose ("One slip").
 | F12 | `review-finding:pr-2456-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2456-f13` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2456-f14` | Human | Nit (inferred) | documentation | RE_RAISE_OF:F13 | NO_ACTION | NON_RESOLVABLE |
+| F15 | `review-finding:pr-2456-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -296,6 +297,23 @@ fix. Their severity is inferred from the prose ("One slip").
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F15 - The PR body omitted the skill, template, and audit changes
+
+- PR number: 2456
+- Source review ID: 5440981761
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4205803261>
+- Concern: The PR body's Changes section listed only the spec and the EPIC, so the merge commit
+  would not show that this PR changes `process-pr-review`, the audit template, and adds the
+  audit record.
+- Solution: Added all three to the Changes section, completed the EPIC entry, and replaced the
+  stale manual-verification open question with the decisions settled in review.
+- Current-tree verification: `gh pr view 2456 --json body` lists `PR-REVIEW-TEMPLATE.md`,
+  `process-pr-review/SKILL.md`, and the audit record.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4206002378>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2456#discussion_r4206002378>
+
 ## Processing Log
 
 - 2026-10-06 16:55 UTC - Started audit. Fetched nine unresolved threads from Copilot review
@@ -322,6 +340,9 @@ fix. Their severity is inferred from the prose ("One slip").
 - 2026-10-07 10:09 UTC - Corrected the review-body sentence and added F13 and F14.
 - 2026-10-07 10:13 UTC - Rebased onto `develop` and pushed; pre-push passed. Replied to F12;
   recorded its reply URL and added its row.
+- 2026-10-07 10:52 UTC - da2ce7 review 5440981761 (round 4, 10:29 UTC) approved with F15 (his F10,
+  non-blocking). Updated the PR body and replied with the fix; the reply is its resolution
+  reference.
 
 ## Completion Rules
 
