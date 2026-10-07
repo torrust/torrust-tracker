@@ -26,6 +26,7 @@ Related lifecycle docs:
 - Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
 - Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
 - Reopening an archived issue or EPIC: [reopen-issue](../reopen-issue/SKILL.md)
+  <!-- skill-link: reopen-issue -->
 
 ## When to Archive
 
