@@ -29,8 +29,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
-- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
-  `maintainability`, `security`, `other`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
 - An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
   original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
   for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
@@ -101,7 +101,7 @@ and F15, with the reviewer's IDs in each detail entry.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4205419903>
 - Concern: The skill depends on `cleanup-completed-issues` but has no `## Skill Links` section and no `skill-link: reopen-issue` marker in the dependent artifact.
 - Solution: Added a `## Skill Links` section and the skill's own marker. Placed `skill-link: reopen-issue` markers in the cleanup skill, the frontmatter-validator README, and `lychee.toml`. The templates are listed without a marker, because specs copy template markers.
-- Current-tree verification: `rg --hidden 'skill-link: reopen-issue'` matches the four files; the skill ends with the Skill Links section.
+- Current-tree verification: `rg --hidden 'skill-link: reopen-issue'` matches the four marked files (the skill, the cleanup skill, the validator README, and `lychee.toml`), plus this audit, which quotes the marker; the skill ends with the Skill Links section.
 - Resolution reference: `docs(skills): [#2466] couple, register, and complete the reopen-issue skill`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4205967263>
@@ -267,6 +267,7 @@ and F15, with the reviewer's IDs in each detail entry.
 - 2026-10-07 09:46 UTC - Copilot review 5440515841 submitted findings F5, F6, F9, and F10.
 - 2026-10-07 09:56 UTC - Human review 5440619059 (da2ce7, round 1) requested changes with eleven findings, recorded as F1-F4, F7, F8, F11, and F12-F15.
 - 2026-10-07 10:49 UTC - Reproduced the defect for F1, fixed the other findings in four commits, edited the #1978 issue body for F5, rebased onto `develop` (9 commits behind), pushed after the pre-push suite passed, and replied to all fifteen threads. Copilot's overview remark that the `interval_min` bound lacks protocol justification has no inline thread; it was raised with the maintainer as an open specification question instead of being recorded as a finding.
+- 2026-10-07 10:53 UTC - Correction to the 10:49 entry, which was committed before this step: `develop` had moved 10 more commits, so the branch was rebased again onto `24bf4746a` and force-pushed with this record, then all fifteen threads were resolved.
 - 2026-10-07 13:12 UTC - The maintainer kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min`. Decision 2 states that reason in `docs(issues): [#2466] justify the shared interval_min type by meaning, not protocol`; the #2466 issue body was updated to match.
 
 ## Completion Rules
@@ -284,3 +285,4 @@ and F15, with the reviewer's IDs in each detail entry.
   durable URL in each related row.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
