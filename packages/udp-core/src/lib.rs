@@ -19,9 +19,6 @@ pub(crate) type CurrentClock = clock::Working;
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
 
-use crypto::ephemeral_instance_keys;
-use tracing::instrument;
-
 pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
 
 /// Controls whether the UDP tracker validates the connection ID supplied by
@@ -39,16 +36,6 @@ pub enum ConnectionIdValidationPolicy {
     /// Cookie-error metrics are still emitted and the ban counter still counts
     /// invalid IDs for observability, but IP-ban enforcement is skipped.
     Disabled,
-}
-
-/// It initializes the static values.
-#[instrument(skip())]
-pub fn initialize_static() {
-    // Initialize the Ephemeral Instance Random Seed
-    std::sync::LazyLock::force(&ephemeral_instance_keys::RANDOM_SEED);
-
-    // Initialize the Ephemeral Instance Random Cipher
-    std::sync::LazyLock::force(&ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH);
 }
 
 #[cfg(test)]

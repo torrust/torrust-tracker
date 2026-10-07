@@ -97,16 +97,18 @@
 //!    by the tracker. This makes it significantly more challenging for an attacker
 //!    to spoof IP addresses and disrupt the P2P network.
 //!
-//! There are different ways to generate a connection ID. The most common way is
-//! to generate a time bound secret. The secret is generated using a time based
-//! algorithm and it is valid for a certain amount of time.
+//! There are different ways to generate a connection ID. A common way is a
+//! time-bound secret, such as a keyed hash of the client address and the
+//! current time slot. This tracker instead encrypts the issue time, mixed with
+//! a fingerprint of the client address, with a secret key created when the
+//! tracker starts:
 //!
 //! ```text
-//! connection ID = hash(client IP + current time slot + secret seed)
+//! connection ID = encrypt(key, issue time + fingerprint(client IP and port))
 //! ```
 //!
-//! The BEP-15 recommends a two-minute time slot. Refer to [`connection_cookie`](torrust_tracker_udp_core::connection_cookie)
-//! for more information about the connection ID generation with this method.
+//! The BEP-15 recommends a two-minute validity. Refer to [`connection_cookie`](torrust_tracker_udp_core::connection_cookie)
+//! for how this tracker issues and checks connection IDs.
 //!
 //! #### Connect Request
 //!
