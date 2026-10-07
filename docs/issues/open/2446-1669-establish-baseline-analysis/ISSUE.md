@@ -9,7 +9,7 @@ github-issue: 2446
 spec-path: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
 branch: "2446-1669-establish-baseline-analysis-spec"
 related-pr: null
-last-updated-utc: "2026-10-06 16:25"
+last-updated-utc: "2026-10-07 08:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -309,6 +309,8 @@ reviewability.
   holds for the generated sections, while the Observations name it when recording its removal.
   No retrospective needed: the work went as planned; the only surprise was a regular
   expression that skipped one diagram edge, caught and recorded in the evidence file.
+- 2026-10-07 08:36 UTC - GitHub Copilot - Clarified AC1 to state the scope it was checked
+  against (generated sections only), per PR #2462 review finding F8.
 
 ## Acceptance Criteria
 
@@ -327,7 +329,9 @@ Original criteria (T1 to T8), met by the work recorded above:
 Remaining criteria (T9 to T13):
 
 - [x] AC1: A new dated coupling report covers every current workspace member reported by
-      `cargo metadata --no-deps`, and no longer mentions `rest-api-core`.
+      `cargo metadata --no-deps`, and its generated sections (everything before
+      `## Observations`) no longer mention `rest-api-core`. The hand-written Observations may
+      name it when recording its removal. (Scope clarified on 2026-10-07 after PR #2462 review.)
 - [x] AC2: Every package with workspace-level dependencies lists at least one import path per
       dependency, or a documented reason why none was found.
 - [x] AC3: The new report's Observations section has no placeholder text, compares against the
