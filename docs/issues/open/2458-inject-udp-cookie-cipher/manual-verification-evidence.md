@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 09:44"
+last-updated-utc: "2026-10-07 10:07"
 ---
 
 # Manual Verification Evidence
@@ -123,6 +123,200 @@ the forged cookie should validate: ValueExpired { expired_value: -1.203840196111
 #### Conclusion
 
 The mutated production artifact started normally; `check_seed()` did not panic because it compares only the unrelated seed. The independently generated all-zero-key cookie was accepted for the intended fingerprint and time. The control run shows that the same cookie is rejected when production uses the random cipher, so the acceptance comes from the mutation, not from a flaw in the example. This is a real-artifact reproduction of the missing production guarantee. A network-level `UdpTrackerClient::send` request was unnecessary to establish the causal security outcome: the production-mode `check` seam accepted a connection ID forged without using the tracker cipher.
+
+## Post-Fix Manual Verification (T8)
+
+Shared environment for V2-V4:
+
+- Date and time (UTC): 2026-10-07 09:58-10:00, from the saved outputs and log timestamps.
+- Artifact under test: the implementation branch at
+  `fix(udp-core): [#2458] remove the global key statics and the startup seed check`, the last
+  production change, with a clean working tree apart from the disposable example in V3.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`), default Cargo development profile.
+- Tracker: `TORRUST_TRACKER_CONFIG_OVERRIDE_LOGGING__TRACE_FILTER=trace cargo run`, the default
+  development configuration (UDP trackers on 6969 and 6868, strict connection ID validation) with
+  trace logging, output written to a local file. The UDP ports were free before the start, and the
+  tracker was stopped with `SIGTERM` afterwards; it logged `Torrust tracker shutting down (SIGTERM)`
+  and then `Torrust tracker successfully shutdown.`
+
+### V2 - M1: Normal Client Flow
+
+```text
+$ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+```
+
+The client connected, received a connection ID issued with the injected key, and the announce that
+carried it was accepted. Status: `DONE`.
+
+### V3 - M2b: Forged Connection ID After the Fix
+
+The recheck repeats V1 like-for-like at the same two seams, plus the network request that V1 left
+for after the fix.
+
+Steps:
+
+1. Recreated the disposable example `packages/udp-core/examples/forge_zeroed_cookie.rs`, adapted to
+   the new API, and ran it against the running tracker. It forges a connection ID with its own
+   all-zero-key Blowfish, exactly as in V1, and:
+   - checks it in process with the only key production code can create, `CookieCipher::random()`;
+   - sends an announce carrying a connection ID forged for its own socket address and the current
+     time to the tracker over UDP;
+   - as a control, sends a connect and then an announce with the connection ID the tracker issued.
+2. Tried to select the fixed test key from a production build, with a second disposable example.
+3. Removed both examples; `git status --short` was empty.
+
+Disposable example, verbatim:
+
+```rust
+//! Disposable M2b recheck for issue #2458. Not committed; see the issue evidence.
+use std::net::SocketAddr;
+use std::num::NonZeroU16;
+
+use blowfish::BlowfishLE;
+use cipher::{Block, BlockCipherEncrypt, KeyInit};
+use tokio::net::UdpSocket;
+use torrust_clock::clock::{Time, Working};
+use torrust_tracker_primitives::PeerId;
+use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
+use torrust_tracker_udp_protocol::{
+    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes,
+    NumberOfPeers, PeerKey, Port, Request, Response, TransactionId,
+};
+
+fn forge_with_all_zero_key(fingerprint: u64, issue_at: f64) -> ConnectionId {
+    let plaintext = (i64::from_ne_bytes(issue_at.to_ne_bytes()).wrapping_add(fingerprint as i64)).to_ne_bytes();
+    let mut ciphertext = Block::<BlowfishLE>::from(plaintext);
+    let cipher = BlowfishLE::new_from_slice(&[0_u8; 32]).expect("the fixed test key is a valid Blowfish key");
+    cipher.encrypt_block(&mut ciphertext);
+    ConnectionId::new(i64::from_be_bytes(ciphertext.as_slice().try_into().expect("a cookie is eight bytes")))
+}
+
+fn announce_with(connection_id: ConnectionId) -> Request {
+    Request::from(AnnounceRequest {
+        connection_id,
+        action_placeholder: AnnounceActionPlaceholder::default(),
+        transaction_id: TransactionId::new(2),
+        info_hash: InfoHash([0x9c; 20]),
+        peer_id: PeerId(*b"-qB00000000000000002"),
+        bytes_downloaded: NumberOfBytes::new(0),
+        bytes_uploaded: NumberOfBytes::new(0),
+        bytes_left: NumberOfBytes::new(0),
+        event: AnnounceEvent::Started.into(),
+        ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+        key: PeerKey::new(0),
+        peers_wanted: NumberOfPeers::new(10),
+        port: Port::new(NonZeroU16::new(6881).expect("a non-zero port")),
+    })
+}
+
+async fn send(socket: &UdpSocket, request: &Request) -> Response {
+    let mut bytes = Vec::new();
+    request.write_bytes(&mut bytes).expect("the request serializes");
+    socket.send(&bytes).await.expect("the request is sent");
+    let mut buffer = [0_u8; 2048];
+    let len = socket.recv(&mut buffer).await.expect("a response arrives");
+    Response::parse_bytes(&buffer[..len], true).expect("the response parses")
+}
+
+#[tokio::main]
+async fn main() {
+    // In process: the same forged cookie checked with the only key production code can create.
+    let fingerprint = 0x7a31_0000_0000_0001_u64;
+    let issue_at = 1_728_000_000.0_f64;
+    let in_process = check(
+        &CookieCipher::random(),
+        &forge_with_all_zero_key(fingerprint, issue_at),
+        fingerprint,
+        (issue_at - 1.0)..(issue_at + 1.0),
+    );
+    println!("in-process check of the all-zero-key cookie with a production key: {in_process:?}");
+
+    // Over the network, against the running tracker.
+    let tracker: SocketAddr = "127.0.0.1:6969".parse().expect("a socket address");
+    let socket = UdpSocket::bind("127.0.0.1:0").await.expect("a local UDP socket");
+    socket.connect(tracker).await.expect("the tracker address");
+    let client_addr = socket.local_addr().expect("the local address");
+
+    let forged = forge_with_all_zero_key(gen_remote_fingerprint(&client_addr), Working::now().as_secs_f64());
+    println!("announce with a connection ID forged with the all-zero key: {:?}", send(&socket, &announce_with(forged)).await);
+
+    let Response::Connect(connect) = send(&socket, &Request::Connect(ConnectRequest { transaction_id: TransactionId::new(1) })).await
+    else {
+        panic!("the tracker should answer a connect request with a connect response");
+    };
+    println!(
+        "control: announce with the connection ID the tracker issued: {:?}",
+        send(&socket, &announce_with(connect.connection_id)).await
+    );
+}
+```
+
+Output (the error message's long number is shortened with `...`; the rest is verbatim):
+
+```text
+$ cargo run -q -p torrust-tracker-udp-core --example forge_zeroed_cookie
+in-process check of the all-zero-key cookie with a production key: Err(ValueExpired { expired_value: -4.369561240247418e-6, min_value: 1727999999.0 })
+announce with a connection ID forged with the all-zero key: Error(ErrorResponse { transaction_id: TransactionId(I32(2)), message: "tracker announce error: Connection cookie error: cookie value is from future: 5246985784817779...000, expected < 1791367166.1417303" })
+control: announce with the connection ID the tracker issued: AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(2)), announce_interval: AnnounceInterval(I32(120)), leechers: NumberOfPeers(I32(0)), seeders: NumberOfPeers(I32(1)) }, peers: [] })
+```
+
+The tracker logged the rejected announce as a `WARN` from `handle_error` at
+`2026-10-07T09:59:25.141889Z`.
+
+Selecting the fixed test key from a production build (`packages/udp-core/examples/select_test_key.rs`):
+
+```rust
+//! Disposable M2b probe for issue #2458. Not committed; see the issue evidence.
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
+
+fn main() {
+    let _test_key = CookieCipher::fixed_for_testing();
+}
+```
+
+```text
+$ cargo build -p torrust-tracker-udp-core --example select_test_key
+error[E0599]: no associated function or constant named `fixed_for_testing` found for struct `CookieCipher` in the current scope
+  --> packages/udp-core/examples/select_test_key.rs:5:35
+   |
+ 5 |     let _test_key = CookieCipher::fixed_for_testing();
+   |                                   ^^^^^^^^^^^^^^^^^ associated function or constant not found in `CookieCipher`
+   |
+note: if you're trying to build a new `CookieCipher`, consider using `CookieCipher::random` which returns `CookieCipher`
+error: could not compile `torrust-tracker-udp-core` (example "select_test_key") due to 1 previous error
+```
+
+Conclusion: in V1, a production-mode build could select the all-zero key and accepted a cookie
+forged with it. After the fix, a production build cannot name that key, the same forged cookie is
+rejected in process, and the running tracker rejects an announce that carries a forged connection
+ID while it accepts the connection ID it issued itself. Status: `DONE`.
+
+### V4 - M3: The Key Is Not Logged
+
+Steps: with the trace-level tracker above, ran V2 (connect and announce), V3 (forged announce,
+connect, announce), and a scrape:
+
+```text
+$ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+{"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":1,"completed":10,"leechers":0}]}}
+```
+
+Then searched the log, 385 lines including 162 `TRACE` or `DEBUG` lines and 119 lines that mention
+a connection ID or the cookie configuration:
+
+```text
+$ grep -i -n -E "cipher|blowfish|redacted|CookieCipher|key_schedule" tracker.log
+$ echo $?
+1
+```
+
+No line mentions the cipher, its type, or a redacted placeholder. The key has no accessor and no
+readable `Debug` output (R4), and every instrumented function that receives it skips it, so there
+is no field through which key bytes could be logged. `make` and `check` emit no events on success
+at this level; their spans appear only as context for other events, and that context does not
+include the cipher. Status: `DONE`.
 
 ## Regression-Test Design
 

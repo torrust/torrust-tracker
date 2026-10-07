@@ -7,8 +7,7 @@ semantic-links:
     - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/udp-core/src/connection_cookie.rs
-    - packages/udp-core/src/crypto/keys.rs
-    - packages/udp-core/src/crypto/ephemeral_instance_keys.rs
+    - packages/udp-core/src/crypto/cookie_cipher.rs
     - packages/udp-core/src/container.rs
     - src/bootstrap/app.rs
 ---

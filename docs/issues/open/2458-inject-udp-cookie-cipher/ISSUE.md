@@ -9,7 +9,7 @@ github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: null
-last-updated-utc: "2026-10-07 09:44"
+last-updated-utc: "2026-10-07 10:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,8 +21,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
-    - packages/udp-core/src/crypto/keys.rs
-    - packages/udp-core/src/crypto/ephemeral_instance_keys.rs
+    - packages/udp-core/src/crypto/cookie_cipher.rs
     - packages/udp-core/src/connection_cookie.rs
     - packages/udp-core/src/container.rs
     - packages/udp-core/src/lib.rs
@@ -300,10 +299,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | B2 | DONE | Record the performance baseline (P1) | Three Criterion runs and five `aquatic_udp_load_test` runs on the code before any production change, in `performance-evidence.md`. |
 | T4 | DONE | Fix: key type and explicit-key `make`/`check` | Key type with redacted `Debug`; fixed test key only under `#[cfg(test)]`, which turns R2 green; R1 and R4 added, with their mutate-then-restore red runs recorded; existing cookie tests pass with an explicit test key. |
 | T5 | DONE | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
-| T6 | TODO | Fix: wire `udp-server` and remaining callers | Handlers, launcher/environment, benches, `axum-rest-api-server` test environment, `src/bootstrap/app.rs`. |
-| T7 | TODO | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
-| T8 | TODO | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
-| B3 | TODO | Record the performance after the fix (P2) | Same measurements as B2 on the finished code; comparison against the one-sided pass rule in `performance-evidence.md`. |
+| T6 | DONE | Fix: wire `udp-server` and remaining callers | No change left: the constructor changes in T5 forced the `udp-server` handlers, tests, and both benchmarks to change there (see the progress log). The `axum-rest-api-server` test environment and `src/bootstrap/app.rs` changed in T7 with `initialize_static()`. |
+| T7 | DONE | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
+| T8 | IN_PROGRESS | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
+| B3 | DONE | Record the performance after the fix (P2) | Same measurements as B2 on the finished code; comparison against the one-sided pass rule in `performance-evidence.md`. |
 | D1 | TODO | Update the benchmarking docs and add a benchmarking skill | `docs/benchmarking.md` and related docs updated with what this issue learned (for example the benchmark levels and tools, criteria for choosing one, how to record evidence, stale package names); a new skill under `.github/skills/dev/benchmarking/` that points to them. Done last. |
 
 ## Commit Points
@@ -338,7 +337,7 @@ Arrange-Act-Assert review.
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -376,28 +375,30 @@ Arrange-Act-Assert review.
 - 2026-10-07 09:27 UTC - Copilot - B1: added `connection_cookie_benchmark` (`make`, `check`) and repaired `connect_once`, which reported 3.49 ns before and 57.6 ns after awaiting the connect. B2: recorded the P1 baseline on the code before any production change, in `performance-evidence.md`: load-test mean 152197.78 responses/s (lowest run 142155.29, spread about 8.8%) and highest Criterion medians `make` 49.93 ns, `check` 48.30 ns, `connect_once` 59.10 ns, on a shared desktop whose load rose during the runs.
 - 2026-10-07 09:37 UTC - Copilot - T4: added `CookieCipher` (redacted `Debug`, no key accessor, `zeroize` on drop), passed it explicitly to `make`/`check`, and removed the public zero-key static and the cfg-switched cipher alias. Callers pass a transitional `RANDOM_CIPHER_BLOWFISH` static until T5-T7; `udp-server` handler tests issue connection IDs through one named helper, `connection_id_issued_to`, so T6 changes one place. R1, R2, and R4 are green, and mutate-then-restore made each red (evidence: "R1, R2, and R4 - Green After the Key Type"). Finding: rustdoc checks a `compile_fail` doctest's error code only on nightly, so R2's pinned `E0599` is enforced by the nightly CI job, not by the stable pre-commit gate; noted for D1.
 - 2026-10-07 09:44 UTC - Copilot - T5: `UdpTrackerCoreServices` creates the one `Arc<CookieCipher>` and the container passes it to the connect, announce, and scrape services as a required constructor argument. R3 (two container collaboration tests) is green, and giving the announce or the scrape service its own key made the matching test red (evidence: "R3 - Shared Key Across the Container's Services"). Design change for the checkpoint: instead of exposing the key from the container to `udp-server`, `AnnounceService::authenticate` and `ScrapeService::authenticate` became public and the handlers' disabled-validation path calls them, so `udp-server` production code never holds the key; the ADR still describes the container exposing it. Because the constructors changed, the compiler required the `udp-server` test helpers and both benchmarks to change in this step: `udp-server` tests share one test-only key through `test_cookie_cipher`. That leaves T6 with no remaining wiring; only `initialize_static` still uses the transitional static, which T7 removes. **Design-review checkpoint reached; waiting for the maintainer.**
+- 2026-10-07 09:50 UTC - Copilot - The maintainer reviewed the code and approved the T4/T5 design, including the public `authenticate` methods and the shared test-only key in `udp-server` tests. The ADR was updated to match.
+- 2026-10-07 10:07 UTC - Copilot - T7: deleted `crypto::keys` and `crypto::ephemeral_instance_keys`, `check_seed()`, and `torrust_tracker_udp_core::initialize_static()` with its callers; corrected the `udp-server` crate docs (connection IDs described as a hash with a secret seed), the bootstrap docs, and `src/AGENTS.md`. A search found no consumer of the seed besides `check_seed()`. The `udp-core`, `udp-server`, `axum-rest-api-server`, and root-crate tests passed (503 tests). T8 so far: M1, M2b, and M3 done (evidence V2-V4); the forged connection ID is rejected by the running tracker and the test key cannot be named from a production build. B3: P2 measured after waiting for other sessions' compilations to finish; all four measurements meet the one-sided rule (load-test mean 154260.85 against a limit of 142155.29; `make`, `check`, and `connect_once` medians 44.77, 46.99, and 59.05 ns against 49.93, 48.30, and 59.10 ns). `linter all` passes. AC1-AC7 reviewed against the evidence and marked done; AC8 waits for D1. Remaining: D1, pre-push checks, and the completion review.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No production code path can obtain a cookie key other than the one created at startup
+- [x] AC1: No production code path can obtain a cookie key other than the one created at startup
   from a cryptographically secure RNG; the fixed test key is unreachable from a production build
   (R1, R2).
-- [ ] AC2: Every component that issues or validates connection IDs uses the same key instance (R3).
-- [ ] AC3: The key never appears in logs or `Debug` output (R4 and `skip` on every instrumented
+- [x] AC2: Every component that issues or validates connection IDs uses the same key instance (R3).
+- [x] AC3: The key never appears in logs or `Debug` output (R4 and `skip` on every instrumented
   function that receives it).
-- [ ] AC4: The global `Keeper`/`Current`/`Instance` facades, the `cfg`-switched aliases, the
+- [x] AC4: The global `Keeper`/`Current`/`Instance` facades, the `cfg`-switched aliases, the
   `ZEROED_TEST_*`/`RANDOM_*` statics, and `check_seed()` are removed, or each survivor is justified
   in the progress log.
-- [ ] AC5: The reproduction from Bug-Fix Process step 2 is repeated after the fix and recorded.
-- [ ] AC6: Cookie format and behavior are unchanged: existing cookie tests, including the
+- [x] AC5: The reproduction from Bug-Fix Process step 2 is repeated after the fix and recorded.
+- [x] AC6: Cookie format and behavior are unchanged: existing cookie tests, including the
   round-trip property, pass with an explicit key.
-- [ ] AC7: UDP performance is measured before (P1) and after (P2) the change on the same machine,
+- [x] AC7: UDP performance is measured before (P1) and after (P2) the change on the same machine,
   and P2 meets the one-sided pass rule in Performance Considerations, with the observed noise stated.
 - [ ] AC8: The benchmarking documentation reflects what this issue learned, and a benchmarking skill
   under `.github/skills/dev/benchmarking/` points to it.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in `manual-verification-evidence.md`
+- [x] Manual verification scenarios are executed and documented in `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation (module docs, ADR) is updated
 
@@ -414,10 +415,10 @@ Arrange-Act-Assert review.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Normal client flow | Start the tracker (`cargo run`); `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:6969/announce <info-hash>` | Connect then announce succeed | TODO | `manual-verification-evidence.md` section V2 (not yet recorded) |
+| M1 | Normal client flow | Start the tracker (`cargo run`); `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:6969/announce <info-hash>` | Connect then announce succeed | DONE | `manual-verification-evidence.md` section V2 |
 | M2a | Forged connection ID, before the fix | With the non-test cipher alias temporarily pointed at the all-zero cipher, start the tracker (`cargo run`) and run a disposable example that forges a connection ID with its own all-zero-key Blowfish and passes it to the production `check` | The tracker starts (`check_seed()` passes) and the forged connection ID is accepted | DONE | `manual-verification-evidence.md` section V1 |
-| M2b | Forged connection ID, after the fix | Repeat M2a against the fixed code: try to wire the fixed test key into a production build, and send an announce with an all-zero-key connection ID via `UdpTrackerClient::send` to the running tracker | The test key cannot be referenced in a production build, and the forged connection ID is rejected | TODO | `manual-verification-evidence.md` section V3 (not yet recorded) |
-| M3 | Key not logged | Run the tracker with debug/trace logging, exercise connect and announce, and search the logs for key material | No key bytes in logs | TODO | `manual-verification-evidence.md` section V4 (not yet recorded) |
+| M2b | Forged connection ID, after the fix | Repeat M2a against the fixed code: try to wire the fixed test key into a production build, and send an announce with an all-zero-key connection ID via `UdpTrackerClient::send` to the running tracker | The test key cannot be referenced in a production build, and the forged connection ID is rejected | DONE | `manual-verification-evidence.md` section V3 |
+| M3 | Key not logged | Run the tracker with debug/trace logging, exercise connect and announce, and search the logs for key material | No key bytes in logs | DONE | `manual-verification-evidence.md` section V4 |
 
 Record the toolchain for every validation command result (for example, `nightly Rust toolchain`
 for `cargo +nightly fmt --all -- --check`).
@@ -441,13 +442,13 @@ for `cargo +nightly fmt --all -- --check`).
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | R1, R2 |
-| AC2 | TODO | R3 |
-| AC3 | TODO | R4, M3 |
-| AC4 | TODO | Diff and progress log |
-| AC5 | TODO | M2a (before), M2b (after) |
-| AC6 | TODO | Cookie test run |
-| AC7 | TODO | `performance-evidence.md` P1/P2 comparison |
+| AC1 | DONE | R1, R2 (stable and nightly), M2b compile probe |
+| AC2 | DONE | R3, M1 |
+| AC3 | DONE | R4, M3; `make`, `check`, `encode`, and `decode` skip the key |
+| AC4 | DONE | T7 commit: `crypto::keys` and `crypto::ephemeral_instance_keys` deleted, `check_seed()` and `initialize_static()` removed; no survivors |
+| AC5 | DONE | M2a (V1, before), M2b (V3, after) |
+| AC6 | DONE | `connection_cookie` tests, including the pinned encoding, pass with the explicit fixed key |
+| AC7 | DONE | `performance-evidence.md` Comparison: all four measurements pass |
 | AC8 | TODO | Documentation and skill diff |
 
 ## Risks and Trade-offs
