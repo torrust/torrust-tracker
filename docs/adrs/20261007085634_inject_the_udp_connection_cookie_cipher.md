@@ -86,7 +86,9 @@ validates connection IDs.
   validation is disabled, its handlers still check the connection ID to observe invalid ones; they
   call the public `AnnounceService::authenticate` and `ScrapeService::authenticate`, which use the
   injected key. Keeping the key inside `udp-core`'s services means fewer components hold it, and
-  the check cannot use a different key from the one the services use.
+  the check cannot use a different key from the one the services use. The compiler enforces it:
+  `UdpTrackerCoreServices::cookie_cipher` is `pub(crate)`, and a `compile_fail` doctest pins that
+  code outside `udp-core` cannot read it.
 - **Test key.** The fixed test key exists only under `#[cfg(test)]` in `udp-core`. A production
   build, including every downstream crate and its tests, cannot name it. A maintained
   `compile_fail` doctest pins this. Its error code is checked only by rustdoc on the nightly
