@@ -9,12 +9,13 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "{issue-number}-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: null
-last-updated-utc: "2026-10-06 16:01"
+last-updated-utc: "2026-10-07 08:52"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
   related-artifacts:
+    - docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/tests/parse_imports.rs
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
@@ -35,18 +36,37 @@ a custom name.
 
 ## Background
 
-The tool derives the Rust module of a dependency from its package name
-(`name.replace('-', "_")` in `src/main.rs`). The 2026-10-06 workspace coupling report
-([finding 3](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md#3-the-tool-misses-renamed-crates-and-custom-library-names),
-issue #2446) shows four edges reported as "No `…::` references found in source" although the
-dependency is used:
+### What goes wrong
 
-| Edge                              | Why the module name differs                                                        |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
-| `client` → `client-lib`           | Dependency renamed to `torrust-tracker-client` in `console/tracker-client/Cargo.toml` |
-| `udp-server` → `client-lib`       | Dependency renamed to `torrust-tracker-client` in `packages/udp-server/Cargo.toml` |
-| `test-helpers` → `client-lib`     | Library target named `torrust_tracker_client` in `packages/tracker-client/Cargo.toml` |
-| `e2e-tools` → `torrust-tracker`   | Root library target named `torrust_tracker_lib`                                    |
+1. For each dependency edge `A → B`, the tool builds the Rust module name to search for from
+   B's package name: `name.replace('-', "_")` in `src/main.rs`.
+2. It then scans A's `src/`, `tests/` and `benches/` for `B_module::` paths.
+3. Rust code does not use that name when the dependency is renamed in A's `Cargo.toml`
+   (`foo = { package = "b", ... }` makes the module `foo`) or when B's library target has a
+   custom name (`[lib] name = ...`).
+4. The scan finds nothing and the report says "No `…::` references found in source", although
+   A imports B.
+
+This contradicts the report's own contract ("For every dependency the items actually imported
+from it are listed"). Impact today: five edges show no imports, so a reader could take a used
+dependency for an unused one, and thin-dependency reviews skip those edges.
+
+### Reproduction
+
+**Reproduced** on 2026-10-07 with the real tool; commands and output are in
+[`manual-verification-evidence.md`](manual-verification-evidence.md) (R1). The five affected
+edges:
+
+| Edge                                     | Kind   | Why the module name differs                                                           |
+| ---------------------------------------- | ------ | ------------------------------------------------------------------------------------- |
+| `client` → `client-lib`                  | normal | Dependency renamed to `torrust-tracker-client` in `console/tracker-client/Cargo.toml` |
+| `udp-server` → `client-lib`              | normal | Dependency renamed to `torrust-tracker-client` in `packages/udp-server/Cargo.toml`    |
+| `test-helpers` → `client-lib`            | normal | Library target named `torrust_tracker_client` in `packages/tracker-client/Cargo.toml` |
+| `axum-http-server` → `client-lib`        | dev    | Library target named `torrust_tracker_client`                                         |
+| `e2e-tools` → `torrust-tracker`          | normal | Root library target named `torrust_tracker_lib`                                       |
+
+The 2026-10-06 report ([finding 3](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md#3-the-tool-misses-renamed-crates-and-custom-library-names),
+issue #2446) listed the four normal edges.
 
 `cargo metadata` already provides both facts: each dependency's `rename`, and each package's
 library target name (`targets[]` with kind `lib`).
@@ -57,8 +77,8 @@ library target name (`targets[]` with kind `lib`).
 
 - Resolve the module name of each dependency edge from the dependency's `rename` when present,
   otherwise from the dependency package's library target name, falling back to the package name.
-- Add tests covering a renamed dependency and a custom library name.
-- Regenerate the coupling report as a new dated file and confirm the four edges list imports.
+- Add regression tests covering a renamed dependency and a custom library name.
+- Regenerate the coupling report as a new dated file and confirm the five edges list imports.
 
 ### Out of Scope
 
@@ -76,34 +96,43 @@ Not applicable: a single pure name-resolution step changes; no processes, I/O or
 
 ## Bug-Fix Process
 
-Follow the `fix-bug` skill: reproduce with a failing test (a fixture edge with a renamed
-dependency and one with a custom library name), fix the name resolution, and prove the test
-guards the bug by reverting the fix in the working tree.
+Follows the [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+1. Analysis and reproduction: done before review; the real tool was run and the outcome
+   classified as **Reproduced** in `manual-verification-evidence.md` (R1).
+2. Regression tests (T1): written first and recorded red against the unfixed tool.
+3. Fix (T2): resolve the module name from `rename`, then the library target name.
+4. Green and recheck (T3): tests pass; the R1 command is rerun unchanged (R2) and lists no
+   false "no references" edge.
 
 ## Regression Test Strategy
 
-- Unit tests for the module-name resolution: renamed dependency, custom library name, and the
-  plain package-name default.
-- Prove each test fails without the fix (mutation check described in the `write-unit-test`
-  skill), then restore the fix.
+- Boundary: unit tests of the module-name resolution, the single function the bug lives in,
+  fed with `cargo metadata`-shaped package and dependency data. No workspace is needed.
+- Cases: a renamed dependency, a custom library target name, and the plain package-name
+  default.
+- Each test is recorded failing against the unfixed code before the fix lands, per the
+  `write-unit-test` skill.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                   | Notes / Expected Output                                          |
-| --- | ------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| T1  | TODO   | Add failing tests for a renamed dependency and a custom library name  | Tests fail on the current tool                                   |
-| T2  | TODO   | Resolve module names from `rename` and the library target name        | Tests pass; mutation check recorded                              |
-| T3  | TODO   | Regenerate the coupling report                                         | The four edges list their imports; no "no references" for them   |
+| ID  | Status | Task                                                                                     | Notes / Expected Output                                                       |
+| --- | ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| T1  | TODO   | Add regression tests for a renamed dependency, a custom library name and the default    | Recorded red run: the rename and library-name cases fail on the current tool |
+| T2  | TODO   | Resolve module names from `rename` and the library target name                          | The T1 tests pass                                                             |
+| T3  | TODO   | Green run plus like-for-like recheck: rerun the R1 command unchanged                     | R2 in the evidence lists no false "no references" edge                        |
+| T4  | TODO   | Regenerate the coupling report as a new dated file                                       | The five edges list their imports                                             |
 
 ## Commit Points
 
-| Task | Coherent change set                       | Commit policy                                                   |
-| ---- | ----------------------------------------- | --------------------------------------------------------------- |
-| T1   | Failing tests                              | Commit together with T2 so every commit passes its tests.       |
-| T2   | Name-resolution fix                        | One commit with T1 after the mutation check.                    |
-| T3   | New dated coupling report                  | One commit after MV1.                                           |
+| Task | Coherent change set                       | Commit policy                                                              |
+| ---- | ----------------------------------------- | -------------------------------------------------------------------------- |
+| T1   | Regression tests                           | Commit together with T2 so every commit passes; record the red run first. |
+| T2   | Name-resolution fix                        | One commit with T1.                                                        |
+| T3   | R2 recheck evidence                        | One commit after the recheck.                                              |
+| T4   | New dated coupling report                  | One commit after R2.                                                       |
 
 Use a Conventional Commit message with the issue reference and sign every commit with GPG.
 
@@ -112,6 +141,7 @@ Use a Conventional Commit message with the issue reference and sign every commit
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
+- [x] Bug reproduced and classified in `manual-verification-evidence.md` before review (R1)
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Spec moved to `docs/issues/open/` with issue number prefix
@@ -127,15 +157,21 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 - 2026-10-06 16:01 UTC - GitHub Copilot - Drafted from finding 3 of the 2026-10-06 workspace
   coupling report (#2446).
+- 2026-10-07 08:52 UTC - GitHub Copilot - Reworked to follow the `fix-bug` skill, per PR #2462
+  review finding F5: plain-language explanation, reproduction run and recorded as
+  **Reproduced** (R1; it also found a fifth affected edge, the `axum-http-server` dev
+  dependency), red regression-test task, and a like-for-like recheck (R2).
 
 ## Acceptance Criteria
 
-- [ ] AC1: The tool resolves a dependency's module name from its `rename` or library target name.
-- [ ] AC2: Tests cover a renamed dependency, a custom library name and the default, and each
-      fails without the fix.
-- [ ] AC3: A regenerated report lists imports for the four edges in the Background.
+- [ ] AC1: The tool resolves a dependency's module name from its `rename`, then its library
+      target name, then its package name.
+- [ ] AC2: Regression tests cover a renamed dependency, a custom library name and the default;
+      the rename and library-name tests were recorded failing against the unfixed tool.
+- [ ] AC3: Rerunning the R1 command unchanged (R2) lists no false "no references" edge, and the
+      five edges in the Background list their imports.
 - [ ] AC4: `cargo test -p workspace-coupling` and `linter all` exit with code `0`.
-- [ ] AC5: Manual verification scenarios are executed and documented in issue-local
+- [ ] AC5: The reproduction (R1) and the recheck (R2) are recorded in issue-local
       `manual-verification-evidence.md`.
 - [ ] AC6: The acceptance criteria are re-reviewed after implementation.
 
@@ -151,12 +187,12 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                            | Human-oriented command/steps                                                         | Expected Result                                   | Status | Evidence                                      |
-| --- | ----------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------- | ------ | --------------------------------------------- |
-| MV1 | The four edges are found            | `cargo run -p workspace-coupling -- <dated path>` and read the four edge sections    | Each lists at least one import path               | TODO   | `manual-verification-evidence.md` section MV1 |
+| ID  | Scenario                     | Human-oriented command/steps                                                                 | Expected Result                                             | Status | Evidence                                     |
+| --- | ---------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ | -------------------------------------------- |
+| R1  | Initial reproduction          | `cargo run -q -p workspace-coupling -- /tmp/repro-2446.md`, then list the "no references" edges | Five used edges reported with no references (the bug)       | DONE   | `manual-verification-evidence.md` section R1 |
+| R2  | Like-for-like recheck         | Same command and listing as R1, after the fix                                                 | No false "no references" edge; the five edges list imports  | TODO   | `manual-verification-evidence.md` section R2 |
 
-Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
-when executing these scenarios, and record the toolchain for each `cargo` command.
+Record the toolchain for each `cargo` command in the evidence file.
 
 ### Acceptance Verification
 
