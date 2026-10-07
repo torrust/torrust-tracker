@@ -6,7 +6,7 @@ epic: null
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:59"
+last-updated-utc: "2026-10-07 10:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -323,7 +323,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
   contract is separately drafted under API EPIC #144.
 - 2026-08-26 16:45 UTC - GitHub Copilot/User - #1980 runtime activation is in review in draft PR #2103. It activates v3 consumers, all shipped templates, shared UDP policy, logging style, and HTTP query-IP wiring. Automatic checks and deferred #889/#1987 local manual evidence are recorded; the persistence-free activation follow-up remains deferred.
 - 2026-09-01 10:25 UTC - GitHub Copilot - Verified GitHub's native hierarchy has 16 of 16 subissues complete, confirmed the recorded verification evidence, closed #1978 as completed, and archived this EPIC specification.
-- 2026-10-07 08:29 UTC - josecelano - Reopened #1978 and moved this specification back to `docs/issues/open/` to add subissue #2466 (bound the announce interval to what every delivery protocol can encode), found while reviewing #2245. Configuration schema v3.0.0 is not yet published on crates.io, so the change still belongs to this EPIC - 16 of 17 subissues done
+- 2026-10-07 08:29 UTC - josecelano - Decided to reopen #1978 for the #2245 follow-up instead of a standalone issue: configuration schema v3.0.0 is not yet published on crates.io, so the change still belongs to this EPIC - Chat decision
+- 2026-10-07 08:50 UTC - GitHub Copilot - Created subissue #2466 (bound the announce interval to what every delivery protocol can encode), reopened #1978 on GitHub, and linked #2466 natively; the specification PR then moves this specification back to `docs/issues/open/` - 16 of 17 subissues done
 
 ## Acceptance Criteria
 
