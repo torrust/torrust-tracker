@@ -50,3 +50,7 @@ name = "udp_tracker_core_benchmark"
 [[bench]]
 harness = false
 name = "ban_service_benchmark"
+
+[[bench]]
+harness = false
+name = "connection_cookie_benchmark"
