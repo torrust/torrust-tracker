@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 16:43"
+last-updated-utc: "2026-10-07 10:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -113,7 +113,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 | --- | --- | --- | --- | --- |
 | 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
 | 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
-| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | After the inventory is reviewed |
+| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for the effort (A1); deferred until after the next major release |
 
 ## Delivery Strategy
 
@@ -154,10 +154,14 @@ Each control bounds one cost locally; none bounds aggregate work across requests
   (PR #2421 review).
 - 2026-10-05 13:13 UTC - da2ce7 - Reviewed the inventory against the code at `050726d46`: confirmed A1-A6 from source with `path:line` evidence, separated each remaining hypothesis and its measurement, added A7 and A8, recorded the existing controls, and marked AC1 in progress pending maintainer review.
 - 2026-10-06 16:43 UTC - da2ce7 - Aligned the inventory with #2444 and answered the maintainer's review: restated the A3 note against the per-protocol `MAX_SCRAPE_INFO_HASHES` constants, re-cited the UDP scrape-count control, added the HTTP scrape-count control, and stated that the citations resolve at `7970cdf0a`; then added the HTTP request size control and the A3 note's clause that the scrape cap bounds decoding but not query parsing.
+- 2026-10-07 10:04 UTC - GitHub Copilot - Recorded the maintainer's approval of
+  the reviewed inventory (PR #2438 review) and marked AC1 done. Rate limiting
+  (A1) has the highest impact for its effort, but it is deferred until after
+  the next major release, which is the current focus.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The inventory is reviewed, distinguishes hypotheses from evidence,
+- [x] AC1: The inventory is reviewed, distinguishes hypotheses from evidence,
   and records existing controls.
 - [ ] AC2: #324 and approved public child issues are linked; related issues
   owned elsewhere, including #2406, remain cross-references.
@@ -169,7 +173,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1 | IN_PROGRESS | Inventory reviewed against the code at `050726d46`; maintainer review pending |
+| AC1 | DONE | Inventory reviewed against the code at `050726d46`; [maintainer approval](https://github.com/torrust/torrust-tracker/pull/2438#pullrequestreview-5439719978) |
 | AC2 | TODO | GitHub parent-child links |
 | AC3 | TODO | Accepted ADR and case-to-control mapping |
 | AC4 | TODO | Child verification and completion records |
