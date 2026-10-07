@@ -21,6 +21,7 @@ use torrust_tracker_primitives::{AnnounceData, ConfigurationInstanceId};
 use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
+use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
 use crate::event::{ConnectionContext, Event};
 use crate::peer_builder;
 
@@ -131,6 +132,7 @@ impl AnnounceService {
         cookie_valid_range: Range<f64>,
     ) -> Result<f64, ConnectionCookieError> {
         check(
+            &RANDOM_CIPHER_BLOWFISH,
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,

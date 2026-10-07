@@ -3,23 +3,18 @@
 //! Specifically, it contains the logic for storing the seed and providing
 //! it to other modules.
 //!
-//! It also provides the logic for the cipher for encryption and decryption.
+//! The connection-cookie cipher is not here: it is an injected value, see
+//! [`crate::crypto::cookie_cipher`].
 
-use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
-
-use self::detail_cipher::CURRENT_CIPHER;
 use self::detail_seed::CURRENT_SEED;
-pub use crate::crypto::ephemeral_instance_keys::CipherArrayBlowfish;
-use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, RANDOM_CIPHER_BLOWFISH, RANDOM_SEED, Seed};
+use crate::crypto::ephemeral_instance_keys::{RANDOM_SEED, Seed};
 
 /// This trait is for structures that can keep and provide a seed.
 pub trait Keeper {
     type Seed: Sized + Default + AsMut<[u8]>;
-    type Cipher: BlockCipherEncrypt + BlockCipherDecrypt;
 
     /// It returns a reference to the seed that is keeping.
     fn get_seed() -> &'static Self::Seed;
-    fn get_cipher_blowfish() -> &'static Self::Cipher;
 }
 
 /// The keeper for the instance. When the application is running
@@ -33,27 +28,17 @@ pub struct Current;
 
 impl Keeper for Instance {
     type Seed = Seed;
-    type Cipher = CipherBlowfish;
 
     fn get_seed() -> &'static Self::Seed {
         &RANDOM_SEED
-    }
-
-    fn get_cipher_blowfish() -> &'static Self::Cipher {
-        &RANDOM_CIPHER_BLOWFISH
     }
 }
 
 impl Keeper for Current {
     type Seed = Seed;
-    type Cipher = CipherBlowfish;
 
     fn get_seed() -> &'static Self::Seed {
         &CURRENT_SEED
-    }
-
-    fn get_cipher_blowfish() -> &'static Self::Cipher {
-        &CURRENT_CIPHER
     }
 }
 
@@ -62,20 +47,15 @@ mod tests {
 
     use super::detail_seed::ZEROED_TEST_SEED;
     use super::{Current, Instance, Keeper};
-    use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, Seed, ZEROED_TEST_CIPHER_BLOWFISH};
+    use crate::crypto::ephemeral_instance_keys::Seed;
 
     pub struct ZeroedTest;
 
     impl Keeper for ZeroedTest {
         type Seed = Seed;
-        type Cipher = CipherBlowfish;
 
         fn get_seed() -> &'static Self::Seed {
             &ZEROED_TEST_SEED
-        }
-
-        fn get_cipher_blowfish() -> &'static Self::Cipher {
-            &ZEROED_TEST_CIPHER_BLOWFISH
         }
     }
 
@@ -122,33 +102,6 @@ mod detail_seed {
         fn it_should_have_a_large_random_seed() {
             assert!(u128::from_ne_bytes((*RANDOM_SEED)[..16].try_into().unwrap()) > u128::from(u64::MAX));
             assert!(u128::from_ne_bytes((*RANDOM_SEED)[16..].try_into().unwrap()) > u128::from(u64::MAX));
-        }
-    }
-}
-
-mod detail_cipher {
-    #[allow(unused_imports)]
-    #[cfg(not(test))]
-    pub use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH as CURRENT_CIPHER;
-    #[cfg(test)]
-    pub use crate::crypto::ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH as CURRENT_CIPHER;
-
-    #[cfg(test)]
-    mod tests {
-        use cipher::BlockCipherEncrypt;
-
-        use crate::crypto::ephemeral_instance_keys::{CipherArrayBlowfish, ZEROED_TEST_CIPHER_BLOWFISH};
-        use crate::crypto::keys::detail_cipher::CURRENT_CIPHER;
-
-        #[test]
-        fn it_should_default_to_zeroed_seed_when_testing() {
-            let mut data = CipherArrayBlowfish::from([0u8; 8]);
-            let mut data_2 = CipherArrayBlowfish::from([0u8; 8]);
-
-            CURRENT_CIPHER.encrypt_block(&mut data);
-            ZEROED_TEST_CIPHER_BLOWFISH.encrypt_block(&mut data_2);
-
-            assert_eq!(data, data_2);
         }
     }
 }

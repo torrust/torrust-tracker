@@ -19,6 +19,7 @@ use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 use torrust_tracker_udp_protocol::ScrapeRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
+use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
 use crate::event::{ConnectionContext, Event};
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
@@ -102,6 +103,7 @@ impl ScrapeService {
         cookie_valid_range: Range<f64>,
     ) -> Result<f64, ConnectionCookieError> {
         check(
+            &RANDOM_CIPHER_BLOWFISH,
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,

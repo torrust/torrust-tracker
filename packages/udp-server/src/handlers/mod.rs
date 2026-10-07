@@ -264,7 +264,8 @@ pub(crate) mod tests {
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_udp_core::connection_cookie::gen_remote_fingerprint;
+    use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+    use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
     use torrust_tracker_udp_core::event::bus::EventBus;
     use torrust_tracker_udp_core::event::sender::Broadcaster;
     use torrust_tracker_udp_core::services::announce::AnnounceService;
@@ -413,16 +414,8 @@ pub(crate) mod tests {
         sample_ipv4_socket_address()
     }
 
-    pub fn sample_ipv4_remote_addr_fingerprint() -> u64 {
-        gen_remote_fingerprint(&sample_ipv4_socket_address())
-    }
-
     pub fn sample_ipv6_remote_addr() -> SocketAddr {
         sample_ipv6_socket_address()
-    }
-
-    pub fn sample_ipv6_remote_addr_fingerprint() -> u64 {
-        gen_remote_fingerprint(&sample_ipv6_socket_address())
     }
 
     pub fn sample_ipv4_socket_address() -> SocketAddr {
@@ -435,6 +428,16 @@ pub(crate) mod tests {
 
     pub fn sample_issue_time() -> f64 {
         1_000_000_000_f64
+    }
+
+    /// A valid connection ID issued to `client_socket_addr` at [`sample_issue_time`].
+    pub fn connection_id_issued_to(client_socket_addr: &SocketAddr) -> ConnectionId {
+        make(
+            &RANDOM_CIPHER_BLOWFISH,
+            gen_remote_fingerprint(client_socket_addr),
+            sample_issue_time(),
+        )
+        .expect("the sample issue time should be a normal value")
     }
 
     pub fn sample_cookie_valid_range() -> Range<f64> {

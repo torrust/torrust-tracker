@@ -20,7 +20,7 @@ workspace = true
 torrust-info-hash = "=0.2.0"
 torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
 torrust-tracker-udp-protocol = { version = "0.1.0", path = "../udp-protocol" }
-blowfish = "0"
+blowfish = { version = "0", features = [ "zeroize" ] }
 cipher = "0.5"
 futures = "0"
 rand = "0.9"

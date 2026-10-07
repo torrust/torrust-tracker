@@ -49,9 +49,6 @@ pub fn initialize_static() {
 
     // Initialize the Ephemeral Instance Random Cipher
     std::sync::LazyLock::force(&ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH);
-
-    // Initialize the Zeroed Cipher
-    std::sync::LazyLock::force(&ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH);
 }
 
 #[cfg(test)]

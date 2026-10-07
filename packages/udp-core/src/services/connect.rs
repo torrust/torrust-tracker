@@ -8,6 +8,7 @@ use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_udp_protocol::ConnectionId;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
+use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
 use crate::event::{ConnectionContext, Event};
 
 /// The `ConnectService` is responsible for handling the `connect` requests.
@@ -60,8 +61,12 @@ impl ConnectService {
         server_service_binding: ServiceBinding,
         cookie_issue_time: f64,
     ) -> ConnectionId {
-        let connection_id =
-            make(gen_remote_fingerprint(&client_socket_addr), cookie_issue_time).expect("it should be a normal value");
+        let connection_id = make(
+            &RANDOM_CIPHER_BLOWFISH,
+            gen_remote_fingerprint(&client_socket_addr),
+            cookie_issue_time,
+        )
+        .expect("it should be a normal value");
 
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
@@ -95,6 +100,7 @@ mod tests {
         use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
         use crate::connection_cookie::make;
+        use crate::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
@@ -127,7 +133,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap()
+                make(
+                    &RANDOM_CIPHER_BLOWFISH,
+                    sample_ipv4_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap()
             );
         }
 
@@ -151,7 +162,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                make(
+                    &RANDOM_CIPHER_BLOWFISH,
+                    sample_ipv4_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap(),
             );
         }
 
@@ -176,7 +192,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv6_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                make(
+                    &RANDOM_CIPHER_BLOWFISH,
+                    sample_ipv6_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap(),
             );
         }
 
