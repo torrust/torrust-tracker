@@ -9,7 +9,7 @@ github-issue: 2466
 spec-path: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
 branch: "2466-1978-announce-interval-upper-bound-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 10:24"
+last-updated-utc: "2026-10-07 13:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,8 +65,10 @@ Recorded with the maintainer on 2026-10-07:
    because a value could then be valid for one protocol and invalid for another.
 2. **The bounded type lives in `primitives`.** Because the bound is a domain rule (an interval
    must be representable on every supported protocol), the type belongs to the domain and is used
-   directly by the configuration, as `AnnouncePolicy` already is. `interval_min` uses the same type,
-   because HTTP sends it too.
+   directly by the configuration, as `AnnouncePolicy` already is. `interval_min` uses the same type
+   because it measures the same real-world quantity as `interval`, a re-announce interval in
+   seconds. No protocol imposes the bound on it: BEP 15 has no minimum-interval field, and only
+   HTTP sends `min interval`.
 3. **Parent EPIC.** Configuration EPIC #1978 is reopened and this issue is added as its subissue.
    Configuration schema v3.0.0 is active in the code but not yet published on crates.io.
 4. **Breaking change accepted.** Changing the `AnnouncePolicy` field types is acceptable: the
@@ -192,6 +194,7 @@ with the narrow affected scope.
 - 2026-10-07 08:29 UTC - josecelano - Answered the open questions: one protocol-agnostic value bounded by the tightest delivery protocol, type in `primitives` (also for `interval_min`), subissue of reopened #1978, breaking change accepted for 4.0.0, ADR in the specification PR - Chat decision
 - 2026-10-07 08:59 UTC - GitHub Copilot - Maintainer approved the specification; created #2466, reopened #1978 and linked #2466 as its subissue; moved this spec to `docs/issues/open/` - Specification PR
 - 2026-10-07 10:24 UTC - GitHub Copilot - Applied PR #2468 round-1 review fixes: reproduced the defect before implementation (V0, Reproduced), added the red-run regression task and the migration-guide task, asserted field, value, and limit in tests and scenarios, restored the verification notes and two template checkpoints, scoped the v2 inheritance, and cited #2245 by issue number - In review
+- 2026-10-07 13:12 UTC - josecelano - Kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min` (Copilot's review overview had noted the missing protocol justification) - Chat decision
 
 ## Acceptance Criteria
 
