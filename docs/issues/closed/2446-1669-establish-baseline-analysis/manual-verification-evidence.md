@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
-last-updated-utc: 2026-10-07 09:06
+issue-spec: docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md
+last-updated-utc: 2026-10-07 14:54
 ---
 
 <!-- cspell:ignore cdir finditer isdir listdir startswith -->

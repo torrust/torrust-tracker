@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:04"
+last-updated-utc: "2026-10-07 14:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -687,7 +687,7 @@ Details:
 
 | Item                       | Issue                                                                                                                                                                                     | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                                                                         |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | DONE   | T1 to T8 done May to June 2026; T9 to T13 refreshed the outputs on 2026-10-06 (report, README audit, diagram, three drafts)                    |
+| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | DONE   | T1 to T8 done May to June 2026; T9 to T13 refreshed the outputs on 2026-10-06 (report, README audit, diagram, three drafts)                    |
 | Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                              | [docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md)                             | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                                                                   |
 | Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`          | [docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md](../../closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md)                                   | DONE   | Rule M; completed                                                                                                                             |
 | Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                              | [docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md](../../closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md)                       | DONE   | Rule M; completed                                                                                                                             |
@@ -738,7 +738,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 
 ### Subissue Specs Index
 
-- [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)
+- [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)
 - [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
 - [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
@@ -988,6 +988,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   maintainer's decision on a PR #2456 review finding.
 - 2026-10-07 08:04 UTC - Copilot - Extended the Pre-publish API checklist lead-in to later
   publishes of a package whose public error API changed, so item 4 applies (PR #2456 review).
+- 2026-10-07 14:54 UTC - GitHub Copilot - #2446 closed by PR #2462; its spec moved to
+  `docs/issues/closed/` and the Details table and Specs Index now link there.
 
 ## Acceptance Criteria
 
