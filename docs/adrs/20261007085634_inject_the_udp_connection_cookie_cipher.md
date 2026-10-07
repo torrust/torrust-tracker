@@ -77,16 +77,23 @@ validates connection IDs.
   `Current`/`Instance` facade, and no `cfg`-selected alias.
 - **Ownership.** `UdpTrackerCoreServices` creates the key once and holds it in an `Arc`. Every
   `UdpTrackerCoreContainer` built from those services gives clones of that `Arc` to
-  `ConnectService`, `AnnounceService`, and `ScrapeService`, and exposes it to `udp-server` for the
-  handlers that call `check` directly. In the tracker application, `AppContainer` builds
+  `ConnectService`, `AnnounceService`, and `ScrapeService`, which take it as a required
+  constructor argument. In the tracker application, `AppContainer` builds
   `UdpTrackerCoreServices` once and shares it with every UDP tracker instance, so the process has
   exactly one key. A standalone constructor that builds its own services, used by tests and
   standalone servers, is its own composition root and creates its own single key. No component
   creates a key for itself.
+- **Validation outside the services.** `udp-server` does not receive the key. When connection-ID
+  validation is disabled, its handlers still check the connection ID to observe invalid ones; they
+  call the public `AnnounceService::authenticate` and `ScrapeService::authenticate`, which use the
+  injected key. Keeping the key inside `udp-core`'s services means fewer components hold it, and
+  the check cannot use a different key from the one the services use.
 - **Test key.** The fixed test key exists only under `#[cfg(test)]` in `udp-core`. A production
   build, including every downstream crate and its tests, cannot name it. A maintained
-  `compile_fail` doctest pins this. Tests in other crates use `CookieCipher::random()` and take the
-  key from the container they exercise.
+  `compile_fail` doctest pins this. Its error code is checked only by rustdoc on the nightly
+  toolchain, which the CI unit job runs; stable rustdoc accepts any compile error. Tests in other
+  crates use `CookieCipher::random()`: the `udp-server` handler tests share one random key through a
+  test-only helper, as one composition root shares it, and each benchmark builds its own.
 - **Startup checks.** `check_seed()`, the unused random seed, and the key steps of
   `initialize_static()` are removed. The guarantees they were meant to give now hold by
   construction and are pinned by tests.
@@ -156,9 +163,14 @@ root.
 - [`crypto/`](../../packages/udp-core/src/crypto/): the key type, which replaces `keys.rs` and
   `ephemeral_instance_keys.rs`.
 - [`container.rs`](../../packages/udp-core/src/container.rs): key ownership and wiring.
+- [`services/`](../../packages/udp-core/src/services/): the services that hold the key, and the
+  public `authenticate` methods.
 - [`app.rs`](../../src/bootstrap/app.rs): removal of `check_seed()` and the key initialization.
-- `udp-server` handlers, benchmarks, and test environments, and the `axum-rest-api-server` test
-  environment.
+- `udp-server` handlers, which call `authenticate` on the disabled-validation path, and the
+  `udp-server` tests and benchmarks.
+- Every caller of `torrust_tracker_udp_core::initialize_static()`, which has nothing left to
+  initialize and is removed: the tracker bootstrap and the `udp-server` and `axum-rest-api-server`
+  servers and test environments.
 
 ## Date
 
