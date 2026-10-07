@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md
 branch: "{issue-number}-1669-gate-server-testing-modules-behind-feature"
 related-pr: null
-last-updated-utc: "2026-10-06 16:01"
+last-updated-utc: "2026-10-07 08:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,8 +31,13 @@ Subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md) (Overhaul: P
 ## Goal
 
 Stop the server packages' test environments from forcing runtime dependencies, by compiling
-each public `src/testing/` module only when a `testing` Cargo feature is enabled, so that
-test-only edges become optional or dev dependencies.
+each public `src/testing/` module only when a `testing` Cargo feature is enabled. Dependencies
+used only by a `testing` module become optional, enabled only by that feature; dependencies used
+only by tests become dev dependencies.
+
+Note: `cargo metadata` still reports an optional dependency with `kind: null` (normal), marked
+`optional: true`. The coupling tool and the dependency diagram currently classify edges by kind
+only, so this issue also makes them show optional edges explicitly.
 
 ## Background
 
@@ -57,11 +62,13 @@ The `testing` modules are used by each package's own tests and examples
 ### In Scope
 
 - Add a `testing` feature to the three server packages and gate `pub mod testing` with it.
-- Make the dependencies used only by the `testing` modules optional (enabled by the feature) or
-  move them to `[dev-dependencies]` where only tests use them.
+- Make the dependencies used only by the `testing` modules optional (enabled by the feature),
+  and move them to `[dev-dependencies]` where only tests use them.
 - Enable the feature where it is needed: each package's own tests and examples
   (`required-features`) and `axum-health-check-api-server`'s dev-dependencies.
 - Record the change as a follow-up to DEC-13 in `DECISIONS.md`.
+- Make the coupling tool label optional dependencies (for example `[normal, optional]`) and
+  draw optional edges distinctly (for example dashed) in the dependency diagram.
 - Update the coupling report observations and the dependency diagram for the removed edges.
 
 ### Out of Scope
@@ -96,10 +103,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                 | Notes / Expected Output                                                       |
 | --- | ------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | T1  | TODO   | Record the DEC-13 follow-up in `DECISIONS.md`                                        | Decision entry approved by the maintainer                                     |
-| T2  | TODO   | Gate `axum-rest-api-server`'s `testing` module and adjust its dependencies           | `udp-server`, `udp-core`, `http-core`, swarm registry no longer normal deps   |
-| T3  | TODO   | Gate `axum-http-server`'s `testing` module and adjust its dependencies               | Swarm registry no longer a normal dep, unless production code needs it        |
-| T4  | TODO   | Gate `udp-server`'s `testing` module and adjust its dependencies                     | Swarm registry no longer a normal dep, unless production code needs it        |
-| T5  | TODO   | Update the coupling report observations and the dependency diagram                   | Finding 2 marked resolved; diagram matches `cargo metadata`                   |
+| T2  | TODO   | Gate `axum-rest-api-server`'s `testing` module and adjust its dependencies           | `udp-server`, `udp-core`, `http-core`, swarm registry optional (feature `testing`) or dev deps |
+| T3  | TODO   | Gate `axum-http-server`'s `testing` module and adjust its dependencies               | Swarm registry optional or a dev dep, unless production code needs it        |
+| T4  | TODO   | Gate `udp-server`'s `testing` module and adjust its dependencies                     | Swarm registry optional or a dev dep, unless production code needs it        |
+| T5  | TODO   | Label optional dependencies in the coupling tool, draw them distinctly in the diagram, and update the report observations | Finding 2 marked resolved; optional edges marked in report and diagram; diagram matches `cargo metadata` including `optional` |
 
 ## Commit Points
 
@@ -109,7 +116,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | Feature, gate and manifest changes for `axum-rest-api-server` | One commit after its tests and the health-check tests pass.       |
 | T3   | Same for `axum-http-server`                                 | One commit after its tests and examples build and pass.             |
 | T4   | Same for `udp-server`                                       | One commit after its tests and examples build and pass.             |
-| T5   | Coupling report note and diagram edges                      | One commit after MV2.                                               |
+| T5   | Tool labelling, diagram edges and report note               | One commit for the tool change with its tests, one for the docs after MV2. |
 
 Use a Conventional Commit message with the issue reference and sign every commit with GPG.
 
@@ -133,19 +140,26 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 - 2026-10-06 16:01 UTC - GitHub Copilot - Drafted from finding 2 of the 2026-10-06 workspace
   coupling report (#2446).
+- 2026-10-07 08:44 UTC - GitHub Copilot - Optional dependencies stay `kind: null` in
+  `cargo metadata`, so the goal, tasks, AC3 and MV2 now describe optional edges explicitly and
+  AC8 requires the tool and diagram to show them, per PR #2462 review finding F4.
 
 ## Acceptance Criteria
 
 - [ ] AC1: The DEC-13 follow-up is recorded in `DECISIONS.md`.
 - [ ] AC2: Each of the three server packages compiles its `testing` module only with the
       `testing` feature.
-- [ ] AC3: No server package has a normal dependency used only by its `testing` module or tests.
+- [ ] AC3: Every dependency of a server package that only its `testing` module uses is
+      `optional: true` and enabled only by the `testing` feature; every dependency that only
+      tests use is a dev dependency.
 - [ ] AC4: Each server package builds without the `testing` feature, and all tests and examples
       that use the module build and pass with it.
 - [ ] AC5: `cargo deny check bans` and `linter all` exit with code `0`.
 - [ ] AC6: Manual verification scenarios are executed and documented in issue-local
       `manual-verification-evidence.md`.
 - [ ] AC7: The acceptance criteria are re-reviewed after implementation.
+- [ ] AC8: The coupling report labels optional dependencies and the dependency diagram draws
+      optional edges distinctly, so feature-gated edges are not shown as plain runtime edges.
 
 ## Verification Plan
 
@@ -162,7 +176,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                           | Human-oriented command/steps                                                                        | Expected Result                                      | Status | Evidence                                      |
 | --- | ---------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------ | --------------------------------------------- |
 | MV1 | Release build without test code    | `cargo build --release -p <server>` for each server, then confirm the `testing` module is excluded | Builds; no `testing` symbols in the library          | TODO   | `manual-verification-evidence.md` section MV1 |
-| MV2 | Removed runtime edges              | Regenerate the coupling report and compare the three servers' normal dependencies                  | The test-only edges are gone or listed as dev deps   | TODO   | `manual-verification-evidence.md` section MV2 |
+| MV2 | Test-only edges are optional       | List the three servers' dependencies with `kind` and `optional` from `cargo metadata --no-deps`, then regenerate the coupling report | The test-only edges show `optional: true` (or dev kind), and the report labels them optional | TODO   | `manual-verification-evidence.md` section MV2 |
 
 Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
 when executing these scenarios, and record the toolchain for each `cargo` command.
@@ -178,6 +192,7 @@ when executing these scenarios, and record the toolchain for each `cargo` comman
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
+| AC8   | TODO                   |          |
 
 ## Risks and Trade-offs
 
