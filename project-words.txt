@@ -534,6 +534,7 @@ urlencode
 uroot
 usize
 valgrind
+valueonly
 valuevec
 vmlinux
 vtable
