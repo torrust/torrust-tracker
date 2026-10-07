@@ -119,7 +119,7 @@ and design provenance metadata that would support compliance if it turns out to 
 | --- | -------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | O1  | Keep provider defaults (status quo)                            | No work                                                              | Misleading; no model identity; inconsistent between harnesses       |
 | O2  | No AI trailers; disclose AI use in the PR body only            | Simple; human-readable                                               | Lost from the history, which matters for code that leaves the PR    |
-| O3  | `Assisted-by:` trailer per model, kernel/Fedora-compatible     | Follows precedent; parseable with `git log --format=%(trailers)`     | No role information; depends on accurate model identifiers          |
+| O3  | `Assisted-by:` trailer per model, kernel/Fedora-compatible     | Follows precedent; parseable with `git log --format='%(trailers)'`   | No role information; depends on accurate model identifiers          |
 | O4  | O3 plus a role-aware provenance record in issue-local evidence | Full analytics (models per task and role) while commits stay concise | Two places to keep consistent; needs harness support to be reliable |
 
 Commit trailers stay with the code after merge, because this repository does not squash. That is
