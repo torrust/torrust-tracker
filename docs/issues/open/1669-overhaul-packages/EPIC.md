@@ -663,9 +663,12 @@ Status: TODO unless noted.
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
-- [ ] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — original tasks done May to June 2026; outputs to be refreshed for the post-#1938 workspace
+- [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
+- [ ] Decouple published `test-helpers` from unpublished crates _(draft; finding 1 of the 2026-10-06 coupling report)_
+- [ ] Gate server `testing` modules behind a Cargo feature _(draft; finding 2 of the 2026-10-06 coupling report; DEC-13 follow-up)_
+- [ ] Fix coupling-tool module name resolution for renamed dependencies and custom library names _(draft; finding 3 of the 2026-10-06 coupling report)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [x] Extract `torrust-located-error` to standalone repository — [#1894](https://github.com/torrust/torrust-tracker/issues/1894) _(Rule E; requires completed rename SI-10 #1823)_ — **DONE**
@@ -684,7 +687,7 @@ Details:
 
 | Item                       | Issue                                                                                                                                                                                     | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                                                                         |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | TODO   | T1 to T8 done May to June 2026; T9 to T13 refresh the outputs for the post-#1938 workspace                                                    |
+| Baseline analysis          | [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit                                                               | [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)                                                                           | DONE   | T1 to T8 done May to June 2026; T9 to T13 refreshed the outputs on 2026-10-06 (report, README audit, diagram, three drafts)                    |
 | Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                              | [docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md](../../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock/ISSUE.md)                             | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                                                                   |
 | Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`          | [docs/issues/closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md](../../closed/1793-1669-03-define-per-package-default-timeout-constants/ISSUE.md)                                   | DONE   | Rule M; completed                                                                                                                             |
 | Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                              | [docs/issues/closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md](../../closed/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives/ISSUE.md)                       | DONE   | Rule M; completed                                                                                                                             |
@@ -704,6 +707,9 @@ Details:
 | Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                                   | [docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                             | [docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md](../../closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md)             | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by publication of `udp-protocol`, `http-protocol`, and `tracker-client` lib                                                   |
+| Test-helpers decoupling    | #TBD — Decouple published `test-helpers` from unpublished crates                                                                                                                          | [docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)                                                 | TODO   | Draft; finding 1 of the 2026-10-06 coupling report (#2446)                                                                                    |
+| Gate server testing        | #TBD — Gate server `testing` modules behind a Cargo feature                                                                                                                              | [docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md](../../drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md)                                                       | TODO   | Draft; finding 2 of the 2026-10-06 coupling report (#2446); DEC-13 follow-up                                                                  |
+| Coupling tool name fix     | #TBD — Coupling tool misses renamed dependencies and custom library names                                                                                                                | [docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../../drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)                                                     | TODO   | Draft; finding 3 of the 2026-10-06 coupling report (#2446)                                                                                    |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option                                            |
 | Cargo deny enforcement     | [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement                                                    | [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)               | DONE   | Tooling; create deny.toml with bans for all forbidden edges; add to CI and hooks                                                              |
 | Versioning policy          | [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy                                                                                 | [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)                                                 | DONE   | Policy; all packages version independently; path deps make linked versions unnecessary                                                        |
@@ -745,6 +751,9 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)
 - [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
+- [docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)
+- [docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md](../../drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md)
+- [docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../../drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
@@ -773,6 +782,9 @@ The EPIC is re-triggered (a new analysis round starts) whenever:
   extraction candidates identified and documented.
 - Exit criteria: Baseline analysis subissue merged; at least one extraction candidate has
   a scoped subissue ready.
+- Status (2026-10-06): baseline done in #2446; the `torrust-tracker-client` extraction has a
+  scoped draft (blocked by crate publication). The next cycle starts from the three findings
+  of the [2026-10-06 coupling report](workspace-coupling-report-2026-10-06.md).
 
 ### Subsequent cycles
 
@@ -968,6 +980,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
 - 2026-10-06 16:05 UTC - Copilot - Created #2454 (mark public error enums `#[non_exhaustive]`
   before first publish), linked as a sub-issue, to apply the Pre-publish API checklist.
+- 2026-10-06 16:21 UTC - GitHub Copilot - Completed the baseline (#2446): 2026-10-06 coupling
+  report, refreshed README audit and dependency diagram; added three draft subissues from the
+  report's findings; marked AC1 done.
 - 2026-10-06 20:06 UTC - Copilot - Added Pre-publish API checklist item 4 (a crate whose public
   error enum gained `#[non_exhaustive]` is published with a semver-major bump), per the
   maintainer's decision on a PR #2456 review finding.
@@ -979,7 +994,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 Because this EPIC is ongoing, acceptance criteria are defined per cycle, not for the
 entire EPIC at once. The EPIC is considered healthy (not stale) when:
 
-- [ ] The baseline analysis is merged and the dependency graph is up to date.
+- [x] The baseline analysis is merged and the dependency graph is up to date.
 - [ ] Every clearly independent package either has an open extraction subissue or a recorded
       decision explaining why extraction was deferred.
 - [ ] `docs/packages.md` and `AGENTS.md` Package Catalog are accurate after each change.
@@ -990,7 +1005,7 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 
 | AC ID | Status | Evidence                                 |
 | ----- | ------ | ---------------------------------------- |
-| AC1   | TODO   | {baseline analysis PR link}              |
+| AC1   | DONE   | #2446: [2026-10-06 coupling report](workspace-coupling-report-2026-10-06.md), [README audit](readme-audit.md), [dependency diagram](../../../media/packages/dependencies-workspace-packages.md) |
 | AC2   | TODO   | {per-candidate issue or decision record} |
 | AC3   | TODO   | {PR link per structural change}          |
 | AC4   | TODO   | {per-subissue links}                     |

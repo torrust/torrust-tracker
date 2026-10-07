@@ -4,10 +4,18 @@ semantic-links:
     - docs/packages.md
     - packages/AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
+    - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
 ---
 
 # Torrust Tracker — Workspace Package Dependencies
+
+Direct normal (non-dev, non-build) dependencies between workspace packages and on external
+`torrust-*` crates, as declared in each `Cargo.toml`. Verified against
+`cargo metadata --no-deps` on 2026-10-06: 153 edges. One more edge,
+`torrust-server-lib --> torrust-net-primitives`, is drawn for context: it is a dependency between
+two external crates, so no workspace manifest declares it. See the
+[2026-10-06 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+for the items each edge imports.
 
 ```mermaid
 flowchart TB
@@ -25,18 +33,28 @@ flowchart TB
         axum-base["axum-server"]
     end
 
+    subgraph runtime-adapter["Runtime Adapter"]
+        direction TB
+        rest-adapter["rest-api-runtime-adapter"]
+    end
+
+    subgraph rest-application["REST API Application"]
+        direction TB
+        rest-app["rest-api-application"]
+    end
+
     subgraph core["Core"]
         direction TB
         tracker-core["tracker-core"]
-        http-core["http-tracker-core"]
-        udp-core["udp-tracker-core"]
-        rest-core["rest-api-core"]
+        http-core["http-core"]
+        udp-core["udp-core"]
     end
 
     subgraph protocol["Protocols"]
         direction TB
         http-proto["http-protocol"]
         udp-proto["udp-protocol"]
+        rest-proto["rest-api-protocol"]
     end
 
     subgraph domain["Domain / Shared"]
@@ -45,7 +63,6 @@ flowchart TB
         config["configuration"]
         primitives["primitives"]
         events["events"]
-        server-lib["server-lib"]
     end
 
     subgraph client-tools["Client Tools"]
@@ -72,117 +89,131 @@ flowchart TB
         net-prim["torrust-net-primitives"]
         peer-id["torrust-peer-id"]
         bencode["torrust-bencode"]
+        server-lib["torrust-server-lib"]
     end
 
-    %% App depends on servers, core, and config
-    tracker --> tracker-core
-    tracker --> http-core
-    tracker --> udp-core
+    %% App (composition root)
+    tracker --> clock
+    tracker --> server-lib
+    tracker --> axum-health
     tracker --> axum-http
     tracker --> axum-rest
-    tracker --> axum-health
     tracker --> axum-base
-    tracker --> rest-client
-    tracker --> rest-core
-    tracker --> server-lib
     tracker --> config
+    tracker --> tracker-core
+    tracker --> events
+    tracker --> http-core
+    tracker --> primitives
+    tracker --> rest-client
+    tracker --> rest-proto
+    tracker --> rest-adapter
     tracker --> swarm
+    tracker --> udp-core
     tracker --> udp-srv
-    tracker --> clock
 
     %% Server dependencies
-    axum-http --> axum-base
+    axum-http --> clock
+    axum-http --> info-hash
+    axum-http --> net-prim
     axum-http --> server-lib
+    axum-http --> axum-base
     axum-http --> config
     axum-http --> tracker-core
     axum-http --> http-core
     axum-http --> http-proto
-    axum-http --> swarm
     axum-http --> primitives
-    axum-http --> udp-proto
-    axum-http --> clock
-    axum-http --> info-hash
-    axum-http --> net-prim
+    axum-http --> swarm
 
-    axum-rest --> axum-base
-    axum-rest --> server-lib
-    axum-rest --> config
-    axum-rest --> tracker-core
-    axum-rest --> http-core
-    axum-rest --> rest-client
-    axum-rest --> rest-core
-    axum-rest --> swarm
-    axum-rest --> udp-srv
-    axum-rest --> udp-core
-    axum-rest --> primitives
     axum-rest --> clock
     axum-rest --> info-hash
     axum-rest --> metrics
     axum-rest --> net-prim
+    axum-rest --> server-lib
+    axum-rest --> axum-base
+    axum-rest --> config
+    axum-rest --> tracker-core
+    axum-rest --> http-core
+    axum-rest --> primitives
+    axum-rest --> rest-app
+    axum-rest --> rest-client
+    axum-rest --> rest-proto
+    axum-rest --> rest-adapter
+    axum-rest --> swarm
+    axum-rest --> udp-core
+    axum-rest --> udp-srv
 
-    axum-health --> axum-base
-    axum-health --> server-lib
-    axum-health --> config
     axum-health --> net-prim
+    axum-health --> server-lib
+    axum-health --> axum-base
+    axum-health --> config
+    axum-health --> primitives
 
+    axum-base --> located-err
     axum-base --> server-lib
     axum-base --> config
-    axum-base --> located-err
 
-    udp-srv --> server-lib
-    udp-srv --> config
-    udp-srv --> tracker-core
-    udp-srv --> udp-core
-    udp-srv --> udp-proto
-    udp-srv --> swarm
-    udp-srv --> primitives
-    udp-srv --> events
-    udp-srv --> client-lib
     udp-srv --> clock
     udp-srv --> info-hash
     udp-srv --> metrics
     udp-srv --> net-prim
+    udp-srv --> peer-id
+    udp-srv --> server-lib
+    udp-srv --> client-lib
+    udp-srv --> config
+    udp-srv --> tracker-core
+    udp-srv --> events
+    udp-srv --> primitives
+    udp-srv --> swarm
+    udp-srv --> udp-core
+    udp-srv --> udp-proto
 
     %% Core layer dependencies
-    tracker-core --> config
-    tracker-core --> swarm
-    tracker-core --> primitives
-    tracker-core --> events
     tracker-core --> clock
     tracker-core --> info-hash
     tracker-core --> located-err
     tracker-core --> metrics
+    tracker-core --> config
+    tracker-core --> events
+    tracker-core --> primitives
+    tracker-core --> swarm
 
-    http-core --> tracker-core
-    http-core --> http-proto
-    http-core --> config
-    http-core --> swarm
-    http-core --> primitives
-    http-core --> events
     http-core --> clock
     http-core --> info-hash
     http-core --> metrics
     http-core --> net-prim
+    http-core --> config
+    http-core --> tracker-core
+    http-core --> events
+    http-core --> http-proto
+    http-core --> primitives
+    http-core --> swarm
 
-    udp-core --> tracker-core
-    udp-core --> udp-proto
-    udp-core --> config
-    udp-core --> swarm
-    udp-core --> primitives
-    udp-core --> events
     udp-core --> clock
     udp-core --> info-hash
     udp-core --> metrics
     udp-core --> net-prim
+    udp-core --> config
+    udp-core --> tracker-core
+    udp-core --> events
+    udp-core --> primitives
+    udp-core --> swarm
+    udp-core --> udp-proto
 
-    rest-core --> config
-    rest-core --> tracker-core
-    rest-core --> http-core
-    rest-core --> swarm
-    rest-core --> primitives
-    rest-core --> udp-srv
-    rest-core --> udp-core
-    rest-core --> metrics
+    rest-app --> info-hash
+    rest-app --> primitives
+    rest-app --> rest-proto
+
+    rest-adapter --> info-hash
+    rest-adapter --> metrics
+    rest-adapter --> config
+    rest-adapter --> tracker-core
+    rest-adapter --> http-core
+    rest-adapter --> primitives
+    rest-adapter --> rest-app
+    rest-adapter --> rest-proto
+    rest-adapter --> swarm
+    rest-adapter --> udp-core
+    rest-adapter --> udp-srv
 
     %% Protocol layer
     http-proto --> bencode
@@ -193,16 +224,17 @@ flowchart TB
 
     udp-proto --> peer-id
 
-    %% Domain layer
-    swarm --> config
-    swarm --> primitives
-    swarm --> events
+    rest-proto --> metrics
+
+    %% Domain layer (events has no torrust-* dependencies)
     swarm --> clock
     swarm --> info-hash
     swarm --> metrics
+    swarm --> events
+    swarm --> primitives
 
-    config --> primitives
     config --> located-err
+    config --> primitives
 
     primitives --> clock
     primitives --> info-hash
@@ -210,37 +242,46 @@ flowchart TB
     primitives --> peer-id
 
     %% Client tools
-    client-lib --> primitives
-    client-lib --> udp-proto
-    client-lib --> info-hash
     client-lib --> located-err
     client-lib --> net-prim
+    client-lib --> peer-id
+    client-lib --> http-proto
+    client-lib --> udp-proto
 
-    tracker-client --> client-lib
-    tracker-client --> udp-proto
     tracker-client --> info-hash
+    tracker-client --> peer-id
+    tracker-client --> client-lib
+    tracker-client --> http-proto
+    tracker-client --> udp-proto
 
-    rest-client --> no-ws-deps["(no workspace deps)"]
-    style no-ws-deps fill:#f9f,stroke:#333,stroke-width:1px
+    rest-client --> rest-proto
 
+    %% External crates with torrust-* dependencies
     server-lib --> net-prim
 
     %% Testing / Benchmarking
+    test-helpers --> info-hash
+    test-helpers --> peer-id
+    test-helpers --> client-lib
     test-helpers --> config
+    test-helpers --> http-proto
+    test-helpers --> primitives
+    test-helpers --> udp-proto
 
-    torrent-bench --> primitives
     torrent-bench --> clock
     torrent-bench --> info-hash
+    torrent-bench --> primitives
 
+    persist-bench --> info-hash
     persist-bench --> config
     persist-bench --> tracker-core
-    persist-bench --> info-hash
+    persist-bench --> primitives
 
     e2e-tools --> tracker
 
     %% External crates styling
     classDef ext fill:#e1f5fe,stroke:#0288d1,stroke-dasharray: 5 5
-    class clock,info-hash,located-err,metrics,net-prim,peer-id,bencode ext
+    class clock,info-hash,located-err,metrics,net-prim,peer-id,bencode,server-lib ext
 
     %% Layer styling
     classDef app fill:#fff3e0,stroke:#ff9800
@@ -250,13 +291,19 @@ flowchart TB
     class axum-http,axum-rest,axum-health,udp-srv,axum-base srv
 
     classDef core fill:#fce4ec,stroke:#e91e63
-    class tracker-core,http-core,udp-core,rest-core core
+    class tracker-core,http-core,udp-core core
+
+    classDef adapter fill:#ede7f6,stroke:#673ab7
+    class rest-adapter adapter
+
+    classDef application fill:#e3f2fd,stroke:#1976d2
+    class rest-app application
 
     classDef proto fill:#f3e5f5,stroke:#9c27b0
-    class http-proto,udp-proto proto
+    class http-proto,udp-proto,rest-proto proto
 
     classDef dom fill:#fff8e1,stroke:#ffc107
-    class swarm,config,primitives,events,server-lib dom
+    class swarm,config,primitives,events dom
 
     classDef client fill:#e0f2f1,stroke:#009688
     class client-lib,tracker-client,rest-client client
