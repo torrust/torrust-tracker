@@ -55,6 +55,10 @@ da2ce7 review 5443352831 (round 2, CHANGES_REQUESTED) re-raised the three round-
 they are F6-F8. Its body also reports that the branch conflicts with `develop` after #2469; that
 request has no thread and is F9.
 
+da2ce7 review 5444749296 (round 3, CHANGES_REQUESTED) confirmed F3, F4, and F1 fixed and left one
+new inline finding numbered F4 in the reviewer's series. F4 is taken, so it becomes F10, with its
+original ID kept in the detail entry. Its body adds no other request.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2470-f1` | Copilot | Major (inferred) | security | ORIGINAL | FIXED | RESOLVED |
@@ -66,6 +70,7 @@ request has no thread and is F9.
 | F7 | `review-finding:pr-2470-f7` | Human | Nit | documentation | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F8 | `review-finding:pr-2470-f8` | Human | Suggestion | security | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F9 | `review-finding:pr-2470-f9` | Human | Minor (inferred) | other | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F10 | `review-finding:pr-2470-f10` | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -209,6 +214,27 @@ request has no thread and is F9.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2470#issuecomment-6040936531>
 
+### F10 - The #2411 EPIC cites moved lines for the cookie key's creation
+
+- PR number: 2470
+- Source review ID: 5444749296
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2470#discussion_r4208912254>
+- Concern: the EPIC's connection-ID row, rewritten by this PR, cited `cookie_cipher.rs:49` and
+  `container.rs:171`; later commits in this PR moved both, so they no longer point at the key's
+  creation, and the row matched neither the current tree nor the EPIC's review basis.
+- Solution: name the key's creation by symbol (`CookieCipher::random`,
+  `UdpTrackerCoreServices::initialize_from`), restore `connection_cookie.rs:159`, which resolves at
+  the basis commit `7970cdf0a` (the earlier `:160` had departed from it), and say in the basis note
+  why that row uses symbols.
+- Current-tree verification: `random()` is at `cookie_cipher.rs:55`; `initialize_from` starts at
+  `container.rs:175` and calls `CookieCipher::random()` at `:192`; at `7970cdf0a`,
+  `connection_cookie.rs:159` is `pub fn check` and `:66` is the fingerprint note; `linter
+  markdown` and `linter cspell` pass.
+- Resolution reference: `docs(issues): [#2458] cite the #2411 cookie-key creation by symbol`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2470#discussion_r4208962370>
+
 ## Processing Log
 
 - 2026-10-07 15:20 UTC - Started the audit for Copilot review 5441412069 and da2ce7 reviews
@@ -221,6 +247,14 @@ request has no thread and is F9.
   with the pre-push checks then succeeded. Replied on all eight threads (15:19:41-15:19:54) and
   posted the consolidated response covering the three reviews and F1-F9 (15:20:10).
 - 2026-10-07 15:21 UTC - Recorded this audit; threads are resolved after it is pushed.
+- 2026-10-07 15:50 UTC - Resolved the eight threads after the audit was pushed (reply guard exited 0) and
+  re-requested da2ce7's review; the GitHub checks then passed at that head. da2ce7 round 3
+  (5444749296, 15:45:30) confirmed F1, F3, and F4 fixed and raised F10. Committed the F10 fix
+  (15:47), pushed, and replied (15:50:13). The round-3 body also notes that Git reads the body of
+  `fix(udp-core): [#2458] keep the cookie key private to udp-core` as a pseudo-trailer, because its
+  one paragraph starts with `UdpTrackerCoreServices::cookie_cipher`; confirmed with
+  `git log --format='%(trailers)'`. It is not a finding and would need a history rewrite, so the
+  commit stays.
 
 ## Completion Rules
 
