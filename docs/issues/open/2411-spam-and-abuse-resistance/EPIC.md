@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 12:55"
+last-updated-utc: "2026-10-07 14:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,7 +89,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 
 | Control | Where | What it bounds | Configuration (default) | Cases |
 | --- | --- | --- | --- | --- |
-| UDP connection-ID validation | `packages/udp-core/src/connection_cookie.rs:159`, `packages/udp-core/src/connection_cookie.rs:66` | Announce and scrape need a connection ID whose issue time falls within the cookie lifetime; the cookie binds a fingerprint of the source address and the issue time by arithmetic mixing, not a MAC, so a cookie minted for one fingerprint can coincidentally pass for another; the key is generated at startup and not rotated while the process runs (`packages/udp-core/src/crypto/ephemeral_instance_keys.rs:24`) | `udp_tracker_server.connection_id_validation`, `strict` (`packages/configuration/src/v3_0_0/udp_tracker_server.rs:27`); `udp_trackers[].cookie_lifetime`, 120 s (`packages/configuration/src/v3_0_0/udp_tracker.rs:60`) | A1, A8 |
+| UDP connection-ID validation | `packages/udp-core/src/connection_cookie.rs:160`, `packages/udp-core/src/connection_cookie.rs:66` | Announce and scrape need a connection ID whose issue time falls within the cookie lifetime; the cookie binds a fingerprint of the source address and the issue time by arithmetic mixing, not a MAC, so a cookie minted for one fingerprint can coincidentally pass for another; the key is generated at startup and not rotated while the process runs (`packages/udp-core/src/crypto/cookie_cipher.rs:49`, created once per composition root at `packages/udp-core/src/container.rs:171`) | `udp_tracker_server.connection_id_validation`, `strict` (`packages/configuration/src/v3_0_0/udp_tracker_server.rs:27`); `udp_trackers[].cookie_lifetime`, 120 s (`packages/configuration/src/v3_0_0/udp_tracker.rs:60`) | A1, A8 |
 | UDP IP banning | `packages/udp-server/src/server/launcher.rs:487` | Drops, without a response, datagrams from an IP with more connection-ID errors than the limit; only connection-ID errors count (`packages/udp-server/src/banning/event/handler.rs:27`); shared by all UDP listeners; enforced only under `strict` | `udp_tracker_server.max_connection_id_errors_per_ip`, 10 (`packages/configuration/src/v3_0_0/udp_tracker_server.rs:159`); `udp_tracker_server.ip_bans_reset_interval_in_secs`, 86400, minimum 3600 (`packages/configuration/src/v3_0_0/udp_tracker_server.rs:95`) | A1, A8 |
 | UDP active-request ring | `packages/udp-server/src/server/request_buffer.rs:9` | When every tracked processor is unfinished, aborts the oldest after one yield to admit a new datagram (`packages/udp-server/src/server/launcher.rs:434`); not an exact concurrency bound, as the [ring ADR](../../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md) records | Not configurable, 50 | A1 |
 | UDP source-port-zero discard | `packages/udp-server/src/server/launcher.rs:467` | Discards, before processing, datagrams that cannot receive a response | None | A1 |
