@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:03"
+last-updated-utc: "2026-10-07 09:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -54,7 +54,7 @@ The accepted architecture and alternatives are recorded in the
 The current shutdown process has several problems identified in the
 [shutdown analysis](../../../analysis/20260716-shutdown-process/README.md).
 The list keeps the problems as originally found; each item ends with its
-status as of 2026-10-02.
+status as of 2026-10-07.
 
 1. **No `SIGTERM` in `main.rs`** — only `SIGINT` (Ctrl+C) is handled at the top
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
