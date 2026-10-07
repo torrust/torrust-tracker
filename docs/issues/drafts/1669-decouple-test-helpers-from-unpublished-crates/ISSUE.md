@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md
 branch: "{issue-number}-1669-decouple-test-helpers-from-unpublished-crates"
 related-pr: null
-last-updated-utc: "2026-10-06 16:01"
+last-updated-utc: "2026-10-07 08:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -55,29 +55,35 @@ the workspace and depend only on `configuration` and `primitives`, both publishe
 
 ### In Scope
 
-- Choose how to remove the unpublished edges and record the decision in
-  `docs/issues/open/1669-overhaul-packages/DECISIONS.md`. Options to assess:
-  1. Move the `http` and `udp` helpers into the root crate's `tests/common/` (only consumer).
-  2. Gate the `http` and `udp` modules behind an optional Cargo feature of `test-helpers`.
-  3. Keep them and publish the protocol crates and `client-lib` first (a release decision
-     outside this EPIC).
-- Implement the chosen option and update the affected tests.
+- Move the `http` and `udp` helpers out of `test-helpers` and record the decision in
+  `docs/issues/open/1669-overhaul-packages/DECISIONS.md`. Destinations to assess:
+  1. The root crate's `tests/common/` (their only consumer today).
+  2. A new workspace package with `publish = false`, if other packages are expected to need
+     them.
+- Remove the then-unused dependencies from `test-helpers` and update the affected tests.
 - Regenerate or annotate the coupling report and the dependency diagram for the changed edges.
+
+Rejected approaches, both of which leave `test-helpers` unpublishable:
+
+- Gating the modules behind a Cargo feature: `cargo publish` needs every dependency, optional
+  ones included, to come from a registry.
+- Publishing `client-lib` and the protocol crates first: a release decision outside this EPIC.
 
 ### Out of Scope
 
 - Publishing any crate to crates.io.
+- Publishing the protocol crates or `client-lib`.
 - Changing the behaviour of the helpers or of the tests that use them.
 
 ## Architectural Decisions
 
 - Related ADRs: [`docs/adrs/20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
-- Decision to record: the chosen option, as the next free entry in
+- Decision to record: the chosen destination, as the next free entry in
   [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md)
 
 ## Design and Ownership Review
 
-Not applicable unless option 1 moves test fixtures: in that case, keep each helper's
+Not applicable unless the helpers move into `tests/common/`: in that case, keep each helper's
 responsibilities unchanged and review the moved code against the `write-unit-test` skill's
 fixture guidance.
 
@@ -95,8 +101,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                    | Notes / Expected Output                                                   |
 | --- | ------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| T1  | TODO   | Assess options 1 to 3 and record the decision in `DECISIONS.md`         | Decision entry with the chosen option and why                             |
-| T2  | TODO   | Implement the chosen option                                             | `test-helpers` has no normal dependency on an unpublished crate          |
+| T1  | TODO   | Choose the destination of the `http` and `udp` helpers and record it in `DECISIONS.md` | Decision entry with the chosen destination and why                        |
+| T2  | TODO   | Move the helpers and remove the unpublished dependencies from `test-helpers` | `test-helpers` has no normal dependency on an unpublished crate          |
 | T3  | TODO   | Update the coupling report observations and the dependency diagram      | Finding 1 marked resolved; diagram edges match `cargo metadata`          |
 
 ## Commit Points
@@ -104,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set                                    | Commit policy                                         |
 | ---- | ------------------------------------------------------ | ----------------------------------------------------- |
 | T1   | `DECISIONS.md` entry                                   | One commit after maintainer approval of the decision. |
-| T2   | Code move or feature gate, plus manifest changes       | One commit after the affected tests pass.             |
+| T2   | Helper move plus manifest changes                      | One commit after the affected tests pass.             |
 | T3   | Coupling report note and diagram edges                 | One commit after MV2.                                 |
 
 Use a Conventional Commit message with the issue reference and sign every commit with GPG.
@@ -129,15 +135,16 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 - 2026-10-06 16:01 UTC - GitHub Copilot - Drafted from finding 1 of the 2026-10-06 workspace
   coupling report (#2446).
+- 2026-10-07 08:40 UTC - GitHub Copilot - Removed the escape clauses and the options that leave
+  `test-helpers` unpublishable (feature gate, publish first), per PR #2462 review finding F3.
 
 ## Acceptance Criteria
 
 - [ ] AC1: The decision is recorded in `DECISIONS.md`.
-- [ ] AC2: `torrust-tracker-test-helpers` has no normal dependency on an unpublished workspace
-      crate, or the decision records why publication comes first.
+- [ ] AC2: `torrust-tracker-test-helpers` has no dependency (normal or optional) on an
+      unpublished workspace crate.
 - [ ] AC3: The root integration tests that used the `http` and `udp` helpers still pass.
-- [ ] AC4: `cargo publish --dry-run -p torrust-tracker-test-helpers` succeeds, or the decision
-      records why it is deferred.
+- [ ] AC4: `cargo publish --dry-run -p torrust-tracker-test-helpers` succeeds.
 - [ ] AC5: `linter all` exits with code `0`.
 - [ ] AC6: Manual verification scenarios are executed and documented in issue-local
       `manual-verification-evidence.md`.
@@ -158,7 +165,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                              | Human-oriented command/steps                                         | Expected Result                                   | Status | Evidence                                      |
 | --- | ------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------- | ------ | --------------------------------------------- |
 | MV1 | `test-helpers` dependencies           | `cargo metadata --no-deps` and list the package's normal dependencies | No unpublished workspace crate among them         | TODO   | `manual-verification-evidence.md` section MV1 |
-| MV2 | `test-helpers` can be packaged        | `cargo publish --dry-run -p torrust-tracker-test-helpers`            | Succeeds, or the deferral is recorded             | TODO   | `manual-verification-evidence.md` section MV2 |
+| MV2 | `test-helpers` can be packaged        | `cargo publish --dry-run -p torrust-tracker-test-helpers`            | Succeeds                                          | TODO   | `manual-verification-evidence.md` section MV2 |
 
 Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
 when executing these scenarios, and record the toolchain for each `cargo` command.
@@ -177,9 +184,10 @@ when executing these scenarios, and record the toolchain for each `cargo` comman
 
 ## Risks and Trade-offs
 
-- Option 1 removes reusable helpers from a published crate; external users of 3.0.0 are
-  unaffected because 3.0.0 does not contain them.
-- Option 2 keeps one package but makes a feature combination that must stay unpublishable.
+- The next `test-helpers` release no longer contains the `http` and `udp` helpers. External
+  users of 3.0.0 are unaffected, because 3.0.0 does not contain them.
+- A new `publish = false` package adds a workspace member; prefer `tests/common/` unless a
+  second consumer exists.
 
 ## Implementation Completion Review
 
