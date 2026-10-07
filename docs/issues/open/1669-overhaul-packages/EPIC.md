@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 10:40"
+last-updated-utc: "2026-10-07 08:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -665,6 +665,7 @@ Status: TODO unless noted.
 
 - [ ] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — original tasks done May to June 2026; outputs to be refreshed for the post-#1938 workspace
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
+- [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [x] Extract `torrust-located-error` to standalone repository — [#1894](https://github.com/torrust/torrust-tracker/issues/1894) _(Rule E; requires completed rename SI-10 #1823)_ — **DONE**
@@ -724,6 +725,7 @@ Details:
 | HTTP/UDP crate renames     | [#1910](https://github.com/torrust/torrust-tracker/issues/1910) — SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names                                                       | [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md) | DONE   | Rule U; DEC-15 folder convention                                                                                                              |
 | HTTP type consolidation    | [#1965](https://github.com/torrust/torrust-tracker/issues/1965) — SI-34: Consolidate duplicate HTTP types into `http-protocol`                                                            | [docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md](../../closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md)                                         | DONE   |                                                                                                                                               |
 | UDP type consolidation     | [#1966](https://github.com/torrust/torrust-tracker/issues/1966) — SI-35: Consolidate duplicate UDP types                                                                                  | [docs/issues/closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md](../../closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md)                                           | DONE   |                                                                                                                                               |
+| Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | TODO   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
 
 Proposal note:
 After SI-14, there is a proposal to evaluate a dedicated repository for protocol crates so protocol packages can evolve with BEP/spec changes while tracker app packages evolve with domain/product changes. This is proposal-only for now (not committed scope) and is tracked in [#1835](https://github.com/torrust/torrust-tracker/issues/1835).
@@ -731,6 +733,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 ### Subissue Specs Index
 
 - [docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md](../2446-1669-establish-baseline-analysis/ISSUE.md)
+- [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
 - [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
@@ -783,7 +786,8 @@ There is no predetermined end date or total subissue count.
 
 ### Pre-publish API checklist
 
-Before the first crates.io publish of each package, audit its public error API
+Before each package's first crates.io publish, and before any later publish of a package whose
+public error API changed, audit its public error API
 ([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
 
 1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
@@ -791,6 +795,12 @@ Before the first crates.io publish of each package, audit its public error API
 2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
 3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
    placeholder for future failures.
+4. Publish a crate whose public error enum gained `#[non_exhaustive]` since its last publish with a
+   semver-major bump (a minor bump for `0.x` crates), because adding the attribute is a breaking
+   change.
+
+Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
+the workspace crates.
 
 ## Open Questions
 
@@ -956,6 +966,13 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   linked it as a subissue, and moved its spec to `docs/issues/open/`.
 - 2026-10-06 10:40 UTC - Copilot - Moved the Pre-publish API checklist from Open Questions to
   Delivery Strategy, because it is a decided procedure (PR #2445 review finding F7).
+- 2026-10-06 16:05 UTC - Copilot - Created #2454 (mark public error enums `#[non_exhaustive]`
+  before first publish), linked as a sub-issue, to apply the Pre-publish API checklist.
+- 2026-10-06 20:06 UTC - Copilot - Added Pre-publish API checklist item 4 (a crate whose public
+  error enum gained `#[non_exhaustive]` is published with a semver-major bump), per the
+  maintainer's decision on a PR #2456 review finding.
+- 2026-10-07 08:04 UTC - Copilot - Extended the Pre-publish API checklist lead-in to later
+  publishes of a package whose public error API changed, so item 4 applies (PR #2456 review).
 
 ## Acceptance Criteria
 
