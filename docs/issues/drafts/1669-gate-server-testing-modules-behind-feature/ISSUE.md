@@ -202,7 +202,19 @@ when executing these scenarios, and record the toolchain for each `cargo` comman
 
 ## Implementation Completion Review
 
+After implementation, compare the result with this specification. Record
+invalidated assumptions, material design changes, unexpected validation
+findings, and reusable lessons.
+
 - Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from the repository
+  template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
+  specification's directory.
+- If no retrospective is needed, add a concise progress-log entry explaining
+  why the work had no material discovery.
+- When an independent reviewer receives this folder-style specification, it
+  records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
 ## References
 
