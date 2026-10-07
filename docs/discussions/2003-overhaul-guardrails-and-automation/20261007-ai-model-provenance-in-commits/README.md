@@ -42,6 +42,9 @@ The trailer is gone, but the question it raised is open: what should a commit re
 models involved in it? This discussion collects the background, the precedent, and the options, so
 that the owner of EPIC #2003 can decide before anything is implemented.
 
+Nothing here changes a specification or a rule. A conclusion takes effect only when the owner of
+EPIC #2003 records it.
+
 ## Why the Default Trailer Is Only Half Useful
 
 1. **It records who made the commit, not who wrote the changes.** The harness adds the trailer
