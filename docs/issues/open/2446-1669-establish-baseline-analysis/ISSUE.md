@@ -9,7 +9,7 @@ github-issue: 2446
 spec-path: docs/issues/open/2446-1669-establish-baseline-analysis/ISSUE.md
 branch: "2446-1669-establish-baseline-analysis-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 08:36"
+last-updated-utc: "2026-10-07 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -311,6 +311,11 @@ reviewability.
   expression that skipped one diagram edge, caught and recorded in the evidence file.
 - 2026-10-07 08:36 UTC - GitHub Copilot - Clarified AC1 to state the scope it was checked
   against (generated sections only), per PR #2462 review finding F8.
+- 2026-10-07 08:56 UTC - GitHub Copilot - AC2 evidence row now counts five mis-resolved edges,
+  including the `axum-http-server` dev edge, per PR #2462 review finding F13.
+- 2026-10-07 09:11 UTC - GitHub Copilot - AC5 evidence row now says "153 workspace edges" and
+  names the external-to-external edge drawn for context, per PR #2462 review finding F17.
+  This and the previous entry were backfilled at 12:39 UTC, per PR #2462 review finding F20.
 
 ## Acceptance Criteria
 

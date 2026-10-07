@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "{issue-number}-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: null
-last-updated-utc: "2026-10-07 12:29"
+last-updated-utc: "2026-10-07 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -161,6 +161,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
   review finding F5: plain-language explanation, reproduction run and recorded as
   **Reproduced** (R1; it also found a fifth affected edge, the `axum-http-server` dev
   dependency), red regression-test task, and a like-for-like recheck (R2).
+- 2026-10-07 09:25 UTC - GitHub Copilot - Copied the template's completion-review conditions,
+  per PR #2462 review finding F15. Backfilled at 12:39 UTC, per review finding F20.
 - 2026-10-07 12:29 UTC - GitHub Copilot - The link to finding 3 now says it lists all five
   edges, per PR #2462 review finding F21.
 

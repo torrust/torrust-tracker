@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md
 branch: "{issue-number}-1669-decouple-test-helpers-from-unpublished-crates"
 related-pr: null
-last-updated-utc: "2026-10-07 08:40"
+last-updated-utc: "2026-10-07 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -137,6 +137,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
   coupling report (#2446).
 - 2026-10-07 08:40 UTC - GitHub Copilot - Removed the escape clauses and the options that leave
   `test-helpers` unpublishable (feature gate, publish first), per PR #2462 review finding F3.
+- 2026-10-07 09:25 UTC - GitHub Copilot - Copied the template's completion-review conditions,
+  per PR #2462 review finding F15. Backfilled at 12:39 UTC, per review finding F20.
 
 ## Acceptance Criteria
 

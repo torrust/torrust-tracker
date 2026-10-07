@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md
 branch: "{issue-number}-1669-gate-server-testing-modules-behind-feature"
 related-pr: null
-last-updated-utc: "2026-10-07 08:44"
+last-updated-utc: "2026-10-07 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,6 +143,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-07 08:44 UTC - GitHub Copilot - Optional dependencies stay `kind: null` in
   `cargo metadata`, so the goal, tasks, AC3 and MV2 now describe optional edges explicitly and
   AC8 requires the tool and diagram to show them, per PR #2462 review finding F4.
+- 2026-10-07 09:25 UTC - GitHub Copilot - Copied the template's completion-review conditions,
+  per PR #2462 review finding F15. Backfilled at 12:39 UTC, per review finding F20.
 
 ## Acceptance Criteria
 
