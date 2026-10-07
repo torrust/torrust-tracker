@@ -9,7 +9,7 @@ github-issue: 2466
 spec-path: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
 branch: "2466-1978-announce-interval-upper-bound-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 08:59"
+last-updated-utc: "2026-10-07 10:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,8 +17,9 @@ semantic-links:
     - docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md
-    - docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
+    - "issue #2245"
     - packages/primitives/src/announce.rs
+    - packages/configuration/docs/migrate-v2-to-v3.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -43,13 +44,14 @@ bound, and the v3 configuration uses `AnnouncePolicy` directly as `Core::announc
 Before #2245, a configured `interval = 2147483648` was sent over UDP as `-2147483648` (reproduced
 against a local tracker). #2245 (PR #2452) fixed the wire defect by clamping the value to
 `i32::MAX` through `saturating_wire_i32` in `udp-server`. The configuration is still accepted, so
-UDP clients receive `2147483647` while HTTP announces report the configured `2147483648`.
+UDP clients receive `2147483647` while HTTP announces report the configured `2147483648`
+(reproduced on 2026-10-07; see `manual-verification-evidence.md` section V0).
 
 The #2245 plan first rejected the value in `Core::validate`. That conflicts with the configuration
 validation ADR, which classifies a single-value bound as a **value invariant**: it must be a typed
 newtype rejected during deserialization, and one-field rules must not be added to `Validator`. See
-the [#2245 specification](../../closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md)
-and its implementation retrospective.
+the [#2245 issue](https://github.com/torrust/torrust-tracker/issues/2245), its specification, and
+its implementation retrospective.
 
 ## Decisions
 
@@ -86,11 +88,18 @@ Recorded with the maintainer on 2026-10-07:
   `configuration`, and test or console consumers).
 - Converting the UDP interval through the type without clamping. `saturating_wire_i32` remains for
   the seeder and leecher counts, which no configuration bounds.
+- Module-level doc comments on the bounded type and the UDP interval conversion that link back to
+  the ADR.
+- Updating `packages/configuration/docs/migrate-v2-to-v3.md`, as the parent EPIC requires for a
+  configuration public API change: a quick-reference row and the new bound on
+  `[core.announce_policy]`.
 
 ### Out of Scope
 
 - An `interval_min <= interval` consistency rule; that would be a separate `Validator` rule.
-- The v2 configuration schema, which is kept only for backward compatibility.
+- Other changes to the v2 configuration schema. v2 shares `AnnouncePolicy` with v3, so it inherits
+  the bound; this reaches only library users of `v2_0_0`, because the tracker no longer loads v2
+  at runtime.
 - Seeder and leecher count clamping, which #2245 owns.
 - Applying the ADR rule to other configuration values; later issues do that when they touch them.
 
@@ -114,18 +123,21 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - Analysis: the configuration accepts an interval that cannot be represented on the UDP wire.
   After #2245 the UDP reply is clamped, so the remaining defect is silent acceptance and the
   divergence between UDP and HTTP intervals.
-- Reproduction: start a tracker with `interval = 2147483648`; it starts, and the UDP announce
-  returns `2147483647` (clamped) while the HTTP announce returns `2147483648`. Record it in
-  `manual-verification-evidence.md` before changing code.
-- Regression test boundary: construction and deserialization of the bounded type (unit tests at
-  `i32::MAX` and `i32::MAX + 1`), plus a configuration-load test that rejects the value.
+- Reproduction: **Reproduced** before review (2026-10-07). With `interval = 2147483648` the
+  tracker starts, the UDP announce returns `2147483647` (clamped), and the HTTP announce returns
+  `2147483648`. See `manual-verification-evidence.md` section V0.
+- Regression test boundary: configuration-load tests, written first and recorded red against the
+  current `u32` fields (T2); then construction and deserialization of the bounded type (unit tests
+  at `i32::MAX` and `i32::MAX + 1`).
 
 ## Regression Test Strategy
 
-Unit tests on the bounded type: `2147483647` is accepted and `2147483648` is rejected, both through
-construction and through `Deserialize`. Configuration tests prove that loading a TOML with
-`interval = 2147483648` or `interval_min = 2147483648` fails with an error naming the field. These
-must fail against the current `u32` fields; record the red and green runs in the evidence file.
+Configuration-load tests are the regression tests: loading a TOML with `interval = 2147483648` or
+`interval_min = 2147483648` must fail with an error naming the field, the value (`2147483648`),
+and the limit (`2147483647`). They are written first and fail against the current `u32` fields;
+the red run is recorded in the evidence file before the fix (T2), and the green run after it (T7).
+Unit tests on the bounded type cover `2147483647` accepted and `2147483648` rejected, both through
+construction and through `Deserialize`.
 
 ## Implementation Plan
 
@@ -134,17 +146,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Resolve the open questions | Decisions section; ADR added in the specification PR. |
-| T2 | TODO | Add the bounded type to `primitives` | Construction and `Deserialize` reject values above `i32::MAX`; unit tests at the boundary. |
-| T3 | TODO | Adopt it for `interval` and `interval_min` | Consumers updated; configuration-load tests reject `2147483648` for both fields. |
-| T4 | TODO | Convert the UDP interval through the type | No clamp for the interval; `saturating_wire_i32` kept for peer counts. |
+| T2 | TODO | Write the configuration-load regression tests | Assert field, value, and limit for `interval` and `interval_min`. Expected output: the recorded red run against the `u32` fields. |
+| T3 | TODO | Add the bounded type to `primitives` | Construction and `Deserialize` reject values above `i32::MAX`; boundary unit tests; module doc links the ADR. |
+| T4 | TODO | Fix: adopt it for `interval` and `interval_min` | Consumers updated; the T2 tests pass. |
+| T5 | TODO | Convert the UDP interval through the type | No clamp for the interval; `saturating_wire_i32` kept for peer counts; doc comment links the ADR. |
+| T6 | TODO | Update the migration guide | Quick-reference row and the bound on `[core.announce_policy]` in `migrate-v2-to-v3.md`. |
+| T7 | TODO | Green run and recheck | T2 tests green; M1 "after", M2, and M3 recorded in the evidence file. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| T2 | Bounded type and its boundary unit tests | Commit after focused validation and test-design review. |
-| T3 | Field type change, consumer updates, configuration-load tests | Commit after focused validation and test-design review. |
-| T4 | UDP interval conversion | Commit after focused validation; may merge into T3 if the type change forces it. |
+| T3 | Bounded type and its boundary unit tests | Commit after focused validation and test-design review. |
+| T2 + T4 | Regression tests, field type change, consumer updates | One commit: the red tests cannot pass the pre-push gate alone. The red run stays in the evidence file. |
+| T5 | UDP interval conversion | Commit after focused validation; may merge into T2 + T4 if the type change forces it. |
+| T6 | Migration guide update | Separate documentation commit. |
+| T7 | Evidence and spec progress | Separate documentation commit. |
 
 Tests follow the `write-unit-test` skill, with the prose-first Arrange-Act-Assert review after each
 passing increment and before maintainer review and commit. Commits are signed Conventional Commits
@@ -163,6 +180,8 @@ with the narrow affected scope.
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -172,6 +191,7 @@ with the narrow affected scope.
 - 2026-10-06 16:41 UTC - GitHub Copilot - Moved to `docs/issues/drafts/` after #2245 was archived (PR #2455); refreshed facts against `develop`; added Commit Points and Acceptance Verification - Awaiting maintainer review
 - 2026-10-07 08:29 UTC - josecelano - Answered the open questions: one protocol-agnostic value bounded by the tightest delivery protocol, type in `primitives` (also for `interval_min`), subissue of reopened #1978, breaking change accepted for 4.0.0, ADR in the specification PR - Chat decision
 - 2026-10-07 08:59 UTC - GitHub Copilot - Maintainer approved the specification; created #2466, reopened #1978 and linked #2466 as its subissue; moved this spec to `docs/issues/open/` - Specification PR
+- 2026-10-07 10:24 UTC - GitHub Copilot - Applied PR #2468 round-1 review fixes: reproduced the defect before implementation (V0, Reproduced), added the red-run regression task and the migration-guide task, asserted field, value, and limit in tests and scenarios, restored the verification notes and two template checkpoints, scoped the v2 inheritance, and cited #2245 by issue number - In review
 
 ## Acceptance Criteria
 
@@ -183,21 +203,37 @@ with the narrow affected scope.
 - [ ] AC5: `linter all` exits with code `0` and relevant tests pass.
 - [ ] AC6: Manual verification scenarios are executed and documented in issue-local
   `manual-verification-evidence.md`.
+- [ ] AC7: `packages/configuration/docs/migrate-v2-to-v3.md` documents the new bound.
 
 ## Verification Plan
 
 ### Automatic Checks
 
-- Bounded-type unit tests and configuration-load tests.
+- Bounded-type unit tests and configuration-load tests (stable Rust toolchain).
 - Focused Clippy for changed packages, `linter all`, and pre-push checks.
 
 ### Manual Verification Scenarios
 
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Reproduce, then reject an out-of-range interval | Start a local tracker with `interval = 2147483648`, before and after the fix. | Before: starts; UDP reports `2147483647`, HTTP `2147483648`. After: startup fails with an error naming `interval` and the limit. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Reject an out-of-range minimum interval | Start with `interval_min = 2147483648`. | Startup fails with an error naming `interval_min` and the limit. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Reproduce, then reject an out-of-range interval | Start a local tracker with `interval = 2147483648`, before and after the fix. | Before: starts; UDP reports `2147483647`, HTTP `2147483648`. After: startup fails with an error naming `interval`, the value `2147483648`, and the limit `2147483647`. | IN_PROGRESS (before: DONE) | `manual-verification-evidence.md` sections V0 and V1 |
+| M2 | Reject an out-of-range minimum interval | Start with `interval_min = 2147483648`. | Startup fails with an error naming `interval_min`, the value `2147483648`, and the limit `2147483647`. | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Accept the boundary | Start with `interval = 2147483647` and announce over UDP and HTTP. | Both report `2147483647`. | TODO | `manual-verification-evidence.md` section V3 |
+
+Notes:
+
+- Manual verification is mandatory even when automated tests pass. It is a real human-oriented
+  use of the feature or reproduction of the bug fix, not a simulated result and not merely running
+  automated tests.
+- Every recorded validation command result must identify the toolchain or runtime that produced
+  it when one can affect behavior; M1-M3 record the Rust toolchain that built the tracker and
+  `tracker_client`.
+- `manual-verification-evidence.md` follows `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
+  Record actual prerequisites, actions, commands, program output, relevant tracker logs, and
+  outcomes there.
+- If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
 
 ### Disposable Verification Scripts
 
@@ -213,6 +249,7 @@ None planned. The scenarios use the tracker binary and `tracker_client`.
 | AC4 | TODO | UDP response code and M3. |
 | AC5 | TODO | `linter all` and test output. |
 | AC6 | TODO | `manual-verification-evidence.md`. |
+| AC7 | TODO | Migration guide diff. |
 
 ## Risks and Trade-offs
 
