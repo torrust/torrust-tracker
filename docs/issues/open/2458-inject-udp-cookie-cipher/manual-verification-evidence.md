@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-07 10:07"
+last-updated-utc: "2026-10-07 13:19"
 ---
 
 # Manual Verification Evidence
@@ -517,6 +517,36 @@ backup copy and checked with `cmp`.
   announce or scrape handling rules. The expected value, `Ok(ISSUE_TIME)`, is the issue time given
   to the connect service, not one computed by the code under test. No prose kept besides the module
   comment that states why one key matters.
+
+## R1 After Wiping the Raw Key Bytes
+
+- Date and time (UTC): 2026-10-07 13:17, from the saved output file.
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] wipe the raw cookie key bytes after building the cipher`, where
+  `CookieCipher::random()` fills a `zeroize::Zeroizing<[u8; 32]>` in place with
+  `rand::rng().fill(&mut *key)`.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`); the doctests also on nightly Cargo 1.101.0.
+- Green: `cargo test -p torrust-tracker-udp-core` passed (42 unit tests and the doctests), and
+  `cargo +nightly test --doc -p torrust-tracker-udp-core cookie_cipher` passed both R2 doctests.
+
+Mutation M-R1-fill: the new plausible bug is leaving the key buffer at its zero initial value.
+Deleting the `fill` line does not compile under the workspace lints (`unused import: rand::Rng`,
+`variable does not need to be mutable`), so the compiling variant fills a throwaway buffer instead:
+`rand::rng().fill(&mut [0_u8; 1]); let _ = &mut *key;`. Restored afterwards from a backup copy and
+checked with `cmp`.
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib crypto::cookie_cipher
+test crypto::cookie_cipher::tests::it_should_redact_the_key_when_formatted_for_debugging ... ok
+test crypto::cookie_cipher::tests::it_should_create_a_different_key_each_time_when_the_key_is_random ... FAILED
+test crypto::cookie_cipher::tests::it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random ... FAILED
+assertion `left != right` failed: two random keys encrypted the zero block identically
+assertion `left != right` failed: a random key encrypted the zero block exactly like the fixed all-zero test key
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+```
+
+The wipe itself has no automatic test: checking that memory was cleared after it is released is
+undefined behavior in Rust, and the guarantee comes from the `zeroize` crate.
 
 ## Failures and Follow-up
 
