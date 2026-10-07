@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: in-review
 priority: p2
 epic: null
 github-issue: 2458
 spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
-related-pr: null
-last-updated-utc: "2026-10-07 10:25"
+related-pr: 2470
+last-updated-utc: "2026-10-07 10:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -342,7 +342,7 @@ Arrange-Act-Assert review.
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2461)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
@@ -385,6 +385,7 @@ Arrange-Act-Assert review.
 - 2026-10-07 10:07 UTC - Copilot - T7: deleted `crypto::keys` and `crypto::ephemeral_instance_keys`, `check_seed()`, and `torrust_tracker_udp_core::initialize_static()` with its callers; corrected the `udp-server` crate docs (connection IDs described as a hash with a secret seed), the bootstrap docs, and `src/AGENTS.md`. A search found no consumer of the seed besides `check_seed()`. The `udp-core`, `udp-server`, `axum-rest-api-server`, and root-crate tests passed (503 tests). T8 so far: M1, M2b, and M3 done (evidence V2-V4); the forged connection ID is rejected by the running tracker and the test key cannot be named from a production build. B3: P2 measured after waiting for other sessions' compilations to finish; all four measurements meet the one-sided rule (load-test mean 154260.85 against a limit of 142155.29; `make`, `check`, and `connect_once` medians 44.77, 46.99, and 59.05 ns against 49.93, 48.30, and 59.10 ns). `linter all` passes. AC1-AC7 reviewed against the evidence and marked done; AC8 waits for D1. Remaining: D1, pre-push checks, and the completion review.
 - 2026-10-07 10:17 UTC - Copilot - D1: updated `docs/benchmarking.md` (benchmark levels and tools, choosing a benchmark, before-and-after evidence, checking that a benchmark measures something, and the `http-core` announce benchmark's defect (a future that is never awaited) as a known defect), added the `run-benchmarks` skill under `.github/skills/dev/benchmarking/`, fixed the stale package name in `run-benches.sh`, and added the nightly-only `compile_fail` error-code check to the `write-unit-test` skill, each in its own commit. AC8 done. Completion review: created `implementation-retrospective.md`. Remaining: the pre-push checks, which run on push, and the maintainer's review of the T8 evidence before the pull request.
 - 2026-10-07 10:25 UTC - Copilot - Independent Task Reviewer: REVIEW PASSED, AC1-AC8 pass, no blockers (report: `agent-review-reports.md`). Applied should-fix S1 (AC6 and the Regression Test Strategy cited a round-trip `quickcheck` property that exists only on the #1348 branch; they now cite `it_should_validate_a_valid_cookie`) and nit N3 (removed the template instruction left in Implementation Completion Review). Nit N1 (wiping the raw 32-byte key array in `random()`) is left for the maintainer, because it needs a direct `zeroize` dependency; N2, N4, and N5 need no action. The maintainer chose to review on GitHub.
+- 2026-10-07 10:53 UTC - Copilot - Rebased onto `develop` twice (#2438 changed the #2411 EPIC, whose citations of the deleted key file are now updated; #2465 changed only docs), passed the pre-push checks, and opened PR #2470.
 
 ## Acceptance Criteria
 
