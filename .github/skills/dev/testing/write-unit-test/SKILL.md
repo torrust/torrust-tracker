@@ -147,10 +147,10 @@ be sufficient and a mutation showed it was not.
    that code outside the crate cannot name something (for example a `#[cfg(test)]`-only
    constructor), write a `compile_fail` doctest with the expected error code (for example
    `compile_fail,E0599`) and a companion doctest that compiles with the allowed alternative. Doctests
-   build the library without `cfg(test)`, as downstream crates do. Stable rustdoc accepts any
-   compile error and ignores the code; only nightly checks it. Run the mutations with both
-   `cargo test --doc` and `cargo +nightly test --doc`, and rely on the nightly CI job, which runs
-   the doctests, to enforce the code.
+   build the library without `cfg(test)`, as downstream crates do. Stable rustdoc still requires
+   the doctest to fail to compile but accepts any error; only nightly checks the pinned error code.
+   Run the mutations with both `cargo test --doc` and `cargo +nightly test --doc`, and rely on the
+   nightly CI job, which runs the doctests, to enforce the error code.
 
 ### Lifecycle Fixture Design Review
 
