@@ -178,6 +178,11 @@ author's own round after merge.
 - 2026-10-07 15:28 UTC - The audit commit `docs(pr-reviews): add the PR #2467 review audit` was
   made although the pre-commit gate failed: a pipe through `tail` hid the gate's exit code. cspell
   rejected one regulation term in the F4 entry, which the next commit rewords.
+- 2026-10-07 15:51 UTC - Human review 5444685023 (da2ce7, round 2, 15:41 UTC, at
+  `docs(pr-reviews): reword a cspell-rejected term in the PR #2467 audit`) approved with no new
+  findings, verified F1 to F4 and F6 fixed and this record's rows, replies, and validator result.
+  No unresolved thread remains. At the maintainer's request, the branch was then rebased onto the
+  latest `develop` with this entry, which dismisses that approval.
 
 ## Completion Rules
 
