@@ -47,6 +47,9 @@ Human review 5440619059 (da2ce7, round 1) numbered its findings F1-F11. Its F1-F
 keep their IDs; its F5, F6, F9, and F10 collide with Copilot's and are recorded as F12, F13, F14,
 and F15, with the reviewer's IDs in each detail entry.
 
+Human review 5441434837 (da2ce7, round 2) numbered its findings F12 and F13, continuing its own
+series; they collide with this audit's F12 and F13 and are recorded as F16 and F17.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F5 | `review-finding:pr-2468-f5` | Copilot | Major | link-integrity | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +67,8 @@ and F15, with the reviewer's IDs in each detail entry.
 | F14 | `review-finding:pr-2468-f14` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2468-f15` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2468-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2468-f16` | Human | Minor | formatting | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2468-f17` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -262,13 +267,41 @@ and F15, with the reviewer's IDs in each detail entry.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4205970304>
 
+### F16 - Template blocks not copied verbatim
+
+- PR number: 2468
+- Source review ID: 5441434837
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4206173006>
+- Concern: The template marks Status Values and Completion Rules as copied verbatim; this record rewrapped the Category line and dropped the last Completion Rules bullet.
+- Solution: Copied both blocks from `docs/templates/PR-REVIEW-TEMPLATE.md` instead of the #2452 audit they had been copied from.
+- Current-tree verification: `diff` of both sections against the template shows no difference apart from the template's guidance comment.
+- Resolution reference: `docs(pr-reviews): [#2466] copy template blocks verbatim and log the second rebase on #2468`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4207455245>
+
+### F17 - Two record statements no longer held at the round-2 head
+
+- PR number: 2468
+- Source review ID: 5441434837
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4206173023>
+- Concern: The log recorded only the first rebase, and F10's verification counted four marker matches where the audit itself made a fifth.
+- Solution: Added a 10:53 correction entry for the second rebase and push, and scoped F10's count to the four marked files plus this audit.
+- Current-tree verification: The Processing Log has the 10:53 entry; F10's verification names the four files.
+- Resolution reference: `docs(pr-reviews): [#2466] copy template blocks verbatim and log the second rebase on #2468`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2468#discussion_r4207455641>
+
 ## Processing Log
 
 - 2026-10-07 09:46 UTC - Copilot review 5440515841 submitted findings F5, F6, F9, and F10.
 - 2026-10-07 09:56 UTC - Human review 5440619059 (da2ce7, round 1) requested changes with eleven findings, recorded as F1-F4, F7, F8, F11, and F12-F15.
 - 2026-10-07 10:49 UTC - Reproduced the defect for F1, fixed the other findings in four commits, edited the #1978 issue body for F5, rebased onto `develop` (9 commits behind), pushed after the pre-push suite passed, and replied to all fifteen threads. Copilot's overview remark that the `interval_min` bound lacks protocol justification has no inline thread; it was raised with the maintainer as an open specification question instead of being recorded as a finding.
 - 2026-10-07 10:53 UTC - Correction to the 10:49 entry, which was committed before this step: `develop` had moved 10 more commits, so the branch was rebased again onto `24bf4746a` and force-pushed with this record, then all fifteen threads were resolved.
+- 2026-10-07 11:12 UTC - Human review 5441434837 (da2ce7, round 2) verified the fifteen round-1 rows and requested changes with two findings, recorded as F16 and F17.
 - 2026-10-07 13:12 UTC - The maintainer kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min`. Decision 2 states that reason in `docs(issues): [#2466] justify the shared interval_min type by meaning, not protocol`; the #2466 issue body was updated to match.
+- 2026-10-07 13:26 UTC - Fixed F16 and F17, rebased onto `develop` (19 commits behind), pushed after the pre-push suite passed, and replied to both threads.
 
 ## Completion Rules
 
