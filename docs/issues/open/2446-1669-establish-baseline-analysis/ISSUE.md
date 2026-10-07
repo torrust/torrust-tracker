@@ -385,7 +385,7 @@ Notes:
 | AC2   | DONE                   | Every edge lists import paths except five whose missing paths Observations finding 3 explains (tool limitation, drafted as a subissue; the fifth, a dev-dependency edge, was found by the draft's reproduction on 2026-10-07). |
 | AC3   | DONE                   | Observations of the new report: comparison table, resolved items and three findings. |
 | AC4   | DONE                   | [`readme-audit.md`](../1669-overhaul-packages/readme-audit.md): 25 rows (4 good, 12 minimal, 9 stub, 0 missing) (MV4). |
-| AC5   | DONE                   | [Dependency diagram](../../../media/packages/dependencies-workspace-packages.md): its 153 edges equal `cargo metadata` (MV3). |
+| AC5   | DONE                   | [Dependency diagram](../../../media/packages/dependencies-workspace-packages.md): its 153 workspace edges equal `cargo metadata` (MV3); it also draws one external-to-external edge (`torrust-server-lib` to `torrust-net-primitives`) for context, stated in its prose. |
 | AC6   | DONE                   | Three drafts under `docs/issues/drafts/1669-*` linked from the report findings and listed in the EPIC quick list and Details table. |
 | AC7   | DONE                   | Commit "docs(issues): [#2446] mark the baseline analysis done in EPIC #1669". |
 | AC8   | DONE                   | Pre-commit (`linter all`) passed on every commit; pre-push runs on push. |

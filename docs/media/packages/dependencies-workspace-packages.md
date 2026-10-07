@@ -11,7 +11,9 @@ semantic-links:
 
 Direct normal (non-dev, non-build) dependencies between workspace packages and on external
 `torrust-*` crates, as declared in each `Cargo.toml`. Verified against
-`cargo metadata --no-deps` on 2026-10-06; see the
+`cargo metadata --no-deps` on 2026-10-06: 153 edges. One more edge,
+`torrust-server-lib --> torrust-net-primitives`, is drawn for context: it is a dependency between
+two external crates, so no workspace manifest declares it. See the
 [2026-10-06 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 for the items each edge imports.
 
