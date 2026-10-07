@@ -1,4 +1,5 @@
 #!/bin/bash
+# skill-link: run-benchmarks
 
 # This script is only intended to be used for local development or testing environments.
 # docs/benchmarking.md lists every benchmark and what it measures.

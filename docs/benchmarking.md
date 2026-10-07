@@ -2,6 +2,7 @@
 semantic-links:
   skill-links:
     - write-markdown-docs
+    - run-benchmarks
   related-artifacts:
     - docs/index.md
     - docs/profiling.md
@@ -23,7 +24,8 @@ semantic-links:
 
 Benchmarks measure performance under a defined workload. They complement the correctness tests
 described in [Testing Strategy](testing.md); use [profiling](profiling.md) to find where a workload
-spends its time.
+spends its time. The [`run-benchmarks` skill](../.github/skills/dev/benchmarking/run-benchmarks/SKILL.md)
+is the agent workflow for this guide.
 
 ## Benchmark Levels and Tools
 
