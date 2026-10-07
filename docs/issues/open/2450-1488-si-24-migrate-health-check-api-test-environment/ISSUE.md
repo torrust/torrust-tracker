@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 12:27"
+last-updated-utc: "2026-10-07 13:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -121,7 +121,12 @@ and is not in the EPIC roadmap:
 - **Normal path**: `stop()` cancels the token, joins both tasks, and returns
   `Environment<Stopped>`; the binding is released when it returns.
 - **Failure path**: join both tasks before returning an error (D1).
-- **Drop path**: unchanged; no new detached task.
+- **Drop path**: dropping a running environment without `stop()` must still
+  stop the server and release the binding, as the legacy halt sender does
+  today. Dropping a `CancellationToken` does not cancel it, so hold it as a
+  `DropGuard` and disarm it in `stop()`; SI-16 lost this behavior without a
+  test (#2471), and the UDP environment has the fix (#2459). No new detached
+  task.
 - **Deadlines**: the drain is bounded by
   `HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT`; tests bound every start and stop.
 - **Checkpoint**: after T1, stop for a design review before migrating the
@@ -153,6 +158,8 @@ T1 tests (use the `write-unit-test` skill, every wait bounded):
 - `stop()` releases the binding: the same address binds right after `stop()`.
 - Stop-then-start serves the health check on the restarted environment.
 - A drain timeout is returned as an error after both tasks join.
+- Dropping a running environment without `stop()` releases the binding
+  (poll `TcpListener::bind` within a bounded deadline, as #2471's test does).
 
 ## Commit Points
 
@@ -189,6 +196,7 @@ before maintainer review and commit. Sign every commit with GPG.
 
 - 2026-10-06 11:34 UTC - GitHub Copilot - Drafted after the SI-17 refresh found this environment still on the legacy path and missing from the roadmap; the maintainer chose one item per environment.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec, including D1 (keep the `Result` signature). Created #2450 (sub-issue of #1488) and moved the spec to `docs/issues/open/`.
+- 2026-10-07 13:05 UTC - GitHub Copilot - The drop path is no longer "unchanged": a token migration loses the halt sender's stop-on-drop, as SI-16 did (#2471). Added the `DropGuard` requirement, a T1 drop test, and AC7.
 
 ## Acceptance Criteria
 
@@ -202,6 +210,8 @@ before maintainer review and commit. Sign every commit with GPG.
       check.
 - [ ] AC5: No caller reads the environment's running state directly.
 - [ ] AC6: The shutdown task inventory reflects the migration.
+- [ ] AC7: Dropping a running environment without `stop()` releases its
+      binding within the test deadline.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -243,6 +253,7 @@ Notes:
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
+| AC7   | TODO                   |          |
 
 ## Dependencies
 
