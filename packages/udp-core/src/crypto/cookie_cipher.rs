@@ -10,6 +10,7 @@ use std::fmt;
 use blowfish::BlowfishLE;
 use cipher::{Block, BlockCipherDecrypt, BlockCipherEncrypt, KeyInit};
 use rand::Rng;
+use zeroize::Zeroizing;
 
 /// One cipher block: the 8 bytes of a connection ID.
 pub type CookieBlock = Block<BlowfishLE>;
@@ -22,7 +23,8 @@ const KEY_LEN: usize = 32;
 /// It holds the expanded Blowfish key schedule, so it is built once and
 /// shared (for example in an `Arc`), never rebuilt per request. It exposes no
 /// key material, its `Debug` output is redacted, and the key schedule is
-/// wiped when it is dropped.
+/// wiped when it is dropped. Wiping is best effort: it cannot reach copies the
+/// compiler or the operating system may have made elsewhere.
 ///
 /// Production code can only create a random key:
 ///
@@ -45,9 +47,14 @@ pub struct CookieCipher(BlowfishLE);
 impl CookieCipher {
     /// Creates a cipher from a key drawn from `rand`'s thread-local
     /// cryptographically secure random number generator.
+    ///
+    /// The raw key bytes are filled in place and wiped when this function
+    /// returns, so only the expanded key schedule, which is wiped on drop,
+    /// keeps the key.
     #[must_use]
     pub fn random() -> Self {
-        let key: [u8; KEY_LEN] = rand::rng().random();
+        let mut key = Zeroizing::new([0; KEY_LEN]);
+        rand::rng().fill(&mut *key);
         Self::from_key(&key)
     }
 
