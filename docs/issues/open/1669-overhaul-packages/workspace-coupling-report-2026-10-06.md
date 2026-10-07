@@ -1170,8 +1170,8 @@ count grew for the same reason, plus the new `rest-api-protocol`, minus `torrust
 
 - REST API migration (#1938): new `rest-api-protocol` (no workspace deps),
   `rest-api-application` (2 deps) and `rest-api-runtime-adapter` (9 deps);
-  `rest-api-client` now depends on `rest-api-protocol`; `axum-rest-api-server` went from 12
-  to 13 deps (`rest-api-core` replaced by the three new packages).
+  `rest-api-client` now depends on `rest-api-protocol`; `axum-rest-api-server` went from 13
+  to 14 deps (`rest-api-core` replaced by the three new packages).
 - `torrust-server-lib` extracted (#1909): the edge disappeared from six packages. `axum-server`
   dropped to 1 dep and `udp-server` to 9; `axum-http-server` also lost `udp-protocol` and
   gained `client-lib` (10 → 9).
