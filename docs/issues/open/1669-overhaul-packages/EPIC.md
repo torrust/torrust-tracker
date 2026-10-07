@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-06 20:06"
+last-updated-utc: "2026-10-07 08:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -971,6 +971,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-06 20:06 UTC - Copilot - Added Pre-publish API checklist item 4 (a crate whose public
   error enum gained `#[non_exhaustive]` is published with a semver-major bump), per the
   maintainer's decision on a PR #2456 review finding.
+- 2026-10-07 08:04 UTC - Copilot - Extended the Pre-publish API checklist lead-in to later
+  publishes of a package whose public error API changed, so item 4 applies (PR #2456 review).
 
 ## Acceptance Criteria
 
