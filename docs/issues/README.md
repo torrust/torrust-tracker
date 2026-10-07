@@ -30,3 +30,4 @@ Use these skills as the authoritative process definitions:
 
 - Create and maintain issue specs: [`.github/skills/dev/planning/create-issue/SKILL.md`](../../.github/skills/dev/planning/create-issue/SKILL.md)
 - Close and archive completed specs: [`.github/skills/dev/planning/cleanup-completed-issues/SKILL.md`](../../.github/skills/dev/planning/cleanup-completed-issues/SKILL.md)
+- Reopen an archived issue or EPIC: [`.github/skills/dev/planning/reopen-issue/SKILL.md`](../../.github/skills/dev/planning/reopen-issue/SKILL.md)

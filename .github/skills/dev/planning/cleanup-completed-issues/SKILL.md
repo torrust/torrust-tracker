@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.10"
+  version: "1.11"
 ---
 
 # Cleaning Up Completed Issues
@@ -25,6 +25,8 @@ Related lifecycle docs:
 
 - Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
 - Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
+- Reopening an archived issue or EPIC: [reopen-issue](../reopen-issue/SKILL.md)
+  <!-- skill-link: reopen-issue -->
 
 ## When to Archive
 

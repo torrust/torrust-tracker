@@ -34,3 +34,4 @@ The authoritative procedure is the cleanup workflow skill below.
 
 - Issues index: [../README.md](../README.md)
 - Cleanup workflow source of truth: [`.github/skills/dev/planning/cleanup-completed-issues/SKILL.md`](../../../.github/skills/dev/planning/cleanup-completed-issues/SKILL.md)
+- Reopen workflow (moves a spec back to `open/`): [`.github/skills/dev/planning/reopen-issue/SKILL.md`](../../../.github/skills/dev/planning/reopen-issue/SKILL.md)

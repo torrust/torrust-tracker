@@ -84,6 +84,8 @@ A staged edit to a draft or open `ISSUE.md` or `EPIC.md` without v1 frontmatter 
 
 Re-run the validator on the file until it exits `0`.
 
+<!-- skill-link: reopen-issue -->
+
 ## Temporary Placement
 
 This crate is approved early work under EPIC #2003, which owns the long-term automation
