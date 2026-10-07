@@ -27,6 +27,13 @@
 //! cargo run -p torrust-tracker-udp-server --example udp_only_public_tracker
 //! ```
 //!
+//! Stop it with Ctrl-C (SIGINT) or, on Unix, SIGTERM (`kill <pid>`). The example's `main` is
+//! the only place that subscribes to OS signals; it then calls `Environment::stop()`, which
+//! cancels and joins the tracker's tasks. The token-aware path it uses never listens for signals.
+//! When sending signals by PID, run the built binary
+//! (`target/debug/examples/udp_only_public_tracker`) so the signal reaches this process
+//! rather than `cargo`.
+//!
 //! ## How to inspect the full dependency chain
 //!
 //! ```bash
@@ -39,6 +46,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
 
+#[cfg(unix)]
+use tokio::signal::unix::{SignalKind, signal};
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_configuration::v3_0_0::network::Network;
@@ -79,11 +88,14 @@ async fn main() {
     let udp_tracker_config = Arc::new(udp_tracker);
     let env = Started::new(&core_config, &udp_tracker_config).await;
 
-    println!("Listening on {}", env.bind_address());
-    println!("Press Ctrl-C to stop.");
+    // On Unix the handlers are installed here, before readiness is printed, so a later signal is never lost.
+    let shutdown_signal = install_shutdown_signal_handlers();
 
-    tokio::signal::ctrl_c().await.expect("failed to install Ctrl-C handler");
-    println!("\nShutting down...");
+    println!("Listening on {}", env.bind_address());
+    println!("Press Ctrl-C (or send SIGTERM on Unix) to stop.");
+
+    let signal = shutdown_signal.await;
+    println!("\nReceived {signal}. Shutting down...");
 
     env.stop().await;
 
@@ -91,4 +103,29 @@ async fn main() {
     std::fs::remove_file(&db_path).ok();
 
     println!("Stopped.");
+}
+
+/// Installs the shutdown signal handlers and returns a future that resolves
+/// with the name of the first signal received.
+#[cfg(unix)]
+fn install_shutdown_signal_handlers() -> impl Future<Output = &'static str> {
+    let mut interrupt = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
+    let mut terminate = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
+
+    async move {
+        tokio::select! {
+            _ = interrupt.recv() => "SIGINT",
+            _ = terminate.recv() => "SIGTERM",
+        }
+    }
+}
+
+/// Returns a future that resolves when Ctrl-C is received. `ctrl_c()` registers
+/// its handler on first poll, so it is not installed before readiness is printed.
+#[cfg(not(unix))]
+fn install_shutdown_signal_handlers() -> impl Future<Output = &'static str> {
+    async {
+        tokio::signal::ctrl_c().await.expect("failed to install Ctrl-C handler");
+        "Ctrl-C"
+    }
 }

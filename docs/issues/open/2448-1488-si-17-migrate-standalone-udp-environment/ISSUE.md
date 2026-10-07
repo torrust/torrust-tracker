@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2448
 spec-path: docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: null
-last-updated-utc: "2026-10-06 11:41"
+last-updated-utc: "2026-10-06 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,8 +183,11 @@ SI-16 and its PR review (#2439):
   returns.
 - **Failure path**: join every owned task, then panic naming each failing task
   (D1). A failed start leaves no task running (D4).
-- **Drop path**: dropping a running environment without `stop()` keeps today's
-  behavior. No new detached task is added.
+- **Drop path**: dropping a running environment without `stop()` cancels its
+  token through a drop guard, so the receive loop drains and releases the
+  socket, as the legacy halt channel did when dropped. It cannot wait for the
+  tasks; only `stop()` joins them. (Corrected in PR #2459 review: the first
+  version kept a plain token, which dropping does not cancel.)
 - **Deadlines**: the drain is bounded by `REQUEST_DRAIN_DEADLINE`; tests bound
   every start and stop with an explicit test deadline.
 - **Checkpoint**: after the first passing vertical slice (T1), stop for a
@@ -207,12 +210,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                  | Notes / Expected Output                                                                                     |
 | --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                       | Package test results; example SIGINT and SIGTERM behavior, with output and exit codes (evidence V1).        |
-| T1  | TODO   | Migrate `Environment` start/stop      | D1-D6, with the T1 tests below, each mutation-proven.                                                       |
-| T2  | TODO   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`.                                                  |
-| T3  | TODO   | Example signal boundary (D7)          | SIGINT and SIGTERM stop the example in order, exit 0.                                                       |
-| T4  | TODO   | Documentation                         | Task inventory records the migrated UDP consumer.                                                          |
-| T5  | TODO   | Verification and completion review    | Automatic checks, manual scenarios, AC review, pre-push checks, independent Task Reviewer report.           |
+| T0  | DONE   | Record baseline                       | Both packages pass (212 + 12 + 1; 3 + 8). SIGINT panics (exit 101); SIGTERM releases the socket but the process stays up, and a later SIGINT panics. Evidence V1. |
+| T1  | DONE   | Migrate `Environment` start/stop      | D1-D6 with the five T1 tests, each mutation-proven (see the 2026-10-06 15:31 UTC log entry). Design approved 2026-10-06. |
+| T2  | DONE   | Migrate the direct field consumer     | Health-check API contract test uses `Environment::stop()`; 3 + 8 pass.                                      |
+| T3  | DONE   | Example signal boundary (D7)          | `main` installs SIGINT/SIGTERM handlers (Ctrl-C on non-Unix) before printing readiness, then calls `Environment::stop()`; module docs updated. M2 and M3 exit 0. |
+| T4  | DONE   | Documentation                         | Task inventory findings 4 and 8 record the migrated UDP consumer and point the remaining legacy users to SI-23 and SI-24. |
+| T5  | DONE   | Verification and completion review    | Automatic checks, M1-M4, AC review, pre-push checks (pass, 1 m 22 s), and the Task Reviewer report (REVIEW PASSED); see the 16:02 and 16:15 UTC entries. |
 
 T1 tests (use the `write-unit-test` skill, no OS signals, every wait bounded):
 
@@ -245,15 +248,15 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2448)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Spec-only PR merged into `develop` before implementation (#2451)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -262,28 +265,35 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 11:18 UTC - GitHub Copilot - Refreshed against current code and SI-16's lessons: converted to the issue template; added facts 1-7 (library-level SIGTERM, listener leak on failed start, token reuse, bounded drain, stop-timeout race, direct `server` field consumer, one production token) and decisions D1-D7. Removed the draft `verification.md`; `manual-verification-evidence.md` is created from the template at T0, as in SI-16; the SI-3 draft's link now points to this spec.
 - 2026-10-06 11:34 UTC - GitHub Copilot - Maintainer review: D5 approved on the condition that the stop timeout is not needed, otherwise raised above the drain deadline; D5 now records the evidence (the receive loop and the listeners both end on cancellation). The REST API and health-check API environment gap became SI-23 and SI-24, one item each.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec with SI-23 and SI-24. Created #2448 (sub-issue of #1488) and moved the spec to `docs/issues/open/`. Next: the shared spec-only pull request.
+- 2026-10-06 15:31 UTC - GitHub Copilot - T0 done (evidence V1): the baseline matches fact 1. T1 and T2 done as the first vertical slice. Environment states are private `Stopped`/`Running` types behind the existing aliases; each start creates a fresh token, takes the three event receivers, starts through `start_with_cancellation`, and spawns the listeners only after success; `stop()` cancels once and joins the receive loop and the three listeners through `join_owned_tasks`, with no outer timeout (D5); the start timeout stays, renamed `DEFAULT_SERVER_START_TIMEOUT`. The sleep-based `it_should_make_and_stop_udp_server` is replaced by five tests. Mutation proofs, each reverted by hand: (A) aborting one listener fails the three stop-path tests, naming the listener; (B) spawning a listener before the start fails the failed-start test with holders `[1, 2, 1]` against `[1, 1, 1]`; (C) a pre-cancelled token fails only the restart test (no answer within the 10 s deadline); (D) returning on a receive-loop failure before joining fails the join-order test (0 of 3 listeners finished); (E) a `stop()` that never stops the server fails the socket test with `AddrInUse`, and so does the narrower one that cancels but does not await the receive loop (3/3 runs), unlike HTTP in SI-16: the UDP socket is owned by the receive-loop task and freed only when it ends. Suite timing: unit 2.17 s (was 2.17 s), integration 5.04 s (was 5.05 s), so no drain slowdown, unlike HTTP. Prose-first AAA review of the five tests: (a) stop: Arrange a started environment, Act stop within the deadline, Assert no join failure; matches. (b) failed start: Arrange an occupied port and the holder counts of the listeners' shared state, Act start, Assert it panicked and the counts are unchanged; the kept container is causal and has a one-line comment. (c) socket: Arrange a started environment and its binding, Act stop, Assert the address binds; matches. (d) restart: Arrange an environment stopped once, Act start it again, Assert a connect request gets a connect response; matches. (e) join order: Arrange a failed receive loop and three listeners that finish only after cancellation and one more scheduling turn, Act join, Assert the failure is reported and all three finished; the extra turn is causal and commented. Clippy (pedantic) required renaming the listener fields to drop the shared `udp_` prefix. Checkpoint: design review before T3.
+- 2026-10-06 15:43 UTC - GitHub Copilot - Maintainer approved the T1 design (including the renamed listener fields and the still-public `connection_id_validation`); T0-T2 committed. Next: T3.
+- 2026-10-06 15:51 UTC - GitHub Copilot - T3 done, mirroring SI-16's HTTP example: `main` installs the Unix signal streams before printing readiness (non-Unix uses `ctrl_c()`), prints which signal it received, and calls `Environment::stop()`. M2 (SIGTERM) and M3 (SIGINT): announce succeeds, orderly stop, exit 0, socket released (evidence V2, V3). M4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps its indirect subscription until SI-19 (V4).
+- 2026-10-06 15:55 UTC - GitHub Copilot - T4 done: task inventory findings 4 and 8 now record the migrated UDP environment and example, and name SI-23 and SI-24 as the remaining legacy test-environment users. `questions.md` is the decision record and stays unchanged, as in SI-16. The EPIC's findings 2 and 8 still say "until SI-17"; they are updated at archive time, as SI-16's were.
+- 2026-10-06 16:02 UTC - GitHub Copilot - AC review against the current tree: AC1-AC9 hold, each with its evidence in Acceptance Verification. Pre-push checks pass in 1 m 22 s (nightly `rustc 1.101.0-nightly (ea137335b 2026-10-05)` for fmt/check/doc, stable `rustc 1.99.0` for the full test suite). Completion review: no `implementation-retrospective.md` needed. The design held as specified (D1-D7, no D5 fallback needed). The two material discoveries are recorded in the 15:31 entry: the UDP socket is freed only when the receive-loop task ends, so the socket test also guards the await (unlike HTTP); and the UDP stop adds no measurable suite time. Next: the independent Task Reviewer report, then the implementation PR.
+- 2026-10-06 16:15 UTC - GitHub Copilot - Task Reviewer: REVIEW PASSED (report in `agent-review-reports.md`), with one Minor and five Nits. Fixed: (1) the failed-start test now asserts the panic comes from the server start, not any panic; (2) the join-order test matches the exact failure text, which also proves no listener failure is reported; (4) `std::io` is imported instead of written in full; (5) the evidence file's "None yet" now records the reviewer's re-run. Kept: (3) the restart test's trailing cleanup `stop`, the same shape as SI-16's restart test; (6) the REST API test's "udp server" message, out of scope here; SI-23's T2 replaces that line when it migrates the consumer. The 7 environment tests pass after the fixes.
+- 2026-10-06 18:03 UTC - GitHub Copilot - PR #2459 review (Copilot and da2ce7 round 1). Copilot's Major finding, confirmed by da2ce7: dropping a running environment without `stop()` left the receive loop running and its socket bound, because a dropped plain token is not cancelled; the legacy path stopped on drop because its halt sender closed. The running state now holds a `DropGuard`, which `stop()` disarms before cancelling and joining, and the spec's drop-path line is corrected. New test `it_should_release_the_udp_socket_when_dropped_without_being_stopped` failed before the fix (socket still bound after the 10 s deadline) and passes after it. da2ce7 F1: T5 marked `DONE` and the committer checkpoint ticked (this entry). F2: the Task Reviewer report now names the reviewed commits by subject, since the rebase removed their ids. F3 (Nit): the PR title becomes `feat(udp-server)`; the merged commit keeps its `refactor` subject, because history is not rewritten.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the UDP server through `start_with_cancellation`.
-- [ ] AC2: `Environment::stop()` cancels the environment token and joins the
+- [x] AC1: `Environment` starts the UDP server through `start_with_cancellation`.
+- [x] AC2: `Environment::stop()` cancels the environment token and joins the
       receive loop and the three event listeners; it never calls `abort()`.
-- [ ] AC3: `stop()` panics with a message naming each failing task, after
+- [x] AC3: `stop()` panics with a message naming each failing task, after
       joining every owned task, and keeps its current signature.
-- [ ] AC4: A stopped environment can be started again and serves requests.
-- [ ] AC5: A failed start leaves no event listener running.
-- [ ] AC6: The health-check API contract tests pass without using the
+- [x] AC4: A stopped environment can be started again and serves requests.
+- [x] AC5: A failed start leaves no event listener running.
+- [x] AC6: The health-check API contract tests pass without using the
       environment's `server` field to stop the UDP tracker.
-- [ ] AC7: `udp_only_public_tracker` stops gracefully on SIGINT and on Unix
+- [x] AC7: `udp_only_public_tracker` stops gracefully on SIGINT and on Unix
       SIGTERM and exits with code 0.
-- [ ] AC8: No UDP library module subscribes to OS signals directly; the legacy
+- [x] AC8: No UDP library module subscribes to OS signals directly; the legacy
       `Server::start`/`stop` API still compiles, its tests pass, and it keeps
       its indirect subscription until SI-19.
-- [ ] AC9: The shutdown task inventory reflects the migration.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC9: The shutdown task inventory reflects the migration.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -305,10 +315,10 @@ so the signal reaches the example's own PID.
 
 | ID  | Scenario                       | Human-oriented command/steps                                                                                               | Expected Result                                                                              | Status | Evidence                                     |
 | --- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Baseline SIGINT and SIGTERM    | Before T3: start the example, wait for `Listening on`, send `kill -INT <pid>`; repeat with `kill -TERM <pid>`; record output and `$?`. | Recorded as found (expected: SIGINT panics; SIGTERM stops only the server).                  | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Announce, then SIGTERM         | Start the example, announce with `tracker_client udp announce` to its address, `kill -TERM <pid>`, record output and `$?`. | Announce succeeds; output shows shutdown and `Stopped.`; exit code 0.                       | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | SIGINT                         | Repeat M2 with `kill -INT <pid>`.                                                                                          | Same orderly stop as M2; exit code 0.                                                        | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | No library signal subscription | `rg -n 'tokio::signal' packages/udp-server/src`                                                                            | No matches. The legacy path still subscribes indirectly via `torrust-server-lib` until SI-19. | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | Baseline SIGINT and SIGTERM    | Before T3: start the example, wait for `Listening on`, send `kill -INT <pid>`; repeat with `kill -TERM <pid>`; record output and `$?`. | Recorded as found (expected: SIGINT panics; SIGTERM stops only the server).                  | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Announce, then SIGTERM         | Start the example, announce with `tracker_client udp announce` to its address, `kill -TERM <pid>`, record output and `$?`. | Announce succeeds; output shows shutdown and `Stopped.`; exit code 0.                       | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | SIGINT                         | Repeat M2 with `kill -INT <pid>`.                                                                                          | Same orderly stop as M2; exit code 0.                                                        | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | No library signal subscription | `rg -n 'tokio::signal' packages/udp-server/src`                                                                            | No matches. The legacy path still subscribes indirectly via `torrust-server-lib` until SI-19. | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -321,15 +331,15 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
+| AC1   | DONE                   | `Environment::start` calls `Server::start_with_cancellation`; the contract and environment tests pass. |
+| AC2   | DONE                   | `stop()` cancels once and calls `join_owned_tasks`; no `abort()` in `environment.rs`. Mutation A (abort a listener) fails 3 tests. |
+| AC3   | DONE                   | Signature unchanged; `join_owned_tasks` names each failing task after joining all four. Mutation D fails the join-order test. |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again` (mutation C, a pre-cancelled token, fails it). |
+| AC5   | DONE                   | `it_should_not_leave_event_listeners_running_when_the_udp_server_fails_to_start` (mutation B fails it with `[1, 2, 1]`). |
+| AC6   | DONE                   | The UDP contract test uses `let _stopped = service.stop().await;`; 3 + 8 pass. The remaining `service.server.stop()` is the REST API one (SI-23). |
+| AC7   | DONE                   | Evidence V2 (SIGTERM) and V3 (SIGINT): orderly stop, exit 0, socket released. |
+| AC8   | DONE                   | Evidence V4: no direct `tokio::signal` in `packages/udp-server/src`; the legacy launcher keeps `global_shutdown_signal` until SI-19; its tests pass in the 216 unit tests. |
+| AC9   | DONE                   | Task inventory findings 4 and 8. |
 
 ## Dependencies
 
@@ -359,7 +369,7 @@ behavior.
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: `Not needed` (see the 2026-10-06 16:02 UTC progress-log entry)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
