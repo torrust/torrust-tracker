@@ -48,9 +48,14 @@ Human review 5454581655 by `da2ce7` (`CHANGES_REQUESTED`, 09:36 UTC) supplied th
 with a `[Minor]` severity; it is kept. Its body summarizes the same thread and lists the rest under
 "Checked, no finding", so it adds no other row.
 
+Human review 5455225153 by `da2ce7` (`CHANGES_REQUESTED`, round 2, 10:31 UTC) verified F1 fixed and
+supplied the new finding ID `F2` with a `[Minor]` severity; it is kept. Its body re-checks F1 and
+lists the rest under "Checked, no finding", so it adds no other row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2485-f1` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2485-f2` | Human | Minor | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -72,12 +77,32 @@ with a `[Minor]` severity; it is kept. Its body summarizes the same thread and l
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2485#discussion_r4217681494>
 
+### F2 - The Status Values block was not copied verbatim from the template
+
+- PR number: 2485
+- Source review ID: 5455225153
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2485#discussion_r4217825381>
+- Concern: `PR-REVIEW-TEMPLATE.md` marks the Status Values block "Copied verbatim into each audit
+  record.", but this record's Category item wrapped after `documentation`, like the PR #2481 and
+  PR #2474 records it was copied from, instead of after `correctness`. The same rewrap was raised on
+  PR #2468.
+- Solution: Replaced the block with the template's own block instead of an earlier record's.
+- Current-tree verification: the Category item (:34-35) wraps after `correctness`; `diff` against
+  the template's Status Values block, excluding its guidance comment, shows no change.
+- Resolution reference: docs(pr-reviews): [#2473] copy the Status Values block verbatim in the PR #2485 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2485#discussion_r4217841415>
+
 ## Processing Log
 
 - 2026-10-08 10:13 UTC - Started audit. Fetched the one review thread (unresolved, not outdated)
   and both review bodies; normalized them into F1.
 - 2026-10-08 10:15 UTC - Pushed the F1 fix after the pre-commit gate passed, re-checked the claim
   against the pushed tree, and replied on the thread.
+- 2026-10-08 10:33 UTC - Human review 5455225153 (round 2) verified F1 and raised F2. Pushed the
+  F2 fix after the pre-commit gate passed, re-checked it against the pushed tree, and replied on the
+  thread.
 
 ## Completion Rules
 
