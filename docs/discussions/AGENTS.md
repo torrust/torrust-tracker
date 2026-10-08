@@ -64,8 +64,8 @@ or one author, carrying the whole discussion.
 
 ### Merge Gate for a Round
 
-A round merges when the document is sound, not when reviewers agree with it. A reviewer may block a
-round only for:
+An opening or contribution round merges when the document is sound, not when reviewers agree with
+it. A reviewer may block such a round only for:
 
 - a failing linter, frontmatter check, or broken link;
 - a missing or wrong attribution;
@@ -73,14 +73,16 @@ round only for:
 - an edit to another participant's content (an entry, a topic's text, or the opening author's
   context), or to the Outcome outside a decision round.
 
-A reviewer who disagrees with a position replies in their own round.
+A reviewer who disagrees with a position replies in their own round. A decision round must pass the
+same document checks and, unlike the other rounds, also needs its reviewers' agreement.
 
 ### Decision Round
 
-Agreement is needed only here. The decision owner writes the Outcome: for each topic, the decision
-(accepted, revised, or rejected), the entries it relies on cited by their heading links, and the
-canonical document that carries the decision, such as the owning issue or EPIC specification or an
-ADR. The decision owner then sets the Status to "Decided".
+Agreement is needed only here: reviewers may block a decision round because they disagree with the
+decision. The decision owner writes the Outcome: for each topic, the decision (accepted, revised, or
+rejected), the entries it relies on cited by their heading links, and the canonical document that
+carries the decision, such as the owning issue or EPIC specification or an ADR. The decision owner
+then sets the Status to "Decided".
 
 Once the Outcome is recorded and links the canonical document, the discussion takes no more rounds
 and is edited only to repair links. A new disagreement starts a new discussion that links the old
