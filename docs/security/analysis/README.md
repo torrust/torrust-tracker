@@ -1,6 +1,9 @@
 ---
 semantic-links:
-  skill-links: [catalog-security-vulnerabilities, create-markdown-template]
+  skill-links:
+    - catalog-security-vulnerabilities
+    - triage-github-security-findings
+    - create-markdown-template
   related-artifacts:
     [
       Containerfile,
@@ -115,6 +118,11 @@ build/
    disclosure, then escalate immediately with an issue and fix. The analysis document should
    describe the impact, affected components, and remediation plan. Otherwise follow the
    confidential vulnerability-remediation process.
+
+4. **For GitHub Security tab findings**: if the issue came from Code Scanning or Code Quality,
+   use the public scanner finding triage process in [../public-scanner-findings.md](../public-scanner-findings.md)
+   instead of treating the whole backlog as a single issue or a single bug class. The goal is to
+   cluster duplicates, classify them, and create independent issue specs for each root cause.
 
 ### Recheck Policy
 
