@@ -38,6 +38,7 @@ Eray
 Errno
 Falkenstein
 Freebox
+Frigyes
 Frostegård
 Garnham
 Gibibytes
@@ -98,6 +99,7 @@ Ryzen
 SHLVL
 SIEM
 SIGUSR
+SUBSESSIONS
 Seedable
 Shareaza
 Signedness
@@ -384,6 +386,7 @@ parallelisable
 parallelise
 parallelised
 parseable
+pathlib
 pathspecs
 peekable
 peerlist
@@ -444,6 +447,7 @@ rustdoc
 rustfmt
 rustup
 rwxrwxr
+samv
 sarif
 savepath
 scanf
@@ -466,6 +470,7 @@ socat
 socketaddr
 sockfd
 specialised
+spoofable
 sqllite
 sqlx
 srcset
@@ -476,6 +481,7 @@ subissue
 subkey
 subsec
 substeps
+suffixless
 summarising
 supertrait
 syscall
