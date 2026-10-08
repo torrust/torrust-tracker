@@ -58,7 +58,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: in `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md`, the Decision Record reads "maps each proposal from the PR review retrospectives its", AC1 reads "(PR #2270, #2271, #2272, and #2484)", and the References entry "Source retrospectives" names PR #2484; the phrase "three retrospectives" occurs in neither the EPIC nor the matrix.
 - Resolution reference: `docs(issues): [#2278] cover the PR #2484 retrospective in the EPIC's scope and qualify the path sweep`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_F1
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2494#discussion_r4222208629
 
 ### F2 - The pre-push sweep's path rule also rejects historical references
 
@@ -71,7 +71,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: in `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md`, the PR #2484 sweep row under "Author Verification and Convergence" reads "as a current reference" and "while references marked historical"; `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` reads "they may represent current files, historical files, examples" and "historical records can be valuable precisely because they preserve the theory and context".
 - Resolution reference: `docs(issues): [#2278] cover the PR #2484 retrospective in the EPIC's scope and qualify the path sweep`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_F2
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2494#discussion_r4222209059
 
 ## Processing Log
 
