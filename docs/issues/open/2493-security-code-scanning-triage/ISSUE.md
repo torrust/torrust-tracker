@@ -245,9 +245,9 @@ the canonical process and evidence:
   #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
   workflow permissions, then replaced temporary catalog links with stable issue references.
 - 2026-10-08 17:08 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
-  evidence, and three approved issue specs in `d68281286`. The complete pre-commit gate passed,
-  including frontmatter validation, dependency checks, nightly formatting, all linters,
-  Containerfile linting, and workspace documentation tests.
+  evidence, and three approved issue specs in `docs(security): catalog GitHub findings`. The
+  complete pre-commit gate passed, including frontmatter validation, dependency checks, nightly
+  formatting, all linters, Containerfile linting, and workspace documentation tests.
 
 ## Notes
 
