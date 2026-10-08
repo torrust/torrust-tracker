@@ -34,14 +34,13 @@ semantic-links:
 ### Why This Discussion
 
 On 2026-07-31, Frigyes Erdosi Szucs (`Frigyes06`) opened PR #2050 to add I2P peer support to the
-HTTP tracker. The maintainers, Jose Celano (`josecelano`) and Cameron (`da2ce7`), reviewed it. Jose
-Celano rebased and signed it in the draft PR #2059, keeping the contributor as author of the
-implementation commits, and added a review with seven required actions.
+HTTP tracker. Jose Celano (`josecelano`) reviewed it, then rebased and signed it in the draft
+PR #2059, keeping the contributor as author of the implementation commits and adding a review
+with seven required actions.
 
-Both maintainers support the feature and think it is not hard to implement. They also think it
-needs a careful design that covers its edge cases before any of it merges. The maintainers are
-focused on releasing v4.0.0 (#1659), so the work is postponed until after that release, when the
-roadmap is redefined.
+Jose supports the feature and considers careful design of its edge cases necessary before any of
+it merges. The maintainers are focused on releasing v4.0.0 (#1659), so the work is postponed until
+after that release, when the roadmap is redefined.
 
 This discussion keeps everything learned so far, so that PRs #2050 and #2059 can be closed without
 losing it. Closing them does not reject the feature: they stay on GitHub as reference, and
