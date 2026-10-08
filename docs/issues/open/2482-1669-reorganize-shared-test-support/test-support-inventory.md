@@ -5,7 +5,7 @@ status: completed
 last-updated-utc: 2026-10-08
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/ISSUE.md
+    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
     - packages/test-helpers/src/lib.rs

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 08:42"
+last-updated-utc: "2026-10-08 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -666,7 +666,7 @@ Status: TODO unless noted.
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
-- [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
+- [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
 - [ ] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
@@ -706,7 +706,7 @@ Details:
 | Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                                   | [docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                             | [docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md](../../closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md)             | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by publication of `udp-protocol`, `http-protocol`, and `tracker-client` lib                                                   |
-| Test support reorganization | [#2482](https://github.com/torrust/torrust-tracker/issues/2482) — Reorganize test support code shared between workspace packages | [docs/issues/open/2482-1669-reorganize-shared-test-support/ISSUE.md](../2482-1669-reorganize-shared-test-support/ISSUE.md) | TODO   | Findings 1 and 2 of the 2026-10-06 coupling report (#2446); amends DEC-13 |
+| Test support reorganization | [#2482](https://github.com/torrust/torrust-tracker/issues/2482) — Reorganize test support code shared between workspace packages | [docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md](../2482-1669-reorganize-shared-test-support/EPIC.md) | TODO   | Sub-EPIC; its subissues are tracked there. Findings 1 and 2 of the 2026-10-06 coupling report (#2446); amends DEC-13 |
 | Coupling tool name fix     | [#2475](https://github.com/torrust/torrust-tracker/issues/2475) — Coupling tool misses renamed dependencies and custom library names                                                                                                                | [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)                           | TODO   | Finding 3 of the 2026-10-06 coupling report (#2446)                                                                                    |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option                                            |
 | Cargo deny enforcement     | [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement                                                    | [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)               | DONE   | Tooling; create deny.toml with bans for all forbidden edges; add to CI and hooks                                                              |
@@ -749,7 +749,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)
 - [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
-- [docs/issues/open/2482-1669-reorganize-shared-test-support/ISSUE.md](../2482-1669-reorganize-shared-test-support/ISSUE.md)
+- [docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md](../2482-1669-reorganize-shared-test-support/EPIC.md)
 - [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md)
@@ -995,6 +995,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   support code (findings 1 and 2), with an inventory of the patterns; folded in the finding 2
   draft (`1669-gate-server-testing-modules-behind-feature`), whose feature gate is now one of
   its options.
+- 2026-10-08 12:33 UTC - GitHub Copilot - Converted #2482 into a sub-EPIC at the maintainer's
+  request: it decides the rules (one ADR) and then applies them package by package; its
+  subissues are tracked in its own EPIC.md, and this EPIC keeps a single row for it.
 
 ## Acceptance Criteria
 
