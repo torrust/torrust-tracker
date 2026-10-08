@@ -62,6 +62,7 @@ F3 to F7 do not.
 | F10 | `review-finding:pr-2484-f10` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2484-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2484-f12` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2484-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -221,6 +222,19 @@ F3 to F7 do not.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220602429>
 
+### F13 - The 14:48 entry says a spec that does not exist yet carries the section
+
+- PR number: 2484
+- Source review ID: 5458896567
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220793533>
+- Concern: The 14:48 progress-log entry said subissue 1's spec "carries" the full Design and Ownership Review, but that spec does not exist yet.
+- Solution: The entry now says the spec "will carry" the section, and a 15:20 entry records the correction.
+- Current-tree verification: The 14:48 and 15:20 entries and the `last-updated-utc` stamp in `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md` inspected; pre-commit passed.
+- Resolution reference: docs(issues): [#2482] say subissue 1's spec will carry the ownership review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220965544>
+
 ## Processing Log
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
@@ -235,6 +249,11 @@ F3 to F7 do not.
 - 2026-10-08 15:01 UTC - Committed one fix per finding (F9 and F10 share the audit edit), rebased
   onto `develop`, which had moved 11 commits, pushed after the pre-push suite passed, and replied
   on the five threads before recording them here.
+- 2026-10-08 15:17 UTC - Human review 5458896567 (da2ce7, round 3) approved head `542f1b293`,
+  confirmed F8 to F12 and their audit rows, and raised one non-blocking Nit, F13.
+- 2026-10-08 15:32 UTC - At the maintainer's request, fixed F13 rather than defer it, accepting that
+  the push dismisses the approval; pushed after the pre-push suite passed and replied on the thread
+  before recording it here.
 
 ## Completion Rules
 
