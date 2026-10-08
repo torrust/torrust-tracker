@@ -31,7 +31,8 @@ semantic-links:
 This discussion was opened in PR #2467 with a single-PR structure. It adopted the
 [discussion template](../../../templates/DISCUSSION.md) in a round by its opening author, under the
 round rules in [`docs/discussions/AGENTS.md`](../../AGENTS.md). The context below is unchanged; the
-open questions moved into [Topics](#topics) without changes to their words.
+open questions moved into [Topics](#topics) without changes to their words, and each topic gained
+the template's "Added by" attribution.
 
 Cameron (`da2ce7`) posted a draft position on these questions as a pull-request comment on
 PR #2467: <https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101>. Its Part
