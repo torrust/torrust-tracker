@@ -108,6 +108,7 @@ or pivot into CI or release publishing.
 | Confirmed runtime or release-supply-chain impact that can reach downstream production users | `p1` |
 | Confirmed CI/build issue without a release pivot, or meaningful development/test security issue | `p2` |
 | Low-impact hardening, defense in depth, or deferred local-tooling improvement | `p3` |
+| Unconfirmed finding (`needs-investigation`) whose impact depends on evidence still to be gathered | `p2` on a Tier 1 surface, `p3` on a lower tier; re-prioritize by the matching row once the investigation confirms or rules out impact |
 | False positive or non-affecting under documented conditions | No remediation priority; catalog with recheck triggers |
 
 Priority is assigned to each root-cause cluster after impact analysis. Do not automatically give
