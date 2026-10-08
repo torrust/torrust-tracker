@@ -46,7 +46,7 @@ counted as audit-only.
 | Round | Head | Findings | What they were about |
 | --- | --- | --- | --- |
 | Copilot | `046ecb540` (the narrow spec) | 0 | Approval recommended |
-| 1 (human) | `0438fa81b` (broadened spec, new inventory) | F1–F5 Minor/Nit, F6–F7 Suggestion | Five factual errors in the inventory (dates, a dependency, module visibility, an alias) and two additions. The only round about the reviewed content |
+| 1 (human) | `0438fa81b` (broadened spec, new inventory) | F1–F5 Minor/Nit, F6–F7 Suggestion | Five factual errors, four in the inventory (dates, a dependency, module visibility, an alias) and one in the spec's publishing plan (F2), and two additions. The only round about the reviewed content |
 | 2 (human) | `c43fc9013` (task converted to sub-EPIC) | F8 Nit, F9 Major, F10 Minor, F11 Nit, F12 Suggestion | All five caused by the conversion commit: a live path to the deleted `ISSUE.md` in the audit (F9), line ranges into the deleted file (F10), the same event dated 12:33 in one EPIC and 12:53 in the other (F11), a section dropped without being listed (F12), a 103-column log line (F8) |
 | 3 (human) | `542f1b293` (round-2 fixes) | F13 Nit | A log entry written while fixing F12 said a future spec "carries" a section. Approved with the Nit |
 | 4 (human) | `feb0d8f24` (F13 fix) | F14 Minor, non-blocking | The F13 fix added two lines to `EPIC.md`, shifting line ranges the audit cited for F7 and F10. Approved |
@@ -63,8 +63,9 @@ restructure pushed mid-review without the checks the reviewer was going to run.
 
 ## What Went Well
 
-1. **Round 1 found real errors.** F1 to F5 were wrong facts in a document meant as a baseline
-   (an inventory). Fixing them before the ADR work starts is the review doing its job.
+1. **Round 1 found real errors.** F1 to F5 were wrong facts: four in a document meant as a
+   baseline (the inventory) and one in the spec's publishing plan (F2). Fixing them before the
+   ADR work starts is the review doing its job.
 2. **Severity was honest and the ACK protocol worked.** The reviewer approved at round 3 with a
    Nit outstanding and at round 4 with a Minor outstanding, each time naming the head. The
    author could have merged either time; the choice to fix F13 first was deliberate.
