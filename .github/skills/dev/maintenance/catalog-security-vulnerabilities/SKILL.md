@@ -1,6 +1,6 @@
 ---
 name: catalog-security-vulnerabilities
-description: Guide for cataloging security vulnerability warnings (e.g. Docker DX CVEs) that do NOT affect the project. Covers the process of checking the existing catalog, creating a new analysis document with rationale, and escalating if a vulnerability is found to be affecting. Use when handling Docker DX warnings, CVE analysis, vulnerability scanning results, or security audit findings. Triggers on "Docker DX", "vulnerability warning", "CVE analysis", "security scan", "catalog vulnerability", "non-affecting CVE", or "container CVE".
+description: Guide for cataloging public container, dependency, and CVE warnings that do not affect the project, with escalation for affecting vulnerabilities. Use for Docker DX, Trivy, cargo audit, RustSec, dependency advisories, CVE analysis, non-affecting CVEs, or container CVEs. GitHub Code Scanning and Code Quality findings, including Trivy alerts, are inventoried and clustered by triage-github-security-findings; this skill records the CVE analysis behind them.
 metadata:
   author: torrust
   version: "1.0"
@@ -8,6 +8,7 @@ metadata:
     related-artifacts:
       - docs/security/analysis/README.md
       - docs/templates/SECURITY-ANALYSIS.md
+      - .github/skills/dev/maintenance/triage-github-security-findings/SKILL.md
 ---
 
 # Catalog Security Vulnerabilities
@@ -22,6 +23,12 @@ provides a quick reference.
 This skill applies only to public scanner findings and vulnerabilities already approved for
 disclosure. For a privately reported or embargoed vulnerability, do not create a public
 catalog record or issue; follow `docs/security/vulnerability-remediation.md`.
+
+Every GitHub Code Scanning and Code Quality finding, including a Trivy alert, is inventoried and
+clustered by [`triage-github-security-findings`](../triage-github-security-findings/SKILL.md).
+When such a finding is a CVE, this skill records its reachability analysis, and the cluster links
+to that record. For CVE, container, and dependency warnings from other sources, this skill is the
+whole workflow.
 
 ## Quick Reference
 

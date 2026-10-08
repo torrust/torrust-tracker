@@ -1,6 +1,9 @@
 ---
 semantic-links:
-  skill-links: [catalog-security-vulnerabilities, create-markdown-template]
+  skill-links:
+    - catalog-security-vulnerabilities
+    - triage-github-security-findings
+    - create-markdown-template
   related-artifacts:
     [
       Containerfile,
@@ -45,6 +48,9 @@ docs/security/analysis/
 ├── reports/                   # Handled coordinated-disclosure reports (after disclosure)
 │   ├── README.md              # Template and rules
 │   └── {date}_{slug}.md       # One file per handled report
+├── github-security/           # GitHub Code Scanning and Code Quality finding catalog
+│   ├── README.md              # Durable cluster dispositions
+│   └── reviews/{date}.md      # Dated complete alert inventories
 └── affecting/                 # (future) Vulnerabilities that DO affect us
 ```
 
@@ -115,6 +121,12 @@ build/
    disclosure, then escalate immediately with an issue and fix. The analysis document should
    describe the impact, affected components, and remediation plan. Otherwise follow the
    confidential vulnerability-remediation process.
+
+4. **For GitHub Security tab findings**: if the issue came from Code Scanning (any tool, including
+   Trivy) or Code Quality, inventory and cluster it through the public scanner finding triage
+   process in [../public-scanner-findings.md](../public-scanner-findings.md) instead of treating
+   the whole backlog as a single issue or a single bug class. When the finding is a CVE, record
+   its analysis with steps 1-3 above and link that record from the cluster.
 
 ### Recheck Policy
 
