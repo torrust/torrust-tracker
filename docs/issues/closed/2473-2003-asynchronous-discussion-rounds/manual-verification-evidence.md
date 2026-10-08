@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
+issue-spec: docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md
 last-updated-utc: 2026-10-08 06:50
 ---
 

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 epic: 2003
 github-issue: 2473
-spec-path: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
+spec-path: docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md
 branch: "2473-asynchronous-discussion-rounds"
-related-pr: null
-last-updated-utc: "2026-10-08 06:58"
+related-pr: 2481
+last-updated-utc: "2026-10-08 09:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,7 +175,7 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -207,6 +207,11 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
   `docs/AGENTS.md` and `docs/index.md` and widened the merge-gate list to any participant's
   content. The third, that the no-more-rounds rule rests on an Outcome answer the EPIC owner has
   not confirmed, is raised for his confirmation in the pull request.
+- 2026-10-08 09:12 UTC - AI assistant (Copilot SDK in VS Code) - PR #2481 merged without the EPIC owner's
+  review, at the maintainer's decision, after Copilot's one finding was fixed; GitHub closed issue
+  #2473 as completed. Archived this spec folder to `docs/issues/closed/` and updated the live
+  references to it in EPIC #2003 and the PR #2474 and PR #2481 audit front matter. The Committer
+  agent was not used, so its checkpoint stays open; the pre-commit gate ran before every commit.
 
 ## Acceptance Criteria
 
@@ -294,6 +299,6 @@ None planned.
 ## References
 
 - Related issues: #2003
-- Related PRs: #2428, #2467
+- Related PRs: #2428, #2467, #2474, #2481
 - Related ADRs:
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`
