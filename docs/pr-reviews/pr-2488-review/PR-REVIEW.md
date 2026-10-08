@@ -48,8 +48,8 @@ row.
 Human review 5456830805 (da2ce7, round 1) numbered its inline findings F1-F3. Its F2 and F3 keep
 their IDs; its F1 collides with the Copilot finding already recorded as F1 and is recorded as F4,
 with the reviewer's ID in its detail entry. The review body restates those three findings and
-lists items it explicitly calls "noted, with no finding" (no issue link, a PR body that does not
-mention the follow-up commits, and one mis-closed code span in the body), so the body has no row of
+says: "These are noted, with no finding: no issue link, a hard-wrapped body that does not mention
+the follow-up commits, and one mis-closed code span in the body." The body therefore has no row of
 its own.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
