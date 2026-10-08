@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - docs/benchmarking.md
     - docs/profiling.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/performance-evidence.md
     - contrib/dev-tools/benches/run-benches.sh
     - share/default/config/tracker.udp.benchmarking.toml
 metadata:

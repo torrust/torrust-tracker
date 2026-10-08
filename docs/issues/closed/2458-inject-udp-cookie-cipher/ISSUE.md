@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 2458
-spec-path: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
+spec-path: docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
 branch: "2458-inject-udp-cookie-cipher"
 related-pr: 2470
-last-updated-utc: "2026-10-07 15:03"
+last-updated-utc: "2026-10-08 05:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,8 +22,8 @@ semantic-links:
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/udp-core/src/crypto/cookie_cipher.rs
-    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/implementation-retrospective.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/implementation-retrospective.md
     - docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md
     - docs/benchmarking.md
     - packages/udp-core/src/connection_cookie.rs
@@ -307,7 +307,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Fix: wire `udp-core` services and container | One shared key; R3 added, with its mutate-then-restore red run recorded. **Design-review checkpoint** with the maintainer. |
 | T6 | DONE | Fix: wire `udp-server` and remaining callers | No change left: the constructor changes in T5 forced the `udp-server` handlers, tests, and both benchmarks to change there (see the progress log). The `axum-rest-api-server` test environment and `src/bootstrap/app.rs` changed in T7 with `initialize_static()`. |
 | T7 | DONE | Fix: remove the global keys | `Keeper`, facades, aliases, statics, `check_seed()`, and stale `initialize_static()` steps removed; docs corrected. |
-| T8 | IN_PROGRESS | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
+| T8 | DONE | Green and recheck | R1 to R4 and the existing tests green, automatic checks, manual recheck (M1, M2b, M3), and acceptance review. |
 | B3 | DONE | Record the performance after the fix (P2) | Same measurements as B2 on the finished code; comparison against the one-sided pass rule in `performance-evidence.md`. |
 | D1 | DONE | Update the benchmarking docs and add a benchmarking skill | `docs/benchmarking.md` and related docs updated with what this issue learned (for example the benchmark levels and tools, criteria for choosing one, how to record evidence, stale package names); a new skill under `.github/skills/dev/benchmarking/` that points to them. Done last. |
 
@@ -348,8 +348,8 @@ Arrange-Act-Assert review.
 - [x] Evidence-based implementation completion review recorded
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -388,6 +388,7 @@ Arrange-Act-Assert review.
 - 2026-10-07 10:53 UTC - Copilot - Rebased onto `develop` twice (#2438 changed the #2411 EPIC, whose citations of the deleted key file are now updated; #2465 changed only docs), passed the pre-push checks, and opened PR #2470.
 - 2026-10-07 13:19 UTC - Copilot - The maintainer accepted the Task Reviewer's nit N1: `CookieCipher::random()` now fills a `zeroize::Zeroizing` buffer in place, so the raw key bytes are wiped once the cipher is built. `zeroize` 1.9.1 (latest stable) became a direct `udp-core` dependency with default features off; it was already in the graph through `secrecy` and `blowfish`, and the lock file moves from 1.9.0. The wipe is not tested, because observing freed memory would be undefined behavior. A new mutation, filling a throwaway buffer instead of the key, left the all-zero key and failed both R1 tests (evidence: "R1 After Wiping the Raw Key Bytes"). Performance is not re-measured: `random()` runs once per composition root, not per request. ADR updated.
 - 2026-10-07 15:03 UTC - Copilot - PR #2470 review rounds 1 and 2 (Copilot and da2ce7): rebased onto `develop` (the #2411 EPIC conflicted only in its `last-updated-utc` stamp); made `UdpTrackerCoreServices::cookie_cipher` `pub(crate)` with a `compile_fail,E0616` doctest, so code outside `udp-core` cannot read the key (red when the field is made `pub` again; evidence: "Key Kept Inside `udp-core`"); corrected the `src/AGENTS.md` bootstrap diagram, which still said the global-services step set up a crypto seed; and reworded the `write-unit-test` note on stable rustdoc. The generated 2026-10-06 workspace coupling report on `develop` still lists `crypto::keys` and `initialize_static`; it is a dated snapshot and stays unchanged. Audit: `docs/pr-reviews/pr-2470-review/PR-REVIEW.md`.
+- 2026-10-08 05:38 UTC - Copilot - PR #2470 merged on 2026-10-08 05:34 UTC as `develop` `44a280c0a` after da2ce7 approved (rounds 1 to 4 are audited in `docs/pr-reviews/pr-2470-review/PR-REVIEW.md`), which closed issue #2458. T8 done. Archived this specification to `docs/issues/closed/` and pointed the live references (the ADR, `docs/benchmarking.md`, the `run-benchmarks` skill, and the PR #2461 and #2470 audit records) at the new path; progress-log entries that record the old path stay as history. Issue #1348 can resume and adapt its `udp-core` tests to the new `make`/`check` and service constructors.
 
 ## Acceptance Criteria
 

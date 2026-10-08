@@ -5,9 +5,9 @@ semantic-links:
     - fix-bug
     - run-benchmarks
   related-artifacts:
-    - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/manual-verification-evidence.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/manual-verification-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/performance-evidence.md
     - docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md
 ---
 

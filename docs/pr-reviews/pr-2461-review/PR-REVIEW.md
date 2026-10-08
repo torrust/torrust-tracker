@@ -4,8 +4,8 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/manual-verification-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/manual-verification-evidence.md
 ---
 
 <!-- skill-link: process-pr-review -->

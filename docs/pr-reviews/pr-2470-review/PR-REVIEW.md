@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
     - docs/adrs/20261007085634_inject_the_udp_connection_cookie_cipher.md
 ---
 
