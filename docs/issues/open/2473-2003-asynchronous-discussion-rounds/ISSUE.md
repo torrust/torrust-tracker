@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: 2003
 github-issue: 2473
 spec-path: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
-branch: "2473-asynchronous-discussion-rounds-spec"
+branch: "2473-asynchronous-discussion-rounds"
 related-pr: null
-last-updated-utc: "2026-10-07 16:40"
+last-updated-utc: "2026-10-08 06:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -166,7 +166,7 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-asynchronous-discussion-rounds/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all` and the pre-commit gate)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -188,6 +188,11 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - 2026-10-07 16:40 UTC - AI assistant (Copilot SDK in VS Code) - Reordered the manual scenarios
   so the scratch discussion from M1 is kept for M2 and deleted only after V2 is recorded
   (`review-finding:pr-2474-f1`).
+- 2026-10-08 06:44 UTC - AI assistant (Copilot SDK in VS Code) - Spec-only PR #2474 merged. Asked the EPIC
+  owner for objections to the round model
+  (<https://github.com/torrust/torrust-tracker/issues/2473#issuecomment-6054107392>); the
+  implementation PR waits for his review. Started implementation on
+  `2473-asynchronous-discussion-rounds`.
 
 ## Acceptance Criteria
 
