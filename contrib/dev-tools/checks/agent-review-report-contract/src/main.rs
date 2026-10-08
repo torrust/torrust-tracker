@@ -24,10 +24,6 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
         ".github/agents/copilot-suggestions-handler.agent.md",
         "docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md",
     ),
-    (
-        ".github/prompts/process-copilot-suggestions.prompt.md",
-        "docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md",
-    ),
     ("docs/agents/orchestration.md", "pr_review_audit[Pull-request review audit]"),
     (
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
@@ -69,10 +65,6 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     (
         ".github/agents/copilot-suggestions-handler.agent.md",
         "process-pr-review skill",
-    ),
-    (
-        ".github/prompts/process-copilot-suggestions.prompt.md",
-        "canonical skill exclusively defines audit fields",
     ),
     (
         ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
@@ -256,10 +248,6 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
         "commit-subject citation",
     ),
     (
-        ".github/prompts/process-copilot-suggestions.prompt.md",
-        "commit-subject citation",
-    ),
-    (
         ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
         "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
     ),
@@ -293,8 +281,6 @@ const FORBIDDEN_TEXT: &[(&str, &str)] = &[
     ),
     (".github/agents/copilot-suggestions-handler.agent.md", "commit SHA"),
     (".github/agents/copilot-suggestions-handler.agent.md", "branch SHA"),
-    (".github/prompts/process-copilot-suggestions.prompt.md", "commit SHA"),
-    (".github/prompts/process-copilot-suggestions.prompt.md", "branch SHA"),
     ("docs/agents/orchestration.md", "Copilot suggestions tracker"),
     (
         ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
@@ -456,7 +442,6 @@ fn verify_committer_authority(workspace_root: &Path, failures: &mut Vec<String>)
 
 fn verify_review_routing(workspace_root: &Path, failures: &mut Vec<String>) {
     let handler = ".github/agents/copilot-suggestions-handler.agent.md";
-    let prompt = ".github/prompts/process-copilot-suggestions.prompt.md";
     let audit_path = "docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md";
 
     require(workspace_root, handler, audit_path, failures);
@@ -470,17 +455,6 @@ fn verify_review_routing(workspace_root: &Path, failures: &mut Vec<String>) {
     forbid(workspace_root, handler, "agent-review-reports.md", failures);
     forbid(workspace_root, handler, "commit SHA", failures);
     forbid(workspace_root, handler, "branch SHA", failures);
-    require(workspace_root, prompt, "process PR review skill", failures);
-    require(
-        workspace_root,
-        prompt,
-        "canonical skill exclusively defines audit fields",
-        failures,
-    );
-    require(workspace_root, prompt, audit_path, failures);
-    require_wrapped(workspace_root, prompt, "commit-subject citation", failures);
-    forbid(workspace_root, prompt, "commit SHA", failures);
-    forbid(workspace_root, prompt, "branch SHA", failures);
     require(
         workspace_root,
         "docs/agents/orchestration.md",
