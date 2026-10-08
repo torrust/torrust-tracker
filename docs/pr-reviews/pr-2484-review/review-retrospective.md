@@ -71,7 +71,8 @@ restructure pushed mid-review without the checks the reviewer was going to run.
    Nit outstanding and at round 4 with a Minor outstanding, each time naming the head. The
    author could have merged either time; the choice to fix F13 first was deliberate.
 3. **One commit per finding (except F9 and F10, which share one audit edit), replies before
-   resolution, and the audit record** were followed in every round. The validator reported 0 failures at every head.
+   resolution, and the audit record** were followed in every round. The validator reported 0
+   failures at every head.
 4. **The reviewer states his checks.** Each review body lists what was recomputed (range-diff,
    link resolution, stamp order, line width, path liveness, the validator). That list is a
    specification of the pre-push check the author should have run; see Improvements.
