@@ -45,10 +45,15 @@ audit: Medium as Minor, and Low as Suggestion for the "Consider linking" comment
 lists the two threads and a warning that the full agentic review did not start before its timeout;
 neither adds a request, so they get no row.
 
+Human review 5455373856 by `da2ce7` (`APPROVED`, round 1, 10:45 UTC) supplied the finding ID `F1`
+with a non-blocking `[Minor]` severity. `F1` collides with this audit, so it takes `F3`. The review
+body summarizes that thread and lists the rest under "Checked, no finding", so it adds no other row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2487-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2487-f2` | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2487-f3` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -86,12 +91,38 @@ neither adds a request, so they get no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2487#discussion_r4217755375>
 
+### F3 - The Outcome placeholder changed without being stated
+
+- PR number: 2487
+- Source review ID: 5455373856
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2487#discussion_r4217949739>
+- Concern: The Outcome placeholder changed from "Pending review." to the template's "Pending: no
+  decision recorded." in a round that is not a decision round, and none of the round's statements
+  of its changes (the Context paragraph, the first commit body, the PR body) mentioned it. The
+  reviewer did not block, because adopting the template brings its placeholder, and suggested a
+  line in the PR body, which becomes the merge commit message.
+- Solution: Kept the placeholder and added the suggested line to the PR body's Changes list. The
+  README is unchanged.
+- Current-tree verification: the PR body contains "The Outcome placeholder now reads as the
+  template's"; the README's Outcome still reads "Pending: no decision recorded.".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2487#issuecomment-6059620329>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2487#discussion_r4218767626>
+
 ## Processing Log
 
 - 2026-10-08 10:21 UTC - Started audit. Fetched the two review threads with GraphQL (unresolved,
   not outdated) and the review body; normalized them into F1 and F2.
 - 2026-10-08 10:23 UTC - Pushed both fixes after the pre-commit gate passed, edited the PR
   description for F1, re-checked both claims against the pushed tree, and replied on both threads.
+- 2026-10-08 10:34 UTC - Copied the Status Values block verbatim from the template, the same fix
+  that `review-finding:pr-2485-f2` required on the PR #2485 audit.
+- 2026-10-08 12:15 UTC - Human review 5455373856 (`da2ce7`, round 1) approved at the head that
+  carried the verbatim fix and raised F3 (reviewer F1). Fixed F3 by editing the PR body, posted
+  the resolution comment, and replied on the thread. Then rebased onto `develop`, which had moved
+  six commits, so the merge tool would accept the merge; the push moves the head off the approved
+  commit, so the reviewer was asked to re-ACK the new head.
 
 ## Completion Rules
 
