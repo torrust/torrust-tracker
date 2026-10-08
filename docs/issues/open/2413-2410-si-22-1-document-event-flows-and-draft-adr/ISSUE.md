@@ -7,9 +7,9 @@ priority: p1
 epic: 2410
 github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-07 13:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,8 +26,7 @@ semantic-links:
 
 # Issue #2413 - Document Event Flows and Draft the Shutdown-Order ADR
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md)
-(`epic` is set to the sub-EPIC's issue number once it exists),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 1 of 4 (SI-22 tasks T1 and T2). Documentation only; no code
@@ -50,9 +49,10 @@ reviews can point to them.
 ### In Scope
 
 - T1: revalidate the producer-consumer inventory against the code and record
-  it in `docs/features/shutdown-process/task-inventory.md`.
+  it in `docs/features/shutdown-process/task-inventory.md`, including the
+  listener chains the HTTP and UDP test environments run.
 - T2: move `docs/application-jobs.md` to `docs/architecture/` and update all
-  links; create `docs/architecture/glossary.md` (D12); write the ADR draft as
+  live links; create `docs/architecture/glossary.md` (D12); write the ADR draft as
   `adr-draft.md` in the sub-EPIC folder (D15).
 
 ### Out of Scope
@@ -70,10 +70,34 @@ items 2 (T1) and 3 (T2). Revalidate paths before starting.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Producer-consumer inventory | Every producer, consumer, and listener chain recorded; differences from the design record reported to the maintainer (D14). |
-| T2a | TODO | Move the jobs doc | `docs/architecture/application-jobs.md`; every link updated; `linter lychee` passes. |
-| T2b | TODO | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). |
+| T1 | TODO | Producer-consumer inventory | Every producer, consumer, and listener chain recorded, including the test environments' chains (see below); differences from the design record reported to the maintainer (D14). |
+| T2a | TODO | Move the jobs doc | `docs/architecture/application-jobs.md`; every live link updated (see below); `linter lychee` passes. |
+| T2b | TODO | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). The "Stop request" entry notes that dropping a `CancellationToken` does not cancel it, so an owner that can be dropped without `stop()` holds a `DropGuard` (#2459, #2471). |
 | T2c | TODO | ADR draft | `adr-draft.md` in the sub-EPIC folder, `create-adr` structure, covering D1, D7, D8, D9, D13 and the rules in the design record's Architectural Decisions; written to fully supersede the cancellation-tree ADR (D11). |
+
+**Test environments in the T1 inventory.** SI-16 and SI-17 gave both
+migrated test environments their own listener chains, and T9 (#2416) changes
+them, so the inventory records them:
+
+- `packages/axum-http-server/src/testing/environment.rs`: one listener, http-core
+  statistics.
+- `packages/udp-server/src/testing/environment.rs`: three listeners, udp-core
+  statistics, udp-server statistics, and banning.
+
+Both subscribe before the server starts, so they already meet the
+subscribe-before-publish rule (sub-EPIC AC13). The REST API and health-check
+API environments (SI-23, SI-24) run no event listeners.
+
+**Finding the links for T2a.** `lychee.toml` skips `docs/issues/closed/`, so
+`linter lychee` does not find every link to the moved file. Search with
+`rg 'application-jobs\.md'` instead. On 2026-10-07 the live references were
+`docs/index.md`, `docs/architecture/README.md`,
+`docs/architecture/tracker-instance-architecture.md`, and the SI-22 specs (the
+sub-EPIC and this issue). Historical records keep the old path unchanged, as
+the maintainer decided on 2026-10-07: the closed specs
+`1453-1978-ip-bans-reset-interval-configurable` and
+`2095-organize-runtime-architecture-documentation`, and the plain-text mention
+in the PR #2126 review record.
 
 ## Commit Points
 
@@ -89,14 +113,16 @@ Sign every commit with GPG.
 ## Acceptance Criteria
 
 - [ ] AC1: The task inventory lists every event producer and consumer
-      component and the buses between them, checked against the code. It
+      component and the buses between them, checked against the code,
+      including the listener chains of the HTTP and UDP test environments. It
       also rechecks the facts of the sub-EPIC's record entry 27 (who owns
       each sender and when it is dropped, where each receiver is created,
       and that no producer sends from a detached task) and reports any
       difference to the maintainer.
 - [ ] AC2 (sub-EPIC AC9): the glossary is at `docs/architecture/glossary.md`,
-      the jobs doc at `docs/architecture/application-jobs.md`, all links to
-      the moved file are updated, and the sub-EPIC links to the glossary.
+      the jobs doc at `docs/architecture/application-jobs.md`, every live link
+      to the moved file is updated (historical records keep the old path), and
+      the sub-EPIC links to the glossary.
 - [ ] AC3: `adr-draft.md` exists in the sub-EPIC folder and the maintainer
       has approved it.
 - [ ] `linter all` exits with code `0`.
@@ -105,13 +131,15 @@ Sign every commit with GPG.
 
 ### Automatic Checks
 
-- `linter all` (lychee covers the moved file's links).
+- `linter all`. Its lychee step skips `docs/issues/closed/`, so also run
+  `rg 'application-jobs\.md'` after the move and check that only the
+  historical records listed in T2a still use the old path.
 
 ### Manual Verification Scenarios
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls; compare with the inventory | No unlisted producer or consumer | TODO |
+| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls, including in the test environments; compare with the inventory | No unlisted producer or consumer | TODO |
 
 Not applicable: bug-fix process and regression tests (documentation only).
 
@@ -150,3 +178,4 @@ pre-push checks still apply to this documentation-only PR.
 
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T1-T2 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - AC1 now rechecks the channel-lifetime facts of the sub-EPIC's record entry 27.
+- 2026-10-07 13:00 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): T1 and AC1 cover the test environments' listener chains; T2a finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision); T2b records the `DropGuard` rule; `branch:` names the implementation branch.

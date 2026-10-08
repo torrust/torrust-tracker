@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:03"
+last-updated-utc: "2026-10-08 06:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -41,7 +41,7 @@ semantic-links:
 
 Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
 
-> **EPIC position**: Roadmap sequence 14 (SI-22). A bug found on 2026-10-01
+> **EPIC position**: Roadmap sequence 15 (SI-22). A bug found on 2026-10-01
 > while refreshing SI-16. It follows SI-17 so the fix lands in the application
 > and both migrated test environments at once, and precedes SI-20 because it
 > can lose persisted data.
@@ -269,7 +269,7 @@ which keeps the detailed steps for all sub-issues.
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | TODO | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
-| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs SI-16 and SI-17 merged. |
+| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs #2471 merged. |
 
 T0 (the reproduction) is done in this folder: evidence in
 [manual-verification-evidence.md](manual-verification-evidence.md) and the
@@ -556,6 +556,23 @@ Alternatives considered:
   tracks whether HTTP scrape enforces the 74 info-hash limit, #2417
   (`docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`). The
   bug is tracked in #2406.
+- **D20 - The test environments use one independent token and one
+  `DropGuard` each for the server and the listeners (maintainer,
+  2026-10-08).** T9 splits each environment's single token in two. `stop()`
+  sets the order explicitly (cancel and join the server, then the
+  listeners), and `stop()` disarms both guards. A drop without `stop()`
+  cancels both tokens. This mirrors `JobManager` (D7, Chosen Design): every
+  component has its own token, not derived from another, and the owner
+  enforces the order. Rejected: making the server token a child of the
+  listener token, with one guard on the parent. It is also correct, but it
+  hides the order in the direction of the token tree, which is the design
+  `JobManager` rejected. The reverse tree (listeners as the child) would
+  cancel the listeners with the server and break the stop order. Reusing
+  `JobManager` is not possible because it lives in the root crate, which the
+  packages cannot depend on. Pros: simple; each token's lifetime is visible;
+  consistent with production. Cons: one more field per environment. The
+  impact is test-only: the tracker binary does not use these environments,
+  and its `JoinSet` aborts every task when `JobManager` is dropped.
 
 ## Open Questions for Review
 
@@ -1525,7 +1542,20 @@ recoverable queue count (D13). Log fields and tests must retain that distinction
 
 The HTTP and UDP test environments give their servers and listeners separate
 tokens: `stop()` cancels the server, joins it (and its drain controller), then
-cancels and joins the listeners.
+cancels and joins the listeners. The split keeps two guarantees SI-16 and
+SI-17 established (refresh of 2026-10-07):
+
+- **Every failure is reported after every task is joined** (SI-17 AC3).
+  Today both environments cancel one token and join every task at once
+  (`tokio::join!` in each `join_owned_tasks`). With two stages, a server
+  failure must not skip the listener stage; `stop()` joins the listeners
+  before it reports any failure.
+- **Dropping the environment without `stop()` still stops everything.**
+  Dropping a `CancellationToken` does not cancel it, so the UDP environment
+  holds its token as a `DropGuard` (#2459), and #2471 adds the same to the HTTP
+  environment. With two tokens, the drop path must cancel both: each token is
+  independent and has its own `DropGuard`, and `stop()` disarms both (D20).
+  Do not derive one token from the other.
 
 ## Diagrams (D16)
 
@@ -1857,7 +1887,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | TODO   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
 | T7  | TODO   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | TODO   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
-| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners (needs SI-16 and SI-17 merged).                                          |
+| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (needs #2471 merged). |
 | T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
 ### Implementation Steps
@@ -1885,7 +1915,8 @@ what the code has shown so far: after the first listener drain (T4), after
 the registration refactor (T6), and after the stop order (T8).
 
 **Prerequisites.** Every open question is decided (D7, D9-D13, and D15).
-SI-16 and SI-17 are merged before T9.
+SI-16 (#2412) and SI-17 (#2448) are merged. #2471, which fixes the HTTP
+environment's drop path, is merged before T9.
 
 **Pull-request boundaries** (confirmed by D17, one sub-issue each): (1) T0-T2:
 evidence, inventory, glossary, the jobs-doc move, and the ADR draft; (2)
@@ -1905,14 +1936,18 @@ with rollback subject to the dependencies between the changes.
 2. **T1 - Inventory.** Revalidate the producer-consumer map in
    [D Versus F](#d-versus-f-measured-against-the-current-code): check the REST
    API endpoints and the activity-metrics job for event publishing, and the
-   listeners for re-publishing (relays). Record the result in
-   `docs/features/shutdown-process/task-inventory.md`.
+   listeners for re-publishing (relays), and record the listener chains the
+   HTTP and UDP test environments run (one and three listeners). Record the
+   result in `docs/features/shutdown-process/task-inventory.md`.
 3. **T2 - Glossary, jobs doc, and ADR** (separate commits, in this order):
    - move `docs/application-jobs.md` to `docs/architecture/application-jobs.md`
-     and update every link to it (live: `docs/index.md`,
+     and update every live link to it (`docs/index.md`,
      `docs/architecture/README.md`,
-     `docs/architecture/tracker-instance-architecture.md`; historical records
-     too, because `linter lychee` checks all local links);
+     `docs/architecture/tracker-instance-architecture.md`, and the SI-22
+     specs). Find them with `rg 'application-jobs\.md'`: `lychee.toml` skips
+     `docs/issues/closed/`, so `linter lychee` cannot find them all.
+     Historical records (closed specs and PR review records) keep the old
+     path (maintainer decision, 2026-10-07);
    - create `docs/architecture/glossary.md` from this spec's glossary, merge
      the "Terms" section of the jobs doc into it (one definition per term;
      "Service" differs today), and link it from the architecture README and
@@ -1995,9 +2030,14 @@ with rollback subject to the dependencies between the changes.
 10. **T9 - Test environments.** In
     `packages/axum-http-server/src/testing/environment.rs` and
     `packages/udp-server/src/testing/environment.rs`, give servers and
-    listeners separate tokens and stop the server first. Add the test SI-16
-    left out: a statistics event from a request completed just before
-    `stop()` is counted after `stop()` returns.
+    listeners independent tokens, each with its own `DropGuard` (D20), and
+    stop the server first, keeping both
+    guarantees in [Test environments](#test-environments): every failure is
+    reported after every task is joined, and a drop without `stop()` cancels
+    both tokens. Add the test SI-16 and SI-17 left out, for each environment:
+    a statistics event from a request completed just before `stop()` is
+    counted after `stop()` returns. Keep each environment's drop test
+    passing.
 11. **T10 - Documentation and verification.** Update
     `docs/architecture/application-jobs.md` (it describes the current
     implementation) and the glossary to the final implementation, and update
@@ -2065,7 +2105,7 @@ avoids duplicating the full workflow in four drafts:
 - [x] Reproduction attempted and classified in `manual-verification-evidence.md` (V1: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2410; sub-issues #2413 to #2416)
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2421)
 - [ ] Every design change found during implementation was agreed with the maintainer and recorded (D14)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -2103,6 +2143,8 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-02 11:45 UTC - GitHub Copilot - Linked the scrape bug #2406 (D19, Q9). Verified against the code that producers can stop first without losing events (record entry 27) and added the drain invariants to the Chosen Design.
 - 2026-10-02 13:30 UTC - GitHub Copilot - Maintainer review: propagated the record entry 27 invariants to AC12 and AC13, the ADR rules, the Subissues table, and the acceptance criteria of all four sub-issues.
 - 2026-10-02 15:40 UTC - GitHub Copilot - Diff review corrected absolute channel/handler guarantees, soft drain versus shared abort, unread length including lag, conditional listener inventory, and rollback/commit boundaries. Added lifecycle edge-case tests and shared child review gates. Hardened and smoke-tested the disposable script; original reproduction numbers remain historical. The HTTP follow-up now has real 75/1000-hash evidence; its policy choice remains separate.
+- 2026-10-07 13:05 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): the Chosen Design and T9 now keep SI-17's join-all failure reporting and cancel both tokens on drop; the late-event test covers UDP as well as HTTP; T1 records the test environments' listener chains; T2 finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision). Ticked the spec-only PR checkpoint (#2421); SI-16 and SI-17 are done, and T9 now waits for #2471, the HTTP environment drop-path bug found in this check.
+- 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20: the test environments use independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`. Rejected the parent-child token option. Updated Test environments, T9, and sub-issue 4.
 
 ## Acceptance Criteria
 
@@ -2214,7 +2256,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Dependencies
 
-- SI-16 and SI-17: the test environments use the token lifecycle.
+- SI-16 (#2412) and SI-17 (#2448): done. The test environments use the token
+  lifecycle.
+- #2471: the HTTP test environment stops when dropped without `stop()`. Must be
+  merged before T9, which changes the same file.
 - Interacts with SI-20: the ADR's deadline rule must stay valid when SI-20
   makes budgets configurable.
 

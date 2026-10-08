@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-deprecate-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-10-06 11:34"
+last-updated-utc: "2026-10-08 07:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 
 # Draft SI-18 — Deprecate Legacy Shutdown API
 
-> **EPIC position**: Roadmap step 17. Compatibility-preserving deprecation after
+> **EPIC position**: Roadmap step 18. Compatibility-preserving deprecation after
 > every supported in-workspace and standalone consumer uses token lifecycle APIs.
 
 ## Goal
