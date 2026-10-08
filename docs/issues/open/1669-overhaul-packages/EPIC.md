@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 12:33"
+last-updated-utc: "2026-10-08 12:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -995,7 +995,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   support code (findings 1 and 2), with an inventory of the patterns; folded in the finding 2
   draft (`1669-gate-server-testing-modules-behind-feature`), whose feature gate is now one of
   its options.
-- 2026-10-08 12:33 UTC - GitHub Copilot - Converted #2482 into a sub-EPIC at the maintainer's
+- 2026-10-08 12:53 UTC - GitHub Copilot - Converted #2482 into a sub-EPIC at the maintainer's
   request: it decides the rules (one ADR) and then applies them package by package; its
   subissues are tracked in its own EPIC.md, and this EPIC keeps a single row for it.
 
