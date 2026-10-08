@@ -88,7 +88,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324885>
 - Concern: The spec said every workspace package is planned to be published and made "every package stays publishable" a criterion, but nine of the 31 members set `publish = false` and the cited ADR keeps an "Unpublished tooling" tier; the timing was sourced only by the GitHub issue body.
 - Solution: Scoped both sentences to members without `publish = false`, which include every crate in Patterns A and B, named issue #2482 as the source of the timing, and linked the ADR and its tier. A follow-up commit rewrapped a 121-character line the first commit created.
-- Current-tree verification: In `EPIC.md`, the "Why This Is Needed" paragraph starting "Every workspace member without `publish = false`" and the Criteria bullet "Every package without `publish = false` stays publishable" carry the scoped wording (cited by line as `ISSUE.md:69-75` and `:92` before the sub-EPIC conversion, then as `EPIC.md:66-71` and `:109`); `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
+- Current-tree verification: In `EPIC.md`, the "Why This Is Needed" paragraph starting "Every workspace member without `publish = false`" and the Criteria bullet "Every package without `publish = false` stays publishable" carry the scoped wording (cited by line as `ISSUE.md:69-75` and `:92` at `ed4948b74`, before the sub-EPIC conversion, then as `EPIC.md:66-71` and `:109` at `542f1b293`); `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] scope the publishing plan to members without publish = false
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219053683>
@@ -153,7 +153,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324931>
 - Concern: Three open #1488 specs (#2449, #2450, #2471) change the `Environment` types this plan would move, and the spec did not name them.
 - Solution: Added a Risks bullet that names them and asks the migration plan to order each move after them or record why the order does not matter, and linked their specs from References.
-- Current-tree verification: In `EPIC.md`, the Risks bullet "Three open subissues of EPIC #1488 change the environments", the References entry "Shutdown overhaul EPIC: #1488" with its three spec links, and the "Coordination with EPIC #1488" rule under "How we work in this EPIC" (cited by line as `ISSUE.md:280-283` and `:310-313` before the sub-EPIC conversion, then as `EPIC.md:330-332`, `:347-350` and `:204-207` until the 15:20 entry shifted them); `linter lychee` exits 0.
+- Current-tree verification: In `EPIC.md`, the Risks bullet "Three open subissues of EPIC #1488 change the environments", the References entry "Shutdown overhaul EPIC: #1488" with its three spec links, and the "Coordination with EPIC #1488" rule under "How we work in this EPIC" (cited by line as `ISSUE.md:280-283` and `:310-313` at `ed4948b74`, before the sub-EPIC conversion, then as `EPIC.md:330-332`, `:347-350` and `:204-207` at `542f1b293`; the 15:20 entry later shifted the first two); `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] name the open #1488 subissues that change the environments
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219055480>
