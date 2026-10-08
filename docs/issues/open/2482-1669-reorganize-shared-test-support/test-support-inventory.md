@@ -50,8 +50,9 @@ Taken on 2026-10-08 against `develop` at `d1388579b`, over the 31 workspace memb
 ## Pattern A: public `testing` and `environment` modules
 
 Each server package exposes an `Environment<S>` generic over its state (`Environment<Stopped>` and
-`Environment<Running>`, aliased `Unstarted` and `Started`) that builds the services a server
-needs, starts it on an ephemeral address and stops it. Three packages also expose an
+`Environment<Running>`) that builds the services a server needs, starts it on an ephemeral address
+and stops it. All four alias `Environment<Running>` as `Started`; only `axum-http-server` and
+`udp-server` also alias `Environment<Stopped>` as `Unstarted`. Three packages also expose an
 `EnvContainer` that wires those services.
 
 DEC-13 (2026-06-11) moved the three server environments from `src/environment.rs` to
