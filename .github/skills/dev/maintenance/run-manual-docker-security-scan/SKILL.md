@@ -12,6 +12,7 @@ metadata:
       - docs/security/docker/scans/README.md
       - docs/security/docker/scans/torrust-tracker.md
       - docs/security/analysis/README.md
+      - docs/security/public-scanner-findings.md
       - docs/templates/SECURITY-ANALYSIS.md
       - docs/security/analysis/production/
       - docs/security/analysis/build/

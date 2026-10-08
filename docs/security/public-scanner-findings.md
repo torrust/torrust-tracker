@@ -3,6 +3,7 @@ semantic-links:
   skill-links:
     - triage-github-security-findings
     - catalog-security-vulnerabilities
+    - run-manual-docker-security-scan
     - create-issue
   related-artifacts:
     - docs/security/README.md
