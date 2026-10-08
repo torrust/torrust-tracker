@@ -52,12 +52,20 @@ says: "These are noted, with no finding: no issue link, a hard-wrapped body that
 the follow-up commits, and one mis-closed code span in the body." The body therefore has no row of
 its own.
 
+Human review 5457160061 (da2ce7, round 2, approved) numbered its inline findings F4 and F5,
+continuing its own series. Its F4 collides with this audit's F4 (round-1 F1) and is recorded as F5;
+its F5 then collides with that F5 and is recorded as F6. Each detail entry keeps the reviewer's ID.
+The review body restates those two findings and verifies the round-1 fixes, so it has no row of
+its own.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2488-f1` | Copilot | Minor (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2488-f4` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2488-f2` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2488-f3` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2488-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2488-f6` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -113,6 +121,32 @@ its own.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2488#discussion_r4219204790>
 
+### F5 - The #2349 log entry points at the wrong earlier entry
+
+- PR number: 2488
+- Source review ID: 5457160061
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2488#discussion_r4219390897>
+- Concern: The 2026-10-08 log entry in the #2349 spec said "the entry above" records the 15-document state, but the entry directly above is the 13:33 approval entry; the count and the commit are in the 12:33 entry.
+- Solution: Reworded it to "the 2026-09-26 12:33 entry records the 15-document state at `0f1dcd28`". `last-updated-utc` stays at 12:56 because the change corrects wording in that same entry and adds no new event.
+- Current-tree verification: the 2026-09-26 12:33 entry in the #2349 spec contains "checks 15 workflow documents" and `0f1dcd28`; the 13:33 entry contains neither; the pre-commit script passes.
+- Resolution reference: `docs(issues): [#2349] point the count note at the 12:33 log entry`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2488#discussion_r4220247125>
+
+### F6 - The audit's paraphrase of round 1's noted items drops "hard-wrapped"
+
+- PR number: 2488
+- Source review ID: 5457160061
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2488#discussion_r4219390920>
+- Concern: The Findings introduction paraphrased review 5456830805's "noted, with no finding" list and dropped its hard-wrapped-body note, so the audit no longer accounted for it.
+- Solution: Quoted the sentence verbatim. The PR body was also rewritten with one line per paragraph, following `open-pull-request/SKILL.md`.
+- Current-tree verification: the quoted sentence matches the body of review 5456830805 byte for byte (`gh api .../reviews/5456830805`); `gh pr view 2488 --json body` shows no paragraph split across lines; the pre-commit script passes.
+- Resolution reference: `docs(pr-reviews): quote round 1's noted items verbatim in the PR #2488 audit`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2488#discussion_r4220247553>
+
 ## Processing Log
 
 - 2026-10-08 12:26 UTC - Fetched review 5456474248 and its single inline thread with GraphQL; recorded F1.
@@ -121,6 +155,9 @@ its own.
 - 2026-10-08 12:53 UTC - Fetched da2ce7 review 5456830805 (round 1, changes requested) and its three inline threads with GraphQL; recorded F4 (reviewer F1), F2, and F3.
 - 2026-10-08 12:58 UTC - Committed and pushed the F4, F2, and F3 fixes, then replied on all three threads.
 - 2026-10-08 12:59 UTC - Recorded F4, F2, and F3 in this audit.
+- 2026-10-08 13:52 UTC - Fetched da2ce7 review 5457160061 (round 2, approved) and its two inline threads with GraphQL; recorded F5 (reviewer F4) and F6 (reviewer F5).
+- 2026-10-08 14:30 UTC - Committed and pushed the F5 and F6 fixes after a GPG passphrase timeout and a maintainer-attended retry, unwrapped the PR body, and replied on both threads.
+- 2026-10-08 14:31 UTC - Recorded F5 and F6 in this audit.
 
 ## Completion Rules
 
