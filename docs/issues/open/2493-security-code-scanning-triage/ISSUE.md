@@ -191,7 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Scenario | Human-oriented steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Verify skill routing | Compare the four security finding sources against the routing table in the new skill and process document. | GitHub source findings, public CVEs, image scans, and confidential reports each route to the correct workflow without overlap. | DONE | `manual-verification-evidence.md` V1 |
+| M1 | Verify skill routing | Compare the four security finding sources against the routing table in the new skill and process document. | GitHub source findings, public CVEs, image scans, and confidential reports each route to the correct workflow, and each step of a Trivy alert has one owner. | DONE | `manual-verification-evidence.md` V1 |
 | M2 | Verify initial inventory coverage | Reconcile the dated review rows against the open Code Scanning and Code Quality lists. | Every source alert maps to exactly one cluster, with no unexplained duplicate or omission. | DONE | `manual-verification-evidence.md` V2 |
 | M3 | Verify issue granularity | Review each proposed cluster against root cause, remediation, owner, effort, and verification boundaries. | Each focused issue is independently deliverable; oversized clusters are split before creation. | DONE | `manual-verification-evidence.md` V3 |
 

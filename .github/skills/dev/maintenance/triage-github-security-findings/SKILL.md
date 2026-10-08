@@ -96,8 +96,9 @@ Otherwise split by subsystem, owner, remediation strategy, or independently deli
 
 | Finding source | Workflow |
 | --- | --- |
-| GitHub Code Scanning or Code Quality | This skill |
-| Container, dependency, or public CVE warning | `catalog-security-vulnerabilities` |
+| GitHub Code Scanning (any tool, including Trivy) or Code Quality: inventory and clustering | This skill |
+| CVE reachability analysis, including for a Trivy alert in Code Scanning | `catalog-security-vulnerabilities` |
+| Container, dependency, or CVE warning from another source | `catalog-security-vulnerabilities` |
 | Manual tracker runtime image scan | `run-manual-docker-security-scan` |
 | Confidential or embargoed report | `docs/security/vulnerability-remediation.md` |
 

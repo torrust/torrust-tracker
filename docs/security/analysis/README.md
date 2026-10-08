@@ -122,10 +122,11 @@ build/
    describe the impact, affected components, and remediation plan. Otherwise follow the
    confidential vulnerability-remediation process.
 
-4. **For GitHub Security tab findings**: if the issue came from Code Scanning or Code Quality,
-   use the public scanner finding triage process in [../public-scanner-findings.md](../public-scanner-findings.md)
-   instead of treating the whole backlog as a single issue or a single bug class. The goal is to
-   cluster duplicates, classify them, and create independent issue specs for each root cause.
+4. **For GitHub Security tab findings**: if the issue came from Code Scanning (any tool, including
+   Trivy) or Code Quality, inventory and cluster it through the public scanner finding triage
+   process in [../public-scanner-findings.md](../public-scanner-findings.md) instead of treating
+   the whole backlog as a single issue or a single bug class. When the finding is a CVE, record
+   its analysis with steps 1-3 above and link that record from the cluster.
 
 ### Recheck Policy
 

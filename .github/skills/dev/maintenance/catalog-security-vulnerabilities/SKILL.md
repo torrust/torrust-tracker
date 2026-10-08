@@ -1,6 +1,6 @@
 ---
 name: catalog-security-vulnerabilities
-description: Guide for cataloging public container, dependency, and CVE warnings that do not affect the project, with escalation for affecting vulnerabilities. Use for Docker DX, Trivy, cargo audit, RustSec, dependency advisories, CVE analysis, non-affecting CVEs, or container CVEs. For GitHub Code Scanning or Code Quality findings, use triage-github-security-findings instead.
+description: Guide for cataloging public container, dependency, and CVE warnings that do not affect the project, with escalation for affecting vulnerabilities. Use for Docker DX, Trivy, cargo audit, RustSec, dependency advisories, CVE analysis, non-affecting CVEs, or container CVEs. GitHub Code Scanning and Code Quality findings, including Trivy alerts, are inventoried and clustered by triage-github-security-findings; this skill records the CVE analysis behind them.
 metadata:
   author: torrust
   version: "1.0"
@@ -24,10 +24,11 @@ This skill applies only to public scanner findings and vulnerabilities already a
 disclosure. For a privately reported or embargoed vulnerability, do not create a public
 catalog record or issue; follow `docs/security/vulnerability-remediation.md`.
 
-For source-level findings from GitHub Code Scanning or Code Quality, use
-[`triage-github-security-findings`](../triage-github-security-findings/SKILL.md). That workflow
-clusters repeated alerts and maintains their dispositions; this skill remains focused on public
-CVE, container, and dependency vulnerability analysis.
+Every GitHub Code Scanning and Code Quality finding, including a Trivy alert, is inventoried and
+clustered by [`triage-github-security-findings`](../triage-github-security-findings/SKILL.md).
+When such a finding is a CVE, this skill records its reachability analysis, and the cluster links
+to that record. For CVE, container, and dependency warnings from other sources, this skill is the
+whole workflow.
 
 ## Quick Reference
 

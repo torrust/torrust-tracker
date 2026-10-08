@@ -9,8 +9,8 @@ Compared the four finding sources against the routing table in
 
 | Source | Workflow |
 | --- | --- |
-| GitHub Code Scanning and Code Quality | `triage-github-security-findings` |
-| Public CVE, dependency, and container warnings | `catalog-security-vulnerabilities` |
+| GitHub Code Scanning (including Trivy) and Code Quality: inventory and clustering | `triage-github-security-findings` |
+| CVE reachability analysis, including for Trivy alerts | `catalog-security-vulnerabilities` |
 | Manual production image scan | `run-manual-docker-security-scan` |
 | Confidential or embargoed report | `docs/security/vulnerability-remediation.md` |
 
