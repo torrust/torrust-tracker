@@ -1,7 +1,7 @@
 ---
 doc-type: review-process-improvement-matrix
 issue: 2278
-last-updated-utc: "2026-09-23 12:10"
+last-updated-utc: "2026-10-08 16:50"
 semantic-links:
   related-artifacts:
     - "issue #2278"
@@ -9,24 +9,25 @@ semantic-links:
     - docs/pr-reviews/pr-2270-review/review-retrospective.md
     - docs/pr-reviews/pr-2271-review/review-retrospective.md
     - docs/pr-reviews/pr-2272-review/review-retrospective.md
+    - docs/pr-reviews/pr-2484-review/review-retrospective.md
 ---
 
 # Retrospective Improvement Matrix
 
 This matrix is the approved decision input for EPIC #2278 and its subissues. It maps every
-improvement proposed by the
-PR #2270, #2271, and #2272 review retrospectives, plus the author-side items of the EPIC #2003
-friction register, to an implementation disposition. `Adopt` means the issue must deliver it.
-`Defer` means a named later task must decide the policy before any workflow change. `Reject`
-means the evidence does not justify the proposed change; the rationale states the retained
-control. `Out of scope` means the item belongs to another artifact owner and is listed only so
-the decision is traceable.
+improvement proposed by the PR #2270, #2271, #2272, and #2484 review retrospectives, plus the
+author-side items of the EPIC #2003 friction register, to an implementation disposition. `Adopt`
+means the issue must deliver it. `Defer` means a named later task must decide the policy before any
+workflow change. `Reject` means the evidence does not justify the proposed change; the rationale
+states the retained control. `Out of scope` means the item belongs to another artifact owner and is
+listed only so the decision is traceable.
 
 The `Owner task` columns predate the conversion of #2278 into an EPIC and are kept as written.
 They map to the EPIC's subissues (numbering of 2026-09-23) as follows: T2 covers subissues 1-5
 (roster, contract rules, thread-tool Rust port, `fetch-review-threads` behaviour, self-audit gate);
 T3 covers subissues 6-9 (contract checker boundary, validator port, validator invariants, skeleton
-generator); T4 is subissue 10 (proportionate evidence).
+generator); T4 is subissue 10 (proportionate evidence). Rows from the PR #2484 retrospective,
+added on 2026-10-08, name the subissue order directly.
 
 ## Author Verification and Convergence
 
@@ -46,6 +47,8 @@ generator); T4 is subissue 10 (proportionate evidence).
 | PR #2271 | Avoid self-referential counts and universal claims in audit prose. | Adopt | T2, template | Such claims rot as later review activity changes the record. |
 | PR #2271 | Derive log events from Git and GitHub timestamps, not recollection. | Adopt | T2; T3 evaluates automation | The source of each event must be recorded; T3 may automate only when the event source is objective. |
 | PR #2271 | Explain what `agent-review-report-contract` reads so it is not cited as audit evidence. | Adopt | T3, checker documentation | A passing fixed-target contract checker does not validate a PR-specific audit. |
+| PR #2484 | Run an author sweep before every push to a reviewed branch: no tracked file names a path the push deletes or renames, each changed spec's `last-updated-utc` is at or after its latest log entry and its log is chronological, no prose line exceeds 100 columns, and every quoted phrase a verification cites occurs once in its file. | Adopt (manual sweep); Defer (tool) | Order 5 for the manual sweep; order 8 for the audit-body part of a tool | The sweep is the reviewer's recomputation done before the push, and every round-2 to round-4 finding of PR #2484 lies in that difference. The gate states it as manual steps. Only the audit-body check, quoted phrases in verifications, may become a validator invariant, because the validator validates the audit body only; tree-wide path existence and spec stamps belong to EPIC #2264 and the #2003 register, and the line width to the #2003 register. |
+| PR #2484 | Anchor each `Current-tree verification` to a file and a heading or quoted phrase; a line number may appear only in parentheses with the head it was true at. | Adopt | Order 5, template and `process-pr-review` | A line number holds for exactly one head; PR #2484's F10 and F14 were line-range verifications made stale by a later rename and a later edit. The rule changes wording, adds no field, and keeps the verification a manual, evidence-derived claim. |
 
 ## Audit Structure and Format
 
@@ -65,6 +68,15 @@ generator); T4 is subissue 10 (proportionate evidence).
 | ------ | -------- | ----------- | ---------------------- | --------- |
 | PR #2272 | Batch `Suggestion` or `Nit` findings on process-only artifacts from the same review into one reply-and-resolve pass. | Defer | T4 | Batching may reduce fixed overhead, but must retain a finding-specific reply URL or explicitly define an equivalent durable relationship. |
 | PR #2272 | Add a lighter audit path for small, low-risk changes. | Defer | T4 | The evidence establishes disproportionate cost, but not safe eligibility criteria. T4 must compare no-tier and risk-tier alternatives with mandatory escalation. |
+| PR #2484 | After an approval, record a non-blocking finding as `FOLLOW_UP` with the PR that will carry it, reply so, and push nothing, unless the maintainer asks for the fix. | Defer | Order 10 | Pushing after an approval dismisses it and costs a round, but deferring by default leaves a known defect on the merged head. Whether an approval changes what a non-blocking finding obliges is the proportionality question order 10 decides; the merge tool's side belongs to its owner. |
+
+## PR #2484 Items Left to Other Owners
+
+| Source | Proposal | Disposition | Owner artifact or task | Rationale |
+| ------ | -------- | ----------- | ---------------------- | --------- |
+| PR #2484 | State that a spec progress-log stamp is the time of the event it records (commit author time, or the GitHub time of a review or comment), and that one event logged in two files carries one stamp. | Out of scope | EPIC #2003 register, `issue-template-log-correction-rule-unstated` | Spec progress logs are planning-template text, not the audit record. The audit side is adopted above ("Derive log events from Git and GitHub timestamps, not recollection"). |
+| PR #2484 | Add a `create-issue` step for restructuring a spec under review: task-to-EPIC conversion and folder renames with `git mv`, every removed section and its destination in the log entry, then the sweep. | Out of scope | EPIC #2003 register, `create-issue-issue-to-epic-conversion-unstated` | Planning-skill text; the register already holds the missing conversion step. |
+| PR #2484 | Before a session processes a review on a branch it did not create, compare the remote head with the local one and ask which session owns the branch. | Out of scope | EPIC #2003, `docs/agents/orchestration.md` | Session coordination is orchestration guidance, not review processing; EPIC #2003 records it against the guide its order 1 delivered. |
 
 ## EPIC #2003 Friction Register Items
 
