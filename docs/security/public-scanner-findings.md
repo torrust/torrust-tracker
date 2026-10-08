@@ -194,8 +194,8 @@ cluster from issue specifications and accepted dispositions.
 ## First Implementation
 
 The first triage cycle should document the process itself and then perform a real review of the
-current list. That work is tracked by issue #2493 and its repository specification in
-[`docs/issues/open/2493-security-code-scanning-triage/ISSUE.md`](../issues/open/2493-security-code-scanning-triage/ISSUE.md).
+current list. That work is tracked by issue #2493, whose repository specification moves from
+`docs/issues/open/` to `docs/issues/closed/` when the issue closes; find it by issue number.
 
 The goal is a repeatable process, not a one-off cleanup list. Once the first scan has been
 reviewed and clustered, future scans can reuse the same structure without re-opening the design
