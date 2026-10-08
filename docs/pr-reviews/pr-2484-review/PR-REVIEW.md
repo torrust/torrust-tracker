@@ -87,7 +87,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324885>
 - Concern: The spec said every workspace package is planned to be published and made "every package stays publishable" a criterion, but nine of the 31 members set `publish = false` and the cited ADR keeps an "Unpublished tooling" tier; the timing was sourced only by the GitHub issue body.
 - Solution: Scoped both sentences to members without `publish = false`, which include every crate in Patterns A and B, named issue #2482 as the source of the timing, and linked the ADR and its tier. A follow-up commit rewrapped a 121-character line the first commit created.
-- Current-tree verification: `EPIC.md:66-71` and `:109` carry the scoped wording (cited as `ISSUE.md:69-75` and `:92` before the sub-EPIC conversion); `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
+- Current-tree verification: In `EPIC.md`, the "Why This Is Needed" paragraph starting "Every workspace member without `publish = false`" and the Criteria bullet "Every package without `publish = false` stays publishable" carry the scoped wording (cited by line as `ISSUE.md:69-75` and `:92` before the sub-EPIC conversion, then as `EPIC.md:66-71` and `:109`); `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] scope the publishing plan to members without publish = false
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219053683>
@@ -152,7 +152,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324931>
 - Concern: Three open #1488 specs (#2449, #2450, #2471) change the `Environment` types this plan would move, and the spec did not name them.
 - Solution: Added a Risks bullet that names them and asks the migration plan to order each move after them or record why the order does not matter, and linked their specs from References.
-- Current-tree verification: `EPIC.md:330-332` and `:347-350`, with the ordering rule at `:204-207` (cited as `ISSUE.md:280-283` and `:310-313` before the sub-EPIC conversion); `linter lychee` exits 0.
+- Current-tree verification: In `EPIC.md`, the Risks bullet "Three open subissues of EPIC #1488 change the environments", the References entry "Shutdown overhaul EPIC: #1488" with its three spec links, and the "Coordination with EPIC #1488" rule under "How we work in this EPIC" (cited by line as `ISSUE.md:280-283` and `:310-313` before the sub-EPIC conversion, then as `EPIC.md:330-332`, `:347-350` and `:204-207` until the 15:20 entry shifted them); `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] name the open #1488 subissues that change the environments
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219055480>
@@ -191,7 +191,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319077>
 - Concern: The F2 and F7 current-tree verifications cited `ISSUE.md` line ranges that the conversion removed.
 - Solution: Re-pointed both to the matching `EPIC.md` lines, keeping the earlier `ISSUE.md` citations marked as before the conversion.
-- Current-tree verification: `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md:66-71`, `:109`, `:204-207`, `:330-332` and `:347-350` hold the cited text; the validator reports 0 failures.
+- Current-tree verification: In `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md`, the "Why This Is Needed" paragraph starting "Every workspace member without `publish = false`", the Criteria bullet "Every package without `publish = false` stays publishable", the "Coordination with EPIC #1488" rule, the Risks bullet naming #2449, #2450 and #2471, and the References entry for #1488 hold the cited text (cited by line as `:66-71`, `:109`, `:204-207`, `:330-332` and `:347-350` at `542f1b293`); the validator reports 0 failures.
 - Resolution reference: docs(pr-reviews): [#2482] point the PR #2484 audit at EPIC.md
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220601330>
