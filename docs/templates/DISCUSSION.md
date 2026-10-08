@@ -18,7 +18,6 @@ Replace the frontmatter with the issues and paths this discussion reviews, for e
 | Status         | Open for rounds                                                               |
 | Started        | {YYYY-MM-DD}                                                                  |
 | Opened by      | {Name} (`{github-login}`)                                                     |
-| Participants   | {Name} (`{github-login}`); each participant adds themselves here              |
 | Decision owner | {Name} (`{github-login}`), owner of {issue or EPIC #number}                   |
 | Informs        | {Issue or EPIC #number - title}                                               |
 | Scope          | {The question this discussion answers, and what it leaves out}                |
