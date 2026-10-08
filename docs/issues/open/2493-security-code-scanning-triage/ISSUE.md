@@ -169,7 +169,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] A focused GitHub Security findings skill exists and routes safely among the repository's
   distinct security workflows.
 - [x] The current security-tab backlog is reviewed and clustered by root cause.
-- [x] Findings are classified as affecting, hardening, need-investigation, or non-affecting.
+- [x] Findings are classified as affecting, hardening, needs-investigation, or non-affecting.
 - [x] Every cluster records its affected security surface, reachability, privilege or credential
   impact, higher-tier pivot potential, and maintainer-assigned priority rationale.
 - [x] A set of smaller issue specs is created for each real cluster rather than one umbrella issue.

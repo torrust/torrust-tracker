@@ -22,6 +22,10 @@ clusters so a recurring alert is not analyzed from scratch.
 The catalog follows the priority model in [`docs/security/README.md`](../../README.md). Scanner
 severity is evidence, not repository priority.
 
+Disposition and surface values use the vocabularies defined in
+[`public-scanner-findings.md`](../../public-scanner-findings.md#triage-workflow) and
+[Severity, Surface, and Priority](../../public-scanner-findings.md#severity-surface-and-priority).
+
 Trivy findings currently carry two Code Scanning alert numbers, one per scan trigger, and only one
 series is open at a time. Cite both numbers until issue #2499 stabilizes alert identity; the dated
 review lists the pairing.
@@ -30,17 +34,17 @@ review lists the pairing.
 
 | ID | Finding class | Alerts | Scanner severity | Disposition | Surface | Priority | Follow-up |
 | --- | --- | ---: | --- | --- | --- | --- | --- |
-| GSF-001 | Missing explicit `GITHUB_TOKEN` permissions | 27 | medium | Hardening | Release supply chain and CI/build | `p3` | Split into #2496 and #2495 |
-| GSF-002 | Test assertion bodies reported as cleartext logging | 4 | high | Non-affecting | Development/test | None | Recheck if helpers process production secrets |
-| GSF-003 | Fixed test-only cookie cipher byte arrays | 2 | critical | Non-affecting | Development/test | None | Recheck if test constructors become production-callable |
-| GSF-004 | Fixed disposable qBittorrent E2E credentials | 2 | critical | Non-affecting | Development/test | None | Recheck if reused outside disposable E2E stacks |
-| GSF-005 | Previously cataloged glibc DNS findings | 2 | medium | Non-affecting | Runtime | None | Continue per-CVE catalog reviews |
-| GSF-006 | Native zlib CVE reachability | 2 | medium | Needs investigation | Runtime | `p2` | #2497 |
-| GSF-007 | libstdc++ findings in C++ APIs unused by the tracker | 8 | medium | Non-affecting | Runtime | None | Recheck if affected C++ APIs become reachable |
-| GSF-008 | Historical low-severity glibc findings | 7 | low | Non-affecting | Runtime | None | Recheck on relevant API or deployment changes |
-| GSF-009 | Function- or deployment-specific glibc 2026 findings | 12 | medium; low for CVE-2026-97399 | Non-affecting | Runtime | None | Recheck on relevant API or deployment changes |
-| GSF-010 | Unclosed `/dev/null` handle in the active merge tool | 1 | warning | Non-affecting for security | Development tooling | None | Optional reliability cleanup only |
-| GSF-011 | Unclosed handle in an immutable historical artifact | 1 | warning | Non-affecting | Historical documentation | None | Do not edit the historical record |
+| GSF-001 | Missing explicit `GITHUB_TOKEN` permissions | 27 | medium | `hardening` | `release-supply-chain`, `ci-build` | `p3` | Split into #2496 and #2495 |
+| GSF-002 | Test assertion bodies reported as cleartext logging | 4 | high | `non-affecting` | `development-test` | None | Recheck if helpers process production secrets |
+| GSF-003 | Fixed test-only cookie cipher byte arrays | 2 | critical | `non-affecting` | `development-test` | None | Recheck if test constructors become production-callable |
+| GSF-004 | Fixed disposable qBittorrent E2E credentials | 2 | critical | `non-affecting` | `development-test` | None | Recheck if reused outside disposable E2E stacks |
+| GSF-005 | Previously cataloged glibc DNS findings | 2 | medium | `non-affecting` | `runtime` | None | Continue per-CVE catalog reviews |
+| GSF-006 | Native zlib CVE reachability | 2 | medium | `needs-investigation` | `runtime` | `p2` | #2497 |
+| GSF-007 | libstdc++ findings in C++ APIs unused by the tracker | 8 | medium | `non-affecting` | `runtime` | None | Recheck if affected C++ APIs become reachable |
+| GSF-008 | Historical low-severity glibc findings | 7 | low | `non-affecting` | `runtime` | None | Recheck on relevant API or deployment changes |
+| GSF-009 | Function- or deployment-specific glibc 2026 findings | 12 | medium; low for CVE-2026-97399 | `non-affecting` | `runtime` | None | Recheck on relevant API or deployment changes |
+| GSF-010 | Unclosed `/dev/null` handle in the active merge tool | 1 | warning | `non-affecting` | `development-test` | None | Optional reliability cleanup only |
+| GSF-011 | Unclosed handle in an immutable historical artifact | 1 | warning | `non-affecting` | `development-test` | None | Do not edit the historical record |
 
 ## Disposition Rationale
 
