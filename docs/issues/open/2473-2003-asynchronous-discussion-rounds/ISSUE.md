@@ -9,7 +9,7 @@ github-issue: 2473
 spec-path: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
 branch: "2473-asynchronous-discussion-rounds"
 related-pr: null
-last-updated-utc: "2026-10-08 06:52"
+last-updated-utc: "2026-10-08 06:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -172,8 +172,8 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -202,6 +202,11 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
   author. The scratch folder was deleted after its output was captured but before the evidence was
   written. No retrospective: the one design change is recorded here and in the evidence, and no
   reusable process lesson came out of the work. Evidence: `manual-verification-evidence.md`.
+- 2026-10-08 06:58 UTC - AI assistant (Copilot SDK in VS Code) - Task Reviewer reported REVIEW PASSED with
+  three Low findings (`agent-review-reports.md`). Fixed the stale discussion descriptions in
+  `docs/AGENTS.md` and `docs/index.md` and widened the merge-gate list to any participant's
+  content. The third, that the no-more-rounds rule rests on an Outcome answer the EPIC owner has
+  not confirmed, is raised for his confirmation in the pull request.
 
 ## Acceptance Criteria
 
