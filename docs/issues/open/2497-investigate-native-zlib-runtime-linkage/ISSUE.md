@@ -9,7 +9,7 @@ github-issue: 2497
 spec-path: docs/issues/open/2497-investigate-native-zlib-runtime-linkage/ISSUE.md
 branch: "2497-investigate-native-zlib-runtime-linkage"
 related-pr: null
-last-updated-utc: "2026-10-08 18:10"
+last-updated-utc: "2026-10-08 18:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -136,9 +136,9 @@ assertion.
   linkage evidence invalidated the previous unused-package premise.
 - 2026-10-08 17:05 UTC - Maintainer - Approved the focused draft; Copilot created GitHub issue
   #2497 and promoted the specification to the open issue catalog.
-- 2026-10-08 18:00 UTC - Copilot - Added the push-scan alert numbers 12 and 60 for the same
+- 2026-10-08 17:55 UTC - Copilot - Added the push-scan alert numbers 12 and 60 for the same
   findings, from PR #2498 review finding `review-finding:pr-2498-f10`.
-- 2026-10-08 18:10 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
+- 2026-10-08 18:06 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
   References, Acceptance Verification under Verification Plan) for PR #2498 review finding
   `review-finding:pr-2498-f8`.
 

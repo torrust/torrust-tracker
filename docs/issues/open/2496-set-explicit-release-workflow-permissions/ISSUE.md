@@ -9,7 +9,7 @@ github-issue: 2496
 spec-path: docs/issues/open/2496-set-explicit-release-workflow-permissions/ISSUE.md
 branch: "2496-set-explicit-release-workflow-permissions"
 related-pr: null
-last-updated-utc: "2026-10-08 18:10"
+last-updated-utc: "2026-10-08 18:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,7 +115,7 @@ workflow runs without publishing an unintended release.
   Security cluster GSF-001.
 - 2026-10-08 17:05 UTC - Maintainer - Approved the focused draft; Copilot created GitHub issue
   #2496 and promoted the specification to the open issue catalog.
-- 2026-10-08 18:10 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
+- 2026-10-08 18:06 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
   References, Acceptance Verification under Verification Plan) for PR #2498 review finding
   `review-finding:pr-2498-f8`.
 

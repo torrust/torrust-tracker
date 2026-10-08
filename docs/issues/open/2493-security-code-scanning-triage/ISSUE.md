@@ -9,7 +9,7 @@ github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: 2498
-last-updated-utc: "2026-10-08 18:12"
+last-updated-utc: "2026-10-08 18:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -186,14 +186,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-08 17:05 UTC - Maintainer - Approved all three focused specifications. Copilot created
   #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
   workflow permissions, then replaced temporary catalog links with stable issue references.
-- 2026-10-08 17:08 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
+- 2026-10-08 17:07 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
   evidence, and three approved issue specs in `docs(security): catalog GitHub findings`. The
   complete pre-commit gate passed, including frontmatter validation, dependency checks, nightly
   formatting, all linters, Containerfile linting, and workspace documentation tests.
-- 2026-10-08 18:10 UTC - Copilot - Moved this log under Progress Tracking, Acceptance Verification
+- 2026-10-08 18:06 UTC - Copilot - Moved this log under Progress Tracking, Acceptance Verification
   under Verification Plan, added Risks and Trade-offs and References, and set `related-pr`, for PR
   #2498 review finding `review-finding:pr-2498-f8`.
-- 2026-10-08 18:12 UTC - Copilot - Processed PR #2498 review round 1 (Copilot review 5460550155
+- 2026-10-08 18:11 UTC - Copilot - Processed PR #2498 review round 1 (Copilot review 5460550155
   and da2ce7 review 5460660461, 11 findings, all fixed). The Trivy alert numbers had flipped to
   the push-scan series after the first export; both series are now recorded, and bug #2499 tracks
   the workflow defect. Audit: `docs/pr-reviews/pr-2498-review/PR-REVIEW.md`.
