@@ -52,8 +52,9 @@ counted as audit-only.
 | 4 (human) | `feb0d8f24` (F13 fix) | F14 Minor, non-blocking | The F13 fix added two lines to `EPIC.md`, shifting line ranges the audit cited for F7 and F10. Approved |
 
 Rounds 2 to 4 were entirely self-inflicted: each round's fix produced the next round's finding.
-Rounds 3 and 4 also cost the approval that preceded them, because pushing to the PR dismisses
-stale approvals (`dismiss_stale_reviews_on_push` is on for `develop`).
+The fixes after rounds 3 and 4 each cost the approval just given (reviews 5458896567 and
+5459306372), because pushing to the PR dismisses stale approvals (`dismiss_stale_reviews_on_push`
+is on for `develop`).
 
 The content of the PR also changed twice while it was under review: from a task spec to a
 broadened decision spec (before round 1), and from a task to a sub-EPIC (between rounds 1 and 2).
