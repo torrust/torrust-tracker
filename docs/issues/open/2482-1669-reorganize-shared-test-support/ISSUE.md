@@ -73,8 +73,8 @@ states. The
 publishes those packages to crates.io as they evolve and keeps an "Unpublished tooling" tier for
 the nine members with `publish = false`. Publishability is therefore not the driver. The drivers
 are coupling and test code in production builds. This issue replaces the drafts for finding 1
-(`test-helpers` depends on unpublished crates) and finding 2 (server `testing` modules turn test-only edges into runtime
-dependencies) of the
+(`test-helpers` depends on unpublished crates) and finding 2 (server `testing` modules turn
+test-only edges into runtime dependencies) of the
 [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 
 ## Scope
