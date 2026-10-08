@@ -9,7 +9,7 @@ github-issue: 2495
 spec-path: docs/issues/open/2495-set-explicit-ci-workflow-permissions/ISSUE.md
 branch: "2495-set-explicit-ci-workflow-permissions"
 related-pr: null
-last-updated-utc: "2026-10-08 17:05"
+last-updated-utc: "2026-10-08 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,6 +128,9 @@ evidence.
   GSF-001.
 - 2026-10-08 17:05 UTC - Maintainer - Approved the focused draft; Copilot created GitHub issue
   #2495 and promoted the specification to the open issue catalog.
+- 2026-10-08 18:10 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
+  References, Acceptance Verification under Verification Plan) for PR #2498 review finding
+  `review-finding:pr-2498-f8`.
 
 ## Acceptance Criteria
 
@@ -157,13 +160,27 @@ evidence.
 | M3 | Verify self-hosted boundary | Review effective permissions, cache access, and secrets for self-hosted container jobs. | No undocumented pivot to release publishing exists. | TODO | `manual-verification-evidence.md` |
 | M4 | Verify CodeQL closure | Inspect the post-merge Code Scanning run. | All twenty scoped alerts close without replacement findings. | TODO | `manual-verification-evidence.md` |
 
-## Acceptance Verification
+### Acceptance Verification
 
 Record the final permission matrix, representative run URLs, fork behavior, self-hosted runner
 review, and CodeQL closure evidence.
+
+## Risks and Trade-offs
+
+- A permission set that is too narrow breaks coverage publication, labels, or generated coverage
+  pull requests. Mitigation: build the permission matrix first (T1) and exercise each mutation
+  job (M2).
+- A broad workflow-level grant hides which job needs a permission. Mitigation: prefer job-level
+  declarations and document every non-empty grant.
 
 ## Implementation Completion Review
 
 Create a retrospective if the work reveals a new CI-to-release pivot or requires changes to the
 self-hosted runner model. Otherwise record that explicit permissions preserved the existing
 read-only boundary.
+
+## References
+
+- Related issues: #2493, #2496
+- Related PRs: #2498 (specification)
+- Related ADRs: None

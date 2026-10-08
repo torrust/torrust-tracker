@@ -9,7 +9,7 @@ github-issue: 2496
 spec-path: docs/issues/open/2496-set-explicit-release-workflow-permissions/ISSUE.md
 branch: "2496-set-explicit-release-workflow-permissions"
 related-pr: null
-last-updated-utc: "2026-10-08 17:05"
+last-updated-utc: "2026-10-08 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,6 +115,9 @@ workflow runs without publishing an unintended release.
   Security cluster GSF-001.
 - 2026-10-08 17:05 UTC - Maintainer - Approved the focused draft; Copilot created GitHub issue
   #2496 and promoted the specification to the open issue catalog.
+- 2026-10-08 18:10 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
+  References, Acceptance Verification under Verification Plan) for PR #2498 review finding
+  `review-finding:pr-2498-f8`.
 
 ## Acceptance Criteria
 
@@ -141,13 +144,26 @@ workflow runs without publishing an unintended release.
 | M2 | Exercise a safe release path | Use the repository-approved non-publishing or controlled verification path for each release workflow. | Jobs authenticate and prepare artifacts without unintended publication. | TODO | `manual-verification-evidence.md` |
 | M3 | Verify CodeQL closure | Inspect the post-merge Code Scanning run. | All seven scoped alerts are closed and no replacement permission alert appears. | TODO | `manual-verification-evidence.md` |
 
-## Acceptance Verification
+### Acceptance Verification
 
 Record the final permission matrix, validation run URLs, CodeQL results, and any environment
 approval required for safe release-path verification.
+
+## Risks and Trade-offs
+
+- A missing permission fails a release or package publication. Mitigation: map every action and
+  command to its permission (M1) and exercise a non-publishing release path (M2) before merge.
+- A verification run publishes an artifact by accident. Mitigation: use only the repository-approved
+  controlled path and record any environment approval it requires.
 
 ## Implementation Completion Review
 
 Create a retrospective if effective permissions differ materially from the expected read-only
 baseline or reveal an undocumented release trust boundary. Otherwise record that explicit
 declarations preserved the existing model.
+
+## References
+
+- Related issues: #2493, #2495
+- Related PRs: #2498 (specification)
+- Related ADRs: None

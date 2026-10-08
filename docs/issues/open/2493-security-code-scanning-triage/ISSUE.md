@@ -8,8 +8,8 @@ epic: null
 github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
-related-pr: null
-last-updated-utc: "2026-10-08 17:08"
+related-pr: 2498
+last-updated-utc: "2026-10-08 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -163,6 +163,37 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Committer verified spec progress before commit
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
+### Progress Log
+
+- 2026-10-08 16:18 UTC - Copilot - Drafted the repeatable GitHub security triage process and
+  the first issue spec to execute the initial review cycle.
+- 2026-10-08 16:24 UTC - Maintainer - Approved the no-EPIC approach, recurring process, initial
+  review, and focused issue creation; requested an AI skill architecture review before triage.
+- 2026-10-08 16:29 UTC - Copilot - Added the focused-skill design: canonical policy remains in
+  security documentation, while separate skills route public GitHub findings, CVEs, image scans,
+  and confidential reports.
+- 2026-10-08 16:30 UTC - Maintainer - Clarified that priority must follow the affected trust
+  boundary: shipped runtime and production dependencies first, CD and release injection at the
+  same high tier, CI in the middle unless it provides a higher-tier pivot, and local development
+  or test tooling normally lower.
+- 2026-10-08 16:45 UTC - Copilot - Created the issue branch from current upstream `develop`;
+  completed the canonical process, trust-tier priority model, security workflow routing, focused
+  skill, and documentation indexes. Targeted Markdown, spelling, link, and whitespace checks pass.
+- 2026-10-08 16:58 UTC - Copilot - Exported all 68 open findings through the GitHub APIs,
+  reconciled them into 11 clusters, independently reviewed security impact, cataloged 39
+  non-affecting findings, identified one zlib investigation cluster, and drafted separate release
+  and CI permission-hardening specs.
+- 2026-10-08 17:05 UTC - Maintainer - Approved all three focused specifications. Copilot created
+  #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
+  workflow permissions, then replaced temporary catalog links with stable issue references.
+- 2026-10-08 17:08 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
+  evidence, and three approved issue specs in `docs(security): catalog GitHub findings`. The
+  complete pre-commit gate passed, including frontmatter validation, dependency checks, nightly
+  formatting, all linters, Containerfile linting, and workspace documentation tests.
+- 2026-10-08 18:10 UTC - Copilot - Moved this log under Progress Tracking, Acceptance Verification
+  under Verification Plan, added Risks and Trade-offs and References, and set `related-pr`, for PR
+  #2498 review finding `review-finding:pr-2498-f8`.
+
 ## Acceptance Criteria
 
 - [x] The public triage process is documented and linked from the security docs.
@@ -195,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | M2 | Verify initial inventory coverage | Reconcile the dated review rows against the open Code Scanning and Code Quality lists. | Every source alert maps to exactly one cluster, with no unexplained duplicate or omission. | DONE | `manual-verification-evidence.md` V2 |
 | M3 | Verify issue granularity | Review each proposed cluster against root cause, remediation, owner, effort, and verification boundaries. | Each focused issue is independently deliverable; oversized clusters are split before creation. | DONE | `manual-verification-evidence.md` V3 |
 
-## Acceptance Verification
+### Acceptance Verification
 
 Verified on 2026-10-08:
 
@@ -203,12 +234,22 @@ Verified on 2026-10-08:
 - Coverage: all 68 findings map exactly once to 11 clusters.
 - Dispositions: 27 hardening, 2 needs investigation, 39 non-affecting, and 0 confirmed affecting.
 - Follow-up issues: #2497 for native zlib reachability, #2496 for release workflow permissions,
-  and #2495 for CI workflow permissions.
+  and #2495 for CI workflow permissions. PR #2498 review added #2499 for Trivy alert identity.
 - Catalog: `docs/security/analysis/github-security/README.md`.
 - Dated evidence: `docs/security/analysis/github-security/reviews/2026-10-08.md`.
 - Next review: 2027-01-08, before the next release if earlier, or on a catalog recheck trigger.
 - Validation: exact alert-set reconciliation, v1 frontmatter validation, `linter markdown`,
   `linter cspell`, `linter lychee`, and the complete pre-commit gate all passed.
+
+## Risks and Trade-offs
+
+- Code Scanning alert numbers are not stable for Trivy findings: a push scan reopened the same
+  findings under other numbers during this review. Mitigation: key Trivy findings by CVE id and
+  package, record both alert series, and fix the cause in #2499.
+- A non-affecting verdict goes stale when code or the image changes. Mitigation: every catalog
+  cluster has recheck triggers, and the catalog records the next review date.
+- Without an EPIC there is no single progress view. Mitigation: the catalog is that view; each
+  follow-up issue is independently deliverable.
 
 ## Implementation Completion Review
 
@@ -221,36 +262,14 @@ the canonical process and evidence:
 - package presence alone is insufficient, but a previous non-affecting verdict must be reopened
   when its own recheck condition is demonstrably true, as occurred with native zlib linkage.
 
-## Progress Log
-
-- 2026-10-08 16:18 UTC - Copilot - Drafted the repeatable GitHub security triage process and
-  the first issue spec to execute the initial review cycle.
-- 2026-10-08 16:24 UTC - Maintainer - Approved the no-EPIC approach, recurring process, initial
-  review, and focused issue creation; requested an AI skill architecture review before triage.
-- 2026-10-08 16:29 UTC - Copilot - Added the focused-skill design: canonical policy remains in
-  security documentation, while separate skills route public GitHub findings, CVEs, image scans,
-  and confidential reports.
-- 2026-10-08 16:30 UTC - Maintainer - Clarified that priority must follow the affected trust
-  boundary: shipped runtime and production dependencies first, CD and release injection at the
-  same high tier, CI in the middle unless it provides a higher-tier pivot, and local development
-  or test tooling normally lower.
-- 2026-10-08 16:45 UTC - Copilot - Created the issue branch from current upstream `develop`;
-  completed the canonical process, trust-tier priority model, security workflow routing, focused
-  skill, and documentation indexes. Targeted Markdown, spelling, link, and whitespace checks pass.
-- 2026-10-08 16:58 UTC - Copilot - Exported all 68 open findings through the GitHub APIs,
-  reconciled them into 11 clusters, independently reviewed security impact, cataloged 39
-  non-affecting findings, identified one zlib investigation cluster, and drafted separate release
-  and CI permission-hardening specs.
-- 2026-10-08 17:05 UTC - Maintainer - Approved all three focused specifications. Copilot created
-  #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
-  workflow permissions, then replaced temporary catalog links with stable issue references.
-- 2026-10-08 17:08 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
-  evidence, and three approved issue specs in `docs(security): catalog GitHub findings`. The
-  complete pre-commit gate passed, including frontmatter validation, dependency checks, nightly
-  formatting, all linters, Containerfile linting, and workspace documentation tests.
-
 ## Notes
 
 The intent is to keep this workflow recurring and efficient. Using a lightweight review process
 and per-cluster issue specs avoids a large EPIC with poor reviewability while preserving a public
 record of accepted findings and actual remediation tasks.
+
+## References
+
+- Related issues: #2495, #2496, #2497, #2499
+- Related PRs: #2498
+- Related ADRs: None

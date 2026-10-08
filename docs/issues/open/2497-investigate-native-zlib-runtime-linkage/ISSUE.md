@@ -9,7 +9,7 @@ github-issue: 2497
 spec-path: docs/issues/open/2497-investigate-native-zlib-runtime-linkage/ISSUE.md
 branch: "2497-investigate-native-zlib-runtime-linkage"
 related-pr: null
-last-updated-utc: "2026-10-08 18:00"
+last-updated-utc: "2026-10-08 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -138,6 +138,9 @@ assertion.
   #2497 and promoted the specification to the open issue catalog.
 - 2026-10-08 18:00 UTC - Copilot - Added the push-scan alert numbers 12 and 60 for the same
   findings, from PR #2498 review finding `review-finding:pr-2498-f10`.
+- 2026-10-08 18:10 UTC - Copilot - Aligned the layout with `docs/templates/ISSUE.md` (Risks and Trade-offs,
+  References, Acceptance Verification under Verification Plan) for PR #2498 review finding
+  `review-finding:pr-2498-f8`.
 
 ## Acceptance Criteria
 
@@ -169,13 +172,27 @@ assertion.
 | M2 | Verify affected symbols | Inspect imports and call paths for `crc32_combine*`, `gzwrite`, `gzprintf`, and `gzvprintf`. | Each affected API has an explicit reachable or unreachable verdict. | TODO | `manual-verification-evidence.md` |
 | M3 | Re-scan final image | Run the documented Trivy command against the resulting image. | Scanner state agrees with the final catalog verdict. | TODO | `manual-verification-evidence.md` |
 
-## Acceptance Verification
+### Acceptance Verification
 
 Complete after the investigation. Record image digest, binary hashes, symbol commands, scanner
 version, alert state, and the evidence supporting the final priority and disposition.
+
+## Risks and Trade-offs
+
+- Removing native zlib changes compression behavior or performance. Mitigation: complete the design
+  review before selecting removal, and benchmark if the HTTP compression path changes.
+- The investigation cannot prove reachability either way. Mitigation: keep both CVEs at
+  `needs-investigation` with the evidence gathered and a narrower follow-up question.
+- Alert numbers change between scans. Mitigation: reconcile both alert series until #2499 is fixed.
 
 ## Implementation Completion Review
 
 Create `implementation-retrospective.md` if the linkage source or remediation changes the expected
 production architecture. Otherwise record why the investigation produced no reusable design
 lesson beyond the updated CVE evidence.
+
+## References
+
+- Related issues: #2493, #2499
+- Related PRs: #2498 (specification)
+- Related ADRs: None
