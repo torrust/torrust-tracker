@@ -118,9 +118,11 @@ consumer share one crate, so every dependent compiles the protocol clients.
 | `tracker-core` | `pub mod whitelist::test_helpers;` (35 lines) | `#[cfg(test)]` whitelist service setup |
 | `tracker-core` | `pub mod peer_tests;` (46 lines) | `#![cfg(test)]` unit tests of `Peer` |
 
-Nothing ships, but the `pub mod` declarations add empty public modules to the crate's API, and
-`pub(crate)` keeps the helpers out of reach of the crate's own integration tests, which keep
-separate fixtures in `tests/common/fixtures.rs`.
+Nothing ships, but two of the three `pub mod` declarations (`test_helpers` and
+`whitelist::test_helpers`) add empty public modules to the crate's API: their inner modules are
+`#[cfg(test)]`, while `peer_tests` carries the inner attribute `#![cfg(test)]`, which removes the
+module itself from non-test builds. `pub(crate)` keeps the helpers out of reach of the crate's own
+integration tests, which keep separate fixtures in `tests/common/fixtures.rs`.
 
 ## Pattern D: unconditional mocks
 
