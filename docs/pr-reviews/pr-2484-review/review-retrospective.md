@@ -30,7 +30,7 @@ change. It does not replace the audit record and is not required for routine rev
 | Metric | Value |
 | ------ | ----- |
 | Review rounds | 5 (4 human, 1 bot) |
-| Audit findings | 14 (13 recorded; F14 is non-blocking and pending its row) |
+| Audit findings | 14 |
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
 | Findings about the audit record itself | 3 (F9, F10, F14) |
 | Commits on the branch | 22 (5 audit-only) |

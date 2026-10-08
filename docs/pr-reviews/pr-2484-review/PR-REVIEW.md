@@ -63,6 +63,7 @@ F3 to F7 do not.
 | F11 | `review-finding:pr-2484-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2484-f12` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2484-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2484-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -235,6 +236,19 @@ F3 to F7 do not.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220965544>
 
+### F14 - Two verifications cite EPIC.md ranges that the 15:20 entry shifted
+
+- PR number: 2484
+- Source review ID: 5459306372
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221129255>
+- Concern: The F7 and F10 verifications cited `EPIC.md:330-332` and `:347-350`; the 15:20 log entry added two lines above them, so the ranges no longer pointed at the cited text. Non-blocking.
+- Solution: The F2, F7 and F10 verifications now cite the EPIC by section and quoted phrase, keeping the old ranges in parentheses with the head they held at, so later log entries cannot move them.
+- Current-tree verification: Each quoted phrase ("Every workspace member without `publish = false`", "Every package without `publish = false` stays publishable", "Coordination with EPIC #1488", "Three open subissues of EPIC #1488 change the environments", "Shutdown overhaul EPIC: #1488") occurs exactly once in `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md` (`grep -c`); the validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): [#2482] cite the EPIC passages by section in the PR #2484 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221516086>
+
 ## Processing Log
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
@@ -254,6 +268,11 @@ F3 to F7 do not.
 - 2026-10-08 15:32 UTC - At the maintainer's request, fixed F13 rather than defer it, accepting that
   the push dismisses the approval; pushed after the pre-push suite passed and replied on the thread
   before recording it here.
+- 2026-10-08 15:47 UTC - Human review 5459306372 (da2ce7, round 4) approved head `feb0d8f24`,
+  confirmed F13 and its row, and raised one non-blocking Minor, F14.
+- 2026-10-08 16:24 UTC - Fixed F14 by anchoring the citations to sections, added
+  `review-retrospective.md` at the maintainer's request, rebased onto `develop` (2 commits ahead),
+  pushed after the pre-push suite passed, and replied on the thread before recording it here.
 
 ## Completion Rules
 
