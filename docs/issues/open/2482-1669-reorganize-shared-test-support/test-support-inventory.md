@@ -103,7 +103,7 @@ Other observations:
 | `logging` (156) | Test tracing setup and log capture | Tests of the 4 server packages | `configuration`, `tracing`, `tracing-subscriber` |
 | `random` (10) | Random strings | The `configuration` module | `rand` |
 | `http` (68) | `http_announce`, `http_scrape` | Root `tests/common/mod.rs` only | `client-lib`, `http-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id`, `url` |
-| `udp` (304) | `udp_announce`, `udp_scrape`, `udp_complete_download`, three `send_invalid_connection_id*` helpers | Root `tests/common/mod.rs` only | `client-lib`, `udp-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id` |
+| `udp` (304) | `udp_announce`, `udp_scrape`, `udp_complete_download`, three `send_invalid_connection_id*` helpers | Root `tests/common/mod.rs` only | `client-lib`, `udp-protocol`, `primitives`, `torrust-peer-id` |
 
 The `http` and `udp` modules arrived on 2026-07-29 with `client-lib` and the two protocol crates,
 and the scrape helpers added `primitives` on 2026-10-02, taking the crate from one workspace
