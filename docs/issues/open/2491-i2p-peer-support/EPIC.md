@@ -13,6 +13,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/discussions/AGENTS.md
+    - docs/discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/README.md
     - "issue #1659"
     - "issue #144"
     - "issue #2411"
@@ -47,8 +48,8 @@ PRs #2050 and #2059 are closed: closing them does not reject the feature.
 
 ### In Scope
 
-- A design discussion in `docs/discussions/` that collects the proposal, the review findings,
-  and the open questions.
+- The [design discussion](../../../discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/README.md)
+  that collects the proposal, the review findings, and the open questions.
 - Design decisions, with ADRs where a decision is architectural (for example, how the tracker
   trusts a peer's I2P Destination).
 - I2P peer support in the HTTP tracker: announce parsing, network-isolated matchmaking, and the
@@ -140,7 +141,7 @@ Append one line per meaningful update.
   EPIC to keep the I2P proposal and its review after closing PRs #2050 and #2059; blocked until
   after v4.0.0 (#1659).
 - 2026-10-08 15:45 UTC - Jose Celano/AI assistant using Copilot SDK in VS Code - Created
-  #2491.
+  #2491 and opened the design discussion with the PR #2059 review documents as source material.
 
 ## Acceptance Criteria
 
