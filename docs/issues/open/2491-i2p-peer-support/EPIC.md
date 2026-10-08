@@ -6,7 +6,7 @@ epic: null
 github-issue: 2491
 spec-path: docs/issues/open/2491-i2p-peer-support/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-10-08 15:45"
+last-updated-utc: "2026-10-08 16:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,13 +32,12 @@ weakening the tracker's clearnet behavior or its trust boundaries.
 
 ## Why This Is Needed
 
-The maintainers support adding I2P peer support. A contributor proposed an implementation in
-PR #2050, and the maintainers reviewed it in the rebased draft PR #2059. The review found that the
-change is not hard to make, but that it needs a careful design first: it changes the core peer
-address model, the HTTP announce contract, the compact response format, swarm statistics, the
-REST API, and the tracker's trust boundary. The review recorded seven required actions, including a
-merge blocker: a plain HTTP announce cannot prove that a client owns the I2P Destination it
-supplies.
+Jose Celano supports adding I2P peer support. A contributor proposed an implementation in
+PR #2050, and Jose reviewed it in the rebased draft PR #2059. His review found that it needs a
+careful design first: it changes the core peer address model, the HTTP announce contract, the
+compact response format, swarm statistics, the REST API, and the tracker's trust boundary. The
+review recorded seven required actions, including a merge blocker: a plain HTTP announce cannot
+prove that a client owns the I2P Destination it supplies.
 
 The maintainers are focused on releasing v4.0.0 (#1659). This EPIC is blocked until that release
 ships and the roadmap is redefined. It exists so the work and its history are not lost when
@@ -142,6 +141,8 @@ Append one line per meaningful update.
   after v4.0.0 (#1659).
 - 2026-10-08 15:45 UTC - Jose Celano/AI assistant using Copilot SDK in VS Code - Created
   #2491 and opened the design discussion with the PR #2059 review documents as source material.
+- 2026-10-08 16:45 UTC - Jose Celano/AI assistant using Copilot SDK in VS Code - Corrected the
+  review attribution after PR #2492 review finding F2.
 
 ## Acceptance Criteria
 
