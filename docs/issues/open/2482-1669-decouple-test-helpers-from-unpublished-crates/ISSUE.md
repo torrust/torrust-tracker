@@ -9,7 +9,7 @@ github-issue: 2482
 spec-path: docs/issues/open/2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md
 branch: "2482-1669-decouple-test-helpers-from-unpublished-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-08 07:02"
+last-updated-utc: "2026-10-08 07:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -142,6 +142,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-08 07:02 UTC - GitHub Copilot - Maintainer approved the draft (reviewed in PR #2462).
   Created issue #2482, linked it as a subissue of EPIC #1669, and moved the spec to
   `docs/issues/open/`.
+- 2026-10-08 07:04 UTC - GitHub Copilot - The root crate has no `integration` test target any
+  more; the automatic check now runs its `[[test]]` targets with `cargo test -p torrust-tracker
+  --tests`.
 
 ## Acceptance Criteria
 
@@ -159,7 +162,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
 
 ### Automatic Checks
 
-- `cargo test --test integration` (root integration tests)
+- `cargo test -p torrust-tracker --tests` (the root `[[test]]` targets under `tests/`, which use
+  the helpers through `tests/common/mod.rs`)
 - `linter all`
 - Pre-push checks
 
