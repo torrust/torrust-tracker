@@ -149,6 +149,10 @@ verified material, so it has no further row.
   Refreshed GraphQL after the replies, confirmed that each unresolved thread had a reply, resolved
   all four inline threads, fetched again, and confirmed zero unresolved threads. The audit
   validator reports five rows, three log entries, and zero failures.
+- 2026-10-08 17:19 UTC - Correction to the 17:06 entry's explanation: the 17:05 stamp was ten
+  minutes late, not one hour. 16:55 UTC is the force-push time (16:55:01Z), not a fix-commit
+  time; the fix commits were committed at 16:52:49Z-16:52:50Z, and the replies the 17:05 entry
+  records were posted at 16:56:35Z-16:56:43Z.
 
 ## Completion Rules
 
