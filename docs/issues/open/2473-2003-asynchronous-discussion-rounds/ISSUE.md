@@ -9,7 +9,7 @@ github-issue: 2473
 spec-path: docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
 branch: "2473-asynchronous-discussion-rounds"
 related-pr: null
-last-updated-utc: "2026-10-08 06:44"
+last-updated-utc: "2026-10-08 06:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -141,10 +141,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                         | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add `docs/templates/DISCUSSION.md`           | Template with metadata, context, `## Topics` with `Q<n>` and `Positions`, and `## Outcome`.      |
-| T2  | TODO   | Register the template                        | Rows in `docs/templates/README.md` and `docs/index.md`, per the `create-markdown-template` skill. |
-| T3  | TODO   | Rewrite the discussion lifecycle             | `docs/discussions/AGENTS.md` describes rounds, gates, ownership, and links the template.        |
-| T4  | TODO   | Manual verification and completion review    | Scenarios M1-M2 recorded in `manual-verification-evidence.md`; AC review; completion review.    |
+| T1  | DONE   | Add `docs/templates/DISCUSSION.md`           | Template with metadata, context, `## Topics` with `Q<n>` and `Positions`, and `## Outcome`.      |
+| T2  | DONE   | Register the template                        | Rows in `docs/templates/README.md` and `docs/index.md`, per the `create-markdown-template` skill. |
+| T3  | DONE   | Rewrite the discussion lifecycle             | `docs/discussions/AGENTS.md` describes rounds, gates, ownership, and links the template.        |
+| T4  | DONE   | Manual verification and completion review    | Scenarios M1-M2 recorded in `manual-verification-evidence.md`; AC review; completion review.    |
 
 ## Commit Points
 
@@ -167,11 +167,11 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all` and the pre-commit gate)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all` and the pre-commit gate)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -193,27 +193,36 @@ a Conventional Commit message with the narrow affected scope (`docs(templates)`,
   (<https://github.com/torrust/torrust-tracker/issues/2473#issuecomment-6054107392>); the
   implementation PR waits for his review. Started implementation on
   `2473-asynchronous-discussion-rounds`.
+- 2026-10-08 06:52 UTC - AI assistant (Copilot SDK in VS Code) - T1 to T4 done. M1 passed. M2 first failed:
+  the template's shared `Participants` row made every contribution round edit one line, so the row
+  was removed (entry headings already name participants) and the rerun was append-only. Two
+  additions beyond the spec, both in `docs/discussions/AGENTS.md`: a discussion takes no more
+  rounds once its Outcome links the canonical document, from the EPIC owner's goals-and-boundaries
+  Outcome answer 6; and an open pre-round discussion adopts the template in a round by its opening
+  author. The scratch folder was deleted after its output was captured but before the evidence was
+  written. No retrospective: the one design change is recorded here and in the evidence, and no
+  reusable process lesson came out of the work. Evidence: `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `docs/discussions/AGENTS.md` defines the opening, contribution, and decision rounds, and
+- [x] AC1: `docs/discussions/AGENTS.md` defines the opening, contribution, and decision rounds, and
       states that a contribution round's merge gate is document quality, not agreement.
-- [ ] AC2: The rules state that participants write only their own entries, that positions are
+- [x] AC2: The rules state that participants write only their own entries, that positions are
       appended per topic with participant, date, and pull-request attribution, and that a change of
       position is a new entry.
-- [ ] AC3: `## Outcome` is owned by the decision owner, written in a decision round, cites the
+- [x] AC3: `## Outcome` is owned by the decision owner, written in a decision round, cites the
       entries it relies on, and links the canonical document that carries the decision.
-- [ ] AC4: `docs/templates/DISCUSSION.md` exists with a metadata table, context sections,
+- [x] AC4: `docs/templates/DISCUSSION.md` exists with a metadata table, context sections,
       `## Topics` with per-`Q<n>` `Positions`, and `## Outcome`, and states where concrete
       discussions belong.
-- [ ] AC5: The template is listed in `docs/templates/README.md` and `docs/index.md`, and
+- [x] AC5: The template is listed in `docs/templates/README.md` and `docs/index.md`, and
       `docs/discussions/AGENTS.md` links to it instead of repeating its skeleton.
-- [ ] AC6: The rules state how AI-assisted entries are attributed.
-- [ ] AC7: The three 2026-10-03 discussions are unchanged.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC6: The rules state how AI-assisted entries are attributed.
+- [x] AC7: The three 2026-10-03 discussions are unchanged.
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -230,8 +239,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                               | Human-oriented command/steps                                                                                                                                                                                                                                               | Expected Result                                                                                           | Status | Evidence                                     |
 | --- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Open a discussion from the template    | Following only `docs/discussions/AGENTS.md`, copy the template into a scratch discussion folder, fill two topics, and run `linter markdown`, `linter cspell`, and `linter lychee`. Keep the scratch folder for M2.                                                         | The instructions suffice without other sources; linters exit 0.                                           | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Simulate a contribution and a decision | In the scratch discussion, add a second participant's entries under both topics and an Outcome citing one entry per topic; ask a reader who did not write it to answer "who held which position on `Q1`, and in which PR?". After recording V2, delete the scratch folder. | The answer comes from the `Q1` section alone; no entry was edited by another participant; linters exit 0. | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Open a discussion from the template    | Following only `docs/discussions/AGENTS.md`, copy the template into a scratch discussion folder, fill two topics, and run `linter markdown`, `linter cspell`, and `linter lychee`. Keep the scratch folder for M2.                                                         | The instructions suffice without other sources; linters exit 0.                                           | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Simulate a contribution and a decision | In the scratch discussion, add a second participant's entries under both topics and an Outcome citing one entry per topic; ask a reader who did not write it to answer "who held which position on `Q1`, and in which PR?". After recording V2, delete the scratch folder. | The answer comes from the `Q1` section alone; no entry was edited by another participant; linters exit 0. | DONE   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -246,15 +255,15 @@ None planned.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                |
+| ----- | ---------------------- | --------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `docs/discussions/AGENTS.md` `## Rounds` and `### Merge Gate for a Round`               |
+| AC2   | DONE                   | `docs/discussions/AGENTS.md` `### Rules for Every Round`; V2 rerun: 0 changed lines     |
+| AC3   | DONE                   | `docs/discussions/AGENTS.md` `### Decision Round`; V2 Outcome anchors checked by lychee |
+| AC4   | DONE                   | `docs/templates/DISCUSSION.md`; V1                                                      |
+| AC5   | DONE                   | `docs/templates/README.md`, `docs/index.md`, and the `docs/discussions/AGENTS.md` links |
+| AC6   | DONE                   | `docs/discussions/AGENTS.md` rules and template entry guidance; V2 reader answer        |
+| AC7   | DONE                   | `git diff --stat` of the 2026-10-03 discussion folders against `develop` is empty       |
 
 ## Risks and Trade-offs
 
@@ -269,7 +278,7 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress-log entry of 2026-10-08 06:52 UTC.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
