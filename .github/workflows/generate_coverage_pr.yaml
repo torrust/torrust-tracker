@@ -88,7 +88,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.22
+        uses: taiki-e/install-action@v2.87.26
         with:
           tool: cargo-llvm-cov
 
@@ -113,7 +113,7 @@ jobs:
 
       - name: Store Package Coverage Result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: package-coverage-${{ matrix.package }}
           path: package-coverage-${{ matrix.package }}.json
@@ -140,7 +140,7 @@ jobs:
 
       - name: Download Package Coverage Results
         if: ${{ needs.package-coverage-regression.result != 'skipped' }}
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: package-coverage-*
           path: package-coverage-results
@@ -185,7 +185,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.22
+        uses: taiki-e/install-action@v2.87.26
         with:
           tool: grcov,cargo-llvm-cov
 
@@ -207,13 +207,13 @@ jobs:
       # Triggered sub-workflow is not able to detect the original commit/PR which is available
       # in this workflow.
       - name: Store PR number
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: pr_number
           path: pr_number.txt
 
       - name: Store commit SHA
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: commit_sha
           path: commit_sha.txt
@@ -222,7 +222,7 @@ jobs:
       # is executed by a different workflow `upload_coverage.yml`. The reason for this
       # split is because `on.pull_request` workflows don't have access to secrets.
       - name: Store coverage report in artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: codecov_report
           path: ./codecov.json

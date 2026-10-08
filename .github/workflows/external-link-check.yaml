@@ -46,7 +46,7 @@ jobs:
       - id: upload-report
         name: Upload Lychee Report
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: lychee-external-link-report
           path: lychee-report.md

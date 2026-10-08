@@ -61,7 +61,7 @@ jobs:
 
       - id: node
         name: Setup Node.js
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: "20"
 
@@ -86,7 +86,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.22
+        uses: taiki-e/install-action@v2.87.26
         with:
           tool: cargo-llvm-cov, cargo-nextest
 
