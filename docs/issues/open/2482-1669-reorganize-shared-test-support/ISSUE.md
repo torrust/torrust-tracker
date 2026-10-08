@@ -66,10 +66,14 @@ The `Environment` types were once meant for production too. Production and test 
 diverged: the application starts its servers through `src/bootstrap/jobs/`, while tests need
 ephemeral ports, readiness waits and teardown. The environments are test support and stay so.
 
-All workspace packages are planned to be published once EPIC #1488 (shutdown overhaul) and this
-EPIC finish, so publishability is not the driver. The drivers are coupling and test code in
-production builds. This issue replaces the drafts for finding 1 (`test-helpers` depends on
-unpublished crates) and finding 2 (server `testing` modules turn test-only edges into runtime
+Every workspace member without `publish = false`, including every crate in Patterns A and B, is
+planned to be published once EPIC #1488 (shutdown overhaul) and this EPIC finish, as issue #2482
+states. The
+[independent versioning ADR](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
+publishes those packages to crates.io as they evolve and keeps an "Unpublished tooling" tier for
+the nine members with `publish = false`. Publishability is therefore not the driver. The drivers
+are coupling and test code in production builds. This issue replaces the drafts for finding 1
+(`test-helpers` depends on unpublished crates) and finding 2 (server `testing` modules turn test-only edges into runtime
 dependencies) of the
 [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 
@@ -85,7 +89,7 @@ dependencies) of the
   - no crate depends on unrelated packages just to share helpers;
   - unit tests (`#[cfg(test)]` in `src/`), integration tests (`tests/`), examples and benches
     can all use the support code they need, with the same types as the code under test;
-  - every package stays publishable;
+  - every package without `publish = false` stays publishable;
   - few extra workspace members and simple rules for contributors.
 - Record the decision as an ADR, with a rule per pattern, and amend DEC-13 in `DECISIONS.md`.
 - Write the migration plan: one follow-up subissue draft per package or small group, listed in
