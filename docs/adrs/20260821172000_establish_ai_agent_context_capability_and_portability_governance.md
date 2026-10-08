@@ -6,7 +6,6 @@ semantic-links:
     - AGENTS.md
     - .github/agents/
     - .github/skills/
-    - .github/prompts/
     - .github/workflows/copilot-setup-steps.yml
     - .vscode/
     - docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md
@@ -164,7 +163,6 @@ Reconsider a skill only when such a workflow is evidenced.
 - Agent catalog: `.github/agents/README.md`
 - Agent profiles: `.github/agents/`
 - Skills: `.github/skills/`
-- Prompt adapters: `.github/prompts/`
 - Cloud setup: `.github/workflows/copilot-setup-steps.yml`
 - IDE settings: `.vscode/`
 - Secret handling: `.github/skills/dev/rust-code-quality/handle-secrets/SKILL.md`
