@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 13:05"
+last-updated-utc: "2026-10-08 06:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -556,6 +556,23 @@ Alternatives considered:
   tracks whether HTTP scrape enforces the 74 info-hash limit, #2417
   (`docs/issues/closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md`). The
   bug is tracked in #2406.
+- **D20 - The test environments use one independent token and one
+  `DropGuard` each for the server and the listeners (maintainer,
+  2026-10-08).** T9 splits each environment's single token in two. `stop()`
+  sets the order explicitly (cancel and join the server, then the
+  listeners), and `stop()` disarms both guards. A drop without `stop()`
+  cancels both tokens. This mirrors `JobManager` (D7, Chosen Design): every
+  component has its own token, not derived from another, and the owner
+  enforces the order. Rejected: making the server token a child of the
+  listener token, with one guard on the parent. It is also correct, but it
+  hides the order in the direction of the token tree, which is the design
+  `JobManager` rejected. The reverse tree (listeners as the child) would
+  cancel the listeners with the server and break the stop order. Reusing
+  `JobManager` is not possible because it lives in the root crate, which the
+  packages cannot depend on. Pros: simple; each token's lifetime is visible;
+  consistent with production. Cons: one more field per environment. The
+  impact is test-only: the tracker binary does not use these environments,
+  and its `JoinSet` aborts every task when `JobManager` is dropped.
 
 ## Open Questions for Review
 
@@ -1536,10 +1553,9 @@ SI-17 established (refresh of 2026-10-07):
 - **Dropping the environment without `stop()` still stops everything.**
   Dropping a `CancellationToken` does not cancel it, so the UDP environment
   holds its token as a `DropGuard` (#2459), and #2471 adds the same to the HTTP
-  environment. With two tokens, the drop path must cancel both: hold a guard
-  for each, or make the server token a child of the listener token and guard
-  only the listener token. The reverse (listeners as the child) would cancel
-  the listeners together with the server and break the stop order.
+  environment. With two tokens, the drop path must cancel both: each token is
+  independent and has its own `DropGuard`, and `stop()` disarms both (D20).
+  Do not derive one token from the other.
 
 ## Diagrams (D16)
 
@@ -2014,7 +2030,8 @@ with rollback subject to the dependencies between the changes.
 10. **T9 - Test environments.** In
     `packages/axum-http-server/src/testing/environment.rs` and
     `packages/udp-server/src/testing/environment.rs`, give servers and
-    listeners separate tokens and stop the server first, keeping both
+    listeners independent tokens, each with its own `DropGuard` (D20), and
+    stop the server first, keeping both
     guarantees in [Test environments](#test-environments): every failure is
     reported after every task is joined, and a drop without `stop()` cancels
     both tokens. Add the test SI-16 and SI-17 left out, for each environment:
@@ -2127,6 +2144,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-02 13:30 UTC - GitHub Copilot - Maintainer review: propagated the record entry 27 invariants to AC12 and AC13, the ADR rules, the Subissues table, and the acceptance criteria of all four sub-issues.
 - 2026-10-02 15:40 UTC - GitHub Copilot - Diff review corrected absolute channel/handler guarantees, soft drain versus shared abort, unread length including lag, conditional listener inventory, and rollback/commit boundaries. Added lifecycle edge-case tests and shared child review gates. Hardened and smoke-tested the disposable script; original reproduction numbers remain historical. The HTTP follow-up now has real 75/1000-hash evidence; its policy choice remains separate.
 - 2026-10-07 13:05 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): the Chosen Design and T9 now keep SI-17's join-all failure reporting and cancel both tokens on drop; the late-event test covers UDP as well as HTTP; T1 records the test environments' listener chains; T2 finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision). Ticked the spec-only PR checkpoint (#2421); SI-16 and SI-17 are done, and T9 now waits for #2471, the HTTP environment drop-path bug found in this check.
+- 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20: the test environments use independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`. Rejected the parent-child token option. Updated Test environments, T9, and sub-issue 4.
 
 ## Acceptance Criteria
 
