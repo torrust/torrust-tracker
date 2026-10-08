@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 14:43"
+last-updated-utc: "2026-10-08 14:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -165,7 +165,7 @@ Plan for subissue 1, kept here until its own spec is created:
 | --- | --- | --- |
 | D0 | Inventory every test support pattern | DONE in this folder: [`test-support-inventory.md`](test-support-inventory.md) |
 | D1 | Verify the Cargo rules the options rely on | MV1 to MV3 recorded in subissue 1's `manual-verification-evidence.md` |
-| D2 | Write the ADR: criteria, options, one rule per pattern | ADR approved by the maintainer |
+| D2 | Write the ADR: criteria, options, one rule per pattern, and the ownership map for shared test fixtures | ADR approved by the maintainer; it states that the package whose server an environment starts owns that environment, and other packages use only its published test API (O1 or O2) or their own `tests/` code (O3) |
 | D3 | Amend DEC-13 in `DECISIONS.md`, linking the ADR | New DEC entry |
 | D4 | Write the migration plan as subissue drafts and update the Subissues table | Every inventory item has a destination and a draft |
 | D5 | Update the coupling report findings 1 and 2 to point at the subissues | Report links resolve |
@@ -282,6 +282,9 @@ Append one line per meaningful update.
   Strategy, Commit Points, Verification Plan) move to the subissues.
 - 2026-10-08 14:43 UTC - GitHub Copilot - Rewrapped the 12:40 entry to the file's 100-column
   width, per PR #2484 review finding F8.
+- 2026-10-08 14:48 UTC - GitHub Copilot - The conversion also dropped Design and Ownership
+  Review; its ownership rule for the environments is now part of D2's expected output, per PR
+  #2484 review finding F12. Subissue 1's spec carries the full Design and Ownership Review.
 
 ## Acceptance Criteria
 
