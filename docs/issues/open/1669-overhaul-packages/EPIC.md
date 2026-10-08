@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 16:39"
+last-updated-utc: "2026-10-08 07:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -666,7 +666,7 @@ Status: TODO unless noted.
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
-- [ ] Decouple published `test-helpers` from unpublished crates _(draft; finding 1 of the 2026-10-06 coupling report)_
+- [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Decouple published `test-helpers` from unpublished crates _(finding 1 of the 2026-10-06 coupling report)_
 - [ ] Gate server `testing` modules behind a Cargo feature _(draft; finding 2 of the 2026-10-06 coupling report; DEC-13 follow-up)_
 - [ ] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
@@ -707,7 +707,7 @@ Details:
 | Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                                   | [docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                             | [docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md](../../closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md)             | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by publication of `udp-protocol`, `http-protocol`, and `tracker-client` lib                                                   |
-| Test-helpers decoupling    | #TBD — Decouple published `test-helpers` from unpublished crates                                                                                                                          | [docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)                                                 | TODO   | Draft; finding 1 of the 2026-10-06 coupling report (#2446)                                                                                    |
+| Test-helpers decoupling    | [#2482](https://github.com/torrust/torrust-tracker/issues/2482) — Decouple published `test-helpers` from unpublished crates                                                                                                                          | [docs/issues/open/2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md) | TODO   | Finding 1 of the 2026-10-06 coupling report (#2446)                                                                                    |
 | Gate server testing        | #TBD — Gate server `testing` modules behind a Cargo feature                                                                                                                              | [docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md](../../drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md)                                                       | TODO   | Draft; finding 2 of the 2026-10-06 coupling report (#2446); DEC-13 follow-up                                                                  |
 | Coupling tool name fix     | [#2475](https://github.com/torrust/torrust-tracker/issues/2475) — Coupling tool misses renamed dependencies and custom library names                                                                                                                | [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)                           | TODO   | Finding 3 of the 2026-10-06 coupling report (#2446)                                                                                    |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option                                            |
@@ -751,7 +751,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)
 - [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
-- [docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)
+- [docs/issues/open/2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md](../2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)
 - [docs/issues/drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md](../../drafts/1669-gate-server-testing-modules-behind-feature/ISSUE.md)
 - [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)
@@ -991,6 +991,8 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-07 14:54 UTC - GitHub Copilot - #2446 closed by PR #2462; its spec moved to
   `docs/issues/closed/` and the Details table and Specs Index now link there.
 - 2026-10-07 16:39 UTC - GitHub Copilot - Created #2475 from the coupling-tool draft (finding 3),
+  linked it as a sub-issue, and moved its spec to `docs/issues/open/`.
+- 2026-10-08 07:02 UTC - GitHub Copilot - Created #2482 from the test-helpers draft (finding 1),
   linked it as a sub-issue, and moved its spec to `docs/issues/open/`.
 
 ## Acceptance Criteria

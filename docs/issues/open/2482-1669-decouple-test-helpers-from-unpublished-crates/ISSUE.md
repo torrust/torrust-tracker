@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 1669
-github-issue: null
-spec-path: docs/issues/drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md
-branch: "{issue-number}-1669-decouple-test-helpers-from-unpublished-crates"
+github-issue: 2482
+spec-path: docs/issues/open/2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md
+branch: "2482-1669-decouple-test-helpers-from-unpublished-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 12:39"
+last-updated-utc: "2026-10-08 07:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Decouple published `test-helpers` from unpublished crates
+# Issue #2482 - Decouple published `test-helpers` from unpublished crates
 
 Subissue of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md) (Overhaul: Packages).
 
@@ -120,9 +120,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local
@@ -139,6 +139,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
   `test-helpers` unpublishable (feature gate, publish first), per PR #2462 review finding F3.
 - 2026-10-07 09:25 UTC - GitHub Copilot - Copied the template's completion-review conditions,
   per PR #2462 review finding F15. Backfilled at 12:39 UTC, per review finding F20.
+- 2026-10-08 07:02 UTC - GitHub Copilot - Maintainer approved the draft (reviewed in PR #2462).
+  Created issue #2482, linked it as a subissue of EPIC #1669, and moved the spec to
+  `docs/issues/open/`.
 
 ## Acceptance Criteria
 

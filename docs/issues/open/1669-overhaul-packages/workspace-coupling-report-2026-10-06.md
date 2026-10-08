@@ -1189,9 +1189,8 @@ count grew for the same reason, plus the new `rest-api-protocol`, minus `torrust
 `torrust-tracker-test-helpers` is published on crates.io (3.0.0), but its normal dependencies
 now include `torrust-tracker-client-lib`, `torrust-tracker-http-protocol` and
 `torrust-tracker-udp-protocol`, none of which is published. A new `test-helpers` release cannot
-be published until those crates are, or until the protocol-specific helpers move out. Draft
-subissue:
-[`1669-decouple-test-helpers-from-unpublished-crates`](../../drafts/1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md).
+be published until those crates are, or until the protocol-specific helpers move out. Subissue: #2482
+([`2482-1669-decouple-test-helpers-from-unpublished-crates`](../2482-1669-decouple-test-helpers-from-unpublished-crates/ISSUE.md)).
 
 #### 2. Server `testing` modules turn test-only edges into runtime dependencies
 
