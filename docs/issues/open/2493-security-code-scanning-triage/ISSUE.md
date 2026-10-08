@@ -9,7 +9,7 @@ github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: 2498
-last-updated-utc: "2026-10-08 18:10"
+last-updated-utc: "2026-10-08 18:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -193,6 +193,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-08 18:10 UTC - Copilot - Moved this log under Progress Tracking, Acceptance Verification
   under Verification Plan, added Risks and Trade-offs and References, and set `related-pr`, for PR
   #2498 review finding `review-finding:pr-2498-f8`.
+- 2026-10-08 18:12 UTC - Copilot - Processed PR #2498 review round 1 (Copilot review 5460550155
+  and da2ce7 review 5460660461, 11 findings, all fixed). The Trivy alert numbers had flipped to
+  the push-scan series after the first export; both series are now recorded, and bug #2499 tracks
+  the workflow defect. Audit: `docs/pr-reviews/pr-2498-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 

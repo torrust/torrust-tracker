@@ -9,7 +9,7 @@ github-issue: 2499
 spec-path: docs/issues/open/2499-stabilize-trivy-code-scanning-alert-identity/ISSUE.md
 branch: "2499-stabilize-trivy-code-scanning-alert-identity"
 related-pr: null
-last-updated-utc: "2026-10-08 17:53"
+last-updated-utc: "2026-10-08 17:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -156,7 +156,7 @@ like-for-like Code Scanning state after a scheduled run and a push run on `devel
 
 - 2026-10-08 17:49 UTC - Copilot - Drafted from PR #2498 review finding
   `review-finding:pr-2498-f10`; reproduced the alert flip from Code Scanning state (V1).
-- 2026-10-08 17:53 UTC - Maintainer - Approved the draft; Copilot created GitHub issue #2499 and
+- 2026-10-08 17:52 UTC - Maintainer - Approved the draft; Copilot created GitHub issue #2499 and
   promoted the specification to the open issue catalog.
 
 ## Acceptance Criteria
