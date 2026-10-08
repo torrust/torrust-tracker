@@ -127,14 +127,14 @@ iteration; the goal is to identify the actual shared issues and route them into 
 8. **Schedule the next review.** The scanner backlog is recurring; every re-scan runs the same
    clustering and inventory process again.
 
-## Inventory Structure
+## Catalog and Review Structure
 
 Use `docs/security/analysis/github-security/` for the durable public record:
 
-- `README.md` is the cluster and disposition ledger;
-- `reviews/YYYY-MM-DD.md` records each review snapshot and its source-alert coverage.
+- `README.md` is the findings catalog with durable cluster dispositions;
+- `reviews/YYYY-MM-DD.md` is the dated alert inventory and coverage evidence.
 
-Each source alert must resolve to exactly one cluster row in the dated review. The cluster ledger
+Each source alert must resolve to exactly one cluster row in the dated review. The cluster catalog
 links to the current issue, accepted disposition, or completed remediation. This separates the
 stable decision history from GitHub's changing alert list.
 

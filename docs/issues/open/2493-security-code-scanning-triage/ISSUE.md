@@ -9,7 +9,7 @@ github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: null
-last-updated-utc: "2026-10-08 16:45"
+last-updated-utc: "2026-10-08 17:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -129,19 +129,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Document the recurring security-tab triage process | Canonical policy in [`docs/security/public-scanner-findings.md`](../../../security/public-scanner-findings.md), linked from the security indexes. |
 | T2 | DONE | Add and route the focused AI skill | Added `triage-github-security-findings`; narrowed the CVE catalog skill's discovery scope and routed GitHub findings correctly. |
-| T3 | TODO | Review the current GitHub Security findings | Capture every open Code Scanning and Code Quality alert, then cluster and classify by root cause. |
-| T4 | TODO | Assign trust tier and priority | Record affected surface, reachability, privilege, pivot potential, and maintainer priority independently of scanner severity. |
-| T5 | TODO | Create one issue per finding class | Keep issues independent and short-lived; split clusters whose remediation or verification is independently substantial. |
-| T6 | TODO | Record non-applicable and accepted findings | Create the durable ledger and dated review under `docs/security/analysis/github-security/`. |
-| T7 | TODO | Schedule the next review cycle | Record the next review date and applicable event triggers. |
+| T3 | DONE | Review the current GitHub Security findings | Captured and reconciled 66 Code Scanning alerts and 2 Code Quality findings into 11 root-cause clusters. |
+| T4 | DONE | Assign trust tier and priority | Recorded affected surface, reachability, privilege, pivot potential, and maintainer priority independently of scanner severity. |
+| T5 | DONE | Draft and approve focused issue specs | Maintainer approved three independently deliverable specs. |
+| T6 | DONE | Create approved GitHub issues | Created #2497, #2496, and #2495 for zlib, release permissions, and CI permissions respectively, then replaced temporary links. |
+| T7 | DONE | Record non-applicable and accepted findings | Added the GitHub Security findings catalog, dated review, and runtime CVE bulk record. |
+| T8 | DONE | Schedule the next review cycle | Next review due 2027-01-08, before the next release if earlier, or on any recheck trigger. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1-T2 | Canonical process, security-doc routing, and focused skill | Commit together after skill-link and documentation validation because the process and adapter must remain synchronized. |
-| T3-T6 | Initial alert inventory, classifications, priorities, and focused issue specs | Commit after coverage reconciliation proves every source alert maps to one cluster. |
-| T7 | Review cadence and final evidence | Include with the inventory commit unless it becomes an independently reviewable process correction. |
+| T3-T5, T7 | Initial alert inventory, classifications, priorities, catalog, and focused draft specs | Commit after coverage reconciliation proves every source alert maps to one cluster. |
+| T6 | Approved GitHub issues and stable links | Commit after maintainer review and issue creation. |
+| T8 | Review cadence and final evidence | Include with the catalog commit unless it becomes an independently reviewable process correction. |
 
 ## Progress Tracking
 
@@ -150,10 +152,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted and approved by the maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Process and focused AI skill completed
-- [ ] Current findings captured, clustered, and classified
-- [ ] Focused issue specs reviewed and created
+- [x] Current findings captured, clustered, and classified
+- [x] Focused issue specs reviewed and created
 - [ ] Automatic verification completed
-- [ ] Manual verification scenarios executed and recorded
+- [x] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Evidence-based completion review recorded
 - [ ] Reviewer validated acceptance criteria
@@ -165,13 +167,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] The public triage process is documented and linked from the security docs.
 - [x] A focused GitHub Security findings skill exists and routes safely among the repository's
   distinct security workflows.
-- [ ] The current security-tab backlog is reviewed and clustered by root cause.
-- [ ] Findings are classified as affecting, hardening, need-investigation, or non-affecting.
-- [ ] Every cluster records its affected security surface, reachability, privilege or credential
+- [x] The current security-tab backlog is reviewed and clustered by root cause.
+- [x] Findings are classified as affecting, hardening, need-investigation, or non-affecting.
+- [x] Every cluster records its affected security surface, reachability, privilege or credential
   impact, higher-tier pivot potential, and maintainer-assigned priority rationale.
-- [ ] A set of smaller issue specs is created for each real cluster rather than one umbrella issue.
-- [ ] The inventory records accepted and non-applicable findings so they are not lost.
-- [ ] The next review date and cadence are recorded.
+- [x] A set of smaller issue specs is created for each real cluster rather than one umbrella issue.
+- [x] The catalog records accepted and non-applicable findings so they are not lost.
+- [x] The next review date and cadence are recorded.
 - [ ] `linter markdown`, `linter cspell`, and relevant semantic-link checks pass.
 
 ## Verification Plan
@@ -188,9 +190,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Scenario | Human-oriented steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Verify skill routing | Compare the four security finding sources against the routing table in the new skill and process document. | GitHub source findings, public CVEs, image scans, and confidential reports each route to the correct workflow without overlap. | TODO | Progress log |
-| M2 | Verify initial inventory coverage | Reconcile the dated review rows against the open Code Scanning and Code Quality lists. | Every source alert maps to exactly one cluster, with no unexplained duplicate or omission. | TODO | `docs/security/analysis/github-security/reviews/YYYY-MM-DD.md` |
-| M3 | Verify issue granularity | Review each proposed cluster against root cause, remediation, owner, effort, and verification boundaries. | Each focused issue is independently deliverable; oversized clusters are split before creation. | TODO | Initial review and linked specs |
+| M1 | Verify skill routing | Compare the four security finding sources against the routing table in the new skill and process document. | GitHub source findings, public CVEs, image scans, and confidential reports each route to the correct workflow without overlap. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | Verify initial inventory coverage | Reconcile the dated review rows against the open Code Scanning and Code Quality lists. | Every source alert maps to exactly one cluster, with no unexplained duplicate or omission. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Verify issue granularity | Review each proposed cluster against root cause, remediation, owner, effort, and verification boundaries. | Each focused issue is independently deliverable; oversized clusters are split before creation. | DONE | `manual-verification-evidence.md` V3 |
 
 ## Acceptance Verification
 
@@ -220,6 +222,13 @@ that the first cycle validated the documented process without a material design 
 - 2026-10-08 16:45 UTC - Copilot - Created the issue branch from current upstream `develop`;
   completed the canonical process, trust-tier priority model, security workflow routing, focused
   skill, and documentation indexes. Targeted Markdown, spelling, link, and whitespace checks pass.
+- 2026-10-08 16:58 UTC - Copilot - Exported all 68 open findings through the GitHub APIs,
+  reconciled them into 11 clusters, independently reviewed security impact, cataloged 39
+  non-affecting findings, identified one zlib investigation cluster, and drafted separate release
+  and CI permission-hardening specs.
+- 2026-10-08 17:05 UTC - Maintainer - Approved all three focused specifications. Copilot created
+  #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
+  workflow permissions, then replaced temporary catalog links with stable issue references.
 
 ## Notes
 

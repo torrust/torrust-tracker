@@ -250,6 +250,7 @@ flate
 flate2
 fnix
 footgun
+fopen
 formalised
 formalises
 formatjson
@@ -266,6 +267,9 @@ ghac
 ghtoken
 githubmerge
 gpgsign
+gzprintf
+gzvprintf
+gzwrite
 hasher
 healthcheck
 heaptrack
@@ -315,10 +319,13 @@ leecher
 leechers
 libc
 libc6
+libgcc
+libgomp
 libheif
 libhwloc
 libraw
 libsqlite
+libstdc
 libtorrent
 libz
 llist
@@ -365,6 +372,7 @@ noprefix
 notnull
 nping
 nquery
+nscd
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 objcopy
@@ -457,10 +465,12 @@ sendmsg
 sendto
 serde
 serialisation
+setgid
 setgroups
 setsid
 setsockopt
 settimeout
+setuid
 sharktorrent
 shellcheck
 signingkey
@@ -477,6 +487,7 @@ srcset
 sscanf
 stabilised
 stackoverflow
+strfmon
 subissue
 subkey
 subsec
@@ -490,6 +501,7 @@ sysret
 taiki
 taplo
 taskkill
+tdelete
 tdyne
 tempfile
 testcmd
@@ -554,6 +566,7 @@ webpki
 webtorrent
 whitespaces
 withf
+wordexp
 worktree
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd

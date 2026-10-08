@@ -48,6 +48,9 @@ docs/security/analysis/
 ├── reports/                   # Handled coordinated-disclosure reports (after disclosure)
 │   ├── README.md              # Template and rules
 │   └── {date}_{slug}.md       # One file per handled report
+├── github-security/           # GitHub Code Scanning and Code Quality finding catalog
+│   ├── README.md              # Durable cluster dispositions
+│   └── reviews/{date}.md      # Dated complete alert inventories
 └── affecting/                 # (future) Vulnerabilities that DO affect us
 ```
 
