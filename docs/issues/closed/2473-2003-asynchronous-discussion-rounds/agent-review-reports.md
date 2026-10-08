@@ -2,8 +2,8 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md
-    - docs/issues/open/2473-2003-asynchronous-discussion-rounds/manual-verification-evidence.md
+    - docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md
+    - docs/issues/closed/2473-2003-asynchronous-discussion-rounds/manual-verification-evidence.md
 ---
 
 # Agent Review Reports - Run Design Discussions as Asynchronous, Attributed Rounds
