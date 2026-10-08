@@ -123,7 +123,9 @@ restructure pushed mid-review without the checks the reviewer was going to run.
   where a log stamp comes from: `process-pr-review` notes only that the validator does not check
   a stamp against the commit that carries it, and the audit template has a placeholder. The
   #2320 retrospective proposed deriving audit stamps from `git log` and GitHub timestamps (its
-  item 10); it was not adopted. So the same event got two times.
+  item 10). #2278's `retrospective-improvement-matrix.md` adopts the same idea (the PR #2271 row
+  "Derive log events from Git and GitHub timestamps, not recollection.", `Adopt`), but no skill
+  or template states it yet. So the same event got two times.
 - **Verification sentences are free prose.** The audit template asks for a "Current-tree
   verification" but does not say how to anchor it. Line numbers are the shortest anchor and the
   most fragile one.
