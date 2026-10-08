@@ -144,6 +144,11 @@ verified material, so it has no further row.
 - 2026-10-08 16:45 UTC - Started audit from all GraphQL review threads and submitted reviews.
 - 2026-10-08 17:05 UTC - Fixed F1-F5, validated the changed documents, rebased onto current
   `develop`, passed the pre-push checks, pushed the fixes, and replied to every inline thread.
+- 2026-10-08 17:06 UTC - Correction: the preceding entry's timestamp should be
+  2026-10-08 16:55 UTC, based on the signed fix-commit times; it was recorded one hour late.
+  Refreshed GraphQL after the replies, confirmed that each unresolved thread had a reply, resolved
+  all four inline threads, fetched again, and confirmed zero unresolved threads. The audit
+  validator reports five rows, three log entries, and zero failures.
 
 ## Completion Rules
 
