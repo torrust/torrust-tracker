@@ -8,7 +8,7 @@ semantic-links:
     - docs/profiling.md
     - docs/testing.md
     - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/performance-evidence.md
     - packages/udp-core/benches/
     - packages/udp-server/benches/
     - packages/http-core/benches/
@@ -90,7 +90,7 @@ When an issue changes performance-critical code, measure it before and after:
    not from memory.
 
 Worked examples: issue #2458
-([`performance-evidence.md`](issues/open/2458-inject-udp-cookie-cipher/performance-evidence.md)),
+([`performance-evidence.md`](issues/closed/2458-inject-udp-cookie-cipher/performance-evidence.md)),
 issue #2342, and issue #2314.
 
 ## Checking That a Benchmark Measures Something

@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
     - handle-secrets
   related-artifacts:
-    - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - packages/udp-core/src/connection_cookie.rs
     - packages/udp-core/src/crypto/cookie_cipher.rs
@@ -182,7 +182,7 @@ root.
 
 ## References
 
-- Issue #2458: [Inject the UDP connection-cookie cipher](../issues/open/2458-inject-udp-cookie-cipher/ISSUE.md)
+- Issue #2458: [Inject the UDP connection-cookie cipher](../issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md)
 - Issue #1348: `udp-core` package tests, where the problem was found
 - [Adopt `secrecy` for sensitive values](20260822094338_adopt_secrecy_for_sensitive_values.md)
 - Commit `e3562f069` "udp: symmetric encrypted cookie" (2024-11-18), which introduced the cipher

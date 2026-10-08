@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
+    - docs/issues/closed/2458-inject-udp-cookie-cipher/ISSUE.md
 ---
 
 # Agent Review Reports - Inject the UDP Connection-Cookie Cipher
