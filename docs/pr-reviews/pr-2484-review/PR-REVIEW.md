@@ -64,6 +64,12 @@ F3 to F7 do not.
 | F12 | `review-finding:pr-2484-f12` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2484-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2484-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2484-f15` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2484-f16` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2484-f17` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2484-f18` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2484-f20` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2484-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -249,6 +255,84 @@ F3 to F7 do not.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221516086>
 
+### F15 - Round 1's five factual errors were not all in the inventory
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712472>
+- Concern: The retrospective's round-1 row and "What Went Well" item 1 placed all five round-1 errors in the inventory, but F2 was in the spec's publishing plan.
+- Solution: Both now say four errors were in the inventory and one (F2) in the spec's publishing plan.
+- Current-tree verification: The round-1 row and "What Went Well" item 1 in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected.
+- Resolution reference: docs(pr-reviews): [#2482] place round 1's F2 in the spec, not the inventory
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222301532>
+
+### F16 - Round 3 was not preceded by an approval
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712482>
+- Concern: The retrospective said rounds 3 and 4 "cost the approval that preceded them", but round 2 requested changes; the approvals lost were rounds 3's and 4's own.
+- Solution: The sentence now says the fixes after rounds 3 and 4 each cost the approval just given, naming reviews 5458896567 and 5459306372.
+- Current-tree verification: The paragraph after the round table in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected; both reviews show `DISMISSED` in the reviews API.
+- Resolution reference: docs(pr-reviews): [#2482] say which approvals the round-3 and round-4 fixes cost
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222301903>
+
+### F17 - F8 was not caused by the conversion commit
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712488>
+- Concern: The retrospective attributed all five round-2 findings to the conversion commit, but F8's 103-column line came from the round-1 fix's log entry, carried over verbatim.
+- Solution: Round 2's row now attributes F9 to F12 to the conversion and F8 to the round-1 log entry.
+- Current-tree verification: The round-2 row in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected.
+- Resolution reference: docs(pr-reviews): [#2482] trace F8's long line to the round-1 log entry
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222302210>
+
+### F18 - The derived-timestamp rule it credits does not exist
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712495>
+- Concern: The retrospective said `process-pr-review` derives audit stamps from `git log` and GitHub `created_at`, and that the audit template has that rule; neither does. The rule was only proposed, as item 10 of the #2320 retrospective.
+- Solution: The Root Causes bullet and proposal 4 now say no skill or template states where a stamp comes from, and point to the #2320 proposal, which was not adopted.
+- Current-tree verification: `grep -n 'created_at\|git log\|stamp'` on `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` finds only the validator note, and `docs/templates/PR-REVIEW-TEMPLATE.md` only a placeholder; the two passages in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected.
+- Resolution reference: docs(pr-reviews): [#2482] drop the claim that a derived-stamp rule exists
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222302492>
+
+### F20 - F9 and F10 shared one fix commit
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712503>
+- Concern: "What Went Well" item 3 said one commit per finding was followed in every round, but F9 and F10 shared one commit.
+- Solution: The item now names the F9 and F10 exception; a second commit rewrapped the line the edit lengthened.
+- Current-tree verification: "What Went Well" item 3 in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected; no prose line in the file exceeds 100 columns.
+- Resolution reference: docs(pr-reviews): [#2482] note that F9 and F10 shared one fix commit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222302819>
+
+### F21 - The 15:20 entry did not shift :204-207, and only F10 named a head
+
+- PR number: 2484
+- Source review ID: 5459990293
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712527>
+- Concern: F7's history parenthesis said the 15:20 entry shifted all three EPIC ranges, but `:204-207` still holds; and only F10's parenthesis named the head its old ranges held at.
+- Solution: F2's and F7's parentheses now name `ed4948b74` for the `ISSUE.md` ranges and `542f1b293` for the `EPIC.md` ranges, and F7's says the 15:20 entry shifted only the first two.
+- Current-tree verification: Each cited range checked at the named head with `git show <head>:<path>`; the validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): [#2482] name the head each old line range held at
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222303128>
+
 ## Processing Log
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
@@ -273,6 +357,13 @@ F3 to F7 do not.
 - 2026-10-08 16:24 UTC - Fixed F14 by anchoring the citations to sections, added
   `review-retrospective.md` at the maintainer's request, rebased onto `develop` (2 commits ahead),
   pushed after the pre-push suite passed, and replied on the thread before recording it here.
+- 2026-10-08 16:44 UTC - Human review 5459990293 (da2ce7, round 5) requested changes at `c02d0a36d`:
+  F14 confirmed; four blocking findings (F15 to F18) and two Nits (F20, F21) on the retrospective
+  and the audit; F19 was cleared by that push and has no thread. A 17:02 comment recorded the
+  #2003 owner's triage of the retrospective's six proposals.
+- 2026-10-08 17:45 UTC - Fixed F15 to F18, F20 and F21 in one commit each (plus a rewrap), scoped
+  the retrospective to rounds 1 to 4 with a note on the triage, pushed after the pre-push suite
+  passed, and replied on the six threads before recording them here.
 
 ## Completion Rules
 
