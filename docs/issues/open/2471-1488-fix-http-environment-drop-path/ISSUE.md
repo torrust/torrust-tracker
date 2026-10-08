@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path-spec"
 related-pr: null
-last-updated-utc: "2026-10-07 12:45"
+last-updated-utc: "2026-10-08 07:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -109,7 +109,10 @@ environment and relies on the drop path.
   once; the test polls within its deadline.
 - **Deadlines**: the regression test bounds its wait with the module's
   existing `TEST_DEADLINE` (10 s).
-- **Checkpoint**: none beyond maintainer review; the change is one field.
+- **Checkpoint**: after the regression test turns green (T2), stop for a
+  design review before maintainer review and commit. Record the prose-first
+  Arrange-Act-Assert review of the test, and check that `stop()` and the drop
+  path still behave as described above.
 
 ## Bug-Fix Process
 
@@ -149,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task  | Coherent change set               | Commit policy                                                     |
 | ----- | --------------------------------- | ----------------------------------------------------------------- |
-| T1-T2 | Regression test and the fix       | One commit after the red run is recorded and the test passes.     |
+| T1-T2 | Regression test and the fix       | One commit after the red run is recorded, the test passes, and the design-review checkpoint is recorded. |
 | T3    | Evidence and spec progress        | Commit after automatic and manual verification.                   |
 
 Use the `write-unit-test` skill and the prose-first Arrange-Act-Assert review
@@ -165,6 +168,7 @@ for the test. Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
+- [ ] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
