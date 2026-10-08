@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-07 13:05"
+last-updated-utc: "2026-10-08 07:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,8 +120,9 @@ and is not in the EPIC roadmap:
   stop the server and release the binding, as the legacy halt sender does
   today. Dropping a `CancellationToken` does not cancel it, so hold it as a
   `DropGuard` and disarm it in `stop()`; SI-16 lost this behavior without a
-  test (#2471), and the UDP environment has the fix (#2459). No new detached
-  task.
+  test (#2471), and the UDP environment has the fix (#2459). A drop can only
+  request cancellation: it drops the task handles without joining them, so
+  the tasks end shortly after the drop rather than before it returns.
 - **Deadlines**: the drain is bounded by `API_GRACEFUL_DRAIN_TIMEOUT`; tests
   bound every start and stop with an explicit test deadline.
 - **Checkpoint**: after T1, stop for a design review before migrating the
