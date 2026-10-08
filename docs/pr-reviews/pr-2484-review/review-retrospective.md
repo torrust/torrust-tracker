@@ -116,9 +116,11 @@ restructure pushed mid-review without the checks the reviewer was going to run.
   draft to an open spec and names no step for converting an issue into an EPIC (the reviewer
   noted this in round 2). The author improvised: rename, rewrite, re-point the links he
   remembered. The sweep that was missing (grep the tree for the old path) is one command.
-- **Timestamps are typed from the clock, not derived from events.** The process-pr-review skill
-  derives audit stamps from `git log` and GitHub `created_at`; spec progress logs have no such
-  rule, so the same event got two times.
+- **Timestamps are typed from the clock, not derived from events.** No skill or template says
+  where a log stamp comes from: `process-pr-review` notes only that the validator does not check
+  a stamp against the commit that carries it, and the audit template has a placeholder. The
+  #2320 retrospective proposed deriving audit stamps from `git log` and GitHub timestamps (its
+  item 10); it was not adopted. So the same event got two times.
 - **Verification sentences are free prose.** The audit template asks for a "Current-tree
   verification" but does not say how to anchor it. Line numbers are the shortest anchor and the
   most fragile one.
@@ -176,7 +178,8 @@ Author Self-Audit). Items marked `PROPOSED` are therefore not applied here.
    `docs/templates/EPIC.md` and `create-issue/SKILL.md` — `PROPOSED`. State that a progress-log
    stamp is the time of the event it records (commit author time for a committed change, the
    GitHub timestamp for a review or comment), and that one event logged in two files carries the
-   same stamp. The audit template already has this rule; the spec templates do not.
+   same stamp. Neither the spec templates nor the audit template states this today; the audit
+   side was proposed in the #2320 retrospective (item 10).
 5. **A documented step for restructuring a spec under review** — `create-issue/SKILL.md` —
    `PROPOSED`. Cover task-to-EPIC conversion and folder renames: rename with `git mv`, rewrite,
    list every removed section and its destination in the log entry, then run the item 1 sweep.
