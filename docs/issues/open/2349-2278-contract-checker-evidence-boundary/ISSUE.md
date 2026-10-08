@@ -9,7 +9,7 @@ github-issue: 2349
 spec-path: docs/issues/open/2349-2278-contract-checker-evidence-boundary/ISSUE.md
 branch: "2349-2278-contract-checker-evidence-boundary-spec"
 related-pr: null
-last-updated-utc: "2026-09-26 13:33"
+last-updated-utc: "2026-10-08 12:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,11 +45,12 @@ contains.
 ## Background
 
 `contrib/dev-tools/checks/agent-review-report-contract` is a workspace binary that checks a fixed
-set of 15 workflow documents for required and forbidden text: the `process-pr-review`,
+set of 14 workflow documents for required and forbidden text: the `process-pr-review`,
 `fetch-review-threads`, and `resolve-review-threads` skills and the two compatibility redirect
 skills; `PR-REVIEW-TEMPLATE.md`, `AGENT-REVIEW-REPORTS.md`, and `REVIEW-FINDINGS.md`; four review
-agents and the Copilot-suggestions prompt; `docs/agents/orchestration.md`; and the semantic
-skill-link convention. It reads no file under `docs/pr-reviews/`. At `develop`:
+agents; `docs/agents/orchestration.md`; and the semantic skill-link convention. PR #2488 removed
+the fifteenth, the Copilot-suggestions prompt, with the rest of `.github/prompts/`. It reads no
+file under `docs/pr-reviews/`. At `develop`:
 
 - No pre-commit step, CI workflow, skill, agent, or template invokes or mentions it, so nothing
   states when to run it or what a pass means.
@@ -161,6 +162,7 @@ before committing. Prove each new assertion fails against a working-tree mutant,
 
 - 2026-09-26 12:33 UTC - GitHub Copilot - Drafted after the maintainer chose order 6 before order 5. Local inspection at `develop` `0f1dcd28`: the crate checks 15 workflow documents (counted from the paths in `src/main.rs`) and no audit record; no hook, workflow, skill, agent, or template references it; audits for PRs #2271, #2279, and #2300 cite it as current-tree verification; it prints plain text and is unclassified in the output-contract ADR; `src/main.rs:21` and `:50` show the mixed pin granularity. Awaiting maintainer review.
 - 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer approved the specification as drafted, including the migration to the `no-stdout-result` output class. Created GitHub issue #2349, linked it as a sub-issue of #2278 (`parent_issue_url` verified), and moved this specification to `docs/issues/open/`. Spec-only PR pending.
+- 2026-10-08 12:56 UTC - GitHub Copilot - PR #2488 removed `.github/prompts/process-copilot-suggestions.prompt.md` and the checker's pins on it, so the checker now reads 14 workflow documents. Updated Background to match; the 2026-09-26 12:33 entry records the 15-document state at `0f1dcd28`.
 
 ## Acceptance Criteria
 
