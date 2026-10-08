@@ -10,6 +10,7 @@ semantic-links:
     - "issue #2497"
     - "issue #2496"
     - "issue #2495"
+    - "issue #2499"
 ---
 
 # GitHub Security Findings Catalog
@@ -20,6 +21,10 @@ clusters so a recurring alert is not analyzed from scratch.
 
 The catalog follows the priority model in [`docs/security/README.md`](../../README.md). Scanner
 severity is evidence, not repository priority.
+
+Trivy findings currently carry two Code Scanning alert numbers, one per scan trigger, and only one
+series is open at a time. Cite both numbers until issue #2499 stabilizes alert identity; the dated
+review lists the pairing.
 
 ## Current Clusters
 
@@ -81,14 +86,14 @@ persistent or externally exposed.
 
 ### GSF-005 — glibc DNS findings
 
-Alerts 13 and 16 are already analyzed in
+Alerts 13 and 16 (push-scan series: 1 and 4) are already analyzed in
 [`CVE-2026-5435.md`](../production/CVE-2026-5435.md) and
 [`CVE-2026-6238.md`](../production/CVE-2026-6238.md). The affected specialized resolver paths are
 not used by the tracker.
 
 ### GSF-006 — Native zlib reachability
 
-Alerts 24 and 59 cannot retain a non-affecting verdict solely on the claim that system zlib is not
+Alerts 24 and 59 (push-scan series: 12 and 60) cannot retain a non-affecting verdict solely on the claim that system zlib is not
 used: the production image copies the `libz.so.1` linked by the release binary. No call to the
 affected APIs has been established, so this remains an investigation rather than a confirmed
 vulnerability.

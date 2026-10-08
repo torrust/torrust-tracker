@@ -9,13 +9,14 @@ github-issue: 2497
 spec-path: docs/issues/open/2497-investigate-native-zlib-runtime-linkage/ISSUE.md
 branch: "2497-investigate-native-zlib-runtime-linkage"
 related-pr: null
-last-updated-utc: "2026-10-08 17:05"
+last-updated-utc: "2026-10-08 18:00"
 semantic-links:
   skill-links:
     - create-issue
     - catalog-security-vulnerabilities
   related-artifacts:
     - "issue #2493"
+    - "issue #2499"
     - Containerfile
     - docs/security/analysis/production/CVE-2026-27171.md
     - docs/security/analysis/production/CVE-2026-85091.md
@@ -32,7 +33,9 @@ linkage or record reproducible evidence supporting the final security verdict.
 
 ## Background
 
-GitHub Code Scanning alerts 24 and 59 report two zlib CVEs in the production image. The earlier
+GitHub Code Scanning alerts 24 and 59 report two zlib CVEs in the production image. The same
+findings appear as alerts 12 and 60 after a push-triggered scan; only one pair is open at a time
+until #2499 stabilizes Trivy alert identity. The earlier
 CVE-2026-27171 analysis classified system zlib as an unused transitive runtime package. The current
 `Containerfile`, however, discovers the release binary's linked `libz.so.1` with `ldd` and copies
 it into the final image.
@@ -56,7 +59,7 @@ unconfirmed but invalidates the previous package-is-unused rationale.
 - Remove native zlib linkage when unnecessary, or document the unreachable boundary with
   reproducible evidence.
 - Refresh both CVE analyses and the GitHub Security findings catalog.
-- Re-run the production image scan and reconcile alerts 24 and 59.
+- Re-run the production image scan and reconcile alerts 24 and 59, or 12 and 60.
 
 ### Out of Scope
 
@@ -103,7 +106,7 @@ assertion.
 | T2 | TODO | Identify the linkage owner | Trace the native dependency to a crate, build script, compiler input, or runtime component. |
 | T3 | TODO | Assess affected symbol reachability | Inspect imports, symbols, and runtime call paths for both CVEs. |
 | T4 | TODO | Remove or justify the dependency | Remove unnecessary linkage or record a reproducible unreachable-boundary rationale. |
-| T5 | TODO | Update security records and scan | Finalize both CVE verdicts and reconcile GitHub alerts 24 and 59. |
+| T5 | TODO | Update security records and scan | Finalize both CVE verdicts and reconcile GitHub alerts 24 and 59, or 12 and 60. |
 
 ## Commit Points
 
@@ -133,6 +136,8 @@ assertion.
   linkage evidence invalidated the previous unused-package premise.
 - 2026-10-08 17:05 UTC - Maintainer - Approved the focused draft; Copilot created GitHub issue
   #2497 and promoted the specification to the open issue catalog.
+- 2026-10-08 18:00 UTC - Copilot - Added the push-scan alert numbers 12 and 60 for the same
+  findings, from PR #2498 review finding `review-finding:pr-2498-f10`.
 
 ## Acceptance Criteria
 
@@ -142,8 +147,8 @@ assertion.
 - [ ] Unnecessary native linkage is removed, or required linkage is protected by a maintained
   check and evidence-based non-affecting rationale.
 - [ ] CVE-2026-27171 and CVE-2026-85091 records contain the final verdict and recheck triggers.
-- [ ] GitHub Code Scanning alerts 24 and 59 are closed by a fix or explicitly reconciled with the
-  documented disposition.
+- [ ] GitHub Code Scanning alerts 24 and 59, and their push-scan duplicates 12 and 60, are closed
+  by a fix or explicitly reconciled with the documented disposition.
 - [ ] `linter all` and relevant focused tests pass.
 
 ## Verification Plan

@@ -48,7 +48,8 @@ Evidence:
 
 The actionable findings produced three independently deliverable issues:
 
-1. #2497 — native zlib reachability investigation for alerts 24 and 59.
+1. #2497 — native zlib reachability investigation for alerts 24 and 59 (push-scan series: 12 and
+   60).
 2. #2496 — explicit permissions for seven release-publishing alerts.
 3. #2495 — explicit permissions for twenty CI/build alerts.
 

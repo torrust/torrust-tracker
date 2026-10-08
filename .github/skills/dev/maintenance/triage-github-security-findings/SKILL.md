@@ -28,6 +28,9 @@ instead.
    - Record the review date, source view, rule identifier, severity, affected path, and alert URL
      or stable alert identifier.
    - Preserve enough source metadata to compare the next review without copying sensitive data.
+   - Identify a Trivy finding by CVE id and package, not by alert number. Until issue #2499 is
+     fixed, each Trivy finding has a scheduled-scan and a push-scan alert number, and only one is
+     open at a time; record both.
 2. **Check existing records.**
    - Search the public scanner inventory, security analysis catalog, handled-report catalog, and
      open or closed issue specs for the rule, weakness class, path, and root cause.

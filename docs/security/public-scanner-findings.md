@@ -138,6 +138,10 @@ Each source alert must resolve to exactly one cluster row in the dated review. T
 links to the current issue, accepted disposition, or completed remediation. This separates the
 stable decision history from GitHub's changing alert list.
 
+A Code Scanning alert number is not a stable identity for a Trivy image finding. Until issue #2499
+is fixed, the scheduled and push-triggered scans report each finding under a different number, and
+only the latest series is open. Key Trivy findings by CVE id and package, and record both numbers.
+
 ## What to Record in Each Issue
 
 Each issue should contain at least:
