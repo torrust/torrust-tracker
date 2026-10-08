@@ -96,7 +96,7 @@ issues or catalog entries.
        return nums
    listed = {}
    for row in (l for l in table.splitlines() if l.startswith('| GSF-')):
-       cluster, source, numbers = row.split('|')[1].strip(), row.split('|')[2].strip(), row.split('|')[4]
+       cluster, source, numbers = row.split('|')[1].strip(), row.split('|')[2].strip(), row.split('|')[-3]
        if source == 'Trivy':
            scheduled, push = numbers.split(';')
            numbers = push if sys.argv[1] == 'push' else scheduled
