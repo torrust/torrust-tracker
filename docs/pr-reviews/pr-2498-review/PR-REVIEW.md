@@ -47,6 +47,12 @@ F2, so they are recorded as F10 and F11, with the reviewer's IDs in their detail
 review body summarizes those nine findings and the checks that produced no finding, so it has no
 row of its own.
 
+Human review 5461276899 (da2ce7, round 2, changes requested) numbered its inline findings F10-F12,
+continuing its own series. Its F10 collides with this audit's F10 (round-1 F1) and is recorded as
+F12; its F11 then collides with F11 and is recorded as F13; its F12 then collides with that F12 and
+is recorded as F14. Each detail entry keeps the reviewer's ID. The review body verifies the
+round-1 fixes and restates these three findings, so it has no row of its own.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2498-f1` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +66,9 @@ row of its own.
 | F7 | `review-finding:pr-2498-f7` | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2498-f8` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2498-f9` | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2498-f12` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2498-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2498-f14` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -206,6 +215,45 @@ row of its own.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4222531485>
 
+### F12 - Log stamps are later than the commits that carry them
+
+- PR number: 2498
+- Source review ID: 5461276899
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4222800274>
+- Concern: Several progress-log entries and `last-updated-utc` values, and the audit's creation entry, recorded times after the author or commit time of the commit that carries them, including the triage spec's 17:08 entry from round 1.
+- Solution: Checked every stamp on the branch with `git blame -M -C` against the author time of its carrying commit, which found exactly the reviewer's 12 lines, and restamped each one to that commit's author minute. New entries are stamped from `date -u` immediately before their commit. The audit restamp is a reviewer-requested correction of an in-place value, recorded in the Processing Log, following the PR #2232 and PR #2270 audits.
+- Current-tree verification: Rerunning the same blame check at the current head reports no stamp later than its carrying commit.
+- Resolution reference: `docs(issues): restamp spec log entries to their commits`; `docs(pr-reviews): restamp the PR #2498 audit creation entry`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4223012626>
+
+### F13 - The V2 script shown is not the one that ran in the recorded window
+
+- PR number: 2498
+- Source review ID: 5461276899
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4222800283>
+- Concern: The #2493 evidence dated its commands to 17:58-18:00, but a later commit changed the script recorded verbatim from `row.split('|')[4]` to `[-3]` without recording the rerun or moving `last-updated-utc`.
+- Solution: Recorded both runs: run 1 at 17:58-18:00 with `[4]` against the narrower table, and run 2 at 18:01:43-18:02:56 with `[-3]` against the widened table, with identical output; moved `last-updated-utc`. Also recorded the two `jq` summary commands that produced the recorded export summaries.
+- Current-tree verification: The `jq` commands and script extracted from the file and run verbatim reproduce the recorded output.
+- Resolution reference: `docs(issues): [#2493] record both V2 reconciliation runs`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4223012896>
+
+### F14 - The recorded commands do not produce the recorded output
+
+- PR number: 2498
+- Source review ID: 5461276899
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4222800289>
+- Concern: In the #2499 evidence, `gh run list --json` prints JSON rather than the recorded columns, the pairing step had no recorded command, and the exports lacked the API version pin.
+- Solution: Reran V1 at 18:57:14-18:58:10 with exact commands: a `--jq ... | join("  ")` template for the run list, pinned exports, the pairing script verbatim (now also printing the distinct key counts), and a recorded alert-read loop; recorded their verbatim output and noted that the 17:40-17:49 reproduction used unrecorded ad-hoc commands.
+- Current-tree verification: The embedded pairing script, extracted and run, reproduces the recorded lines; `linter markdown` and `linter cspell` pass.
+- Resolution reference: `docs(issues): [#2499] record the exact reproduction commands`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2498#discussion_r4223013200>
+
 ## Processing Log
 
 - 2026-10-08 17:45 UTC - Fetched Copilot review 5460550155 and da2ce7 review 5460660461 with their 11 inline threads using GraphQL; recorded F1, F2, F10 (reviewer F1), F11 (reviewer F2), and F3 to F9.
@@ -213,6 +261,10 @@ row of its own.
 - 2026-10-08 17:52 UTC - The maintainer approved the bug spec; created issue #2499.
 - 2026-10-08 18:10 UTC - Committed every fix, rebased on `develop`, pushed after the pre-push gate passed, and replied on all 11 threads.
 - 2026-10-08 18:12 UTC - Created this audit record after recording the review round in the #2493 spec.
+- 2026-10-08 18:52 UTC - Fetched da2ce7 review 5461276899 (round 2, changes requested) and its three inline threads with GraphQL; recorded F12 (reviewer F10), F13 (reviewer F11), and F14 (reviewer F12).
+- 2026-10-08 18:59 UTC - Restamped the entry above from 18:13 to 18:12, the author time of the commit that created this record (F12).
+- 2026-10-08 19:01 UTC - Pushed the F12, F13, and F14 fixes after the pre-push gate passed, and replied on the three round-2 threads.
+- 2026-10-08 19:03 UTC - Recorded F12, F13, and F14 in this audit.
 
 ## Completion Rules
 
