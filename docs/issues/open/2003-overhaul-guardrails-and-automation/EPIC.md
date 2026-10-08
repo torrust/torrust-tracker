@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-09-29 16:29"
+last-updated-utc: "2026-10-07 16:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -265,6 +265,7 @@ creation remains subject to maintainer approval of each draft specification.
 | 12    | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | Processes 32 review findings posted after merge through the existing `process-pr-review` post-merge workflow: audits, maintainer-approved dispositions, and documentation fixes only; workflow, CI, and Rust changes become their own issues. Selects no automation architecture. | `process-pr-review` post-merge workflow; PR #2344 for findings unprocessed at merge |
 | 13    | #2360 - Resolve the crate-level scope of the UDP protocol `empty_enums` allowance | `docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md` | Follow-up of #2347 (`review-finding:pr-2290-f4`): brings one retained Clippy allowance into line with the #2158 exception framework, by a lint-scope change or a maintainer-reviewed framework amendment. Selects no automation architecture. | #2158 exception framework |
 | 14    | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264. | #2264 frontmatter and semantic-link conventions |
+| 15    | #2473 - Run design discussions as asynchronous, attributed rounds | `docs/issues/open/2473-2003-asynchronous-discussion-rounds/ISSUE.md` | Documentation process and a Markdown template only: rewrites the `docs/discussions/` lifecycle so participants contribute through attributed rounds and only the decision needs agreement. Selects no automation architecture. | None; proposed in PR #2467 |
 
 ## Delivery Strategy
 
@@ -377,6 +378,9 @@ For each completed subissue in this EPIC, the default completion policy is:
   FU-A of #2347 for `review-finding:pr-2290-f4`; created and linked it under this EPIC
 - 2026-09-29 16:29 UTC - GitHub Copilot - Maintainer approved subissue #2375 (order 14),
   unambiguous issue specification directory names; created and linked it under this EPIC
+- 2026-10-07 16:15 UTC - AI assistant (Copilot SDK in VS Code) - Maintainer approved subissue
+  #2473 (order 15), asynchronous attributed discussion rounds proposed in PR #2467; created and
+  linked it under this EPIC
 
 ## Acceptance Criteria
 
