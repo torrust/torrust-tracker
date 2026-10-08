@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
-last-updated-utc: 2026-10-08 18:00
+last-updated-utc: 2026-10-08 18:54
 ---
 
 <!-- cspell:ignore findall setdefault splitlines startswith -->
@@ -15,7 +15,8 @@ routing (M1), coverage of every open finding (M2), and issue granularity (M3).
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-08 17:58-18:00 for the commands recorded below. The first export,
+- Date and time (UTC): 2026-10-08 17:58-18:00 for the exports and the first reconciliation run;
+  18:01:43-18:02:56 for the second reconciliation run (see V2). The first export,
   used to draft the review inventory, ran earlier on 2026-10-08, before 16:55:43Z; its raw output
   was not retained (see [Failures and Follow-up](#failures-and-follow-up)).
 - Artifact under test: the `docs(security): define scanner finding triage`,
@@ -70,6 +71,11 @@ issues or catalog entries.
    gh api --paginate -H 'Accept: application/vnd.github+json' \
      -H 'X-GitHub-Api-Version: 2022-11-28' \
      '/repos/torrust/torrust-tracker/code-scanning/alerts?state=open&per_page=100' > .tmp/v2-cs.json
+   jq -r '"open Code Scanning alerts: \(length)",
+     (group_by(.tool.name)[] | "  \(.[0].tool.name): \(length)"),
+     (map(select(.tool.name=="CodeQL")) | group_by(.rule.id)[] | "    \(.[0].rule.id): \(length)"),
+     (map(select(.tool.name=="Trivy")) | group_by(.most_recent_instance.location.path)[]
+       | "    Trivy path \(.[0].most_recent_instance.location.path): \(length)")' .tmp/v2-cs.json
    ```
 
 2. Exported the open Code Quality findings:
@@ -78,11 +84,25 @@ issues or catalog entries.
    gh api --paginate -H 'Accept: application/vnd.github+json' \
      -H 'X-GitHub-Api-Version: 2026-03-10' \
      '/repos/torrust/torrust-tracker/code-quality/findings?state=open&per_page=100' > .tmp/v2-cq.json
+   jq -r '"open Code Quality findings: \(length)",
+     (.[] | "  \(.number // .id) \(.rule.id // .rule) \(.location.path // .most_recent_instance.location.path)")' \
+     .tmp/v2-cq.json
    ```
 
 3. Expanded every alert number in the inventory's Coverage Reconciliation table, using the push-scan
    column for Trivy rows because the push-scan series was open, and compared the result with the
-   two exports with `python3 .tmp/reconcile.py push`. The one-off script, verbatim:
+   two exports with `python3 .tmp/reconcile.py push`. The script ran twice against the same two
+   exports:
+
+   - **Run 1, 17:58-18:00 UTC**, against the coverage table before it gained the severity and path
+     columns. The numbers column was then the fifth `|`-separated field, so the script read
+     `row.split('|')[4]`.
+   - **Run 2, 18:01:43-18:02:56 UTC**, after `docs(security): record scanner severity and paths`
+     widened the table and before that change was committed. The script was changed to read
+     `row.split('|')[-3]`, the numbers column counted from the end of the row, which works for
+     both table layouts.
+
+   The script as used in run 2, verbatim (run 1 differed only in that index):
 
    ```python
    import json, re, sys
@@ -111,9 +131,11 @@ issues or catalog entries.
    print('in more than one cluster:', sorted(n for n, c in listed.items() if len(c) > 1))
    ```
 
-4. Recomputed the disposition totals from the catalog table.
+4. Counted the disposition totals by hand from the catalog table.
 
 #### Observed Result
+
+The export summaries, then the reconciliation output. Runs 1 and 2 printed the same five lines.
 
 ```text
 open Code Scanning alerts: 66
