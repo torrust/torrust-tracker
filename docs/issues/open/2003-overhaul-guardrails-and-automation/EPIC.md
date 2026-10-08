@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-08 09:12"
+last-updated-utc: "2026-10-08 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -319,6 +319,8 @@ Counts at the index's revision of 2026-09-28 (the ninth labelled batch):
 
 The largest open clusters are the planning skills and spec templates (30 open) and the reviewer side (18 open). The #2278 matrix names the reviewer-side items as input for a separate reviewer-side issue, which does not yet exist.
 
+**PR #2484 review retrospective (2026-10-08).** Its six proposals are dispositioned in #2278's improvement matrix. Items 1 to 3 go to #2278: the manual pre-push sweep and anchoring verifications to headings or quoted phrases are adopted for its order 5, the sweep's tool is deferred to its order 8, and deferring non-blocking findings after an approval to its order 10. The parts this EPIC owns enter the register with the next batch: item 4 (one stamp per event in spec progress logs) on `issue-template-log-correction-rule-unstated`, item 5 (a step for restructuring a spec under review) on `create-issue-issue-to-epic-conversion-unstated`, item 6 (one session per pull-request branch) as a new label against `docs/agents/orchestration.md`, and item 1's tree-wide path sweep and line-width check on `linter-path-citations-unchecked` and `write-markdown-docs-line-wrap-rule-unstated`. Item 4 overlaps Undecided Improvement Candidate 4, which stays listed until it is placed.
+
 ## Delivery Strategy
 
 Use an evidence-first, progressive delivery strategy because the problem crosses repository workflows, developer tooling, and agent behavior, while the desired architecture is intentionally unsettled. Discovery and candidate analysis can gather evidence independently, but architecture selection and implementation must wait until both are complete.
@@ -419,6 +421,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-10-05 12:40 UTC - da2ce7 - Followed the prose-tests draft's placement under this EPIC (PR #2437): the specifications-and-rationale decision links the draft at its new path, and Drafts Awaiting Issues lists it
 - 2026-10-07 16:15 UTC - AI assistant (Copilot SDK in VS Code) - Maintainer approved subissue #2473 (order 15), asynchronous attributed discussion rounds proposed in PR #2467; created and linked it under this EPIC
 - 2026-10-08 09:12 UTC - AI assistant (Copilot SDK in VS Code) - Subissue #2473 (order 15) closed by PR #2481; archived its specification to `docs/issues/closed/`
+- 2026-10-08 16:50 UTC - da2ce7 - Triaged the six proposals of the PR #2484 review retrospective: items 1 to 3 go to #2278's improvement matrix, and items 4 to 6 with item 1's tree-wide checks to the friction register; see Friction Register
 
 ## Acceptance Criteria
 
