@@ -30,8 +30,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
-- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
-  `maintainability`, `security`, `other`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
 - An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
   original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
   for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
