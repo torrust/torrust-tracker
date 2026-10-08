@@ -70,6 +70,7 @@ F3 to F7 do not.
 | F18 | `review-finding:pr-2484-f18` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2484-f20` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F21 | `review-finding:pr-2484-f21` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2484-f23` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -333,6 +334,19 @@ F3 to F7 do not.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222303128>
 
+### F23 - "It was not adopted" leaves out the matrix row that adopted the same idea
+
+- PR number: 2484
+- Source review ID: 5460915644
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222491549>
+- Concern: The retrospective's Root Causes bullet and this audit's F18 Solution said the #2320 derived-stamp proposal "was not adopted", but #2278's improvement matrix adopts the same idea in its PR #2271 row.
+- Solution: The Root Causes bullet now names that matrix row and says no skill or template states the rule yet; a second commit, `docs(pr-reviews): [#2482] correct the F18 solution's adoption claim`, corrects the F18 Solution the same way.
+- Current-tree verification: `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md` has the PR #2271 row "Derive log events from Git and GitHub timestamps, not recollection." marked `Adopt`; the Root Causes bullet in `docs/pr-reviews/pr-2484-review/review-retrospective.md` and the F18 Solution in this record inspected; the validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): [#2482] credit #2278's adoption of event-derived log stamps
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4222555652>
+
 ## Processing Log
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
@@ -364,6 +378,12 @@ F3 to F7 do not.
 - 2026-10-08 17:45 UTC - Fixed F15 to F18, F20 and F21 in one commit each (plus a rewrap), scoped
   the retrospective to rounds 1 to 4 with a note on the triage, pushed after the pre-push suite
   passed, and replied on the six threads before recording them here.
+- 2026-10-08 18:05 UTC - Human review 5460915644 (da2ce7, round 6) approved head `2f22dc7e3`,
+  confirmed F15 to F18, F20 and F21 and their rows, cleared F22, and raised one non-blocking Nit,
+  F23.
+- 2026-10-08 18:12 UTC - At the maintainer's request, fixed F23 in two commits rather than defer
+  it, accepting that the push dismisses the approval; pushed after the pre-push suite passed and
+  replied on the thread before recording it here.
 
 ## Completion Rules
 
