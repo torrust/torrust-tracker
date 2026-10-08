@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/ISSUE.md
+    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
 ---
 
@@ -81,7 +81,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324885>
 - Concern: The spec said every workspace package is planned to be published and made "every package stays publishable" a criterion, but nine of the 31 members set `publish = false` and the cited ADR keeps an "Unpublished tooling" tier; the timing was sourced only by the GitHub issue body.
 - Solution: Scoped both sentences to members without `publish = false`, which include every crate in Patterns A and B, named issue #2482 as the source of the timing, and linked the ADR and its tier. A follow-up commit rewrapped a 121-character line the first commit created.
-- Current-tree verification: `ISSUE.md:69-75` and `:92` carry the scoped wording; `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
+- Current-tree verification: `EPIC.md:66-71` and `:109` carry the scoped wording (cited as `ISSUE.md:69-75` and `:92` before the sub-EPIC conversion); `cargo metadata --no-deps` lists 9 of 31 members with `publish = []`; `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] scope the publishing plan to members without publish = false
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219053683>
@@ -146,7 +146,7 @@ F3 to F7 do not.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4217324931>
 - Concern: Three open #1488 specs (#2449, #2450, #2471) change the `Environment` types this plan would move, and the spec did not name them.
 - Solution: Added a Risks bullet that names them and asks the migration plan to order each move after them or record why the order does not matter, and linked their specs from References.
-- Current-tree verification: `ISSUE.md:280-283` and `:310-313`; `linter lychee` exits 0.
+- Current-tree verification: `EPIC.md:330-332` and `:347-350`, with the ordering rule at `:204-207` (cited as `ISSUE.md:280-283` and `:310-313` before the sub-EPIC conversion); `linter lychee` exits 0.
 - Resolution reference: docs(issues): [#2482] name the open #1488 subissues that change the environments
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219055480>
