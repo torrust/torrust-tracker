@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-07 12:45
+last-updated-utc: 2026-10-08 07:31
 ---
 
 # Manual Verification Evidence
@@ -45,6 +45,14 @@ files, but never as the only copy of something the evidence relies on.
 
 - Goal: observe whether dropping a started environment releases its HTTP
   binding.
+- Original symptom: found by source review on 2026-10-07, not by a failure.
+  The HTTP environment's running state holds a plain `CancellationToken` and
+  no `DropGuard`, while PR #2459 F1 showed that the UDP environment's server
+  kept running after a drop without `stop()` until it got a `DropGuard`.
+- Hypothesis: dropping a `CancellationToken` does not cancel it, so dropping a
+  started HTTP environment without `stop()` leaves its server task running and
+  its address bound. SI-16 (PR #2439) replaced the halt sender, whose drop did
+  end the server, with this token.
 - Initial state: a started environment; no `stop()` call.
 - Status: `DONE` (outcome: **Reproduced**)
 
