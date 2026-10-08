@@ -48,6 +48,12 @@ commits" while the branch had three. That independently actionable assertion is 
 with inferred Nit severity. The rest of the review body summarizes the four inline findings and
 verified material, so it has no further row.
 
+Human review 5460380310 (da2ce7, round 2) confirmed F1-F5 and continued its own series. Its body
+reported F6, a finding that was never posted inline: the 17:05 log stamp was later than the commit
+that carried it. The review records F6 as already fixed by the appended correction, so F6 is
+recorded with inferred Minor severity. Its inline F7 and F8 keep their IDs. The body restates F7
+and F8 and verifies the carry-over, so it has no further row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2492-f1` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -55,6 +61,9 @@ verified material, so it has no further row.
 | F3 | `review-finding:pr-2492-f3` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2492-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2492-f5` | Human | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F6 | `review-finding:pr-2492-f6` | Human | Minor (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F7 | `review-finding:pr-2492-f7` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2492-f8` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -139,6 +148,56 @@ verified material, so it has no further row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2492#issuecomment-6064881832>
 
+### F6 - The 17:05 log stamp is later than the commit that carries it
+
+- PR number: 2492
+- Source review ID: 5460380310
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2492#pullrequestreview-5460380310>
+- Concern: The second Processing Log entry was stamped 17:05 UTC, but the commit that added it was
+  made at 16:57:43Z. Cameron found this in round 2 and did not post it inline.
+- Solution: Already fixed before the review by an appended correction entry. Following the
+  append-only rule, the 17:05 entry was left in place. F8 later corrected that entry's explanation.
+- Current-tree verification: The log keeps the 17:05 entry, followed by the 17:06 correction and
+  the 17:19 correction of its explanation. Review 5460380310 records F6 as fixed.
+- Resolution reference: `docs(pr-review): [#2492] record review completion`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2492#issuecomment-6065313510>
+
+### F7 - The PR body still attributes support for the feature to both maintainers
+
+- PR number: 2492
+- Source review ID: 5460380310
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2492#discussion_r4222035742>
+- Concern: The PR body Summary said "The maintainers support I2P peer support", the attribution F1
+  removed from the README and the issue. The merge tool copies the body into the merge commit.
+- Solution: Edited the PR body to say "Jose Celano supports I2P peer support, but it needs a
+  careful design…", matching the issue #2491 body and the README. No repository file changed.
+- Current-tree verification: `gh pr view 2492 --json body` shows the new sentence, and "The
+  maintainers support" no longer appears in it.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2492#issuecomment-6065313510>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2492#discussion_r4222080797>
+
+### F8 - The correction entry's explanation does not hold
+
+- PR number: 2492
+- Source review ID: 5460380310
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2492#discussion_r4222035727>
+- Concern: The 17:06 correction said that the 17:05 stamp should be 16:55, "based on the signed
+  fix-commit times", and that it was "recorded one hour late". The gap is ten minutes, and 16:55 is
+  the force-push time.
+- Solution: Appended a 17:19 UTC correction. It says the stamp was ten minutes late, that 16:55 UTC
+  is the force-push time (16:55:01Z), that the fix commits were committed at 16:52:49Z-16:52:50Z,
+  and that the replies were posted at 16:56:35Z-16:56:43Z. The earlier entries are unchanged.
+- Current-tree verification: The PR timeline shows `head_ref_force_pushed` at 16:55:01Z, and
+  `git log` shows the commit times. The 17:19 entry predates its commit (17:20:02Z).
+- Resolution reference: `docs(pr-review): [#2492] correct the review-log timestamp explanation`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2492#discussion_r4222081096>
+
 ## Processing Log
 
 - 2026-10-08 16:45 UTC - Started audit from all GraphQL review threads and submitted reviews.
@@ -153,6 +212,9 @@ verified material, so it has no further row.
   minutes late, not one hour. 16:55 UTC is the force-push time (16:55:01Z), not a fix-commit
   time; the fix commits were committed at 16:52:49Z-16:52:50Z, and the replies the 17:05 entry
   records were posted at 16:56:35Z-16:56:43Z.
+- 2026-10-08 17:23 UTC - Processed round 2 (review 5460380310): recorded F6-F8, edited the PR
+  body for F7, replied to the F7 and F8 threads, posted the consolidated response, confirmed both
+  threads had replies, resolved them, and fetched again: zero unresolved threads.
 
 ## Completion Rules
 
