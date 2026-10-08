@@ -8,22 +8,37 @@ semantic-links:
     - .github/skills/dev/git-workflow/commit-changes/SKILL.md
     - .github/agents/committer.agent.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
+    - docs/discussions/AGENTS.md
+    - docs/templates/DISCUSSION.md
 ---
 
 <!-- cspell:ignore Deployers -->
 
 # AI Model Provenance in Commits
 
-| Field        | Value                                                                                                                                                                                                                                                          |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | Draft for review in the pull request that adds it                                                                                                                                                                                                              |
-| Started      | 2026-10-07                                                                                                                                                                                                                                                     |
-| Participants | Jose Celano (the concern and the three purposes: tracking, analytics, legal); AI assistant using the Copilot SDK in VS Code, model `claude-opus-5.5` (research and draft)                                                                                      |
-| Reviewer     | Cameron (`da2ce7`), assignee of EPIC #2003                                                                                                                                                                                                                     |
-| Informs      | EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails                                                                                                                                                                                                |
-| Scope        | Aspect 2 (the commit-metadata contract and its format gate) and aspect 3 (the models an orchestration routes work to) of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md): how a commit records which AI models were involved in its changes |
+| Field          | Value                                                                                                                                                                                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Open for rounds                                                                                                                                                                                                                                                |
+| Started        | 2026-10-07                                                                                                                                                                                                                                                     |
+| Opened by      | Jose Celano (`josecelano`), who raised the concern and its three purposes (tracking, analytics, legal)                                                                                                                                                         |
+| Decision owner | Cameron (`da2ce7`), assignee of EPIC #2003                                                                                                                                                                                                                     |
+| Informs        | EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails                                                                                                                                                                                                |
+| Scope          | Aspect 2 (the commit-metadata contract and its format gate) and aspect 3 (the models an orchestration routes work to) of [Goals and Boundaries](../20261003-goals-and-boundaries/README.md): how a commit records which AI models were involved in its changes |
+| AI assistance  | AI assistant using the Copilot SDK in VS Code, model `claude-opus-5.5` (research and draft)                                                                                                                                                                    |
 
-## Why This Discussion
+## Context
+
+This discussion was opened in PR #2467 with a single-PR structure. It adopted the
+[discussion template](../../../templates/DISCUSSION.md) in a round by its opening author, under the
+round rules in [`docs/discussions/AGENTS.md`](../../AGENTS.md). The context below is unchanged; the
+open questions moved into [Topics](#topics) without changes to their words.
+
+Cameron (`da2ce7`) posted a draft position on these questions as a pull-request comment on
+PR #2467: <https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101>. Its Part
+C answers the topics: C1 (Q1), C2 (Q2), C3 (Q3 and Q4), C4 (Q5 and Q6), C5 (Q7), C6 (Q8), and C7
+(Q9). Under the round rules it is linked here, not copied, until he adds it in his own round.
+
+### Why This Discussion
 
 On 2026-10-06, while preparing the spec-only PR #2461 for issue #2458, an AI agent running in the
 Copilot SDK for VS Code added this trailer to three commits:
@@ -45,7 +60,7 @@ that the owner of EPIC #2003 can decide before anything is implemented.
 Nothing here changes a specification or a rule. A conclusion takes effect only when the owner of
 EPIC #2003 records it.
 
-## Why the Default Trailer Is Only Half Useful
+### Why the Default Trailer Is Only Half Useful
 
 1. **It records who made the commit, not who wrote the changes.** The harness adds the trailer
    whenever the agent runs `git commit`. A commit made by an agent can contain changes a human
@@ -63,7 +78,7 @@ EPIC #2003 records it.
 5. **It displays the bot as a co-author.** GitHub shows `Co-authored-by` identities as commit
    co-authors. That reads as shared authorship and accountability, which an AI model cannot hold.
 
-## What the Project Wants from Attribution
+### What the Project Wants from Attribution
 
 - **Tracking:** know, for any change, which models were involved and in what role.
 - **Analytics:** compare models with review findings, regressions, and rework. For example: which
@@ -71,7 +86,7 @@ EPIC #2003 records it.
 - **Legal and compliance readiness:** keep an auditable provenance record of AI involvement. The
   EU AI Act transparency rules are the main reason to ask this now (see below).
 
-## Precedent in Other Projects
+### Precedent in Other Projects
 
 Checked on 2026-10-06 on the projects' own pages.
 
@@ -94,7 +109,7 @@ Both projects use `Assisted-by`, not `Co-authored-by`, and both keep a human acc
 requires a precise model identifier or more than one model per commit. The purposes above would
 take this project further than both.
 
-## EU AI Act
+### EU AI Act
 
 This section needs legal review and is not legal advice.
 
@@ -113,7 +128,7 @@ Whether an open-source project that commits AI-assisted code has any obligation 
 established**. The project should not claim compliance. It can record the question for legal input
 and design provenance metadata that would support compliance if it turns out to be needed.
 
-## Options
+### Options
 
 | ID  | Option                                                         | Pros                                                                 | Cons                                                                |
 | --- | -------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -125,7 +140,7 @@ and design provenance metadata that would support compliance if it turns out to 
 Commit trailers stay with the code after merge, because this repository does not squash. That is
 the main argument against O2.
 
-## Draft Conclusions
+### Draft Conclusions
 
 These are the drafting agent's proposals, not decisions.
 
@@ -143,30 +158,7 @@ These are the drafting agent's proposals, not decisions.
 5. **Add an interim rule now.** Until the decision is recorded, `AGENTS.md` tells agents not to add
    provider-default AI trailers.
 
-## Open Questions for the Reviewer
-
-1. **Granularity:** should provenance live in commit trailers, in the PR body, in issue-local
-   evidence, or in a combination?
-2. **Which models count:** only models whose output is in the diff, or also models that explored,
-   reviewed, or planned? If reviewers count, they need a separate key so they are not confused
-   with authors.
-3. **Identifier format:** is `<harness>:<vendor>/<model-id>` acceptable, and how should unknown
-   versions be recorded?
-4. **Trailer key:** `Assisted-by`, for compatibility with the kernel and Fedora, or a
-   project-specific key that adds the role, such as `AI-Model:` or `Generated-by:`?
-5. **Source of truth:** the harness knows which models ran, through model-switch notices, subagent
-   configuration, and session logs. Who is responsible for collecting the list: the agent, the
-   harness, or the human committer?
-6. **Human edits and rewrites:** how is the list kept correct when a human edits AI output, when
-   commits are reworded or rebased, or when changes move between commits?
-7. **Enforcement:** document the rule only, or also validate the trailer format in a `commit-msg`
-   check? A tool can check the format of a declared trailer. It cannot check whether a declaration
-   is complete.
-8. **Interim rule:** should `AGENTS.md` forbid provider-default AI trailers before the decision?
-9. **Legal input:** who reviews the EU AI Act question, and does the answer change the required
-   level of detail?
-
-## Follow-up Work if Accepted
+### Follow-up Work if Accepted
 
 An issue specification, created after the outcome is recorded, carries the decision:
 
@@ -185,6 +177,91 @@ An issue specification, created after the outcome is recorded, carries the decis
 Rewriting historical commits, giving legal advice, and changing the GPG-signing policy are out of
 scope.
 
+## Topics
+
+### Q1 - Granularity
+
+Should provenance live in commit trailers, in the PR body, in issue-local evidence, or in a
+combination? Added by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q2 - Which models count
+
+Only models whose output is in the diff, or also models that explored, reviewed, or planned? If
+reviewers count, they need a separate key so they are not confused with authors. Added by Jose
+Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q3 - Identifier format
+
+Is `<harness>:<vendor>/<model-id>` acceptable, and how should unknown versions be recorded? Added by
+Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q4 - Trailer key
+
+`Assisted-by`, for compatibility with the kernel and Fedora, or a project-specific key that adds the
+role, such as `AI-Model:` or `Generated-by:`? Added by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q5 - Source of truth
+
+The harness knows which models ran, through model-switch notices, subagent configuration, and
+session logs. Who is responsible for collecting the list: the agent, the harness, or the human
+committer? Added by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q6 - Human edits and rewrites
+
+How is the list kept correct when a human edits AI output, when commits are reworded or rebased, or
+when changes move between commits? Added by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q7 - Enforcement
+
+Document the rule only, or also validate the trailer format in a `commit-msg` check? A tool can
+check the format of a declared trailer. It cannot check whether a declaration is complete. Added by
+Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q8 - Interim rule
+
+Should `AGENTS.md` forbid provider-default AI trailers before the decision? Added by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
+### Q9 - Legal input
+
+Who reviews the EU AI Act question, and does the answer change the required level of detail? Added
+by Jose Celano.
+
+#### Positions
+
+No positions yet.
+
 ## Outcome
 
-Pending review.
+Pending: no decision recorded.
