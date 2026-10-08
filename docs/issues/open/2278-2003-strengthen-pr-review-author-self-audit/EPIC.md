@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-08 16:50"
+last-updated-utc: "2026-10-08 17:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,11 +80,11 @@ human can perform the work reproducibly.
 ## Decision Record
 
 [`retrospective-improvement-matrix.md`](retrospective-improvement-matrix.md) is the approved
-decision input for every subissue. It maps each proposal from the three retrospectives and each
-author-side item of the #2003 friction register to `Adopt`, `Defer`, `Reject`, or `Out of scope`,
-with owner and rationale, and records the boundaries with EPIC #2264. Subissues implement the
-matrix; they do not reopen its dispositions without a maintainer decision recorded in this EPIC's
-progress log.
+decision input for every subissue. It maps each proposal from the PR review retrospectives its
+introduction lists and each author-side item of the #2003 friction register to `Adopt`, `Defer`,
+`Reject`, or `Out of scope`, with owner and rationale, and records the boundaries with EPIC #2264.
+Subissues implement the matrix; they do not reopen its dispositions without a maintainer decision
+recorded in this EPIC's progress log.
 
 Decisions the matrix fixes and that subissues must respect:
 
@@ -270,10 +270,11 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer set the order after Phase 1: order 6 next, then order 5 once PR #2344 merges and #2347 triage settles which audit-contract findings belong to it, because orders 5, #2344, and #2347 all edit `process-pr-review`. Maintainer approved the order 6 specification with the `no-stdout-result` output migration; created and linked subissue #2349 and moved its specification to `docs/issues/open/2349-2278-contract-checker-evidence-boundary/`. Spec-only PR pending. For order 7, #2266 recorded its placement decision (`contrib/dev-tools/checks/`, `cargo run --package`, `no-stdout-result`), so it is unblocked; the maintainer approved three decisions for its specification: keep `no-stdout-result` and record dropping the Python prototype's stdout JSON summary as a deliberate parity deviation; do not wait for #2281, adopting its NDJSON diagnostic catalog if it has merged when order 7 starts; and no pre-commit integration, because the validator needs `gh` and network access.
 - 2026-09-28 10:08 UTC - GitHub Copilot - #2347 triage settled which audit-contract findings belong where. None goes to order 5. `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, and `-f9` go to the new order 11, which the maintainer approved; created and linked subissue #2362. `review-finding:pr-2300-f10` goes to order 8 (T3 approval <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>).
 - 2026-10-08 16:50 UTC - da2ce7 - Recorded the six proposals of the PR #2484 review retrospective in the matrix: items 1 (the manual sweep) and 2 adopted for order 5, item 1's tool deferred to order 8, item 3 deferred to order 10, and items 4 to 6 left to EPIC #2003's register. No fixed decision of the Decision Record changes.
+- 2026-10-08 17:28 UTC - da2ce7 - Answered review 5460432014 on PR #2494: the Decision Record, AC1 and References now cover the PR #2484 retrospective, and the matrix's pre-push sweep fails only on a current reference to a deleted or renamed path, allowing references marked historical.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every proposal in the PR #2270, #2271, and #2272 retrospectives and every author-side #2003 register item has a recorded disposition, rationale, and owner in the matrix.
+- [ ] AC1: Every proposal in the PR review retrospectives the matrix lists (PR #2270, #2271, #2272, and #2484) and every author-side #2003 register item has a recorded disposition, rationale, and owner in the matrix.
 - [x] AC2: `process-pr-review`, its helper skills, and `PR-REVIEW-TEMPLATE.md` state one rule for every case the matrix lists; the field roster appears once, one field per line, and matches the detail skeleton. (Subissues 1, 2, 3, 4.)
 - [ ] AC3: The author workflow requires current-source self-audit before every audit commit, reply, thread resolution, and re-review request; states the evidence source for each claim; never accepts intent as verification; and defines the second-re-raise and context-compaction triggers. (Subissue 5.)
 - [ ] AC4: No check that ignores the audit record can be cited as audit evidence. (Subissue 6.)
@@ -288,7 +289,7 @@ requests where possible; a fixture is used only when no real review produced the
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | DONE | `retrospective-improvement-matrix.md`; maintainer approval recorded in the 2026-09-22 06:59 UTC progress entry. |
+| AC1 | DONE | `retrospective-improvement-matrix.md`; maintainer approval recorded in the 2026-09-22 06:59 UTC progress entry; the PR #2484 rows recorded in the 2026-10-08 16:50 UTC entry. |
 | AC2 | DONE | #2295, #2308, #2318, and #2333 are DONE via merged PRs #2300, #2313, #2322, and #2339. |
 | AC3 | TODO | Subissue 5. |
 | AC4 | TODO | Subissue 6. |
@@ -319,6 +320,6 @@ requests where possible; a fixture is used only when no real review produced the
 - Sibling child EPIC with the shared check-crate shape: #2264 (subissues #2266, #2280, #2281).
 - EPIC #2003 friction register summary: <https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5767266486>.
 - Prior process work: #2219 and #2233.
-- Source retrospectives: PR #2270, PR #2271, and PR #2272 under `docs/pr-reviews/`.
+- Source retrospectives: PR #2270, PR #2271, PR #2272, and PR #2484 under `docs/pr-reviews/`; the PR #2484 retrospective reaches `develop` when PR #2484 merges.
 - Spec-only PR for the original task: #2279.
 - Related ADR: `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`.
