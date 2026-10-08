@@ -9,7 +9,7 @@ github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/ISSUE.md
 branch: "2482-1669-decouple-test-helpers-from-unpublished-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-08 08:42"
+last-updated-utc: "2026-10-08 12:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -208,6 +208,13 @@ Use a Conventional Commit message with the issue reference and sign every commit
   published. Folded in the draft for finding 2 (`1669-gate-server-testing-modules-behind-feature`),
   whose feature-gating plan is now option O1, and renamed the folder from
   `2482-1669-decouple-test-helpers-from-unpublished-crates`.
+- 2026-10-08 12:40 UTC - AI assistant (Copilot SDK in VS Code) - Addressed review 5454599321 (`da2ce7`,
+  round 1) on PR #2484: the inventory now dates the `test-helpers` dependency growth in two steps,
+  drops `torrust-info-hash` from `udp`, says which `tracker-core` test modules stay public and which
+  environments alias `Unstarted`, and states how intra-doc links are counted. This spec now scopes
+  the publishing plan to members without `publish = false` (nine members set it, so the 08:42 entry's
+  "all packages will be published" overstates it) and names the open #1488 subissues #2449, #2450
+  and #2471 that change the environments.
 
 ## Acceptance Criteria
 
