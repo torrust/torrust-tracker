@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 14:48"
+last-updated-utc: "2026-10-08 15:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -284,7 +284,9 @@ Append one line per meaningful update.
   width, per PR #2484 review finding F8.
 - 2026-10-08 14:48 UTC - GitHub Copilot - The conversion also dropped Design and Ownership
   Review; its ownership rule for the environments is now part of D2's expected output, per PR
-  #2484 review finding F12. Subissue 1's spec carries the full Design and Ownership Review.
+  #2484 review finding F12. Subissue 1's spec will carry the full Design and Ownership Review.
+- 2026-10-08 15:20 UTC - GitHub Copilot - The 14:48 entry now says subissue 1's spec "will
+  carry" the section, since that spec does not exist yet, per PR #2484 review finding F13.
 
 ## Acceptance Criteria
 
