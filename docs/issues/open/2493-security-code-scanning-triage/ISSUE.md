@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: in-review
 priority: p2
 epic: null
 github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: null
-last-updated-utc: "2026-10-08 17:05"
+last-updated-utc: "2026-10-08 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -154,12 +154,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Process and focused AI skill completed
 - [x] Current findings captured, clustered, and classified
 - [x] Focused issue specs reviewed and created
-- [ ] Automatic verification completed
+- [x] Implementation completed
+- [x] Automatic verification completed
 - [x] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
-- [ ] Evidence-based completion review recorded
+- [x] Acceptance criteria reviewed after implementation
+- [x] Evidence-based completion review recorded
 - [ ] Reviewer validated acceptance criteria
-- [ ] Committer verified spec progress before commit
+- [x] Committer verified spec progress before commit
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ## Acceptance Criteria
@@ -174,7 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] A set of smaller issue specs is created for each real cluster rather than one umbrella issue.
 - [x] The catalog records accepted and non-applicable findings so they are not lost.
 - [x] The next review date and cadence are recorded.
-- [ ] `linter markdown`, `linter cspell`, and relevant semantic-link checks pass.
+- [x] `linter markdown`, `linter cspell`, and relevant semantic-link checks pass.
 
 ## Verification Plan
 
@@ -184,7 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `linter cspell`
 - `linter all` before commit
 - Repository searches confirm every declared skill link resolves to an existing skill and every
-  referenced issue-spec path uses issue #2493.
+  child issue number, title, and specification path match GitHub metadata.
 
 ### Manual Verification Scenarios
 
@@ -196,26 +197,40 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Verification
 
-Complete after the initial inventory and focused issue specs exist. Record the exact finding
-counts by source, cluster count, disposition totals, issue links, validation commands, and next
-review date.
+Verified on 2026-10-08:
+
+- Sources: 66 Code Scanning alerts plus 2 Code Quality findings.
+- Coverage: all 68 findings map exactly once to 11 clusters.
+- Dispositions: 27 hardening, 2 needs investigation, 39 non-affecting, and 0 confirmed affecting.
+- Follow-up issues: #2497 for native zlib reachability, #2496 for release workflow permissions,
+  and #2495 for CI workflow permissions.
+- Catalog: `docs/security/analysis/github-security/README.md`.
+- Dated evidence: `docs/security/analysis/github-security/reviews/2026-10-08.md`.
+- Next review: 2027-01-08, before the next release if earlier, or on a catalog recheck trigger.
+- Validation: exact alert-set reconciliation, v1 frontmatter validation, `linter markdown`,
+  `linter cspell`, `linter lychee`, and the complete pre-commit gate all passed.
 
 ## Implementation Completion Review
 
-Create `implementation-retrospective.md` if the first real review changes the proposed
-classification model, inventory structure, or skill routing. Otherwise record in the progress log
-that the first cycle validated the documented process without a material design change.
+No separate `implementation-retrospective.md` is required. The first cycle validated the
+classification and skill-routing model. Two reusable corrections were incorporated directly into
+the canonical process and evidence:
+
+- durable decisions use the repository's established **catalog** term, while dated source coverage
+  is a **review inventory**;
+- package presence alone is insufficient, but a previous non-affecting verdict must be reopened
+  when its own recheck condition is demonstrably true, as occurred with native zlib linkage.
 
 ## Progress Log
 
-- 2026-10-08 17:18 UTC - Copilot - Drafted the repeatable GitHub security triage process and
+- 2026-10-08 16:18 UTC - Copilot - Drafted the repeatable GitHub security triage process and
   the first issue spec to execute the initial review cycle.
-- 2026-10-08 17:35 UTC - Maintainer - Approved the no-EPIC approach, recurring process, initial
+- 2026-10-08 16:24 UTC - Maintainer - Approved the no-EPIC approach, recurring process, initial
   review, and focused issue creation; requested an AI skill architecture review before triage.
-- 2026-10-08 17:50 UTC - Copilot - Added the focused-skill design: canonical policy remains in
+- 2026-10-08 16:29 UTC - Copilot - Added the focused-skill design: canonical policy remains in
   security documentation, while separate skills route public GitHub findings, CVEs, image scans,
   and confidential reports.
-- 2026-10-08 18:05 UTC - Maintainer - Clarified that priority must follow the affected trust
+- 2026-10-08 16:30 UTC - Maintainer - Clarified that priority must follow the affected trust
   boundary: shipped runtime and production dependencies first, CD and release injection at the
   same high tier, CI in the middle unless it provides a higher-tier pivot, and local development
   or test tooling normally lower.
@@ -229,6 +244,10 @@ that the first cycle validated the documented process without a material design 
 - 2026-10-08 17:05 UTC - Maintainer - Approved all three focused specifications. Copilot created
   #2497 for native zlib reachability, #2496 for release workflow permissions, and #2495 for CI
   workflow permissions, then replaced temporary catalog links with stable issue references.
+- 2026-10-08 17:08 UTC - Copilot - Committed the catalog, dated review, CVE corrections, manual
+  evidence, and three approved issue specs in `d68281286`. The complete pre-commit gate passed,
+  including frontmatter validation, dependency checks, nightly formatting, all linters,
+  Containerfile linting, and workspace documentation tests.
 
 ## Notes
 
