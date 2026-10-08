@@ -57,6 +57,11 @@ F3 to F7 do not.
 | F5 | `review-finding:pr-2484-f5` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2484-f6` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2484-f7` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2484-f8` | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2484-f9` | Human | Major | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2484-f10` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2484-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2484-f12` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -151,6 +156,71 @@ F3 to F7 do not.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219055480>
 
+### F8 - The round-1 log entry overruns the 100-column wrap
+
+- PR number: 2484
+- Source review ID: 5457064358
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319086>
+- Concern: Two lines of the 12:40 progress-log entry in `EPIC.md` were 103 and 101 characters, the only prose lines over the file's 100-column wrap.
+- Solution: Rewrapped the entry to 100 columns, keeping `#1488` mid-line so no continuation starts with `#<digits>` (MD018), and logged the rewrap.
+- Current-tree verification: An `awk` width check on `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md` finds no prose line over 100 columns, only table rows and link-only reference lines; `linter markdown` exits 0.
+- Resolution reference: docs(issues): [#2482] rewrap the round-1 log entry to 100 columns
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220601650>
+
+### F9 - The audit's related-artifacts names the deleted ISSUE.md
+
+- PR number: 2484
+- Source review ID: 5457064358
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319065>
+- Concern: The sub-EPIC conversion replaced `ISSUE.md` with `EPIC.md`, but this audit's `related-artifacts` still named `ISSUE.md`, the only live path to it in the tree.
+- Solution: Pointed the entry at `EPIC.md`.
+- Current-tree verification: The frontmatter of this record names `EPIC.md`; `rg 'reorganize-shared-test-support/ISSUE.md'` outside dated prose finds nothing.
+- Resolution reference: docs(pr-reviews): [#2482] point the PR #2484 audit at EPIC.md
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220600920>
+
+### F10 - Two audit verifications cite ISSUE.md lines that no longer exist
+
+- PR number: 2484
+- Source review ID: 5457064358
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319077>
+- Concern: The F2 and F7 current-tree verifications cited `ISSUE.md` line ranges that the conversion removed.
+- Solution: Re-pointed both to the matching `EPIC.md` lines, keeping the earlier `ISSUE.md` citations marked as before the conversion.
+- Current-tree verification: `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md:66-71`, `:109`, `:204-207`, `:330-332` and `:347-350` hold the cited text; the validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): [#2482] point the PR #2484 audit at EPIC.md
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220601330>
+
+### F11 - EPIC #1669 records the conversion at 12:33, EPIC.md at 12:53
+
+- PR number: 2484
+- Source review ID: 5457064358
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319097>
+- Concern: EPIC #1669's log entry and stamp dated the conversion 12:33, while the sub-EPIC's log and stamp said 12:53 and its commit was authored at 12:54:52Z.
+- Solution: Dated the #1669 entry and its `last-updated-utc` at 12:53.
+- Current-tree verification: `docs/issues/open/1669-overhaul-packages/EPIC.md` stamp and progress-log entry both read `2026-10-08 12:53`.
+- Resolution reference: docs(issues): [#2482] date the sub-EPIC conversion at 12:53 in EPIC #1669
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220602012>
+
+### F12 - The ownership rule from Design and Ownership Review was dropped
+
+- PR number: 2484
+- Source review ID: 5457064358
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4219319106>
+- Concern: The conversion removed Design and Ownership Review, so its ownership rule for the environments appeared nowhere in the tree, although `create-issue` requires an ownership map for reusable test fixtures.
+- Solution: Made the ownership map part of D2's expected output (the package whose server an environment starts owns it; other packages use its published test API or their own `tests/` code) and logged that subissue 1's spec carries the full section.
+- Current-tree verification: The D2 row and the 14:48 progress-log entry in `docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md` inspected.
+- Resolution reference: docs(issues): [#2482] carry the environment ownership rule into D2
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4220602429>
+
 ## Processing Log
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
@@ -160,6 +230,11 @@ F3 to F7 do not.
   pushed.
 - 2026-10-08 12:43 UTC - Re-checked every claim against the pushed tree and replied on all seven
   threads.
+- 2026-10-08 13:08 UTC - Human review 5457064358 (da2ce7, round 2) requested changes at the sub-EPIC
+  conversion head `c43fc9013`: F1 to F7 carried as fixed, and five new findings, F8 to F12.
+- 2026-10-08 15:01 UTC - Committed one fix per finding (F9 and F10 share the audit edit), rebased
+  onto `develop`, which had moved 11 commits, pushed after the pre-push suite passed, and replied
+  on the five threads before recording them here.
 
 ## Completion Rules
 
