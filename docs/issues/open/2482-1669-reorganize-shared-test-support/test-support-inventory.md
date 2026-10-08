@@ -84,6 +84,12 @@ Normal dependencies that production source does not use, only the module above:
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
 
+Intra-doc links count as production use here. `axum-http-server`'s only use of
+`torrust-tracker-configuration` outside `src/testing/` and `#[cfg(test)]` code is the intra-doc
+link at `src/v1/extractors/client_ip_sources.rs:19`, so that edge is not listed. Under O1 the link
+would stop resolving once the dependency became optional, so the edge becomes a tenth candidate if
+the link is reworded.
+
 Other observations:
 
 - The two examples, which show how to run a single-protocol tracker, start it through the
