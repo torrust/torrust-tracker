@@ -103,7 +103,8 @@ project. Research looks outward — at how other projects solve similar problems
 
 ## Discussions
 
-Design discussions and their draft conclusions, kept for review by the owner of the affected work.
+Design discussions held in attributed rounds, with the Outcome recorded by the owner of the affected
+work.
 A discussion is input, not a decision.
 
 | Location                                                                                                                                                                                         | Description                                                                            |
