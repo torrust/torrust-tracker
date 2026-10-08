@@ -337,9 +337,9 @@ F3 to F7 do not.
 
 - 2026-10-08 12:34 UTC - Started audit. Fetched the seven review threads with GraphQL (all
   unresolved, none outdated) and both review bodies; normalized them into F1 to F7.
-- 2026-10-08 12:42 UTC - Committed the seven fixes, one per finding, plus a rewrap and a progress-log
-  entry, after the pre-commit gate passed; rebased onto `develop`, which had moved 13 commits, and
-  pushed.
+- 2026-10-08 12:42 UTC - Committed the seven fixes, one per finding, plus a rewrap and a
+  progress-log entry, after the pre-commit gate passed; rebased onto `develop`, which had moved
+  13 commits, and pushed.
 - 2026-10-08 12:43 UTC - Re-checked every claim against the pushed tree and replied on all seven
   threads.
 - 2026-10-08 13:08 UTC - Human review 5457064358 (da2ce7, round 2) requested changes at the sub-EPIC
