@@ -14,9 +14,11 @@ semantic-links:
 
 # PR Review Retrospective — PR #2484
 
-Current as of review 5459306372 (round 4). Written at the maintainer's request after four human
-rounds on a documentation-only spec PR, to find out why the rounds kept coming and what would
-make the next spec PR converge in one or two.
+Covers rounds 1 to 4, up to review 5459306372. Written at the maintainer's request after four
+human rounds on a documentation-only spec PR, to find out why the rounds kept coming and what
+would make the next spec PR converge in one or two. Round 5 (review 5459990293) reviewed this
+retrospective; its findings (F15 to F18, F20, F21) corrected claims here and in the audit and
+are recorded in the audit, not re-counted below.
 
 ## Purpose
 
@@ -150,6 +152,12 @@ Ordered by expected return. Each names its owner artifact and a disposition. The
 asked that the owner of EPIC #2003 (Automation Tools and AI Agent Guardrails) read this
 retrospective and decide which items enter that EPIC or its sub-EPIC #2278 (Strengthen PR Review
 Author Self-Audit). Items marked `PROPOSED` are therefore not applied here.
+
+The #2003 owner triaged the six items in a
+[PR #2484 comment](https://github.com/torrust/torrust-tracker/pull/2484#issuecomment-6064986152):
+items 1 (as manual steps; the tool deferred) and 2 are adopted into #2278 row 5, item 3 is
+deferred to #2278 row 10, and items 4 to 6 are recorded in the #2003 friction register. The
+dispositions live in PRs #2494 and #2366, not here.
 
 1. **Author pre-push sweep for PRs under review** — `process-pr-review/SKILL.md` and EPIC #2278
    row 5 ("Add the author self-audit gate") — `PROPOSED`. A deterministic check run before every
