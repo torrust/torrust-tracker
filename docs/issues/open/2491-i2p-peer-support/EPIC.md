@@ -177,8 +177,8 @@ Append one line per meaningful update.
   decide the trust model in an ADR before any I2P announce is accepted.
 - **Wide change surface.** Replacing `SocketAddr` with a peer address type touches most packages.
   Mitigation: decide the domain model first, and split delivery into reviewable subissues.
-- **Stale proposal.** PRs #2050 and #2059 were written against `develop` in August 2026 and will
-  need rework. Mitigation: treat them as reference, not as a branch to rebase blindly.
+- **Stale proposal.** PRs #2050 and #2059 were written against `develop` in July and August 2026
+  and will need rework. Mitigation: treat them as reference, not as a branch to rebase blindly.
 
 ## References
 
