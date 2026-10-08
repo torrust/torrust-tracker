@@ -1222,8 +1222,8 @@ five edges that are used:
   (already noted in the previous report).
 
 Reading the library target name and the dependency rename from `cargo metadata` would fix
-this. Draft subissue:
-[`1669-coupling-tool-resolve-lib-names-and-renames`](../../drafts/1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md).
+this. Subissue: #2475
+([`2475-1669-coupling-tool-resolve-lib-names-and-renames`](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)).
 
 #### Acceptable thin dependencies (not worth addressing)
 
