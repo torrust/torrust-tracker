@@ -16,6 +16,7 @@ use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use torrust_tracker_test_helpers::configuration;
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
 use torrust_tracker_udp_core::event::bus::EventBus;
 use torrust_tracker_udp_core::event::sender::Broadcaster;
 use torrust_tracker_udp_core::services::scrape::ScrapeService;
@@ -65,9 +66,10 @@ impl ScrapeBenchmarkContext {
                 .await;
         }
 
+        let cookie_cipher = Arc::new(CookieCipher::random());
         let issue_time = torrust_clock::clock::Working::now().as_secs_f64();
         let request = ScrapeRequest {
-            connection_id: make(gen_remote_fingerprint(&client_socket_addr), issue_time).unwrap(),
+            connection_id: make(&cookie_cipher, gen_remote_fingerprint(&client_socket_addr), issue_time).unwrap(),
             transaction_id: TransactionId::new(0i32),
             info_hashes: request_info_hashes,
         };
@@ -75,6 +77,7 @@ impl ScrapeBenchmarkContext {
         Self {
             scrape_service: Arc::new(ScrapeService::new(
                 scrape_handler,
+                cookie_cipher,
                 event_bus.sender(),
                 ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
             )),

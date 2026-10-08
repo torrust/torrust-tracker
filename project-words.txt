@@ -130,6 +130,7 @@ Xdebug
 Xeon
 Xtorrent
 Xunlei
+Zeroizing
 abdurazzoqovjavohir
 acgnxtracker
 actix
@@ -219,6 +220,7 @@ distros
 dler
 dockerhub
 doctest
+doctests
 downloadedi
 dpkg
 dport

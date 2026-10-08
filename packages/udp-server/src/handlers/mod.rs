@@ -244,7 +244,7 @@ pub(crate) mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::ops::Range;
-    use std::sync::Arc;
+    use std::sync::{Arc, LazyLock};
 
     use futures::future::BoxFuture;
     use mockall::mock;
@@ -264,7 +264,8 @@ pub(crate) mod tests {
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_udp_core::connection_cookie::gen_remote_fingerprint;
+    use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+    use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
     use torrust_tracker_udp_core::event::bus::EventBus;
     use torrust_tracker_udp_core::event::sender::Broadcaster;
     use torrust_tracker_udp_core::services::announce::AnnounceService;
@@ -376,6 +377,7 @@ pub(crate) mod tests {
         let announce_service = Arc::new(AnnounceService::new(
             announce_handler.clone(),
             whitelist_authorization.clone(),
+            test_cookie_cipher(),
             udp_core_stats_event_sender.clone(),
             configuration_instance_id,
             config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
@@ -386,6 +388,7 @@ pub(crate) mod tests {
 
         let scrape_service = Arc::new(ScrapeService::new(
             scrape_handler,
+            test_cookie_cipher(),
             udp_core_stats_event_sender.clone(),
             configuration_instance_id,
         ));
@@ -413,16 +416,8 @@ pub(crate) mod tests {
         sample_ipv4_socket_address()
     }
 
-    pub fn sample_ipv4_remote_addr_fingerprint() -> u64 {
-        gen_remote_fingerprint(&sample_ipv4_socket_address())
-    }
-
     pub fn sample_ipv6_remote_addr() -> SocketAddr {
         sample_ipv6_socket_address()
-    }
-
-    pub fn sample_ipv6_remote_addr_fingerprint() -> u64 {
-        gen_remote_fingerprint(&sample_ipv6_socket_address())
     }
 
     pub fn sample_ipv4_socket_address() -> SocketAddr {
@@ -435,6 +430,24 @@ pub(crate) mod tests {
 
     pub fn sample_issue_time() -> f64 {
         1_000_000_000_f64
+    }
+
+    /// The connection-cookie key shared by the services these tests build and
+    /// by [`connection_id_issued_to`], as one composition root shares it.
+    pub fn test_cookie_cipher() -> Arc<CookieCipher> {
+        static TEST_COOKIE_CIPHER: LazyLock<Arc<CookieCipher>> = LazyLock::new(|| Arc::new(CookieCipher::random()));
+
+        TEST_COOKIE_CIPHER.clone()
+    }
+
+    /// A valid connection ID issued to `client_socket_addr` at [`sample_issue_time`].
+    pub fn connection_id_issued_to(client_socket_addr: &SocketAddr) -> ConnectionId {
+        make(
+            &test_cookie_cipher(),
+            gen_remote_fingerprint(client_socket_addr),
+            sample_issue_time(),
+        )
+        .expect("the sample issue time should be a normal value")
     }
 
     pub fn sample_cookie_valid_range() -> Range<f64> {

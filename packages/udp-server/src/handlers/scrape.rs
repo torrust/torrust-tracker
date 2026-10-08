@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::scrape::ScrapeService;
 use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -54,11 +53,9 @@ pub async fn handle_scrape(
         let validate_cookie = match cookie_validation.connection_id_validation {
             ConnectionIdValidationPolicy::Strict => true,
             ConnectionIdValidationPolicy::Disabled => {
-                if let Err(cookie_error) = check(
-                    &request.connection_id,
-                    gen_remote_fingerprint(&client_socket_addr),
-                    cookie_validation.valid_range.clone(),
-                ) {
+                if let Err(cookie_error) =
+                    scrape_service.authenticate(client_socket_addr, request, cookie_validation.valid_range.clone())
+                {
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         %client_socket_addr,
@@ -137,7 +134,6 @@ mod tests {
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::configuration;
-        use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_udp_core::event::ConnectionContext;
         use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
         use torrust_tracker_udp_protocol::{
@@ -150,9 +146,9 @@ mod tests {
         use crate::event::sender::Broadcaster;
         use crate::event::{Event, UdpRequestKind};
         use crate::handlers::tests::{
-            CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_listed_tracker,
-            initialize_core_tracker_services_for_public_tracker, initialize_core_tracker_services_with_config,
-            sample_ipv4_remote_addr, sample_issue_time, sample_strict_cookie_validation,
+            CoreTrackerServices, CoreUdpTrackerServices, connection_id_issued_to,
+            initialize_core_tracker_services_for_listed_tracker, initialize_core_tracker_services_for_public_tracker,
+            initialize_core_tracker_services_with_config, sample_ipv4_remote_addr, sample_strict_cookie_validation,
         };
         use crate::handlers::{CookieValidationContext, handle_scrape};
 
@@ -248,7 +244,7 @@ mod tests {
             fn for_client_and_info_hash(client_socket_addr: SocketAddr, info_hash: InfoHash) -> Self {
                 Self {
                     request: ScrapeRequest {
-                        connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
+                        connection_id: connection_id_issued_to(&client_socket_addr),
                         transaction_id: TransactionId::new(0i32),
                         info_hashes: vec![info_hash],
                     },

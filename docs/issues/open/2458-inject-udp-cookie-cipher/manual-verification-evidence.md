@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2458-inject-udp-cookie-cipher/ISSUE.md
-last-updated-utc: "2026-10-06 18:26"
+last-updated-utc: "2026-10-07 15:03"
 ---
 
 # Manual Verification Evidence
@@ -123,6 +123,454 @@ the forged cookie should validate: ValueExpired { expired_value: -1.203840196111
 #### Conclusion
 
 The mutated production artifact started normally; `check_seed()` did not panic because it compares only the unrelated seed. The independently generated all-zero-key cookie was accepted for the intended fingerprint and time. The control run shows that the same cookie is rejected when production uses the random cipher, so the acceptance comes from the mutation, not from a flaw in the example. This is a real-artifact reproduction of the missing production guarantee. A network-level `UdpTrackerClient::send` request was unnecessary to establish the causal security outcome: the production-mode `check` seam accepted a connection ID forged without using the tracker cipher.
+
+## Post-Fix Manual Verification (T8)
+
+Shared environment for V2-V4:
+
+- Date and time (UTC): 2026-10-07 09:58-10:00, from the saved outputs and log timestamps.
+- Artifact under test: the implementation branch at
+  `fix(udp-core): [#2458] remove the global key statics and the startup seed check`, the last
+  production change, with a clean working tree apart from the disposable example in V3.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`), default Cargo development profile.
+- Tracker: `TORRUST_TRACKER_CONFIG_OVERRIDE_LOGGING__TRACE_FILTER=trace cargo run`, the default
+  development configuration (UDP trackers on 6969 and 6868, strict connection ID validation) with
+  trace logging, output written to a local file. The UDP ports were free before the start, and the
+  tracker was stopped with `SIGTERM` afterwards; it logged `Torrust tracker shutting down (SIGTERM)`
+  and then `Torrust tracker successfully shutdown.`
+
+### V2 - M1: Normal Client Flow
+
+```text
+$ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+```
+
+The client connected, received a connection ID issued with the injected key, and the announce that
+carried it was accepted. Status: `DONE`.
+
+### V3 - M2b: Forged Connection ID After the Fix
+
+The recheck repeats V1 like-for-like at the same two seams, plus the network request that V1 left
+for after the fix.
+
+Steps:
+
+1. Recreated the disposable example `packages/udp-core/examples/forge_zeroed_cookie.rs`, adapted to
+   the new API, and ran it against the running tracker. It forges a connection ID with its own
+   all-zero-key Blowfish, exactly as in V1, and:
+   - checks it in process with the only key production code can create, `CookieCipher::random()`;
+   - sends an announce carrying a connection ID forged for its own socket address and the current
+     time to the tracker over UDP;
+   - as a control, sends a connect and then an announce with the connection ID the tracker issued.
+2. Tried to select the fixed test key from a production build, with a second disposable example.
+3. Removed both examples; `git status --short` was empty.
+
+Disposable example, verbatim:
+
+```rust
+//! Disposable M2b recheck for issue #2458. Not committed; see the issue evidence.
+use std::net::SocketAddr;
+use std::num::NonZeroU16;
+
+use blowfish::BlowfishLE;
+use cipher::{Block, BlockCipherEncrypt, KeyInit};
+use tokio::net::UdpSocket;
+use torrust_clock::clock::{Time, Working};
+use torrust_tracker_primitives::PeerId;
+use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
+use torrust_tracker_udp_protocol::{
+    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes,
+    NumberOfPeers, PeerKey, Port, Request, Response, TransactionId,
+};
+
+fn forge_with_all_zero_key(fingerprint: u64, issue_at: f64) -> ConnectionId {
+    let plaintext = (i64::from_ne_bytes(issue_at.to_ne_bytes()).wrapping_add(fingerprint as i64)).to_ne_bytes();
+    let mut ciphertext = Block::<BlowfishLE>::from(plaintext);
+    let cipher = BlowfishLE::new_from_slice(&[0_u8; 32]).expect("the fixed test key is a valid Blowfish key");
+    cipher.encrypt_block(&mut ciphertext);
+    ConnectionId::new(i64::from_be_bytes(ciphertext.as_slice().try_into().expect("a cookie is eight bytes")))
+}
+
+fn announce_with(connection_id: ConnectionId) -> Request {
+    Request::from(AnnounceRequest {
+        connection_id,
+        action_placeholder: AnnounceActionPlaceholder::default(),
+        transaction_id: TransactionId::new(2),
+        info_hash: InfoHash([0x9c; 20]),
+        peer_id: PeerId(*b"-qB00000000000000002"),
+        bytes_downloaded: NumberOfBytes::new(0),
+        bytes_uploaded: NumberOfBytes::new(0),
+        bytes_left: NumberOfBytes::new(0),
+        event: AnnounceEvent::Started.into(),
+        ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+        key: PeerKey::new(0),
+        peers_wanted: NumberOfPeers::new(10),
+        port: Port::new(NonZeroU16::new(6881).expect("a non-zero port")),
+    })
+}
+
+async fn send(socket: &UdpSocket, request: &Request) -> Response {
+    let mut bytes = Vec::new();
+    request.write_bytes(&mut bytes).expect("the request serializes");
+    socket.send(&bytes).await.expect("the request is sent");
+    let mut buffer = [0_u8; 2048];
+    let len = socket.recv(&mut buffer).await.expect("a response arrives");
+    Response::parse_bytes(&buffer[..len], true).expect("the response parses")
+}
+
+#[tokio::main]
+async fn main() {
+    // In process: the same forged cookie checked with the only key production code can create.
+    let fingerprint = 0x7a31_0000_0000_0001_u64;
+    let issue_at = 1_728_000_000.0_f64;
+    let in_process = check(
+        &CookieCipher::random(),
+        &forge_with_all_zero_key(fingerprint, issue_at),
+        fingerprint,
+        (issue_at - 1.0)..(issue_at + 1.0),
+    );
+    println!("in-process check of the all-zero-key cookie with a production key: {in_process:?}");
+
+    // Over the network, against the running tracker.
+    let tracker: SocketAddr = "127.0.0.1:6969".parse().expect("a socket address");
+    let socket = UdpSocket::bind("127.0.0.1:0").await.expect("a local UDP socket");
+    socket.connect(tracker).await.expect("the tracker address");
+    let client_addr = socket.local_addr().expect("the local address");
+
+    let forged = forge_with_all_zero_key(gen_remote_fingerprint(&client_addr), Working::now().as_secs_f64());
+    println!("announce with a connection ID forged with the all-zero key: {:?}", send(&socket, &announce_with(forged)).await);
+
+    let Response::Connect(connect) = send(&socket, &Request::Connect(ConnectRequest { transaction_id: TransactionId::new(1) })).await
+    else {
+        panic!("the tracker should answer a connect request with a connect response");
+    };
+    println!(
+        "control: announce with the connection ID the tracker issued: {:?}",
+        send(&socket, &announce_with(connect.connection_id)).await
+    );
+}
+```
+
+Output (the error message's long number is shortened with `...`; the rest is verbatim):
+
+```text
+$ cargo run -q -p torrust-tracker-udp-core --example forge_zeroed_cookie
+in-process check of the all-zero-key cookie with a production key: Err(ValueExpired { expired_value: -4.369561240247418e-6, min_value: 1727999999.0 })
+announce with a connection ID forged with the all-zero key: Error(ErrorResponse { transaction_id: TransactionId(I32(2)), message: "tracker announce error: Connection cookie error: cookie value is from future: 5246985784817779...000, expected < 1791367166.1417303" })
+control: announce with the connection ID the tracker issued: AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(2)), announce_interval: AnnounceInterval(I32(120)), leechers: NumberOfPeers(I32(0)), seeders: NumberOfPeers(I32(1)) }, peers: [] })
+```
+
+The tracker logged the rejected announce as a `WARN` from `handle_error` at
+`2026-10-07T09:59:25.141889Z`.
+
+Selecting the fixed test key from a production build (`packages/udp-core/examples/select_test_key.rs`):
+
+```rust
+//! Disposable M2b probe for issue #2458. Not committed; see the issue evidence.
+use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
+
+fn main() {
+    let _test_key = CookieCipher::fixed_for_testing();
+}
+```
+
+```text
+$ cargo build -p torrust-tracker-udp-core --example select_test_key
+error[E0599]: no associated function or constant named `fixed_for_testing` found for struct `CookieCipher` in the current scope
+  --> packages/udp-core/examples/select_test_key.rs:5:35
+   |
+ 5 |     let _test_key = CookieCipher::fixed_for_testing();
+   |                                   ^^^^^^^^^^^^^^^^^ associated function or constant not found in `CookieCipher`
+   |
+note: if you're trying to build a new `CookieCipher`, consider using `CookieCipher::random` which returns `CookieCipher`
+error: could not compile `torrust-tracker-udp-core` (example "select_test_key") due to 1 previous error
+```
+
+Conclusion: in V1, a production-mode build could select the all-zero key and accepted a cookie
+forged with it. After the fix, a production build cannot name that key, the same forged cookie is
+rejected in process, and the running tracker rejects an announce that carries a forged connection
+ID while it accepts the connection ID it issued itself. Status: `DONE`.
+
+### V4 - M3: The Key Is Not Logged
+
+Steps: with the trace-level tracker above, ran V2 (connect and announce), V3 (forged announce,
+connect, announce), and a scrape:
+
+```text
+$ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+{"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":1,"completed":10,"leechers":0}]}}
+```
+
+Then searched the log, 385 lines including 162 `TRACE` or `DEBUG` lines and 119 lines that mention
+a connection ID or the cookie configuration:
+
+```text
+$ grep -i -n -E "cipher|blowfish|redacted|CookieCipher|key_schedule" tracker.log
+$ echo $?
+1
+```
+
+No line mentions the cipher, its type, or a redacted placeholder. The key has no accessor and no
+readable `Debug` output (R4), and every instrumented function that receives it skips it, so there
+is no field through which key bytes could be logged. `make` and `check` emit no events on success
+at this level; their spans appear only as context for other events, and that context does not
+include the cipher. Status: `DONE`.
+
+## Regression-Test Design
+
+The selected boundaries and their rationale are in the specification's Regression Test Strategy.
+This section records the runs.
+
+### R2 - Red Before the Fix (T3)
+
+- Date and time (UTC): 2026-10-07 08:59.
+- Code under test: `develop` at `7836471b3` ("Merge torrust/torrust-tracker#2461: docs(issues): [#2458] add cookie-cipher injection specification"), with the temporary doctests below added to the module documentation of `packages/udp-core/src/crypto/ephemeral_instance_keys.rs`. No production code was changed.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`), Cargo 1.99.0.
+- Why a doctest: rustdoc builds the library without `cfg(test)`, as any production build or downstream crate sees it. The expected error code is pinned (`E0432`, unresolved import, which is what removing the public static produces) so an unrelated compile error, such as a typo, cannot make the test pass. The companion doctest compiles against the production key, so the pair shows the test can tell the two keys apart.
+
+Temporary doctests, verbatim:
+
+````rust
+//! A production build must not be able to reach the fixed test key:
+//!
+//! ```rust,compile_fail,E0432
+//! use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH;
+//!
+//! let _test_key = &*ZEROED_TEST_CIPHER_BLOWFISH;
+//! ```
+//!
+//! A production build can reach the random key:
+//!
+//! ```rust
+//! use torrust_tracker_udp_core::crypto::ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH;
+//!
+//! let _production_key = &*RANDOM_CIPHER_BLOWFISH;
+//! ```
+````
+
+Command and output (cargo's file-lock wait lines removed):
+
+```text
+$ cargo test --doc -p torrust-tracker-udp-core ephemeral_instance_keys
+   Compiling torrust-tracker-udp-core v0.1.0 (.../packages/udp-core)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.33s
+   Doc-tests torrust_tracker_udp_core
+
+running 1 test
+test packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 16) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+
+running 1 test
+test packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8) - compile fail ... FAILED
+
+failures:
+
+---- packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8) stdout ----
+Test compiled successfully, but it's marked `compile_fail`.
+
+failures:
+    packages/udp-core/src/crypto/ephemeral_instance_keys.rs - crypto::ephemeral_instance_keys (line 8)
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+all doctests ran in 0.75s; merged doctests compilation took 0.54s
+error: doctest failed, to rerun pass `-p torrust-tracker-udp-core --doc`
+```
+
+Conclusion: **red**. The fixed test key is reachable from a production build today. The temporary
+doctests were then removed with `git checkout`, so no production file changed. They are not
+committed in red form, because the pre-commit gate runs `cargo test --doc`. The fix (T4) commits R2
+against the new key type: the `compile_fail` doctest then names the test-only constructor, and the
+companion doctest names the production constructor.
+
+## R1, R2, and R4 - Green After the Key Type, and Mutate-Then-Restore (T4)
+
+- Date and time (UTC): 2026-10-07 09:30-09:37 (times from the saved output files and `git log`).
+- Code under test: the implementation branch at
+  `fix(udp-core): [#2458] pass the connection-cookie cipher explicitly and drop the public test key`
+  (09:36). The mutations ran at 09:32-09:35 on the working tree before that commit; the only file
+  they touch, `cookie_cipher.rs`, was committed unchanged. The green runs below ran on the commit.
+- Toolchains: stable Rust 1.99.0 (`b940084d7`); nightly Cargo 1.101.0 (`f3865b2a4 2026-09-29`)
+  where marked.
+- Tests: R1 is `it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random` and
+  `it_should_create_a_different_key_each_time_when_the_key_is_random`; R4 is
+  `it_should_redact_the_key_when_formatted_for_debugging`; R2 is the `compile_fail,E0599` doctest
+  on `CookieCipher` with its compiling companion. All are in
+  `packages/udp-core/src/crypto/cookie_cipher.rs`.
+
+### Green Runs
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib crypto::cookie_cipher
+test crypto::cookie_cipher::tests::it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random ... ok
+test crypto::cookie_cipher::tests::it_should_redact_the_key_when_formatted_for_debugging ... ok
+test crypto::cookie_cipher::tests::it_should_create_a_different_key_each_time_when_the_key_is_random ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 42 filtered out; finished in 0.00s
+
+$ cargo test --doc -p torrust-tracker-udp-core cookie_cipher            # stable
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 29) ... ok
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 38) - compile fail ... ok
+
+$ cargo +nightly test --doc -p torrust-tracker-udp-core cookie_cipher   # nightly
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 29) ... ok
+test packages/udp-core/src/crypto/cookie_cipher.rs - crypto::cookie_cipher::CookieCipher (line 38) - compile fail ... ok
+
+$ cargo test -p torrust-tracker-udp-core --lib connection_cookie
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+```
+
+The `connection_cookie` tests include `it_should_make_a_connection_cookie`, which pins the encoded
+bytes. It passes unchanged with the explicit fixed test key, which is the same all-zero key the
+`cfg(test)` alias selected before, so the cookie format did not change (AC6).
+
+The full `udp-core` and `udp-server` suites also passed on this commit: `udp-core` 45 unit tests
+and its doctests; `udp-server` 219 unit tests and 12 integration tests.
+
+### Mutations
+
+Each mutation was applied to `cookie_cipher.rs` in the working tree, never staged, and then
+restored from a backup copy, checked with `cmp`.
+
+| ID | Mutation | Guarding test | Result |
+| --- | --- | --- | --- |
+| M-R1 | `random()` builds the all-zero key | R1 | Both R1 tests fail: `a random key encrypted the zero block exactly like the fixed all-zero test key` and `two random keys encrypted the zero block identically` (left and right `Array([69, 151, 249, 78, 120, 221, 152, 97])`). |
+| M-R2a | `fixed_for_testing` without `#[cfg(test)]`, still `pub(crate)` and unused | Workspace lints | The library does not compile: `associated function fixed_for_testing is never used` (`-D dead-code`), so R2 does not get to run. |
+| M-R2b | `fixed_for_testing` public and without `#[cfg(test)]` | R2 | Fails on stable: `Test compiled successfully, but it's marked compile_fail`. |
+| M-R2c | `fixed_for_testing` without `#[cfg(test)]`, `pub(crate)`, called from `random()` | R2 on nightly | Passes on stable; fails on nightly with `error[E0624]: associated function fixed_for_testing is private` and `Some expected error codes were not found: ["E0599"]`. |
+| M-R4 | `#[derive(Debug)]` instead of the redacted implementation | R4 | Fails: `left: "CookieCipher(Blowfish<LE> { ... })"`, `right: "CookieCipher([REDACTED])"`. |
+
+Finding: rustdoc checks the error code of a `compile_fail` doctest only on the nightly toolchain;
+stable accepts any compile error. A probe build of an example that called the `pub(crate)`
+function from outside the crate confirmed rustc reports `E0624` there. The pinned `E0599` is
+still enforced, because the CI `unit` job runs `cargo test --doc --workspace` on nightly as well as
+stable, but the local pre-commit gate, which runs stable, catches only M-R2b-style mutations. This
+is recorded for the benchmarking and testing documentation work in task D1.
+
+### Prose-First Arrange-Act-Assert Review
+
+Following the `write-unit-test` skill, each test's temporary prose was compared with its code:
+
+- **R1, fixed key versus random key.** Arrange: a zero plain-text block and the fixed all-zero test
+  key, the key production must never use. Act: create a production key with `random()`. Assert:
+  the two keys encrypt the block differently. The code names `plain_text`, `fixed_test_key`, and
+  `random_key`; the `encrypted` helper hides only block construction. No prose kept.
+- **R1, two random keys.** Arrange: a zero plain-text block. Act: create two production keys.
+  Assert: they encrypt the block differently. No prose kept.
+- **R4, redacted `Debug`.** Arrange: a cipher built from distinctive key bytes (`0x5a`). Act:
+  format it with `{:?}`. Assert: the output is exactly `CookieCipher([REDACTED])` and contains
+  neither the key array's `Debug` form nor its hex byte. The test uses the private `from_key` to
+  choose a unique key, as the secrecy ADR asks. No prose kept.
+
+## R3 - Shared Key Across the Container's Services, and Mutate-Then-Restore (T5)
+
+- Date and time (UTC): 2026-10-07 09:40-09:43 (times from the saved output files and `git log`,
+  not typed from memory).
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] inject one shared cookie cipher into the UDP services` (09:43).
+- Toolchain: stable Rust 1.99.0 (`b940084d7`).
+- Tests (`packages/udp-core/src/container.rs`):
+  `it_should_accept_in_announce_a_connection_id_issued_by_the_connect_service_of_the_same_container`
+  and `it_should_accept_in_scrape_a_connection_id_issued_by_the_connect_service_of_the_same_container`.
+  They build a real `UdpTrackerCoreContainer` with `initialize`, the standalone composition root,
+  from `Core::default()` (public tracker, no database).
+- Pre-fix red run: not possible. Before the change every service read the same global cipher, so
+  these tests would pass; they guard the new wiring (see the specification's Regression Test
+  Strategy).
+
+### Green Run
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib container
+test container::tests::it_should_accept_in_scrape_a_connection_id_issued_by_the_connect_service_of_the_same_container ... ok
+test container::tests::it_should_accept_in_announce_a_connection_id_issued_by_the_connect_service_of_the_same_container ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 45 filtered out; finished in 0.02s
+```
+
+The full `udp-core` (47 unit tests and the doctests) and `udp-server` (219 unit and 12 integration
+tests) suites passed on this commit, and `cargo clippy --workspace --all-targets --all-features
+-- -D warnings` was clean.
+
+### Mutations
+
+Each mutation replaced one service's `udp_tracker_core_services.cookie_cipher.clone()` argument in
+`container.rs` with `Arc::new(CookieCipher::random())`, never staged; the file was restored from a
+backup copy and checked with `cmp`.
+
+| ID | Mutation | Result |
+| --- | --- | --- |
+| M-R3-announce | The announce service gets its own key | The announce test fails: `the announce service rejected a connection ID issued by the same container's connect service`, `left: Err(ValueExpired { expired_value: 1.3694097858095883e-262, min_value: 999999880.0 })`, `right: Ok(1000000000.0)`. The scrape test passes. |
+| M-R3-scrape | The scrape service gets its own key | The scrape test fails: `the scrape service rejected a connection ID issued by the same container's connect service`, `left: Err(ValueFromFuture { future_value: 4.800879166681183e42, max_value: 1000000120.0 })`, `right: Ok(1000000000.0)`. The announce test passes. |
+
+### Prose-First Arrange-Act-Assert Review
+
+- **Arrange:** a standalone container, and a connection ID that its connect service issues to one
+  client at a known issue time. **Act:** the announce (or scrape) service of the same container
+  checks that connection ID for the same client. **Assert:** it accepts it and recovers the issue
+  time.
+- The code names the scenario `standalone_udp_tracker_core_container`; the client address, service
+  binding, and requests are incidental helpers. The production Act, `authenticate`, is the check
+  `handle_announce` and `handle_scrape` run when validation is on, so the test does not depend on
+  announce or scrape handling rules. The expected value, `Ok(ISSUE_TIME)`, is the issue time given
+  to the connect service, not one computed by the code under test. No prose kept besides the module
+  comment that states why one key matters.
+
+## R1 After Wiping the Raw Key Bytes
+
+- Date and time (UTC): 2026-10-07 13:17, from the saved output file.
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] wipe the raw cookie key bytes after building the cipher`, where
+  `CookieCipher::random()` fills a `zeroize::Zeroizing<[u8; 32]>` in place with
+  `rand::rng().fill(&mut *key)`.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`); the doctests also on nightly Cargo 1.101.0.
+- Green: `cargo test -p torrust-tracker-udp-core` passed (42 unit tests and the doctests), and
+  `cargo +nightly test --doc -p torrust-tracker-udp-core cookie_cipher` passed both R2 doctests.
+
+Mutation M-R1-fill: the new plausible bug is leaving the key buffer at its zero initial value.
+Deleting the `fill` line does not compile under the workspace lints (`unused import: rand::Rng`,
+`variable does not need to be mutable`), so the compiling variant fills a throwaway buffer instead:
+`rand::rng().fill(&mut [0_u8; 1]); let _ = &mut *key;`. Restored afterwards from a backup copy and
+checked with `cmp`.
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib crypto::cookie_cipher
+test crypto::cookie_cipher::tests::it_should_redact_the_key_when_formatted_for_debugging ... ok
+test crypto::cookie_cipher::tests::it_should_create_a_different_key_each_time_when_the_key_is_random ... FAILED
+test crypto::cookie_cipher::tests::it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random ... FAILED
+assertion `left != right` failed: two random keys encrypted the zero block identically
+assertion `left != right` failed: a random key encrypted the zero block exactly like the fixed all-zero test key
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+```
+
+The wipe itself has no automatic test: checking that memory was cleared after it is released is
+undefined behavior in Rust, and the guarantee comes from the `zeroize` crate.
+
+## Key Kept Inside `udp-core` (PR #2470 Review)
+
+- Date and time (UTC): 2026-10-07 15:00, from the saved output file.
+- Code under test: the working tree that was then committed unchanged as
+  `fix(udp-core): [#2458] keep the cookie key private to udp-core`, which makes
+  `UdpTrackerCoreServices::cookie_cipher` `pub(crate)` and adds a `compile_fail,E0616` doctest
+  (reading the field from outside the crate) and a compiling companion (reading the public
+  `event_bus` field) on `UdpTrackerCoreServices`.
+- Toolchains: stable Rust 1.99.0 (`b940084d7`); nightly Cargo 1.101.0.
+- Green: `cargo test --doc -p torrust-tracker-udp-core container` passed both doctests on stable and
+  on nightly; workspace `cargo clippy --all-targets --all-features -- -D warnings` was clean; the
+  `udp-core`, `udp-server`, and root-crate tests passed (441).
+
+Mutation: the field made `pub` again, restored afterwards from a backup copy and checked with `cmp`.
+
+```text
+$ cargo test --doc -p torrust-tracker-udp-core container
+test packages/udp-core/src/container.rs - container::UdpTrackerCoreServices (line 155) ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+test packages/udp-core/src/container.rs - container::UdpTrackerCoreServices (line 145) - compile fail ... FAILED
+Test compiled successfully, but it's marked `compile_fail`.
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.12s
+```
 
 ## Failures and Follow-up
 

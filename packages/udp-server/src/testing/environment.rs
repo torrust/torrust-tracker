@@ -302,7 +302,6 @@ impl EnvContainer {
 
 fn initialize_static() {
     torrust_clock::initialize_static();
-    torrust_tracker_udp_core::initialize_static();
 }
 
 /// Joins every task a running environment owns and reports all failures at

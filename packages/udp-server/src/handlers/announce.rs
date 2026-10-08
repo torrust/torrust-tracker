@@ -6,7 +6,6 @@ use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_primitives::AnnounceData;
-use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -67,11 +66,9 @@ pub async fn handle_announce(
         let validate_cookie = match cookie_validation.connection_id_validation {
             ConnectionIdValidationPolicy::Strict => true,
             ConnectionIdValidationPolicy::Disabled => {
-                if let Err(cookie_error) = check(
-                    &request.connection_id,
-                    gen_remote_fingerprint(&client_socket_addr),
-                    cookie_validation.valid_range.clone(),
-                ) {
+                if let Err(cookie_error) =
+                    announce_service.authenticate(client_socket_addr, request, cookie_validation.valid_range.clone())
+                {
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         %client_socket_addr,
@@ -195,7 +192,6 @@ pub(crate) mod tests {
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
-        use torrust_tracker_udp_core::connection_cookie::make;
         use torrust_tracker_udp_protocol::{
             AnnounceActionPlaceholder, AnnounceEvent, AnnounceInterval, AnnounceRequest, AnnounceResponse,
             AnnounceResponseFixedData, ConnectionId, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfBytes, NumberOfPeers, PeerKey, Port,
@@ -204,7 +200,7 @@ pub(crate) mod tests {
         use zerocopy::byteorder::network_endian::I32;
 
         use crate::handlers::announce::build_response;
-        use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
+        use crate::handlers::tests::{connection_id_issued_to, sample_ipv4_remote_addr};
 
         pub struct AnnounceRequestBuilder {
             request: AnnounceRequest,
@@ -217,7 +213,7 @@ pub(crate) mod tests {
                 let info_hash_aquatic = torrust_tracker_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
-                    connection_id: make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                    connection_id: connection_id_issued_to(&sample_ipv4_remote_addr()),
                     action_placeholder: AnnounceActionPlaceholder::default(),
                     transaction_id: TransactionId(0i32.into()),
                     info_hash: info_hash_aquatic,
@@ -398,7 +394,6 @@ pub(crate) mod tests {
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-            use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
             use torrust_tracker_udp_protocol::{
@@ -412,10 +407,9 @@ pub(crate) mod tests {
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
-                CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
+                CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender, connection_id_issued_to,
                 initialize_core_tracker_services_for_default_tracker_configuration,
-                initialize_core_tracker_services_for_public_tracker, sample_ipv4_socket_address, sample_issue_time,
-                sample_strict_cookie_validation,
+                initialize_core_tracker_services_for_public_tracker, sample_ipv4_socket_address, sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -433,7 +427,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip)
@@ -476,7 +470,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .into();
 
                 let response = handle_announce(
@@ -528,7 +522,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -630,7 +624,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .into();
 
                 handle_announce(
@@ -711,14 +705,13 @@ pub(crate) mod tests {
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
                 use torrust_peer_id::PeerId;
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-                use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
                 use torrust_tracker_udp_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    TrackerConfigurationBuilder, initialize_core_tracker_services_with_config, sample_issue_time,
-                    sample_strict_cookie_validation,
+                    TrackerConfigurationBuilder, connection_id_issued_to, initialize_core_tracker_services_with_config,
+                    sample_strict_cookie_validation, test_cookie_cipher,
                 };
 
                 #[tokio::test]
@@ -746,7 +739,7 @@ pub(crate) mod tests {
                     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                        .with_connection_id(connection_id_issued_to(&client_socket_addr))
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip)
@@ -790,7 +783,7 @@ pub(crate) mod tests {
 
                     let second_info_hash = AquaticInfoHash([1u8; 20]);
                     let second_request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                        .with_connection_id(connection_id_issued_to(&client_socket_addr))
                         .with_info_hash(second_info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip)
@@ -800,6 +793,7 @@ pub(crate) mod tests {
                         Arc::new(torrust_tracker_udp_core::services::announce::AnnounceService::new(
                             core_tracker_services.announce_handler.clone(),
                             core_tracker_services.whitelist_authorization.clone(),
+                            test_cookie_cipher(),
                             None,
                             torrust_tracker_primitives::ConfigurationInstanceId::new(
                                 torrust_tracker_primitives::ServiceRole::UdpTracker,
@@ -854,7 +848,6 @@ pub(crate) mod tests {
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-            use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_core::event::bus::EventBus;
             use torrust_tracker_udp_core::event::sender::Broadcaster;
@@ -868,9 +861,10 @@ pub(crate) mod tests {
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
-                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                initialize_core_tracker_services_for_public_tracker, sample_ipv6_remote_addr, sample_issue_time,
-                sample_strict_cookie_validation,
+                MockUdpServerStatsEventSender, connection_id_issued_to,
+                initialize_core_tracker_services_for_default_tracker_configuration,
+                initialize_core_tracker_services_for_public_tracker, sample_ipv6_remote_addr, sample_strict_cookie_validation,
+                test_cookie_cipher,
             };
 
             #[tokio::test]
@@ -889,7 +883,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip_v4)
@@ -935,7 +929,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .into();
 
                 let response = handle_announce(
@@ -987,7 +981,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -1058,13 +1052,14 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .into();
 
                 let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
                 let announce_service = Arc::new(AnnounceService::new(
                     announce_handler.clone(),
                     whitelist_authorization.clone(),
+                    test_cookie_cipher(),
                     udp_core_stats_event_sender.clone(),
                     udp_tracker_test_configuration_instance_id,
                     None,
@@ -1113,7 +1108,7 @@ pub(crate) mod tests {
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let announce_request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
                     .into();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
@@ -1161,7 +1156,6 @@ pub(crate) mod tests {
                 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
                 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-                use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
                 use torrust_tracker_udp_core::event::ConnectionContext;
                 use torrust_tracker_udp_core::services::announce::AnnounceService;
                 use torrust_tracker_udp_core::{self, event as core_event};
@@ -1171,8 +1165,8 @@ pub(crate) mod tests {
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder, sample_issue_time,
-                    sample_strict_cookie_validation,
+                    MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder,
+                    connection_id_issued_to, sample_strict_cookie_validation, test_cookie_cipher,
                 };
                 use crate::tests::{announce_events_match, sample_peer};
 
@@ -1201,7 +1195,7 @@ pub(crate) mod tests {
                     let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                        .with_connection_id(connection_id_issued_to(&client_socket_addr))
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip_v4)
@@ -1254,6 +1248,7 @@ pub(crate) mod tests {
                     let announce_service = Arc::new(AnnounceService::new(
                         announce_handler.clone(),
                         whitelist_authorization.clone(),
+                        test_cookie_cipher(),
                         udp_core_stats_event_sender.clone(),
                         udp_tracker_test_configuration_instance_id,
                         config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]

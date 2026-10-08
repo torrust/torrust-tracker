@@ -21,6 +21,7 @@ use torrust_tracker_primitives::{AnnounceData, ConfigurationInstanceId};
 use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
+use crate::crypto::cookie_cipher::CookieCipher;
 use crate::event::{ConnectionContext, Event};
 use crate::peer_builder;
 
@@ -32,6 +33,7 @@ use crate::peer_builder;
 pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+    cookie_cipher: Arc<CookieCipher>,
     opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
     tracker_external_ip: Option<IpAddr>,
@@ -44,10 +46,13 @@ impl AnnounceService {
         self.configuration_instance_id
     }
 
+    /// Creates the service. `cookie_cipher` must be the composition root's
+    /// shared key, the one the connect service issues connection IDs with.
     #[must_use]
     pub fn new(
         announce_handler: Arc<AnnounceHandler>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        cookie_cipher: Arc<CookieCipher>,
         opt_udp_core_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
         tracker_external_ip: Option<IpAddr>,
@@ -55,6 +60,7 @@ impl AnnounceService {
         Self {
             announce_handler,
             whitelist_authorization,
+            cookie_cipher,
             opt_udp_core_stats_event_sender,
             configuration_instance_id,
             tracker_external_ip,
@@ -95,7 +101,7 @@ impl AnnounceService {
         validate_cookie: bool,
     ) -> Result<AnnounceData, UdpAnnounceError> {
         if validate_cookie {
-            Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+            self.authenticate(client_socket_addr, request, cookie_valid_range)?;
         }
 
         let info_hash = InfoHash::from(request.info_hash.0);
@@ -125,12 +131,24 @@ impl AnnounceService {
         Ok(announce_data)
     }
 
-    fn authenticate(
+    /// Checks the request's connection ID for the client address, without
+    /// handling the request.
+    ///
+    /// Callers that skip validation in [`Self::handle_announce`] use it to
+    /// observe invalid connection IDs.
+    ///
+    /// # Errors
+    ///
+    /// It returns an error if the connection ID was not issued to this client
+    /// address within `cookie_valid_range`.
+    pub fn authenticate(
+        &self,
         remote_addr: SocketAddr,
         request: &AnnounceRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<f64, ConnectionCookieError> {
         check(
+            &self.cookie_cipher,
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,

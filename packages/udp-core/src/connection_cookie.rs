@@ -26,7 +26,7 @@
 //!      - *Note:* Wrapping addition handles potential integer overflows gracefully.
 //!
 //! 4. **Encrypt Cookie Value:**
-//!    - Encrypt `cookie_value` using a symmetric block cipher obtained from `Current::get_cipher()`.
+//!    - Encrypt `cookie_value` with the injected [`CookieCipher`], a symmetric block cipher (Blowfish) with a random key created once per composition root.
 //!    - The encrypted `cookie_value` becomes the connection ID sent to the client.
 //!
 //! **Connection ID Verification Algorithm:**
@@ -103,7 +103,8 @@ use torrust_tracker_udp_protocol::ConnectionId as Cookie;
 use tracing::instrument;
 use zerocopy::IntoBytes as _;
 
-use crate::crypto::keys::CipherArrayBlowfish;
+use crate::crypto::cookie_cipher::{CookieBlock, CookieCipher};
+
 /// Error returned when there was an error with the connection cookie.
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ConnectionCookieError {
@@ -127,8 +128,8 @@ pub enum ConnectionCookieError {
 ///
 /// It would panic if the cookie is not exactly 8 bytes is size.
 ///
-#[instrument(err)]
-pub fn make(fingerprint: u64, issue_at: f64) -> Result<Cookie, ConnectionCookieError> {
+#[instrument(err, skip(cipher))]
+pub fn make(cipher: &CookieCipher, fingerprint: u64, issue_at: f64) -> Result<Cookie, ConnectionCookieError> {
     if !issue_at.is_normal() {
         return Err(ConnectionCookieError::ValueNotNormal {
             not_normal_value: issue_at,
@@ -136,7 +137,7 @@ pub fn make(fingerprint: u64, issue_at: f64) -> Result<Cookie, ConnectionCookieE
     }
 
     let cookie = assemble(fingerprint, issue_at);
-    let cookie = encode(cookie);
+    let cookie = encode(cipher, cookie);
 
     // using `read_from_bytes` as the array may be not correctly aligned
     Ok(zerocopy::FromBytes::read_from_bytes(cookie.as_slice()).expect("it should be the same size"))
@@ -155,12 +156,17 @@ use std::ops::Range;
 /// # Panics
 ///
 /// It would panic if the range start is not smaller than it's end.
-#[instrument]
-pub fn check(cookie: &Cookie, fingerprint: u64, valid_range: Range<f64>) -> Result<f64, ConnectionCookieError> {
+#[instrument(skip(cipher))]
+pub fn check(
+    cipher: &CookieCipher,
+    cookie: &Cookie,
+    fingerprint: u64,
+    valid_range: Range<f64>,
+) -> Result<f64, ConnectionCookieError> {
     assert!(valid_range.start <= valid_range.end, "range start is larger than range end");
 
-    let cookie_bytes = CipherArrayBlowfish::try_from(cookie.0.as_bytes()).expect("it should be the same size");
-    let cookie_bytes = decode(cookie_bytes);
+    let cookie_bytes = CookieBlock::try_from(cookie.0.as_bytes()).expect("it should be the same size");
+    let cookie_bytes = decode(cipher, cookie_bytes);
 
     let issue_time = disassemble(fingerprint, cookie_bytes);
 
@@ -195,14 +201,13 @@ pub fn gen_remote_fingerprint(remote_addr: &SocketAddr) -> u64 {
 }
 
 mod cookie_builder {
-    use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
     use tracing::instrument;
     use zerocopy::{IntoBytes as _, NativeEndian, byteorder};
 
-    pub type CookiePlainText = CipherArrayBlowfish;
-    pub type CookieCipherText = CipherArrayBlowfish;
+    pub type CookiePlainText = CookieBlock;
+    pub type CookieCipherText = CookieBlock;
 
-    use crate::crypto::keys::{CipherArrayBlowfish, Current, Keeper};
+    use crate::crypto::cookie_cipher::{CookieBlock, CookieCipher};
 
     #[instrument()]
     pub(super) fn assemble(fingerprint: u64, issue_at: f64) -> CookiePlainText {
@@ -215,7 +220,7 @@ mod cookie_builder {
         let cookie: byteorder::I64<NativeEndian> =
             *zerocopy::FromBytes::ref_from_bytes(&cookie.to_ne_bytes()).expect("it should be aligned");
 
-        CipherArrayBlowfish::try_from(cookie.as_bytes()).expect("it should be the same size")
+        CookieBlock::try_from(cookie.as_bytes()).expect("it should be the same size")
     }
 
     #[instrument()]
@@ -235,20 +240,16 @@ mod cookie_builder {
         issue_time.get()
     }
 
-    #[instrument()]
-    pub(super) fn encode(mut cookie: CookiePlainText) -> CookieCipherText {
-        let cipher = Current::get_cipher_blowfish();
-
-        cipher.encrypt_block(&mut cookie);
+    #[instrument(skip(cipher))]
+    pub(super) fn encode(cipher: &CookieCipher, mut cookie: CookiePlainText) -> CookieCipherText {
+        cipher.encrypt(&mut cookie);
 
         cookie
     }
 
-    #[instrument()]
-    pub(super) fn decode(mut cookie: CookieCipherText) -> CookiePlainText {
-        let cipher = Current::get_cipher_blowfish();
-
-        cipher.decrypt_block(&mut cookie);
+    #[instrument(skip(cipher))]
+    pub(super) fn decode(cipher: &CookieCipher, mut cookie: CookieCipherText) -> CookiePlainText {
+        cipher.decrypt(&mut cookie);
 
         cookie
     }
@@ -261,11 +262,15 @@ mod tests {
 
     use super::*;
 
+    fn fixed_test_cipher() -> CookieCipher {
+        CookieCipher::fixed_for_testing()
+    }
+
     #[test]
     fn it_should_make_a_connection_cookie() {
         let fingerprint = 1_000_000;
         let issue_at = 1000.0;
-        let cookie = make(fingerprint, issue_at).unwrap().0.get();
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap().0.get();
 
         // Expected connection ID derived through experimentation
         assert_eq!(cookie.to_le_bytes(), [10, 130, 175, 211, 244, 253, 230, 210]);
@@ -275,8 +280,8 @@ mod tests {
     fn it_should_create_same_cookie_for_same_input() {
         let fingerprint = 1_000_000;
         let issue_at = 1000.0;
-        let cookie1 = make(fingerprint, issue_at).unwrap();
-        let cookie2 = make(fingerprint, issue_at).unwrap();
+        let cookie1 = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
+        let cookie2 = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
         assert_eq!(cookie1, cookie2);
     }
@@ -286,8 +291,8 @@ mod tests {
         let fingerprint1 = 1_000_000;
         let fingerprint2 = 2_000_000;
         let issue_at = 1000.0;
-        let cookie1 = make(fingerprint1, issue_at).unwrap();
-        let cookie2 = make(fingerprint2, issue_at).unwrap();
+        let cookie1 = make(&fixed_test_cipher(), fingerprint1, issue_at).unwrap();
+        let cookie2 = make(&fixed_test_cipher(), fingerprint2, issue_at).unwrap();
 
         assert_ne!(cookie1, cookie2);
     }
@@ -297,8 +302,8 @@ mod tests {
         let fingerprint = 1_000_000;
         let issue_at1 = 1000.0;
         let issue_at2 = 2000.0;
-        let cookie1 = make(fingerprint, issue_at1).unwrap();
-        let cookie2 = make(fingerprint, issue_at2).unwrap();
+        let cookie1 = make(&fixed_test_cipher(), fingerprint, issue_at1).unwrap();
+        let cookie2 = make(&fixed_test_cipher(), fingerprint, issue_at2).unwrap();
 
         assert_ne!(cookie1, cookie2);
     }
@@ -307,12 +312,12 @@ mod tests {
     fn it_should_validate_a_valid_cookie() {
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
-        let cookie = make(fingerprint, issue_at).unwrap();
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
         let min = issue_at - 10.0;
         let max = issue_at + 10.0;
 
-        let result = check(&cookie, fingerprint, min..max).unwrap();
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap();
 
         // we should have exactly the same bytes returned
         assert_eq!(result.to_ne_bytes(), issue_at.to_ne_bytes());
@@ -322,12 +327,12 @@ mod tests {
     fn it_should_reject_an_expired_cookie() {
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
-        let cookie = make(fingerprint, issue_at).unwrap();
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
         let min = issue_at + 10.0;
         let max = issue_at + 20.0;
 
-        let result = check(&cookie, fingerprint, min..max).unwrap_err();
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap_err();
 
         match result {
             ConnectionCookieError::ValueExpired { .. } => {} // Expected error
@@ -340,12 +345,12 @@ mod tests {
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
 
-        let cookie = make(fingerprint, issue_at).unwrap();
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
         let min = issue_at - 20.0;
         let max = issue_at - 10.0;
 
-        let result = check(&cookie, fingerprint, min..max).unwrap_err();
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap_err();
 
         match result {
             ConnectionCookieError::ValueFromFuture { .. } => {} // Expected error
@@ -373,12 +378,12 @@ mod tests {
 
         assert_ne!(fingerprint_a, fingerprint_b, "test requires different fingerprints");
 
-        let cookie = make(fingerprint_a, issue_at).unwrap();
+        let cookie = make(&fixed_test_cipher(), fingerprint_a, issue_at).unwrap();
 
         let min = issue_at - 120.0;
         let max = issue_at + 120.0;
 
-        let result = check(&cookie, fingerprint_b, min..max);
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint_b, min..max);
 
         assert!(
             result.is_err(),

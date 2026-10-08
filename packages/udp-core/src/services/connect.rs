@@ -2,12 +2,14 @@
 //!
 //! The service is responsible for handling the `connect` requests.
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_udp_protocol::ConnectionId;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
+use crate::crypto::cookie_cipher::CookieCipher;
 use crate::event::{ConnectionContext, Event};
 
 /// The `ConnectService` is responsible for handling the `connect` requests.
@@ -15,6 +17,7 @@ use crate::event::{ConnectionContext, Event};
 /// It is responsible for generating the connection cookie and sending the
 /// appropriate statistics events.
 pub struct ConnectService {
+    cookie_cipher: Arc<CookieCipher>,
     pub opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
     public_url: Option<String>,
@@ -26,12 +29,17 @@ impl ConnectService {
         self.configuration_instance_id
     }
 
+    /// Creates the service. `cookie_cipher` must be the composition root's
+    /// shared key, so the services that validate connection IDs accept the
+    /// ones this service issues.
     #[must_use]
     pub fn new(
+        cookie_cipher: Arc<CookieCipher>,
         opt_udp_core_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
+            cookie_cipher,
             opt_udp_core_stats_event_sender,
             configuration_instance_id,
             public_url: None,
@@ -60,8 +68,12 @@ impl ConnectService {
         server_service_binding: ServiceBinding,
         cookie_issue_time: f64,
     ) -> ConnectionId {
-        let connection_id =
-            make(gen_remote_fingerprint(&client_socket_addr), cookie_issue_time).expect("it should be a normal value");
+        let connection_id = make(
+            &self.cookie_cipher,
+            gen_remote_fingerprint(&client_socket_addr),
+            cookie_issue_time,
+        )
+        .expect("it should be a normal value");
 
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
@@ -95,6 +107,7 @@ mod tests {
         use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
         use crate::connection_cookie::make;
+        use crate::crypto::cookie_cipher::CookieCipher;
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
@@ -103,6 +116,10 @@ mod tests {
             MockUdpCoreStatsEventSender, sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint,
             sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_ipv6_remote_addr_fingerprint, sample_issue_time,
         };
+
+        fn fixed_test_cipher() -> Arc<CookieCipher> {
+            Arc::new(CookieCipher::fixed_for_testing())
+        }
 
         const UDP_TRACKER_CONFIGURATION_INSTANCE_ID: ConfigurationInstanceId =
             ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
@@ -117,6 +134,7 @@ mod tests {
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(
+                fixed_test_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
             ));
@@ -127,7 +145,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap()
+                make(
+                    &fixed_test_cipher(),
+                    sample_ipv4_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap()
             );
         }
 
@@ -141,6 +164,7 @@ mod tests {
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(
+                fixed_test_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
             ));
@@ -151,7 +175,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                make(
+                    &fixed_test_cipher(),
+                    sample_ipv4_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap(),
             );
         }
 
@@ -166,6 +195,7 @@ mod tests {
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(
+                fixed_test_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
             ));
@@ -176,7 +206,12 @@ mod tests {
 
             assert_eq!(
                 response,
-                make(sample_ipv6_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                make(
+                    &fixed_test_cipher(),
+                    sample_ipv6_remote_addr_fingerprint(),
+                    sample_issue_time()
+                )
+                .unwrap(),
             );
         }
 
@@ -201,7 +236,11 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender, configuration_instance_id));
+            let connect_service = Arc::new(ConnectService::new(
+                fixed_test_cipher(),
+                opt_udp_stats_event_sender,
+                configuration_instance_id,
+            ));
 
             connect_service
                 .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())
@@ -229,7 +268,11 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender, configuration_instance_id));
+            let connect_service = Arc::new(ConnectService::new(
+                fixed_test_cipher(),
+                opt_udp_stats_event_sender,
+                configuration_instance_id,
+            ));
 
             connect_service
                 .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())

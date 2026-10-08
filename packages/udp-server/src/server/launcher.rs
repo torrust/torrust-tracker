@@ -655,7 +655,6 @@ mod tests {
                     .expect("UDP test configuration should include one tracker"),
             );
             torrust_clock::initialize_static();
-            torrust_tracker_udp_core::initialize_static();
             logging::setup(&configuration.logging);
 
             let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);

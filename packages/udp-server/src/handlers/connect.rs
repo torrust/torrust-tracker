@@ -66,7 +66,6 @@ mod tests {
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-        use torrust_tracker_udp_core::connection_cookie::make;
         use torrust_tracker_udp_core::event as core_event;
         use torrust_tracker_udp_core::event::ConnectionContext;
         use torrust_tracker_udp_core::event::bus::EventBus;
@@ -77,9 +76,8 @@ mod tests {
         use crate::event::{Event, UdpRequestKind};
         use crate::handlers::handle_connect;
         use crate::handlers::tests::{
-            MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, sample_ipv4_remote_addr,
-            sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
-            sample_ipv6_remote_addr_fingerprint, sample_issue_time,
+            MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, connection_id_issued_to, sample_ipv4_remote_addr,
+            sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_issue_time, test_cookie_cipher,
         };
 
         const UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID: ConfigurationInstanceId =
@@ -114,6 +112,7 @@ mod tests {
             };
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -133,7 +132,7 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                    connection_id: connection_id_issued_to(&sample_ipv4_remote_addr()),
                     transaction_id: request.transaction_id
                 })
             );
@@ -163,6 +162,7 @@ mod tests {
             };
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -182,7 +182,7 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: make(sample_ipv6_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
+                    connection_id: connection_id_issued_to(&sample_ipv6_remote_addr()),
                     transaction_id: request.transaction_id
                 })
             );
@@ -226,6 +226,7 @@ mod tests {
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));
@@ -282,6 +283,7 @@ mod tests {
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(
+                test_cookie_cipher(),
                 udp_core_stats_event_sender,
                 UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
             ));

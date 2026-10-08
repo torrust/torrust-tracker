@@ -15,7 +15,6 @@ use std::path::PathBuf;
 
 use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
 use torrust_tracker_configuration::validator::Validator;
-use torrust_tracker_udp_core::crypto::keys::{self, Keeper as _};
 use tracing::instrument;
 
 use super::config::initialize_configuration;
@@ -53,9 +52,6 @@ pub enum Error {
 #[instrument(skip())]
 // issue: #2151
 pub async fn setup(explicit_config_toml_path: Option<PathBuf>) -> Result<(Configuration, AppContainer), Error> {
-    #[cfg(not(test))]
-    check_seed();
-
     let configuration = initialize_configuration(explicit_config_toml_path).map_err(|source| Error::Configuration { source })?;
 
     configuration
@@ -75,18 +71,6 @@ pub async fn setup(explicit_config_toml_path: Option<PathBuf>) -> Result<(Config
     Ok((configuration, app_container))
 }
 
-/// checks if the seed is the instance seed in production.
-///
-/// # Panics
-///
-/// It would panic if the seed is not the instance seed.
-pub fn check_seed() {
-    let seed = keys::Current::get_seed();
-    let instance = keys::Instance::get_seed();
-
-    assert_eq!(seed, instance, "maybe using zeroed seed in production!?");
-}
-
 /// It initializes the global services.
 #[instrument(skip())]
 pub fn initialize_global_services(configuration: &Configuration) {
@@ -99,12 +83,12 @@ pub fn initialize_global_services(configuration: &Configuration) {
 /// These values are accessible throughout the entire application:
 ///
 /// - The time when the application started.
-/// - An ephemeral instance random seed. This seed is used for encryption and
-///   it's changed when the main application process is restarted.
+///
+/// The UDP connection-cookie key is not a static: the application container
+/// creates it and injects it into the UDP tracker services.
 #[instrument(skip())]
 pub fn initialize_static() {
     torrust_clock::initialize_static();
-    torrust_tracker_udp_core::initialize_static();
 }
 
 #[cfg(test)]

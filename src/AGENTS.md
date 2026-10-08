@@ -29,8 +29,8 @@ main()
       ├─ bootstrap::app::setup(explicit_config_toml_path)
       │    ├─ bootstrap::config::initialize_configuration()   ← explicit path / TOML / env vars
       │    ├─ configuration.validate()                        ← returns typed startup errors
-       │    ├─ initialize_global_services()                    ← logging, crypto seed
-       │    └─ AppContainer::initialize(&configuration)        ← builds all containers
+       │    ├─ initialize_global_services()                    ← logging, clock
+       │    └─ AppContainer::initialize(&configuration)        ← builds all containers and the UDP cookie key
        │
        └─ app::start(&config, &app_container)
             ├─ load_data_from_database()                       ← peer keys, whitelist, metrics
@@ -117,9 +117,8 @@ When wiring a new server or background task, follow this checklist in order:
   source-preserving `thiserror` errors for expected configuration, composition, persistence-load,
   and initial service-start failures. Entrypoints report their friendly, actionable display message
   and exit unsuccessfully. If an initial service fails after jobs started, `start()` cancels and joins
-  those jobs before returning the error. `check_seed()` remains an assertion because it protects an
-  internal cryptographic invariant; failures after a task has started are runtime supervision, not
-  startup results.
+  those jobs before returning the error. Failures after a task has started are runtime supervision,
+  not startup results.
 - **Health check always starts.** The health-check API job is unconditional — do not gate it
   behind a config flag.
 - **`lib.rs` is the integration-test surface.** Integration tests import
