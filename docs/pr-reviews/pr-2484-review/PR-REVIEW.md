@@ -301,7 +301,7 @@ F3 to F7 do not.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2484#discussion_r4221712495>
 - Concern: The retrospective said `process-pr-review` derives audit stamps from `git log` and GitHub `created_at`, and that the audit template has that rule; neither does. The rule was only proposed, as item 10 of the #2320 retrospective.
-- Solution: The Root Causes bullet and proposal 4 now say no skill or template states where a stamp comes from, and point to the #2320 proposal, which was not adopted.
+- Solution: The Root Causes bullet and proposal 4 now say no skill or template states where a stamp comes from, and point to the #2320 proposal; #2278's improvement matrix adopts the idea (the PR #2271 row, `Adopt`), but no skill or template states it yet.
 - Current-tree verification: `grep -n 'created_at\|git log\|stamp'` on `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` finds only the validator note, and `docs/templates/PR-REVIEW-TEMPLATE.md` only a placeholder; the two passages in `docs/pr-reviews/pr-2484-review/review-retrospective.md` inspected.
 - Resolution reference: docs(pr-reviews): [#2482] drop the claim that a derived-stamp rule exists
 - Follow-up PR URL: N/A
