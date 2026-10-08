@@ -266,6 +266,10 @@ not maintained tests. No script is kept.
   change is a follow-up; it was AC8 of the folded draft.
 - Moving environments touches many test files in several packages; the migration plan keeps each
   follow-up small.
+- Three open #1488 subissues change the `Environment` types this plan would move: #2449 (REST API
+  environment to the token lifecycle), #2450 (health-check API environment to the token
+  lifecycle), and #2471 (HTTP environment drop path). The migration plan orders each move after
+  the subissue that changes that environment, or records why the order does not matter.
 - The examples start their trackers through the test environments; the plan must give them a
   production-style startup or label them as test-support demonstrations.
 
@@ -292,3 +296,7 @@ findings, and reusable lessons.
 - Source findings 1 and 2: [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 - Baseline issue: #2446
 - Shutdown overhaul EPIC: #1488
+- Open #1488 subissues that change the environments:
+  [#2449](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md),
+  [#2450](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md),
+  [#2471](../2471-1488-fix-http-environment-drop-path/ISSUE.md)
