@@ -9,7 +9,7 @@ github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark-spec"
 related-pr: null
-last-updated-utc: "2026-10-08 06:46"
+last-updated-utc: "2026-10-08 07:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,7 +120,7 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
    changing how the routine runs (T1).
 5. **Fix:** restructure the benchmark (T2).
 6. **Green and recheck:** the guard passes under `cargo test`, and `cargo bench` reports a time
-   that includes an announce, rechecked like-for-like with the V1 probe (T4).
+   that includes an announce, rechecked like-for-like with the V1 probe (T5).
 
 ## Regression Test Strategy
 
@@ -140,23 +140,31 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                    | Notes / Expected Output                                                                                                   |
-| --- | ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Regression guard R1, red before the fix | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.              |
-| T2  | TODO   | Fix: measure one awaited announce       | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded.           |
-| T3  | TODO   | Guard R2 on `udp-core` `connect_once`   | Guard added; mutate-then-restore red run recorded.                                                                        |
-| T4  | TODO   | Recheck and documentation               | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review. |
+| ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                                    |
+| --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | TODO   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
+| T2  | TODO   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
+| T3  | TODO   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
+| T4  | TODO   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
+| T5  | TODO   | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
 
 ## Commit Points
 
-| Task | Coherent change set                     | Commit policy                                                                                      |
-| ---- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| T1   | Red-run evidence                        | One `docs(issues)` commit. The red guard is not committed alone, because pre-push would reject it. |
-| T2   | Benchmark fix with the guard (R1)       | One `fix(http-core)` commit after focused validation.                                              |
-| T3   | Guard on `connect_once` (R2)            | One `test(udp-core)` commit.                                                                       |
-| T4   | Documentation and verification evidence | Separate `docs(benchmarking)` and `docs(issues)` commits.                                          |
+| Task | Coherent change set                     | Commit policy                                                                                                      |
+| ---- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| T1   | Red-run evidence                        | One `docs(issues)` commit. The red guard is not committed alone, because pre-push would reject it.                 |
+| T2   | Benchmark fix with the guard (R1)       | One `fix(http-core)` commit after focused validation and the recorded R1 design review.                            |
+| T3   | Guard on `connect_once` (R2)            | One `test(udp-core)` commit after focused validation, the recorded R2 design review, and the T4 maintainer review. |
+| T4   | Maintainer review                       | No commit; recorded in the Progress Log.                                                                           |
+| T5   | Documentation and verification evidence | Separate `docs(benchmarking)` and `docs(issues)` commits.                                                          |
 
-All commits are GPG signed and follow Conventional Commits.
+All commits are GPG signed and follow Conventional Commits. For each test-producing task (T2 and
+T3), use the `write-unit-test` skill and complete an explicit design review after the increment passes
+focused validation, before the next task starts: confirm the guard exposes the one causal
+condition (the measured routine never ran), its context owns only incidental mechanics, and the
+benchmark call and the expected count remain visible. Use the mandatory prose-first
+Arrange-Act-Assert comparison: write temporary prose for each section, refactor until the code
+expresses it, remove redundant prose, and record the result in `manual-verification-evidence.md`.
 
 ## Progress Tracking
 
@@ -167,6 +175,7 @@ All commits are GPG signed and follow Conventional Commits.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [ ] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -195,6 +204,11 @@ All commits are GPG signed and follow Conventional Commits.
   and moved the specification and its evidence to `docs/issues/open/2479-fix-http-core-announce-benchmark/`
   on branch `2479-fix-http-core-announce-benchmark-spec`; the base name
   `2479-fix-http-core-announce-benchmark` is reserved for the implementation.
+- 2026-10-08 07:12 UTC - Copilot - PR #2480 review finding F1 (`review-finding:pr-2480-f1`): the plan
+  lacked the test-design review the create-issue skill requires after each test-producing task,
+  and the maintainer review after the final test increment. Added the R1 and R2 design reviews to
+  T2 and T3, a new T4 maintainer-review checkpoint (the former T4 is now T5), the matching commit
+  policy and workflow checkpoint, and the design-review procedure under Commit Points.
 
 ## Acceptance Criteria
 
