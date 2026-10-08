@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: bug
 status: draft
@@ -6,9 +7,9 @@ priority: p2
 epic: null
 github-issue: null
 spec-path: docs/issues/drafts/configuration-schema-version-error-ordering/ISSUE.md
-branch: null
+branch: "{issue-number}-configuration-schema-version-error-ordering"
 related-pr: null
-last-updated-utc: 2026-09-10 09:10
+last-updated-utc: "2026-09-10 09:10"
 semantic-links:
   skill-links:
     - create-issue

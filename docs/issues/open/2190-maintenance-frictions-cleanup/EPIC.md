@@ -1,11 +1,12 @@
 ---
+schema-version: 1
 doc-type: epic
 status: planned
+epic: null
 github-issue: 2190
 spec-path: docs/issues/open/2190-maintenance-frictions-cleanup/EPIC.md
-branch: "2190-maintenance-frictions-cleanup-spec"
 epic-owner: da2ce7
-last-updated-utc: 2026-09-14 16:54
+last-updated-utc: "2026-10-08 12:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -163,6 +164,7 @@ Append one line per meaningful update.
 - 2026-09-10 08:43 UTC - Specification author - Restructured after the review on PR #2193 requesting an EPIC with domain-clustered subissues instead of one implementation issue: specification renamed to `EPIC.md` and made planning-only, the items clustered by domain, two clusters handed to EPIC #2003, and nine draft subissue specifications added under `docs/issues/drafts/` - https://github.com/torrust/torrust-tracker/pull/2193#pullrequestreview-5164674289
 - 2026-09-10 09:10 UTC - Specification author - Aligned the specification with the shape of EPICs #1840 and #1347: the friction, maintainer-action, related-but-separate, cluster, per-parent-argument, and handoff sections collapsed into one compact Friction Inventory and the Subissues table, each item's evidence left in the subissue draft that owns it, the two candidates that did not reproduce recorded in Out of Scope, and the frontmatter reduced to the model key set - https://github.com/torrust/torrust-tracker/pull/2193
 - 2026-09-10 09:32 UTC - Specification author - Audited the EPIC and its nine subissue drafts against the planning guides: restored the `branch:` frontmatter key the spec-only-PR step requires, added the `Architectural Decisions` section, named the GitHub sub-issues API and the `issue: #<number>` marker step in Phase 2, completed the Acceptance Verification table, and marked the EPIC #2003 adoption as proposed in the two handed drafts - https://github.com/torrust/torrust-tracker/pull/2193
+- 2026-10-08 12:17 UTC - da2ce7 - Moved this EPIC and its nine subissue drafts to the v1 frontmatter shape that `frontmatter-validator` requires of draft and open specs: added `schema-version: 1` and quoted `last-updated-utc` in all ten, gave this EPIC `epic: null` and dropped its `branch:` key, which the v1 EPIC profile does not define, set each draft's `branch` to the template's `{issue-number}-` placeholder form, pointed one related artifact at its moved path under `docs/issues/closed/`, and dropped one deleted path; the specification bodies are unchanged - https://github.com/torrust/torrust-tracker/pull/2193
 
 ## Acceptance Criteria
 

@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
 status: draft
@@ -6,9 +7,9 @@ priority: p2
 epic: 2003
 github-issue: null
 spec-path: docs/issues/drafts/2003-run-developer-tool-test-suites-in-ci/ISSUE.md
-branch: null
+branch: "{issue-number}-2003-run-developer-tool-test-suites-in-ci"
 related-pr: null
-last-updated-utc: 2026-09-10 09:32
+last-updated-utc: "2026-09-10 09:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +18,6 @@ semantic-links:
     - .github/workflows/testing.yaml
     - contrib/dev-tools/git/tests/test-merge-pull-request.sh
     - contrib/dev-tools/checks/tests/test-format-project-words.sh
-    - contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh
     - contrib/dev-tools/checks/format-project-words.sh
     - contrib/dev-tools/checks/lint-containerfile.sh
     - contrib/dev-tools/git/hooks/pre-commit.sh

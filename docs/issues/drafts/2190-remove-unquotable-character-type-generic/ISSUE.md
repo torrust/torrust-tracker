@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
 status: draft
@@ -6,9 +7,9 @@ priority: p3
 epic: 2190
 github-issue: null
 spec-path: docs/issues/drafts/2190-remove-unquotable-character-type-generic/ISSUE.md
-branch: null
+branch: "{issue-number}-2190-remove-unquotable-character-type-generic"
 related-pr: null
-last-updated-utc: 2026-09-10 09:10
+last-updated-utc: "2026-09-10 09:10"
 semantic-links:
   skill-links:
     - create-issue

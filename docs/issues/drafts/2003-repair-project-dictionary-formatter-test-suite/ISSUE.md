@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: bug
 status: draft
@@ -6,9 +7,9 @@ priority: p2
 epic: 2003
 github-issue: null
 spec-path: docs/issues/drafts/2003-repair-project-dictionary-formatter-test-suite/ISSUE.md
-branch: null
+branch: "{issue-number}-2003-repair-project-dictionary-formatter-test-suite"
 related-pr: null
-last-updated-utc: 2026-09-10 09:32
+last-updated-utc: "2026-09-10 09:32"
 semantic-links:
   skill-links:
     - create-issue

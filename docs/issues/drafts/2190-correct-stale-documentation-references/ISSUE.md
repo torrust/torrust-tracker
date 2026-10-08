@@ -1,4 +1,5 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
 status: draft
@@ -6,9 +7,9 @@ priority: p3
 epic: 2190
 github-issue: null
 spec-path: docs/issues/drafts/2190-correct-stale-documentation-references/ISSUE.md
-branch: null
+branch: "{issue-number}-2190-correct-stale-documentation-references"
 related-pr: null
-last-updated-utc: 2026-09-10 09:10
+last-updated-utc: "2026-09-10 09:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +21,7 @@ semantic-links:
     - docs/profiling.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - project-words.txt
-    - docs/issues/open/2150-add-lychee-link-checker/ISSUE.md
+    - docs/issues/closed/2150-add-lychee-link-checker/ISSUE.md
     - docs/issues/open/2190-maintenance-frictions-cleanup/EPIC.md
 ---
 
