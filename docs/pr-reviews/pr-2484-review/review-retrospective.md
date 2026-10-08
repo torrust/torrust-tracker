@@ -47,7 +47,7 @@ counted as audit-only.
 | --- | --- | --- | --- |
 | Copilot | `046ecb540` (the narrow spec) | 0 | Approval recommended |
 | 1 (human) | `0438fa81b` (broadened spec, new inventory) | F1–F5 Minor/Nit, F6–F7 Suggestion | Five factual errors, four in the inventory (dates, a dependency, module visibility, an alias) and one in the spec's publishing plan (F2), and two additions. The only round about the reviewed content |
-| 2 (human) | `c43fc9013` (task converted to sub-EPIC) | F8 Nit, F9 Major, F10 Minor, F11 Nit, F12 Suggestion | All five caused by the conversion commit: a live path to the deleted `ISSUE.md` in the audit (F9), line ranges into the deleted file (F10), the same event dated 12:33 in one EPIC and 12:53 in the other (F11), a section dropped without being listed (F12), a 103-column log line (F8) |
+| 2 (human) | `c43fc9013` (task converted to sub-EPIC) | F8 Nit, F9 Major, F10 Minor, F11 Nit, F12 Suggestion | F9 to F12 caused by the conversion commit: a live path to the deleted `ISSUE.md` in the audit (F9), line ranges into the deleted file (F10), the same event dated 12:33 in one EPIC and 12:53 in the other (F11), a section dropped without being listed (F12). F8 is a 103-column line from the round-1 fix's log entry, which the conversion carried over verbatim |
 | 3 (human) | `542f1b293` (round-2 fixes) | F13 Nit | A log entry written while fixing F12 said a future spec "carries" a section. Approved with the Nit |
 | 4 (human) | `feb0d8f24` (F13 fix) | F14 Minor, non-blocking | The F13 fix added two lines to `EPIC.md`, shifting line ranges the audit cited for F7 and F10. Approved |
 
