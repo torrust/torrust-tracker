@@ -160,7 +160,7 @@ SAMv3/I2CP adapter. Which one, and does the decision need an ADR? Added by Jose 
 
 #### Positions
 
-##### Q2 - Jose Celano (`josecelano`), 2026-10-08, PR #[To be assigned]
+##### Q2 - Jose Celano (`josecelano`), 2026-10-08, PR #2492
 
 Restated from my review in PR #2059 and my
 [PR #2050 comment](https://github.com/torrust/torrust-tracker/pull/2050#issuecomment-5327048048).
@@ -189,7 +189,7 @@ the code more generic, so that other overlay networks fit later. Added by Jose C
 
 #### Positions
 
-##### Q4 - Jose Celano (`josecelano`), 2026-10-08, PR #[To be assigned]
+##### Q4 - Jose Celano (`josecelano`), 2026-10-08, PR #2492
 
 Restated from my
 [PR #2050 comment](https://github.com/torrust/torrust-tracker/pull/2050#issuecomment-5318276034).
@@ -218,7 +218,7 @@ rules, and is anything missing? Added by Jose Celano.
 
 #### Positions
 
-##### Q6 - Jose Celano (`josecelano`), 2026-10-08, PR #[To be assigned]
+##### Q6 - Jose Celano (`josecelano`), 2026-10-08, PR #2492
 
 Restated from my review in PR #2059. A1 to A4 and A6 are required before merge, with the
 acceptance criteria in [`review-pass-1.md`](review-pass-1.md). The size limit must allow every
@@ -245,7 +245,7 @@ Celano.
 
 #### Positions
 
-##### Q8 - Jose Celano (`josecelano`), 2026-10-08, PR #[To be assigned]
+##### Q8 - Jose Celano (`josecelano`), 2026-10-08, PR #2492
 
 Restated from my review in PR #2059. The existing `peer_addr` field must not carry a Destination.
 I2P peers belong in a separate, explicitly typed collection, designed with an ADR in the REST API
