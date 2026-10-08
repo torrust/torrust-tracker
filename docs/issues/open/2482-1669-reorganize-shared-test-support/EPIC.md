@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 12:53"
+last-updated-utc: "2026-10-08 14:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -267,19 +267,21 @@ Append one line per meaningful update.
   published. Folded in the draft for finding 2 (`1669-gate-server-testing-modules-behind-feature`),
   whose feature-gating plan is now option O1, and renamed the folder from
   `2482-1669-decouple-test-helpers-from-unpublished-crates`.
-- 2026-10-08 12:40 UTC - AI assistant (Copilot SDK in VS Code) - Addressed review 5454599321 (`da2ce7`,
-  round 1) on PR #2484: the inventory now dates the `test-helpers` dependency growth in two steps,
-  drops `torrust-info-hash` from `udp`, says which `tracker-core` test modules stay public and which
-  environments alias `Unstarted`, and states how intra-doc links are counted. This spec now scopes
-  the publishing plan to members without `publish = false` (nine members set it, so the 08:42 entry's
-  "all packages will be published" overstates it) and names the open #1488 subissues #2449, #2450
-  and #2471 that change the environments.
+- 2026-10-08 12:40 UTC - AI assistant (Copilot SDK in VS Code) - Addressed review 5454599321
+  (`da2ce7`, round 1) on PR #2484: the inventory now dates the `test-helpers` dependency growth
+  in two steps, drops `torrust-info-hash` from `udp`, says which `tracker-core` test modules stay
+  public and which environments alias `Unstarted`, and states how intra-doc links are counted.
+  This spec now scopes the publishing plan to members without `publish = false` (nine members set
+  it, so the 08:42 entry's "all packages will be published" overstates it) and names the
+  open #1488 subissues #2449, #2450 and #2471 that change the environments.
 - 2026-10-08 12:53 UTC - GitHub Copilot - Converted #2482 from a task to a sub-EPIC of #1669 at
   the maintainer's request: `ISSUE.md` became `EPIC.md`. The decision work (former T2 to T6,
   MV1 to MV3) becomes subissue 1 (tasks D1 to D5, plan kept in Delivery Strategy until its
   spec exists); the moves become provisional subissues 2 to 8. Added "How we work in this
   EPIC" and the closing rule. The task-only sections (Bug-Fix Process, Regression Test
   Strategy, Commit Points, Verification Plan) move to the subissues.
+- 2026-10-08 14:43 UTC - GitHub Copilot - Rewrapped the 12:40 entry to the file's 100-column
+  width, per PR #2484 review finding F8.
 
 ## Acceptance Criteria
 
