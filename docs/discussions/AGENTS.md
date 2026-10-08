@@ -70,7 +70,8 @@ round only for:
 - a failing linter, frontmatter check, or broken link;
 - a missing or wrong attribution;
 - a factual claim about the repository or its history that does not hold;
-- an edit to another participant's entry, or to the Outcome outside a decision round.
+- an edit to another participant's content (an entry, a topic's text, or the opening author's
+  context), or to the Outcome outside a decision round.
 
 A reviewer who disagrees with a position replies in their own round.
 
