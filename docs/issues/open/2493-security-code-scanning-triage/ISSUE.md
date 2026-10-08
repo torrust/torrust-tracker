@@ -9,7 +9,7 @@ github-issue: 2493
 spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: 2498
-last-updated-utc: "2026-10-08 18:11"
+last-updated-utc: "2026-10-08 18:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -197,6 +197,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   and da2ce7 review 5460660461, 11 findings, all fixed). The Trivy alert numbers had flipped to
   the push-scan series after the first export; both series are now recorded, and bug #2499 tracks
   the workflow defect. Audit: `docs/pr-reviews/pr-2498-review/PR-REVIEW.md`.
+- 2026-10-08 18:59 UTC - Copilot - Processed PR #2498 review round 2 (da2ce7 review 5461276899, 3
+  findings, all fixed): restamped log entries to the commits that carry them, recorded both V2
+  reconciliation runs, and recorded the exact #2499 reproduction commands.
 
 ## Acceptance Criteria
 
