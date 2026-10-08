@@ -33,7 +33,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `adrs/`                                                                                   | Architectural Decision Records (ADRs)                                                                   |
 | `analysis/`                                                                               | In-depth analysis of features, components, or aspects of the app                                        |
 | `research/`                                                                               | External research on technologies, patterns, and best practices                                         |
-| `discussions/`                                                                            | Design discussions and draft conclusions awaiting review by the owner of the affected work              |
+| `discussions/`                                                                            | Design discussions held in attributed rounds; the decision owner records the Outcome                    |
 | `external-snapshots/`                                                                     | Immutable licensed snapshots of external sources with provenance and integrity metadata                 |
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                                                   |
 | `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                                          |
