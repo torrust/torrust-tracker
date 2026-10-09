@@ -184,9 +184,11 @@ that type.
 | [templates/EPIC.md](templates/EPIC.md)                                                 | Template for EPIC issue specifications                            |
 | [templates/IMPLEMENTATION-RETROSPECTIVE.md](templates/IMPLEMENTATION-RETROSPECTIVE.md) | Template for issue-local implementation retrospectives            |
 | [templates/ISSUE.md](templates/ISSUE.md)                                               | Template for task / bug / feature issue specifications            |
+| [templates/MANUAL-VERIFICATION-EVIDENCE.md](templates/MANUAL-VERIFICATION-EVIDENCE.md) | Template for issue-local manual verification evidence             |
 | [templates/REFACTOR-PLAN.md](templates/REFACTOR-PLAN.md)                               | Template for refactor plan specifications                         |
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
+| [templates/PR-REVIEW-RETROSPECTIVE.md](templates/PR-REVIEW-RETROSPECTIVE.md)           | Template for PR review retrospectives, when warranted             |
 | [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
 | [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |
 
