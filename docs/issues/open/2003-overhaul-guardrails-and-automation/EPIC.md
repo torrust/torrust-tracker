@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-08 16:50"
+last-updated-utc: "2026-10-09 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,7 @@ Repository checks and procedures have grown across several independently maintai
 
 This distribution is not inherently wrong. The problem is that the repository lacks a current inventory showing ownership, overlap, execution cost, feedback behavior, and which rules should remain guidance versus become deterministic applications or tests. Without that evidence, a large consolidation could replace working checks with a more complex system without proving a benefit.
 
-The friction register below adds a second kind of evidence: 127 recorded frictions, places where following a skill, guide or template literally and doing the work accurately diverged, most of them still open, plus two CI findings filed beside them.
+The friction register below adds a second kind of evidence: recorded frictions, places where following a skill, guide or template literally and doing the work accurately diverged, most of them still open, plus two CI findings filed beside them; part 3 of the register's index carries their live counts.
 
 ## Design Principles
 
@@ -286,13 +286,15 @@ These are proposed planning subissues; none has been created. Titles and boundar
 
 ## Friction Register
 
-A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in two comments on this issue, edited in place:
+A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in four comments on this issue, edited in place; at index v31 (2026-10-08 13:31 UTC) they hold 12 artifact groups and 238 labels, 236 frictions and two CI findings:
 
-- [Index part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228) holds the first five artifact groups.
-- [Index part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196) holds the other six groups, the former-number map, the counts and the method.
+- [Index part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228) holds the first two artifact groups: the reviewer side and the author workflow.
+- [Index part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196) holds the third: the planning skills and spec templates.
+- [Index part 3](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6001593887) holds the next four (the audit template, the audit tooling, the hooks, linters and maintenance skills, and the CI findings), then the former-number map, the counts and the method; it carries the live counts.
+- [Index part 4](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6040926242) holds the last five: the link and frontmatter convention, the repository rules, the discussions, the review-thread helper skills and the external linter.
 
 - **Labels.** Each friction has a kebab-case label that starts with the owning artifact and names the defect in about six words, at most eight parts. A label is unique, derivable from the gist, and stable when rows are reordered or merged. Labels replace running numbers because a number carries no meaning, collides with reviewers' finding IDs and with re-raises, and turns deduplication into a separate lookup.
-- **The F series is closed at F102.** Each former number maps to exactly one label in the map that closes part 2. Numbers that re-raised one defect share a label, and F5, F9–F13 and F30 were never filed here. New frictions receive a label only.
+- **The F series is closed at F102.** Each former number maps to exactly one label in the former-number map in part 3. Numbers that re-raised one defect share a label, and F5, F9–F13 and F30 were never filed here. New frictions receive a label only.
 - **Dispositions.** Each disposition is recomputed at a stated `develop` head, not copied from an earlier summary, and the precedence is **ADOPTED** > **SUPERSEDED** > **SPECIFIED** > **OPEN**:
   - **ADOPTED:** the fix is on `develop`, cited with file:line and landing commit.
   - **SUPERSEDED:** a later change removed the ground.
@@ -300,7 +302,7 @@ A friction is a place where following a repository skill, guide or template lite
   - **OPEN:** none of the above.
 - **Filing.** Every filing edits the index in place: a new row linking its filing comment, or a status note on an existing label. A draft that duplicates a label becomes a status note on that label, not a new row. Each filing comment carries the full text of its entries. Once the index carries a filing comment's rows, that comment is minimized; it stays reachable through the index's links.
 
-Counts at the index's revision of 2026-09-28 (the ninth labelled batch):
+Counts at the index's revision of 2026-09-28 (the ninth labelled batch), kept as a snapshot: groups and labels have been added and moved between parts since, and part 3 carries the live counts.
 
 | Artifact group | Index part | Labels | ADOPTED | SUPERSEDED | SPECIFIED | OPEN |
 | -------------- | ---------- | ------ | ------- | ---------- | --------- | ---- |
@@ -317,7 +319,7 @@ Counts at the index's revision of 2026-09-28 (the ninth labelled batch):
 | CI findings (filed as not frictions) | 2 | 2 | 0 | 0 | 0 | 2 |
 | **Total** | | **129** | **19** | **3** | **12** | **95** |
 
-The largest open clusters are the planning skills and spec templates (30 open) and the reviewer side (18 open). The #2278 matrix names the reviewer-side items as input for a separate reviewer-side issue, which does not yet exist.
+At that revision the largest open clusters were the planning skills and spec templates (30 open) and the reviewer side (18 open). The #2278 matrix names the reviewer-side items as input for a separate reviewer-side issue, which does not yet exist.
 
 **PR #2484 review retrospective (2026-10-08).** Its six proposals are dispositioned in #2278's improvement matrix. Items 1 to 3 go to #2278: the manual pre-push sweep and anchoring verifications to headings or quoted phrases are adopted for its order 5, the sweep's tool is deferred to its order 8, and deferring non-blocking findings after an approval to its order 10. The parts this EPIC owns enter the register with the next batch: item 4 (one stamp per event in spec progress logs) on `issue-template-log-correction-rule-unstated`, item 5 (a step for restructuring a spec under review) on `create-issue-issue-to-epic-conversion-unstated`, item 6 (one session per pull-request branch) as a new label against `docs/agents/orchestration.md`, and item 1's tree-wide path sweep and line-width check on `linter-path-citations-unchecked` and `write-markdown-docs-line-wrap-rule-unstated`. Item 4 overlaps Undecided Improvement Candidate 4, which stays listed until it is placed.
 
@@ -327,7 +329,7 @@ Use an evidence-first, progressive delivery strategy because the problem crosses
 
 Research artifacts should be committed as durable documentation under the EPIC or an approved canonical docs location. Architecture-dependent implementation subissues begin only after maintainers review the alternatives and record a decision. The subissues in the Subissues table may proceed now because they are additive, independently verifiable, and do not preselect the shared architecture. The later decision may keep the current distributed model, approve only targeted improvements, select consolidation, or request a bounded experiment before committing to the remaining implementation.
 
-The EPIC is in Phase 1 (Discovery). None of the ten proposed research subissues exists, AC1–AC17 are `TODO`, and the early-implementation subissues (orders 1–14) proceed under the Scope exception.
+The EPIC is in Phase 1 (Discovery). None of the ten proposed research subissues exists, AC1–AC17 are `TODO`, and the early-implementation subissues proceed under the Scope exception.
 
 For each completed subissue in this EPIC, the default completion policy is:
 
@@ -373,7 +375,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - [x] Epic spec drafted in `docs/issues/drafts/`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created and issue number added to this spec
-- [x] Early-implementation subissues created and listed in the Subissues table (orders 1–14)
+- [x] Early-implementation subissues created and listed in the Subissues table
 - [ ] Research/design subissues approved, created, and linked in this spec
 - [ ] Initial inventory reviewed and accepted as the Phase 1 baseline
 - [ ] Phase 1 discovery evidence reviewed
@@ -422,6 +424,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-10-07 16:15 UTC - AI assistant (Copilot SDK in VS Code) - Maintainer approved subissue #2473 (order 15), asynchronous attributed discussion rounds proposed in PR #2467; created and linked it under this EPIC
 - 2026-10-08 09:12 UTC - AI assistant (Copilot SDK in VS Code) - Subissue #2473 (order 15) closed by PR #2481; archived its specification to `docs/issues/closed/`
 - 2026-10-08 16:50 UTC - da2ce7 - Triaged the six proposals of the PR #2484 review retrospective: items 1 to 3 go to #2278's improvement matrix, and items 4 to 6 with item 1's tree-wide checks to the friction register; see Friction Register
+- 2026-10-09 10:25 UTC - da2ce7 - Answered review 5468071770 on PR #2366: the Friction Register describes the index's four comments at v31 and keeps the 2026-09-28 counts as a snapshot, and the order range is dropped from the checkpoint and the Delivery Strategy
 
 ## Acceptance Criteria
 
