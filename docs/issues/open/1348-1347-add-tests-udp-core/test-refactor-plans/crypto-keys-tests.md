@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/crypto/keys.rs
-status: in-progress
+status: superseded
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/crypto/keys.rs
@@ -59,14 +59,16 @@ derive the cipher from the seed, or extend `check_seed()` to compare ciphers.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Add AAA sections, rename the cipher-alias test, remove the `ZeroedTest` keeper. | Focused `crypto::keys` tests, nightly formatting, `git diff --check`. |
-| R2 | TODO | Add K1. | Focused tests, pedantic Clippy, prose-first AAA review. |
+| R1 | SKIPPED | Add AAA sections, rename the cipher-alias test, remove the `ZeroedTest` keeper. | Superseded: #2458 deleted the file. |
+| R2 | SKIPPED | Add K1. | Superseded: #2458's `crypto/cookie_cipher.rs` test `it_should_not_encrypt_like_the_fixed_test_key_when_the_key_is_random` covers the same property. |
 | R3 | SKIPPED | No integration increment: static key facades with no boundary. | Explicit rationale. |
-| R4 | TODO | Re-run unit-only coverage; record before/after. | File and package results in this plan and `coverage-evidence.md`. |
+| R4 | SKIPPED | Re-run unit-only coverage; record before/after. | Superseded: the file no longer exists. |
 
 ## Results
 
-Pending.
+Superseded. Issue #2458 replaced `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` with an
+injected `crypto/cookie_cipher.rs`. The finding this plan raised is resolved there; the new file
+has its own row in the ledger.
 
 ## Approval
 
@@ -89,3 +91,5 @@ work will rewrite `crypto/keys.rs`. Re-plan R1/K1 against the new design when re
   conflicts.
 - 2026-10-07 10:59 UTC - GitHub Copilot - The follow-up is Issue #2458; its spec is on `develop`
   and its implementation is in review as PR #2470. Resume this plan after PR #2470 merges.
+- 2026-10-09 07:30 UTC - GitHub Copilot - PR #2470 merged and deleted this file. Plan superseded;
+  no Rust change made under it.

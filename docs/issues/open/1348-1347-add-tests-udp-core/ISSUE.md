@@ -276,11 +276,14 @@ the test needs; they do not reuse production container factories.
 
 ## Source File Ledger
 
-States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`. Critical-path files with no unit-only
+States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`, `REMOVED` (the file no longer exists; the
+row keeps the history). Critical-path files with no unit-only
 coverage come first (announce, its peer mapping, scrape); the rest follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first. Within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the T1 measurement.
+lines are the T1 measurement; files added after T1 show their first measurement instead.
+Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
+`CookieCipher`, so the rows after `connection_cookie.rs` were re-planned on 2026-10-09.
 
 | Order | Source module | Rank | Unit-only lines | T1 hypothesis | State | Plan |
 | ---: | --- | ---: | ---: | --- | --- | --- |
@@ -288,22 +291,23 @@ lines are the T1 measurement.
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
-| 5 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | IN_PROGRESS | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) |
-| 6 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
-| 7 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
-| 8 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
-| 9 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
-| 10 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate | PENDING | - |
-| 11 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
-| 12 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
-| 13 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | PENDING | - |
-| 14 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
-| 15 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
-| 16 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
-| 17 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
-| 18 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | PENDING | - |
-| 19 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
-| 20 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
+| 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | PENDING | - |
+| 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
+| 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
+| 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
+| 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
+| 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
+| 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
+| 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | PENDING | - |
+| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
+| 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
+| 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
+| 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
+| 17 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | PENDING | - |
+| 18 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
+| 19 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
+| - | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | REMOVED (#2458) | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) (superseded) |
+| - | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | REMOVED (#2458) | - |
 
 ## Progress Tracking
 
@@ -403,6 +407,12 @@ lines are the T1 measurement.
   fixed test cipher into the service constructors. 67 package unit tests pass. #2458 deleted
   `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` (ledger rows 5-6) and added
   `crypto/cookie_cipher.rs`, with its own tests; the ledger is re-planned next.
+- 2026-10-09 07:30 UTC - GitHub Copilot - Ledger re-planned after #2458 (awaiting maintainer
+  approval): `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` marked `REMOVED`, their
+  plan superseded; `crypto/cookie_cipher.rs` added as order 5 (rank 1). Fresh unit-only package
+  coverage: 2,026 / 2,097 lines (96.61%); `container.rs` (183 / 183) and `lib.rs` (5 / 5) are now
+  fully covered by #2458's changes, but every remaining row still gets its own file plan.
+- 2026-10-09 11:19 UTC - Jose Celano - Approved the re-planned ledger.
 
 ## Acceptance Criteria
 

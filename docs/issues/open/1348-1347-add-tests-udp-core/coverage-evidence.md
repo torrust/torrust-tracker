@@ -100,7 +100,12 @@ PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 2
 `services/announce.rs` for R2h: 1,708 / 1,901 lines (89.85%), 2,340 / 2,564 regions (91.26%),
 222 / 250 functions (88.80%). After `connection_cookie.rs` (rebased onto `develop` again; no
 `udp-core` change): 1,749 / 1,937 lines (90.29%), 2,429 / 2,654 regions (91.52%), 229 / 257
-functions (89.11%). The final
+functions (89.11%). After rebasing onto Issue #2458 (2026-10-09; stable Rust 1.99.0): 2,026 /
+2,097 lines (96.61%), 2,706 / 2,794 regions (96.85%), 248 / 266 functions (93.23%). This jump
+comes mostly from #2458, not from #1348: it deleted `crypto/keys.rs` and
+`crypto/ephemeral_instance_keys.rs`, added a fully covered `crypto/cookie_cipher.rs` (49 / 49),
+and added `container.rs` tests (0 / 97 to 183 / 183) and the static-initialization removal that
+leaves `lib.rs` at 5 / 5. The final
 package comparison is recorded at T7.
 
 ## Next Evidence
