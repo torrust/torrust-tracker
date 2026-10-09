@@ -94,7 +94,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: The spec no longer contains `1778-migrate-to-rust-edition-2024.md` or `1787-evaluate-msrv-bump.md`; every relative link target in the spec and every `related-artifacts` entry resolves to a tracked file.
 - Resolution reference: `docs(issues): [#2183] repoint the closed MSRV spec links and migrate the frontmatter to v1`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f1}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229318045>
 
 ### F10 - The frontmatter fails the v1 frontmatter validator
 
@@ -107,7 +107,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: The frontmatter has exactly the twelve fields the issue profile of `docs/schemas/frontmatter-v1.schema.json` requires, in the template's order; `spec-path` is the file's own path; `last-updated-utc` equals the newest progress-log entry.
 - Resolution reference: `docs(issues): [#2183] repoint the closed MSRV spec links and migrate the frontmatter to v1`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f2}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229318236>
 
 ### F3 - The review audit uses the deprecated location and format
 
@@ -120,7 +120,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: `docs/copilot-pr-reviews/pr-2187-copilot-suggestions.md` is absent; `validate-audit-record.py --pr-number 2187` parses ten tracking rows with ten matching detail entries and a chronological Processing Log.
 - Resolution reference: `docs(pr-reviews): [#2183] move the PR #2187 audit to the unified record`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f3}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229318464>
 
 ### F4 - Several implementation instructions are stale against current develop
 
@@ -133,7 +133,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: On `develop`, the workspace `members` list has 30 entries, the root and all 30 member manifests declare `rust-version.workspace = true`, and only the root `Cargo.toml` declares the literal `rust-version = "1.88"`; the PGO draft exists at its folder path; the spec contains no `@v` action pin and no line-number reference outside the dated 2026-09-09 progress-log entry.
 - Resolution reference: `docs(issues): [#2183] re-verify the implementation values against current develop`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f4}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229318693>
 
 ### F5 - T4 misses the MSRV pointer in EPIC #1669
 
@@ -146,7 +146,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: The `### Out of Scope` list of the EPIC still reads "MSRV changes (tracked under #1787)" on `develop`, and the T4 row of the spec's `## Implementation Plan` names that item.
 - Resolution reference: `docs(issues): [#2183] re-verify the implementation values against current develop`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f5}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229318961>
 
 ### F6 - The AC5 sweep hits code comments that AC5 does not classify
 
@@ -159,7 +159,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: The sweep on `develop`, excluding `docs/issues/closed/`, returns 66 lines: 32 manifest lines, 26 `derive_more` comment and reason lines at 13 sites in `primitives`, `http-protocol`, `axum-http-server`, `axum-rest-api-server`, and `udp-server`, and 8 prose or dictionary lines, none of which states a floor other than `1.88`.
 - Resolution reference: `docs(issues): [#2183] re-verify the implementation values against current develop`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f6}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229319207>
 
 ### F7 - The MSRV job should check with `--locked`
 
@@ -172,7 +172,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Current-tree verification: Every `cargo check` and `cargo +{pin} check` command in the spec carries `--locked`.
 - Resolution reference: `docs(issues): [#2183] re-verify the implementation values against current develop`
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f7}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#discussion_r4229319443>
 
 ### F8 - The PR description is out of date
 
@@ -183,9 +183,9 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - Concern: The description said only `docs/issues/` was touched although the audit file was added later, and that the pre-commit gate has six steps where `develop` has nine.
 - Solution: Replaced the description after the rebase: it names every file the branch touches, the rebase, this round's commits, and the validation at the new head with all nine pre-commit steps.
 - Current-tree verification: `contrib/dev-tools/git/hooks/pre-commit.sh` on `develop` defines nine `STEPS` entries, and the branch's diff against `develop` adds the spec and this record only.
-- Resolution reference: {reply-2187-f8}
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2187#issuecomment-6079415166>
 - Follow-up PR URL: N/A
-- Reply URL: {reply-2187-f8}
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2187#issuecomment-6079415166>
 
 ## Processing Log
 
