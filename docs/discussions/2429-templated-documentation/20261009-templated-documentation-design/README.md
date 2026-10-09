@@ -63,9 +63,11 @@ material in [`maintainer-review-session.md`](maintainer-review-session.md); its 
 Facts checked against `develop` at `41add51ab` unless another commit is named:
 
 - Drift exists. `docs/adrs/index.md` has no row for
-  `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`, and the template table in
-  `docs/index.md` omits `MANUAL-VERIFICATION-EVIDENCE.md` and `PR-REVIEW-RETROSPECTIVE.md` (both also
-  true at the proposal's anchor, `eb96d2957`).
+  `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`, the template table in
+  `docs/index.md` omits `MANUAL-VERIFICATION-EVIDENCE.md` and `PR-REVIEW-RETROSPECTIVE.md`, and
+  `docs/skills/semantic-skill-link-convention.md` lists issue and EPIC frontmatter fields that disagree
+  with the validator's strict profiles (all also true at the proposal's anchor, `eb96d2957`). The
+  pull request that opens this discussion fixes all three by hand; the drift itself is the evidence.
 - The repository already verifies restated facts in living documents. The frontmatter validator reports
   a `spec-path` that is not the specification's location and a `status` that does not match its
   lifecycle folder (`contrib/dev-tools/checks/frontmatter-validator/src/repository.rs`), and runs on the
