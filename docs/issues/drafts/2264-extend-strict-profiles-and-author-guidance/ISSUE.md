@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
 branch: "{issue-number}-extend-strict-profiles-and-author-guidance-spec"
 related-pr: null
-last-updated-utc: "2026-10-09 10:26"
+last-updated-utc: "2026-10-09 10:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,7 +153,7 @@ The command already runs short synchronous `git` processes and needs no new chil
 The issue is a feature, but T7a-T7c correct stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 1. the hypothesis: the duplicated lists predate the v1 contract and were never updated with it;
-2. the reproduction, attempted while drafting and before maintainer review: two disposable specs written from the convention's issue field list, one exactly as listed and one with `schema-version: 1` added. The outcome is **Reproduced**: the attempt in the drafting environment was infeasible for lack of a Rust toolchain, but its field-by-field comparison with `profile.rs` predicted a `legacy-shape` error for the first spec and a `missing-required-field` error for `epic` for the second, and the recorded commands then produced exactly those records, each with exit `1`, on the loop's compute pod. `manual-verification-evidence.md` section B1 records the specs, the commands, the comparison, the toolchain, and the observed records;
+2. the reproduction, attempted while drafting and before maintainer review: two disposable specs written from the convention's issue field list, one exactly as listed and one with `schema-version: 1` added. The outcome is **Reproduced**: the attempt in the drafting environment was infeasible for lack of a Rust toolchain, but its field-by-field comparison with `profile.rs` predicted a `legacy-shape` error for the first spec and a `missing-required-field` error for `epic` for the second, and the recorded commands then produced exactly those records, each with exit `1`, in a Linux container with the workspace nightly toolchain. `manual-verification-evidence.md` section B1 records the specs, the commands, the comparison, the toolchain, and the observed records;
 3. the regression-test boundary: the guidance-example test described in Regression Test Strategy;
 4. the red run (T7a): the test is added and run against the unchanged convention, and its failing output is recorded in `manual-verification-evidence.md` section B2 before the convention changes;
 5. the fix (T7b): replace the lists with references to the generated schema and the crate README (D8);
@@ -226,6 +226,7 @@ Append one line per meaningful update.
 - 2026-10-03 10:54 UTC - da2ce7 - Drafted this specification from EPIC #2264 row 3, the v1 contract's deferred classes, and the validator as delivered by #2266, #2280, and #2281; awaits maintainer approval before a GitHub issue is created - This specification
 - 2026-10-03 11:31 UTC - da2ce7 - Attempted the stale-guidance reproduction before review: `Infeasible` in the drafting environment (no Rust toolchain); recorded the disposable specs, validator commands, and field-by-field substitute evidence - `manual-verification-evidence.md` section B1
 - 2026-10-03 11:48 UTC - da2ce7 - Recorded the stale-guidance reproduction as `Reproduced`: the B1 commands ran on the loop's compute pod at 2026-10-03 11:44 UTC with the workspace nightly toolchain and printed exactly the predicted `legacy-shape` and `missing-required-field` records, each with exit `1` - `manual-verification-evidence.md` section B1
+- 2026-10-09 10:27 UTC - da2ce7 - Restated the B1 environment in portable terms: "the loop's compute pod" in the entry above is a Linux container with the workspace nightly toolchain. Aligned step 3 with that toolchain, and recorded which parts of the first observed record come from the transcript of the run and which were completed from the validator source - `manual-verification-evidence.md` section B1
 
 ## Acceptance Criteria
 
