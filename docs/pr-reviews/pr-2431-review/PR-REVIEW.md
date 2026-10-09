@@ -96,7 +96,7 @@ Review 5469277375 (round 2, josecelano, state `CHANGES_REQUESTED`, submitted 202
 - Current-tree verification: in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`, under "Background", the skill sentence reads "version 1.5 at `686a42f45`" and quotes "before every audit commit", "Update the audit progressively", and "treat a non-zero exit", each found once in `.github/skills/dev/pr-reviews/process-pr-review/SKILL.md` at `686a42f45` (under "Validation Script", "Workflow", and "Validation Script"); under "In Scope", the bump bullet reads "1.5 at `686a42f45`, or the version #2362 leaves if it lands first"; no skill, template, or validator line number remains in the draft.
 - Resolution reference: `docs(issues): [#2278] cite the skill, template, matrix and EPIC by stable references`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2431#discussion_r4229669330>
 
 ### F4 - Matrix rows and EPIC passages are identified by line number
 
@@ -109,7 +109,7 @@ Review 5469277375 (round 2, josecelano, state `CHANGES_REQUESTED`, submitted 202
 - Current-tree verification: in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`, under "In Scope", the table header reads "| Matrix row |" and its first row names PR #2270 and "Run the audit validator before every reply and audit commit"; AC2 reads "the Scope table checks for the PR #2271 rows and F55"; each quoted proposal occurs once in `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md` at `686a42f45`, under "Author Verification and Convergence"; no matrix or EPIC line number remains in the draft.
 - Resolution reference: `docs(issues): [#2278] cite the skill, template, matrix and EPIC by stable references`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2431#discussion_r4229669604>
 
 ### F5 - The #2362 overlap is stated from the old base
 
@@ -122,7 +122,7 @@ Review 5469277375 (round 2, josecelano, state `CHANGES_REQUESTED`, submitted 202
 - Current-tree verification: in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`, under "Dependencies and Open Questions", the #2362 bullet reads "This issue rewrites none of those passages, so no sentence is changed by both orders" and quotes "`FIXED` resolution references are unique Conventional Commit subjects" and "Use a unique Conventional Commit subject as the `Resolution reference`", each found once at `686a42f45` (the skill's "Detail-Entry Fields"; the template under `### <FINDING_ID> - <SUMMARY>`).
 - Resolution reference: `docs(issues): [#2278] restate the #2362 overlap on current develop`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2431#discussion_r4229669873>
 
 ### F6 - The description's Files Touched and Validation are out of date
 
@@ -133,9 +133,9 @@ Review 5469277375 (round 2, josecelano, state `CHANGES_REQUESTED`, submitted 202
 - Concern: The review body says the description's Files Touched omits `docs/pr-reviews/pr-2431-review/PR-REVIEW.md`, and its Validation says citations resolve at `develop` `eb96d2957` while the branch was rebased onto `29afe946c`; both need refreshing after the rebase.
 - Solution: The description, outside the tree, is replaced: Files Touched lists the audit record and the matrix, a section records the rebase onto `develop` `686a42f45` and the carried R2 and R4, the requested decisions carry the maintainer's answers, a Merge order section follows PR #2434, and Validation states the gate at the new head.
 - Current-tree verification: the description is not in the tree; the PR conversation response that answers this finding links the replacement.
-- Resolution reference: <REPLY_URL_OR_NA>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2431#issuecomment-6080076218>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2431#issuecomment-6080076218>
 
 ## Processing Log
 
