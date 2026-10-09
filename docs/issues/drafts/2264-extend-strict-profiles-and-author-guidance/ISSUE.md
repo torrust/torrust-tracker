@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md
 branch: "{issue-number}-extend-strict-profiles-and-author-guidance-spec"
 related-pr: null
-last-updated-utc: "2026-10-03 11:48"
+last-updated-utc: "2026-10-09 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -88,7 +88,7 @@ The last two rows matter for compatibility. No record outside issue and EPIC spe
 
 ### Out of Scope
 
-- Changing the shape of `related-pr` or any other existing issue/EPIC field. The multiple-related-PRs proposal is EPIC row 2.3; this issue neither depends on it nor preempts it.
+- Changing the shape of `related-pr` or any other existing issue/EPIC field. The multiple-related-PRs proposal is EPIC row 2.3; this issue does not preempt it, and prefers only to start after it (see "Ordering after EPIC row 2.3" under Risks and Trade-offs).
 - Moving normative content into new convention documents or retiring `docs/skills/semantic-skill-link-convention.md`; EPIC row 4 owns the split. This issue corrects duplicated content in place only.
 - New semantic-link relation or target types, new `related-artifacts` forms, or path-reference syntax (EPIC rows 5-8).
 - Link-importance metadata (EPIC row 9).
@@ -301,7 +301,7 @@ None planned. Fixture and command tests are maintained Rust tests in the crate; 
 - **Explicit opt-in leaves gaps.** A record written without its template escapes its profile (D3). Mitigation: templates and skills are the authoring path, and the template drift check keeps them current; a `legacy-shape` rule for the new classes can follow once the catalog has settled.
 - **Template mode adds a placeholder grammar.** A loose grammar would hide drift. Mitigation: placeholders are accepted only under `docs/templates/`, and enumerated placeholders are compared with the profile's allowed values.
 - **External schemas can change upstream.** Mitigation: D5 validates only the repository-owned extension and never a top-level key.
-- **Interaction with EPIC row 2.3.** If the multiple-related-PRs change lands first, the template mode validates `docs/templates/ISSUE.md` against the amended issue profile without change here; if this issue lands first, row 2.3 updates the template within its own scope. Neither issue depends on the other.
+- **Ordering after EPIC row 2.3.** This issue should preferably start after row 2.3 has settled the issue profile: both change `profile.rs` and the generated schema artifact, and row 2.3 decides whether a field-shape change needs a new `schema-version`, while D2 assumes the new profiles can join `schema-version: 1`. The preference is soft, because none of this issue's profiles reads `related-pr`. If row 2.3 is `BLOCKED` on row 4's versioning and migration policy, this issue proceeds on `schema-version: 1`, and row 2.3 later updates `docs/templates/ISSUE.md` within its own scope, which the template mode (D6) then validates against the amended issue profile.
 - **Overlap with the PR review audit draft.** Mitigation: D4 records which issue delivers the PR review record profile, so the profile is defined once.
 
 ## Implementation Completion Review
