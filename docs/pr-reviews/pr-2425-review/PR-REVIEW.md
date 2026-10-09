@@ -138,7 +138,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`, section "Draft Subissue Proposals" holds only "None pending.", and the Progress Log entry beginning "2026-10-03 10:56 UTC - da2ce7 - Triaged the multiple-related-PRs draft" carries the reason, wrapped within 100 columns.
 - Resolution reference: `docs(issues): [#2264] order the row 2.3 draft once and align it with rows 3 and 4`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229210767>
 
 ### R2 - Align the row 2.3 / row 3 relationship with the EPIC rationale
 
@@ -151,7 +151,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`, Risks and Trade-offs holds "Ordering after EPIC row 2.3", Out of Scope points to it, and the phrase "Neither issue depends" no longer occurs.
 - Resolution reference: `docs(issues): [#2264] order the row 2.3 draft once and align it with rows 3 and 4`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229211120>
 
 ### R3 - D4 candidates assume `doc-type` values that templates do not emit
 
@@ -164,7 +164,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`, D4 begins its candidate list with "Only four templates declare a `doc-type` today", and the T1 row names `SECURITY-ANALYSIS.md`, `PR-REVIEW-RETROSPECTIVE.md`, `REVIEW-FINDINGS.md`, and `DISCUSSION.md`.
 - Resolution reference: `docs(issues): [#2264] mark the D4 doc-types as proposed and pin the placeholder syntax`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229211499>
 
 ### R4 - Say what happens to row 2.3 if it depends on row 4
 
@@ -177,7 +177,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`, the Progressive Subissues row 2.3 ends with "is then marked `BLOCKED` until row 4 is done while row 3 proceeds without it".
 - Resolution reference: `docs(issues): [#2264] order the row 2.3 draft once and align it with rows 3 and 4`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229211970>
 
 ### R5 - Pin the enumerated-placeholder syntax for template mode
 
@@ -190,7 +190,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`, D6 contains "Its accepted syntax is the form `docs/templates/ISSUE.md` writes" and "as drift instead of normalizing it".
 - Resolution reference: `docs(issues): [#2264] mark the D4 doc-types as proposed and pin the placeholder syntax`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229212366>
 
 ### R6 - Clarify the reproduction environment and toolchain wording
 
@@ -203,7 +203,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/manual-verification-evidence.md`, section B1 contains "a Linux container with the workspace nightly toolchain" and the Provenance paragraph, and the phrase "compute pod" no longer occurs in the file.
 - Resolution reference: `docs(issues): [#2264] state the B1 reproduction environment and toolchain`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229212885>
 
 ### R7 - The baseline counts have drifted on `develop`
 
@@ -216,7 +216,7 @@ Maintainer review 5468099277 by josecelano (`CHANGES_REQUESTED`, 2026-10-09 09:1
 - Current-tree verification: In `docs/issues/drafts/2264-extend-strict-profiles-and-author-guidance/ISSUE.md`, the paragraph after the baseline table begins "The counts in this specification were measured on 2026-10-03", and the T1 row begins "Re-measure the baseline counts".
 - Resolution reference: `docs(issues): [#2264] mark the D4 doc-types as proposed and pin the placeholder syntax`
 - Follow-up PR URL: N/A
-- Reply URL: Pending; the reply recorded in the Processing Log is posted before the thread is resolved, and this field then records its URL.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2425#discussion_r4229213553>
 
 ## Processing Log
 
