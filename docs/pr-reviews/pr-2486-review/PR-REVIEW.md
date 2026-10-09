@@ -41,9 +41,17 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Copilot review 5455025162 left one inline finding, headed `[Major][F1]`, on the `project-automation-is-a-dependency` paragraph under Q11 of the discussion README. The reviewer's ID F1 collides with no earlier finding, so it is kept. The review's overview lists the same finding with a Low severity icon and adds no other request, so it adds no row; the row records the thread's bracket, which the validator compares.
 
+Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline findings, headed `[Major][R1]`, `[Minor][R2]`, `[Minor][R4]`, `[Suggestion][R5]` and `[Nit][R6]`, and one review-body finding, `[Minor][R3]`, which has no thread and is `NON_RESOLVABLE`. The reviewer's IDs collide with no earlier finding, so they are kept. The rest of the review body is his verdict and adds no request. His conversation comment 6079919819 lists R1 to R4 as his pre-merge asks and R5 and R6 as non-blocking, and adds no other request.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2486-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| R1 | `review-finding:pr-2486-r1` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| R2 | `review-finding:pr-2486-r2` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| R3 | `review-finding:pr-2486-r3` | Human | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| R4 | `review-finding:pr-2486-r4` | Human | Minor | metadata | ORIGINAL | NO_ACTION | OPEN |
+| R5 | `review-finding:pr-2486-r5` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| R6 | `review-finding:pr-2486-r6` | Human | Nit | formatting | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -60,6 +68,84 @@ Copilot review 5455025162 left one inline finding, headed `[Major][F1]`, on the 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4217828891>
 
+### R1 - The F1 fix restates the repository claim as a concept
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526754>
+- Concern: The opening sentence of `project-automation-is-a-dependency` after the F1 fix said "what the project's automation runs is visible in tracked bytes and changes only through a pull request", a present-tense claim about the repository that the reviewer's evidence contradicts: CI selects floating toolchains, the agent profiles set `disable-model-invocation: false` and name no model, and automated review is enabled in repository settings rather than tracked files. Under the merge gate in `docs/discussions/AGENTS.md`, a factual claim about the repository that does not hold blocks the round.
+- Solution: The opening sentence now states the reason under the rule rather than a fact about today's repository: "A public process attracts provenance of its own accord: a project tracks what its automation uses for the same reason it ships a lockfile, to constrain the scope of its dependencies, and under this rule a model that acts inside that automation is one of them, so it can be named exactly where a personal tool cannot." The rest of the entry is unchanged.
+- Current-tree verification: Under Q11's `#### Positions`, the paragraph headed `project-automation-is-a-dependency` opens with the sentence quoted above, and `git grep -F 'is visible in tracked bytes and changes only through a pull request'` finds nothing under `docs/discussions`; the rest of the paragraph, from "The record's subject is not that a model was used", is byte-identical to the head the review was posted on.
+- Resolution reference: `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R1}>
+
+### R2 - The Q11 provenance line no longer matches the B4 entry
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526762>
+- Concern: The Q11 "First posted as" line reads as a statement that the Q11 entries are the text first posted under `B1` to `B6`, but `project-automation-is-a-dependency` no longer reads as posted, because its opening sentence was replaced in this round.
+- Solution: The line gains one sentence: "`project-automation-is-a-dependency` revises `B4`'s opening sentence in this round (PR #2486 review findings F1 and R1)."
+- Current-tree verification: The "First posted as" line that closes Q11's entry ends with the sentence quoted above, after the number labels `B1` to `B6`.
+- Resolution reference: `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R2}>
+
+### R3 - The description's verification claim did not hold for B4
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#pullrequestreview-5469325284>
+- Concern: The pull-request description's Verification section said that the sixteen points rendered whole are identical to the posted comment and that the entries are unchanged since, which no longer held for `B4` after the F1 fix; the merge tool appends the description to the merge commit, so the claim could not be corrected after merge.
+- Solution: The description was replaced at 11:21 UTC, outside the repository tree: its Verification section now says that fifteen of the sixteen points rendered whole are identical and that `B4`'s opening sentence was revised for review finding F1.
+- Current-tree verification: `contrib/dev-tools/git/github-merge.py` line 647 at `686a42f45` appends the description to the merge message; the description captured after the replacement reads "Fifteen of the sixteen points rendered whole are identical; B4's opening sentence was revised afterwards for review finding F1".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-{response-R3}>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-{response-R3}>
+
+### R4 - Whether an AI assistant drafted entry text
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526774>
+- Concern: The reviewer asked whether an AI assistant drafted or researched any entry text, because the attribution rule in `docs/discussions/AGENTS.md` asks an entry to say so and a missing attribution is a merge-gate reason; if none did, a reply saying so is enough.
+- Solution: Answered on the thread, with no README change: "My contributions may use private tooling, that may or may not include ML." The thread is left open for the reviewer.
+- Current-tree verification: Reply 4229731579 sits on thread 4229526774 (its `in_reply_to_id`), posted at 11:44 UTC; no README line changed for R4.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579>
+
+### R5 - The release-certification example and `humans-author-and-certify`
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526780>
+- Concern: The `project-automation-is-a-dependency` entry gives "certifying a new tagged release" as an example of a choice a model may make, while `humans-author-and-certify` reserves certification for humans; the reviewer suggested a different example, such as preparing a release, and marked the point non-blocking, on substance.
+- Solution: Left as it is: the point is substance rather than document quality, so it belongs to the decision round.
+- Current-tree verification: The `project-automation-is-a-dependency` paragraph still contains "such as certifying a new tagged release".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R5}>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R5}>
+
+### R6 - Entry paragraphs are single lines
+
+- PR number: 2486
+- Source review ID: 5469325284
+- Reviewer finding ID: R6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526789>
+- Concern: The entries are single long lines while the rest of the file wraps prose at 100 columns; `MD013` is off, so lint passes, and the same holds for this audit record. The reviewer requested no change to the title.
+- Solution: Left as it is: the entries keep the form their author writes, one line per paragraph.
+- Current-tree verification: The entry paragraphs remain single lines, and `.markdownlint.json` sets `MD013` to `false`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R6}>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R6}>
+
 ## Processing Log
 
 - 2026-10-08 09:58 UTC - Opened the pull request with the round and requested reviews; Copilot's review started at 09:59 UTC.
@@ -69,6 +155,12 @@ Copilot review 5455025162 left one inline finding, headed `[Major][F1]`, on the 
 - 2026-10-08 10:31 UTC - Replied `FIXED` on the F1 thread at 10:31:46 UTC with the fix commit's subject and the restated sentences, then resolved the thread.
 - 2026-10-08 10:32 UTC - Amended the fix commit under the same subject and author time to restate the sentence as a concept (committer time 10:32:18 UTC) and force-pushed it at 10:32:22 UTC; the reply was edited at 10:32:22 UTC and now names the amended commit.
 - 2026-10-08 10:33 UTC - Recorded F1 here from the GitHub capture taken at 10:33 UTC: the pull request's only review thread is resolved and outdated, and no unresolved actionable thread remains.
+- 2026-10-09 11:18 UTC - Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline findings and one review-body finding, recorded under the reviewer's IDs as R1 (`Major`), R2, R3 and R4 (`Minor`), R5 (`Suggestion`) and R6 (`Nit`).
+- 2026-10-09 11:21 UTC - Replaced the pull-request description so that its Verification section says fifteen of the sixteen points are identical and that `B4`'s opening sentence was revised for F1 (R3, fixed outside the tree).
+- 2026-10-09 11:25 UTC - The maintainer's conversation comment 6079919819 stated that he intends to merge, listed R1 to R4 as pre-merge asks, and left R5 and R6 open to take or leave.
+- 2026-10-09 11:44 UTC - Answered R4 on its thread (reply 4229731579) with no README change, and left the thread open.
+- 2026-10-09 12:28 UTC - Fixed R1 and R2 in `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`.
+- 2026-10-09 12:29 UTC - Recorded R1 to R6 here. The replies on R1, R2, R5 and R6 and the conversation response for R3 follow the push, so their URLs are placeholders until they exist; the threads of R1, R2, R5 and R6 are resolved after their replies are posted, and R4's stays open.
 
 ## Completion Rules
 
