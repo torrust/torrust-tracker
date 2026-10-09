@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md
 branch: "{issue-number}-2278-author-self-audit-gate"
 related-pr: null
-last-updated-utc: "2026-10-09 11:24"
+last-updated-utc: "2026-10-09 11:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,6 +21,7 @@ semantic-links:
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md
     - docs/pr-reviews/pr-2270-review/review-retrospective.md
     - docs/pr-reviews/pr-2271-review/review-retrospective.md
+    - docs/pr-reviews/pr-2484-review/review-retrospective.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - .github/skills/dev/planning/create-issue/SKILL.md
@@ -32,7 +33,7 @@ semantic-links:
 
 **Parent EPIC:** #2278 - Strengthen PR Review Author Self-Audit and Evidence Generation
 
-Subissue 5 of #2278: the manual author self-audit gate that the EPIC's matrix adopts from the PR #2270 and PR #2271 retrospectives, with F65 and the manual part of F55.
+Subissue 5 of #2278: the manual author self-audit gate that the EPIC's matrix adopts from the PR #2270, PR #2271, and PR #2484 retrospectives, with F65 and the manual part of F55.
 
 ## Goal
 
@@ -42,7 +43,7 @@ Make `process-pr-review` require a recorded self-audit before each audit commit,
 
 The EPIC (`docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md`) asks for this gate with its triggers and evidence-first ordering (In Scope: "Add an explicit author self-audit gate"), keeps it usable without automation (Out of Scope: "Making an audit helper a prerequisite for the manual self-audit gate"), and closes Phase 2 when a processed pull request records the self-audit before each reply (Delivery Strategy, "Phase 2: Author gate and honest checkers", Exit criteria).
 
-The PR #2270 retrospective counts about a third of its findings as re-raises, traces them to bookkeeping from memory rather than from the bytes, and asks for these rules (`docs/pr-reviews/pr-2270-review/review-retrospective.md`, lines 56-57, 115, and 166-173). The PR #2271 retrospective asks for a recorded self-audit pass before each re-review request and judges it would alone have prevented rounds four through seven (`docs/pr-reviews/pr-2271-review/review-retrospective.md`, lines 119-122, 130-131, and 145-146).
+The PR #2270 retrospective counts about a third of its findings as re-raises, traces them to bookkeeping from memory rather than from the bytes, and asks for these rules (`docs/pr-reviews/pr-2270-review/review-retrospective.md`, lines 56-57, 115, and 166-173). The PR #2271 retrospective asks for a recorded self-audit pass before each re-review request and judges it would alone have prevented rounds four through seven (`docs/pr-reviews/pr-2271-review/review-retrospective.md`, lines 119-122, 130-131, and 145-146). The PR #2484 retrospective (`docs/pr-reviews/pr-2484-review/review-retrospective.md`) adds two items the matrix assigns to this order: a manual sweep before each push to a reviewed branch, and anchoring each `Current-tree verification` to a heading or quoted phrase rather than a line number.
 
 At `develop`, the skill (`.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, version 1.5 at `686a42f45`) runs the validator "before every audit commit" and before any reply or resolution (Validation Script) and asks to "Update the audit progressively" (Workflow step 9, Verify completion), but has no rule for a validator that cannot run, for what to re-derive and when, or for recording a self-audit, and its Completion Checklist has no progressive-update item. The template (`docs/templates/PR-REVIEW-TEMPLATE.md`) has no evidence-first or stamp-source rule: neither the `Current-tree verification` placeholder under Finding Details nor the Processing Log guidance ("Append entries only.") states one.
 
@@ -68,10 +69,12 @@ Matrix rows are named by F-ID, or by source PR and a short quote of the proposal
 | PR #2271, "Derive log events from Git and GitHub timestamps" | Stamp log entries from `git log --format=%cI` or GitHub `created_at`, not recollection, and keep log order. | Skill gate; template |
 | F65 | Each progressive update passes the gate before its audit commit. | Skill step 9; checklist |
 | F55, manual part | The audit record exists at its canonical path before the first reply and is committed, with each posted reply URL, before the first resolution. | Skill gate; checklist |
+| PR #2484, "Run an author sweep before every push to a reviewed branch" | Before each push to a reviewed branch, a manual sweep: no tracked file names a path the push deletes or renames as a current reference, while references marked historical stay; each changed spec's `last-updated-utc` is at or after its latest log entry and its log is chronological; no prose line exceeds 100 columns; every quoted phrase a verification cites occurs once in its file. The audit-body tool check is order 8's. | Skill gate |
+| PR #2484, "Anchor each `Current-tree verification` to a file and a heading or quoted phrase" | Each `Current-tree verification` names its file and a heading or quoted phrase; a line number appears only in parentheses with the head it was true at. | Skill step 5 and gate; template |
 
-- The gate is a new skill section with four gated events: the pre-posting pass gates each reply; the full pass gates the audit commit, thread resolution, and re-review request; the record is committed after its replies. New sentences in steps 5, 7, and 9 and the validator section point to it.
+- The gate is a new skill section with four gated events: the pre-posting pass gates each reply; the full pass gates the audit commit, thread resolution, and re-review request; the record is committed after its replies. The gate also states the pre-push sweep, run by hand before each push to a reviewed branch. New sentences in steps 5, 7, and 9 and the validator section point to it.
 - Each gate pass is one append-only Processing Log entry naming the event, rows checked, and commands run with their outcome; no field is added.
-- Template guidance outside the copied sections: the "Require corrections to re-derive claims", "Write verification command and result before narrative", and "Avoid self-referential counts" rules beside `## Finding Details`; the gate entry and the "Derive log events from Git and GitHub timestamps" rule beside `## Processing Log`.
+- Template guidance outside the copied sections: the "Require corrections to re-derive claims", "Write verification command and result before narrative", and "Avoid self-referential counts" rules and the PR #2484 anchoring rule beside `## Finding Details`; the gate entry and the "Derive log events from Git and GitHub timestamps" rule beside `## Processing Log`.
 - Bump the skill version from the one on `develop` when this lands (1.5 at `686a42f45`, or the version #2362 leaves if it lands first), record verification, and update the EPIC row.
 
 ### Out of Scope
@@ -105,8 +108,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Add the gate to the skill | Gate section and pointer sentences per the Scope table; skill version bumped from 1.5, or from the version #2362 leaves. |
-| T2 | TODO | Add the template guidance | Finding Details and Processing Log guidance; no copied section or placeholder changed. |
+| T1 | TODO | Add the gate to the skill | Gate section, pre-push sweep, and pointer sentences per the Scope table; skill version bumped from 1.5, or from the version #2362 leaves. |
+| T2 | TODO | Add the template guidance | Finding Details guidance, including the anchoring rule, and Processing Log guidance; no copied section or placeholder changed. |
 | T3 | TODO | Add the checklist counterparts | Completion Checklist items for F65 and the manual part of F55. |
 | T4 | TODO | Evidence and tracking | V1-V3 evidence, acceptance review, EPIC row. |
 
@@ -162,6 +165,7 @@ Append one line per meaningful update.
 - 2026-10-03 17:03 UTC - da2ce7 - Drafted from the #2278 matrix rows owned by the self-audit gate (the PR #2270 and PR #2271 rows of Author Verification and Convergence owned by T2, F65, and F55) against `develop` at `Merge torrust/torrust-tracker#2419: ci(workflows): [#2402] cancel superseded PR runs`; awaiting maintainer review.
 - 2026-10-03 17:38 UTC - da2ce7 - PR #2431 round 1 (`review-finding:pr-2431-f1`): split the gate into a pre-posting pass and a full pass, with the record committed after its replies; the Scope rows for "Run the audit validator before every reply and audit commit" and F55, AC3, AC8, M1, and M2 updated.
 - 2026-10-09 11:24 UTC - da2ce7 - PR #2431 round 2 (review 5469277375, F3 and F4), after the rebase onto `develop` `686a42f45`: the skill (version 1.5), template, and validator citations are re-derived there and given as section headings or quotes; matrix rows are named by F-ID or by source PR and quote, and EPIC passages by section heading or quote, in Background, Scope, AC2, the Verification Plan, Dependencies, and the two entries above, which named matrix rows by their line numbers at their base.
+- 2026-10-09 11:25 UTC - da2ce7 - Covered the two PR #2484 items the matrix assigns to order 5, which enter with this round: the manual pre-push sweep (PR #2484, "Run an author sweep before every push to a reviewed branch") and anchoring each `Current-tree verification` (PR #2484, "Anchor each `Current-tree verification` to a file and a heading or quoted phrase"), in Background, Scope, T1, T2, AC10, and AC11.
 
 ## Acceptance Criteria
 
@@ -174,6 +178,8 @@ Append one line per meaningful update.
 - [ ] AC7: The Completion Checklist has the F65 item and the F55 manual item.
 - [ ] AC8: In one round processed under the revised skill, a pre-posting entry precedes each reply, the record is committed after the replies with each reply URL on its own thread, and a full-pass entry precedes the audit commit, each resolution, and the re-review request.
 - [ ] AC9: `cargo run --package agent-review-report-contract` passes; `validate-audit-record.py` passes for this issue's PR and, each with its recorded `--base`, the three most recent audits; no historical record is edited.
+- [ ] AC10: The gate states the PR #2484 pre-push sweep as manual steps run before each push to a reviewed branch: the current-reference path check that keeps references marked historical, `last-updated-utc` at or after the latest log entry with a chronological log, prose lines within 100 columns, and each quoted verification phrase occurring once in its file.
+- [ ] AC11: The skill and the template's Finding Details guidance require each `Current-tree verification` to name its file and a heading or quoted phrase, a line number only in parentheses with the head it was true at.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -217,6 +223,8 @@ Record the scenarios from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`. With
 | AC7 | TODO | M3 |
 | AC8 | TODO | M1 |
 | AC9 | TODO | Automatic checks |
+| AC10 | TODO | M1; M3 |
+| AC11 | TODO | M3 |
 
 ## Risks and Trade-offs
 
