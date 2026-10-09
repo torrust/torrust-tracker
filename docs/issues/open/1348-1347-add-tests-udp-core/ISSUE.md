@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-07 10:59"
+last-updated-utc: "2026-10-09 07:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -395,8 +395,14 @@ lines are the T1 measurement.
   (`crypto/keys.rs`, `crypto/ephemeral_instance_keys.rs`, `services/connect.rs`) and row 10
   (`container.rs`) against the new design.
 - 2026-10-07 10:59 UTC - GitHub Copilot - The hand-off became Issue #2458
-  ([spec](../2458-inject-udp-cookie-cipher/ISSUE.md)), implemented by another agent and in review
+  ([spec](../../closed/2458-inject-udp-cookie-cipher/ISSUE.md)), implemented by another agent and in review
   as PR #2470. #1348 stays paused until PR #2470 merges.
+- 2026-10-09 07:30 UTC - GitHub Copilot - PR #2470 merged; #1348 resumed. Rebased onto `develop`
+  (255 commits). The cookie file's conflicts were resolved by keeping the R1 refactor and passing
+  `CookieCipher::fixed_for_testing()` explicitly; the announce and scrape fixtures now inject the
+  fixed test cipher into the service constructors. 67 package unit tests pass. #2458 deleted
+  `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` (ledger rows 5-6) and added
+  `crypto/cookie_cipher.rs`, with its own tests; the ledger is re-planned next.
 
 ## Acceptance Criteria
 

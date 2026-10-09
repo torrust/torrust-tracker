@@ -71,7 +71,7 @@ Pending.
 ## Approval
 
 Approved by Jose Celano on 2026-10-06: the R1 refactor and K1. The cipher-seed finding became
-Issue #2458 ([spec](../../2458-inject-udp-cookie-cipher/ISSUE.md)), which injects the cookie key;
+Issue #2458 ([spec](../../../closed/2458-inject-udp-cookie-cipher/ISSUE.md)), which injects the cookie key;
 this file is paused until it merges, because that
 work will rewrite `crypto/keys.rs`. Re-plan R1/K1 against the new design when resuming.
 
