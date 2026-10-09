@@ -16,15 +16,15 @@ semantic-links:
 
 # Templated Documentation
 
-| Field          | Value                                                                                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status         | Open for rounds                                                                                                                                                                                        |
-| Started        | 2026-10-09                                                                                                                                                                                             |
-| Opened by      | Jose Celano (`josecelano`)                                                                                                                                                                             |
-| Decision owner | Jose Celano (`josecelano`), maintainer; issue #2429 has no assignee yet                                                                                                                                |
-| Informs        | Issue #2429 - Templated Documentation                                                                                                                                                                  |
+| Field          | Value                                                                                                                                                                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Open for rounds                                                                                                                                                                                                                                     |
+| Started        | 2026-10-09                                                                                                                                                                                                                                          |
+| Opened by      | Jose Celano (`josecelano`)                                                                                                                                                                                                                          |
+| Decision owner | Jose Celano (`josecelano`), maintainer; issue #2429 has no assignee yet                                                                                                                                                                             |
+| Informs        | Issue #2429 - Templated Documentation                                                                                                                                                                                                               |
 | Scope          | Whether and how Markdown documents should render restated facts from committed data, and how that combines with typed frontmatter and semantic links. The execution architecture (EPIC #2003) and the semantic-link model (EPIC #2264) are left out |
-| AI assistance  | AI assistant using the Copilot SDK in VS Code (model not recorded): research of the proposal and the repository, and the draft of this document and of Jose Celano's entries                            |
+| AI assistance  | AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5): research of the proposal and the repository, and the draft of this document and of Jose Celano's entries                                                                           |
 
 ## Context
 
@@ -100,7 +100,7 @@ progress of their issue, and their bodies start from a template but diverge. The
 output-type documents such as the ADR list very well; it does not fit issue specifications. The two
 approaches solve different points and can be combined: typed frontmatter, a free body, and
 verification for living documents; rendering for output-only documents, with frontmatter as their
-data source. Drafted with an AI assistant using the Copilot SDK in VS Code (model not recorded);
+data source. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5);
 reviewed and adopted by Jose Celano.
 
 ### Q2 - Should a rendering be a second file or a generated region?
@@ -118,7 +118,7 @@ The concern is the editing workflow: being able to edit a Markdown file whenever
 regeneration step, is one of the strengths of the current approach. Generated regions keep that for
 everything outside the rendered block, so they look like the better starting point; I would like the
 author's view on when a full second file is necessary. Drafted with an AI assistant using the Copilot
-SDK in VS Code (model not recorded); reviewed and adopted by Jose Celano.
+SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
 ### Q3 - Should living documents become per-document render templates?
 
@@ -137,7 +137,7 @@ For living documents I prefer the current model: an authoring template as the st
 frontmatter checked by the validator, and a body edited directly. It needs fewer files (no dataset and
 no per-document template) and no regeneration. Its limitation is that the body cannot include values
 dynamically; for living documents that is acceptable, and restated facts in them can be verified
-instead. Drafted with an AI assistant using the Copilot SDK in VS Code (model not recorded); reviewed
+instead. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed
 and adopted by Jose Celano.
 
 ### Q4 - Is a committed JSON dataset layer needed from the start?
@@ -166,7 +166,7 @@ snapshot, not the working tree, as the frontmatter validator does. Open question
 In the current harness the time to run tools is the pre-commit and pre-push hooks. Work is planned in
 small deployable increments, so agents do not do much without committing, and commit time fits
 guardrail checks well. This would not hold if agents ran for hours without committing. Drafted with an
-AI assistant using the Copilot SDK in VS Code (model not recorded); reviewed and adopted by Jose Celano.
+AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
 ### Q6 - How do forge facts enter, and who refreshes them?
 
@@ -198,7 +198,7 @@ Session record: S8.
 Cross-referencing would use a different markup inside Markdown, which can cause misunderstandings:
 placeholders are resolved in the final file and semantic links are not, but in a template both appear
 side by side. The two mechanisms need a clear boundary. Drafted with an AI assistant using the Copilot
-SDK in VS Code (model not recorded); reviewed and adopted by Jose Celano.
+SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
 ### Q8 - When should this be implemented?
 
@@ -212,7 +212,7 @@ contributor and agent edits them, which conflicts with work in progress. Added b
 
 Not before the tracker v4.0.0 release and not before the current work in progress is finished. There
 are too many things in progress, and a change of this size is better made in isolation, without other
-tasks in parallel. Drafted with an AI assistant using the Copilot SDK in VS Code (model not recorded);
+tasks in parallel. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5);
 reviewed and adopted by Jose Celano.
 
 ### Q9 - How should ideas mature into planned work?
@@ -229,7 +229,7 @@ by Jose Celano.
 
 Ideas should go from a higher level of abstraction and uncertainty to more concrete things:
 discussion, feature, EPIC, subissues. This workflow should be documented, in a separate change.
-Drafted with an AI assistant using the Copilot SDK in VS Code (model not recorded); reviewed and
+Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed and
 adopted by Jose Celano.
 
 ## Outcome

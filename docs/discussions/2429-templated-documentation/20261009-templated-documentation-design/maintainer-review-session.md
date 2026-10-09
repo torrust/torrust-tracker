@@ -1,7 +1,7 @@
 # Templated Documentation — Maintainer Review Session
 
 > **Source material, not policy.** Record of a review session between Jose Celano (maintainer) and an
-> AI assistant (GitHub Copilot in VS Code; model not recorded) about PR #2430 and issue #2429, held on
+> AI assistant (GitHub Copilot in VS Code, Claude Opus 5.5) about PR #2430 and issue #2429, held on
 > 2026-10-09. The maintainer's messages are lightly edited for spelling only; their meaning is
 > unchanged. The assistant's replies are condensed. Facts are checked against `develop` at `41add51ab`
 > unless another commit is named. Repository paths are written as code spans, not links. The
