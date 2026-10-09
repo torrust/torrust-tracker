@@ -433,6 +433,9 @@ reflog
 relitigating
 reorganisation
 reorganising
+repoint
+repointed
+repoints
 repomix
 repr
 reqs
