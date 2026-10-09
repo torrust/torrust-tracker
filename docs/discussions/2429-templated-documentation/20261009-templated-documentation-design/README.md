@@ -45,9 +45,10 @@ It is not on `torrust/torrust-index` `develop` yet; a link can be added once it 
 
 ### Why a Discussion Instead of an EPIC
 
-Jose Celano reviewed PR #2430 on 2026-10-09 with an AI assistant. The full session is kept as source
-material in [`maintainer-review-session.md`](maintainer-review-session.md); its questions are numbered
-`S1` to `S9` to avoid colliding with the topic IDs below. The review concluded:
+Jose Celano reviewed PR #2430 on 2026-10-09 with an AI assistant. An edited record of the session,
+written for this round, is in [`maintainer-review-session.md`](maintainer-review-session.md); it is not
+a verbatim transcript (the assistant's replies are condensed). Its questions are numbered `S1` to `S9`
+to avoid colliding with the topic IDs below. The review concluded:
 
 - The idea is sound, but an EPIC with a binding design is premature. The Torrust Index and the Torrust
   Tracker have diverged in the AI harness built on top of their original code, so the context behind
