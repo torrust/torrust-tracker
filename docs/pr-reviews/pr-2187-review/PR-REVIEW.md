@@ -202,6 +202,7 @@ Human review 5466878644 (josecelano, changes requested) numbered its findings F1
 - 2026-10-09 10:29 UTC - Committed the F9 and F10 fixes.
 - 2026-10-09 10:30 UTC - Committed the F4, F5, F6, and F7 fixes.
 - 2026-10-09 10:33 UTC - Created this record from the template, migrated F1 and F2 from `docs/copilot-pr-reviews/pr-2187-copilot-suggestions.md`, carried its processing log, and removed that file (F3).
+- 2026-10-09 10:49 UTC - The documentation gate failed on `cspell`: it does not know `repoint`, the word the reviewer's F5 uses and this record and the fix commit subject repeat. The texts stay as written, and the word's three forms go into the project dictionary.
 
 ## Completion Rules
 
