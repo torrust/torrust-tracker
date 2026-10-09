@@ -208,8 +208,10 @@ SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 ### Q8 - When should this be implemented?
 
 The proposal's author asked on PR #2430 whether this is work for now or for after version 4. The
-tooling phase only adds files; the conversion phases touch many documents and change how every
-contributor and agent edits them, which conflicts with work in progress. Added by Jose Celano.
+tooling phase converts no documents, but it is not isolated either: it adds crates, which this
+repository registers explicitly in the root workspace `members` list. The conversion phases touch many
+documents and change how every contributor and agent edits them, which conflicts with work in
+progress. Added by Jose Celano.
 
 #### Positions
 
