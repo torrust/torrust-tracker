@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-08 17:28"
+last-updated-utc: "2026-10-09 11:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -272,6 +272,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-10-03 17:09 UTC - da2ce7 - Drafted the order 5 specification (author self-audit gate) in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`; awaiting maintainer review before GitHub issue creation. Row 5 stays `TODO` with its placeholder path until the issue exists.
 - 2026-10-08 16:50 UTC - da2ce7 - Recorded the six proposals of the PR #2484 review retrospective in the matrix: items 1 (the manual sweep) and 2 adopted for order 5, item 1's tool deferred to order 8, item 3 deferred to order 10, and items 4 to 6 left to EPIC #2003's register. No fixed decision of the Decision Record changes.
 - 2026-10-08 17:28 UTC - da2ce7 - Answered review 5460432014 on PR #2494: the Decision Record, AC1 and References now cover the PR #2484 retrospective, and the matrix's pre-push sweep fails only on a current reference to a deleted or renamed path, allowing references marked historical.
+- 2026-10-09 11:16 UTC - da2ce7 - Carried the two findings that review 5467975631 on PR #2494 deferred to this change: R2 drops the References clause on when the PR #2484 retrospective reaches `develop`, since PR #2484 has merged, and R4 makes the PR #2484 sweep row's Disposition name its tree-wide tool checks Out of scope beside the deferred audit-body check.
 
 ## Acceptance Criteria
 
@@ -321,6 +322,6 @@ requests where possible; a fixture is used only when no real review produced the
 - Sibling child EPIC with the shared check-crate shape: #2264 (subissues #2266, #2280, #2281).
 - EPIC #2003 friction register summary: <https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5767266486>.
 - Prior process work: #2219 and #2233.
-- Source retrospectives: PR #2270, PR #2271, PR #2272, and PR #2484 under `docs/pr-reviews/`; the PR #2484 retrospective reaches `develop` when PR #2484 merges.
+- Source retrospectives: PR #2270, PR #2271, PR #2272, and PR #2484 under `docs/pr-reviews/`.
 - Spec-only PR for the original task: #2279.
 - Related ADR: `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`.
