@@ -115,6 +115,7 @@ A discussion is input, not a decision.
 | [discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/](discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/) | Semantic linking and a repository knowledge graph (EPIC #2264)                         |
 | [discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/](discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/)         | Specifications and rationale: tests as specification, where the why lives (EPIC #2003) |
 | [discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/](discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/)     | AI model provenance in commits: which models a commit records, and how (EPIC #2003)    |
+| [discussions/2429-templated-documentation/20261009-templated-documentation-design/](discussions/2429-templated-documentation/20261009-templated-documentation-design/) | Templated documentation: rendering restated facts from committed data, combined with typed frontmatter (issue #2429, PR #2430) |
 | [discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/](discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/) | I2P peer support design: PRs #2050 and #2059, their review, and open questions (EPIC #2491) |
 
 ## External Source Snapshots
