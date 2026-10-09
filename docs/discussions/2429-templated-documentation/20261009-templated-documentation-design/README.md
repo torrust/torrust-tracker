@@ -124,12 +124,15 @@ SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
 ### Q3 - Should living documents become per-document render templates?
 
-Under the proposal, each converted record (for example, "Each of the 29 [root ADRs] becomes a
-template") has its own render template, and its frontmatter, tables, and related lists render. An agent
-that ticks a checkbox or changes `status` edits the template and runs `write`. Placeholders could then
-reference other repository objects, such as another issue's status. Open questions for the author: in
-that case, does the data generator read frontmatter from the template or from the rendering, and how is
-the resulting loop avoided? Added by Jose Celano. Session record: S5, S6.
+The proposal converts records such as ADRs and specifications so that their frontmatter, tables, and
+related lists render while their prose stays authored. It leaves template granularity open ("how many
+templates, per package or per concept"); only its root-ADR subissue chooses one template per document
+("Each of the 29 becomes a template"). This topic examines that per-document option for living
+documents. Under it, an agent that ticks a checkbox or changes `status` edits the template and runs
+`write`, and placeholders could reference other repository objects, such as another issue's status.
+Open questions for the author: in that case, does the data generator read frontmatter from the
+template or from the rendering, and how is the resulting loop avoided? Added by Jose Celano. Session
+record: S5, S6.
 
 #### Positions
 
