@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md
 branch: "{issue-number}-2278-author-self-audit-gate"
 related-pr: null
-last-updated-utc: "2026-10-09 11:25"
+last-updated-utc: "2026-10-09 11:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -166,6 +166,7 @@ Append one line per meaningful update.
 - 2026-10-03 17:38 UTC - da2ce7 - PR #2431 round 1 (`review-finding:pr-2431-f1`): split the gate into a pre-posting pass and a full pass, with the record committed after its replies; the Scope rows for "Run the audit validator before every reply and audit commit" and F55, AC3, AC8, M1, and M2 updated.
 - 2026-10-09 11:24 UTC - da2ce7 - PR #2431 round 2 (review 5469277375, F3 and F4), after the rebase onto `develop` `686a42f45`: the skill (version 1.5), template, and validator citations are re-derived there and given as section headings or quotes; matrix rows are named by F-ID or by source PR and quote, and EPIC passages by section heading or quote, in Background, Scope, AC2, the Verification Plan, Dependencies, and the two entries above, which named matrix rows by their line numbers at their base.
 - 2026-10-09 11:25 UTC - da2ce7 - Covered the two PR #2484 items the matrix assigns to order 5, which enter with this round: the manual pre-push sweep (PR #2484, "Run an author sweep before every push to a reviewed branch") and anchoring each `Current-tree verification` (PR #2484, "Anchor each `Current-tree verification` to a file and a heading or quoted phrase"), in Background, Scope, T1, T2, AC10, and AC11.
+- 2026-10-09 11:26 UTC - da2ce7 - PR #2431 round 2 (review 5469277375, F5): restated the #2362 overlap under Dependencies by quote on `develop` `686a42f45`: no passage is rewritten by both orders; they share Workflow step 7, the Completion Checklist, the template guidance beside Finding Details, and the skill version.
 
 ## Acceptance Criteria
 
@@ -236,7 +237,7 @@ Record the scenarios from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`. With
 ## Dependencies and Open Questions
 
 - Depends on #2295 and #2308 (done); coordinates with #2349 (a skill sentence) and order 7 (its port replaces the validator command).
-- Issue #2362's pending proposals rewrite skill lines 87-92, 94-96, 197-199, and 289-291 and template lines 40-43, 96, 100, and 119-129; this issue rewrites none. Which lands first? The second rebases and takes the next skill version.
+- Issue #2362 (order 11) rewrites these passages, as its specification quotes them, re-derived on `develop` `686a42f45`. In the skill: Workflow step 7's superseded-thread sentence ("For a duplicate,"), step 8 ("Consolidate review bodies"), the Detail-Entry Fields sentence "`FIXED` resolution references are unique Conventional Commit subjects", and the Completion Checklist item "Consolidated responses that cover multiple review rounds". In the template: the Status Values bullet "An outdated thread whose concern was fixed" with its post-merge `NO_ACTION` sentence, the Finding Details placeholder `<UNIQUE_COMMIT_SUBJECT_OR_REPLY_URL>`, the guidance paragraph that follows it ("Use a unique Conventional Commit subject as the `Resolution reference`"), and the Completion Rules bullets on outdated threads, consolidated responses, and "Cite a fix by its unique Conventional Commit subject". This issue rewrites none of those passages, so no sentence is changed by both orders. Both edit three of the same sections: this issue inserts a pointer sentence in Workflow step 7, two Completion Checklist items, and guidance beside Finding Details, next to the passages #2362 rewrites there; and both bump the skill version. On `develop`, `docs(skills): cite a PR conversation response for fixes outside the tree` has already extended the Detail-Entry Fields sentence and the template guidance paragraph with the rule for a fix outside the tree, #2362's F6 case, so #2362's F5 and F6 wording starts from that text whichever order lands first. Which lands first? The second rebases over the first's text in those three sections and takes the next skill version.
 - Should the copied `## Completion Rules` carry a gate bullet? This draft says no: every new record would copy it and order 8 would byte-diff it.
 - May one pre-posting pass cover several replies posted together? This draft assumes yes.
 - F75 (whose finding ID `RE_RAISE_OF` takes) is a T2 wording row that the register places with order 8; should its wording land here?
