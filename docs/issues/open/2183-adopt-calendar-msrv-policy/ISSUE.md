@@ -1,14 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p2
 epic: null
 github-issue: 2183
 spec-path: docs/issues/open/2183-adopt-calendar-msrv-policy/ISSUE.md
 branch: "2183-adopt-calendar-msrv-policy-spec"
 related-pr: null
-last-updated-utc: 2026-09-09 09:30
+last-updated-utc: "2026-10-09 10:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,8 +22,8 @@ semantic-links:
     - .github/skills/dev/git-workflow/release-new-version/SKILL.md
     - docs/release_process.md
     - docs/adrs/index.md
-    - docs/issues/closed/1787-evaluate-msrv-bump.md
-    - docs/issues/closed/1778-migrate-to-rust-edition-2024.md
+    - docs/issues/closed/1787-evaluate-msrv-bump/ISSUE.md
+    - docs/issues/closed/1778-migrate-to-rust-edition-2024/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -35,7 +36,7 @@ Replace the workspace's dependency-driven Minimum Supported Rust Version with a 
 
 ## Background
 
-The workspace has raised its floor twice in recorded history, and neither number was chosen. The edition-2024 migration moved `rust-version` from `1.72` to `1.85` because edition 2024 was stabilised in Rust 1.85 and would not compile below it ([1778-migrate-to-rust-edition-2024.md](../../closed/1778-migrate-to-rust-edition-2024.md)). The following evaluation moved it from `1.85` to `1.88` on the explicit ground that 1.88 was "the minimum floor that avoids `cargo update` regressions on the current lockfile": below it, `cargo update` downgraded bollard, tonic, testcontainers, serde_with, time and ureq ([1787-evaluate-msrv-bump.md](../../closed/1787-evaluate-msrv-bump.md)). In both cases the workspace asked its dependency tree what the floor had to be and wrote the answer into the manifest.
+The workspace has raised its floor twice in recorded history, and neither number was chosen. The edition-2024 migration moved `rust-version` from `1.72` to `1.85` because edition 2024 was stabilised in Rust 1.85 and would not compile below it ([1778-migrate-to-rust-edition-2024/ISSUE.md](../../closed/1778-migrate-to-rust-edition-2024/ISSUE.md)). The following evaluation moved it from `1.85` to `1.88` on the explicit ground that 1.88 was "the minimum floor that avoids `cargo update` regressions on the current lockfile": below it, `cargo update` downgraded bollard, tonic, testcontainers, serde_with, time and ureq ([1787-evaluate-msrv-bump/ISSUE.md](../../closed/1787-evaluate-msrv-bump/ISSUE.md)). In both cases the workspace asked its dependency tree what the floor had to be and wrote the answer into the manifest.
 
 That has three costs.
 
@@ -191,6 +192,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - 2026-09-09 09:08 UTC - Spec author - Draft created after verifying the manifest pin `1.88` at `Cargo.toml` line 67 and its inheritance by all 25 members, the absence of any MSRV job or floor-toolchain reference across `.github/workflows/`, the three live prose statements of the floor, the recorded raises `1.72` to `1.85` and `1.85` to `1.88` with their dependency-driven rationale, the absence of a `CHANGELOG.md`, and the sccache and ADR-placement decisions that constrain the new job and the ADR's collection - This spec
 - 2026-09-09 09:30 UTC - Spec author - GitHub issue #2183 created from the reviewed draft; specification moved to docs/issues/open/2183-adopt-calendar-msrv-policy/ISSUE.md - https://github.com/torrust/torrust-tracker/issues/2183
+- 2026-10-09 10:28 UTC - Spec author - Rebased onto current `develop`; repointed the two closed-specification links and `related-artifacts` entries to the folder-style `docs/issues/closed/1778-migrate-to-rust-edition-2024/ISSUE.md` and `docs/issues/closed/1787-evaluate-msrv-bump/ISSUE.md`, and migrated the frontmatter to v1 (`schema-version: 1`, lifecycle `status: planned`, quoted `last-updated-utc`) - PR #2187 review 5466878644
 
 ## Acceptance Criteria
 
@@ -276,6 +278,6 @@ After implementation, compare the result with this specification. Record invalid
 ## References
 
 - Related issues: [#1787](https://github.com/torrust/torrust-tracker/issues/1787), whose deferred split policy this supersedes; [#1669](https://github.com/torrust/torrust-tracker/issues/1669), the package overhaul that excluded MSRV changes from its scope; [#1778](https://github.com/torrust/torrust-tracker/issues/1778), the edition-2024 migration that set `1.85`.
-- Related specifications: [`docs/issues/closed/1787-evaluate-msrv-bump.md`](../../closed/1787-evaluate-msrv-bump.md), [`docs/issues/closed/1778-migrate-to-rust-edition-2024.md`](../../closed/1778-migrate-to-rust-edition-2024.md)
+- Related specifications: [`docs/issues/closed/1787-evaluate-msrv-bump/ISSUE.md`](../../closed/1787-evaluate-msrv-bump/ISSUE.md), [`docs/issues/closed/1778-migrate-to-rust-edition-2024/ISSUE.md`](../../closed/1778-migrate-to-rust-edition-2024/ISSUE.md)
 - Related ADRs: [`docs/adrs/index.md`](../../../adrs/index.md)
 - Prior art: the sibling repository `torrust/torrust-index` adopted this policy as its ADR-T-011 and already runs the manifest-reading MSRV job in its `testing.yaml`.
