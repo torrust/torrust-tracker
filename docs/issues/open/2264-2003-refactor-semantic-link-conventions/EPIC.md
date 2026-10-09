@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2264
 spec-path: docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-04 19:18"
+last-updated-utc: "2026-10-09 10:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -449,7 +449,7 @@ annotation, or a different checker configuration; the EPIC does not presume whic
 - **One `kind:value` form for targets without a path (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome)).** In direction, every target without a path takes one `kind:value` form. A plain scalar such as `issue:2264` loads as written and matches this EPIC's candidate syntax, and the migration is mechanical even for the 48 damaged entries, whose numbers survive as YAML comments. The sweep's specification recounts its scope at the head it starts from, because the register records 53 entries in 34 files where the discussion and its review find 48 in 30. This changes the frozen v1 reference convention, which this EPIC reserves to its semantic-link subissues.
 - **Tracked files only (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome)).** The graph that gates and agents rely on reads tracked files only. GitHub-hosted records may enter as a separately derived data set stamped with its capture time; if the friction register's links are to feed the graph, a tracked, dated export serves it, as `docs/external-snapshots/` does for external sources.
 - **Links validated by the purpose of their field (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** ADR links are context links, validated leniently, and the convention's existing rule is enforced: issue specifications are referenced by number, which would have kept three of the five broken ADR links valid. Historical records (ADRs, PR-review audits, closed specifications) carry context links checked for syntax only. The change-impact field definition in `docs/skills/semantic-skill-link-convention.md` is split from a context field, or qualified, as part of this EPIC's convention work.
-- **Where these decisions are recorded (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [semantic-linking Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome), [goals-and-boundaries Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** In this specification: this section, the Progress Log entry of 2026-10-04, and the Expected output cells of orders 5 and 7, which carry the scope changes. The four-aspect frame and the discussions convention are recorded on #2003, and the audit-record contract on #2278; the discussions are not cited in place of these records.
+- **Where these decisions are recorded (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [semantic-linking Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/README.md#outcome), [goals-and-boundaries Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** In this specification: this section, the Progress Log entry of 2026-10-04, and the Expected output cells of orders 5 and 7, which carry the scope changes. The four-aspect frame and the discussions convention are recorded on #2003 by its overhaul pull request #2366, and the audit-record contract on #2278; the discussions are not cited in place of these records.
 
 ## Open Questions
 
@@ -634,7 +634,7 @@ For each completed subissue, the default completion policy is:
 - 2026-09-30 10:22 UTC - GitHub Copilot - Added the unordered Draft Subissue Proposals list with
   the maintainer-requested draft for multiple related PRs in issue frontmatter; its order in the
   table is left to the EPIC's planner.
-- 2026-10-04 19:18 UTC - da2ce7 - Recorded the semantic-linking discussion's outcome and the goals-and-boundaries parts that name this EPIC (PR #2428, review 5400754664) under Decisions Recorded on This EPIC; marked the Open Questions they answer and noted the scope of orders 5 and 7 in the subissue table
+- 2026-10-04 19:18 UTC - da2ce7 - Recorded the semantic-linking discussion's outcome and the goals-and-boundaries parts that name this EPIC (PR #2428, review 5400754664) under Decisions Recorded on This EPIC; marked the Open Questions they answer and noted the scope of orders 5 and 7 in the subissue table.
 
 ## Risks and Trade-offs
 

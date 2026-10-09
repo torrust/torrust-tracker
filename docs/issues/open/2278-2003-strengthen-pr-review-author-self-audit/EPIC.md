@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-08 17:28"
+last-updated-utc: "2026-10-09 10:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -102,7 +102,7 @@ Decisions recorded from the PR #2428 discussions (2026-10-04; [goals-and-boundar
 - the audit record is contract: a gate checks it from tracked bytes and GitHub state, whatever tool produced it;
 - copies of GitHub state: the record's identifiers stay, and every state it copies is stamped with its capture time or checked; that is the premise of the validator rows, and the record's thread states, which copy review-thread resolution, are already checked against thread captures;
 - `epic-owner` copies the GitHub assignee: PR #2428 repaired it on this EPIC and #2264, and it drifts again unless a check is added or the field defers to the assignee;
-- the specifications-and-rationale outcome sends no work to this EPIC: marking the issue template's optional and conditional sections is #2003's planning-template follow-up ([Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md#outcome)).
+- the specifications-and-rationale outcome sends no work to this EPIC: marking the issue template's optional and conditional sections is #2003's planning-template follow-up ([Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md#outcome), [review 5402713128](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5402713128), round 3).
 
 ## Scope
 
@@ -276,7 +276,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-09-26 09:46 UTC - GitHub Copilot - PR #2339 merged as `a20e8f3a` and closed #2333; order 4 is `DONE`, its specification is archived under `docs/issues/closed/`, and AC2 is `DONE`, completing Phase 1. Three review findings on PR #2339 were still unprocessed at merge; with maintainer approval (<https://github.com/torrust/torrust-tracker/pull/2339#issuecomment-5844522320>) they are handled in a follow-up PR from `develop`, which also extends `process-pr-review`'s post-merge rule to findings unprocessed at merge. Orders 5 and 6 are unblocked.
 - 2026-09-26 13:33 UTC - GitHub Copilot - Maintainer set the order after Phase 1: order 6 next, then order 5 once PR #2344 merges and #2347 triage settles which audit-contract findings belong to it, because orders 5, #2344, and #2347 all edit `process-pr-review`. Maintainer approved the order 6 specification with the `no-stdout-result` output migration; created and linked subissue #2349 and moved its specification to `docs/issues/open/2349-2278-contract-checker-evidence-boundary/`. Spec-only PR pending. For order 7, #2266 recorded its placement decision (`contrib/dev-tools/checks/`, `cargo run --package`, `no-stdout-result`), so it is unblocked; the maintainer approved three decisions for its specification: keep `no-stdout-result` and record dropping the Python prototype's stdout JSON summary as a deliberate parity deviation; do not wait for #2281, adopting its NDJSON diagnostic catalog if it has merged when order 7 starts; and no pre-commit integration, because the validator needs `gh` and network access.
 - 2026-09-28 10:08 UTC - GitHub Copilot - #2347 triage settled which audit-contract findings belong where. None goes to order 5. `review-finding:pr-2313-f4`, `-f5`, `-f6`, `-f7`, and `-f9` go to the new order 11, which the maintainer approved; created and linked subissue #2362. `review-finding:pr-2300-f10` goes to order 8 (T3 approval <https://github.com/torrust/torrust-tracker/issues/2347#issuecomment-5865646588>).
-- 2026-10-04 19:18 UTC - da2ce7 - Recorded the audit-record decisions of the PR #2428 goals-and-boundaries discussion under Decision Record (review 5400754664): the record as contract, stamped-or-checked copies of GitHub state, and `epic-owner`; the specifications discussion sends no work to this EPIC.
+- 2026-10-04 19:18 UTC - da2ce7 - Recorded the audit-record decisions of the PR #2428 goals-and-boundaries discussion under Decision Record (review 5400754664): the record as contract, stamped-or-checked copies of GitHub state, and `epic-owner`; the specifications discussion (review 5402713128) sends no work to this EPIC.
 - 2026-10-08 16:50 UTC - da2ce7 - Recorded the six proposals of the PR #2484 review retrospective in the matrix: items 1 (the manual sweep) and 2 adopted for order 5, item 1's tool deferred to order 8, item 3 deferred to order 10, and items 4 to 6 left to EPIC #2003's register. No fixed decision of the Decision Record changes.
 - 2026-10-08 17:28 UTC - da2ce7 - Answered review 5460432014 on PR #2494: the Decision Record, AC1 and References now cover the PR #2484 retrospective, and the matrix's pre-push sweep fails only on a current reference to a deleted or renamed path, allowing references marked historical.
 
