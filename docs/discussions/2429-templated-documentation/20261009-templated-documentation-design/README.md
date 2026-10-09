@@ -92,7 +92,7 @@ Jose Celano. Session record: S4, S5, S9.
 
 #### Positions
 
-##### Q1 - Jose Celano (`josecelano`), 2026-10-09
+##### Q1 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 Most Markdown files in this repository have two parts: frontmatter, which holds the data that changes,
 and a body, which is prose that contributors and agents edit freely. Issue specifications track the
@@ -112,7 +112,7 @@ generated region, the `.md` stays the edited file and only a marked block (for e
 
 #### Positions
 
-##### Q2 - Jose Celano (`josecelano`), 2026-10-09
+##### Q2 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 The concern is the editing workflow: being able to edit a Markdown file whenever needed, with no
 regeneration step, is one of the strengths of the current approach. Generated regions keep that for
@@ -131,7 +131,7 @@ the resulting loop avoided? Added by Jose Celano. Session record: S5, S6.
 
 #### Positions
 
-##### Q3 - Jose Celano (`josecelano`), 2026-10-09
+##### Q3 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 For living documents I prefer the current model: an authoring template as the starting point, typed
 frontmatter checked by the validator, and a body edited directly. It needs fewer files (no dataset and
@@ -161,7 +161,7 @@ snapshot, not the working tree, as the frontmatter validator does. Open question
 
 #### Positions
 
-##### Q5 - Jose Celano (`josecelano`), 2026-10-09
+##### Q5 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 In the current harness the time to run tools is the pre-commit and pre-push hooks. Work is planned in
 small deployable increments, so agents do not do much without committing, and commit time fits
@@ -193,7 +193,7 @@ Session record: S8.
 
 #### Positions
 
-##### Q7 - Jose Celano (`josecelano`), 2026-10-09
+##### Q7 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 Cross-referencing would use a different markup inside Markdown, which can cause misunderstandings:
 placeholders are resolved in the final file and semantic links are not, but in a template both appear
@@ -208,7 +208,7 @@ contributor and agent edits them, which conflicts with work in progress. Added b
 
 #### Positions
 
-##### Q8 - Jose Celano (`josecelano`), 2026-10-09
+##### Q8 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 Not before the tracker v4.0.0 release and not before the current work in progress is finished. There
 are too many things in progress, and a change of this size is better made in isolation, without other
@@ -225,7 +225,7 @@ by Jose Celano.
 
 #### Positions
 
-##### Q9 - Jose Celano (`josecelano`), 2026-10-09
+##### Q9 - Jose Celano (`josecelano`), 2026-10-09, PR #2501
 
 Ideas should go from a higher level of abstraction and uncertainty to more concrete things:
 discussion, feature, EPIC, subissues. This workflow should be documented, in a separate change.
