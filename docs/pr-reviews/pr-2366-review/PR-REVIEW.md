@@ -60,7 +60,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: in `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`, under "Friction Register", the paragraph reads "The register is kept in four comments on this issue", the bullets name "[Index part 3]" and "[Index part 4]", and the table caption reads "kept as a snapshot"; the phrase "127 recorded frictions" no longer occurs.
 - Resolution reference: `docs(issues): [#2003] refresh the friction register section and the checkpoint range`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_R1
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229235460
 
 ### R2 - The checkpoint names orders 1–14
 
@@ -73,7 +73,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: in `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`, under "Workflow Checkpoints", the line reads "- [x] Early-implementation subissues created and listed in the Subissues table"; the phrase "orders 1–14" no longer occurs.
 - Resolution reference: `docs(issues): [#2003] refresh the friction register section and the checkpoint range`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_R2
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229235951
 
 ### R3 - The PR #2484 paragraph is not yet true on develop
 
@@ -84,9 +84,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The paragraph says the PR #2484 retrospective's six proposals are dispositioned in #2278's improvement matrix, which holds only once PR #2494 merges.
 - Solution: No change: PR #2494 is approved and acknowledged, and this pull request's description states that it merges after PR #2494, so the sentence is true when this one merges.
 - Current-tree verification: in `docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`, under "Friction Register", the paragraph "**PR #2484 review retrospective (2026-10-08).**" is unchanged; the description's Merge order section names PR #2494.
-- Resolution reference: REPLY_URL_R3
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229236279
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_R3
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229236279
 
 ### R4 - The PR description stops at the fourth commit
 
@@ -97,9 +97,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The description covered four commits and validated the fourth commit's head, without the fifth commit or the re-derived issue body.
 - Solution: The description, outside the tree, is replaced: a section for each of the seven commits, a Merge order section, and validation at the new head with the issue-body re-derivation.
 - Current-tree verification: the description is not in the tree; the reply that answers this thread links the replacement.
-- Resolution reference: REPLY_URL_R4
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229237173
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_R4
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2366#discussion_r4229237173
 
 ## Processing Log
 
