@@ -6,7 +6,7 @@ epic: null
 github-issue: 2491
 spec-path: docs/issues/open/2491-i2p-peer-support/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-10-08 16:45"
+last-updated-utc: "2026-10-09 11:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -14,7 +14,6 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/discussions/AGENTS.md
     - docs/discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/README.md
-    - "issue #1659"
     - "issue #144"
     - "issue #2411"
     - docs/issues/closed/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
@@ -39,7 +38,7 @@ compact response format, swarm statistics, the REST API, and the tracker's trust
 review recorded seven required actions, including a merge blocker: a plain HTTP announce cannot
 prove that a client owns the I2P Destination it supplies.
 
-The maintainers are focused on releasing v4.0.0 (#1659). This EPIC is blocked until that release
+The maintainers are focused on releasing v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)). This EPIC is blocked until that release
 ships and the roadmap is redefined. It exists so the work and its history are not lost when
 PRs #2050 and #2059 are closed: closing them does not reject the feature.
 
@@ -60,7 +59,7 @@ PRs #2050 and #2059 are closed: closing them does not reject the feature.
 
 ### Out of Scope
 
-- Implementation before v4.0.0 (#1659) is released and the roadmap includes this EPIC.
+- Implementation before v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)) is released and the roadmap includes this EPIC.
 - The REST API representation of I2P peers. It belongs to the REST API overhaul (#144) and needs
   an ADR there; until then, I2P peers must not change the existing `peer_addr` field.
 - UDP over I2P, I2P PEX, and I2P DHT. They are separate I2P specifications; a later EPIC may add
@@ -143,6 +142,8 @@ Append one line per meaningful update.
   #2491 and opened the design discussion with the PR #2059 review documents as source material.
 - 2026-10-08 16:45 UTC - Jose Celano/AI assistant using Copilot SDK in VS Code - Corrected the
   review attribution after PR #2492 review finding F2.
+- 2026-10-09 11:01 UTC - Jose Celano/AI assistant using Copilot SDK in VS Code (Claude Opus 5.5) - Pointed
+  the v4.0.0 references at the `v4.0.0` milestone; #1659 is the closed v4.0.0-rc.1 release issue.
 
 ## Acceptance Criteria
 
@@ -182,8 +183,9 @@ Append one line per meaningful update.
 
 ## References
 
-- Related issues: #1659 (v4.0.0 release), #144 (REST API overhaul), #2411 (spam and abuse
-  resistance), #1987 (`use_ip_from_query_string`)
+- Related issues: #144 (REST API overhaul), #2411 (spam and abuse resistance), #1987
+  (`use_ip_from_query_string`)
+- Related milestone: [v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)
 - Related PRs: #2050 (original proposal), #2059 (rebased draft with the maintainer review)
 - Related ADRs: none yet
 - I2P BitTorrent specification: <https://i2p.net/en/docs/applications/bittorrent/>

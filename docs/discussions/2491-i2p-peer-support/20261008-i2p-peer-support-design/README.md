@@ -2,7 +2,6 @@
 semantic-links:
   related-artifacts:
     - "issue #2491"
-    - "issue #1659"
     - "issue #144"
     - "issue #2411"
     - docs/issues/open/2491-i2p-peer-support/EPIC.md
@@ -39,7 +38,7 @@ PR #2059, keeping the contributor as author of the implementation commits and ad
 with seven required actions.
 
 Jose supports the feature and considers careful design of its edge cases necessary before any of
-it merges. The maintainers are focused on releasing v4.0.0 (#1659), so the work is postponed until
+it merges. The maintainers are focused on releasing v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)), so the work is postponed until
 after that release, when the roadmap is redefined.
 
 This discussion keeps everything learned so far, so that PRs #2050 and #2059 can be closed without
