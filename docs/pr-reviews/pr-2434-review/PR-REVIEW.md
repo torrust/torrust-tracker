@@ -82,7 +82,7 @@ Review 5467876260 (round 2, josecelano, state `COMMENTED`, submitted 2026-10-09 
 - Current-tree verification: in `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`, under "Decisions Recorded on This EPIC", the bullet "Where these decisions are recorded" reads "convention are recorded on #2003 by its overhaul pull request #2366, and the audit-record contract on #2278"; the phrase "convention are recorded on #2003, and" no longer occurs.
 - Resolution reference: `docs(issues): [#2264] [#2278] hedge the #2003 record reference and cite the round-3 review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2434#discussion_r4229321197>
 
 ### R2 - The specifications bullet and its log entry cite the round-1 review
 
@@ -95,7 +95,7 @@ Review 5467876260 (round 2, josecelano, state `COMMENTED`, submitted 2026-10-09 
 - Current-tree verification: in `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md`, under "Decision Record", the bullet "the specifications-and-rationale outcome sends no work to this EPIC" ends "[review 5402713128](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5402713128), round 3)."; under "Progress Log", the 2026-10-04 19:18 UTC entry reads "the specifications discussion (review 5402713128) sends no work to this EPIC"; `docs/discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/README.md`, under "Outcome", cites "[review 5402713128]".
 - Resolution reference: `docs(issues): [#2264] [#2278] hedge the #2003 record reference and cite the round-3 review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2434#discussion_r4229321432>
 
 ### R3 - The #2264 Progress Log entry lacks its final period
 
@@ -108,7 +108,7 @@ Review 5467876260 (round 2, josecelano, state `COMMENTED`, submitted 2026-10-09 
 - Current-tree verification: in `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md`, under "Progress Log", the 2026-10-04 19:18 UTC entry ends "noted the scope of orders 5 and 7 in the subissue table.".
 - Resolution reference: `docs(issues): [#2264] [#2278] hedge the #2003 record reference and cite the round-3 review`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2434#discussion_r4229321652>
 
 ### R4 - The Processing Log does not record the F1 thread's resolution
 
@@ -121,7 +121,7 @@ Review 5467876260 (round 2, josecelano, state `COMMENTED`, submitted 2026-10-09 
 - Current-tree verification: in this record, under "Processing Log", the entry of 2026-10-09 10:42 UTC reads "the F1 thread was resolved immediately after reply 4179101218 was posted at 2026-10-04 19:59:32 UTC".
 - Resolution reference: `docs(pr-reviews): [#2264] [#2278] record the maintainer's review of PR #2434`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2434#discussion_r4229321861>
 
 ## Processing Log
 
