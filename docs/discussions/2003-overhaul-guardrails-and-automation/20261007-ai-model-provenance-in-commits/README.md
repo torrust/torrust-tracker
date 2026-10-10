@@ -12,7 +12,7 @@ semantic-links:
     - docs/templates/DISCUSSION.md
 ---
 
-<!-- cspell:ignore Deployers -->
+<!-- cspell:ignore Deployers tokenizer -->
 
 # AI Model Provenance in Commits
 
@@ -188,7 +188,11 @@ combination? Added by Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q1 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`granularity-by-role` — Granularity (Q1).** Commit trailers for project automation under `project-automation-is-a-dependency`; the pull-request body and issue-local evidence for anything optional or role-specific; no mandatory per-commit record for individuals, by `personal-toolchains-are-private`.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C1`.
 
 ### Q2 - Which models count
 
@@ -198,7 +202,11 @@ Celano.
 
 #### Positions
 
-No positions yet.
+##### Q2 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`models-whose-content-survives` — Which models count (Q2).** Those whose generated content survives in the diff, by `scope-by-content-not-presence`. Models that only explored, reviewed or planned are excluded; a reviewer role, if ever recorded, uses a separate key so that it is never read as authorship.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C2`.
 
 ### Q3 - Identifier format
 
@@ -207,7 +215,11 @@ Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q3 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`identifier-from-the-harness` — Identifier format (Q3).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. Identifiers come from the harness, with `unknown` when the harness cannot name the model, so that the record never looks more complete than it is.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
 
 ### Q4 - Trailer key
 
@@ -216,7 +228,11 @@ role, such as `AI-Model:` or `Generated-by:`? Added by Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q4 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`precedent-key-acceptable` — Trailer key (Q4).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. The precedent key is acceptable.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
 
 ### Q5 - Source of truth
 
@@ -226,7 +242,11 @@ committer? Added by Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q5 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`harness-configuration-is-the-source-of-truth` — Source of truth (Q5).** For project automation the harness configuration is the source of truth and is tracked, by `project-automation-is-a-dependency`.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
 
 ### Q6 - Human edits and rewrites
 
@@ -235,7 +255,11 @@ when changes move between commits? Added by Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q6 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`human-edits-need-no-correction` — Human edits (Q6).** For human edits, rewrites and rebases, no correction of a model record is required, because the record is a tool record and the human's certification governs, by `acceptance-is-the-choice` and `tool-record-not-authorship`.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
 
 ### Q7 - Enforcement
 
@@ -245,7 +269,11 @@ Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q7 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`format-checkable-completeness-not` — Enforcement (Q7).** A format check on declared trailers is admissible, because form is checkable; a completeness check is not, because completeness is not, by `tool-record-not-authorship`. The role-aware evidence record of option O4 is optional for the same reason.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C5`.
 
 ### Q8 - Interim rule
 
@@ -253,7 +281,11 @@ Should `AGENTS.md` forbid provider-default AI trailers before the decision? Adde
 
 #### Positions
 
-No positions yet.
+##### Q8 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`no-provider-default-trailers-meanwhile` — Interim rule (Q8).** Until the Outcome is recorded, agents do not add provider-default AI trailers, consistent with `humans-author-and-certify`.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C6`.
 
 ### Q9 - Legal input
 
@@ -262,7 +294,53 @@ by Jose Celano.
 
 #### Positions
 
-No positions yet.
+##### Q9 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`legal-input-parked` — Legal input (Q9).** Parked, by `regulation-targets-systems-acting-on-people` and `provisional-and-regulation-independent`. The rule is written so that a later legal answer changes the level of detail recorded, not the structure of the rule.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C7`.
+
+### Q10 - What a provenance record can truthfully contain
+
+What any record of model involvement can truthfully state, whatever its format and location: the premises that the entries under Q1 to Q9 rest on. None of the opening author's open questions covers this; the topic is new in this round. Added by Cameron Garnham (`da2ce7`).
+
+#### Positions
+
+##### Q10 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`enumeration-has-no-boundary` — Provenance by enumeration has no stopping point.** Every current toolchain contains a machine-learning model at some layer: spelling and grammar correction, machine translation, code completion, search ranking, and the review bot that reads this pull request. A rule that asks for "the models involved in a change" therefore has no boundary, and a declaration made under it is false by omission at the moment it is made. Neither the EU AI Act nor any current standard supplies a classification that would draw the boundary for us, and none should be expected soon.
+
+**`acceptance-is-the-choice` — Review converts a model's output into the reviewer's choice.** When a model drafts a line and a human reads it, judges it and keeps it, the only fact a repository can record is that the certifying human adopted it. This is the logic of the Developer Certificate of Origin: whoever certifies a change has taken responsibility for it, whatever produced its first draft. "I would have written the same" is the acceptance test, and acceptance is the choice. A record that tries to see past acceptance into the origin of a phrasing records something no reviewer can verify.
+
+**`personal-toolchains-are-private` — Personal toolchains are private.** A contributor's editor, assistant or translation tool is their own business. A mandatory per-model declaration from individuals yields silent non-compliance, which is worse than no data, because it makes the record look complete when it is not. The contrast is the project's own automation (see `project-automation-is-a-dependency`), which is public by construction and can be declared precisely. Provenance is strong exactly where it is public, and absent exactly where it would be private.
+
+**`watermarks-mark-rendering-not-authorship` — Watermarks record phrasing, not authorship.** Article 50 makes machine-readable marking of generated output a provider obligation, and the temptation will be to read a watermark as provenance. A watermark records that a span of text passed through a model's tokenizer at some point. It records nothing about who thought the content, who directed it, or who accepted it: a sentence a human wrote and had translated or spell-checked carries the mark, while a model's idea retyped by hand does not. Read as authorship, the mark inverts `acceptance-is-the-choice`, because it detects the instrument's touch and ignores the certifying human, and it is attached by the provider rather than declared by the accountable party. It also cannot be removed without stripping legitimate human edits.
+
+**`regulation-targets-systems-acting-on-people` — The regulation addresses systems that act on people.** The transparency obligations of Article 50 are written for systems whose decisions have consequences for people who did not choose them: surveillance, synthetic media, public-interest text. A commit acts on nobody until a human accepts and certifies it, at which point the consequence is the human's by `acceptance-is-the-choice`. The document's own statements that code is not named, that an obligation is not established, and that no compliance claim is made are its strongest, and any rule written here should continue to need them.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number labels `A1`, `A2`, `A3`, `A4` and `A5`.
+
+### Q11 - The shape of the rule
+
+The proposed Outcome as one rule, whose consequences for Q1 to Q9 the entries under those topics state. None of the opening author's open questions covers this; the topic is new in this round. Added by Cameron Garnham (`da2ce7`).
+
+#### Positions
+
+##### Q11 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
+
+**`humans-author-and-certify` — Humans author and certify.** The co-author trailer is reserved for human identities. A model cannot hold authorship or accountability. Standing rules and direction belong to the human who sets them, so what a model produces under them is a rendering of that intent, not an authorship claim by the model.
+
+**`tool-record-not-authorship` — Models are instruments; the record is a tool record.** Any record of model involvement is an instrument record, of the same kind as a toolchain version in a verification evidence file. Its purposes are analytics and reproducibility of process. It makes no authorship claim and no compliance claim. It is a format contract, not a completeness claim: a check can verify the form of a declaration and never that the declaration is complete.
+
+**`scope-by-content-not-presence` — Scope is bounded by content, not by presence.** A declaration names a model only where that model's generated text or code survives in the diff. Rendering and checking tools applied to the author's own content (spelling, grammar, formatting, translation of the author's own prose) and advisory use (exploration, review, planning) are excluded by definition. Under this rule the question "where do I declare my spell-checker" has the answer "nowhere, by rule", and the enumeration problem of `enumeration-has-no-boundary` does not arise.
+
+**`project-automation-is-a-dependency` — Project automation is a dependency; personal tools are not.** A public process attracts provenance of its own accord: what the project's automation runs is visible in tracked bytes and changes only through a pull request, so a model that acts inside it can be named exactly where a personal tool cannot. The record's subject is not that a model was used but the choices it may make in that process, such as certifying a new tagged release; this rule proposes to pin such a model's identity so that a choice can be traced to it. An AI model that the project's own automation uses (the Copilot review handler, the orchestrated review lanes, any future agent in a workflow) is a dependency of the same kind: its identity is pinned in tracked bytes, changed only through a pull request, and checkable by a gate, in the way a lockfile pins a crate version. That record is an identity record, not a reproducibility guarantee, because a vendor may change a model under an unchanged identifier and a run is not reproducible even at a fixed one; the record states this limit. A contributor's personal tool is not a project dependency, so the project neither pins nor records it; a coarse declaration in the form used by the Linux kernel and Fedora, without a model name, remains optional for anyone who wishes to give one.
+
+**`declared-not-detected` — Provenance is declared, not detected.** The record consists of what the committing human and the project's pinned automation declare. Watermarks and detectors are not read as provenance, because by `watermarks-mark-rendering-not-authorship` they mark rendering rather than authorship, and a mark on a human's edited sentence states nothing the record should repeat.
+
+**`provisional-and-regulation-independent` — The rule is provisional and must not depend on the regulation's terms.** The Outcome is revisited when a standard supplies a classification of model involvement. Nothing in the rule may need to know what the regulation means by "choice", "generated" or "provider"; a future draft that does is over-reaching, by `regulation-targets-systems-acting-on-people`.
+
+First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number labels `B1`, `B2`, `B3`, `B4`, `B5` and `B6`.
 
 ## Outcome
 
