@@ -180,8 +180,8 @@ Under the proposal, GitHub facts enter only as committed captures stamped "as of
 gate compares renderings with the capture, not with GitHub. When an issue closes, nothing in the tree
 changes and the gate still passes. The subissue `Status` column becomes a stamped copy that someone
 still refreshes. Open questions for the author: who refreshes captures and when, how a reader knows a
-capture is too old, and what the "committed check results" source contains. Added by Jose Celano.
-Session record: S7.
+capture is too old, and what the check results among the generator's inputs ("frontmatter, paths,
+links, committed captures and check results") contain. Added by Jose Celano. Session record: S7.
 
 #### Positions
 

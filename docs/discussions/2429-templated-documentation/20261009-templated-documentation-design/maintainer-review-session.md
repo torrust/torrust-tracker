@@ -562,7 +562,7 @@ but the EPIC does not describe that machinery.
 
 Questions for the author:
 
-- What are "committed check results", and which documents need them?
+- What are the committed check results among the generator's inputs, and which documents need them?
 - Who refreshes forge captures, when, and how does a reader know a capture is too old?
 
 ### S8 — How does templating relate to semantic linking?
