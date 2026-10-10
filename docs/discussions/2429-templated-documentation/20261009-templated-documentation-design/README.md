@@ -227,9 +227,9 @@ reviewed and adopted by Jose Celano.
 
 This proposal arrived as an EPIC with a binding design. A staged path would let ideas mature from high
 uncertainty to concrete work: discussion, then feature, then EPIC, then subissues. The path is not
-documented today; `docs/discussions/AGENTS.md` only says that a discussion's conclusions are recorded in
-an issue, an EPIC specification, or an ADR. Documenting it is out of scope for this discussion. Added
-by Jose Celano.
+documented today; `docs/discussions/AGENTS.md` only says that a discussion's conclusions take effect
+when recorded in the owning issue or EPIC specification, an ADR, or another canonical document.
+Documenting it is out of scope for this discussion. Added by Jose Celano.
 
 #### Positions
 
