@@ -230,8 +230,10 @@ These are drafts for review.
 Cameron (`da2ce7`), owner of EPIC #2003 and #2264, answered the four open questions in
 [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664)
 (round 1). The answers are transcribed here at his request, for him to confirm against the review
-text. Each is marked there as a decision for the EPIC owner to record; none has been recorded in
-EPIC #2264 yet.
+text. The four answers are recorded in EPIC #2264's specification under its
+[Decisions Recorded on This EPIC](../../../issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md#decisions-recorded-on-this-epic)
+section, with the Progress Log entry of 2026-10-04 and the order 5 and 7 cells carrying the
+scope, as item 4 asks.
 
 1. **Yes, start "Normalize the semantic-link model" with the inventory,** following #2264's own
    precedent of inventorying frontmatter before fixing its model. The inventory is a tracked

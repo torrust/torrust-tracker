@@ -235,8 +235,12 @@ examines what outlives them. In brief:
 Cameron (`da2ce7`), owner of EPIC #2003, answered the six open questions in
 [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664)
 (round 1). The answers are transcribed here at his request, for him to confirm against the review
-text. Each is marked there as a decision for the EPIC owner to record; none has been recorded in
-EPIC #2003, #2264, or #2278 yet.
+text. The parts for EPIC #2264 are recorded under its
+[Decisions Recorded on This EPIC](../../../issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md#decisions-recorded-on-this-epic)
+section, the parts for EPIC #2278 under its
+[Decision Record](../../../issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md#decision-record)
+section, and the parts for EPIC #2003 in that EPIC's specification by its overhaul pull
+request #2366.
 
 1. **The four-aspect frame** is right for sorting proposals. The gates are the layer every
    aspect's contract is expressed through, not a fifth aspect. What the frame does not yet name is
