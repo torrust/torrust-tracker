@@ -96,6 +96,7 @@ Copilot review 5469176634 (round 1, state `COMMENTED`, submitted 2026-10-09 11:0
 - 2026-10-09 11:06 UTC - Pushed the fixes together with the five drift-fix commits prepared before the review (sccache ADR row, two missing templates, the semantic-link convention field lists, the I2P v4.0.0 references, and the Evidence note); the pre-push hook passed.
 - 2026-10-09 11:07 UTC - Posted the replies at 11:07:12 (F1), 11:07:14 (F2), and 11:07:16 UTC (F3), each on its own source thread, then resolved the three threads; a GraphQL mutation response reports each `isResolved=true`.
 - 2026-10-09 11:09 UTC - Ran `validate-audit-record.py --pr-number 2501 --base torrust/develop` against the fresh review-comment capture, replies included: `{"status": "ok", "rows": 3, "log_entries": 5, "failures": 0}`.
+- 2026-10-10 11:15 UTC - Correction: the entry stamped 2026-10-09 11:09 UTC above is later than the commit that carries it (`docs(pr-reviews): [#2429] add the PR #2501 review audit record`, authored at 2026-10-09 11:08:50 UTC; its committer date changed when the branch was rebased onto `develop` on 2026-10-10), so the validator run it records happened at 11:08 UTC or earlier; its stamp was derived, not read from a clock. The entry is kept as written. Stamps from this entry on are read from `date -u` when the event is recorded.
 
 ## Completion Rules
 
