@@ -94,189 +94,92 @@ impl ConnectService {
 
 #[cfg(test)]
 mod tests {
+    use std::future;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::sync::Arc;
 
-    mod connect_request {
+    use mockall::predicate::eq;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
-        use std::future;
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-        use std::sync::Arc;
+    use super::ConnectService;
+    use crate::connection_cookie::{check, gen_remote_fingerprint};
+    use crate::crypto::cookie_cipher::CookieCipher;
+    use crate::event::{ConnectionContext, Event};
+    use crate::services::tests::{MockUdpCoreStatsEventSender, sample_ipv4_remote_addr, sample_issue_time};
 
-        use mockall::predicate::eq;
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    const INSTANCE_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+    const PUBLIC_URL: &str = "udp://tracker.example.test:6969/announce";
 
-        use crate::connection_cookie::make;
-        use crate::crypto::cookie_cipher::CookieCipher;
-        use crate::event::bus::EventBus;
-        use crate::event::sender::Broadcaster;
-        use crate::event::{ConnectionContext, Event};
-        use crate::services::connect::ConnectService;
-        use crate::services::tests::{
-            MockUdpCoreStatsEventSender, sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint,
-            sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_ipv6_remote_addr_fingerprint, sample_issue_time,
+    fn fixed_test_cipher() -> Arc<CookieCipher> {
+        Arc::new(CookieCipher::fixed_for_testing())
+    }
+
+    fn server_service_binding() -> ServiceBinding {
+        ServiceBinding::new(
+            Protocol::UDP,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+        )
+        .unwrap()
+    }
+
+    #[tokio::test]
+    async fn it_should_issue_a_connection_id_that_validates_for_the_client_at_the_issue_time() {
+        // Arrange
+        let cookie_cipher = fixed_test_cipher();
+        let connect_service = ConnectService::new(cookie_cipher.clone(), None, INSTANCE_ID);
+        let issue_time = sample_issue_time();
+
+        // Act
+        let connection_id = connect_service
+            .handle_connect(sample_ipv4_remote_addr(), server_service_binding(), issue_time)
+            .await;
+
+        // Assert
+        assert_eq!(
+            check(
+                &cookie_cipher,
+                &connection_id,
+                gen_remote_fingerprint(&sample_ipv4_remote_addr()),
+                issue_time..issue_time
+            ),
+            Ok(issue_time)
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_a_connect_event_with_the_connection_context() {
+        // Arrange
+        let expected_event = Event::UdpConnect {
+            connection: ConnectionContext::new(INSTANCE_ID, sample_ipv4_remote_addr(), server_service_binding())
+                .with_public_url(Some(PUBLIC_URL.to_string())),
         };
+        let mut event_sender = MockUdpCoreStatsEventSender::new();
+        event_sender
+            .expect_send()
+            .with(eq(expected_event))
+            .times(1)
+            .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+        let connect_service = ConnectService::new(fixed_test_cipher(), Some(Arc::new(event_sender)), INSTANCE_ID)
+            .with_public_url(Some(PUBLIC_URL.to_string()));
 
-        fn fixed_test_cipher() -> Arc<CookieCipher> {
-            Arc::new(CookieCipher::fixed_for_testing())
-        }
+        // Act
+        connect_service
+            .handle_connect(sample_ipv4_remote_addr(), server_service_binding(), sample_issue_time())
+            .await;
 
-        const UDP_TRACKER_CONFIGURATION_INSTANCE_ID: ConfigurationInstanceId =
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        // Assert: the mock verifies the single expected event when it is dropped.
+    }
 
-        #[tokio::test]
-        async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+    #[tokio::test]
+    #[should_panic(expected = "it should be a normal value")]
+    async fn it_should_panic_when_the_issue_time_is_not_a_normal_value() {
+        // Arrange
+        let connect_service = ConnectService::new(fixed_test_cipher(), None, INSTANCE_ID);
 
-            let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
-            let udp_core_stats_event_sender = event_bus.sender();
-
-            let connect_service = Arc::new(ConnectService::new(
-                fixed_test_cipher(),
-                udp_core_stats_event_sender,
-                UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
-            ));
-
-            let response = connect_service
-                .handle_connect(sample_ipv4_remote_addr(), server_service_binding, sample_issue_time())
-                .await;
-
-            assert_eq!(
-                response,
-                make(
-                    &fixed_test_cipher(),
-                    sample_ipv4_remote_addr_fingerprint(),
-                    sample_issue_time()
-                )
-                .unwrap()
-            );
-        }
-
-        #[tokio::test]
-        async fn a_connect_response_should_contain_a_new_connection_id() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-
-            let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
-            let udp_core_stats_event_sender = event_bus.sender();
-
-            let connect_service = Arc::new(ConnectService::new(
-                fixed_test_cipher(),
-                udp_core_stats_event_sender,
-                UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
-            ));
-
-            let response = connect_service
-                .handle_connect(sample_ipv4_remote_addr(), server_service_binding, sample_issue_time())
-                .await;
-
-            assert_eq!(
-                response,
-                make(
-                    &fixed_test_cipher(),
-                    sample_ipv4_remote_addr_fingerprint(),
-                    sample_issue_time()
-                )
-                .unwrap(),
-            );
-        }
-
-        #[tokio::test]
-        async fn a_connect_response_should_contain_a_new_connection_id_ipv6() {
-            let client_socket_addr = sample_ipv6_remote_addr();
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-
-            let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
-            let udp_core_stats_event_sender = event_bus.sender();
-
-            let connect_service = Arc::new(ConnectService::new(
-                fixed_test_cipher(),
-                udp_core_stats_event_sender,
-                UDP_TRACKER_CONFIGURATION_INSTANCE_ID,
-            ));
-
-            let response = connect_service
-                .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())
-                .await;
-
-            assert_eq!(
-                response,
-                make(
-                    &fixed_test_cipher(),
-                    sample_ipv6_remote_addr_fingerprint(),
-                    sample_issue_time()
-                )
-                .unwrap(),
-            );
-        }
-
-        #[tokio::test]
-        async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
-            let client_socket_addr = sample_ipv4_socket_address();
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-            let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
-            udp_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::UdpConnect {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        client_socket_addr,
-                        server_service_binding.clone(),
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
-
-            let connect_service = Arc::new(ConnectService::new(
-                fixed_test_cipher(),
-                opt_udp_stats_event_sender,
-                configuration_instance_id,
-            ));
-
-            connect_service
-                .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())
-                .await;
-        }
-
-        #[tokio::test]
-        async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
-            let client_socket_addr = sample_ipv6_remote_addr();
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
-            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
-            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-            let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
-            udp_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::UdpConnect {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        client_socket_addr,
-                        server_service_binding.clone(),
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
-
-            let connect_service = Arc::new(ConnectService::new(
-                fixed_test_cipher(),
-                opt_udp_stats_event_sender,
-                configuration_instance_id,
-            ));
-
-            connect_service
-                .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())
-                .await;
-        }
+        // Act
+        connect_service
+            .handle_connect(sample_ipv4_remote_addr(), server_service_binding(), 0.0)
+            .await;
     }
 }

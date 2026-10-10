@@ -91,6 +91,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `services/scrape.rs` | 0 / 77 (0.00%) | 264 / 273 (96.70%) | 303 / 316 (95.89%) | 37 / 40 (92.50%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | `connection_cookie.rs` | 130 / 135 (96.30%) | 171 / 171 (100.00%) | 372 / 376 (98.94%) | 22 / 22 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | `crypto/cookie_cipher.rs` | 49 / 49 (100.00%) after #2458 | 51 / 51 (100.00%) | 88 / 88 (100.00%) | 12 / 12 (100.00%) | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
+| `services/connect.rs` | 147 / 157 (93.63%) | 108 / 114 (94.74%) | 113 / 120 (94.17%) | 13 / 15 (86.67%) | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -107,7 +108,9 @@ comes mostly from #2458, not from #1348: it deleted `crypto/keys.rs` and
 `crypto/ephemeral_instance_keys.rs`, added a fully covered `crypto/cookie_cipher.rs` (49 / 49),
 and added `container.rs` tests (0 / 97 to 183 / 183) and the static-initialization removal that
 leaves `lib.rs` at 5 / 5. After `crypto/cookie_cipher.rs`: 2,028 / 2,099 lines (96.62%), 2,707 /
-2,795 regions (96.85%), 250 / 268 functions (93.28%). The final
+2,795 regions (96.85%), 250 / 268 functions (93.28%). After `services/connect.rs`: 1,929 / 2,000
+lines (96.45%), 2,566 / 2,654 regions (96.68%), 242 / 260 functions (93.08%); the small drop comes
+from removing covered test code, not from losing production coverage. The final
 package comparison is recorded at T7.
 
 ## Next Evidence

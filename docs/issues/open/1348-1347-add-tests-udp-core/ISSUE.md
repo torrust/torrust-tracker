@@ -292,7 +292,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | DONE | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
-| 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
+| 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | DONE | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
 | 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
@@ -418,6 +418,11 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   (unit-only file lines 49 / 49 to 51 / 51). Awaiting completed-file review.
 - 2026-10-10 10:10 UTC - Jose Celano - Approved the `crypto/cookie_cipher.rs` completed-file
   review; ledger row 5 is `DONE`.
+- 2026-10-10 11:22 UTC - GitHub Copilot - The `services/connect.rs` plan was approved; replaced 5
+  tests with 3 contract tests and removed four shared helpers in `services/mod.rs` that the removal
+  left unused (a necessary exception to one file per commit). Awaiting completed-file review.
+- 2026-10-10 11:29 UTC - Jose Celano - Approved the `services/connect.rs` completed-file review,
+  including the `services/mod.rs` exception; ledger row 6 is `DONE`.
 
 ## Acceptance Criteria
 
