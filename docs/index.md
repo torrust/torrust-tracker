@@ -115,6 +115,7 @@ A discussion is input, not a decision.
 | [discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/](discussions/2003-overhaul-guardrails-and-automation/20261003-semantic-linking-knowledge-graph/) | Semantic linking and a repository knowledge graph (EPIC #2264)                         |
 | [discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/](discussions/2003-overhaul-guardrails-and-automation/20261003-specifications-and-rationale/)         | Specifications and rationale: tests as specification, where the why lives (EPIC #2003) |
 | [discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/](discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/)     | AI model provenance in commits: which models a commit records, and how (EPIC #2003)    |
+| [discussions/2429-templated-documentation/20261009-templated-documentation-design/](discussions/2429-templated-documentation/20261009-templated-documentation-design/) | Templated documentation: rendering restated facts from committed data, combined with typed frontmatter (issue #2429, PR #2430) |
 | [discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/](discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/) | I2P peer support design: PRs #2050 and #2059, their review, and open questions (EPIC #2491) |
 
 ## External Source Snapshots
@@ -183,9 +184,11 @@ that type.
 | [templates/EPIC.md](templates/EPIC.md)                                                 | Template for EPIC issue specifications                            |
 | [templates/IMPLEMENTATION-RETROSPECTIVE.md](templates/IMPLEMENTATION-RETROSPECTIVE.md) | Template for issue-local implementation retrospectives            |
 | [templates/ISSUE.md](templates/ISSUE.md)                                               | Template for task / bug / feature issue specifications            |
+| [templates/MANUAL-VERIFICATION-EVIDENCE.md](templates/MANUAL-VERIFICATION-EVIDENCE.md) | Template for issue-local manual verification evidence             |
 | [templates/REFACTOR-PLAN.md](templates/REFACTOR-PLAN.md)                               | Template for refactor plan specifications                         |
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
+| [templates/PR-REVIEW-RETROSPECTIVE.md](templates/PR-REVIEW-RETROSPECTIVE.md)           | Template for PR review retrospectives, when warranted             |
 | [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
 | [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |
 
