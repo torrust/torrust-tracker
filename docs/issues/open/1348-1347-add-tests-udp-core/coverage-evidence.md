@@ -90,6 +90,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `peer_builder.rs` | 0 / 14 (0.00%) | 79 / 79 (100.00%) | 115 / 115 (100.00%) | 8 / 8 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | `services/scrape.rs` | 0 / 77 (0.00%) | 264 / 273 (96.70%) | 303 / 316 (95.89%) | 37 / 40 (92.50%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | `connection_cookie.rs` | 130 / 135 (96.30%) | 171 / 171 (100.00%) | 372 / 376 (98.94%) | 22 / 22 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
+| `crypto/cookie_cipher.rs` | 49 / 49 (100.00%) after #2458 | 51 / 51 (100.00%) | 88 / 88 (100.00%) | 12 / 12 (100.00%) | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -105,7 +106,8 @@ functions (89.11%). After rebasing onto Issue #2458 (2026-10-09; stable Rust 1.9
 comes mostly from #2458, not from #1348: it deleted `crypto/keys.rs` and
 `crypto/ephemeral_instance_keys.rs`, added a fully covered `crypto/cookie_cipher.rs` (49 / 49),
 and added `container.rs` tests (0 / 97 to 183 / 183) and the static-initialization removal that
-leaves `lib.rs` at 5 / 5. The final
+leaves `lib.rs` at 5 / 5. After `crypto/cookie_cipher.rs`: 2,028 / 2,099 lines (96.62%), 2,707 /
+2,795 regions (96.85%), 250 / 268 functions (93.28%). The final
 package comparison is recorded at T7.
 
 ## Next Evidence

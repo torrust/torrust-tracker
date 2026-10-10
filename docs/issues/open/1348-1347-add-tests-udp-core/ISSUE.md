@@ -291,7 +291,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
 | 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
-| 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | PENDING | - |
+| 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | DONE | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
 | 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
 | 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
@@ -413,6 +413,11 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   coverage: 2,026 / 2,097 lines (96.61%); `container.rs` (183 / 183) and `lib.rs` (5 / 5) are now
   fully covered by #2458's changes, but every remaining row still gets its own file plan.
 - 2026-10-09 11:19 UTC - Jose Celano - Approved the re-planned ledger.
+- 2026-10-10 09:25 UTC - GitHub Copilot - The `crypto/cookie_cipher.rs` plan was approved; removed
+  one redundant assertion and added a compile-time guarantee that the key schedule is wiped on drop
+  (unit-only file lines 49 / 49 to 51 / 51). Awaiting completed-file review.
+- 2026-10-10 10:10 UTC - Jose Celano - Approved the `crypto/cookie_cipher.rs` completed-file
+  review; ledger row 5 is `DONE`.
 
 ## Acceptance Criteria
 
