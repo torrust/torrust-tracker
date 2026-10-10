@@ -38,9 +38,10 @@ compact response format, swarm statistics, the REST API, and the tracker's trust
 review recorded seven required actions, including a merge blocker: a plain HTTP announce cannot
 prove that a client owns the I2P Destination it supplies.
 
-The maintainers are focused on releasing v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)). This EPIC is blocked until that release
-ships and the roadmap is redefined. It exists so the work and its history are not lost when
-PRs #2050 and #2059 are closed: closing them does not reject the feature.
+The maintainers are focused on releasing v4.0.0 (see the
+[v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)). This EPIC is blocked until
+that release ships and the roadmap is redefined. It exists so the work and its history are not lost
+when PRs #2050 and #2059 are closed: closing them does not reject the feature.
 
 ## Scope
 
@@ -59,7 +60,9 @@ PRs #2050 and #2059 are closed: closing them does not reject the feature.
 
 ### Out of Scope
 
-- Implementation before v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)) is released and the roadmap includes this EPIC.
+- Implementation before v4.0.0 is released (see the
+  [v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)) and the roadmap includes
+  this EPIC.
 - The REST API representation of I2P peers. It belongs to the REST API overhaul (#144) and needs
   an ADR there; until then, I2P peers must not change the existing `peer_addr` field.
 - UDP over I2P, I2P PEX, and I2P DHT. They are separate I2P specifications; a later EPIC may add

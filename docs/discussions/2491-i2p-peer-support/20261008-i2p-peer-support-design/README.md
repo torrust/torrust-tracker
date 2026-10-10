@@ -38,8 +38,9 @@ PR #2059, keeping the contributor as author of the implementation commits and ad
 with seven required actions.
 
 Jose supports the feature and considers careful design of its edge cases necessary before any of
-it merges. The maintainers are focused on releasing v4.0.0 ([v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)), so the work is postponed until
-after that release, when the roadmap is redefined.
+it merges. The maintainers are focused on releasing v4.0.0 (see the
+[v4.0.0 milestone](https://github.com/torrust/torrust-tracker/milestone/5)), so the work is postponed
+until after that release, when the roadmap is redefined.
 
 This discussion keeps everything learned so far, so that PRs #2050 and #2059 can be closed without
 losing it. Closing them does not reject the feature: they stay on GitHub as reference, and
