@@ -194,6 +194,8 @@ combination? Added by Jose Celano.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C1`.
 
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q2 - Which models count
 
 Only models whose output is in the diff, or also models that explored, reviewed, or planned? If
@@ -208,6 +210,8 @@ Celano.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C2`.
 
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q3 - Identifier format
 
 Is `<harness>:<vendor>/<model-id>` acceptable, and how should unknown versions be recorded? Added by
@@ -221,6 +225,8 @@ Jose Celano.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
 
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q4 - Trailer key
 
 `Assisted-by`, for compatibility with the kernel and Fedora, or a project-specific key that adds the
@@ -233,6 +239,8 @@ role, such as `AI-Model:` or `Generated-by:`? Added by Jose Celano.
 **`precedent-key-acceptable` — Trailer key (Q4).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. The precedent key is acceptable.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q5 - Source of truth
 
@@ -248,6 +256,8 @@ committer? Added by Jose Celano.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
 
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q6 - Human edits and rewrites
 
 How is the list kept correct when a human edits AI output, when commits are reworded or rebased, or
@@ -260,6 +270,8 @@ when changes move between commits? Added by Jose Celano.
 **`human-edits-need-no-correction` — Human edits (Q6).** For human edits, rewrites and rebases, no correction of a model record is required, because the record is a tool record and the human's certification governs, by `acceptance-is-the-choice` and `tool-record-not-authorship`.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q7 - Enforcement
 
@@ -275,6 +287,8 @@ Jose Celano.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C5`.
 
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q8 - Interim rule
 
 Should `AGENTS.md` forbid provider-default AI trailers before the decision? Added by Jose Celano.
@@ -286,6 +300,8 @@ Should `AGENTS.md` forbid provider-default AI trailers before the decision? Adde
 **`no-provider-default-trailers-meanwhile` — Interim rule (Q8).** Until the Outcome is recorded, agents do not add provider-default AI trailers, consistent with `humans-author-and-certify`.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C6`.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q9 - Legal input
 
@@ -299,6 +315,8 @@ by Jose Celano.
 **`legal-input-parked` — Legal input (Q9).** Parked, by `regulation-targets-systems-acting-on-people` and `provisional-and-regulation-independent`. The rule is written so that a later legal answer changes the level of detail recorded, not the structure of the rule.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C7`.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q10 - What a provenance record can truthfully contain
 
@@ -319,6 +337,8 @@ What any record of model involvement can truthfully state, whatever its format a
 **`regulation-targets-systems-acting-on-people` — The regulation addresses systems that act on people.** The transparency obligations of Article 50 are written for systems whose decisions have consequences for people who did not choose them: surveillance, synthetic media, public-interest text. A commit acts on nobody until a human accepts and certifies it, at which point the consequence is the human's by `acceptance-is-the-choice`. The document's own statements that code is not named, that an obligation is not established, and that no compliance claim is made are its strongest, and any rule written here should continue to need them.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number labels `A1`, `A2`, `A3`, `A4` and `A5`.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q11 - The shape of the rule
 
@@ -341,6 +361,8 @@ The proposed Outcome as one rule, whose consequences for Q1 to Q9 the entries un
 **`provisional-and-regulation-independent` — The rule is provisional and must not depend on the regulation's terms.** The Outcome is revisited when a standard supplies a classification of model involvement. Nothing in the rule may need to know what the regulation means by "choice", "generated" or "provider"; a future draft that does is over-reaching, by `regulation-targets-systems-acting-on-people`.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number labels `B1`, `B2`, `B3`, `B4`, `B5` and `B6`. `project-automation-is-a-dependency` revises `B4`'s opening sentence in this round (PR #2486 review findings F1 and R1).
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ## Outcome
 
