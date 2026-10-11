@@ -49,7 +49,7 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 | R1 | `review-finding:pr-2486-r1` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | R2 | `review-finding:pr-2486-r2` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | R3 | `review-finding:pr-2486-r3` | Human | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
-| R4 | `review-finding:pr-2486-r4` | Human | Minor | metadata | ORIGINAL | NO_ACTION | OPEN |
+| R4 | `review-finding:pr-2486-r4` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | R5 | `review-finding:pr-2486-r5` | Human | Suggestion | documentation | ORIGINAL | NO_ACTION | RESOLVED |
 | R6 | `review-finding:pr-2486-r6` | Human | Nit | formatting | ORIGINAL | NO_ACTION | RESOLVED |
 
@@ -113,12 +113,12 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Source review ID: 5469325284
 - Reviewer finding ID: R4
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229526774>
-- Concern: The reviewer asked whether an AI assistant drafted or researched any entry text, because the attribution rule in `docs/discussions/AGENTS.md` asks an entry to say so and a missing attribution is a merge-gate reason; if none did, a reply saying so is enough.
-- Solution: Answered on the thread, with no README change: "My contributions may use private tooling, that may or may not include ML." The thread is left open for the reviewer.
-- Current-tree verification: Reply 4229731579 sits on thread 4229526774 (its `in_reply_to_id`), posted at 11:44 UTC; no README line changed for R4.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579>
+- Concern: The reviewer asked whether an AI assistant drafted or researched any entry text, because the attribution rule in `docs/discussions/AGENTS.md` asks an entry to say so and a missing attribution is a merge-gate reason; if none did, a reply saying so is enough. My first answer on the thread (reply <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579>, 2026-10-09 11:44 UTC) was "My contributions may use private tooling, that may or may not include ML." The reviewer's follow-up (reply 4237442611, 2026-10-10 11:20 UTC) accepted that position, asked for no tool or model, and asked instead for an explicit statement on each entry, so that a reader of the merged document sees it under the current rule, proposing the wording.
+- Solution: Each of my eleven entries now ends with the reviewer's proposed sentence, byte for byte, as its own paragraph after the entry's "First posted as" line: "AI assistance not disclosed: the author's private tooling may include machine-learning tools." No tool or model is named.
+- Current-tree verification: Under each of the eleven headings `##### Q<n> - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486`, Q1 to Q11, the entry block ends with the sentence quoted above, and `grep -c -F 'AI assistance not disclosed: the author'` over the discussion README counts 11.
+- Resolution reference: `docs(discussions): [#2003] state on each of my entries that AI assistance is not disclosed`
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579>
+- Reply URL: REPLY_URL_R4
 
 ### R5 - The release-certification example and `humans-author-and-certify`
 
@@ -161,6 +161,8 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - 2026-10-09 11:44 UTC - Answered R4 on its thread (reply 4229731579) with no README change, and left the thread open.
 - 2026-10-09 12:28 UTC - Fixed R1 and R2 in `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`.
 - 2026-10-09 12:29 UTC - Recorded R1 to R6 here. The replies on R1, R2, R5 and R6 and the conversation response for R3 follow the push, so their URLs are placeholders until they exist; the threads of R1, R2, R5 and R6 are resolved after their replies are posted, and R4's stays open.
+- 2026-10-10 11:20 UTC - The reviewer's follow-up on R4's thread (reply 4237442611, review 5478757157) accepted my position and asked for an explicit statement on each entry, proposing the wording. It asks for a change on the same thread rather than raising a new finding, so R4 stays one row.
+- 2026-10-11 08:23 UTC - Added the reviewer's wording to each of my eleven entries in `docs(discussions): [#2003] state on each of my entries that AI assistance is not disclosed`, and recorded R4 as `FIXED`/`RESOLVED`. The reply on R4's thread follows the push, so its Reply URL is the placeholder `REPLY_URL_R4`, and the thread is resolved after the reply is posted.
 
 ## Completion Rules
 
