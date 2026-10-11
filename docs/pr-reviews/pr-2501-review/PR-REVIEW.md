@@ -44,6 +44,8 @@ Copilot review 5469176634 (round 1, state `COMMENTED`, submitted 2026-10-09 11:0
 
 Cameron Garnham's review 5469401053 (round 2, state `APPROVED`, submitted 2026-10-09 11:26 UTC on head `db3974d9c`; his round 1 was not posted because the head moved) left three inline comments with `[Minor][F4]`, `[Nit][F5]`, and `[Minor][F6]` brackets; the IDs do not collide with F1 to F3, so they are kept. Its body recomputes the PR and lists the same three findings; one further assertion in its Index and hygiene paragraph ("EPIC lines 41 and 62 and I2P README line 41 run to 155–167 columns in files wrapped near 100") is independently actionable and has no inline thread, so it becomes F7 with an inferred severity and `NON_RESOLVABLE` thread state. The body's other "reported" and "checked, no finding" items carry no request. His ACK comment on the PR conversation is a verdict, not a finding.
 
+Cameron Garnham's review 5482535188 (round 3, state `APPROVED`, submitted 2026-10-11 08:23 UTC on head `c6007053a`) left one inline comment with a `[Minor][F8]` bracket; the reviewer numbered it F8 because this record already assigns F7, so the ID is kept. Its body confirms F4 to F7 and lists only F8; its "checked, no finding" items carry no request, and the ACK comment is a verdict.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2501-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -53,6 +55,7 @@ Cameron Garnham's review 5469401053 (round 2, state `APPROVED`, submitted 2026-1
 | F5 | `review-finding:pr-2501-f5` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2501-f6` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2501-f7` | Human | Nit (inferred) | formatting | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F8 | `review-finding:pr-2501-f8` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -147,6 +150,19 @@ Cameron Garnham's review 5469401053 (round 2, state `APPROVED`, submitted 2026-1
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F8 - The round 2 log entry misstates the rebased commits' committer dates
+
+- PR number: 2501
+- Source review ID: 5482535188
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2501#discussion_r4240860083>
+- Concern: The round 2 Processing Log entry said the rebased commits carry committer dates of 11:12:56–57 UTC, but the twelve rebased commits run from 11:12:52 to 11:12:57 UTC; only the last three fall in the stated range. Same class as F6: a log time that does not match the commits.
+- Solution: Appended a correction that names the 2026-10-10 11:18 UTC entry, gives the full 11:12:52 to 11:12:57 UTC range, explains that the range had been read from the newest six commits only, and keeps the entry as written.
+- Current-tree verification: `TZ=UTC git log --reverse --date=format-local:%H:%M:%S --format=%cd develop..HEAD` lists 11:12:52 for the first rebased commit and 11:12:57 for the twelfth; the Processing Log contains the correction starting "Correction: the entry stamped 2026-10-10 11:18 UTC".
+- Resolution reference: `docs(pr-reviews): [#2429] correct the rebased commit times in the PR #2501 audit log`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2501#discussion_r4241168839>
+
 ## Processing Log
 
 - 2026-10-09 11:03 UTC - Started audit for Copilot review 5469176634 from the GraphQL thread list (`github-review-threads fetch`), the REST review, and the REST review comments: three unresolved inline threads opened by review comments 4229404757 (F1), 4229404825 (F2), and 4229404897 (F3), no human review, and a review body with no independently actionable assertion.
@@ -158,6 +174,8 @@ Cameron Garnham's review 5469401053 (round 2, state `APPROVED`, submitted 2026-1
 - 2026-10-10 11:18 UTC - Recorded round 2 in one entry, after the correction above, so the log stays append-only and in order; each event's own time is given inline. Fetched round 2 at or before 11:12 UTC (GraphQL threads via `github-review-threads fetch`, REST reviews and review comments, PR conversation comments): review 5469401053 by `da2ce7` (`APPROVED`) with three unresolved inline threads opened by review comments 4229592072 (F4), 4229592078 (F5), and 4229592084 (F6), plus one actionable review-body assertion (F7); all four hold against the branch. Rebased the branch onto `develop` `f960c78d7` (clean, no overlapping files; the rebased commits carry committer dates of 11:12:56–57 UTC). Committed the F4 fix at 11:13:07, the F5 fix at 11:13:46, the F7 rewrap at 11:14:26, and the F6 correction at 11:16:07 UTC (committer dates read with `git log`), each with the pre-commit hook passing. Pushed with `--force-with-lease`, completing at 11:17:08 UTC (pre-push hook passed). Posted the replies at 11:17:20 (F4), 11:17:21 (F5), and 11:17:23 UTC (F6), each on its own source thread (GitHub `created_at`), then resolved the three threads; the GraphQL mutation responses report each `isResolved=true`, and `date -u` read 11:17:32 UTC after the last one. F7 has no thread to reply to or resolve.
 - 2026-10-10 11:18 UTC - Ran `validate-audit-record.py --pr-number 2501 --base torrust/develop` against a fresh review-comment capture, replies included; `date -u` read 11:18:45 UTC when it finished: `{"status": "ok", "rows": 7, "log_entries": 7, "failures": 0}`.
 - 2026-10-11 10:07 UTC - Correction: the entry stamped 2026-10-10 11:18 UTC that records round 2 says "the rebased commits carry committer dates of 11:12:56–57 UTC". `git log --reverse --format=%cd` over the twelve rebased commits, read with `TZ=UTC`, gives 11:12:52 (`docs(discussions): [#2429] open the templated documentation design discussion`) to 11:12:57 UTC (`docs(pr-reviews): [#2429] add the PR #2501 review audit record`); only the last three fall in 11:12:56–57, because the range was read from the newest six commits only. The entry is kept as written; its other times hold.
+- 2026-10-11 10:09 UTC - Recorded round 3. Fetched review 5482535188 by `da2ce7` (`APPROVED` on `c6007053a`) with one unresolved inline thread opened by review comment 4240860083 (F8); it holds against the branch, and `develop` was still `f960c78d7`, so no rebase was needed. The F8 correction was committed at 10:07:05 UTC and pushed by 10:08:50 UTC (pre-commit and pre-push hooks passed); the reply was posted at 10:08:51 UTC on the F8 thread (GitHub `created_at`), and the thread was then resolved, with `date -u` reading 10:08:53 UTC after the mutation reported `isResolved=true`. Times in this entry were read from `git log`, `date -u`, and GitHub.
+- 2026-10-11 10:09 UTC - Ran `validate-audit-record.py --pr-number 2501 --base torrust/develop` against a fresh review-comment capture, replies included; `date -u` read 10:09:17 UTC when it finished: `{"status": "ok", "rows": 8, "log_entries": 10, "failures": 0}`.
 
 ## Completion Rules
 
