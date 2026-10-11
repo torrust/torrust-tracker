@@ -79,7 +79,7 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Current-tree verification: Under Q11's `#### Positions`, the paragraph headed `project-automation-is-a-dependency` opens with the sentence quoted above, and `git grep -F 'is visible in tracked bytes and changes only through a pull request'` finds nothing under `docs/discussions`; the rest of the paragraph, from "The record's subject is not that a model was used", is byte-identical to the head the review was posted on.
 - Resolution reference: `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R1}>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240896729>
 
 ### R2 - The Q11 provenance line no longer matches the B4 entry
 
@@ -92,7 +92,7 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Current-tree verification: The "First posted as" line that closes Q11's entry ends with the sentence quoted above, after the number labels `B1` to `B6`.
 - Resolution reference: `docs(discussions): [#2003] restate my automation-dependency reason and note the B4 revision`
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R2}>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240896846>
 
 ### R3 - The description's verification claim did not hold for B4
 
@@ -118,7 +118,7 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Current-tree verification: Under each of the eleven headings `##### Q<n> - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486`, Q1 to Q11, the entry block ends with the sentence quoted above, and `grep -c -F 'AI assistance not disclosed: the author'` over the discussion README counts 11.
 - Resolution reference: `docs(discussions): [#2003] state on each of my entries that AI assistance is not disclosed`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_URL_R4
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240896961>
 
 ### R5 - The release-certification example and `humans-author-and-certify`
 
@@ -129,9 +129,9 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Concern: The `project-automation-is-a-dependency` entry gives "certifying a new tagged release" as an example of a choice a model may make, while `humans-author-and-certify` reserves certification for humans; the reviewer suggested a different example, such as preparing a release, and marked the point non-blocking, on substance.
 - Solution: Left as it is: the point is substance rather than document quality, so it belongs to the decision round.
 - Current-tree verification: The `project-automation-is-a-dependency` paragraph still contains "such as certifying a new tagged release".
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R5}>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240897094>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R5}>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240897094>
 
 ### R6 - Entry paragraphs are single lines
 
@@ -142,9 +142,9 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Concern: The entries are single long lines while the rest of the file wraps prose at 100 columns; `MD013` is off, so lint passes, and the same holds for this audit record. The reviewer requested no change to the title.
 - Solution: Left as it is: the entries keep the form their author writes, one line per paragraph.
 - Current-tree verification: The entry paragraphs remain single lines, and `.markdownlint.json` sets `MD013` to `false`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R6}>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240897243>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r{reply-R6}>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4240897243>
 
 ## Processing Log
 
