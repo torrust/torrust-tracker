@@ -136,29 +136,38 @@ Use frontmatter to keep machine-readable metadata and semantic links queryable a
 
 For other Markdown artifacts, frontmatter remains optional but recommended.
 
+The strict v1 profiles in `contrib/dev-tools/checks/frontmatter-validator/src/profile.rs` are the
+authority for these fields; the lists below must match them and the
+[issue](../templates/ISSUE.md) and [EPIC](../templates/EPIC.md) templates. Both profiles also require
+`semantic-links` (see the recommended shape below).
+
 Required metadata fields for issue specs:
 
 ```yaml
+schema-version: 1
 doc-type: issue
 issue-type: <task|bug|feature|enhancement>
-status: <draft|open|planned|in-progress|blocked|in-review|done>
+status: <draft|planned|in-progress|blocked|in-review|done>
 priority: <p0|p1|p2|p3>
+epic: <number|null>
 github-issue: <number|null>
 spec-path: <repo-relative-path>
 branch: <branch-name>
 related-pr: <number|null>
-last-updated-utc: YYYY-MM-DD HH:MM
+last-updated-utc: "YYYY-MM-DD HH:MM"
 ```
 
 Required metadata fields for EPIC specs:
 
 ```yaml
+schema-version: 1
 doc-type: epic
-status: <draft|open|planned|in-progress|blocked|in-review|done>
+status: <draft|planned|in-progress|blocked|in-review|done>
+epic: <number|null>
 github-issue: <number|null>
 spec-path: <repo-relative-path>
 epic-owner: <owner|null>
-last-updated-utc: YYYY-MM-DD HH:MM
+last-updated-utc: "YYYY-MM-DD HH:MM"
 ```
 
 When frontmatter metadata is present, do not duplicate it in a body section like `## Metadata`.
