@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 17:56"
+last-updated-utc: "2026-10-13 17:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -363,7 +363,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce and record                               | [manual-verification-evidence.md](manual-verification-evidence.md) V1-V4, outcome **Reproduced**.               |
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
-| B1  | TODO   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
+| B1  | DONE   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
 | T3  | TODO   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | TODO   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
 | T5  | TODO   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
@@ -457,6 +457,12 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   verbatim output.
 - 2026-10-13 17:56 UTC - GitHub Copilot (implementation session) - Spec-only PR #2506 merged into
   `develop` as `b5f1801c6`. Started implementation on branch `2505-udp-banned-ips-metric`.
+- 2026-10-13 17:57 UTC - GitHub Copilot (implementation session) - B1: added the Criterion group
+  `udp_ban_service/record_error` (`increase_counter` followed by `get_banned_ips_total`, at 10,
+  1,000, and 10,000 tracked IPs). Instrument check with `--quick` runs: flat at about 11-14 ns on
+  `develop`; with `get_banned_ips_total` temporarily replaced by a filtered scan (P2, reverted
+  without staging) it grew to about 17 ns, 592 ns, and 5.6 us, so the benchmark detects an AC7
+  violation. The outputs are recorded in `performance-evidence.md` with the T3 baseline.
 
 ## Acceptance Criteria
 
