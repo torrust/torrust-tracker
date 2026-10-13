@@ -38,7 +38,9 @@ measure it.
 2. **Check that each instrument measures something.** Compare its result with a known cost. Watch
    for an `async fn` passed to `b.iter` without being awaited; see
    [Checking That a Benchmark Measures Something](../../../../../docs/benchmarking.md#checking-that-a-benchmark-measures-something).
-   If the changed code has no benchmark, add one in its own commit before any production change.
+   If the changed code has no benchmark, add one in its own commit before any production change,
+   and give a new async benchmark the
+   [routine guard](../../../../../docs/benchmarking.md#routine-guard-for-async-benchmarks).
 3. **Write the pass rule in the specification:** one-sided, against the baseline (after mean not
    below the lowest baseline run; after median not above the highest baseline median).
 4. **Measure the baseline** before any production change, following
