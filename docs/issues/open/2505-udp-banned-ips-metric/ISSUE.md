@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric-spec"
 related-pr: null
-last-updated-utc: "2026-10-13 17:01"
+last-updated-utc: "2026-10-13 17:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -311,7 +311,7 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
 | Layer                                         | Fit       | What it protects here                                                                                                                                                                                                                                       |
 | --------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unit, `udp-core` (`BanService`)               | Required  | D1 at its causal seam: the threshold boundary of the banned total, and the total after reset. Fast and deterministic.                                                                                                                                      |
-| Property-based unit, `udp-core`               | Recommended | The invariant "banned total == number of IPs for which `is_banned` is true" for arbitrary error sequences, limits, and resets. Most valuable with P1/P3, where a second piece of state must stay consistent with the map.                                 |
+| Property-based unit, `udp-core`               | Required  | The invariant "banned total == number of IPs for which `is_banned` is true" for arbitrary error sequences, limits, and resets. Most valuable with P1/P3, where a second piece of state must stay consistent with the map.                                 |
 | Unit, `udp-server` (banning module)           | Required  | The new reset-and-publish function (G1) writes the new total to the gauge.                                                                                                                                                                                 |
 | Unit, root crate (reset job)                  | Required  | D2's actual cause is wiring: the job resets the bans but never publishes. A job test with a paused Tokio clock (precedent: `src/bootstrap/jobs/torrent_cleanup.rs`) advances one interval and reads the gauge. This is the test that is red on `develop`. |
 | Package-level in-process integration, `udp-server` | Required  | The published gauge through the real server, event bus, banning listener, and stats repository (`packages/udp-server/tests/server/contract.rs` environment). It is the closest automated equivalent of the reported symptom; the handler unit test injects a hand-made event and does not cover this wiring. |
@@ -328,7 +328,7 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
 - **R2 (unit, `udp-core`):** after `reset_bans()`, the banned total is 0 and an IP must exceed the
   limit again to be counted. Passes on `develop` (the map is cleared); prove it guards the fix with
   mutate-then-restore (for P1: do not reset the counter).
-- **R1p (property-based unit, `udp-core`, recommended):** for arbitrary sequences of
+- **R1p (property-based unit, `udp-core`):** for arbitrary sequences of
   `increase_counter` over a small IP pool, interleaved with `reset_bans()`, and arbitrary limits,
   the banned total equals the number of IPs for which `is_banned` is true. Needs `quickcheck` as a
   `udp-core` dev-dependency (already used by `udp-protocol`); follow the `add-rust-dependency` skill
@@ -342,7 +342,7 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
 - **R5 (package-level integration, `udp-server`, `strict`):** from one client, send `L` invalid
   connection IDs: the published `udp_banned_ips_total()` is 0. Send one more: it is 1. **Red on
   `develop`** for the first assertion (it reads 1).
-- **R6 (package-level integration, `udp-server`, `disabled`, recommended):** pins decision A. From
+- **R6 (package-level integration, `udp-server`, `disabled`):** pins decision A. From
   one client, `L` invalid connection IDs report 0; `L + 1` report 1, and the client's requests are
   still served. **Red on `develop`** for the first assertion.
 - **Updated tests:** the `udp-server` handler and listener unit tests that pin the distinct-IP count
@@ -365,7 +365,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
 | B1  | TODO   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
 | T3  | TODO   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
-| T4  | TODO   | R1, R5 (and R6) regression tests, red              | Recorded failing output against the current implementation.                                                    |
+| T4  | TODO   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
 | T5  | TODO   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | TODO   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
@@ -445,9 +445,12 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   Performance Evidence Plan required by `docs/benchmarking.md` for request-path changes (Criterion
   plus `aquatic_udp_load_test`, a one-sided pass rule, and issue-local `performance-evidence.md`),
   with task B1 for a missing per-event microbenchmark, and updated T3, T9, AC5, and the checks.
-- 2026-10-13 17:01 UTC - GitHub Copilot (spec session) - PR #2506 review finding F3: moved the
+- 2026-10-13 17:00 UTC - GitHub Copilot (spec session) - PR #2506 review finding F3: moved the
   `udp-server` handler and listener test updates into the T4-T5 commit, because they assert the old
   distinct-IP count and would fail on that commit; T8 is now documentation only.
+- 2026-10-13 17:02 UTC - GitHub Copilot (spec session) - PR #2506 review finding F4: the
+  maintainer made R1p and R6 required, matching T4, T5, and the commit points. Corrected the F3
+  entry's stamp from 17:01 to 17:00, the time of the commit that carries it.
 
 ## Acceptance Criteria
 
