@@ -9,7 +9,7 @@ github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-13 17:32"
+last-updated-utc: "2026-10-13 17:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,7 +177,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                                    |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
+| T1  | DONE   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
 | T2  | TODO   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
 | T3  | TODO   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
 | T4  | TODO   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
@@ -249,6 +249,9 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   `48e11787f`. Before implementing, asked the maintainer about the guard's behavior under
   Criterion filters, the benchmark name, the peer strategy, and where the guard lives; the
   answers are recorded as D1-D4 under Maintainer Decisions, and Scope and R1 are updated to match.
+- 2026-10-13 17:45 UTC - Copilot - T1 done: the guard, wired into the unfixed benchmark, panics
+  under `cargo test` because the routine never ran; a non-matching filter and `--list` exit 0
+  (D1). Evidence: `manual-verification-evidence.md`, R1 - Red Before the Fix.
 
 ## Acceptance Criteria
 

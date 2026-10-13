@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-last-updated-utc: "2026-10-07 13:30"
+last-updated-utc: "2026-10-13 17:45"
 ---
 
 # Manual Verification Evidence
@@ -125,6 +125,86 @@ times. The reported 85-87 ns is the cost of creating and dropping a 1160-byte fu
 polled. Criterion's test mode reports `Success` for the same routine, so no gate notices; it does,
 however, execute each benchmark once, which is what makes the planned in-benchmark guard
 practical.
+
+## Regression Guard Evidence
+
+Toolchain for every run in this section: stable Rust 1.99.0 (`b940084d7`), Cargo 1.99.0, on the
+same Linux x86_64 AMD Ryzen 9 7950X desktop as V1. The branch is
+`2479-fix-http-core-announce-benchmark`, cut from `develop` `48e11787f`; `git log` on that commit
+shows no change to `packages/http-core/benches` since V1, so V1 still describes the code under
+test.
+
+### R1 - Red Before the Fix (T1)
+
+- Date and time (UTC): 2026-10-13 17:35.
+- Boundary: the guard inside the benchmark target, as the spec's Regression Test Strategy selects.
+  The defect is in how the benchmark calls Criterion, so only the benchmark target can observe it.
+- Change under test: the new guard helper `packages/http-core/benches/helpers/routine_guard.rs`
+  wired into the **unfixed** benchmark. The red run used an earlier draft of the helper with the
+  same counting and assertion logic; the committed helper counts with `AtomicU64` instead of
+  `Cell<u64>` (Clippy `future_not_send`) and has two more documentation lines, so its panic line
+  number differs. The routine is still passed to
+  the synchronous `b.iter`; only the guard calls were added:
+
+```rust
+fn announce_once(c: &mut Criterion) {
+    let _rt = tokio::runtime::Builder::new_multi_thread().worker_threads(4).build().unwrap();
+    let guard = RoutineGuard::default();
+
+    let mut group = c.benchmark_group("http_tracker_handle_announce_once");
+
+    group.warm_up_time(Duration::from_millis(500));
+    group.measurement_time(Duration::from_secs(1));
+
+    group.bench_function("handle_announce_data", |b| {
+        guard.record_benchmark_invocation();
+        b.iter(|| guard.track(sync::return_announce_data_once(100)));
+    });
+
+    group.finish();
+
+    guard.assert_routine_ran("http_tracker_handle_announce_once/handle_announce_data");
+}
+```
+
+Red run, in Criterion's test mode as the pre-push hook and CI run it:
+
+```text
+$ cargo test -p torrust-tracker-http-core --bench http_tracker_core_benchmark
+     Running benches/http_tracker_core_benchmark.rs (target/debug/deps/http_tracker_core_benchmark-6057a23ea1d2d43b)
+Gnuplot not found, using plotters backend
+Testing http_tracker_handle_announce_once/handle_announce_data
+Success
+
+
+thread 'main' (2087018) panicked at packages/http-core/benches/helpers/routine_guard.rs:41:9:
+benchmark `http_tracker_handle_announce_once/handle_announce_data` was invoked 1 time(s) but its measured routine never ran: an async routine must be awaited, for example with `b.to_async(&runtime).iter(...)`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p torrust-tracker-http-core --bench http_tracker_core_benchmark`
+```
+
+Criterion still prints `Success` for the routine itself, as in V1; the guard's panic after
+`bench_function` is what fails the run.
+
+Maintainer decision D1 (the guard must not fail a benchmark Criterion skips) checked on the same
+red code: a filter that matches nothing and `--list` both exit 0, because Criterion never invokes
+the benchmark closure for them (Criterion 0.5.1 `BenchmarkGroup::run_bench`, which only calls the
+closure when `filter_matches` is true and the mode is not `List`):
+
+```text
+$ cargo test -p torrust-tracker-http-core --bench http_tracker_core_benchmark -- no_such_benchmark
+     Running benches/http_tracker_core_benchmark.rs (target/debug/deps/http_tracker_core_benchmark-6057a23ea1d2d43b)
+Gnuplot not found, using plotters backend
+exit=0
+
+$ cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark -- --list
+Gnuplot not found, using plotters backend
+http_tracker_handle_announce_once/handle_announce_data: benchmark
+
+exit=0
+```
+
+The red code was not committed alone, because the pre-push hook would reject it.
 
 ## Failures and Follow-up
 
