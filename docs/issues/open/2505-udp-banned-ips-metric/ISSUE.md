@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 19:58"
+last-updated-utc: "2026-10-13 20:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -368,8 +368,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | DONE   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
 | T5  | DONE   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
-| T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
-| T7  | TODO   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
+| T6  | DONE   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
+| T7  | DONE   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | TODO   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
 | T9  | TODO   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
 | T10 | TODO   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
@@ -481,6 +481,14 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   now expects 2 banned IPs, and the listener tests observe `get_count` instead of the total. All
   green; mutate-then-restore proved every guard (M1-M4). Evidence:
   [manual-verification-evidence.md](manual-verification-evidence.md) "Regression Tests".
+- 2026-10-13 20:03 UTC - GitHub Copilot (implementation session) - T6: R4 (root reset-job unit test under a
+  paused Tokio clock) was red on the unfixed job: the published total stayed 1 after the first
+  reset. T7: chose G1, because it keeps publishing in `udp-server` and the root job a scheduler;
+  added `torrust_tracker_udp_server::banning::reset_bans`, which resets and publishes through the
+  handler's existing gauge helper (now `pub(crate)`), and the job calls it with
+  `CurrentClock::now()`. R3 added; R3 and R4 green; M5 (no publish on reset) fails both; R4 stable
+  over 8 runs. The T5 commit also made `get_banned_ips_total` a `const fn` and consumed the property
+  test's `Vec` (clippy), after the green capture in the evidence; the tests were rerun green.
 
 ## Acceptance Criteria
 

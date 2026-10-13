@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-13 19:58
+last-updated-utc: 2026-10-13 20:03
 ---
 
 # Manual Verification Evidence
@@ -700,6 +700,113 @@ Prose-first Arrange-Act-Assert comparison, per the `write-unit-test` skill:
   observe that directly with `get_count(&EVENT_CLIENT_IP)`.
 
 The temporary prose was removed after the comparison; the code expresses it.
+
+### Red - R4 Against the Unfixed Reset Job (T6)
+
+Code state: `fix(udp-core): [#2505] count only IPs over the limit as banned` plus R4 in
+`src/bootstrap/jobs/udp_tracker_server.rs` and one preparatory change: `run_ban_cleanup_job` takes
+the stats repository as an unused `_stats_repository` parameter, so the test can pass it; the job
+body still only calls `BanService::reset_bans`. R4 publishes a gauge of 1 through the real event
+handler (two connection-cookie errors from one IP, limit 1), starts the job under a paused Tokio
+clock with a 60-second interval, and sleeps one interval plus 1 ms. Command:
+
+```bash
+cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result"
+```
+
+Output:
+
+```text
+test bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans ... FAILED
+test bootstrap::jobs::udp_tracker_server::tests::it_should_stop_the_ban_cleanup_job_when_cancelled ... ok
+thread 'bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans' (2559588) panicked at src/bootstrap/jobs/udp_tracker_server.rs:187:9:
+assertion `left == right` failed: published banned IPs total 60 s after the cleanup job started, when 203.0.113.1 had been banned and published as 1 before the first reset
+  left: 1
+ right: 0
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker --lib`
+```
+
+### Green - R3 and R4 After Publishing on Reset (T7)
+
+Code state: the red state above plus option G1: `torrust_tracker_udp_server::banning::reset_bans`
+resets the ban service and publishes the new total through the event handler's
+`update_metric_for_banned_ips_total`; the job calls it with `CurrentClock::now()` on every tick; R3
+tests the new function in `packages/udp-server/src/banning/mod.rs`. Commands:
+
+```bash
+cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" -A3 | head -20
+cargo test -p torrust-tracker-udp-server --lib banning 2>&1 | grep -E "^error|^warning|^test |FAILED|test result" | head -20
+```
+
+Output:
+
+```text
+test bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans ... ok
+test bootstrap::jobs::udp_tracker_server::tests::it_should_stop_the_ban_cleanup_job_when_cancelled ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+
+test banning::event::listener::tests::it_should_ignore_non_connection_cookie_errors ... ok
+test banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error ... ok
+test banning::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test banning::event::listener::tests::it_should_prioritize_cancellation_over_a_ready_event ... ok
+test banning::event::handler::tests::it_should_record_the_connection_cookie_error_for_its_client_ip ... ok
+test banning::event::listener::tests::it_should_process_connection_cookie_errors_after_lagging ... ok
+test banning::tests::it_should_publish_the_new_banned_ips_total_after_resetting_the_bans ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out; finished in 0.00s
+```
+
+R4 passing with the same timing also shows that the red result came from the missing publish,
+not from the job not having run yet.
+
+### Mutate-Then-Restore - R3 (T7)
+
+M5 removes the publish from `reset_bans` (the call
+`event::handler::update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;` is
+replaced by `let _ = (repository, ips_banned_total, now);`). The fixed file was copied to
+`.tmp/banning-mod.rs.fixed` and restored afterwards. Commands:
+
+```bash
+f=packages/udp-server/src/banning/mod.rs; cp $f .tmp/banning-mod.rs.fixed
+python3 -c "
+p='$f'; s=open(p).read()
+old='    event::handler::update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;\n'
+assert s.count(old)==1; open(p,'w').write(s.replace(old,'    let _ = (repository, ips_banned_total, now);\n'))"
+echo "== M5: reset_bans does not publish the new total"
+cargo test -q -p torrust-tracker-udp-server --lib banning 2>&1 | grep -E "^error|^    banning|^test result" | sed 's/^    /FAILED: /' | sort -u
+cargo test -q -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^    bootstrap|^test result" | sed 's/^    /FAILED: /' | sort -u
+cp .tmp/banning-mod.rs.fixed $f; cmp $f .tmp/banning-mod.rs.fixed && echo "restored: identical to the fixed file"
+echo "== R4 stability"
+for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^test result"; done
+```
+
+Output:
+
+```text
+== M5: reset_bans does not publish the new total
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+FAILED: banning::tests::it_should_publish_the_new_banned_ips_total_after_resetting_the_bans
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 213 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker --lib`
+FAILED: bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+restored: identical to the fixed file
+== R4 stability
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+```
+
+Test design review (prose-first AAA): R3 and R4 keep the causal state visible (the limit, the
+banned client IP, and the events that publish 1), the production Act (`reset_bans` for R3; one
+reset interval of the job for R4, with a comment saying the paused clock jumps to it), and an
+independently stated expected total of 0 whose message names the interval and the banned IP.
 
 ## Failures and Follow-up
 
