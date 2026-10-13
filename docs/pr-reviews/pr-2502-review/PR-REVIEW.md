@@ -68,9 +68,9 @@ audit `F3`. His ACK comment on the PR conversation contains no request and adds 
 - Current-tree verification: `gh pr view 2502 --json body` shows the corrected sentence and no
   "no PR number yet" text; the GraphQL `lastEditedAt` of the description is 2026-10-13T11:41:45Z;
   the three `##### Q<n> - Jose Celano` headings in the README end with `, PR #2502`.
-- Resolution reference: pending
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2502#discussion_r4258521857>
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2502#discussion_r4258521857>
 
 ### F2 - The issue #2473 reference in the Q12 entry is not linked
 
@@ -86,7 +86,7 @@ audit `F3`. His ACK comment on the PR conversation contains no request and adds 
   pre-commit gate.
 - Resolution reference: `docs(discussions): [#2003] name the rounds convention and link issue #2473 in my Q12 entry`
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2502#discussion_r4258522432>
 
 ### F3 - Name the rounds convention as what issue #2473 introduced
 
@@ -105,7 +105,7 @@ audit `F3`. His ACK comment on the PR conversation contains no request and adds 
   sentence in the Q12 entry; the diff of the fix commit changes only that sentence.
 - Resolution reference: `docs(discussions): [#2003] name the rounds convention and link issue #2473 in my Q12 entry`
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2502#discussion_r4258522969>
 
 ## Processing Log
 
@@ -117,6 +117,8 @@ audit `F3`. His ACK comment on the PR conversation contains no request and adds 
   inline suggestion, recorded as F3; his ACK comment followed at 11:59:55 UTC.
 - 2026-10-13 12:17 UTC - Rebased the branch onto `develop` `c7aeaf46c` without conflicts, fixed F2
   and F3 in one commit, and started this audit.
+- 2026-10-13 12:19 UTC - Pushed the fix and this audit, replied `FIXED` on the three threads, resolved them, and
+  recorded the reply URLs.
 
 ## Completion Rules
 
