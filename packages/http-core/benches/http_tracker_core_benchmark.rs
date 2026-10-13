@@ -4,20 +4,32 @@ use std::time::Duration;
 
 use criterion::{Criterion, criterion_group, criterion_main};
 
-use crate::helpers::sync;
+use crate::helpers::announce::AnnounceBenchmarkContext;
+use crate::helpers::routine_guard::RoutineGuard;
 
-fn announce_once(c: &mut Criterion) {
-    let _rt = tokio::runtime::Builder::new_multi_thread().worker_threads(4).build().unwrap();
+const GROUP: &str = "http_tracker/announce_once";
+const BENCHMARK: &str = "announce_once";
 
-    let mut group = c.benchmark_group("http_tracker_handle_announce_once");
+fn bench_announce_once(c: &mut Criterion) {
+    let runtime = tokio::runtime::Runtime::new().expect("it should build a Tokio runtime");
+    let context = runtime.block_on(AnnounceBenchmarkContext::new());
+    let guard = RoutineGuard::default();
 
-    group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_secs(1));
+    {
+        let mut group = c.benchmark_group(GROUP);
+        group.warm_up_time(Duration::from_millis(500));
+        group.measurement_time(Duration::from_secs(1));
 
-    group.bench_function("handle_announce_data", |b| {
-        b.iter(|| sync::return_announce_data_once(100));
-    });
+        group.bench_function(BENCHMARK, |b| {
+            guard.record_benchmark_invocation();
+            b.to_async(&runtime).iter(|| guard.track(context.announce_once()));
+        });
+
+        group.finish();
+    }
+
+    guard.assert_routine_ran(&format!("{GROUP}/{BENCHMARK}"));
 }
 
-criterion_group!(benches, announce_once);
+criterion_group!(benches, bench_announce_once);
 criterion_main!(benches);
