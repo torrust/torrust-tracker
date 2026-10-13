@@ -69,9 +69,9 @@ of the body summarizes the pull request and is not a further finding.
   the spec-only pull request, and updated the instructions instead. The `open-pull-request` skill
   now makes rebasing recommended (when opening a pull request, when `develop` is known to have
   changed, and whenever it is cheap) and required only on conflicts, needed `develop` changes, or a
-  stale merge base reported by the merge tool. The `merge-pull-request` skill no longer rebases
-  pre-emptively and refreshes the head, by rebase or "Update branch", only when the tool reports a
-  stale merge base. `AGENTS.md` replaces "only rebase onto `develop` to resolve conflicts" with the
+  stale merge base reported by the merge tool. The `merge-pull-request` skill no longer rebases in
+  advance and refreshes the head, by rebase or "Update branch", only when the tool reports a stale
+  merge base. `AGENTS.md` replaces "only rebase onto `develop` to resolve conflicts" with the
   ADR rule and link. The ADR transition note states that this pull request updates those
   instructions, and the #2507 specification marks T3 and T4 in progress.
 - Current-tree verification:
@@ -117,6 +117,11 @@ of the body summarizes the pull request and is not a further finding.
 - 2026-10-13 17:31 UTC - Re-verified both fixes against the pushed head and posted the F1 and F2
   replies on their threads.
 - 2026-10-13 17:33 UTC - Recorded F1 and F2 `FIXED`/`RESOLVED` and ran `validate-audit-record.py`.
+- 2026-10-13 17:34 UTC - Committed and pushed
+  `docs(pr-reviews): [#2507] add the PR #2508 review audit` although its pre-commit gate had failed
+  on cspell (unknown word in the F1 solution): the command that parsed the gate's JSON status exited
+  `0` and did not stop the commit. Fixed forward by rewording the F1 solution in a separate commit
+  instead of rewriting the pushed commit.
 
 ## Completion Rules
 
