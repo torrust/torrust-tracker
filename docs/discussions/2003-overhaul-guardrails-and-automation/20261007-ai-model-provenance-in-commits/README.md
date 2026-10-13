@@ -421,8 +421,9 @@ discussion entry is judged by its reasoning, and a reader weighing an argument i
 whether a person or a model produced it. I would keep the disclosure rule for discussion entries,
 but accept an explicit "not disclosed" statement as compliant, so that the rule asks for honesty
 about disclosure rather than for an enumeration of tools. Whatever the Outcome decides for commits,
-a change to the round rules belongs to the discussion convention in `docs/discussions/AGENTS.md`,
-introduced by issue #2473, not to this discussion's Outcome alone.
+a change to the round rules belongs to the rounds convention in `docs/discussions/AGENTS.md`,
+introduced by [issue #2473](https://github.com/torrust/torrust-tracker/issues/2473), not to this
+discussion's Outcome alone.
 
 Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
 adopted by Jose Celano.
