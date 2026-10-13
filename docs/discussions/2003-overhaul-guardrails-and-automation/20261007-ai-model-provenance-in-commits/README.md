@@ -196,6 +196,21 @@ First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torr
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
+##### Q1 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
+
+I agree with [Cameron's entry](#q1---cameron-garnham-da2ce7-2026-10-08-pr-2486) that
+individuals should not be required to declare their personal tools, and that commit trailers are
+right for project automation. My concern is the boundary between the two. Most of my commits in
+this repository are made by an AI agent running in my editor, but driven by this repository's own
+agents, skills, and `AGENTS.md`. If those commits count as personal toolchain use, they carry no
+model record, and the tracking and analytics purposes in the Context cannot be met: a comparison of
+models built on optional declarations measures who chose to declare, not how the models performed.
+I propose that these commits carry an `Assisted-by:` trailer per model whose output survives in
+the diff, written by the agent at commit time (see my Q11 entry).
+
+Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
+adopted by Jose Celano.
+
 ### Q2 - Which models count
 
 Only models whose output is in the diff, or also models that explored, reviewed, or planned? If
@@ -363,6 +378,55 @@ The proposed Outcome as one rule, whose consequences for Q1 to Q9 the entries un
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number labels `B1`, `B2`, `B3`, `B4`, `B5` and `B6`. `project-automation-is-a-dependency` revises `B4`'s opening sentence in this round (PR #2486 review findings F1 and R1).
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
+##### Q11 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
+
+I accept `humans-author-and-certify`, `tool-record-not-authorship`,
+`scope-by-content-not-presence`, and `declared-not-detected` from
+[Cameron's entry](#q11---cameron-garnham-da2ce7-2026-10-08-pr-2486). I propose one amendment to
+`project-automation-is-a-dependency`: a commit made by an AI agent that runs this repository's
+tracked agent definitions or skills is treated as project automation for the purpose of the
+record, even when the agent runs in a contributor's local harness. For such commits the agent
+writes the trailer from the harness's model identifier, or `unknown`, when it commits.
+
+The arguments against mandatory declaration do not apply to this case.
+`enumeration-has-no-boundary` and `personal-toolchains-are-private` are about a human listing
+every tool by hand: an agent writing its own model identifier lists nothing by hand, and the rule
+is followed whenever the repository's commit instructions are followed, not when a person
+remembers. Editors, spell checkers, translation, and work a human writes without an agent stay out
+of scope, as `scope-by-content-not-presence` already provides.
+
+Question for the decision owner: if this amendment is not accepted, which of the project's
+purposes (tracking, analytics) does the rule still serve for agent-made commits, and how?
+
+Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
+adopted by Jose Celano.
+
+### Q12 - AI-assistance disclosure in discussion rounds
+
+The round rules in [`docs/discussions/AGENTS.md`](../../AGENTS.md) require an entry to say when an
+AI assistant drafted or researched it, and to name the tool and model when known.
+`personal-toolchains-are-private` holds that a contributor's tools are their own business, and in
+[PR #2486](https://github.com/torrust/torrust-tracker/pull/2486#discussion_r4229731579) its author
+declined to say whether his entries were AI-assisted; each of his entries states instead that AI
+assistance is not disclosed. Should the disclosure rule for discussion entries follow the
+commit-provenance Outcome, or stay as it is? Added by Jose Celano.
+
+#### Positions
+
+##### Q12 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
+
+Discussion entries are different from commits. A commit is judged by its diff and its tests; a
+discussion entry is judged by its reasoning, and a reader weighing an argument is entitled to know
+whether a person or a model produced it. I would keep the disclosure rule for discussion entries,
+but accept an explicit "not disclosed" statement as compliant, so that the rule asks for honesty
+about disclosure rather than for an enumeration of tools. Whatever the Outcome decides for commits,
+a change to the round rules belongs to the rounds convention in `docs/discussions/AGENTS.md`,
+introduced by [issue #2473](https://github.com/torrust/torrust-tracker/issues/2473), not to this
+discussion's Outcome alone.
+
+Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
+adopted by Jose Celano.
 
 ## Outcome
 
