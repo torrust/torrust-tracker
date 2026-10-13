@@ -126,8 +126,11 @@ protocol responses and the API reads.
   `udp_tracker_server_ips_banned_total` and `udp_tracker_server_requests_banned_total` from
   `/api/v1/metrics?format=prometheus`.
 
-The probe was run from `.tmp/udp-banned-ips-metric/repro/` as `./probe.sh`; that file has the same
-body as the committed script, which only adds a longer header comment.
+The probe was run from `.tmp/udp-banned-ips-metric/repro/` as `./probe.sh`. The committed script
+differs from it in two ways, neither of which changes the behavior of a valid invocation: a longer
+header comment, and argument validation added afterwards for PR #2506 review finding F5 (a missing
+command or source IP now prints the usage and exits 2 instead of failing with an "unbound variable"
+error).
 
 ## Verification Processes
 

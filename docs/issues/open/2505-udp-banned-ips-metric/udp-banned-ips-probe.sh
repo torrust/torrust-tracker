@@ -41,14 +41,26 @@ send() {
     esac
 }
 
+usage() {
+    echo "usage: $0 {invalid-announce <src-ip> [tx]|connect <src-ip> [tx]|stats}" >&2
+    exit 2
+}
+
+# require_source_ip <argument-count>: the packet commands need a source IP.
+require_source_ip() {
+    if [ "$1" -lt 2 ]; then usage; fi
+}
+
+if [ "$#" -lt 1 ]; then usage; fi
+
 case "$1" in
-    invalid-announce) send "$2" "$(announce_hex "${3:-0000abcd}")" ;;
-    connect) send "$2" "$(connect_hex "${3:-00001234}")" ;;
+    invalid-announce) require_source_ip "$#"; send "$2" "$(announce_hex "${3:-0000abcd}")" ;;
+    connect) require_source_ip "$#"; send "$2" "$(connect_hex "${3:-00001234}")" ;;
     stats)
         echo "JSON  /stats   udp_banned_ips_total: $(curl -s "${API}/stats?token=${TOKEN}" | jq '.udp_banned_ips_total')"
         echo "Prom  /stats   $(curl -s "${API}/stats?token=${TOKEN}&format=prometheus" | grep '^udp_banned_ips_total')"
         echo "Prom  /metrics $(curl -s "${API}/metrics?token=${TOKEN}&format=prometheus" | grep '^udp_tracker_server_ips_banned_total' || echo 'udp_tracker_server_ips_banned_total <absent>')"
         echo "Prom  /metrics $(curl -s "${API}/metrics?token=${TOKEN}&format=prometheus" | grep '^udp_tracker_server_requests_banned_total' || echo 'udp_tracker_server_requests_banned_total <absent>')"
         ;;
-    *) echo "usage: $0 {invalid-announce <src-ip> [tx]|connect <src-ip> [tx]|stats}" >&2; exit 2 ;;
+    *) usage ;;
 esac
