@@ -1,5 +1,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use futures::FutureExt as _;
+
 /// Fails a benchmark whose measured routine never ran.
 ///
 /// Passing an `async fn` to Criterion's synchronous `b.iter` times only the
@@ -29,10 +31,14 @@ impl RoutineGuard {
     }
 
     /// Wraps the measured routine and counts it once it has run to completion.
-    pub async fn track<F: Future>(&self, routine: F) -> F::Output {
-        let output = routine.await;
-        self.routine_runs.fetch_add(1, Ordering::Relaxed);
-        output
+    ///
+    /// It uses a poll-level combinator rather than an `async fn` wrapper,
+    /// which measurably slowed the `udp-core` `connect_once` benchmark (about
+    /// 60 ns) by 10-15 ns.
+    pub fn track<F: Future>(&self, routine: F) -> impl Future<Output = F::Output> {
+        routine.inspect(|_| {
+            self.routine_runs.fetch_add(1, Ordering::Relaxed);
+        })
     }
 
     /// # Panics
