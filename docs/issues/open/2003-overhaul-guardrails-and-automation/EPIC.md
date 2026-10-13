@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-09 10:25"
+last-updated-utc: "2026-10-13 14:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -286,7 +286,7 @@ These are proposed planning subissues; none has been created. Titles and boundar
 
 ## Friction Register
 
-A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in four comments on this issue, edited in place; at index v31 (2026-10-08 13:31 UTC) they hold 12 artifact groups and 238 labels, 236 frictions and two CI findings:
+A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in four comments on this issue, edited in place; at the index's revision of 2026-10-08 13:31 UTC they hold 12 artifact groups and 238 labels, 236 frictions and two CI findings:
 
 - [Index part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228) holds the first two artifact groups: the reviewer side and the author workflow.
 - [Index part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196) holds the third: the planning skills and spec templates.
@@ -425,6 +425,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-10-08 09:12 UTC - AI assistant (Copilot SDK in VS Code) - Subissue #2473 (order 15) closed by PR #2481; archived its specification to `docs/issues/closed/`
 - 2026-10-08 16:50 UTC - da2ce7 - Triaged the six proposals of the PR #2484 review retrospective: items 1 to 3 go to #2278's improvement matrix, and items 4 to 6 with item 1's tree-wide checks to the friction register; see Friction Register
 - 2026-10-09 10:25 UTC - da2ce7 - Answered review 5468071770 on PR #2366: the Friction Register describes the index's four comments at v31 and keeps the 2026-09-28 counts as a snapshot, and the order range is dropped from the checkpoint and the Delivery Strategy
+- 2026-10-13 14:29 UTC - da2ce7 - Rebased PR #2366 onto `develop` `5d05fefdd` at the maintainer's request after his approval (review 5505015377). The AI-model-provenance discussion now holds two rounds on `develop`: PR #2486 (da2ce7's round on Q1 to Q11, merged 2026-10-13 11:28 UTC) and PR #2502 (josecelano's reply on Q1 and Q11 and a new Q12, merged 12:35 UTC). Its Outcome is pending and the decision round is the decision owner's, so nothing enters Decisions Recorded on This EPIC; no other section changes. The Friction Register names the index revision by its timestamp alone
 
 ## Acceptance Criteria
 
