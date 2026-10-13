@@ -21,6 +21,7 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Keys plan](test-refactor-plans/crypto-keys-tests.md) | **Taken up as Issue #2458** ([spec](../../closed/2458-inject-udp-cookie-cipher/ISSUE.md)): inject one cookie key. The startup `check_seed()` compares an unused seed, so it cannot detect production encrypting cookies with the public all-zero test key, which is compiled into and initialized in production. | The cookie cipher has its own random key, not derived from `RANDOM_SEED`, since commit `e3562f069`. |
 | [Banning plan](test-refactor-plans/services-banning-tests.md) | **Handed off as a bug (issue pending).** `get_banned_ips_total()` counts every IP with an invalid connection ID, not the banned ones, and the gauge `udp_tracker_server_ips_banned_total` (REST `udp_banned_ips_total`) goes stale after the periodic reset. | `udp-server`'s own handler test already calls it "the distinct client IP total". |
 | [Banning plan](test-refactor-plans/services-banning-tests.md) | Remove `BanService::last_connection_id_errors_reset` (included in the banning bug draft). | Written by the constructor and `reset_bans()`; read nowhere in the repository. |
+| [Event plan](test-refactor-plans/event-tests.md) | Remove `ConnectionContext::server_socket_addr()`. | No caller anywhere in the repository; the label projection reads the binding directly. |
 
 ## Testing Lessons
 

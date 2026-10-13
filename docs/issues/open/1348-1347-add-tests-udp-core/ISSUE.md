@@ -294,7 +294,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | DONE | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
 | 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | DONE | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
 | 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | DONE | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
-| 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
+| 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
@@ -432,6 +432,11 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - 2026-10-13 15:03 UTC - Jose Celano - Approved the `services/banning.rs` completed-file review;
   ledger row 7 is `DONE`. Chose Option A for the handed-off bug (count would-be bans in `disabled`
   mode); another agent is implementing it.
+- 2026-10-13 17:06 UTC - GitHub Copilot - The `event.rs` plan was approved; refactored 7 tests
+  around one fixture and added the full label-projection and client-address tests (unit-only file
+  lines 131 / 137 to 144 / 147). Awaiting completed-file review.
+- 2026-10-13 17:12 UTC - Jose Celano - Approved the `event.rs` completed-file review; ledger row 8
+  is `DONE`.
 
 ## Acceptance Criteria
 

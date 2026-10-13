@@ -30,6 +30,7 @@ maintainer approves it.
 | 6 | [crypto-cookie-cipher-tests.md](crypto-cookie-cipher-tests.md) | DONE | 1 test refactored, 1 compile-time guarantee added; unit-only 100.00% lines |
 | 7 | [services-connect-tests.md](services-connect-tests.md) | DONE | 5 tests replaced by 3 contract tests; 4 unused shared helpers removed; only getters uncovered |
 | 8 | [services-banning-tests.md](services-banning-tests.md) | DONE | 4 tests refactored, 2 added (1 property); banned-IPs total handed off as a bug |
+| 9 | [event-tests.md](event-tests.md) | DONE | 7 tests refactored around one fixture, 2 added; only the dead `server_socket_addr()` uncovered |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
