@@ -48,10 +48,24 @@ inline comments without severity brackets. Its body labels the first "Medium sev
 second "Low severity"; the rows record them as `Major (inferred)` and `Minor (inferred)`. The rest
 of the body summarizes the pull request and is not a further finding.
 
+Reviews 5507501437 and 5507501939 (josecelano, state `COMMENTED`) are the containers GitHub created
+for the F1 and F2 thread replies; they carry no finding.
+
+Review 5507795043 (round 2, `copilot-pull-request-reviewer`, state `COMMENTED`, submitted
+2026-10-13 17:56 UTC on the head whose tip commit was
+`docs(pr-reviews): [#2507] fix a spelling failure in the PR #2508 review audit`, before the
+rebase, <https://github.com/torrust/torrust-tracker/pull/2508#pullrequestreview-5507795043>) ran a
+"Lite" review after a runner timeout warning and left three inline comments without severity
+labels; the rows record inferred severities. Its body lists the round-1 findings as resolved and is
+not a further finding.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2508-f1` | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2508-f2` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2508-f3` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2508-f4` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2508-f5` | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -105,6 +119,70 @@ of the body summarizes the pull request and is not a further finding.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4261913215>
 
+### F3 - A failed pre-commit gate did not block the audit commit
+
+- PR number: 2508
+- Source review ID: 5507795043
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262164052>
+- Concern: The Processing Log records that the pre-commit gate failed on cspell without blocking
+  the commit, because the command that parsed its JSON status exited `0`. That weakens the
+  repository's enforcement; the comment asks for a tracked follow-up to harden the gating script so
+  every failed check produces a non-zero exit and blocks the commit, or at least fails CI.
+- Solution: Verified that the gating script is not the weak point: it exits `1` on a failed check,
+  so the installed hook blocks the commit, and the same linters run in CI. The slip came from the
+  agent's manual invocation in a clone without the hook, which piped the JSON output into a parser
+  whose exit status replaced the script's. Instead of a script follow-up, the `commit-changes` skill
+  now says to make the commit depend on the script's own exit status and never to pipe its output
+  into a command whose exit status replaces it, with an example; this branch's later commits use
+  that form.
+- Current-tree verification: with a misspelled Markdown file staged,
+  `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json`
+  exited `1` with JSON `status=fail`, `exit_code=1`, and failed step "Running all linters" (probe
+  file unstaged and removed afterwards).
+  `git show HEAD:.github/skills/dev/git-workflow/commit-changes/SKILL.md | grep -c 'Never pipe its output'`
+  returns `1`.
+- Resolution reference: `docs(skills): [#2507] gate manual commits on the pre-commit script's exit status`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262204970>
+
+### F4 - The commit-id citation rule used "will be merged" for review replies
+
+- PR number: 2508
+- Source review ID: 5507795043
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262164124>
+- Concern: The `open-pull-request` skill said "nothing that will be merged (issue specs, evidence
+  files, PR body, review replies) may cite a PR-branch commit by id", although review replies are not
+  merged into the repository. The comment asks to distinguish repository artifacts from pull-request
+  conversation artifacts, or to state the rule in terms of durable references.
+- Solution: Partly agreed: the maintainer merge tool copies the PR body into the merge commit, so the
+  body is merged, but review replies are not. The rule now forbids PR-branch commit ids in any
+  durable reference and names them: repository artifacts (issue specs, evidence files, review
+  audits), the PR body, and review replies.
+- Current-tree verification:
+  `git show HEAD:.github/skills/dev/git-workflow/open-pull-request/SKILL.md | grep -c 'nothing that will be'`
+  returns `0`; `linter all` passes in the fix commit's pre-commit gate.
+- Resolution reference: `docs(skills): [#2507] scope the commit-id citation rule to durable references`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262205278>
+
+### F5 - The ADR index row used alignment padding
+
+- PR number: 2508
+- Source review ID: 5507795043
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262164172>
+- Concern: The new `docs/adrs/index.md` row padded its cells with alignment whitespace, unlike the
+  surrounding rows, which creates noisy diffs and is brittle with table formatters.
+- Solution: The row now uses single spaces around the cell separators, like the surrounding rows.
+  The padding had been added only to match the header widths without re-padding the whole table.
+- Current-tree verification: the `20261013161419` row of `git show HEAD:docs/adrs/index.md`
+  contains no double space; `linter markdown` passes.
+- Resolution reference: `docs(adrs): [#2507] drop the alignment padding from the ADR index row`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2508#discussion_r4262205669>
+
 ## Processing Log
 
 - 2026-10-13 17:23 UTC - Review 5507407394 (`copilot-pull-request-reviewer`, `COMMENTED`, on head
@@ -128,6 +206,18 @@ of the body summarizes the pull request and is not a further finding.
   pre-rebase tip `docs(issues): [#2507] link the specification pull request`; the Findings
   introduction now names it by subject. Resolution references cite commit subjects, so they still
   match the rebased branch.
+- 2026-10-13 17:56 UTC - Review 5507795043 (`copilot-pull-request-reviewer`, `COMMENTED`, on the
+  pre-rebase head) left inline comments 4262164052, 4262164124, and 4262164172; the thread capture
+  shows all three `resolved=false`, the first `outdated=true` after the rebase.
+- 2026-10-13 17:58 UTC - Probed the pre-commit gate with a staged misspelled file: it exited `1`.
+  Committed the F5 fix `docs(adrs): [#2507] drop the alignment padding from the ADR index row`.
+- 2026-10-13 17:59 UTC - Committed the F4 fix
+  `docs(skills): [#2507] scope the commit-id citation rule to durable references`.
+- 2026-10-13 18:00 UTC - Committed the F3 fix
+  `docs(skills): [#2507] gate manual commits on the pre-commit script's exit status`, pushed the
+  three fixes, re-verified them against the pushed head, and posted the F3, F4, and F5 replies.
+- 2026-10-13 18:02 UTC - Recorded F3, F4, and F5 `FIXED`/`RESOLVED` and ran
+  `validate-audit-record.py`.
 
 ## Completion Rules
 
