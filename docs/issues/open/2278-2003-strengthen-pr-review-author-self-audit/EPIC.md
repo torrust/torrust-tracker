@@ -6,7 +6,7 @@ epic: 2003
 github-issue: 2278
 spec-path: docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-09 11:16"
+last-updated-utc: "2026-10-13 12:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,7 +159,7 @@ subissue specifications written before that date cite the earlier numbering (old
 | 2 | #2308 - Reconcile skill and template rule contradictions | `docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md` | DONE | F60, F73, F76, F79, F80, F61, F62, F66. Completed by merged PR #2313; GitHub issue closed. Depends on 1. |
 | 3 | #2318 - Port the review-thread shell scripts to a Rust tool | `docs/issues/closed/2318-2278-port-review-thread-scripts-to-rust/ISSUE.md` | DONE | Parity port of the four `fetch-review-threads` scripts as a `contrib/dev-tools/` crate with fixture tests and `stdout-result-data` output contract; scripts removed. No dependencies. |
 | 4 | #2333 - Align `fetch-review-threads` with the author workflow | `docs/issues/closed/2333-2278-fetch-all-review-threads/ISSUE.md` | DONE | F17, F32, F18 on the Rust tool: all threads by default, `resolvedBy` and `line`, skill contract. Depends on 3. |
-| 5 | #[To be assigned] - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/{number}-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items; PR #2484 items 1 (manual sweep) and 2 (verification anchors). Docs only. Depends on 1 and 2. |
+| 5 | #2503 - Add the author self-audit gate to `process-pr-review` | `docs/issues/open/2503-2278-author-self-audit-gate/ISSUE.md` | TODO | F65; PR #2270 and #2271 adopted items; PR #2484 items 1 (manual sweep) and 2 (verification anchors). Docs only. Depends on 1 and 2. |
 | 6 | #2349 - Make `agent-review-report-contract` state what it reads | `docs/issues/open/2349-2278-contract-checker-evidence-boundary/ISSUE.md` | TODO | F56 (false-evidence part), F57. Small Rust change. No dependencies. |
 | 7 | #[To be assigned] - Port the audit validator to Rust with parity fixtures | `docs/issues/open/{number}-2278-port-audit-validator-to-rust/ISSUE.md` | TODO | F7. Behaviour parity only, `no-stdout-result` output contract. Depends on #2266 recording its integration-point decision. |
 | 8 | #[To be assigned] - Extend the audit validator to the adopted invariants | `docs/issues/open/{number}-2278-extend-audit-validator-invariants/ISSUE.md` | TODO | F64, F75, F74, F58, F63; `review-finding:pr-2300-f10` (pin the whole roster on both sides so a rename or reorder fails); decides PR #2484 item 1's audit-body check (quoted phrases in verifications). Depends on 1 and 7. |
@@ -281,6 +281,7 @@ requests where possible; a fixture is used only when no real review produced the
 - 2026-10-08 16:50 UTC - da2ce7 - Recorded the six proposals of the PR #2484 review retrospective in the matrix: items 1 (the manual sweep) and 2 adopted for order 5, item 1's tool deferred to order 8, item 3 deferred to order 10, and items 4 to 6 left to EPIC #2003's register. No fixed decision of the Decision Record changes.
 - 2026-10-08 17:28 UTC - da2ce7 - Answered review 5460432014 on PR #2494: the Decision Record, AC1 and References now cover the PR #2484 retrospective, and the matrix's pre-push sweep fails only on a current reference to a deleted or renamed path, allowing references marked historical.
 - 2026-10-09 11:16 UTC - da2ce7 - Carried the two findings that review 5467975631 on PR #2494 deferred to this change: R2 drops the References clause on when the PR #2484 retrospective reaches `develop`, since PR #2484 has merged, and R4 makes the PR #2484 sweep row's Disposition name its tree-wide tool checks Out of scope beside the deferred audit-body check.
+- 2026-10-13 12:32 UTC - da2ce7 - Maintainer approved the order 5 specification (PR #2431, merged as `c7aeaf46c`); created and linked subissue #2503 and moved its specification to `docs/issues/open/2503-2278-author-self-audit-gate/`.
 
 ## Acceptance Criteria
 
