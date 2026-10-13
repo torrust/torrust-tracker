@@ -158,3 +158,90 @@ impl Metrics {
             .unwrap_or_default() as u64
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_name;
+
+    use super::Metrics;
+    use crate::statistics::{UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, describe_metrics};
+
+    fn record_requests(metrics: &mut Metrics, ip_family: &str, request_kind: &str, server_port: &str, count: u32) {
+        let labels: LabelSet = [
+            ("server_binding_address_ip_family", ip_family),
+            ("request_kind", request_kind),
+            ("server_binding_port", server_port),
+        ]
+        .into();
+
+        for _ in 0..count {
+            metrics
+                .increase_counter(
+                    &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                    &labels,
+                    DurationSinceUnixEpoch::ZERO,
+                )
+                .unwrap();
+        }
+    }
+
+    #[test]
+    fn each_projection_should_count_only_its_own_ip_family_and_request_kind() {
+        // Arrange
+        let mut metrics = describe_metrics();
+        record_requests(&mut metrics, "inet", "connect", "6969", 1);
+        record_requests(&mut metrics, "inet", "announce", "6969", 2);
+        record_requests(&mut metrics, "inet", "scrape", "6969", 3);
+        record_requests(&mut metrics, "inet6", "connect", "6969", 4);
+        record_requests(&mut metrics, "inet6", "announce", "6969", 5);
+        record_requests(&mut metrics, "inet6", "scrape", "6969", 6);
+
+        // Act
+        let projections = [
+            metrics.udp4_connections_handled(),
+            metrics.udp4_announces_handled(),
+            metrics.udp4_scrapes_handled(),
+            metrics.udp6_connections_handled(),
+            metrics.udp6_announces_handled(),
+            metrics.udp6_scrapes_handled(),
+        ];
+
+        // Assert
+        assert_eq!(projections, [1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn a_projection_should_add_up_the_requests_received_by_every_listener() {
+        // Arrange
+        let mut metrics = describe_metrics();
+        record_requests(&mut metrics, "inet", "announce", "6969", 2);
+        record_requests(&mut metrics, "inet", "announce", "7070", 3);
+
+        // Act
+        let announces = metrics.udp4_announces_handled();
+
+        // Assert
+        assert_eq!(announces, 5);
+    }
+
+    #[test]
+    fn every_projection_should_be_zero_when_no_request_was_recorded() {
+        // Arrange
+        let metrics = describe_metrics();
+
+        // Act
+        let projections = [
+            metrics.udp4_connections_handled(),
+            metrics.udp4_announces_handled(),
+            metrics.udp4_scrapes_handled(),
+            metrics.udp6_connections_handled(),
+            metrics.udp6_announces_handled(),
+            metrics.udp6_scrapes_handled(),
+        ];
+
+        // Assert
+        assert_eq!(projections, [0; 6]);
+    }
+}

@@ -94,6 +94,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `services/connect.rs` | 147 / 157 (93.63%) | 108 / 114 (94.74%) | 113 / 120 (94.17%) | 13 / 15 (86.67%) | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
 | `services/banning.rs` | 60 / 66 (90.91%) | 78 / 84 (92.86%) | 168 / 176 (95.45%) | 14 / 16 (87.50%) | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | `event.rs` | 131 / 137 (95.62%) | 144 / 147 (97.96%) | 229 / 233 (98.28%) | 21 / 22 (95.45%) | [event-tests.md](test-refactor-plans/event-tests.md) |
+| `statistics/metrics.rs` | 56 / 65 (86.15%) | 110 / 119 (92.44%) | 144 / 152 (94.74%) | 11 / 12 (91.67%) | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -115,7 +116,8 @@ lines (96.45%), 2,566 / 2,654 regions (96.68%), 242 / 260 functions (93.08%); th
 from removing covered test code, not from losing production coverage. After `services/banning.rs`:
 1,947 / 2,018 lines (96.48%), 2,612 / 2,700 regions (96.74%), 244 / 262 functions (93.13%). After
 `event.rs`: 1,960 / 2,028 lines (96.65%), 2,613 / 2,698 regions (96.85%), 251 / 268 functions
-(93.66%). The final
+(93.66%). After `statistics/metrics.rs`: 2,014 / 2,082 lines (96.73%), 2,708 / 2,793 regions
+(96.96%), 255 / 272 functions (93.75%). The final
 package comparison is recorded at T7.
 
 ## Next Evidence

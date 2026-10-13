@@ -31,6 +31,7 @@ maintainer approves it.
 | 7 | [services-connect-tests.md](services-connect-tests.md) | DONE | 5 tests replaced by 3 contract tests; 4 unused shared helpers removed; only getters uncovered |
 | 8 | [services-banning-tests.md](services-banning-tests.md) | DONE | 4 tests refactored, 2 added (1 property); banned-IPs total handed off as a bug |
 | 9 | [event-tests.md](event-tests.md) | DONE | 7 tests refactored around one fixture, 2 added; only the dead `server_socket_addr()` uncovered |
+| 10 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | 3 direct projection tests added; only the dead `set_gauge` uncovered |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

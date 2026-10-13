@@ -298,7 +298,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
-| 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | PENDING | - |
+| 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
 | 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
@@ -437,6 +437,20 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   lines 131 / 137 to 144 / 147). Awaiting completed-file review.
 - 2026-10-13 17:12 UTC - Jose Celano - Approved the `event.rs` completed-file review; ledger row 8
   is `DONE`.
+- 2026-10-13 17:15 UTC - Jose Celano / GitHub Copilot - `container.rs` (order 9) is deferred until
+  Issue #2505 (the banned-IPs metric bug handed off on 2026-10-13) is implemented, because that fix
+  may change how the container builds `BanService`. The statistics files go first. Proposed:
+  process `statistics/metrics.rs` (order 12) before `statistics/event/handler.rs` (order 10). The
+  handler's six per-family tests are the only coverage of the `metrics.rs` IPv4/IPv6 projections,
+  so `metrics.rs` should get direct tests before the handler tests are narrowed to the handler's
+  own routing decision.
+- 2026-10-13 17:19 UTC - Jose Celano - Approved processing `statistics/metrics.rs` (order 12)
+  before `statistics/event/handler.rs` (order 10). Its plan was created.
+- 2026-10-13 17:38 UTC - GitHub Copilot - The `statistics/metrics.rs` plan was approved; added 3
+  direct projection tests (unit-only file lines 56 / 65 to 110 / 119). Awaiting completed-file
+  review.
+- 2026-10-13 17:52 UTC - Jose Celano - Approved the `statistics/metrics.rs` completed-file review;
+  ledger row 12 is `DONE`.
 
 ## Acceptance Criteria
 

@@ -22,6 +22,8 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Banning plan](test-refactor-plans/services-banning-tests.md) | **Handed off as a bug (issue pending).** `get_banned_ips_total()` counts every IP with an invalid connection ID, not the banned ones, and the gauge `udp_tracker_server_ips_banned_total` (REST `udp_banned_ips_total`) goes stale after the periodic reset. | `udp-server`'s own handler test already calls it "the distinct client IP total". |
 | [Banning plan](test-refactor-plans/services-banning-tests.md) | Remove `BanService::last_connection_id_errors_reset` (included in the banning bug draft). | Written by the constructor and `reset_bans()`; read nowhere in the repository. |
 | [Event plan](test-refactor-plans/event-tests.md) | Remove `ConnectionContext::server_socket_addr()`. | No caller anywhere in the repository; the label projection reads the binding directly. |
+| [Metrics plan](test-refactor-plans/statistics-metrics-tests.md) | Remove `udp-core`'s `Metrics::set_gauge`. | No caller anywhere in the repository. |
+| [Metrics plan](test-refactor-plans/statistics-metrics-tests.md) | Correct the "from IPv4/IPv6 peers" docs of the `udp4_*`/`udp6_*` counters in `udp-core`, `udp-server`, and the REST API stats resource: they count by the server socket's address family, so on a dual-stack `[::]` listener IPv4 clients count as `udp6`. | Every projection filters on `server_binding_address_ip_family`, not the client's family. |
 
 ## Testing Lessons
 
