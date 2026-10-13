@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-branch: "2505-udp-banned-ips-metric-spec"
+branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 17:05"
+last-updated-utc: "2026-10-13 17:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -406,7 +406,7 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Maintainer decisions recorded (decision A, leftover removals, performance alternatives)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual recheck recorded in issue-local `manual-verification-evidence.md`
@@ -455,6 +455,8 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   validates its arguments (committed separately), and `manual-verification-evidence.md` records
   every reproduction command exactly as it was run, including its output filters, followed by the
   verbatim output.
+- 2026-10-13 17:56 UTC - GitHub Copilot (implementation session) - Spec-only PR #2506 merged into
+  `develop` as `b5f1801c6`. Started implementation on branch `2505-udp-banned-ips-metric`.
 
 ## Acceptance Criteria
 
