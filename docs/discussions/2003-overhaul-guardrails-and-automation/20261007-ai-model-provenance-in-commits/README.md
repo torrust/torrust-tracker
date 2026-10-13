@@ -196,7 +196,7 @@ First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torr
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q1 - Jose Celano (`josecelano`), 2026-10-13
+##### Q1 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
 
 I agree with [Cameron's entry](#q1---cameron-garnham-da2ce7-2026-10-08-pr-2486) that
 individuals should not be required to declare their personal tools, and that commit trailers are
@@ -379,7 +379,7 @@ First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torr
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q11 - Jose Celano (`josecelano`), 2026-10-13
+##### Q11 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
 
 I accept `humans-author-and-certify`, `tool-record-not-authorship`,
 `scope-by-content-not-presence`, and `declared-not-detected` from
@@ -414,7 +414,7 @@ commit-provenance Outcome, or stay as it is? Added by Jose Celano.
 
 #### Positions
 
-##### Q12 - Jose Celano (`josecelano`), 2026-10-13
+##### Q12 - Jose Celano (`josecelano`), 2026-10-13, PR #2502
 
 Discussion entries are different from commits. A commit is judged by its diff and its tests; a
 discussion entry is judged by its reasoning, and a reader weighing an argument is entitled to know
