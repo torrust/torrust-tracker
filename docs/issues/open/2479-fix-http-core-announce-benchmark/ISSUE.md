@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: in-review
 priority: p3
 epic: null
 github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark"
-related-pr: null
-last-updated-utc: "2026-10-13 18:06"
+related-pr: 2509
+last-updated-utc: "2026-10-13 18:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -214,7 +214,7 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
@@ -280,6 +280,11 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   (17:41). `linter all` passes in the pre-commit hook of every commit; the full pre-push suite runs
   on push. No independent reviewer agents received this specification, so there is no
   `agent-review-reports.md`.
+- 2026-10-13 18:12 UTC - Copilot - Pushed the branch; the pre-push hook passed (nightly fmt, check, and
+  both doc builds, plus `cargo +stable test --tests --benches --examples --workspace --all-targets
+  --all-features`, 46 s in total). Upstream `develop` had moved to `b5f1801c6` (issue #2505 docs
+  only), so the branch was rebased onto it with signed commits and force-pushed with lease; the
+  pre-push hook passed again on the rebased tree. Opened PR #2509 (`Closes #2479`); CI started.
 
 ## Acceptance Criteria
 
