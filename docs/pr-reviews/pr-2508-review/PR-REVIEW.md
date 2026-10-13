@@ -41,7 +41,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Review 5507407394 (round 1, `copilot-pull-request-reviewer`, state `COMMENTED`, submitted
-2026-10-13 17:23 UTC on head `fda1851a4`,
+2026-10-13 17:23 UTC on the head whose tip commit was
+`docs(issues): [#2507] link the specification pull request`,
 <https://github.com/torrust/torrust-tracker/pull/2508#pullrequestreview-5507407394>) left two
 inline comments without severity brackets. Its body labels the first "Medium severity" and the
 second "Low severity"; the rows record them as `Major (inferred)` and `Minor (inferred)`. The rest
@@ -122,6 +123,11 @@ of the body summarizes the pull request and is not a further finding.
   on cspell (unknown word in the F1 solution): the command that parsed the gate's JSON status exited
   `0` and did not stop the commit. Fixed forward by rewording the F1 solution in a separate commit
   instead of rewriting the pushed commit.
+- 2026-10-13 17:55 UTC - Rebased the branch onto `develop` at the maintainer's request (no
+  conflicts; all six branch commits re-signed). The head `fda1851a4` named in the 17:23 entry is the
+  pre-rebase tip `docs(issues): [#2507] link the specification pull request`; the Findings
+  introduction now names it by subject. Resolution references cite commit subjects, so they still
+  match the rebased branch.
 
 ## Completion Rules
 
