@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: da2ce7
-last-updated-utc: "2026-10-13 14:29"
+last-updated-utc: "2026-10-13 14:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -286,12 +286,13 @@ These are proposed planning subissues; none has been created. Titles and boundar
 
 ## Friction Register
 
-A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in four comments on this issue, edited in place; at the index's revision of 2026-10-08 13:31 UTC they hold 12 artifact groups and 238 labels, 236 frictions and two CI findings:
+A friction is a place where following a repository skill, guide or template literally and doing the work accurately diverged. Each entry records what the text says, what the work met, and the smallest change that would close the gap. The register is kept in five comments on this issue, edited in place; at the index's revision of 2026-10-11 09:08 UTC they hold 13 artifact groups and 255 labels, 253 frictions and two CI findings:
 
-- [Index part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228) holds the first two artifact groups: the reviewer side and the author workflow.
-- [Index part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196) holds the third: the planning skills and spec templates.
-- [Index part 3](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6001593887) holds the next four (the audit template, the audit tooling, the hooks, linters and maintenance skills, and the CI findings), then the former-number map, the counts and the method; it carries the live counts.
-- [Index part 4](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6040926242) holds the last five: the link and frontmatter convention, the repository rules, the discussions, the review-thread helper skills and the external linter.
+- [Index part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228) holds the first artifact group: the author workflow.
+- [Index part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196) holds the next: the planning skills and spec templates.
+- [Index part 3](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6001593887) holds the next three (the audit template, the audit tooling and the CI findings), then the former-number map, the counts and the method; it carries the live counts.
+- [Index part 4](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6040926242) holds the next six: the link and frontmatter convention, the repository rules, the discussions, the review-thread helper skills, the external linter and the reviewer side.
+- [Index part 5](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6107435328) holds the last two: the hooks, linters and maintenance skills, and the archiving skill `cleanup-completed-issues`.
 
 - **Labels.** Each friction has a kebab-case label that starts with the owning artifact and names the defect in about six words, at most eight parts. A label is unique, derivable from the gist, and stable when rows are reordered or merged. Labels replace running numbers because a number carries no meaning, collides with reviewers' finding IDs and with re-raises, and turns deduplication into a separate lookup.
 - **The F series is closed at F102.** Each former number maps to exactly one label in the former-number map in part 3. Numbers that re-raised one defect share a label, and F5, F9–F13 and F30 were never filed here. New frictions receive a label only.
@@ -426,6 +427,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-10-08 16:50 UTC - da2ce7 - Triaged the six proposals of the PR #2484 review retrospective: items 1 to 3 go to #2278's improvement matrix, and items 4 to 6 with item 1's tree-wide checks to the friction register; see Friction Register
 - 2026-10-09 10:25 UTC - da2ce7 - Answered review 5468071770 on PR #2366: the Friction Register describes the index's four comments at v31 and keeps the 2026-09-28 counts as a snapshot, and the order range is dropped from the checkpoint and the Delivery Strategy
 - 2026-10-13 14:29 UTC - da2ce7 - Rebased PR #2366 onto `develop` `5d05fefdd` at the maintainer's request after his approval (review 5505015377). The AI-model-provenance discussion now holds two rounds on `develop`: PR #2486 (da2ce7's round on Q1 to Q11, merged 2026-10-13 11:28 UTC) and PR #2502 (josecelano's reply on Q1 and Q11 and a new Q12, merged 12:35 UTC). Its Outcome is pending and the decision round is the decision owner's, so nothing enters Decisions Recorded on This EPIC; no other section changes. The Friction Register names the index revision by its timestamp alone
+- 2026-10-13 14:35 UTC - da2ce7 - The Friction Register describes the register's index as batch 32 filed it on 2026-10-11 at 09:08 UTC: five comments holding 13 artifact groups and 255 labels, 253 frictions and two CI findings, with each part's groups re-described and a bullet for index part 5; References links all five parts - [batch 32](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6107435063)
 
 ## Acceptance Criteria
 
@@ -523,7 +525,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - Initial inventory: `docs/issues/open/2003-overhaul-guardrails-and-automation/initial-inventory.md`
 - Previous candidate architecture: `docs/issues/open/2003-overhaul-guardrails-and-automation/previous-single-runner-proposal.md`
 - Strict frontmatter profile: `docs/schemas/frontmatter-v1.schema.json`
-- Friction register index: [part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228), [part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196)
+- Friction register index: [part 1](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5847229228), [part 2](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5871784196), [part 3](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6001593887), [part 4](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6040926242), [part 5](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6107435328)
 - Ownership record: [hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520), [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152)
 - Design input for AC12–AC14: [comment 5444339176](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5444339176)
 - Inventory measurements at `fa698c43` ([comment 5814006328](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5814006328)). No change was requested.
