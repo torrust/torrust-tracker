@@ -52,8 +52,7 @@ audit-local ID. The rest of the body lists the reviewer's checks at that head, a
 the `Related to` linking, the `-spec` branch and the frontmatter fields, EPIC row 5, the parent
 issue, and a clean merge into `develop`, and offers approval once F1 is fixed or justified; none is
 a further finding. F1 is `RESOLVED`, the state its thread takes when it is resolved after the reply,
-and its Reply URL keeps the template's placeholder `<REPLY_URL_OR_NA>` until the posted reply's URL
-is recorded.
+and its Reply URL is the posted reply's.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -94,7 +93,7 @@ is recorded.
   96, 109, and 122, all in the body.
 - Resolution reference: `docs(pr-reviews): [#2431] point the audit record at the moved order 5 specification`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_OR_NA>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2504#discussion_r4260364407>
 
 ## Processing Log
 
