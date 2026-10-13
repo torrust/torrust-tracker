@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-branch: "2479-fix-http-core-announce-benchmark-spec"
+branch: "2479-fix-http-core-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-08 07:12"
+last-updated-utc: "2026-10-13 17:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -78,11 +78,12 @@ ran about 12 million iterations of the routine. The probe and its output are in
 - Restructure the HTTP announce benchmark like the repaired `udp-core` `connect_once`: build the
   tracker services and the `AnnounceService` once, outside the measured routine, and time one
   awaited `handle_announce` per iteration with `b.to_async(&runtime).iter(...)`.
-- Rename or document the measured operation so the benchmark's name and what it times agree.
-- Add a regression guard: the benchmark counts the routines it actually ran and panics after
-  `bench_function` if the count is zero. Criterion runs each benchmark once under `cargo test`,
-  and both the pre-push hook and CI run `cargo test --benches`, so a routine that never runs fails
-  those gates.
+- Rename the benchmark to `http_tracker/announce_once/announce_once` (D2) so its name and what it
+  times agree.
+- Add a regression guard (D1): the benchmark counts the routines it actually ran and panics after
+  `bench_function` if Criterion invoked the benchmark closure but the routine ran zero times.
+  Criterion runs each benchmark once under `cargo test`, and both the pre-push hook and CI run
+  `cargo test --benches`, so a routine that never runs fails those gates.
 - Add the same guard to the `udp-core` `connect_once` benchmark, repaired in issue #2458 without
   one.
 - Update `docs/benchmarking.md`: remove the Known Defects entry, update the table row, and describe
@@ -95,6 +96,40 @@ ran about 12 million iterations of the routine. The probe and its output are in
 - Adding guards to benchmarks that already await their routine (`udp-server` scrape) or are
   synchronous (`connection_cookie_benchmark`, `ban_service_benchmark`, the repository benchmarks).
 - A lint or CI check that finds futures that are never awaited in any benchmark automatically.
+
+## Maintainer Decisions
+
+Recorded on 2026-10-13 before implementation, in answer to the implementer's questions.
+
+- **D1 - Guard semantics.** The guard counts two things: invocations of the benchmark closure
+  passed to `bench_function` (the outer `|b|`) and runs of the measured routine. It panics only
+  when the closure ran and the routine did not. A benchmark that Criterion skips, for example
+  under `cargo bench -- <filter>` or `--list`, has zero closure invocations and does not trip
+  the guard. The original defect (`b.iter(|| async_fn())`) still has at least one closure
+  invocation and zero routine runs, so it still fails.
+- **D2 - Benchmark name.** Rename `http_tracker_handle_announce_once/handle_announce_data` to
+  group `http_tracker/announce_once`, function `announce_once`, mirroring the repaired
+  `udp_tracker/connect_once/connect_once`. The old results measured nothing, so no history is
+  lost.
+- **D3 - Same peer on every iteration.** The benchmark announces the same peer every iteration,
+  so it times a repeat announce (a swarm update), not a first announce. Reasons, which the
+  benchmark's documentation and `docs/benchmarking.md` must state:
+  - Comparable numbers. With the same peer, every iteration does identical work: `upsert_peer`
+    replaces the single entry in the swarm's `BTreeMap` (update path plus a "peer updated" event)
+    and returns an empty peer list. A difference between two runs therefore comes from the code
+    under test, which is what the benchmark exists to show.
+  - A new peer on every iteration grows the swarm by one peer per iteration, over millions of
+    iterations, with no cleanup. The cost drifts with the map size (O(log n) inserts, memory
+    pressure from millions of `Arc` allocations), and the result depends on how many iterations
+    Criterion chose in that run. Building the peer list itself is capped by `numwant`.
+  - It is the common production case: clients re-announce periodically, so most announces update
+    an existing peer.
+  - Trade-off: the result is a lower bound. It does not include inserting a new peer or building
+    a non-empty peer list. A stable first-announce benchmark would need its own design (a
+    pre-filled swarm of fixed size and a bounded rotating peer pool) and is out of scope.
+- **D4 - Guard placement.** A small guard helper is duplicated in each package's
+  `benches/helpers/` (`http-core` and `udp-core`) rather than shared through
+  `torrust-tracker-test-helpers`, so `udp-core` gains no new dependency.
 
 ## Architectural Decisions
 
@@ -125,8 +160,8 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 ## Regression Test Strategy
 
 - **R1 (maintained guard in the benchmark):** the benchmark context counts completed announces;
-  after `bench_function`, the benchmark panics with a message naming the benchmark if the count is
-  zero. It runs under `cargo test --benches` (pre-push and CI) and under `cargo bench`.
+  after `bench_function`, the benchmark panics with a message naming the benchmark if Criterion
+  invoked the benchmark closure and the count is zero (D1). It runs under `cargo test --benches` (pre-push and CI) and under `cargo bench`.
   - Red before the fix: with the guard added to today's routine, the count stays 0 and the test
     run panics. This is the T1 red run.
   - Why not a unit test: the defect is in how the benchmark calls Criterion, not in production
@@ -174,7 +209,7 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [x] Reproduction attempted and classified before review
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -209,6 +244,11 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   and the maintainer review after the final test increment. Added the R1 and R2 design reviews to
   T2 and T3, a new T4 maintainer-review checkpoint (the former T4 is now T5), the matching commit
   policy and workflow checkpoint, and the design-review procedure under Commit Points.
+- 2026-10-13 17:32 UTC - Copilot - Spec-only PR #2480 merged on 2026-10-08. Started the
+  implementation on branch `2479-fix-http-core-announce-benchmark`, cut from `develop`
+  `48e11787f`. Before implementing, asked the maintainer about the guard's behavior under
+  Criterion filters, the benchmark name, the peer strategy, and where the guard lives; the
+  answers are recorded as D1-D4 under Maintainer Decisions, and Scope and R1 are updated to match.
 
 ## Acceptance Criteria
 
@@ -264,9 +304,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - **The guard adds code to benchmarks.** Mitigation: a counter and one assertion per benchmark,
   with a message naming the benchmark.
-- **Repeated announces of the same peer measure an update, not a first announce.** This matches
-  the `udp-server` scrape benchmark. Record it in the benchmark's documentation; vary the peer
-  only if the maintainer wants first-announce costs.
+- **Repeated announces of the same peer measure an update, not a first announce.** The
+  maintainer chose this deliberately (D3); the reasons are recorded in the benchmark's
+  documentation and in `docs/benchmarking.md`.
 
 ## Implementation Completion Review
 
