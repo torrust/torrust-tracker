@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 20:03"
+last-updated-utc: "2026-10-13 20:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -370,7 +370,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | DONE   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | DONE   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
-| T8  | TODO   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
+| T8  | DONE   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
 | T9  | TODO   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
 | T10 | TODO   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
@@ -489,6 +489,12 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   `CurrentClock::now()`. R3 added; R3 and R4 green; M5 (no publish on reset) fails both; R4 stable
   over 8 runs. The T5 commit also made `get_banned_ips_total` a `const fn` and consumed the property
   test's `Vec` (clippy), after the green capture in the evidence; the tests were rerun green.
+- 2026-10-13 20:05 UTC - GitHub Copilot (implementation session) - T8: updated the remaining contracts for
+  decision A: the `udp_tracker_server_ips_banned_total` metric description (Prometheus HELP text),
+  `Metrics::udp_banned_ips_total`, and the REST field `udp_banned_ips_total` now say "IPs whose
+  connection ID errors exceed the limit", banned in `strict` mode and would-be banned in
+  `disabled` mode (`BanService::get_banned_ips_total` was documented in T5). No other docs or
+  changelog describe the value.
 
 ## Acceptance Criteria
 

@@ -48,7 +48,9 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_gauge(
         &metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of IPs banned from UDP requests")),
+        Some(MetricDescription::new(
+            "Number of IPs whose connection ID errors exceed the limit (banned unless connection ID validation is disabled)",
+        )),
     );
 
     metrics.metric_collection.describe_counter(

@@ -217,7 +217,10 @@ impl Metrics {
             .unwrap_or_default() as u64
     }
 
-    /// Total number of banned IPs.
+    /// Number of IPs whose connection ID errors exceed the limit.
+    ///
+    /// They are banned when connection ID validation is `strict`. When it is
+    /// `disabled`, they are "would-be banned": counted, but not blocked.
     #[must_use]
     #[allow(
         clippy::cast_sign_loss,
