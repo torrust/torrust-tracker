@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md
+    - docs/issues/open/2503-2278-author-self-audit-gate/ISSUE.md
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
 ---
 

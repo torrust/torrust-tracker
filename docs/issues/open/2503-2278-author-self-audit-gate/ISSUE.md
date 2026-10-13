@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2278
-github-issue: null
-spec-path: docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md
-branch: "{issue-number}-2278-author-self-audit-gate"
+github-issue: 2503
+spec-path: docs/issues/open/2503-2278-author-self-audit-gate/ISSUE.md
+branch: "2503-2278-author-self-audit-gate-spec"
 related-pr: null
-last-updated-utc: "2026-10-09 11:26"
+last-updated-utc: "2026-10-13 12:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Add the Author Self-Audit Gate to `process-pr-review`
+# Issue #2503 - Add the Author Self-Audit Gate to `process-pr-review`
 
 **Parent EPIC:** #2278 - Strengthen PR Review Author Self-Audit and Evidence Generation
 
@@ -145,9 +145,9 @@ with the narrow affected scope.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2278-author-self-audit-gate/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -167,6 +167,7 @@ Append one line per meaningful update.
 - 2026-10-09 11:24 UTC - da2ce7 - PR #2431 round 2 (review 5469277375, F3 and F4), after the rebase onto `develop` `686a42f45`: the skill (version 1.5), template, and validator citations are re-derived there and given as section headings or quotes; matrix rows are named by F-ID or by source PR and quote, and EPIC passages by section heading or quote, in Background, Scope, AC2, the Verification Plan, Dependencies, and the two entries above, which named matrix rows by their line numbers at their base.
 - 2026-10-09 11:25 UTC - da2ce7 - Covered the two PR #2484 items the matrix assigns to order 5, which enter with this round: the manual pre-push sweep (PR #2484, "Run an author sweep before every push to a reviewed branch") and anchoring each `Current-tree verification` (PR #2484, "Anchor each `Current-tree verification` to a file and a heading or quoted phrase"), in Background, Scope, T1, T2, AC10, and AC11.
 - 2026-10-09 11:26 UTC - da2ce7 - PR #2431 round 2 (review 5469277375, F5): restated the #2362 overlap under Dependencies by quote on `develop` `686a42f45`: no passage is rewritten by both orders; they share Workflow step 7, the Completion Checklist, the template guidance beside Finding Details, and the skill version.
+- 2026-10-13 12:32 UTC - da2ce7 - Maintainer approved the specification and merged PR #2431 as `c7aeaf46c`; created GitHub issue #2503, linked it as a sub-issue of #2278 (`parent_issue_url` verified), and moved this specification to `docs/issues/open/2503-2278-author-self-audit-gate/`.
 
 ## Acceptance Criteria
 
