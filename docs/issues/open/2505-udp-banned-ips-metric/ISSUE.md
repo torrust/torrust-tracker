@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric-spec"
 related-pr: null
-last-updated-utc: "2026-10-13 16:59"
+last-updated-utc: "2026-10-13 17:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -366,10 +366,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | B1  | TODO   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
 | T3  | TODO   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | TODO   | R1, R5 (and R6) regression tests, red              | Recorded failing output against the current implementation.                                                    |
-| T5  | TODO   | `udp-core` fix                                     | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed. |
+| T5  | TODO   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | TODO   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
-| T8  | TODO   | `udp-server` test and documentation updates        | Tests listed in scope updated; contracts listed under "Contracts violated" corrected for decision A.            |
+| T8  | TODO   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
 | T9  | TODO   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
 | T10 | TODO   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
@@ -377,16 +377,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task   | Coherent change set                                                  | Commit policy                                       |
 | ------ | -------------------------------------------------------------------- | --------------------------------------------------- |
-| T4-T5  | `udp-core` banned-count fix, leftover removal, R1, R1p, R2, R5, R6   | Commit after focused validation and design review.  |
+| T4-T5  | `udp-core` banned-count fix, leftover removal, R1, R1p, R2, R5, R6, and the `udp-server` handler and listener test updates that depend on the new count | One commit, green on the whole workspace test suite, after focused validation and design review. |
 | T6-T7  | Gauge-on-reset fix with R3 and R4                                    | Commit after focused validation and design review.  |
-| T8     | `udp-server` test and documentation updates                          | Commit after focused validation.                    |
+| T8     | Documentation updates                                                | Commit after focused validation.                    |
 | B1     | `udp_ban_service/record_error` benchmark                             | One `test(udp-core)` commit before T3.              |
 | T3     | P1 baseline in `performance-evidence.md`                             | One `docs(issues)` commit before any production change. |
 | T9     | P2 results and comparison in `performance-evidence.md`               | One `docs(issues)` commit.                          |
 | T10    | Recheck evidence and acceptance review                               | Commit after maintainer review.                     |
 
 Record the red output of T4 and T6, and the mutate-then-restore output for R1p, R2, and R3, before
-committing the fixes. For test-producing work, use the
+committing the fixes. Every commit point must leave the workspace test suite green: a test that
+asserts behavior a commit changes is updated in that same commit. For test-producing work, use the
 `write-unit-test` skill and complete an explicit design review after each passing test increment,
 before maintainer review and commit. Confirm that the test exposes the one causal initial-state
 difference; its fixture owns only incidental mechanics; and the production Act plus independently
@@ -444,6 +445,9 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   Performance Evidence Plan required by `docs/benchmarking.md` for request-path changes (Criterion
   plus `aquatic_udp_load_test`, a one-sided pass rule, and issue-local `performance-evidence.md`),
   with task B1 for a missing per-event microbenchmark, and updated T3, T9, AC5, and the checks.
+- 2026-10-13 17:01 UTC - GitHub Copilot (spec session) - PR #2506 review finding F3: moved the
+  `udp-server` handler and listener test updates into the T4-T5 commit, because they assert the old
+  distinct-IP count and would fail on that commit; T8 is now documentation only.
 
 ## Acceptance Criteria
 
