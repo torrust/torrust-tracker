@@ -9,7 +9,7 @@ semantic-links:
     - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
     - contrib/dev-tools/git/github-merge.py
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
+    - "issue #2507"
 ---
 
 <!-- skill-link: create-adr -->
