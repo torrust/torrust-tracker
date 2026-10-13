@@ -144,6 +144,15 @@ If it fails and deeper diagnostics are needed, retry with:
 ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose
 ```
 
+When the hook is not installed, this script is the only gate, so make the commit depend on the
+script's own exit status. Never pipe its output into another command (for example a JSON parser)
+whose exit status replaces the script's: a failed check would then no longer block the commit.
+
+```bash
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json \
+  > .tmp/pre-commit.json && git commit -S -m "<type>(<scope>): <description>"
+```
+
 ### Manual Checks (Cannot Be Automated)
 
 Verify these by hand before committing:
