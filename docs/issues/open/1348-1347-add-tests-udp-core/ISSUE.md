@@ -293,7 +293,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | DONE | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
 | 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | DONE | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
-| 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
+| 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | DONE | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
@@ -423,6 +423,15 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   left unused (a necessary exception to one file per commit). Awaiting completed-file review.
 - 2026-10-10 11:29 UTC - Jose Celano - Approved the `services/connect.rs` completed-file review,
   including the `services/mod.rs` exception; ledger row 6 is `DONE`.
+- 2026-10-13 14:26 UTC - GitHub Copilot - The `services/banning.rs` plan was approved. The
+  banned-IPs total finding (the metric counts every IP with an invalid connection ID, and goes
+  stale after a reset) was handed off as a bug draft and hand-off for another agent in the local,
+  git-ignored `.tmp/udp-banned-ips-metric/`. Refactored 4 tests and added 2, including a kept
+  `quickcheck` threshold property (unit-only file lines 60 / 66 to 78 / 84). Awaiting
+  completed-file review.
+- 2026-10-13 15:03 UTC - Jose Celano - Approved the `services/banning.rs` completed-file review;
+  ledger row 7 is `DONE`. Chose Option A for the handed-off bug (count would-be bans in `disabled`
+  mode); another agent is implementing it.
 
 ## Acceptance Criteria
 

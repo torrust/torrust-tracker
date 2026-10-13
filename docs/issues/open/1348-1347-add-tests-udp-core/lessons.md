@@ -19,6 +19,8 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Cookie plan](test-refactor-plans/connection-cookie-tests.md) | Change the `ValueExpired`/`ValueFromFuture` messages from `expected >`/`expected <` to `expected >=`/`expected <=`. | `check` accepts both range ends; two tests pin that behavior. |
 | [Cookie plan](test-refactor-plans/connection-cookie-tests.md) | Correct the module docs that say special values are excluded by `is_finite()`; the code uses `is_normal()`, which also excludes zero and subnormal values. | `connection_cookie.rs` module docs versus `make`/`check`. |
 | [Keys plan](test-refactor-plans/crypto-keys-tests.md) | **Taken up as Issue #2458** ([spec](../../closed/2458-inject-udp-cookie-cipher/ISSUE.md)): inject one cookie key. The startup `check_seed()` compares an unused seed, so it cannot detect production encrypting cookies with the public all-zero test key, which is compiled into and initialized in production. | The cookie cipher has its own random key, not derived from `RANDOM_SEED`, since commit `e3562f069`. |
+| [Banning plan](test-refactor-plans/services-banning-tests.md) | **Handed off as a bug (issue pending).** `get_banned_ips_total()` counts every IP with an invalid connection ID, not the banned ones, and the gauge `udp_tracker_server_ips_banned_total` (REST `udp_banned_ips_total`) goes stale after the periodic reset. | `udp-server`'s own handler test already calls it "the distinct client IP total". |
+| [Banning plan](test-refactor-plans/services-banning-tests.md) | Remove `BanService::last_connection_id_errors_reset` (included in the banning bug draft). | Written by the constructor and `reset_bans()`; read nowhere in the repository. |
 
 ## Testing Lessons
 
@@ -32,6 +34,9 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 - **A property test earned its dependency by catching a mutation the examples missed.** Replacing
   the cookie's wrapping arithmetic with saturating arithmetic passed all 13 example tests in
   `connection_cookie.rs` (they use a small fingerprint) and failed only the round-trip property.
+  The ban-threshold property in `services/banning.rs` repeated this: a truncating `as u8` comparison
+  passed all six examples (limit 1) and failed only the property. Examples that fix one parameter
+  value cannot catch defects that depend on that parameter.
 - **Tests that pin a mechanism let its purpose drift.** The `crypto/keys.rs` tests assert that test
   builds alias the zeroed key, but nothing asserted that production cookies use a secret key. When
   the design moved from the seed to a separate cipher, the tests and the startup check kept

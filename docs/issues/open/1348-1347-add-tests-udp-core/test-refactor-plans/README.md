@@ -29,6 +29,7 @@ maintainer approves it.
 | 5 | [crypto-keys-tests.md](crypto-keys-tests.md) | SUPERSEDED | File deleted by #2458; no Rust change made under this plan |
 | 6 | [crypto-cookie-cipher-tests.md](crypto-cookie-cipher-tests.md) | DONE | 1 test refactored, 1 compile-time guarantee added; unit-only 100.00% lines |
 | 7 | [services-connect-tests.md](services-connect-tests.md) | DONE | 5 tests replaced by 3 contract tests; 4 unused shared helpers removed; only getters uncovered |
+| 8 | [services-banning-tests.md](services-banning-tests.md) | DONE | 4 tests refactored, 2 added (1 property); banned-IPs total handed off as a bug |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
