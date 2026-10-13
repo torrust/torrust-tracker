@@ -9,7 +9,7 @@ github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-13 17:45"
+last-updated-utc: "2026-10-13 17:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,9 +21,11 @@ semantic-links:
     - .github/skills/dev/benchmarking/run-benchmarks/SKILL.md
     - docs/benchmarking.md
     - packages/http-core/benches/http_tracker_core_benchmark.rs
-    - packages/http-core/benches/helpers/sync.rs
+    - packages/http-core/benches/helpers/announce.rs
+    - packages/http-core/benches/helpers/routine_guard.rs
     - packages/http-core/benches/helpers/util.rs
     - packages/udp-core/benches/udp_tracker_core_benchmark.rs
+    - packages/udp-core/benches/helpers/routine_guard.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -178,10 +180,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                                    |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
-| T2  | TODO   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
-| T3  | TODO   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
-| T4  | TODO   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
-| T5  | TODO   | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
+| T2  | DONE   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
+| T3  | DONE   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
+| T4  | DONE   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
+| T5  | IN_PROGRESS | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
 
 ## Commit Points
 
@@ -210,7 +212,7 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
+- [x] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -252,6 +254,23 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - 2026-10-13 17:45 UTC - Copilot - T1 done: the guard, wired into the unfixed benchmark, panics
   under `cargo test` because the routine never ran; a non-matching filter and `--list` exit 0
   (D1). Evidence: `manual-verification-evidence.md`, R1 - Red Before the Fix.
+- 2026-10-13 17:54 UTC - Copilot - T2 done in commit `fix(http-core): [#2479] make the HTTP
+  announce benchmark measure the announce`: about 348 ns per announce, against 78 ns (future
+  creation) before. The R1 prose-first review was done before that commit, and its result (the
+  `GROUP`/`BENCHMARK` constants) is in the commit, but it was written into the evidence file
+  after the commit, not before as the Commit Points table asks. T3: the first guard version (an
+  `async fn` wrapper) slowed `connect_once` from about 58 ns to 75-80 ns. Measured variants
+  showed about 7 ns is a code-layout effect of any change to the benchmark binary (a control with
+  no instrumentation in the timed loop reads about 65 ns), and the rest was the `async fn`
+  wrapper. `track` now uses `futures::FutureExt::inspect` in both helpers, which matches the
+  control. R2 is red under mutate-then-restore, and R1 is still red with the new `track`. The R2
+  review is recorded. Stopped for the T4 maintainer review; the `track` change to `http-core` and
+  R2 are not committed yet. Evidence: `manual-verification-evidence.md`, R1 and R2 sections.
+- 2026-10-13 17:56 UTC - Copilot - T4 done: the maintainer reviewed R1, R2, their design reviews,
+  the guard-overhead investigation, the `connect_once` layout shift, and the late R1 write-up, and
+  approved them. Committed the `track` change as `refactor(http-core): [#2479] track benchmark
+  routines with a poll-level combinator` and R2 as `test(udp-core): [#2479] guard the
+  connect_once benchmark against a routine that never runs`. T3 done; T5 started.
 
 ## Acceptance Criteria
 
