@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-13 16:09
+last-updated-utc: 2026-10-13 17:05
 ---
 
 # Manual Verification Evidence
@@ -95,12 +95,64 @@ connection IDs (`is_banned` is `count > limit`).
 
 ### Starting the tracker
 
-```console
-$ cargo build --bin torrust-tracker
+Each command below is reproduced exactly as it was passed to the agent's Bash tool: a fresh,
+non-interactive shell started at the repository root
+(`/home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-08`). Each
+output block is verbatim. In the probe commands, the `echo '$ ...'` calls only print labels into
+the output; they are not separate commands.
+
+Write the configuration and build (command):
+
+```bash
+mkdir -p .tmp/udp-banned-ips-metric/repro/storage && cat > .tmp/udp-banned-ips-metric/repro/tracker.toml <<'EOF'
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = "./.tmp/udp-banned-ips-metric/repro/storage/sqlite3.db"
+
+[udp_tracker_server]
+# 3600 is the minimum allowed value.
+ip_bans_reset_interval_in_secs = 3600
+max_connection_id_errors_per_ip = 10
+connection_id_validation = "strict"
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:16969"
+tracker_usage_statistics = true
+
+[http_api]
+bind_address = "127.0.0.1:11212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+EOF
+cargo build --bin torrust-tracker 2>&1 | tail -3
+```
+
+Output:
+
+```text
+   Compiling torrust-tracker v3.0.0-develop (/home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-08)
     Finished `dev` profile [optimized + debuginfo] target(s) in 2.45s
-$ ./target/debug/torrust-tracker \
-    --config-toml-path ./.tmp/udp-banned-ips-metric/repro/tracker.toml \
-    > .tmp/udp-banned-ips-metric/repro/tracker.log 2>&1
+```
+
+Start the tracker with an empty database (command, run as a background shell; it prints nothing
+because all output goes to `tracker.log`):
+
+```bash
+cd /home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-08 && rm -rf .tmp/udp-banned-ips-metric/repro/storage/* && date -u '+%Y-%m-%d %H:%M:%S UTC' > .tmp/udp-banned-ips-metric/repro/start-time.txt && ./target/debug/torrust-tracker --config-toml-path ./.tmp/udp-banned-ips-metric/repro/tracker.toml > .tmp/udp-banned-ips-metric/repro/tracker.log 2>&1
 ```
 
 Relevant startup log lines (from [evidence/tracker.log](evidence/tracker.log)):
@@ -136,15 +188,9 @@ error).
 
 ### Baseline
 
-```console
-$ date -u '+%F %T UTC'
-2026-10-13 15:09:13 UTC
-$ ./probe.sh stats
-JSON  /stats   udp_banned_ips_total: 0
-Prom  /stats   udp_banned_ips_total 0
-Prom  /metrics udp_tracker_server_ips_banned_total <absent>
-Prom  /metrics udp_tracker_server_requests_banned_total <absent>
-```
+The baseline and V1 ran as one command; its first part prints the recorded start time, checks that
+the cleanup job started (`1` matching log line), and reads the baseline. See V1 for the command and
+the full output.
 
 ### V1 - One Invalid Connection ID, Not Banned
 
@@ -155,7 +201,24 @@ Prom  /metrics udp_tracker_server_requests_banned_total <absent>
 
 #### Steps Performed
 
-```console
+Command:
+
+```bash
+sleep 3; cd .tmp/udp-banned-ips-metric/repro && cat start-time.txt && grep -c "Starting UDP IP-ban cleanup job" tracker.log && date -u '+%F %T UTC' && echo '$ ./probe.sh stats' && ./probe.sh stats && echo && echo '$ ./probe.sh invalid-announce 127.0.0.1' && ./probe.sh invalid-announce 127.0.0.1 && sleep 1 && echo '$ ./probe.sh stats' && ./probe.sh stats && echo '$ ./probe.sh connect 127.0.0.1' && ./probe.sh connect 127.0.0.1
+```
+
+Output:
+
+```text
+2026-10-13 15:09:06 UTC
+1
+2026-10-13 15:09:13 UTC
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total <absent>
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+
 $ ./probe.sh invalid-announce 127.0.0.1
 response (hex): 000000030000abcd747261636b657220616e6e6f756e6365206572726f723a20436f6e6e656374696f6e20636f6f6b6965206572726f723a20636f6f6b69652076616c756520697320657870697265643a20302e303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032323831373130363936363630373935362c206578706563746564203e20313739313930343033322e39383234373732
 response (error message): tracker announce error: Connection cookie error: cookie value is expired: 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000022817106966607956, expected > 1791904032.9824772
@@ -188,8 +251,16 @@ Wrong outcome observed: a client with one invalid connection ID (limit 10) is re
 
 #### Steps Performed
 
-```console
-$ date -u '+%F %T UTC'
+Command (the error-message lines are filtered with `grep` and cut at 80 characters, and the connect
+responses are filtered to the decoded line):
+
+```bash
+cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; for ip in 127.0.0.2 127.0.0.3; do echo "\$ ./probe.sh invalid-announce $ip"; ./probe.sh invalid-announce $ip | grep "error message" | cut -c1-80; done; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats; for ip in 127.0.0.1 127.0.0.2 127.0.0.3; do echo "\$ ./probe.sh connect $ip"; ./probe.sh connect $ip | grep "connect\|no response"; done
+```
+
+Output:
+
+```text
 2026-10-13 15:09:26 UTC
 $ ./probe.sh invalid-announce 127.0.0.2
 response (error message): tracker announce error: Connection cookie error: cooki
@@ -207,9 +278,6 @@ response (connect): connection_id=2ee2b78ebb610b2b
 $ ./probe.sh connect 127.0.0.3
 response (connect): connection_id=c6125d8cc2451d22
 ```
-
-The error-message lines were cut at 80 characters for readability (`| cut -c1-80`); the full message
-is the same as in V1.
 
 #### Observed Result
 
@@ -229,8 +297,17 @@ Wrong outcome observed: 3 reported, 0 actually banned.
 
 #### Steps Performed
 
-```console
-$ date -u '+%F %T UTC'
+Command. Its first `echo` prints a simplified label for the loop; the loop actually run is the one
+that follows it, which prefixes each line with a counter and cuts the error message at 90
+characters:
+
+```bash
+cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done'; for i in $(seq 1 11); do printf "%2d: " $i; ./probe.sh invalid-announce 127.0.0.4 | grep "error message" | cut -c1-90; done; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats; echo '$ ./probe.sh connect 127.0.0.4'; ./probe.sh connect 127.0.0.4; echo '$ ./probe.sh connect 127.0.0.1'; ./probe.sh connect 127.0.0.1 | grep "connect"; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats
+```
+
+Output:
+
+```text
 2026-10-13 15:09:42 UTC
 $ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done
  1: response (error message): tracker announce error: Connection cookie error: cookie value is
@@ -260,9 +337,6 @@ Prom  /metrics udp_tracker_server_ips_banned_total 4
 Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
 ```
 
-The loop also printed a counter prefix (`printf "%2d: " $i`), and the error-message lines were cut
-at 90 characters.
-
 #### Observed Result
 
 All 11 invalid announces were answered with a cookie error, so `127.0.0.4` reached 11 errors. Its
@@ -284,18 +358,28 @@ Wrong outcome observed: 4 reported, 1 actually banned. Enforcement itself is cor
 
 #### Steps Performed
 
-1. Waited for the first reset by polling the tracker log:
+1. Waited for the first reset by polling the tracker log. Command:
 
-   ```console
-   $ until grep -q "filter cleared" tracker.log; do sleep 5; done; date -u '+%F %T UTC'; grep "filter cleared" tracker.log
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && until grep -q "filter cleared" tracker.log; do sleep 5; done; date -u '+%F %T UTC'; grep "filter cleared" tracker.log
+   ```
+
+   Output:
+
+   ```text
    2026-10-13 16:09:08 UTC
    2026-10-13T16:09:06.833590Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
    ```
 
-2. Read the metric and checked that the banned IP is served again:
+2. Read the metric and checked that the banned IP is served again. Command:
 
-   ```console
-   $ date -u '+%F %T UTC'
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ ./probe.sh stats'; ./probe.sh stats; echo '$ ./probe.sh connect 127.0.0.4'; ./probe.sh connect 127.0.0.4; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats
+   ```
+
+   Output:
+
+   ```text
    2026-10-13 16:09:12 UTC
    $ ./probe.sh stats
    JSON  /stats   udp_banned_ips_total: 4
@@ -312,10 +396,17 @@ Wrong outcome observed: 4 reported, 1 actually banned. Enforcement itself is cor
    Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
    ```
 
-3. Sent one invalid connection ID from a new IP to show when the gauge is next written:
+3. Sent one invalid connection ID from a new IP to show when the gauge is next written. Command
+   (the error message is cut at 80 characters and the stats output limited to its first three
+   lines):
 
-   ```console
-   $ date -u '+%F %T UTC'
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ ./probe.sh invalid-announce 127.0.0.5'; ./probe.sh invalid-announce 127.0.0.5 | grep "error message" | cut -c1-80; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats | head -3
+   ```
+
+   Output:
+
+   ```text
    2026-10-13 16:09:21 UTC
    $ ./probe.sh invalid-announce 127.0.0.5
    response (error message): tracker announce error: Connection cookie error: cooki
@@ -324,9 +415,6 @@ Wrong outcome observed: 4 reported, 1 actually banned. Enforcement itself is cor
    Prom  /stats   udp_banned_ips_total 1
    Prom  /metrics udp_tracker_server_ips_banned_total 1
    ```
-
-   The last `stats` call was piped through `head -3`; the error-message line was cut at 80
-   characters.
 
 #### Observed Result
 

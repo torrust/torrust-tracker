@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric-spec"
 related-pr: null
-last-updated-utc: "2026-10-13 17:02"
+last-updated-utc: "2026-10-13 17:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -451,6 +451,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - 2026-10-13 17:02 UTC - GitHub Copilot (spec session) - PR #2506 review finding F4: the
   maintainer made R1p and R6 required, matching T4, T5, and the commit points. Corrected the F3
   entry's stamp from 17:01 to 17:00, the time of the commit that carries it.
+- 2026-10-13 17:05 UTC - GitHub Copilot (spec session) - PR #2506 review findings F5 and F6: the probe now
+  validates its arguments (committed separately), and `manual-verification-evidence.md` records
+  every reproduction command exactly as it was run, including its output filters, followed by the
+  verbatim output.
 
 ## Acceptance Criteria
 
