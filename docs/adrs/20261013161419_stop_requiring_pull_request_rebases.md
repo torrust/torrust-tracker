@@ -112,9 +112,11 @@ status checks must set `strict_required_status_checks_policy` to `false`, must b
 both code and documentation-only pull requests, and must not need to be disabled to merge a
 known-good pull request. The implementing issue reconciles the existing rulesets accordingly.
 
-Transition: this recommendation applies as soon as this ADR is merged. Until the implementing issue
-changes the merge tool, a behind pull request still needs a head push (rebase or "Update branch")
-immediately before the maintainer merges it.
+Transition: this recommendation applies as soon as this ADR is merged. The pull request that adds
+this ADR also updates the `open-pull-request` and `merge-pull-request` skills and `AGENTS.md`, so no
+workflow instruction keeps the old mandatory rule. Until the implementing issue changes the merge
+tool, a behind pull request still needs a head push (rebase or "Update branch") when the tool
+reports a stale merge base.
 
 ### Alternatives Considered
 

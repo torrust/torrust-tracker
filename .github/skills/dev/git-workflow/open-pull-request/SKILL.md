@@ -19,7 +19,7 @@ Before opening a PR:
 
 - [ ] Working tree is clean: `git status --short` has no output. **Do not open a PR while any tracked or untracked change is present.** Commit the intended changes, or deliberately discard/stash unrelated changes first.
 - [ ] Upstream target repository confirmed from workspace metadata (`Cargo.toml` → `repository`)
-- [ ] Branch is rebased on the latest fetched `develop` from upstream (`<upstream-remote>/develop`): run `git fetch <upstream-remote>`, then verify `git log --oneline HEAD..<upstream-remote>/develop` has no output. Rebase if it is behind.
+- [ ] Branch is based on a recent upstream `develop` (`<upstream-remote>/develop`): run `git fetch <upstream-remote>`, then check `git log --oneline HEAD..<upstream-remote>/develop`. Rebasing before opening the PR is recommended and is required when the branch conflicts with `develop` (see [Keeping the branch up to date](#keeping-the-branch-up-to-date)).
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
@@ -37,12 +37,27 @@ git fetch <upstream-remote>
 git log --oneline HEAD..<upstream-remote>/develop
 ```
 
-Stop if the first command prints any path or the final command prints any commit. First restore a clean working tree, then rebase on the fetched upstream `develop`, repeat the checks, and only then create the PR. A clean working tree is required both before rebasing and before opening the PR so no uncommitted changes are accidentally omitted from, or confused with, the proposed commit range.
+Stop if the first command prints any path: restore a clean working tree first, so no uncommitted changes are accidentally omitted from, or confused with, the proposed commit range. If the final command prints commits, rebase on the fetched upstream `develop` before creating the PR unless that would be a bottleneck; the rebase is required when the branch conflicts with `develop`. A clean working tree is required both before rebasing and before opening the PR.
 
 ### Keeping the branch up to date
 
-Always rebase your branch on the latest upstream `develop` before pushing — both when opening
-a PR for the first time and when pushing updates to an existing PR:
+Rebasing onto the latest upstream `develop` is **recommended, not required**, as recorded in the
+[ADR to stop requiring pull-request rebases](../../../../../docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md).
+A rebase detects integration problems before merge; the requirement was dropped only to reduce CI
+CPU consumption and runner costs. Rebase:
+
+- when opening a PR;
+- when you know `develop` has changed since your last push; and
+- in general, whenever you can and it is not a bottleneck or a problem.
+
+Skip a recommended rebase that would be a bottleneck or a problem, for example when a queue of open
+PRs would rerun expensive CI after every merge, or when an in-progress review round cites the
+current commit ids. A rebase or other update is **required** only when:
+
+1. the branch conflicts with `develop`;
+2. it needs a change that landed on `develop` later, or a reviewer asks for the combination to be
+   tested before merge; or
+3. the maintainer merge tool reports a stale merge base (see the `merge-pull-request` skill).
 
 ```bash
 # Identify the upstream remote (commonly "torrust"; verify with git remote -v)
@@ -55,12 +70,9 @@ git rebase $UPSTREAM_REMOTE/develop
 git push --force-with-lease <fork-remote> <branch-name>
 ```
 
-> In general, every PR targeting `develop` should sit on top of the latest commit in
-> `<upstream-remote>/develop`. Check this whenever you push or re-push.
-
-Because every rebase rewrites the branch's commit ids, nothing that will be merged (issue specs,
-evidence files, PR body, review replies) may cite a PR-branch commit by id. Cite the Conventional
-Commit subject instead; ids are durable only once on `develop`. Before pushing after a rebase, run
+Because a rebase rewrites the branch's commit ids and rebases still happen, nothing that will be
+merged (issue specs, evidence files, PR body, review replies) may cite a PR-branch commit by id.
+Cite the Conventional Commit subject instead; ids are durable only once on `develop`. Before pushing after a rebase, run
 
 ```bash
 git grep -ohE '\b[0-9a-f]{7,40}\b' -- docs/issues/open/<issue-folder> | grep '[a-f]' | sort -u

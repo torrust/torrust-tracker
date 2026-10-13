@@ -361,8 +361,10 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 
 - Keep intermediate commits. Do not squash, fixup, or rewrite a branch's history to hide steps
   that were later superseded. The sequence of a mistake and its correction is deliberately
-  preserved as training material for humans and AI agents; only rebase onto `develop` to resolve
-  conflicts. Never propose squashing as a cleanup.
+  preserved as training material for humans and AI agents; the only allowed rewrite is a rebase
+  onto `develop`, which is recommended when cheap and required on conflicts (see
+  [`docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md`](docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
+  Never propose squashing as a cleanup.
 - Minor process, skill, or documentation improvements learned while doing the work may ride along
   in the PR that produced them, even when unrelated to the PR's runtime change, as long as each
   lives in its own commit with the right Conventional Commits type (`docs(...)`, `chore(...)`).
