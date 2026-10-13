@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 17:57"
+last-updated-utc: "2026-10-13 18:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,7 @@ semantic-links:
     - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
     - docs/issues/open/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
+    - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
     - docs/testing.md
     - tests/AGENTS.md
     - packages/udp-core/src/services/banning.rs
@@ -364,7 +365,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Reproduce and record                               | [manual-verification-evidence.md](manual-verification-evidence.md) V1-V4, outcome **Reproduced**.               |
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
 | B1  | DONE   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
-| T3  | TODO   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
+| T3  | DONE   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | TODO   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
 | T5  | TODO   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
@@ -463,6 +464,12 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   `develop`; with `get_banned_ips_total` temporarily replaced by a filtered scan (P2, reverted
   without staging) it grew to about 17 ns, 592 ns, and 5.6 us, so the benchmark detects an AC7
   violation. The outputs are recorded in `performance-evidence.md` with the T3 baseline.
+- 2026-10-13 18:21 UTC - GitHub Copilot (implementation session) - T3: recorded the P1 baseline in
+  [performance-evidence.md](performance-evidence.md) on the code before any production change:
+  load-test mean 150960.00 responses/s (lowest run 148018.51, spread 5.2%) and three Criterion
+  runs of all 28 `ban_service_benchmark` cases (medians within about 3%; `record_error` flat at
+  10.33-10.87 ns for IPv4 and 12.27-12.58 ns for IPv6 across 10 to 10,000 tracked IPs). Shared
+  desktop, load average between 2.7 and 8.2 during the runs.
 
 ## Acceptance Criteria
 
