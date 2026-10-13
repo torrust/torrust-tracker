@@ -9,7 +9,7 @@ github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-13 17:56"
+last-updated-utc: "2026-10-13 18:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
 | T3  | DONE   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
 | T4  | DONE   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
-| T5  | IN_PROGRESS | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
+| T5  | DONE   | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
 
 ## Commit Points
 
@@ -213,14 +213,14 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -251,7 +251,7 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   `48e11787f`. Before implementing, asked the maintainer about the guard's behavior under
   Criterion filters, the benchmark name, the peer strategy, and where the guard lives; the
   answers are recorded as D1-D4 under Maintainer Decisions, and Scope and R1 are updated to match.
-- 2026-10-13 17:45 UTC - Copilot - T1 done: the guard, wired into the unfixed benchmark, panics
+- 2026-10-13 17:41 UTC - Copilot - T1 done: the guard, wired into the unfixed benchmark, panics
   under `cargo test` because the routine never ran; a non-matching filter and `--list` exit 0
   (D1). Evidence: `manual-verification-evidence.md`, R1 - Red Before the Fix.
 - 2026-10-13 17:54 UTC - Copilot - T2 done in commit `fix(http-core): [#2479] make the HTTP
@@ -271,22 +271,31 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   approved them. Committed the `track` change as `refactor(http-core): [#2479] track benchmark
   routines with a poll-level combinator` and R2 as `test(udp-core): [#2479] guard the
   connect_once benchmark against a routine that never runs`. T3 done; T5 started.
+- 2026-10-13 18:06 UTC - Copilot - T5 done: the V1 probe repeated like-for-like (V2) counts 4,819,101
+  routine runs in a `cargo bench` run of 2.7M timed iterations, and exactly 1 in test mode.
+  `docs/benchmarking.md` drops the Known Defects entry, updates the catalog row, describes the
+  routine guard, explains the same-peer choice (D3), and warns about the code-layout shift; the
+  `run-benchmarks` skill points new async benchmarks at the guard. Acceptance criteria reviewed
+  against the evidence; retrospective created. Corrected the T1 entry's time to the commit time
+  (17:41). `linter all` passes in the pre-commit hook of every commit; the full pre-push suite runs
+  on push. No independent reviewer agents received this specification, so there is no
+  `agent-review-reports.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo bench -p torrust-tracker-http-core` times one awaited HTTP announce per
+- [x] AC1: `cargo bench -p torrust-tracker-http-core` times one awaited HTTP announce per
       iteration, and its result is consistent with that work (for example microseconds or high
       nanoseconds, not the cost of creating a future).
-- [ ] AC2: The HTTP announce benchmark fails under `cargo test --benches` when its routine does not
+- [x] AC2: The HTTP announce benchmark fails under `cargo test --benches` when its routine does not
       run (R1, red before the fix).
-- [ ] AC3: The `udp-core` `connect_once` benchmark has the same guard (R2).
-- [ ] AC4: `docs/benchmarking.md` no longer lists the benchmark as a known defect and describes the
+- [x] AC3: The `udp-core` `connect_once` benchmark has the same guard (R2).
+- [x] AC4: `docs/benchmarking.md` no longer lists the benchmark as a known defect and describes the
       guard.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -303,7 +312,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                        | Human-oriented command/steps                                                                                      | Expected Result                                               | Status | Evidence                                     |
 | --- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Benchmark measures nothing      | Run `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark` with a temporary counter probe | The helper body runs 0 times                                  | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Benchmark measures the announce | Repeat M1 like-for-like on the fixed benchmark                                                                    | The routine runs every iteration; the time includes announces | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | Benchmark measures the announce | Repeat M1 like-for-like on the fixed benchmark                                                                    | The routine runs every iteration; the time includes announces | DONE   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
@@ -317,10 +326,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                  |
 | ----- | ---------------------- | ----------------------------------------- |
-| AC1   | TODO                   | Before and after `cargo bench` output, M2 |
-| AC2   | TODO                   | R1 red and green runs                     |
-| AC3   | TODO                   | R2 mutate-then-restore run                |
-| AC4   | TODO                   | `docs/benchmarking.md` diff               |
+| AC1   | DONE                   | Before and after `cargo bench` output, M2 |
+| AC2   | DONE                   | R1 red and green runs                     |
+| AC3   | DONE                   | R2 mutate-then-restore run                |
+| AC4   | DONE                   | `docs/benchmarking.md` diff               |
 
 ## Risks and Trade-offs
 
@@ -332,7 +341,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, `implementation-retrospective.md` (guard overhead, code-layout shift,
+  and process lessons).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory;
   otherwise add a progress-log entry explaining why the work had no material discovery.

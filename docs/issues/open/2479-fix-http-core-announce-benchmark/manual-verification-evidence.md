@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-last-updated-utc: "2026-10-13 17:56"
+last-updated-utc: "2026-10-13 18:06"
 ---
 
 # Manual Verification Evidence
@@ -397,6 +397,112 @@ After restoring both files, `cargo test -p torrust-tracker-http-core -p torrust-
 - The guard helper is duplicated rather than shared (D4). Both copies are byte-identical today;
   a change to one must be made to the other.
 
+### V2 - M2: The Benchmark Measures the Announce
+
+- Goal: repeat V1 like-for-like on the fixed benchmark and show that the routine Criterion times
+  runs the announce on every iteration.
+- Status: `DONE`.
+- Date and time (UTC): 2026-10-13 17:59-18:01.
+- Code state: commit `docs(issues): [#2479] record the guard green runs, overhead investigation,
+  and reviews` (benchmark code as in `refactor(http-core): [#2479] track benchmark routines with a
+  poll-level combinator`). Same machine and toolchain as V1. The load average was 7.2-9.3 because
+  other processes were running, so these runs show how many times the routine ran, not a reliable
+  time.
+
+#### Steps Performed
+
+1. Applied the same kind of temporary probe as V1: a counter incremented on the first line of the
+   routine body (now `AnnounceBenchmarkContext::announce_once`) and a print after the benchmark,
+   including the size of the routine's future.
+2. Ran the benchmark with `cargo bench` twice; the second run was rerun only to capture Criterion's
+   iteration-count line, which the first command's output filter dropped.
+3. Ran it once in Criterion's test mode, as the pre-push hook and CI do.
+4. Reverted the probe with `git checkout --` on both files; `git status --short` was empty, and
+   `cargo test -p torrust-tracker-http-core --bench http_tracker_core_benchmark` reported `Success`
+   again without the probe line.
+
+Temporary probe, verbatim (`git diff`):
+
+```diff
+diff --git a/packages/http-core/benches/helpers/announce.rs b/packages/http-core/benches/helpers/announce.rs
+index 7faaa2f51..490343b00 100644
+--- a/packages/http-core/benches/helpers/announce.rs
++++ b/packages/http-core/benches/helpers/announce.rs
+@@ -1,4 +1,7 @@
+ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
++use std::sync::atomic::{AtomicU64, Ordering};
++
++pub static BODY_RUNS: AtomicU64 = AtomicU64::new(0);
+ 
+ use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+ use torrust_tracker_http_core::services::announce::AnnounceService;
+@@ -65,6 +68,7 @@ impl AnnounceBenchmarkContext {
+     /// Panics if the announce is rejected, which would mean the benchmark
+     /// measures an error path instead of an announce.
+     pub async fn announce_once(&self) -> AnnounceData {
++        BODY_RUNS.fetch_add(1, Ordering::Relaxed);
+         self.announce_service
+             .handle_announce(
+                 &self.announce_request,
+diff --git a/packages/http-core/benches/http_tracker_core_benchmark.rs b/packages/http-core/benches/http_tracker_core_benchmark.rs
+index 18ed4f85b..28fe3d31d 100644
+--- a/packages/http-core/benches/http_tracker_core_benchmark.rs
++++ b/packages/http-core/benches/http_tracker_core_benchmark.rs
+@@ -29,6 +29,12 @@ fn bench_announce_once(c: &mut Criterion) {
+     }
+ 
+     guard.assert_routine_ran(&format!("{GROUP}/{BENCHMARK}"));
++
++    eprintln!(
++        "PROBE: function bodies run = {}, future size = {} bytes",
++        crate::helpers::announce::BODY_RUNS.load(std::sync::atomic::Ordering::Relaxed),
++        std::mem::size_of_val(&context.announce_once())
++    );
+ }
+ 
+ criterion_group!(benches, bench_announce_once);
+```
+
+#### Observed Result
+
+```text
+$ cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark   # first run
+http_tracker/announce_once/announce_once
+                        time:   [363.20 ns 367.34 ns 372.69 ns]
+Found 12 outliers among 100 measurements (12.00%)
+  4 (4.00%) high mild
+  8 (8.00%) high severe
+
+PROBE: function bodies run = 4531251, future size = 736 bytes
+
+$ cargo test -p torrust-tracker-http-core --bench http_tracker_core_benchmark
+Testing http_tracker/announce_once/announce_once
+Success
+PROBE: function bodies run = 1, future size = 736 bytes
+
+$ cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark   # second run
+Benchmarking http_tracker/announce_once/announce_once: Warming up for 500.00 ms
+Benchmarking http_tracker/announce_once/announce_once: Collecting 100 samples in estimated 1.0012 s (2.7M iterations)
+http_tracker/announce_once/announce_once
+                        time:   [468.03 ns 498.09 ns 529.71 ns]
+Found 3 outliers among 100 measurements (3.00%)
+PROBE: function bodies run = 4819101, future size = 736 bytes
+```
+
+#### Conclusion
+
+**Fixed.** V1 counted 0 body runs over about 12 million timed iterations. Now the routine body
+ran 4,819,101 times in a run where Criterion timed 2.7 million iterations; the rest are warm-up
+iterations, which Criterion also runs through the routine. In test mode it ran exactly once,
+which is the single execution the guard relies on. The measured time is now in the hundreds of
+nanoseconds, consistent with an in-memory announce (R1 section: about 342-348 ns on a quieter
+machine), not the 78-87 ns it took to create a future.
+
 ## Failures and Follow-up
 
-None.
+- R2's first mutation changed only the Criterion call and did not compile, because `-D unused`
+  rejects the then-unused `runtime`. It was not counted as a red run; the recorded mutation also
+  binds the runtime as `_runtime`, as the code did before issue #2458.
+- The first version of the guard distorted `connect_once`; see Guard Overhead Investigation.
+- Follow-up candidate, not opened: a first-announce benchmark with a bounded swarm (D3). It is
+  left to the maintainer to decide whether it is worth an issue.
