@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric-spec"
 related-pr: null
-last-updated-utc: "2026-10-13 16:10"
+last-updated-utc: "2026-10-13 16:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -188,7 +188,10 @@ path. The map grows with every distinct source IP until the next reset (default 
 source addresses can be spoofed, so the map can become large.
 
 The maintainer asked for the preferred option and the alternatives to be documented here and
-reconsidered when implementation starts.
+reconsidered when implementation starts. One constraint is fixed (AC7, maintainer decision on PR
+review finding `review-finding:pr-2506-f1`): the work done on each invalid-connection-ID event to
+maintain and read the banned total must not grow with the number of tracked IPs. This rules out P2;
+P1, P3, and P4 remain open.
 
 **P1 (preferred): maintain a banned-IP counter.** `increase_counter` increments a `banned_ips_total`
 field when an IP's count goes from `limit` to `limit + 1` (the moment `is_banned` turns true).
@@ -199,7 +202,7 @@ field when an IP's count goes from `limit` to `limit + 1` (the moment `is_banned
   or decays a single IP's count must also update the counter. Needs tests at the crossing boundary
   (`limit`, `limit + 1`, `limit + 2` must count once).
 
-**P2: filtered scan on read.** `get_banned_ips_total()` returns
+**P2 (ruled out by AC7): filtered scan on read.** `get_banned_ips_total()` returns
 `map.values().filter(|count| **count > limit).count()`.
 
 - Pros: smallest change; no new state; obviously consistent with `is_banned`.
@@ -226,8 +229,8 @@ the total with a scan.
 `run-benchmarks` skill: run the existing Criterion benchmark
 `packages/udp-core/benches/ban_service_benchmark.rs` (`udp_ban_service/increase_counter` and
 `udp_ban_service/is_banned`) before and after the change and record both results, to show the error
-path did not regress. If P2 or P4 is chosen, add a benchmark case for the banned total at high
-cardinality so the scan cost is measured, not assumed.
+path did not regress. If P4 is chosen, add a benchmark case for its scan at high cardinality so the
+cost is measured, not assumed.
 
 ### Gauge Update on Reset
 
@@ -399,6 +402,9 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - 2026-10-13 16:10 UTC - GitHub Copilot (spec session) - Created GitHub issue #2505, renamed the branch to
   `2505-udp-banned-ips-metric-spec` for a spec-only PR, and moved the spec to
   `docs/issues/open/2505-udp-banned-ips-metric/`.
+- 2026-10-13 16:57 UTC - GitHub Copilot (spec session) - PR #2506 review finding F1: the
+  maintainer chose an outcome-based constraint; added AC7 (per-event cost must not grow with the
+  number of tracked IPs), which rules out P2 and keeps P1, P3, and P4 open.
 
 ## Acceptance Criteria
 
@@ -412,6 +418,8 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [ ] AC5: The `udp_ban_service` benchmark is recorded before and after the change, with no
   regression on `increase_counter` or `is_banned`.
 - [ ] AC6: The reproduction is repeated after the fix and recorded.
+- [ ] AC7: The work done on each invalid-connection-ID event to maintain and read the banned total
+  does not grow with the number of tracked IPs (no scan of the per-IP map on the event path).
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -467,6 +475,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC4   | TODO   | Diff               |
 | AC5   | TODO   | T3 and T9 evidence |
 | AC6   | TODO   | M1-M4 after fix    |
+| AC7   | TODO   | Diff (event-path code), T3 and T9 evidence |
 
 ## Risks and Trade-offs
 
