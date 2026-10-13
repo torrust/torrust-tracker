@@ -78,9 +78,11 @@ When an issue changes performance-critical code, measure it before and after:
    only documentation and benchmark-only commits.
 3. **Repeat the measurement after the change** on the same machine, with the same build profile,
    configuration, and load-test settings. Change benchmark code only as far as new signatures
-   require: even code outside the timed loop can move a nanosecond-scale result. Adding the routine
-   guard to `connect_once`, with nothing added to its timed loop, moved it from about 58 ns to
-   about 65 ns, a code-layout effect (issue #2479).
+   require: even code outside the timed loop can move a nanosecond-scale result. In issue #2479,
+   a control build of `connect_once` that added the routine guard's code only outside the timed
+   loop, leaving the loop byte-identical, moved from about 58 ns to about 65 ns, a code-layout
+   effect. The committed guard, which does add `track` to the timed loop, measures the same
+   about 65 ns.
 4. **Run each instrument several times:** for example three Criterion runs, reading each benchmark's
    median from `target/criterion/<group>/<function>/new/estimates.json` (the group's `/` becomes
    `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh

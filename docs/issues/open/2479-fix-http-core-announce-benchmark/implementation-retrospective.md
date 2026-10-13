@@ -45,8 +45,10 @@ Criterion skips. Red, green, and like-for-like recheck evidence is in
 - The guard's routine wrapper changed from an `async fn` to `futures::FutureExt::inspect` after
   the overhead investigation (R2 section of the evidence). The `http-core` copy was already
   committed, so the change needed a separate `refactor(http-core)` commit.
-- Editing the `connect_once` benchmark moves its result from about 58 ns to about 65 ns even with
-  nothing added to the timed loop. This is now documented in `docs/benchmarking.md`, because
+- Editing the `connect_once` benchmark moves its result from about 58 ns to about 65 ns: a control
+  build with the guard's code only outside the timed loop, leaving the loop byte-identical, reads
+  about 65 ns, the same as the committed guard, which adds `track` to the loop. This is now
+  documented in `docs/benchmarking.md`, because
   anyone comparing new results with issue #2458's will see it.
 - Clippy (`future_not_send`) rejected the `Cell` counter, so the guard uses relaxed atomics.
 
