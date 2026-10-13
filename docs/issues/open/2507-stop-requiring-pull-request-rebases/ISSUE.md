@@ -8,7 +8,7 @@ epic: null
 github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases-spec"
-related-pr: null
+related-pr: 2508
 last-updated-utc: "2026-10-13 17:05"
 semantic-links:
   skill-links:
@@ -234,7 +234,7 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   tasks (T5, T6) - [`baseline-evidence.md`](baseline-evidence.md) sections 2.1 and 2.2
 - 2026-10-13 17:05 UTC - AI assistant - Maintainer approved the spec; created issue #2507, moved the
   spec to `docs/issues/open/`, and opened the spec-only PR from branch
-  `2507-stop-requiring-pull-request-rebases-spec`
+  `2507-stop-requiring-pull-request-rebases-spec` (PR #2508) and requested review from da2ce7
 
 ## Acceptance Criteria
 
