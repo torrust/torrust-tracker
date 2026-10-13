@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric-spec"
 related-pr: null
-last-updated-utc: "2026-10-13 16:57"
+last-updated-utc: "2026-10-13 16:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -224,13 +224,45 @@ the total with a scan.
 - Cons: the gauge lags by up to one period; adds a job or a new pull path from the REST adapter;
   changes ownership more than the bug needs.
 
-**Is performance testing needed?** Not to choose between the options: the complexity difference
-(O(1) versus O(n) per error) is clear without measurement. The implementation must still follow the
-`run-benchmarks` skill: run the existing Criterion benchmark
-`packages/udp-core/benches/ban_service_benchmark.rs` (`udp_ban_service/increase_counter` and
-`udp_ban_service/is_banned`) before and after the change and record both results, to show the error
-path did not regress. If P4 is chosen, add a benchmark case for its scan at high cardinality so the
-cost is measured, not assumed.
+**Is performance testing needed to choose?** No: the complexity difference (O(1) versus O(n) per
+error) is clear without measurement. The change still touches the UDP request path (the launcher's
+`is_banned` read lock) and the error path, so it needs the before-and-after evidence below.
+
+### Performance Evidence Plan
+
+Follows [docs/benchmarking.md](../../../benchmarking.md) ("Choosing a Benchmark" and "Recording
+Before-and-After Evidence") and the `run-benchmarks` skill, with issue #2458 as the worked example.
+
+- **Microbenchmark (precise):** the existing Criterion groups `udp_ban_service/increase_counter`
+  and `udp_ban_service/is_banned` in `packages/udp-core/benches/ban_service_benchmark.rs`. No
+  benchmark covers the per-event step the handler runs (`increase_counter` followed by reading the
+  banned total), so **B1** adds one, `udp_ban_service/record_error`, measured at the existing
+  `CARDINALITIES` of tracked IPs, in its own commit before any production change. Its medians
+  across cardinalities are also the AC7 evidence: they must not grow with the number of tracked IPs.
+- **End-to-end load test (user-visible):** `aquatic_udp_load_test` against a release build started
+  with `share/default/config/tracker.udp.benchmarking.toml`, following
+  [E2E UDP load testing](../../../benchmarking.md#e2e-udp-load-testing) with the issue #2342
+  settings (connect and announce weights 50/50, scrape weight 1, 30-second runs, last 20 seconds
+  summarized), five runs per measurement, a fresh tracker per run. It exercises the launcher's
+  `is_banned` check on every request; it sends valid connection IDs, so the error path itself is
+  covered by the microbenchmark.
+
+Method:
+
+- **P1 (baseline, T3)** runs after B1 and before any production change: three Criterion runs (each
+  benchmark's median read from `target/criterion/<group>/<function>/new/estimates.json`) and five
+  load-test runs. **P2 (after, T9)** repeats the same measurements on the finished code, on the same
+  machine, with the same build profile, configuration, and load-test settings. The benchmark code
+  may change between P1 and P2 only as far as changed signatures require.
+- Check the machine before each measurement (`uptime`, other builds) and record it.
+- Record the machine, toolchain, aquatic commit, commands, configuration, every run, and the
+  observed noise in issue-local `performance-evidence.md`, with times taken from output files or
+  `git log`.
+- **Pass rule (one-sided):** the P2 load-test mean responses per second is not below the lowest P1
+  run, and each P2 Criterion median is not above the highest of the three P1 medians for the same
+  benchmark. State the observed P1 noise, so readers know which regressions the measurement can
+  detect. A failure is investigated, for example with [docs/profiling.md](../../../profiling.md),
+  before the issue closes.
 
 ### Gauge Update on Reset
 
@@ -285,7 +317,7 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
 | Package-level in-process integration, `udp-server` | Required  | The published gauge through the real server, event bus, banning listener, and stats repository (`packages/udp-server/tests/server/contract.rs` environment). It is the closest automated equivalent of the reported symptom; the handler unit test injects a hand-made event and does not cover this wiring. |
 | Root application-level integration            | Not added | The REST field is a 1:1 mapping of the same gauge (`TrackerStatsAdapter`), already exercised by `tests/banning/*` for the banned case. A below-limit scenario would need a new binary for an isolated ban service, and the reset path cannot be driven there (minimum interval 3600 s, real clock). |
 | Executable-boundary, container E2E, qBittorrent E2E | Not applicable | No process, image, or client-interoperability behavior changes.                                                                                                                                                                                    |
-| Criterion benchmark                           | Required  | Performance regression on the error path (`udp_ban_service`), see "Performance Alternatives". Not a correctness test.                                                                                                                                       |
+| Criterion benchmark and UDP load test         | Required  | Performance regression on the error path and the request path, see "Performance Evidence Plan". Not correctness tests.                                                                                                                                      |
 | Manual verification                           | Required  | V1-V4 rerun on the fixed build with the same script and configuration, including the real reset after 3600 s, which no automated layer drives end to end.                                                                                                  |
 
 ### Planned Tests
@@ -331,13 +363,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce and record                               | [manual-verification-evidence.md](manual-verification-evidence.md) V1-V4, outcome **Reproduced**.               |
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
-| T3  | TODO   | Baseline benchmark                                 | `udp_ban_service` Criterion results on `develop`, recorded before any production change.                       |
+| B1  | TODO   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
+| T3  | TODO   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | TODO   | R1, R5 (and R6) regression tests, red              | Recorded failing output against the current implementation.                                                    |
 | T5  | TODO   | `udp-core` fix                                     | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed. |
 | T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | TODO   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | TODO   | `udp-server` test and documentation updates        | Tests listed in scope updated; contracts listed under "Contracts violated" corrected for decision A.            |
-| T9  | TODO   | After-change benchmark                             | Same benchmark as T3; comparison recorded; no regression on `increase_counter` or `is_banned`.                 |
+| T9  | TODO   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
 | T10 | TODO   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
 ## Commit Points
@@ -347,7 +380,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4-T5  | `udp-core` banned-count fix, leftover removal, R1, R1p, R2, R5, R6   | Commit after focused validation and design review.  |
 | T6-T7  | Gauge-on-reset fix with R3 and R4                                    | Commit after focused validation and design review.  |
 | T8     | `udp-server` test and documentation updates                          | Commit after focused validation.                    |
-| T3, T9 | Benchmark evidence                                                   | One `docs(...)` commit, or with the evidence below. |
+| B1     | `udp_ban_service/record_error` benchmark                             | One `test(udp-core)` commit before T3.              |
+| T3     | P1 baseline in `performance-evidence.md`                             | One `docs(issues)` commit before any production change. |
+| T9     | P2 results and comparison in `performance-evidence.md`               | One `docs(issues)` commit.                          |
 | T10    | Recheck evidence and acceptance review                               | Commit after maintainer review.                     |
 
 Record the red output of T4 and T6, and the mutate-then-restore output for R1p, R2, and R3, before
@@ -405,6 +440,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - 2026-10-13 16:57 UTC - GitHub Copilot (spec session) - PR #2506 review finding F1: the
   maintainer chose an outcome-based constraint; added AC7 (per-event cost must not grow with the
   number of tracked IPs), which rules out P2 and keeps P1, P3, and P4 open.
+- 2026-10-13 16:59 UTC - GitHub Copilot (spec session) - PR #2506 review finding F2: added the
+  Performance Evidence Plan required by `docs/benchmarking.md` for request-path changes (Criterion
+  plus `aquatic_udp_load_test`, a one-sided pass rule, and issue-local `performance-evidence.md`),
+  with task B1 for a missing per-event microbenchmark, and updated T3, T9, AC5, and the checks.
 
 ## Acceptance Criteria
 
@@ -415,8 +454,9 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [ ] AC3: The method, metric, `udp-server` helper, and REST field descriptions match the behavior,
   including the `disabled`-mode meaning.
 - [ ] AC4: The `BanningStats` trait and `BanService::last_connection_id_errors_reset` are removed.
-- [ ] AC5: The `udp_ban_service` benchmark is recorded before and after the change, with no
-  regression on `increase_counter` or `is_banned`.
+- [ ] AC5: `performance-evidence.md` records the P1 baseline and the P2 after measurements
+  (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and P2 meets
+  the one-sided pass rule in "Performance Evidence Plan", with the observed noise stated.
 - [ ] AC6: The reproduction is repeated after the fix and recorded.
 - [ ] AC7: The work done on each invalid-connection-ID event to maintain and read the banned total
   does not grow with the number of tracked IPs (no scan of the per-IP map on the event path).
@@ -434,7 +474,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - `cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server` (R4)
 - `cargo test --test integration` and the root banning tests under `tests/banning/`
 - `cargo test --doc --workspace`
-- `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark` (T3, T9)
+- `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark` (B1, T3, T9; three runs
+  each for T3 and T9)
+- `aquatic_udp_load_test` against `./target/release/torrust-tracker --config-toml-path
+  ./share/default/config/tracker.udp.benchmarking.toml` (T3, T9; five runs each, see
+  [E2E UDP load testing](../../../benchmarking.md#e2e-udp-load-testing))
 - `linter all`
 - `./contrib/dev-tools/git/hooks/pre-commit.sh` before every commit; pre-push checks before push
 
@@ -473,7 +517,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC2   | TODO   | R2, R3, R4, M4         |
 | AC3   | TODO   | Diff               |
 | AC4   | TODO   | Diff               |
-| AC5   | TODO   | T3 and T9 evidence |
+| AC5   | TODO   | `performance-evidence.md` (T3, T9) |
 | AC6   | TODO   | M1-M4 after fix    |
 | AC7   | TODO   | Diff (event-path code), T3 and T9 evidence |
 
