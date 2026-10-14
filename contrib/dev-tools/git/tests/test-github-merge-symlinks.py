@@ -68,7 +68,7 @@ def retrieve_pr_info(repository, pull, token):
     return {
         'title': 'Fixture pull request',
         'body': 'Fixture pull request body',
-        'base': {'ref': 'develop', 'sha': load_state()['recorded_base']},
+        'base': {'ref': load_state()['recorded_ref'], 'sha': load_state()['recorded_base']},
     }
 
 
@@ -220,16 +220,18 @@ class MergeFixture:
         self.git('checkout', '--quiet', name)
 
     def publish_pull_request(self, head_commit, merge_commit=None, recorded_base=None,
-                             refresh_outcome='records-target-tip'):
+                             refresh_outcome='records-target-tip', recorded_ref=TARGET_BRANCH):
         """Publish the target branch and the pull request's refs the way the forge exposes them.
 
         The forge also records the pull request's base: the target tip unless `recorded_base`
-        names an older commit. `refresh_outcome` is what a base refresh does to that record:
-        'records-target-tip', 'leaves-it-unchanged', or 'fails'.
+        names an older commit, and the branch the pull request targets, `recorded_ref`.
+        `refresh_outcome` is what a base refresh does to that record: 'records-target-tip',
+        'leaves-it-unchanged', or 'fails'.
         """
         target_tip = self.git('rev-parse', TARGET_BRANCH).strip()
         self.pull_request_state.write_text(json.dumps({
             'recorded_base': recorded_base or target_tip,
+            'recorded_ref': recorded_ref,
             'target_tip': target_tip,
             'refresh_outcome': refresh_outcome,
             'refresh_calls': [],
@@ -1037,6 +1039,34 @@ class RecordedPullRequestBaseTest(SymlinkDeclarationTestCase):
         self.assertEqual(len(self.fixture.base_refresh_calls()), 1)
         self.assertIn(f'GitHub records torrust/torrust-tracker#2175 as based on {base_when_opened}',
                       result.stderr)
+
+    def it_should_refuse_without_editing_a_pull_request_that_targets_another_branch(self):
+        # A base edit to the merge target would change such a pull request's target instead of refreshing it.
+
+        # Arrange
+        head_commit, stale_github_merge, base_when_opened = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge,
+                                          recorded_base=base_when_opened, recorded_ref='main')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertEqual(self.fixture.base_refresh_calls(), [])
+        self.assertIn("ERROR: torrust/torrust-tracker#2175 targets 'main', not 'develop'", result.stderr)
+
+    def it_should_refuse_a_pull_request_that_targets_another_branch_even_with_a_current_base(self):
+        # Arrange
+        head_commit, stale_github_merge, _ = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge, recorded_ref='main')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertIn("ERROR: torrust/torrust-tracker#2175 targets 'main', not 'develop'", result.stderr)
 
     def it_should_skip_the_github_merge_comparison_when_that_merge_has_a_stale_base(self):
         # Arrange

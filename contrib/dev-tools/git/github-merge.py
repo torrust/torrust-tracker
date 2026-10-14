@@ -181,11 +181,16 @@ def refresh_pr_base(repo, pull, branch):
         return None
     return recorded_base
 
-def require_current_recorded_base(repo, pull, branch, recorded_base, current_base):
+def require_current_recorded_base(repo, pull, branch, recorded_ref, recorded_base, current_base):
     '''
-    Exit before any merge is built unless GitHub records the pull request as based on the target tip.
+    Exit before any merge is built unless GitHub records the pull request as targeting `branch`
+    and as based on its tip. The target is checked first: for a pull request that targets another
+    branch, the base edit below would retarget it instead of refreshing it.
     '''
     pull_reference = repo + '#' + pull
+    if recorded_ref != branch:
+        print(f"ERROR: {pull_reference} targets '{recorded_ref}', not '{branch}'. Refusing to merge it into '{branch}' or to edit its base.", file=stderr)
+        sys.exit(EXIT_STALE_PULL_REQUEST_BASE)
     if recorded_base == current_base:
         return
     print(f"GitHub records {pull_reference} as based on {recorded_base}, but {branch} is at {current_base}; refreshing the recorded base.", file=stderr)
@@ -665,7 +670,7 @@ def main():
         print(f"ERROR: Cannot find merge of pull request {pull_reference} on {host_repo_from}.", file=stderr)
         sys.exit(3)
     current_base = subprocess.check_output([GIT,'rev-parse',base_branch]).decode('utf-8').strip()
-    require_current_recorded_base(repo_from, pull, branch, info['base'].get('sha'), current_base)
+    require_current_recorded_base(repo_from, pull, branch, info['base'].get('ref'), info['base'].get('sha'), current_base)
     # GitHub recomputes its own merge only on some pull-request events, so it can be based on an
     # older target tip even when the recorded base is current. Compare with it only when it is not.
     github_merge_base = subprocess.check_output([GIT,'rev-parse',merge_branch+'^1']).decode('utf-8').strip()

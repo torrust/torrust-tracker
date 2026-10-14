@@ -24,8 +24,9 @@ GitHub accepts the maintainer's pushed merge only while the pull request's recor
 that record when the target branch advances through other merges, and its own test merge
 (`refs/pull/<n>/merge`) is not the condition: issue #2507 measured both in a sandbox.
 
-Before building the merge, the tool compares the recorded base with the fetched target tip. When it
-is stale, the tool refreshes it with a no-op base edit, which needs an authenticated GitHub CLI
+Before building the merge, the tool refuses a pull request that GitHub records as targeting another
+branch than the merge target, without editing it: a base edit would change such a pull request's target.
+It then compares the recorded base with the fetched target tip. When it is stale, the tool refreshes it with a no-op base edit, which needs an authenticated GitHub CLI
 (`gh`):
 
 ```sh
