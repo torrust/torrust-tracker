@@ -46,10 +46,21 @@ findings without a `[<Severity>][<FindingId>]` header, so they are assigned the 
 in the review overview. The overview repeats the two findings and adds no other request, so it adds
 no row.
 
+Cameron's review 5515219215 (`da2ce7`, submitted 2026-10-14 08:38:27 UTC, before merge, state
+`CHANGES_REQUESTED`) left five inline findings headed `[<Severity>][<FindingId>]`, `F3` to `F7`.
+They do not collide with `F1` and `F2`, so they are used unchanged. The review body summarizes the
+same five findings and records checks that found nothing; it adds no other request, so it adds no
+row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2519-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2519-f2` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2519-f3` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2519-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2519-f5` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2519-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2519-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -94,6 +105,95 @@ no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268395950>
 
+### F3 - Wire the swarm-registry events the benchmark claims to time
+
+- PR number: 2519
+- Source review ID: 5515219215
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268555292>
+- Concern: D1 said each timed announce includes the "peer added" event, but the bench helper
+  builds `InMemoryTorrentRepository::default()`, whose registry's `event_sender` is `None`, so no
+  swarm-registry event is sent. Production builds `Registry::new(stats_event_sender)`. A benchmark
+  built on the shared helper would time an insert without the event while its documentation
+  claimed otherwise.
+- Solution: The maintainer chose to wire the events (decision D4, with the discarded option and its
+  pros and cons). Scope, D1, and T1 now require the new context to wire the registry's event sender
+  and statistics listener as production does; Out of Scope notes that `announce_once` sends no
+  such events either and that its live documentation does not claim them.
+- Current-tree verification: `ISSUE.md` has the D4 section, the Scope bullet naming
+  `InMemoryTorrentRepository::default()`, D1's first pro citing D4, and the T1 notes; the code
+  facts were re-checked in `packages/http-core/benches/helpers/util.rs`,
+  `swarm/registry.rs`, `swarm/coordinator.rs`, and `container.rs`.
+- Resolution reference: `docs(issues): [#2518] wire the swarm-registry events in the benchmark context`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268909114>
+
+### F4 - State the departure from the rotating pool #2479 sketched
+
+- PR number: 2519
+- Source review ID: 5515219215
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268555305>
+- Concern: The Background shortened #2479's design to "a bounded set of peers", hiding that this
+  specification rejects the rotating pool #2479 and `docs/benchmarking.md` suggested.
+- Solution: The Background quotes both sources and states the departure; D1 option E says it is
+  the design #2479 sketched; T4 replaces the `docs/benchmarking.md` sentence that still suggests it.
+- Current-tree verification: `ISSUE.md` Background, D1 option E, and the T4 row contain these
+  statements; `linter markdown` and `linter cspell` pass.
+- Resolution reference: `docs(issues): [#2518] state the departure from the rotating pool #2479 sketched`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268909448>
+
+### F5 - Replace the probe's false rationale with a maintained assertion
+
+- PR number: 2519
+- Source review ID: 5515219215
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268555329>
+- Concern: The disposable probe was justified by "the production code has no public seam reporting
+  insert versus update", which is false: `Coordinator::upsert_peer` sends `PeerAdded` or
+  `PeerUpdated` through a sender injected by public constructors.
+- Solution: The maintainer chose a maintained assertion (decision D5, with the discarded option and
+  its pros and cons). After the run the benchmark waits for the swarm statistics listener and
+  asserts the added, removed, and updated counts; before measurement it checks one first announce's
+  response size. Scope, T1, M1, and the new AC6 are updated; no disposable probe is planned.
+- Current-tree verification: `ISSUE.md` has the D5 section, AC6 with its Acceptance Verification
+  row, the rewritten M1 row, and the Disposable Verification Scripts section without the probe;
+  the metric names were checked in `packages/swarm-coordination-registry/src/statistics/mod.rs`.
+- Resolution reference: `docs(issues): [#2518] count inserts with a maintained assertion on the swarm metrics`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268909755>
+
+### F6 - State the F1 verification without an incomplete list
+
+- PR number: 2519
+- Source review ID: 5515219215
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268555338>
+- Concern: F1's Current-tree verification listed three mentions of `announce_once` in the
+  specification, which had six; the F1 thread reply repeats the same sentence.
+- Solution: F1's verification now states the conclusion without the list and cites this finding.
+  The posted F1 reply is left unchanged; the F6 reply records the correction.
+- Current-tree verification: `grep -n announce_once` on the specification at the current head
+  returns six lines, and none asks for a comparison with `announce_once`.
+- Resolution reference: `docs(pr-reviews): [#2518] state the F1 verification without an incomplete list`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268910041>
+
+### F7 - Log the review fixes and update the stamp
+
+- PR number: 2519
+- Source review ID: 5515219215
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268555346>
+- Concern: `last-updated-utc` and the Progress Log were not updated for the AC4 and M2 rewrites.
+- Solution: Added Progress Log entries at 08:18 UTC (F1, F2) and 09:12 UTC (F3 to F7, D4, D5), and
+  set `last-updated-utc` to `"2026-10-14 09:12"`.
+- Current-tree verification: the two entries and the stamp are in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2518] log the PR #2519 review fixes and update the stamp`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268910346>
+
 ## Processing Log
 
 - 2026-10-14 08:15 UTC - Started audit: fetched review 5514492175 and its two unresolved threads
@@ -102,6 +202,12 @@ no row.
   passed. Replied on both threads with the disposition, verification, and resolution reference.
 - 2026-10-14 08:22 UTC - Recorded this audit; the threads are resolved after it is committed and
   pushed.
+- 2026-10-14 09:00 UTC - Started round 2: fetched Cameron's review 5515219215 and its five
+  unresolved threads (F3 to F7); asked the maintainer to decide F3 and F5.
+- 2026-10-14 09:15 UTC - Pushed one signed fix commit per finding (F3 to F7); the pre-push checks
+  passed. Replied on the five threads with the disposition, verification, and resolution reference.
+- 2026-10-14 09:18 UTC - Recorded round 2 in this audit; the threads are resolved after it is
+  committed and pushed.
 
 ## Completion Rules
 
