@@ -24,7 +24,6 @@ semantic-links:
     - packages/udp-server/src/statistics/repository.rs
     - packages/rest-api-application/src/v1/ports/stats.rs
     - packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs
-    - packages/udp-core/src/statistics/services.rs
     - packages/udp-server/src/statistics/services.rs
 ---
 
@@ -226,7 +225,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Re-verify the evidence on current `develop`                | Search confirms no consumers of the traits or services; record the commit. Check whether #1348 has merged tests calling `UdpCoreStatsRepository` or `get_metrics()` (see Risks). |
 | T2  | DONE   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
 | T3  | DONE   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
-| T4  | TODO   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
+| T4  | DONE   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
 | T5  | TODO   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
 | T6  | TODO   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
 | T7  | TODO   | Verification                                               | See Verification Plan.                                                                                                                                                        |
@@ -320,6 +319,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   test was waived (see the 12:50 entry). `cargo +stable test -p torrust-tracker-udp-server --lib
   statistics::repository` (stable 1.99.0): 16 passed; `cargo machete --with-metadata`: no unused
   dependency; nightly Clippy for both packages: clean.
+- 2026-10-14 13:15 UTC - GitHub Copilot (implementation session) - T4: removed
+  `udp-core`'s `statistics/services.rs` (with its test) and `pub mod services;`, and dropped the
+  file from `related-artifacts`. Moved the event-flow docs to `statistics/mod.rs`, replaced the
+  stale `Metrics` field example with a link to `Metrics::udp4_connections_handled`, and corrected
+  the example's stale `send_event` call to the sender's actual `send` method. `cargo +stable test
+  -p torrust-tracker-udp-core` (stable 1.99.0): 41 unit tests passed (one fewer: the deleted service
+  test); `cargo machete --with-metadata`: clean; `RUSTDOCFLAGS="-D warnings" cargo +nightly doc
+  --no-deps -p torrust-tracker-udp-core` (nightly 1.101.0): no warnings.
 
 ## Acceptance Criteria
 
