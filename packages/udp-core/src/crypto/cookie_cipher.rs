@@ -86,7 +86,6 @@ impl fmt::Debug for CookieCipher {
 
 #[cfg(test)]
 mod tests {
-    use blowfish::BlowfishLE;
     use zeroize::ZeroizeOnDrop;
 
     use super::{CookieBlock, CookieCipher, KEY_LEN};
@@ -146,9 +145,9 @@ mod tests {
 
     #[test]
     fn it_should_wipe_the_key_schedule_when_the_cipher_is_dropped() {
-        fn wipes_itself_on_drop<T: ZeroizeOnDrop>() {}
+        fn wipes_itself_on_drop<T: ZeroizeOnDrop>(_: &T) {}
 
-        // Fails to compile if `blowfish`'s `zeroize` feature is disabled in `Cargo.toml`.
-        wipes_itself_on_drop::<BlowfishLE>();
+        // Fails to compile if the held cipher stops implementing `ZeroizeOnDrop`.
+        wipes_itself_on_drop(&CookieCipher::fixed_for_testing().0);
     }
 }
