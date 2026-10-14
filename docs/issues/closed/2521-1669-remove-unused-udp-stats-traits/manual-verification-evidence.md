@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
-last-updated-utc: 2026-10-14 15:51
+issue-spec: docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
+last-updated-utc: 2026-10-14 16:25
 ---
 
 # Manual Verification Evidence
