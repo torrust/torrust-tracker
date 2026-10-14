@@ -308,3 +308,16 @@ semantic-links:
     checked items remain accurate.
   - Optional: N10 rewrap, N11 summary update.
   - This report is uncommitted; the caller requests Committer to include it.
+
+## Implementer Note - Pre-Rebase Commit IDs
+
+This section is not a review entry. The reports above cite some PR-branch commits by the commit
+IDs they had before the branch was rebased onto `develop`. Rebasing changes those IDs, so they do
+not resolve on the merged history. Their Conventional Commit subjects:
+
+| Commit ID cited above | Commit subject |
+| --------------------- | -------------- |
+| `3a683c5fc` | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit` |
+| `ebeee743c` | `perf(udp-core): [#2505] detect the ban crossing with one comparison` |
+| `e9ac5c2f3` | `test(udp-server): [#2505] name the third handler-test client after its state` |
+| `25ba74330` | `docs(issues): [#2505] address the follow-up task review` |
