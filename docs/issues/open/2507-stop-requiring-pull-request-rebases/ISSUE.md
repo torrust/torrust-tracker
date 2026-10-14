@@ -8,7 +8,7 @@ epic: null
 github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
-related-pr: 2508
+related-pr: 2526
 last-updated-utc: "2026-10-14 10:11"
 semantic-links:
   skill-links:
@@ -112,10 +112,12 @@ failure mode. The target configuration must not need toggling.
 
 - Record the decision in root ADR
   [`20261013161419_stop_requiring_pull_request_rebases.md`](../../../adrs/20261013161419_stop_requiring_pull_request_rebases.md).
-- Find the least disruptive way to refresh a stale GitHub merge ref before a maintainer merge
-  (decision gate T1). GitHub's "Update branch" merge commit is an accepted fallback.
-- Update `github-merge.py`, its tests, and `README-github-merge.md` so the stale-merge-ref failure
-  recommends the chosen refresh instead of always "Rebase the pull request branch".
+- Find what GitHub requires before accepting a maintainer merge of a pull request that is behind
+  `develop`, and the least disruptive way to satisfy it (decision gate T1). GitHub's "Update
+  branch" merge commit is an accepted fallback. T1 found the condition is the pull request's
+  recorded base (`base.sha`), not the freshness of its merge ref.
+- Update `github-merge.py`, its tests, and `README-github-merge.md` so the tool checks and
+  refreshes the recorded base instead of sending authors to rebase.
 - Update the `open-pull-request` and `merge-pull-request` skills, and `AGENTS.md`, to the
   recommended-not-required rebase policy.
 - Reconcile the repository rulesets: restore the force-push ban, delete the unsatisfiable
@@ -287,8 +289,11 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
       because `develop` advanced; the recommendation and the required cases match the ADR.
 - [ ] AC2: A behind, conflict-free PR can be merged with `merge-pull-request.sh` without rewriting
       its commits (T1 refresh), or with a rebase only when T1 finds no other method.
-- [ ] AC3: `github-merge.py` still refuses to sign or push a merge built on a stale GitHub merge
-      ref, and its message recommends the T1 refresh.
+- [ ] AC3: `github-merge.py` refuses, before building a merge and without editing the pull
+      request, a pull request that targets another branch. It refreshes a stale recorded base
+      (`base.sha`) with the no-op base edit, and refuses to sign or push while the recorded base is
+      not the target tip, printing the refresh command. A stale GitHub merge ref alone does not
+      block the merge; only the comparison with that merge is skipped.
 - [ ] AC4: Commit ids of a PR merged without rebase remain reachable from `develop`.
 - [x] AC5: The force-push ban is active on `develop`, `main`, and `releases/*`.
 - [ ] AC6: Every active required-check mechanism can be satisfied by both a code PR and a
