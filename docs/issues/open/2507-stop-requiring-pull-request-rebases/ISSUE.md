@@ -347,17 +347,17 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                    |
-| ----- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC1   | TODO                   |                                                                                                                                                                             |
-| AC2   | TODO                   |                                                                                                                                                                             |
-| AC3   | TODO                   |                                                                                                                                                                             |
-| AC4   | TODO                   |                                                                                                                                                                             |
-| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch checked 2026-10-14 10:00 UTC). |
-| AC6   | TODO                   |                                                                                                                                                                             |
-| AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                                |
-| AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                   |
-| AC9   | TODO                   |                                                                                                                                                                             |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                   |
+| ----- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | TODO                   |                                                                                                                                                                            |
+| AC2   | TODO                   |                                                                                                                                                                            |
+| AC3   | TODO                   |                                                                                                                                                                            |
+| AC4   | TODO                   |                                                                                                                                                                            |
+| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch command and output included). |
+| AC6   | TODO                   |                                                                                                                                                                            |
+| AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                               |
+| AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                  |
+| AC9   | TODO                   |                                                                                                                                                                            |
 
 ## Risks and Trade-offs
 

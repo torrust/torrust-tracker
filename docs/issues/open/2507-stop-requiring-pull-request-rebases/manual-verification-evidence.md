@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-14 10:05
+last-updated-utc: 2026-10-14 10:37
 ---
 
 # Manual Verification Evidence
@@ -231,10 +231,22 @@ after,  develop: creation,pull_request,deletion,non_fast_forward,required_signat
 after,  main:    creation,pull_request,deletion,non_fast_forward,required_signatures
 ```
 
+Release branches (`releases/**`), checked for one existing release branch on 2026-10-14 at about
+10:00 UTC and again at 10:36 UTC with the same output:
+
+```sh
+gh api repos/torrust/torrust-tracker/rules/branches/releases/v3.0.0-rc.1 --jq '[.[].type] | join(",")'
+```
+
+```text
+non_fast_forward,required_signatures,creation,deletion,required_deployments,update
+```
+
 Ruleset 87098 kept only one retained version, from 2026-07-20 10:19 (+01:00) by `josecelano`, with
 no rules; the `coverage` environment it once referenced still exists. No disabled ruleset remains.
 
-Conclusion: the force-push ban is enforced again on `develop` and `main` (scenario M7), and no
+Conclusion: the force-push ban is enforced again on `develop`, `main`, and release branches
+(scenario M7), and no
 required status check is configured until the follow-up `CI gate` issue.
 
 ## Failures and Follow-up
