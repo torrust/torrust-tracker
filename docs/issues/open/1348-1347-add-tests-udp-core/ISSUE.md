@@ -304,7 +304,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
 | 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | 17 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) |
-| 18 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
+| 18 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | DONE | [crypto-mod-tests.md](test-refactor-plans/crypto-mod-tests.md) |
 | 19 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
 | - | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | REMOVED (#2458) | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) (superseded) |
 | - | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | REMOVED (#2458) | - |
@@ -490,6 +490,8 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   connect-only test helpers into `connect.rs`); ledger row 17 is `IN_PROGRESS`.
 - 2026-10-14 12:22 UTC - Jose Celano - Approved the `services/mod.rs` completed-file review; ledger
   row 17 is `DONE` (helpers moved; the file keeps only the shared mock).
+- 2026-10-14 12:28 UTC - Jose Celano - Approved no change for `crypto/mod.rs`; ledger row 18 is
+  `DONE`.
 
 ## Acceptance Criteria
 

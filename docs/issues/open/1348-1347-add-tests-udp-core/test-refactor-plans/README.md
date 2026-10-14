@@ -39,6 +39,7 @@ maintainer approves it.
 | 15 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | 1 contract test added for the exported metric name |
 | 16 | [lib-tests.md](lib-tests.md) | DONE | No change; unused policy `Default` recorded |
 | 17 | [services-mod-tests.md](services-mod-tests.md) | DONE | 2 connect-only helpers moved into `connect.rs`; shared mock kept |
+| 18 | [crypto-mod-tests.md](crypto-mod-tests.md) | DONE | No change; module declaration only |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
