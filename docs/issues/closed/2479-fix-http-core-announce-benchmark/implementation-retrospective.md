@@ -5,8 +5,8 @@ semantic-links:
     - fix-bug
     - run-benchmarks
   related-artifacts:
-    - docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-    - docs/issues/open/2479-fix-http-core-announce-benchmark/manual-verification-evidence.md
+    - docs/issues/closed/2479-fix-http-core-announce-benchmark/ISSUE.md
+    - docs/issues/closed/2479-fix-http-core-announce-benchmark/manual-verification-evidence.md
     - docs/benchmarking.md
 ---
 

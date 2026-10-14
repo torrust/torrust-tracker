@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p3
 epic: null
 github-issue: 2479
-spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
+spec-path: docs/issues/closed/2479-fix-http-core-announce-benchmark/ISSUE.md
 branch: "2479-fix-http-core-announce-benchmark"
 related-pr: 2509
-last-updated-utc: "2026-10-13 18:12"
+last-updated-utc: "2026-10-14 06:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -221,7 +221,7 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -285,6 +285,12 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   --all-features`, 46 s in total). Upstream `develop` had moved to `b5f1801c6` (issue #2505 docs
   only), so the branch was rebased onto it with signed commits and force-pushed with lease; the
   pre-push hook passed again on the rebased tree. Opened PR #2509 (`Closes #2479`); CI started.
+- 2026-10-14 06:29 UTC - Copilot - PR #2509 was merged into `develop` by the maintainer as signed merge
+  commit `8af007187` (2026-10-14 06:25 UTC), with all CI checks green and without a second
+  reviewer's approval; the merge closed issue #2479. Archived this specification to
+  `docs/issues/closed/` and updated the review-audit frontmatter that pointed at the old path. The
+  "Reviewer validated acceptance criteria" checkbox stays unchecked: no reviewer other than
+  Copilot validated them before the merge.
 
 ## Acceptance Criteria
 

@@ -5,9 +5,9 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/benchmarking.md
-    - docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-    - docs/issues/open/2479-fix-http-core-announce-benchmark/implementation-retrospective.md
-    - docs/issues/open/2479-fix-http-core-announce-benchmark/manual-verification-evidence.md
+    - docs/issues/closed/2479-fix-http-core-announce-benchmark/ISSUE.md
+    - docs/issues/closed/2479-fix-http-core-announce-benchmark/implementation-retrospective.md
+    - docs/issues/closed/2479-fix-http-core-announce-benchmark/manual-verification-evidence.md
 ---
 
 <!-- skill-link: process-pr-review -->

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-last-updated-utc: "2026-10-13 18:06"
+issue-spec: docs/issues/closed/2479-fix-http-core-announce-benchmark/ISSUE.md
+last-updated-utc: "2026-10-14 06:29"
 ---
 
 # Manual Verification Evidence
