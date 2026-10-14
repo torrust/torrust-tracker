@@ -382,7 +382,7 @@ Findings:
 - `is_banned` did not change, so its first-after-run failures (0.4-1.2%) are measurement noise.
 
 Maintainer decision (2026-10-13, shortly after the comparison above ended at 21:35:33 UTC): accept
-the cost as inherent to the fix, adopt B, and rerun the after measurement on the final code. The specification's
+the cost as inherent to the fix, adopt B, and rerun the after measurement on the code then believed final. The specification's
 progress-log entry describing it is stamped 2026-10-14 05:32 UTC because it was written when work
 resumed after an overnight pause. B was committed as
 `perf(udp-core): [#2505] detect the ban crossing with one comparison`.

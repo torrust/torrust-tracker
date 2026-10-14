@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 12:32"
+last-updated-utc: "2026-10-14 12:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,6 +25,7 @@ semantic-links:
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/final-recheck-tracker.log
+    - docs/issues/open/2505-udp-banned-ips-metric/evidence/last-recheck-tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/agent-review-reports.md
     - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
     - docs/issues/open/2505-udp-banned-ips-metric/implementation-retrospective.md
@@ -656,6 +657,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   (load test passes; 5 of 28 Criterion medians over the limit, the IPv6 `record_error` cost rising
   to about 0.8 ns with the overflow guard, accepted by the maintainer) and the whole recheck is
   being repeated on the final code (L-V1 to L-V4).
+- 2026-10-14 12:55 UTC - GitHub Copilot (implementation session) - F9 completed: the recheck on the final code
+  (L-V1 to L-V4, tracker started 11:54:15 UTC, reset at 12:54:15 UTC) reported 0, 0, 1, and 0 right
+  after the reset, the same as both earlier rechecks; the earlier "final" recheck is relabeled the
+  second recheck, and AC6 now cites the last one.
 
 ## Acceptance Criteria
 
@@ -737,7 +742,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; the new `BanService::get_banned_ips_total` doc comment and the updated `reset_bans` doc in `fix(udp-core): [#2505] count only IPs over the limit as banned` |
 | AC4   | DONE   | `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
 | AC5   | DONE (accepted deviation) | `performance-evidence.md` "Final After Run - Final Code" and "Comparison": load test passes; 5 Criterion medians over the limit, accepted by the maintainer |
-| AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
+| AC6   | DONE   | manual-verification-evidence.md "Recheck on the Final Code (T10)" (L-V1 to L-V4 on the final code) |
 | AC7   | DONE   | `record_error` medians of the final after run flat across 10 to 10,000 tracked IPs; the benchmark task B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
