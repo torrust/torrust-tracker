@@ -57,7 +57,8 @@ overview's summary and change table contain no further request, so they add no r
 da2ce7's review 5522278878 (submitted 2026-10-14 17:55:13 UTC, at the spec head; GitHub later
 marked it DISMISSED after the fix pushes) carries five inline findings with
 `[<Severity>][<FindingId>]` headers: F4-F7 (`Minor`) and F8 (`Nit`). Its IDs do not collide with
-Copilot's F1-F3, so the rows keep them. The body upholds Copilot's F1 and F2 at Minor and F3 as
+Copilot's F1-F3, so the rows keep them, and each detail's `Reviewer finding ID` is `N/A` because
+no ID was reassigned. The body upholds Copilot's F1 and F2 at Minor and F3 as
 raised. Those are the same concerns, already fixed and replied to on their own threads, so they
 add no row, and the F1 and F2 rows keep Copilot's own `Major` header. The body also notes that
 the #2521 quick-list item and EPIC row still read TODO. That is outside this diff and is handled by
@@ -144,7 +145,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5522278878
-- Reviewer finding ID: F4
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350543>
 - Concern: Current callers listed the adapter, the event handlers, and the integration tests, but
   not the unit tests inside the five crates, which are the largest group of calls (57 by the
@@ -163,7 +164,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5522278878
-- Reviewer finding ID: F5
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350550>
 - Concern: M1 compared before and after REST outputs without naming the files to store or the full
   mask for values that differ between runs, so its pass result could not be reproduced.
@@ -180,7 +181,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5522278878
-- Reviewer finding ID: F6
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350554>
 - Concern: Risks warned about specs that touch the removed accessors without naming any, so their
   authors could not be told.
@@ -196,7 +197,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5522278878
-- Reviewer finding ID: F7
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350564>
 - Concern: the grep had no path operand, so it searched `docs/` and `target/` and matched calls
   that are not on a statistics repository. Its result could only be judged by sorting the output
@@ -215,7 +216,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5522278878
-- Reviewer finding ID: F8
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350571>
 - Concern: each repository's rustdoc lead-in links to `Repository::get_stats` or
   `Repository::get_metrics`. With warnings denied, that link breaks the library docs step and the
@@ -234,7 +235,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5523889096
-- Reviewer finding ID: F9
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626312>
 - Concern: `create-issue` and the issue template require the test-design review to judge helper
   boundaries by meaningful named actions and abstraction-level alignment, not caller count. The
@@ -250,7 +251,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5523889096
-- Reviewer finding ID: F10
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626334>
 - Concern: `create-issue` puts the maintainer stop before the final increment's commit, but the
   plan committed every package, T7 included, right after its test-design review.
@@ -266,7 +267,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5523889096
-- Reviewer finding ID: F11
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626352>
 - Concern: the F1 sentence cited :120-122, which hold the "Consistent reads" and "No copies"
   bullets, and :179-188, which is off by one; the F1 reply repeated both.
@@ -283,7 +284,7 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 
 - PR number: 2537
 - Source review ID: 5523889096
-- Reviewer finding ID: F12
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626368>
 - Concern: the record cited PR-branch commits by id, which a rebase rewrites, against
   `open-pull-request`'s rule for durable references.
