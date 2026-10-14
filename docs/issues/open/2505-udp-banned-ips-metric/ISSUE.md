@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 09:46"
+last-updated-utc: "2026-10-14 09:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -557,6 +557,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   publishing, so concurrent writes could land out of order. Both paths now hold the lock until the
   gauge is written; two lock-ordering regression tests were red before and green after (evidence:
   "PR Review Follow-Up - Gauge Publication Ordering").
+- 2026-10-14 09:58 UTC - GitHub Copilot (implementation session) - PR #2524 review (Cameron) finding F3: a
+  per-IP count that wraps would be counted again. `increase_counter` now stops at `u32::MAX` with
+  `checked_add` (the suggested `saturating_add` double-counts when the limit is `u32::MAX - 1`);
+  two boundary tests seed the count through the private map and fail for both variants (evidence:
+  "PR Review Follow-Up - Error Count Overflow").
 
 ## Acceptance Criteria
 

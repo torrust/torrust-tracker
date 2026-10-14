@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 09:46
+last-updated-utc: 2026-10-14 09:58
 ---
 
 # Manual Verification Evidence
@@ -1356,6 +1356,55 @@ blocks on the gauge store; Assert states the ordering guarantee, that the ban se
 locked, with a message that explains the consequence. The tests observe the locking mechanism
 rather than a racy outcome, because the out-of-order interleaving cannot be produced
 deterministically without an injection seam.
+
+### PR Review Follow-Up - Error Count Overflow (PR #2524 Review by Cameron, His F3)
+
+Cameron's review of PR #2524 (his finding F3, audit F5) noted that `*count += 1` wraps in release
+builds after `u32::MAX` errors from one IP within a reset interval, reachable in `disabled` mode, and
+the wrapped count would cross the limit again and count an already banned IP twice. The fix stops
+the count at `u32::MAX` with `checked_add` and counts the crossing only when the count actually
+increased. Cameron suggested `saturating_add`; the first attempt used it, but with a limit of
+`u32::MAX - 1` the count saturates at the crossing value, so every later error matched `limit + 1`
+again. Two regression tests seed a count near `u32::MAX` through the private map (the test module is
+a child of `banning`), because reaching it through `increase_counter` takes about four billion
+calls:
+
+- `it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum` (Cameron's
+  scenario: limit 1, an IP banned and then at `u32::MAX`, `limit + 2` more errors, total stays 1).
+- `it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count` (limit `u32::MAX - 1`,
+  an IP at the limit, 3 more errors, total 1).
+
+Mutate-then-restore against the two plausible variants (the original `*count += 1` and the
+`saturating_add` form), each applied without staging and restored from a copy
+(`.tmp/banning.rs.checked`), with
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|panicked|left:|right:|^test result" | sed 's/^    services/FAILED: services/' | sort -u`:
+
+```text
+== variant: wrap
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count
+FAILED: services::banning::tests::it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum
+test result: FAILED. 12 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+thread 'services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count' (963766) panicked at packages/udp-core/src/services/banning.rs:37:9:
+thread 'services::banning::tests::it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum' (963771) panicked at packages/udp-core/src/services/banning.rs:37:9:
+== variant: saturating
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count
+  left: 3
+ right: 1
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+thread 'services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count' (964022) panicked at packages/udp-core/src/services/banning.rs:327:9:
+restored: identical to the checked_add version
+```
+
+The wrap variant panics in the test profile (overflow checks are on in debug builds); in release it
+would wrap and double-count. With the fix, the `udp-core` (51), `udp-server` (222, 16, and doc),
+and root reset-job (2) tests pass, the benchmarks compile and run as tests, and
+`cargo clippy -q -p torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
+
+Test design note: `with_error_count` writes the private map directly, which couples the two tests to
+the representation; it is the only deterministic way to reach the overflow boundary, and its doc
+comment says so. The causal state (the limit and the seeded count) stays visible in the test body.
 
 ## Failures and Follow-up
 

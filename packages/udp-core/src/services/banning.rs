@@ -32,10 +32,15 @@ impl BanService {
     pub fn increase_counter(&mut self, ip: &IpAddr) {
         let count = self.accurate_error_counter.entry(*ip).or_insert(0);
 
-        *count += 1;
+        // Stop at `u32::MAX` instead of wrapping: a wrapped count would cross
+        // the limit again and count an already banned IP twice.
+        let Some(next_count) = count.checked_add(1) else {
+            return;
+        };
+        *count = next_count;
 
         // An IP becomes banned exactly when its count reaches `limit + 1`.
-        if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1) {
+        if Some(next_count) == self.max_connection_id_errors_per_ip.checked_add(1) {
             self.banned_ips_total += 1;
         }
     }
@@ -278,6 +283,53 @@ mod tests {
             0,
             "banned IPs total for {} IPs with {limit} error each and a limit of {limit}",
             ips.len()
+        );
+    }
+
+    /// Puts an IP's error count near `u32::MAX` directly: reaching it through
+    /// `increase_counter` would take about four billion calls. The test module
+    /// can set the private map because it is a child of this module.
+    fn with_error_count(ban_service: &mut BanService, ip: IpAddr, count: u32) {
+        ban_service.accurate_error_counter.insert(ip, count);
+    }
+
+    #[test]
+    fn it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum() {
+        // Arrange
+        let limit = 1;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+        with_error_count(&mut ban_service, ip, u32::MAX);
+
+        // Act
+        record_connection_id_errors(&mut ban_service, &ip, limit + 2);
+
+        // Assert
+        assert_eq!(
+            ban_service.get_banned_ips_total(),
+            1,
+            "banned IPs total after an IP banned with a limit of {limit} sends {} more errors at a count of u32::MAX",
+            limit + 2
+        );
+    }
+
+    #[test]
+    fn it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count() {
+        // Arrange
+        let limit = u32::MAX - 1;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        with_error_count(&mut ban_service, ip, limit);
+
+        // Act
+        record_connection_id_errors(&mut ban_service, &ip, 3);
+
+        // Assert
+        assert_eq!(
+            ban_service.get_banned_ips_total(),
+            1,
+            "banned IPs total after an IP at the limit of u32::MAX - 1 sends 3 more errors"
         );
     }
 
