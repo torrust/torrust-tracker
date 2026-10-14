@@ -4,9 +4,9 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-    - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
-    - docs/issues/open/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
+    - docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/manual-verification-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -51,7 +51,8 @@ Cameron's review 5515068886 (`da2ce7`, COMMENTED) was submitted on 2026-10-14 at
 after this pull request merged (2026-10-13 17:50:54 UTC). Its eight inline findings are headed
 F7-F14; those IDs do not collide with F1-F6, so they are used unchanged. The maintainer approved
 fixing them on the branch of PR #2524, which already changes the specification (approval URL in
-Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
+Ownership). They stayed `FOLLOW_UP`/`OPEN` until PR #2524 merged on 2026-10-14 at 14:21:52 UTC as
+`8045bd252`; they are now `FIXED`/`RESOLVED`, each citing the fix commit on `develop` and a closing reply.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,14 +62,14 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 | F4 | `review-finding:pr-2506-f4` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2506-f5` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2506-f6` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F7 | `review-finding:pr-2506-f7` | Human | Major | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | `review-finding:pr-2506-f8` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F9 | `review-finding:pr-2506-f9` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F10 | `review-finding:pr-2506-f10` | Human | Nit | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F11 | `review-finding:pr-2506-f11` | Human | Suggestion | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
-| F12 | `review-finding:pr-2506-f12` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F13 | `review-finding:pr-2506-f13` | Human | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F14 | `review-finding:pr-2506-f14` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F7 | `review-finding:pr-2506-f7` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2506-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2506-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2506-f10` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2506-f11` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2506-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2506-f13` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2506-f14` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -212,12 +213,12 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - Solution: on the PR #2524 branch, the bullet, Scope, AC3, and its evidence row now say the fix adds
   a doc comment to the inherent method and updates the `reset_bans` doc, which that branch's code
   does.
-- Current-tree verification: on the PR #2524 branch, `ISSUE.md`'s bullet says the inherent method
-  had no doc comment; `packages/udp-core/src/services/banning.rs` documents `get_banned_ips_total`
-  and `reset_bans`.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647671>
+- Current-tree verification: on `develop`, the archived `ISSUE.md`'s bullet says the inherent method had no
+  doc comment; `packages/udp-core/src/services/banning.rs` documents `get_banned_ips_total` and
+  `reset_bans`.
+- Resolution reference: `docs(issues): [#2505] correct the contract, origin, and AC4 statements`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647671>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272121995>
 
 ### F8 - The evidence said invalid connection IDs are not logged
 
@@ -229,11 +230,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   level, but `evidence/tracker.log` has one `WARN` line per invalid ID.
 - Solution: on the PR #2524 branch, the sentence is replaced by the 15 condensed `WARN` lines per
   process, with the script that condensed them.
-- Current-tree verification: on the PR #2524 branch, `manual-verification-evidence.md` quotes log
-  lines 122, 132, 133, 143-147, 149-154, and 497.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647993>
+- Current-tree verification: on `develop`, the archived `manual-verification-evidence.md` quotes log lines 122,
+  132, 133, 143-147, 149-154, and 497.
+- Resolution reference: `docs(issues): [#2505] record the invalid connection ID log lines in the reproduction`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647993>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272122370>
 
 ### F9 - The method dates from 1ce2e3327, not the package extraction
 
@@ -247,10 +248,10 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - Solution: on the PR #2524 branch, "Origin" names `1ce2e3327`, and "Risks and Trade-offs" says the
   value has been wrong since the metric was introduced.
 - Current-tree verification: `git show 1ce2e3327` adds `get_banned_ips_total` returning
-  `self.accurate_error_counter.len()`; the PR #2524 branch's `ISSUE.md` cites it.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648212>
+  `self.accurate_error_counter.len()`; the archived `ISSUE.md` on `develop` cites it.
+- Resolution reference: `docs(issues): [#2505] correct the contract, origin, and AC4 statements`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648212>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272122812>
 
 ### F10 - R2's "passes on develop" holds only for its reset leg
 
@@ -266,12 +267,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   (`it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`, red with
   `develop`'s map-length total) and says the reset leg and the re-crossing case pass on `develop`
   while the below-limit case is red.
-- Current-tree verification: the PR #2524 branch's `ISSUE.md` R2 bullet lists the three cases and
-  their status, and `packages/udp-core/src/services/banning.rs` contains the below-limit test.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
-  (corrects the earlier reply <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>)
+- Current-tree verification: on `develop`, the archived `ISSUE.md` R2 bullet lists the three cases and their
+  status, and `packages/udp-core/src/services/banning.rs` contains the below-limit test.
+- Resolution reference: `test(udp-core): [#2505] cover an IP that stays within the limit after a reset`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272123179>
 
 ### F11 - Give the leftover removals their own commit point
 
@@ -286,12 +286,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`,
   placed before `fix(udp-core): [#2505] count only IPs over the limit as banned`. The Commit Points
   table and the AC4 evidence name the refactor commit.
-- Current-tree verification: on the PR #2524 branch the refactor commit exists once, its state
-  passed the workspace check, the `udp-core` and `udp-server` tests, fmt, clippy, and the pre-commit
-  hook, and the final tree is byte-identical to the pre-split head.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648684>
+- Current-tree verification: on `develop`, the refactor commit precedes `fix(udp-core): [#2505] count only IPs
+  over the limit as banned`, and no `BanningStats` reference remains under `packages/` or `src/`.
+- Resolution reference: `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648684>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272123549>
 
 ### F12 - P1 and P2 named options and measurement phases
 
@@ -303,11 +302,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   said "P2 meets the pass rule" while option P2 was ruled out.
 - Solution: on the PR #2524 branch, the phases are "baseline" and "after" in the current text, and
   an "Identifiers" glossary lists every short identifier (the same change as PR #2524 finding F4).
-- Current-tree verification: the PR #2524 branch's `ISSUE.md` has the "Identifiers" section, and
+- Current-tree verification: on `develop`, the archived `ISSUE.md` has the "Identifiers" section, and
   `performance-evidence.md` uses P1/P2 only for options.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648920>
+- Resolution reference: `docs(issues): [#2505] disambiguate the shared short identifiers`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648920>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272124043>
 
 ### F13 - The plan dropped the P4 scan benchmark condition
 
@@ -320,11 +319,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - Solution: on the PR #2524 branch, "Performance Alternatives" again requires a scan benchmark if
   option P4 is chosen, and says it did not apply because option P1 was chosen. F1's solution
   sentence above is accurate again.
-- Current-tree verification: the PR #2524 branch's `ISSUE.md` contains "If option P4 is chosen,
-  also add a benchmark case for its scan".
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649229>
+- Current-tree verification: on `develop`, the archived `ISSUE.md` contains "If option P4 is chosen, also add a
+  benchmark case for its scan".
+- Resolution reference: `docs(issues): [#2505] align the scope and plan text with the final plan`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649229>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272124404>
 
 ### F14 - Scope described the old benchmark plan
 
@@ -334,11 +333,11 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430867>
 - Concern: Scope and "Risks and Trade-offs" still pointed at the original benchmark plan.
 - Solution: on the PR #2524 branch, both point at the Performance Evidence Plan.
-- Current-tree verification: the PR #2524 branch's `ISSUE.md` Scope bullet says "Measure performance
-  before and after the change as the "Performance Evidence Plan" describes".
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649553>
+- Current-tree verification: on `develop`, the archived `ISSUE.md` Scope bullet says "Measure performance before
+  and after the change as the "Performance Evidence Plan" describes".
+- Resolution reference: `docs(issues): [#2505] align the scope and plan text with the final plan`
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649553>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4272124765>
 
 ## Processing Log
 
@@ -358,6 +357,10 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   false claim that R2's re-count leg is red on `develop` (PR #2524 review finding F7 by Cameron).
 - 2026-10-14 13:03 UTC - Posted a correcting reply on the F10 thread (the earlier reply called
   the re-count leg red) and pointed F10's resolution and reply URL to it; the thread stays `OPEN`.
+- 2026-10-14 14:31 UTC - PR #2524 merged (`8045bd252`, 14:21:52 UTC). Verified each F7-F14 fix on
+  `develop`, replied on the eight threads with the merge and the fix commit, and recorded them as
+  `FIXED`/`RESOLVED` with those commits as resolution references; the threads are resolved after
+  this audit is pushed.
 
 ## Completion Rules
 

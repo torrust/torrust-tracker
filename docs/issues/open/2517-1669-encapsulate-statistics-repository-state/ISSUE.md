@@ -129,9 +129,8 @@ module inside the same file, which keeps access to a private field.
 - Renaming the field.
 - Unifying the five repositories into a shared generic type.
 - Removing the unused SI-30 statistics traits (`UdpCoreStatsRepository`,
-  `UdpServerStatsRepository`) in `udp-core` and `udp-server`. A separate #1669 sub-issue draft for
-  them exists but is not committed yet; the only in-tree note on their possible leftover status is
-  the Out of Scope of the #2505 spec (`docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md`).
+  `UdpServerStatsRepository`) in `udp-core` and `udp-server`: tracked by #2521
+  (`docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`).
 - Changelog entries: none of the five packages, nor the repository root, keeps a changelog.
 
 ## Architectural Decisions

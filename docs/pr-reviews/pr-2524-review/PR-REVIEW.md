@@ -4,9 +4,9 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-    - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
-    - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/manual-verification-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/performance-evidence.md
     - packages/udp-core/src/services/banning.rs
     - packages/udp-server/src/banning/mod.rs
     - packages/udp-server/src/banning/event/handler.rs

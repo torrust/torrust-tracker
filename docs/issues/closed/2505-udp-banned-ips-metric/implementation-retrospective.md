@@ -5,9 +5,9 @@ semantic-links:
     - run-benchmarks
     - fix-bug
   related-artifacts:
-    - docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-    - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
-    - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/performance-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/manual-verification-evidence.md
     - docs/benchmarking.md
 ---
 
