@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:04"
+last-updated-utc: "2026-10-14 10:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,6 +49,25 @@ semantic-links:
 
 Make the "banned IPs" metric report what its name and descriptions say, and keep it correct after
 the periodic ban reset.
+
+## Identifiers
+
+Several short identifiers share a letter. In this specification and its issue-local documents:
+
+| Identifier | Meaning | Defined in |
+| ---------- | ------- | ---------- |
+| Options P1-P4 | Performance alternatives for computing the banned total (option P1 was chosen) | "Performance Alternatives" |
+| Baseline, after | The before-and-after performance measurements (earlier text and `performance-evidence.md` command labels call them P1 and P2) | "Performance Evidence Plan" |
+| G1-G3 | Options for publishing the gauge on reset | "Gauge Update on Reset" |
+| R1-R6, R1p | Regression tests | "Regression Test Strategy" |
+| T1-T10, benchmark task B1 | Implementation tasks | "Implementation Plan" |
+| Scenarios M1-M4 | Manual verification scenarios | "Manual Verification Scenarios" |
+| V1-V4, R-V1-R-V4, F-V1-F-V4 | Reproduction, first recheck, and final recheck processes | `manual-verification-evidence.md` |
+| Mutations M0-M5, M1b, M3b | Code mutations for mutate-then-restore (their `== M...` labels are part of recorded command output) | `manual-verification-evidence.md` "Mutate-Then-Restore" sections |
+| Task review B1, B2, N1-N11 | Findings of the independent pre-PR task review | `agent-review-reports.md` |
+| F1-F14 | Pull-request review findings | `docs/pr-reviews/pr-2506-review/` and `docs/pr-reviews/pr-2524-review/` |
+
+Progress Log entries are historical and keep the identifiers used when they were written.
 
 ## Background
 
@@ -255,7 +274,7 @@ Before-and-After Evidence") and the `run-benchmarks` skill, with issue #2458 as 
 - **Microbenchmark (precise):** the existing Criterion groups `udp_ban_service/increase_counter`
   and `udp_ban_service/is_banned` in `packages/udp-core/benches/ban_service_benchmark.rs`. No
   benchmark covers the per-event step the handler runs (`increase_counter` followed by reading the
-  banned total), so **B1** adds one, `udp_ban_service/record_error`, measured at the existing
+  banned total), so **benchmark task B1** adds one, `udp_ban_service/record_error`, measured at the existing
   `CARDINALITIES` of tracked IPs, in its own commit before any production change. Its medians
   across cardinalities are also the AC7 evidence: they must not grow with the number of tracked IPs.
 - **End-to-end load test (user-visible):** `aquatic_udp_load_test` against a release build started
@@ -268,18 +287,19 @@ Before-and-After Evidence") and the `run-benchmarks` skill, with issue #2458 as 
 
 Method:
 
-- **P1 (baseline, T3)** runs after B1 and before any production change: three Criterion runs (each
+- **Baseline (T3)** runs after benchmark task B1 and before any production change: three Criterion runs (each
   benchmark's median read from `target/criterion/<group>/<function>/new/estimates.json`) and five
-  load-test runs. **P2 (after, T9)** repeats the same measurements on the finished code, on the same
+  load-test runs. **After (T9)** repeats the same measurements on the finished code, on the same
   machine, with the same build profile, configuration, and load-test settings. The benchmark code
-  may change between P1 and P2 only as far as changed signatures require.
+  may change between the baseline and the after measurement only as far as changed signatures
+  require.
 - Check the machine before each measurement (`uptime`, other builds) and record it.
 - Record the machine, toolchain, aquatic commit, commands, configuration, every run, and the
   observed noise in issue-local `performance-evidence.md`, with times taken from output files or
   `git log`.
-- **Pass rule (one-sided):** the P2 load-test mean responses per second is not below the lowest P1
-  run, and each P2 Criterion median is not above the highest of the three P1 medians for the same
-  benchmark. State the observed P1 noise, so readers know which regressions the measurement can
+- **Pass rule (one-sided):** the after load-test mean responses per second is not below the lowest
+  baseline run, and each after Criterion median is not above the highest of the three baseline
+  medians for the same benchmark. State the observed baseline noise, so readers know which regressions the measurement can
   detect. A failure is investigated, for example with [docs/profiling.md](../../../profiling.md),
   before the issue closes.
 
@@ -330,7 +350,7 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
 | Layer                                         | Fit       | What it protects here                                                                                                                                                                                                                                       |
 | --------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unit, `udp-core` (`BanService`)               | Required  | D1 at its causal seam: the threshold boundary of the banned total, and the total after reset. Fast and deterministic.                                                                                                                                      |
-| Property-based unit, `udp-core`               | Required  | The invariant "banned total == number of IPs for which `is_banned` is true" for arbitrary error sequences, limits, and resets. Most valuable with P1/P3, where a second piece of state must stay consistent with the map.                                 |
+| Property-based unit, `udp-core`               | Required  | The invariant "banned total == number of IPs for which `is_banned` is true" for arbitrary error sequences, limits, and resets. Most valuable with options P1 and P3, where a second piece of state must stay consistent with the map.                                 |
 | Unit, `udp-server` (banning module)           | Required  | The new reset-and-publish function (G1) writes the new total to the gauge.                                                                                                                                                                                 |
 | Unit, root crate (reset job)                  | Required  | D2's actual cause is wiring: the job resets the bans but never publishes. A job test with a paused Tokio clock (precedent: `src/bootstrap/jobs/torrent_cleanup.rs`) advances one interval and reads the gauge. This is the test that is red on `develop`. |
 | Package-level in-process integration, `udp-server` | Required  | The published gauge through the real server, event bus, banning listener, and stats repository (`packages/udp-server/tests/server/contract.rs` environment). It is the closest automated equivalent of the reported symptom; the handler unit test injects a hand-made event and does not cover this wiring. |
@@ -385,13 +405,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Reproduce and record                               | [manual-verification-evidence.md](manual-verification-evidence.md) V1-V4, outcome **Reproduced**.               |
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
 | B1  | DONE   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
-| T3  | DONE   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
+| T3  | DONE   | Performance baseline                               | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
 | T4  | DONE   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
 | T5  | DONE   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | DONE   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | DONE   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | DONE   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
-| T9  | DONE   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
+| T9  | DONE   | Performance after the fix                          | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
 | T10 | DONE   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
 ## Commit Points
@@ -402,8 +422,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6-T7  | Gauge-on-reset fix with R3 and R4                                    | Commit after focused validation and design review.  |
 | T8     | Documentation updates                                                | Commit after focused validation.                    |
 | B1     | `udp_ban_service/record_error` benchmark                             | One `test(udp-core)` commit before T3.              |
-| T3     | P1 baseline in `performance-evidence.md`                             | One `docs(issues)` commit before any production change. |
-| T9     | P2 results and comparison in `performance-evidence.md`               | One `docs(issues)` commit.                          |
+| T3     | Baseline in `performance-evidence.md`                                | One `docs(issues)` commit before any production change. |
+| T9     | After results and comparison in `performance-evidence.md`               | One `docs(issues)` commit.                          |
 | T10    | Recheck evidence and acceptance review                               | Commit after maintainer review.                     |
 
 Record the red output of T4 and T6, and the mutate-then-restore output for R1p, R2, and R3, before
@@ -596,22 +616,35 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   F14 (same approval): R2's note now says only its reset leg passes on `develop`; the P4 scan
   benchmark condition is restored in "Performance Alternatives" (not applicable, option P1 was
   chosen); Scope and "Risks and Trade-offs" now point at the Performance Evidence Plan.
+- 2026-10-14 10:06 UTC - GitHub Copilot (implementation session) - PR #2524 finding F2 by Cameron and late PR
+  #2506 finding F12: added an "Identifiers" glossary, renamed the measurement phases P1 and P2 to
+  baseline and after in the current text of this specification, `performance-evidence.md`, and the
+  retrospective, and qualified scenario, mutation, benchmark-task, and task-review citations.
+  Progress Log entries and recorded command output keep their original identifiers.
+- 2026-10-14 10:09 UTC - GitHub Copilot (implementation session) - Process mistake, corrected before any push:
+  the `performance-evidence.md` part of the identifier change was swept into
+  `docs(issues): [#2505] correct the contract, origin, and AC4 statements` by `git add -A` on the
+  whole issue folder. At the maintainer's choice, that commit and the next one were rebuilt (stash,
+  `git reset --soft`, recommit each from its original `ISSUE.md`), so the rename now belongs to the
+  identifier commit.
 
 ## Acceptance Criteria
 
 - [x] AC1: The banned-IPs total counts only IPs whose error count exceeds the limit, in both `strict`
-  and `disabled` mode (R1, R1p, R5, R6, M1-M3).
+  and `disabled` mode (R1, R1p, R5, R6, scenarios M1-M3).
 - [x] AC2: After a ban reset, the banned total and the published gauge report the new value (R2, R3,
-  R4, M4).
+  R4, scenario M4).
 - [x] AC3: The inherent `BanService::get_banned_ips_total` has a doc comment, and it, the
   `BanService::reset_bans` doc, the metric, the `udp-server` helper, and the REST field descriptions
   match the behavior, including the `disabled`-mode meaning.
 - [x] AC4: The `BanningStats` trait and `BanService::last_connection_id_errors_reset` are removed.
-- [x] AC5: `performance-evidence.md` records the P1 baseline and the P2 after measurements
-  (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and P2 meets
+- [x] AC5: `performance-evidence.md` records the baseline and the after measurements
+  (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and the after
+  measurement meets
   the one-sided pass rule in "Performance Evidence Plan", with the observed noise stated.
   **Met with a maintainer-accepted deviation:** the load test passes; 9 of 28 Criterion medians
-  exceed their P1 limit, explained in `performance-evidence.md` ("P2 Investigation",
+  exceed their baseline limit, explained in `performance-evidence.md` ("Investigation - Same-Machine
+  Comparison",
   "Comparison") as the inherent cost of maintaining the counter (about 0.4-0.6 ns per invalid
   connection ID) or noise in unchanged code.
 - [x] AC6: The reproduction is repeated after the fix and recorded.
@@ -631,7 +664,7 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - `cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server` (R4)
 - `cargo test --test integration` and the root banning tests under `tests/banning/`
 - `cargo test --doc --workspace`
-- `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark` (B1, T3, T9; three runs
+- `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark` (benchmark task B1, T3, T9; three runs
   each for T3 and T9)
 - `aquatic_udp_load_test` against `./target/release/torrust-tracker --config-toml-path
   ./share/default/config/tracker.udp.benchmarking.toml` (T3, T9; five runs each, see
@@ -670,13 +703,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 | AC ID | Status | Evidence           |
 | ----- | ------ | ------------------ |
-| AC1   | DONE   | R1, R1p, R5, R6 green and proven (manual-verification-evidence.md "Regression Tests"); M1-M3 after fix 0, 0, 1 |
-| AC2   | DONE   | R2, R3, R4 green and proven; M4 after fix 0 right after the reset |
+| AC1   | DONE   | R1, R1p, R5, R6 green and proven (manual-verification-evidence.md "Regression Tests"); scenarios M1-M3 after the fix 0, 0, 1 |
+| AC2   | DONE   | R2, R3, R4 green and proven; scenario M4 after the fix 0 right after the reset |
 | AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; the new `BanService::get_banned_ips_total` doc comment and the updated `reset_bans` doc in `fix(udp-core): [#2505] count only IPs over the limit as banned` |
 | AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
 | AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
 | AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
-| AC7   | DONE   | `record_error` P2 medians flat across 10 to 10,000 tracked IPs; B1 check shows a scan would grow linearly |
+| AC7   | DONE   | `record_error` after medians flat across 10 to 10,000 tracked IPs; the benchmark task B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
 

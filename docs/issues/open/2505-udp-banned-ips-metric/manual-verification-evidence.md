@@ -1,12 +1,16 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 09:58
+last-updated-utc: 2026-10-14 10:06
 ---
 
 # Manual Verification Evidence
 
 <!-- cspell:ignore cooki -->
+
+> Identifiers: in the "Mutate-Then-Restore" sections, M0-M5, M1b, and M3b name code mutations (their
+> `== M...` labels are recorded command output). The manual verification scenarios M1-M4 are defined
+> in the specification. See the specification's "Identifiers" section.
 
 ## Purpose
 
@@ -651,7 +655,7 @@ IPs over the limit in every step, and it is updated when the periodic reset clea
 
 The first recheck above ran on the build of
 `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`. The independent
-pre-PR review (finding B1 in `agent-review-reports.md`) noted that the later
+pre-PR review (task review finding B1 in `agent-review-reports.md`) noted that the later
 `perf(udp-core): [#2505] detect the ban crossing with one comparison` changed the counting logic,
 so the finished artifact had not been checked by hand. At the maintainer's choice, the whole
 recheck was repeated on the final code.
@@ -1189,7 +1193,7 @@ independently stated expected total of 0 whose message names the interval and th
 
 ### Mutate-Then-Restore - Variant B of the Counter (T9 Follow-Up)
 
-After the T9 investigation (see `performance-evidence.md`, "P2 Investigation"), the maintainer
+After the T9 investigation (see `performance-evidence.md`, "Investigation - Same-Machine Comparison"), the maintainer
 adopted variant B of the crossing check, which compares once after the increment:
 `if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1)`. M1 and M3 no longer apply
 in their original form, so all four variants were rerun against B. The fixed file was copied to

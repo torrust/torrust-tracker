@@ -34,9 +34,9 @@ regression.
 
 1. Reproducing against the real tracker before the spec review exposed facts the draft did not
    have: the REST field reads the same gauge, so both surfaces were stale after a reset.
-2. Adding the `record_error` benchmark first (B1) and checking it against a deliberately linear
+2. Adding the `record_error` benchmark first (benchmark task B1) and checking it against a deliberately linear
    variant showed that it would detect the AC7 violation the review had worried about.
-3. The independent model in the property test (R1p) caught all six counter mutations (M1-M4 and
+3. The independent model in the property test (R1p) caught all six counter mutations (mutations M1-M4 and
    their variant-B forms), more than any single example test.
 4. When the Criterion pass rule failed, a back-to-back comparison with `develop`, A, and B on the
    same machine separated the real cost (about 0.4-0.6 ns per invalid connection ID) from machine
@@ -49,12 +49,12 @@ regression.
   after median is not above the highest baseline median" could not pass. The spec did not say what
   cost was acceptable. The maintainer accepted the cost after the investigation and chose the
   one-comparison form (`perf(udp-core): [#2505] detect the ban crossing with one comparison`).
-  Evidence: `performance-evidence.md`, "P2 Investigation" and "Comparison".
-- **Concurrent trackers collided on the health check port.** The first P2 load test ran while the
+  Evidence: `performance-evidence.md`, "Investigation - Same-Machine Comparison" and "Comparison".
+- **Concurrent trackers collided on the health check port.** The first after load test ran while the
   recheck tracker was waiting for its one-hour reset, and both used the default health check
   address `127.0.0.1:1313`, so the benchmark tracker exited at startup and the run measured 0
-  responses per second. P2 was rerun after the recheck.
-- **A mutation that did not compile looked like "no test failed".** The first M1 mutation left a
+  responses per second. The after measurement was rerun after the recheck.
+- **A mutation that did not compile looked like "no test failed".** The first M1 mutation (mutation, not scenario) left a
   variable unused, which the workspace's `-D warnings` rejects; the filtered output was empty. It was
   noticed only because the result was implausible, and the mutation was redone.
 - **Locale-dependent number formatting.** `awk` under the desktop's Spanish locale printed `9,000`
@@ -62,7 +62,7 @@ regression.
   with `LC_ALL=C` fixed it; the raw `estimates.json` values were correct.
 - **The first manual recheck ran before the last production change.** The like-for-like recheck
   ran on the build before `perf(udp-core): [#2505] detect the ban crossing with one comparison`,
-  which changed the counting logic, so the independent pre-PR review failed (B1) and the hour-long
+  which changed the counting logic, so the independent pre-PR review failed (task review finding B1) and the hour-long
   recheck was repeated on the final code.
 - **Dependent manual steps ran in parallel.** In the first restart of that repeat, the V2 and V3
   probes were issued as one batch of parallel agent tool calls and ran concurrently, so the run was
@@ -89,7 +89,7 @@ regression.
 
 1. In `docs/benchmarking.md` ("Recording Before-and-After Evidence"), add that when a change
    deliberately adds work to a measured path, the specification states the expected cost or an
-   explicit tolerance for that benchmark, decided with the maintainer before P2.
+   explicit tolerance for that benchmark, decided with the maintainer before the after measurement.
 2. In `docs/benchmarking.md` and the `run-benchmarks` skill, add a pre-measurement check that no
    other tracker is running and that the ports in the benchmarking configuration, including the
    health check API, are free.

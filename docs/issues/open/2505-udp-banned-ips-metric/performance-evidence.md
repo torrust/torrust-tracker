@@ -7,7 +7,7 @@ last-updated-utc: "2026-10-14 10:00"
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
 
 This file records the measurements planned in the specification's "Performance Evidence Plan":
-the B1 instrument check, the P1 baseline before any production change (T3), and later the P2
+the benchmark task B1 instrument check, the baseline before any production change (T3), and later the after
 measurements after the fix (T9) with the comparison against the one-sided pass rule (AC5, AC7).
 
 ## Method
@@ -108,11 +108,11 @@ measurements after the fix (T9) with the comparison against the one-sided pass r
 
 One-sided, as in the specification:
 
-- the P2 mean `Average responses per second` is not below the lowest P1 run; and
-- each P2 Criterion median (the median of three P2 runs) is not above the highest of the three P1
+- the after mean `Average responses per second` is not below the lowest baseline run; and
+- each after Criterion median (the median of three after runs) is not above the highest of the three baseline
   medians for the same benchmark.
 
-AC7 additionally requires the P2 `udp_ban_service/record_error` medians not to grow with the
+AC7 additionally requires the after `udp_ban_service/record_error` medians not to grow with the
 number of tracked IPs. A failure is investigated before the issue closes.
 
 ## Machine
@@ -129,7 +129,7 @@ number of tracked IPs. A failure is investigated before the issue closes.
 
 Goal: show that the new benchmark measures the per-event step and would detect a cost that grows
 with the number of tracked IPs (an AC7 violation). Both runs used Criterion's `--quick` mode, so
-they check the instrument and are not part of the P1/P2 comparison.
+they check the instrument and are not part of the baseline/after comparison.
 
 1. On `develop` plus the B1 benchmark (before it was formatted with `cargo +nightly fmt`, which
    changed only whitespace). Command:
@@ -171,7 +171,7 @@ they check the instrument and are not part of the P1/P2 comparison.
                            time:   [12.604 ns 12.638 ns 12.771 ns]
    ```
 
-2. With `BanService::get_banned_ips_total` temporarily replaced by the filtered scan P2
+2. With `BanService::get_banned_ips_total` temporarily replaced by the filtered scan (option P2)
    (`self.accurate_error_counter.values().filter(|count| **count > self.max_connection_id_errors_per_ip).count()`),
    then restored with `git checkout -- packages/udp-core/src/services/banning.rs` without staging.
    Command run between the edit and the restore:
@@ -195,7 +195,7 @@ Conclusion: on `develop` the per-event cost is flat (about 11-14 ns) from 10 to 
 IPs; with a scan it grows linearly (about 17 ns, 592 ns, 5.6 µs). The benchmark detects an AC7
 violation.
 
-## P1 - Baseline Before Any Production Change (T3)
+## Baseline - Before Any Production Change (T3)
 
 - Code: `develop` at `b5f1801c6` plus `docs(issues): [#2505] start the implementation` and
   `test(udp-core): [#2505] add the per-event ban service benchmark` (no production change).
@@ -203,7 +203,7 @@ violation.
   [optimized + debuginfo] target(s) in 2m 33s`). UDP port 3000 was free
   (`ss -ulnp | grep -E ':3000\b'` printed nothing).
 
-### P1 Load Test
+### Baseline Load Test
 
 - Started 2026-10-13 18:00:53 UTC (load average 7.72, 7.08, 5.18); finished 18:03:44 UTC (load
   average 8.20, 7.60, 5.71).
@@ -220,12 +220,12 @@ violation.
 - Mean of `Average responses per second`: **150960.00**; lowest run: **148018.51**; highest:
   155833.22; spread 5.2% of the mean. Each run reported `Error responses: 0.00`.
 
-### P1 Criterion
+### Baseline Criterion
 
 - Started 2026-10-13 18:03:56 UTC (load average 7.93, 7.57, 5.73); finished 18:18:24 UTC (load
   average 2.72, 4.00, 4.55).
 - Command: `./.tmp/perf-2505/run-criterion.sh p1 3`. Medians in nanoseconds; the last column is
-  the pass-rule limit for P2.
+  the pass-rule limit for the after measurement.
 
 | Benchmark | Run 1 | Run 2 | Run 3 | Highest (limit) |
 | --------- | ----- | ----- | ----- | --------------- |
@@ -258,7 +258,7 @@ violation.
 | `udp_ban_service_record_error/ipv6/1000` | 12.48 | 12.58 | 12.32 | 12.58 |
 | `udp_ban_service_record_error/ipv6/10` | 12.42 | 12.53 | 12.42 | 12.53 |
 
-Observed P1 noise, measured like the load-test spread as (highest - lowest) / mean of the three
+Observed baseline noise, measured like the load-test spread as (highest - lowest) / mean of the three
 medians of each benchmark: up to **5.1%** (`record_error/ipv4/10000`, 10.33-10.87 ns), and above 3%
 for 9 of the 28 benchmarks (the `is_banned/ipv6_*` cases at 3.1-4.3%, and `record_error/ipv4/10` and
 `record_error/ipv4/1000` at 3.3%). The largest deviation of a single median from its mean is 3.0%.
@@ -267,18 +267,18 @@ deviation from the mean, not the spread (corrected after PR #2524 review finding
 The `record_error` medians are flat across 10, 1,000, and 10,000 tracked IPs (10.33-10.87 ns for
 IPv4, 12.27-12.58 ns for IPv6), as expected while the total is the map length.
 
-## P2 - After the Fix (T9)
+## After the Fix (T9)
 
 ### First Attempt, Aborted
 
-On 2026-10-13 at 20:08:42 UTC the first P2 load-test run measured `Average responses per second:
+On 2026-10-13 at 20:08:42 UTC the first after load-test run measured `Average responses per second:
 0.00`: the tracker exited at startup because the T10 recheck tracker (started at 20:05:55 UTC with
 the default health check API address) held `127.0.0.1:1313`
 (`Could not bind the health check API listener ... Address already in use (os error 98)`). The run
-loop stopped after that run. Overriding the health check port would have changed the P1
-configuration, so P2 waited until the recheck tracker was stopped.
+loop stopped after that run. Overriding the health check port would have changed the baseline
+configuration, so the after measurement waited until the recheck tracker was stopped.
 
-### P2a - First Form of the Fix
+### First After Run - First Form of the Fix
 
 Measured on `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`, with
 the first form of the crossing check (compare before and after the increment). Release build
@@ -295,13 +295,13 @@ the first form of the crossing check (compare before and after the increment). R
 | 4 | 163538.14 | 162312.50 |
 | 5 | 167005.56 | 163963.71 |
 
-- Mean 162437.63, lowest 159607.63, spread 2.7%: passes (P1 lowest run 148018.51). Every summary
+- Mean 162437.63, lowest 159607.63, spread 2.7%: passes (baseline lowest run 148018.51). Every summary
   reported `Error responses: 0.00`.
 
 - Criterion: 2026-10-13 21:09:45 to 21:23:58 UTC, load average 4.38 at the start and 3.83 at the
   end. Command `./.tmp/perf-2505/run-criterion.sh p2 3`.
 
-| Benchmark | Run 1 | Run 2 | Run 3 | Median | P1 limit | Result |
+| Benchmark | Run 1 | Run 2 | Run 3 | Median | Baseline limit | Result |
 | --------- | ----- | ----- | ----- | ------ | -------- | ------ |
 | `udp_ban_service_increase_counter/distinct/ipv4` | 282228.76 | 279931.09 | 280806.39 | 280806.39 | 292950.03 | pass |
 | `udp_ban_service_increase_counter/distinct/ipv6` | 331963.81 | 328744.67 | 330008.16 | 330008.16 | 340205.55 | pass |
@@ -332,11 +332,11 @@ the first form of the crossing check (compare before and after the increment). R
 | `udp_ban_service_record_error/ipv6/1000` | 13.49 | 12.86 | 13.28 | 13.28 | 12.58 | fail |
 | `udp_ban_service_record_error/ipv6/10` | 13.28 | 12.80 | 13.21 | 13.21 | 12.53 | fail |
 
-Nine medians exceeded their P1 limit, all six `record_error` cases among them.
+Nine medians exceeded their baseline limit, all six `record_error` cases among them.
 
-### P2 Investigation - Same-Machine Comparison
+### Investigation - Same-Machine Comparison
 
-To separate the cost of the change from machine drift (P1 ran under load averages of 2.7-8.2, P2a
+To separate the cost of the change from machine drift (the baseline ran under load averages of 2.7-8.2, the first after run
 under 0.7-6.0), the `record_error` and `increase_counter` groups were measured twice each,
 back to back, on 2026-10-13 between 21:24:33 and 21:35:33 UTC (load average 1.3-2.9), for three
 versions of `packages/udp-core/src/services/banning.rs`:
@@ -379,15 +379,15 @@ Findings:
   maintains the counter, so it is inherent to option P1, and AC7 (no growth with the map size)
   holds.
 - B is as fast as A or faster, and closer to `develop` on `increase_counter/repeated/ipv4`.
-- `is_banned` did not change, so its P2a failures (0.4-1.2%) are measurement noise.
+- `is_banned` did not change, so its first-after-run failures (0.4-1.2%) are measurement noise.
 
 Maintainer decision (2026-10-13, shortly after the comparison above ended at 21:35:33 UTC): accept
-the cost as inherent to the fix, adopt B, and rerun P2 on the final code. The specification's
+the cost as inherent to the fix, adopt B, and rerun the after measurement on the final code. The specification's
 progress-log entry describing it is stamped 2026-10-14 05:32 UTC because it was written when work
 resumed after an overnight pause. B was committed as
 `perf(udp-core): [#2505] detect the ban crossing with one comparison`.
 
-### P2 - Final Code
+### Final After Run - Final Code
 
 Measured on `perf(udp-core): [#2505] detect the ban crossing with one comparison`. Release build
 `Finished release profile [optimized + debuginfo] target(s) in 1m 27s`; UDP 3000 and TCP 1313 free;
@@ -410,7 +410,7 @@ no other tracker running.
 - Criterion: 2026-10-14 05:46:52 to 06:01:08 UTC, load average 5.40 at the start and 2.56 at the
   end. Command `./.tmp/perf-2505/run-criterion.sh p2 3`. Medians in nanoseconds.
 
-| Benchmark | Run 1 | Run 2 | Run 3 | Median | P1 limit | Result |
+| Benchmark | Run 1 | Run 2 | Run 3 | Median | Baseline limit | Result |
 | --------- | ----- | ----- | ----- | ------ | -------- | ------ |
 | `udp_ban_service_increase_counter/distinct/ipv4` | 283115.85 | 281713.76 | 281684.99 | 281713.76 | 292950.03 | pass |
 | `udp_ban_service_increase_counter/distinct/ipv6` | 329025.07 | 326335.93 | 325698.13 | 326335.93 | 340205.55 | pass |
@@ -446,14 +446,14 @@ IPv4, 12.77-12.94 ns for IPv6), which is the AC7 evidence.
 
 ## Comparison
 
-| Measurement | P1 | P2 (final) | Pass rule | Result |
+| Measurement | Baseline | After (final) | Pass rule | Result |
 | ----------- | -- | ---------- | --------- | ------ |
-| Load test mean `Average responses per second` | lowest run 148018.51 | mean 158456.71 | P2 mean not below the lowest P1 run | **pass** |
-| Criterion medians | highest of three per benchmark | median of three per benchmark | P2 median not above the P1 limit | **19 pass, 9 fail** |
+| Load test mean `Average responses per second` | lowest run 148018.51 | mean 158456.71 | after mean not below the lowest baseline run | **pass** |
+| Criterion medians | highest of three per benchmark | median of three per benchmark | after median not above the baseline limit | **19 pass, 9 fail** |
 
 The nine Criterion failures:
 
-| Benchmark | P2 median | P1 limit | Difference | Explanation |
+| Benchmark | After median | Baseline limit | Difference | Explanation |
 | --------- | --------- | -------- | ---------- | ----------- |
 | `record_error/ipv4/1000` | 10.88 | 10.69 | +1.7% | Inherent cost of maintaining the counter (investigation above) |
 | `record_error/ipv4/10` | 10.89 | 10.69 | +1.9% | Same |
@@ -466,16 +466,16 @@ The nine Criterion failures:
 | `is_banned/ipv6_below_threshold/10` | 11.26 | 11.04 | +2.0% | Unchanged code: noise |
 
 Maintainer confirmation (2026-10-14 06:59 UTC, after the independent pre-PR review asked for it):
-the accepted-cost decision covers this final P2 table, including all nine Criterion medians above
-their P1 limit.
+the accepted-cost decision covers this final after table, including all nine Criterion medians above
+their baseline limit.
 
 Conclusion: the end-to-end load test shows no regression. The microbenchmarks show the expected
 small cost on the invalid-connection-ID path (about 0.4-0.6 ns per event, accepted by the
 maintainer), no growth with the number of tracked IPs (AC7), and small differences in unchanged
-code. The observed P1 spread was up to 5.1% between Criterion runs and 5.2% between load-test runs,
-so the P1/P2 tables alone cannot tell differences below those levels from noise: every Criterion
+code. The observed baseline spread was up to 5.1% between Criterion runs and 5.2% between load-test runs,
+so the baseline/after tables alone cannot tell differences below those levels from noise: every Criterion
 excess above is 3.9% or less. The attribution of the `record_error` and
 `increase_counter/repeated/ipv6` excesses to the counter, and of the `is_banned` excesses to noise,
-rests on the same-machine comparison in "P2 Investigation" (unchanged `is_banned` code, and a
+rests on the same-machine comparison in "Investigation - Same-Machine Comparison" (unchanged `is_banned` code, and a
 consistent 0.4-0.6 ns difference between `develop` and the fix measured back to back), not on the
-P1/P2 tables.
+baseline/after tables.
