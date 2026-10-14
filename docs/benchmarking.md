@@ -73,7 +73,11 @@ When an issue changes performance-critical code, measure it before and after:
 1. **Plan it in the issue specification:** the instruments, the measurements, and a one-sided pass
    rule, for example "the after mean is not below the lowest baseline run" and "each after
    Criterion median is not above the highest baseline median". A two-sided band fails on an
-   improvement.
+   improvement. When the change deliberately adds work to a measured path, for example maintaining
+   a counter on every event, the one-sided rule cannot pass for that benchmark as written: state
+   the expected cost or an explicit tolerance for it in the plan, agreed with the maintainer before
+   the after measurement. In issue #2505 the plan had neither, so the after measurement failed the
+   rule and the cost was accepted only afterwards.
 2. **Record the baseline before any production change**, on the code the branch starts from plus
    only documentation and benchmark-only commits.
 3. **Repeat the measurement after the change** on the same machine, with the same build profile,
