@@ -123,5 +123,29 @@ fn bench_is_banned(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_increase_counter, bench_is_banned);
+/// Measures the work the UDP server banning handler does for each invalid
+/// connection ID: record the error, then read the banned-IPs total it
+/// publishes. The cost must not grow with the number of tracked IPs.
+fn bench_record_error(c: &mut Criterion) {
+    let mut group = c.benchmark_group("udp_ban_service/record_error");
+
+    for address_family in [AddressFamily::Ipv4, AddressFamily::Ipv6] {
+        for cardinality in CARDINALITIES {
+            let addresses = addresses(address_family, cardinality);
+            let ip = addresses[0];
+            let mut ban_service = populate_ban_service(&addresses);
+
+            group.bench_with_input(BenchmarkId::new(address_family.name(), cardinality), &ip, |bench, ip| {
+                bench.iter(|| {
+                    ban_service.increase_counter(black_box(ip));
+                    black_box(ban_service.get_banned_ips_total())
+                });
+            });
+        }
+    }
+
+    group.finish();
+}
+
+criterion_group!(benches, bench_increase_counter, bench_is_banned, bench_record_error);
 criterion_main!(benches);

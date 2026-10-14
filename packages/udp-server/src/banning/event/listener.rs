@@ -11,6 +11,7 @@ use torrust_tracker_udp_core::services::banning::BanService;
 
 use super::handler::handle_event;
 use crate::CurrentClock;
+use crate::banning::PublicationOrder;
 use crate::event::receiver::Receiver;
 use crate::statistics::repository::Repository;
 
@@ -19,12 +20,21 @@ pub fn run_event_listener(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     ban_service: &Arc<RwLock<BanService>>,
+    publication_order: &Arc<PublicationOrder>,
     repository: &Arc<Repository>,
 ) -> JoinHandle<()> {
     let ban_service_clone = ban_service.clone();
+    let publication_order_clone = publication_order.clone();
     let repository_clone = repository.clone();
     tokio::spawn(async move {
-        let _ = run_event_listener_unspawned(receiver, cancellation_token, ban_service_clone, repository_clone).await;
+        let _ = run_event_listener_unspawned(
+            receiver,
+            cancellation_token,
+            ban_service_clone,
+            publication_order_clone,
+            repository_clone,
+        )
+        .await;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker server event listener (banning) finished");
     })
@@ -35,16 +45,18 @@ pub async fn run_event_listener_unspawned(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     ban_service: Arc<RwLock<BanService>>,
+    publication_order: Arc<PublicationOrder>,
     repository: Arc<Repository>,
 ) -> Completion {
     tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener (banning)");
-    dispatch_events(receiver, cancellation_token, ban_service, repository).await
+    dispatch_events(receiver, cancellation_token, ban_service, publication_order, repository).await
 }
 
 async fn dispatch_events(
     mut receiver: Receiver,
     cancellation_token: CancellationToken,
     ban_service: Arc<RwLock<BanService>>,
+    publication_order: Arc<PublicationOrder>,
     repository: Arc<Repository>,
 ) -> Completion {
     loop {
@@ -57,7 +69,7 @@ async fn dispatch_events(
             }
 
             result = receiver.recv() => {
-                if !handle_received_event(result, &ban_service, &repository).await {
+                if !handle_received_event(result, &ban_service, &publication_order, &repository).await {
                     return Completion::Completed;
                 }
             }
@@ -68,10 +80,11 @@ async fn dispatch_events(
 async fn handle_received_event(
     result: Result<crate::event::Event, RecvError>,
     ban_service: &Arc<RwLock<BanService>>,
+    publication_order: &PublicationOrder,
     repository: &Repository,
 ) -> bool {
     match result {
-        Ok(event) => handle_event(event, ban_service, repository, CurrentClock::now()).await,
+        Ok(event) => handle_event(event, ban_service, publication_order, repository, CurrentClock::now()).await,
         Err(RecvError::Closed) => {
             tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker server receiver  (banning) closed.");
             return false;
@@ -106,6 +119,7 @@ mod tests {
     use torrust_tracker_udp_core::services::banning::BanService;
 
     use super::dispatch_events;
+    use crate::banning::PublicationOrder;
     use crate::event::{ErrorKind, Event};
     use crate::statistics::repository::Repository;
 
@@ -136,11 +150,13 @@ mod tests {
         }
     }
 
+    const EVENT_CLIENT_IP: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
     fn error_event(error: ErrorKind) -> Event {
         Event::UdpError {
             context: ConnectionContext::new(
                 ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                SocketAddr::new(EVENT_CLIENT_IP, 8080),
                 ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
             ),
             kind: None,
@@ -162,6 +178,7 @@ mod tests {
             Box::new(scripted_receiver),
             CancellationToken::new(),
             ban_service(),
+            Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
         )
         .await;
@@ -185,12 +202,17 @@ mod tests {
             Box::new(scripted_receiver),
             CancellationToken::new(),
             ban_service.clone(),
+            Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
         )
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 1);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            Some(1),
+            "connection ID errors recorded for {EVENT_CLIENT_IP} after the listener lagged"
+        );
     }
 
     #[tokio::test]
@@ -207,12 +229,17 @@ mod tests {
             Box::new(scripted_receiver),
             cancellation_token,
             ban_service.clone(),
+            Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
         )
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 0);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            None,
+            "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
     }
 
     #[tokio::test]
@@ -229,11 +256,16 @@ mod tests {
             Box::new(scripted_receiver),
             CancellationToken::new(),
             ban_service.clone(),
+            Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
         )
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 0);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            None,
+            "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
     }
 }

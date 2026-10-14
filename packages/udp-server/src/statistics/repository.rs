@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+#[cfg(test)]
+use tokio::sync::RwLockWriteGuard;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
@@ -40,6 +42,12 @@ impl Repository {
         Self {
             stats: Arc::new(RwLock::new(describe_metrics())),
         }
+    }
+
+    /// Holds the store's write lock, so a test can make a writer wait for it.
+    #[cfg(test)]
+    pub(crate) async fn write_lock_for_test(&self) -> RwLockWriteGuard<'_, Metrics> {
+        self.stats.write().await
     }
 
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {

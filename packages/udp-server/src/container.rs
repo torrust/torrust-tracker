@@ -13,6 +13,9 @@ pub struct UdpTrackerServerContainer {
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
+    /// Orders the publications of the banned-IPs total; see
+    /// [`PublicationOrder`](crate::banning::PublicationOrder).
+    pub banned_ips_publication_order: Arc<crate::banning::PublicationOrder>,
 }
 
 impl UdpTrackerServerContainer {
@@ -24,6 +27,7 @@ impl UdpTrackerServerContainer {
             event_bus: udp_tracker_server_services.event_bus.clone(),
             stats_event_sender: udp_tracker_server_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_server_services.stats_repository.clone(),
+            banned_ips_publication_order: Arc::new(crate::banning::PublicationOrder::default()),
         })
     }
 }

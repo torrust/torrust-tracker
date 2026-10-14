@@ -20,7 +20,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2506#issuecomment-6165699972>
 
 ## Status Values
 
@@ -47,6 +47,12 @@ any earlier audit finding, so they are used unchanged. The review overview repea
 findings and adds no other request, so it adds no row. Rows are listed by finding ID; the inline
 source order was F1, F5, F2, F4, F3, F6.
 
+Cameron's review 5515068886 (`da2ce7`, COMMENTED) was submitted on 2026-10-14 at 08:24:48 UTC,
+after this pull request merged (2026-10-13 17:50:54 UTC). Its eight inline findings are headed
+F7-F14; those IDs do not collide with F1-F6, so they are used unchanged. The maintainer approved
+fixing them on the branch of PR #2524, which already changes the specification (approval URL in
+Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2506-f1` | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
@@ -55,6 +61,14 @@ source order was F1, F5, F2, F4, F3, F6.
 | F4 | `review-finding:pr-2506-f4` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2506-f5` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2506-f6` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2506-f7` | Human | Major | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F8 | `review-finding:pr-2506-f8` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F9 | `review-finding:pr-2506-f9` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F10 | `review-finding:pr-2506-f10` | Human | Nit | testing | ORIGINAL | FOLLOW_UP | OPEN |
+| F11 | `review-finding:pr-2506-f11` | Human | Suggestion | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
+| F12 | `review-finding:pr-2506-f12` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F13 | `review-finding:pr-2506-f13` | Human | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
+| F14 | `review-finding:pr-2506-f14` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -186,6 +200,146 @@ source order was F1, F5, F2, F4, F3, F6.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4261677597>
 
+### F7 - The inherent method had no doc comment
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430817>
+- Concern: the "Contracts violated" bullet credited "Returns the total number of banned IPs." to
+  the inherent `BanService::get_banned_ips_total`, which had no doc comment; the sentence was only on
+  the trait, and removing the timestamp field also makes the `reset_bans` doc false.
+- Solution: on the PR #2524 branch, the bullet, Scope, AC3, and its evidence row now say the fix adds
+  a doc comment to the inherent method and updates the `reset_bans` doc, which that branch's code
+  does.
+- Current-tree verification: on the PR #2524 branch, `ISSUE.md`'s bullet says the inherent method
+  had no doc comment; `packages/udp-core/src/services/banning.rs` documents `get_banned_ips_total`
+  and `reset_bans`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647671>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647671>
+
+### F8 - The evidence said invalid connection IDs are not logged
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430827>
+- Concern: the reproduction evidence said invalid connection IDs are not logged at the `info`
+  level, but `evidence/tracker.log` has one `WARN` line per invalid ID.
+- Solution: on the PR #2524 branch, the sentence is replaced by the 15 condensed `WARN` lines per
+  process, with the script that condensed them.
+- Current-tree verification: on the PR #2524 branch, `manual-verification-evidence.md` quotes log
+  lines 122, 132, 133, 143-147, 149-154, and 497.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647993>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269647993>
+
+### F9 - The method dates from 1ce2e3327, not the package extraction
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430830>
+- Concern: `get_banned_ips_total` was added with the `len()` body by `1ce2e3327` (#1145); the
+  extraction the specification cited only moved the file, so the value was wrong since the metric
+  was introduced.
+- Solution: on the PR #2524 branch, "Origin" names `1ce2e3327`, and "Risks and Trade-offs" says the
+  value has been wrong since the metric was introduced.
+- Current-tree verification: `git show 1ce2e3327` adds `get_banned_ips_total` returning
+  `self.accurate_error_counter.len()`; the PR #2524 branch's `ISSUE.md` cites it.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648212>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648212>
+
+### F10 - R2's "passes on develop" holds only for its reset leg
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430837>
+- Concern: R2's re-count leg is red on `develop`, so the note that R2 passes there was too broad.
+- Solution: on the PR #2524 branch, R2's note was narrowed to say only the reset leg passes on
+  `develop`. That narrowing was itself wrong (PR #2524 review finding F7 by Cameron): the implemented
+  re-count test also passes on `develop`, and the below-limit case the note described did not exist.
+  The branch now adds that case
+  (`it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`, red with
+  `develop`'s map-length total) and says the reset leg and the re-crossing case pass on `develop`
+  while the below-limit case is red.
+- Current-tree verification: the PR #2524 branch's `ISSUE.md` R2 bullet lists the three cases and
+  their status, and `packages/udp-core/src/services/banning.rs` contains the below-limit test.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
+  (corrects the earlier reply <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>)
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
+
+### F11 - Give the leftover removals their own commit point
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430847>
+- Concern: the removal of the unused trait and the write-only field changes no tested behavior and
+  should not be grouped with the banned-count fix.
+- Solution: the maintainer chose to act on it and accepted rewriting the unmerged PR #2524 history:
+  an interactive rebase split the removals into
+  `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`,
+  placed before `fix(udp-core): [#2505] count only IPs over the limit as banned`. The Commit Points
+  table and the AC4 evidence name the refactor commit.
+- Current-tree verification: on the PR #2524 branch the refactor commit exists once, its state
+  passed the workspace check, the `udp-core` and `udp-server` tests, fmt, clippy, and the pre-commit
+  hook, and the final tree is byte-identical to the pre-split head.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648684>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648684>
+
+### F12 - P1 and P2 named options and measurement phases
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430850>
+- Concern: P1 and P2 named both the performance alternatives and the measurement phases, so AC5
+  said "P2 meets the pass rule" while option P2 was ruled out.
+- Solution: on the PR #2524 branch, the phases are "baseline" and "after" in the current text, and
+  an "Identifiers" glossary lists every short identifier (the same change as PR #2524 finding F4).
+- Current-tree verification: the PR #2524 branch's `ISSUE.md` has the "Identifiers" section, and
+  `performance-evidence.md` uses P1/P2 only for options.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648920>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648920>
+
+### F13 - The plan dropped the P4 scan benchmark condition
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430858>
+- Concern: option P4 stayed open, but the rewritten performance plan no longer required measuring
+  its scan, and F1's solution above said the benchmark note "now covers only P4".
+- Solution: on the PR #2524 branch, "Performance Alternatives" again requires a scan benchmark if
+  option P4 is chosen, and says it did not apply because option P1 was chosen. F1's solution
+  sentence above is accurate again.
+- Current-tree verification: the PR #2524 branch's `ISSUE.md` contains "If option P4 is chosen,
+  also add a benchmark case for its scan".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649229>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649229>
+
+### F14 - Scope described the old benchmark plan
+
+- PR number: 2506
+- Source review ID: 5515068886
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430867>
+- Concern: Scope and "Risks and Trade-offs" still pointed at the original benchmark plan.
+- Solution: on the PR #2524 branch, both point at the Performance Evidence Plan.
+- Current-tree verification: the PR #2524 branch's `ISSUE.md` Scope bullet says "Measure performance
+  before and after the change as the "Performance Evidence Plan" describes".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649553>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269649553>
+
 ## Processing Log
 
 - 2026-10-13 16:36 UTC - Started audit: fetched review 5506831377 and its six unresolved threads
@@ -194,6 +348,16 @@ source order was F1, F5, F2, F4, F3, F6.
   passed. Replied on all six threads with the disposition, verification, and resolution reference.
 - 2026-10-13 17:09 UTC - Updated the PR description for F4 and recorded this audit; the threads are
   resolved after it is committed and pushed.
+- 2026-10-14 09:55 UTC - Late review: Cameron's review 5515068886 (findings F7-F14) arrived after
+  the merge. After read-only triage, the maintainer approved fixing the findings on the PR #2524
+  branch; the approval was posted as a comment on this pull request.
+- 2026-10-14 10:31 UTC - Fixed F7-F14 on the PR #2524 branch (pushed at 10:28 UTC) and replied on
+  each thread with the follow-up reference; the threads stay open until PR #2524 merges.
+- 2026-10-14 10:36 UTC - Recorded F7-F14 in this audit as `FOLLOW_UP`/`OPEN`, on the PR #2524 branch.
+- 2026-10-14 12:32 UTC - Corrected F10's Solution and Current-tree verification: the earlier text repeated a
+  false claim that R2's re-count leg is red on `develop` (PR #2524 review finding F7 by Cameron).
+- 2026-10-14 13:03 UTC - Posted a correcting reply on the F10 thread (the earlier reply called
+  the re-count leg red) and pointed F10's resolution and reply URL to it; the thread stays `OPEN`.
 
 ## Completion Rules
 

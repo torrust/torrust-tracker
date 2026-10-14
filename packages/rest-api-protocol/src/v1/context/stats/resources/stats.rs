@@ -53,7 +53,9 @@ pub struct Stats {
     pub udp_requests_aborted: u64,
     /// Total number of UDP (UDP tracker) requests banned.
     pub udp_requests_banned: u64,
-    /// Total number of IPs banned for UDP (UDP tracker) requests.
+    /// Number of IPs whose UDP connection ID errors exceed the limit: banned IPs
+    /// when connection ID validation is `strict`, and "would-be banned" IPs that
+    /// are not blocked when it is `disabled`.
     pub udp_banned_ips_total: u64,
     /// Average rounded time spent processing UDP connect requests.
     pub udp_avg_connect_processing_time_ns: u64,

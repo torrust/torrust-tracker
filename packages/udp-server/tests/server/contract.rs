@@ -660,3 +660,229 @@ mod using_disabled_connection_id_validation {
         env.stop().await;
     }
 }
+
+mod publishing_the_banned_ips_total {
+    use std::net::{IpAddr, Ipv4Addr};
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio::time::{Instant, sleep};
+    use torrust_tracker_client::udp::client::UdpTrackerClient;
+    use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{ConnectionIdValidationPolicy, UdpTrackerServer};
+    use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_udp_protocol::{ConnectionId, TransactionId};
+    use torrust_tracker_udp_server::testing::environment::Started;
+
+    use super::DEFAULT_UDP_TIMEOUT;
+    use super::receiving_an_announce_request::send_and_get_announce;
+    use crate::common::fixtures::random_info_hash;
+
+    const CONNECTION_ID_ERROR_LIMIT: u32 = 2;
+
+    /// The test client binds to `0.0.0.0` and sends to the tracker on the
+    /// loopback interface, so the tracker sees it as `127.0.0.1`.
+    const CLIENT_IP: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+    const EVENT_PROCESSING_DEADLINE: Duration = Duration::from_secs(5);
+
+    async fn start_tracker_with_connection_id_validation(connection_id_validation: ConnectionIdValidationPolicy) -> Started {
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_config = Arc::new(
+            configuration
+                .udp_trackers
+                .expect("UDP test configuration should include a tracker")[0]
+                .clone(),
+        );
+        let udp_tracker_server_config = UdpTrackerServer {
+            max_connection_id_errors_per_ip: CONNECTION_ID_ERROR_LIMIT,
+            connection_id_validation,
+            ..UdpTrackerServer::default()
+        };
+
+        Started::new_with_udp_tracker_server_config(&core_config, &udp_tracker_config, &udp_tracker_server_config).await
+    }
+
+    /// Sends `count` announces with an invalid connection ID and waits until
+    /// the banning listener has recorded every one of them.
+    ///
+    /// The listener handles events one at a time and publishes the gauge after
+    /// each one, so when it has recorded `count` errors the gauge already holds
+    /// the value published for the previous error at least.
+    async fn send_invalid_connection_ids(tracker: &Started, client: &UdpTrackerClient, count: u32) {
+        let invalid_connection_id = ConnectionId::new(0);
+
+        for request_number in 0..count {
+            let transaction_id = TransactionId::new(i32::try_from(request_number).expect("request number should fit in i32"));
+            send_and_get_announce(transaction_id, invalid_connection_id, random_info_hash(), client).await;
+        }
+
+        let deadline = Instant::now() + EVENT_PROCESSING_DEADLINE;
+        loop {
+            let recorded_errors = tracker
+                .container
+                .udp_tracker_core_container
+                .ban_service
+                .read()
+                .await
+                .get_count(&CLIENT_IP);
+
+            if recorded_errors == Some(count) {
+                return;
+            }
+
+            assert!(
+                Instant::now() < deadline,
+                "the banning listener recorded {recorded_errors:?} connection ID errors for {CLIENT_IP} \
+                 within {EVENT_PROCESSING_DEADLINE:?}, expected {count}"
+            );
+
+            sleep(Duration::from_millis(10)).await;
+        }
+    }
+
+    async fn published_banned_ips_total(tracker: &Started) -> u64 {
+        tracker
+            .container
+            .udp_tracker_server_container
+            .stats_repository
+            .get_stats()
+            .await
+            .udp_banned_ips_total()
+    }
+
+    /// Waits until the published banned-IPs total equals `expected`, returning
+    /// the last value read when the deadline passes.
+    async fn published_banned_ips_total_once_it_reaches(tracker: &Started, expected: u64) -> u64 {
+        let deadline = Instant::now() + EVENT_PROCESSING_DEADLINE;
+        loop {
+            let total = published_banned_ips_total(tracker).await;
+
+            if total == expected || Instant::now() >= deadline {
+                return total;
+            }
+
+            sleep(Duration::from_millis(10)).await;
+        }
+    }
+
+    mod with_strict_connection_id_validation {
+        use torrust_tracker_client::udp::client::UdpTrackerClient;
+        use torrust_tracker_configuration::v3_0_0::udp_tracker_server::ConnectionIdValidationPolicy;
+        use torrust_tracker_test_helpers::logging;
+
+        use super::{
+            CONNECTION_ID_ERROR_LIMIT, DEFAULT_UDP_TIMEOUT, EVENT_PROCESSING_DEADLINE, published_banned_ips_total,
+            published_banned_ips_total_once_it_reaches, send_invalid_connection_ids, start_tracker_with_connection_id_validation,
+        };
+
+        #[tokio::test]
+        async fn should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit() {
+            logging::setup();
+
+            // Arrange
+            let tracker = start_tracker_with_connection_id_validation(ConnectionIdValidationPolicy::Strict).await;
+            let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+                .await
+                .expect("the UDP tracker client should bind");
+
+            // Act
+            send_invalid_connection_ids(&tracker, &client, CONNECTION_ID_ERROR_LIMIT).await;
+
+            // Assert
+            assert_eq!(
+                published_banned_ips_total(&tracker).await,
+                0,
+                "published banned IPs total after {CONNECTION_ID_ERROR_LIMIT} invalid connection IDs from one client \
+                 with a limit of {CONNECTION_ID_ERROR_LIMIT} (strict validation)"
+            );
+
+            tracker.stop().await;
+        }
+
+        #[tokio::test]
+        async fn should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit() {
+            logging::setup();
+
+            // Arrange
+            let tracker = start_tracker_with_connection_id_validation(ConnectionIdValidationPolicy::Strict).await;
+            let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+                .await
+                .expect("the UDP tracker client should bind");
+
+            // Act
+            send_invalid_connection_ids(&tracker, &client, CONNECTION_ID_ERROR_LIMIT + 1).await;
+
+            // Assert
+            assert_eq!(
+                published_banned_ips_total_once_it_reaches(&tracker, 1).await,
+                1,
+                "published banned IPs total within {EVENT_PROCESSING_DEADLINE:?} after {} invalid connection IDs \
+                 from one client with a limit of {CONNECTION_ID_ERROR_LIMIT} (strict validation)",
+                CONNECTION_ID_ERROR_LIMIT + 1
+            );
+
+            tracker.stop().await;
+        }
+    }
+
+    mod with_disabled_connection_id_validation {
+        use torrust_tracker_client::udp::client::UdpTrackerClient;
+        use torrust_tracker_configuration::v3_0_0::udp_tracker_server::ConnectionIdValidationPolicy;
+        use torrust_tracker_test_helpers::logging;
+
+        use super::{
+            CONNECTION_ID_ERROR_LIMIT, DEFAULT_UDP_TIMEOUT, EVENT_PROCESSING_DEADLINE, published_banned_ips_total,
+            published_banned_ips_total_once_it_reaches, send_invalid_connection_ids, start_tracker_with_connection_id_validation,
+        };
+
+        #[tokio::test]
+        async fn should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit() {
+            logging::setup();
+
+            // Arrange
+            let tracker = start_tracker_with_connection_id_validation(ConnectionIdValidationPolicy::Disabled).await;
+            let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+                .await
+                .expect("the UDP tracker client should bind");
+
+            // Act
+            send_invalid_connection_ids(&tracker, &client, CONNECTION_ID_ERROR_LIMIT).await;
+
+            // Assert
+            assert_eq!(
+                published_banned_ips_total(&tracker).await,
+                0,
+                "published banned IPs total after {CONNECTION_ID_ERROR_LIMIT} invalid connection IDs from one client \
+                 with a limit of {CONNECTION_ID_ERROR_LIMIT} (disabled validation)"
+            );
+
+            tracker.stop().await;
+        }
+
+        #[tokio::test]
+        async fn should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned() {
+            logging::setup();
+
+            // Arrange
+            let tracker = start_tracker_with_connection_id_validation(ConnectionIdValidationPolicy::Disabled).await;
+            let client = UdpTrackerClient::new(tracker.bind_address(), DEFAULT_UDP_TIMEOUT)
+                .await
+                .expect("the UDP tracker client should bind");
+
+            // Act
+            send_invalid_connection_ids(&tracker, &client, CONNECTION_ID_ERROR_LIMIT + 1).await;
+
+            // Assert
+            assert_eq!(
+                published_banned_ips_total_once_it_reaches(&tracker, 1).await,
+                1,
+                "published banned IPs total within {EVENT_PROCESSING_DEADLINE:?} after {} invalid connection IDs \
+                 from one client with a limit of {CONNECTION_ID_ERROR_LIMIT} (disabled validation: not enforced)",
+                CONNECTION_ID_ERROR_LIMIT + 1
+            );
+
+            tracker.stop().await;
+        }
+    }
+}

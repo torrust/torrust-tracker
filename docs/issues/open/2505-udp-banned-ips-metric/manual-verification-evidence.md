@@ -1,12 +1,16 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-13 17:05
+last-updated-utc: 2026-10-14 12:55
 ---
 
 # Manual Verification Evidence
 
 <!-- cspell:ignore cooki -->
+
+> Identifiers: in the "Mutate-Then-Restore" sections, M0-M5, M1b, and M3b name code mutations (their
+> `== M...` labels are recorded command output). The manual verification scenarios M1-M4 are defined
+> in the specification. See the specification's "Identifiers" section.
 
 ## Purpose
 
@@ -16,14 +20,18 @@ observed; nothing is simulated.
 
 ## Summary
 
-Classified outcome: **Reproduced** (fix-bug skill classification).
+Classified outcome: **Reproduced** (fix-bug skill classification). Final recheck: **fixed**.
 
-| Process | What was done                                       | Reported "banned IPs" | IPs actually banned | Status |
-| ------- | --------------------------------------------------- | --------------------- | ------------------- | ------ |
-| V1      | One invalid connection ID from `127.0.0.1`          | 1                     | 0                   | DONE   |
-| V2      | One invalid connection ID from `.2` and `.3` too    | 3                     | 0                   | DONE   |
-| V3      | 11 invalid connection IDs from `127.0.0.4`          | 4                     | 1                   | DONE   |
-| V4      | First periodic ban reset (3600 s after start)       | 4 (stale)             | 0                   | DONE   |
+| Process | What was done                                    | Before the fix (reported / banned) | After the fix (reported / banned) |
+| ------- | ------------------------------------------------ | ---------------------------------- | --------------------------------- |
+| V1      | One invalid connection ID from `127.0.0.1`       | 1 / 0                              | 0 / 0                             |
+| V2      | One invalid connection ID from `.2` and `.3` too | 3 / 0                              | 0 / 0                             |
+| V3      | 11 invalid connection IDs from `127.0.0.4`       | 4 / 1                              | 1 / 1                             |
+| V4      | First periodic ban reset (3600 s after start)    | 4 (stale) / 0                      | 0 / 0                             |
+
+The "before" column comes from the reproduction (V1-V4); the "after" column from the like-for-like
+recheck on the final code ("Recheck on the Final Code (T10)", L-V1 to L-V4), which matches the two
+earlier rechecks on earlier builds.
 
 The three read surfaces (REST JSON stats, REST Prometheus stats, REST Prometheus metrics) always
 agreed, because they all read the same `udp-server` gauge.
@@ -32,7 +40,12 @@ agreed, because they all read the same `udp-server` gauge.
 
 - The tracker configuration is embedded verbatim below.
 - The probe script is kept in this folder: [udp-banned-ips-probe.sh](udp-banned-ips-probe.sh).
-- The full tracker log of the run is kept in [evidence/tracker.log](evidence/tracker.log).
+- The full tracker log of the run is kept in [evidence/tracker.log](evidence/tracker.log); the
+  recheck logs are [evidence/recheck-tracker.log](evidence/recheck-tracker.log),
+  [evidence/final-recheck-tracker.log](evidence/final-recheck-tracker.log) (the second recheck),
+  and [evidence/last-recheck-tracker.log](evidence/last-recheck-tracker.log) (the recheck on the
+  final code). The logs keep the
+  tracker's ANSI color codes; the lines quoted in this document have them removed.
 - The run used the local, git-ignored working folder `.tmp/udp-banned-ips-metric/repro/` for the
   configuration, the SQLite database, and the live log. Nothing in this document depends on it.
 
@@ -163,8 +176,65 @@ Relevant startup log lines (from [evidence/tracker.log](evidence/tracker.log)):
 2026-10-13T15:09:06.832320Z  INFO UDP TRACKER: Starting UDP tracker server event listener (banning)
 ```
 
-Invalid connection IDs are not logged at the `info` level, so the evidence below relies on the
-protocol responses and the API reads.
+Each invalid connection ID produces one `WARN ... UDP TRACKER: response error` line with the
+client address, even at the `info` level. (An earlier version of this sentence said they were not
+logged; corrected after PR #2506 review finding F8.) The full lines are in
+[evidence/tracker.log](evidence/tracker.log) and are about 1.8 KB each, so they are quoted below in
+condensed form: log line number, timestamp, client IP, and the error message up to the colon after
+"cookie value is ...". They were produced by this Python script, run with `python3` from the issue
+folder (passed on standard input):
+
+```python
+import re
+lines=open('evidence/tracker.log').read().split('\n')
+out=[]
+for i,l in enumerate(lines,1):
+    l=re.sub(r'\x1b\[[0-9;]*m','',l)
+    if ' WARN ' not in l: continue
+    ts=l.split()[0]
+    ip=re.search(r'client_socket_addr=([0-9.]+):\d+',l).group(1)
+    msg=re.search(r'UDP TRACKER: response error error=(tracker announce error: Connection cookie error: cookie value is [a-z ]+?)(?::|$)',l).group(1)
+    out.append(f"{i:>3} {ts} {ip} {msg}")
+open('/tmp/warn-condensed.txt','w').write('\n'.join(out)+'\n')
+print('\n'.join(out))
+```
+
+V1 (one line for `127.0.0.1`):
+
+```text
+122 2026-10-13T15:09:13.982533Z 127.0.0.1 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V2 (one line each for `127.0.0.2` and `127.0.0.3`):
+
+```text
+132 2026-10-13T15:09:26.417733Z 127.0.0.2 tracker announce error: Connection cookie error: cookie value is from future
+133 2026-10-13T15:09:28.428854Z 127.0.0.3 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V3 (11 lines for `127.0.0.4`):
+
+```text
+143 2026-10-13T15:09:42.773886Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+144 2026-10-13T15:09:44.783532Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+145 2026-10-13T15:09:46.794115Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+146 2026-10-13T15:09:48.804587Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+147 2026-10-13T15:09:50.815167Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is from future
+149 2026-10-13T15:09:52.825010Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+150 2026-10-13T15:09:54.834743Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is from future
+151 2026-10-13T15:09:56.844771Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+152 2026-10-13T15:09:58.854856Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+153 2026-10-13T15:10:00.864438Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+154 2026-10-13T15:10:02.873998Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V4 step 3 (one line for `127.0.0.5`):
+
+```text
+497 2026-10-13T16:09:21.227616Z 127.0.0.5 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+The counts per client (1, 1, 1, 11, and 1) match the probe commands in V1-V4.
 
 ### Probe script
 
@@ -431,6 +501,1247 @@ fresh state.
 
 The tracker was stopped (`SIGTERM` from the agent shell) after this step.
 
+## Recheck After the Fix (T10)
+
+Like-for-like rerun of V1 to V4 on the fixed build, with the same configuration (rewritten to
+`.tmp/udp-banned-ips-metric/repro/tracker.toml` from the block in "Tracker configuration"), the same
+probe (the committed [udp-banned-ips-probe.sh](udp-banned-ips-probe.sh), copied to
+`.tmp/udp-banned-ips-metric/repro/probe.sh`), and the same commands as the reproduction.
+
+- Code: `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`, which
+  carries `fix(udp-core): [#2505] count only IPs over the limit as banned` and
+  `fix(udp-server): [#2505] publish the banned-IPs total when bans are reset`. This is **not** the
+  finished code: the later `perf(udp-core): [#2505] detect the ban crossing with one comparison`
+  changed the crossing check, so the whole recheck was repeated in "Second Recheck (T10)" and,
+  after later review fixes, in "Recheck on the Final Code (T10)".
+- Build: `cargo build --bin torrust-tracker` (`Finished dev profile [optimized + debuginfo]
+  target(s) in 6.92s`), stable `rustc 1.99.0 (b940084d7 2026-09-28)`. UDP 16969 and TCP 11212 and
+  1313 were free before the start.
+- Tracker start (background shell), as in the reproduction:
+
+  ```bash
+  cd /home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-08 && rm -rf .tmp/udp-banned-ips-metric/repro/storage/* && date -u '+%Y-%m-%d %H:%M:%S UTC' > .tmp/udp-banned-ips-metric/repro/start-time.txt && ./target/debug/torrust-tracker --config-toml-path ./.tmp/udp-banned-ips-metric/repro/tracker.toml > .tmp/udp-banned-ips-metric/repro/tracker.log 2>&1
+  ```
+
+The cookie error text differs from the reproduction because each tracker start uses a new cookie
+key, so the decoded value of connection ID 0 differs; it is still a connection-cookie error.
+
+### R-V1 - One Invalid Connection ID, Not Banned
+
+Command (the same as V1):
+
+```bash
+sleep 3; cd .tmp/udp-banned-ips-metric/repro && cat start-time.txt && grep -c "Starting UDP IP-ban cleanup job" tracker.log && date -u '+%F %T UTC' && echo '$ ./probe.sh stats' && ./probe.sh stats && echo && echo '$ ./probe.sh invalid-announce 127.0.0.1' && ./probe.sh invalid-announce 127.0.0.1 && sleep 1 && echo '$ ./probe.sh stats' && ./probe.sh stats && echo '$ ./probe.sh connect 127.0.0.1' && ./probe.sh connect 127.0.0.1
+```
+
+Output:
+
+```text
+2026-10-13 20:05:55 UTC
+1
+2026-10-13 20:06:03 UTC
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total <absent>
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+
+$ ./probe.sh invalid-announce 127.0.0.1
+response (hex): 000000030000abcd747261636b657220616e6e6f756e6365206572726f723a20436f6e6e656374696f6e20636f6f6b6965206572726f723a20636f6f6b69652076616c756520697320657870697265643a202d302e303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030343838353939343339373131333234312c206578706563746564203e20313739313932313834332e30343532383938
+response (error message): tracker announce error: Connection cookie error: cookie value is expired: -0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004885994397113241, expected > 1791921843.0452898
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (hex): 00000000000012347f7c1d4122ebfb4c
+response (connect): connection_id=7f7c1d4122ebfb4c
+```
+
+Result: the gauge is now published, with **0** (V1: 1). The client is still served.
+
+### R-V2 - Several IPs With One Invalid Connection ID, None Banned
+
+Command (the same as V2):
+
+```bash
+cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; for ip in 127.0.0.2 127.0.0.3; do echo "\$ ./probe.sh invalid-announce $ip"; ./probe.sh invalid-announce $ip | grep "error message" | cut -c1-80; done; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats; for ip in 127.0.0.1 127.0.0.2 127.0.0.3; do echo "\$ ./probe.sh connect $ip"; ./probe.sh connect $ip | grep "connect\|no response"; done
+```
+
+Output:
+
+```text
+2026-10-13 20:06:15 UTC
+$ ./probe.sh invalid-announce 127.0.0.2
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh invalid-announce 127.0.0.3
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=108b1f796545a549
+$ ./probe.sh connect 127.0.0.2
+response (connect): connection_id=4800fcfef3e4ae3f
+$ ./probe.sh connect 127.0.0.3
+response (connect): connection_id=a193110e27054e80
+```
+
+Result: **0** banned IPs (V2: 3); all three clients served.
+
+### R-V3 - One IP Really Banned
+
+Command (the same as V3; its first `echo` prints a simplified label for the loop that follows):
+
+```bash
+cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done'; for i in $(seq 1 11); do printf "%2d: " $i; ./probe.sh invalid-announce 127.0.0.4 | grep "error message" | cut -c1-90; done; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats; echo '$ ./probe.sh connect 127.0.0.4'; ./probe.sh connect 127.0.0.4; echo '$ ./probe.sh connect 127.0.0.1'; ./probe.sh connect 127.0.0.1 | grep "connect"; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats
+```
+
+Output:
+
+```text
+2026-10-13 20:06:31 UTC
+$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done
+ 1: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 2: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 3: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 4: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 5: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 6: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 7: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 8: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 9: response (error message): tracker announce error: Connection cookie error: cookie value is
+10: response (error message): tracker announce error: Connection cookie error: cookie value is
+11: response (error message): tracker announce error: Connection cookie error: cookie value is
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.4
+<no response>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=3bbfacdca9ea2555
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+```
+
+Result: **1** banned IP (V3: 4), matching the one IP whose request was dropped
+(`udp_tracker_server_requests_banned_total` 1). Enforcement is unchanged.
+
+### R-V4 - Gauge After the Periodic Reset
+
+1. Waited for the first reset (the job started at 20:05:55 UTC). Command:
+
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && until grep -q "filter cleared" tracker.log; do sleep 5; done; date -u '+%F %T UTC'; grep "filter cleared" tracker.log
+   ```
+
+   Output:
+
+   ```text
+   2026-10-13 21:05:59 UTC
+   2026-10-13T21:05:55.966298Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+   ```
+
+2. Read the metric and checked that the banned IP is served again. Command (the same as V4 step 2):
+
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ ./probe.sh stats'; ./probe.sh stats; echo '$ ./probe.sh connect 127.0.0.4'; ./probe.sh connect 127.0.0.4; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats
+   ```
+
+   Output:
+
+   ```text
+   2026-10-13 21:06:03 UTC
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   $ ./probe.sh connect 127.0.0.4
+   response (hex): 0000000000001234d7218f2a4a3a5fb3
+   response (connect): connection_id=d7218f2a4a3a5fb3
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   ```
+
+3. Sent one invalid connection ID from a new IP. Command (the same as V4 step 3):
+
+   ```bash
+   cd .tmp/udp-banned-ips-metric/repro && date -u '+%F %T UTC'; echo '$ ./probe.sh invalid-announce 127.0.0.5'; ./probe.sh invalid-announce 127.0.0.5 | grep "error message" | cut -c1-80; sleep 1; echo '$ ./probe.sh stats'; ./probe.sh stats | head -3
+   ```
+
+   Output:
+
+   ```text
+   2026-10-13 21:06:10 UTC
+   $ ./probe.sh invalid-announce 127.0.0.5
+   response (error message): tracker announce error: Connection cookie error: cooki
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   ```
+
+Result: right after the reset all three surfaces report **0** (V4: a stale 4), and `127.0.0.4` is
+served again. A new client with one invalid connection ID still reports **0** (V4: 1).
+
+The tracker was then stopped (`SIGTERM` from the agent shell). Its full log is in
+[evidence/recheck-tracker.log](evidence/recheck-tracker.log); the relevant lines:
+
+```text
+2026-10-13T20:05:55.964017Z  INFO UDP TRACKER: Starting UDP IP-ban cleanup job reset_interval_in_secs=3600
+2026-10-13T21:05:55.966298Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+2026-10-13T21:06:19.016030Z  INFO UDP TRACKER: Stopping UDP IP-ban cleanup job ...
+```
+
+### Recheck Conclusion
+
+The like-for-like recheck no longer shows either defect: the reported value equals the number of
+IPs over the limit in every step, and it is updated when the periodic reset clears the bans.
+
+## Second Recheck (T10)
+
+> This section was titled "Final Recheck on the Finished Code (T10)", but four production commits
+> followed it after the PR #2524 reviews, so it did not run on the final code (PR #2524 review
+> finding F9 by Cameron). It is kept as recorded; the recheck on the final code is "Recheck on the
+> Final Code (T10)" below.
+
+The first recheck above ran on the build of
+`docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`. The independent
+pre-PR review (task review finding B1 in `agent-review-reports.md`) noted that the later
+`perf(udp-core): [#2505] detect the ban crossing with one comparison` changed the counting logic,
+so the finished artifact had not been checked by hand. At the maintainer's choice, the whole
+recheck was repeated on the code then believed final.
+
+- Code: `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs`, the
+  last commit (it changes only test code after the variant-B commit).
+- Build: `cargo build --bin torrust-tracker` (`Finished dev profile [optimized + debuginfo]
+  target(s) in 2.62s`), stable `rustc 1.99.0 (b940084d7 2026-09-28)`. UDP 16969 and TCP 11212 and
+  1313 were free and no other tracker was running.
+- Configuration and probe: byte-identical to the earlier runs (`diff` of
+  `.tmp/udp-banned-ips-metric/repro/tracker.toml` against the "Tracker configuration" block, and of
+  `.tmp/udp-banned-ips-metric/repro/probe.sh` against the committed probe, printed nothing).
+- Tracker start: the same command as the reproduction, at 2026-10-14 06:53:20 UTC. A first start
+  at 06:52:12 UTC was discarded because V2 and V3 ran concurrently by mistake (see "Failures and
+  Follow-up").
+
+### F-V1 - One Invalid Connection ID, Not Banned
+
+Command: the same as V1. Output:
+
+```text
+2026-10-14 06:53:20 UTC
+1
+2026-10-14 06:53:28 UTC
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total <absent>
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+
+$ ./probe.sh invalid-announce 127.0.0.1
+response (hex): 000000030000abcd747261636b657220616e6e6f756e6365206572726f723a20436f6e6e656374696f6e20636f6f6b6965206572726f723a20636f6f6b69652076616c756520697320657870697265643a202d32303135343638393731393538313034373030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030302c206578706563746564203e20313739313936303638372e36313330353132
+response (error message): tracker announce error: Connection cookie error: cookie value is expired: -20154689719581047000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1791960687.6130512
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (hex): 0000000000001234f8a69dfe88215934
+response (connect): connection_id=f8a69dfe88215934
+```
+
+### F-V2 - Several IPs With One Invalid Connection ID, None Banned
+
+Command: the same as V2, run after F-V1 finished. Output:
+
+```text
+2026-10-14 06:53:38 UTC
+$ ./probe.sh invalid-announce 127.0.0.2
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh invalid-announce 127.0.0.3
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=728b39f69f44a159
+$ ./probe.sh connect 127.0.0.2
+response (connect): connection_id=211ff600d45e2b4e
+$ ./probe.sh connect 127.0.0.3
+response (connect): connection_id=ae3050d3a9068e81
+```
+
+### F-V3 - One IP Really Banned
+
+Command: the same as V3, run after F-V2 finished. Output:
+
+```text
+2026-10-14 06:53:56 UTC
+$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done
+ 1: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 2: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 3: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 4: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 5: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 6: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 7: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 8: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 9: response (error message): tracker announce error: Connection cookie error: cookie value is
+10: response (error message): tracker announce error: Connection cookie error: cookie value is
+11: response (error message): tracker announce error: Connection cookie error: cookie value is
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.4
+<no response>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=375d219f0d7ee63a
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+```
+
+### F-V4 - Gauge After the Periodic Reset
+
+1. Waited for the first reset (the job started at 06:53:20 UTC). Command: the same as V4 step 1.
+   Output:
+
+   ```text
+   2026-10-14 07:53:25 UTC
+   2026-10-14T07:53:20.588414Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+   ```
+
+2. Command: the same as V4 step 2. Output:
+
+   ```text
+   2026-10-14 07:53:30 UTC
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   $ ./probe.sh connect 127.0.0.4
+   response (hex): 0000000000001234ff4e55fbb6bb19fe
+   response (connect): connection_id=ff4e55fbb6bb19fe
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   ```
+
+3. Command: the same as V4 step 3. Output:
+
+   ```text
+   2026-10-14 07:53:37 UTC
+   $ ./probe.sh invalid-announce 127.0.0.5
+   response (error message): tracker announce error: Connection cookie error: cooki
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   ```
+
+The tracker was then stopped (`SIGTERM` from the agent shell). Its full log is in
+[evidence/final-recheck-tracker.log](evidence/final-recheck-tracker.log); the relevant lines:
+
+```text
+2026-10-14T06:53:20.576980Z  INFO UDP TRACKER: Starting UDP IP-ban cleanup job reset_interval_in_secs=3600
+2026-10-14T07:53:20.588414Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+2026-10-14T07:53:45.213086Z  INFO UDP TRACKER: Stopping UDP IP-ban cleanup job ...
+```
+
+### Second Recheck Conclusion
+
+On that build the reported value is 0, 0, 1, and 0 after the reset (before the fix: 1, 3, 4, and a
+stale 4), the same as the first recheck. Neither defect was present in that build.
+
+## Recheck on the Final Code (T10)
+
+The second recheck ("Second Recheck (T10)" above) ran on the build of
+`test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs`. Four production
+commits followed it after the PR #2524 reviews: `fix(udp-server): [#2505] publish the banned-IPs
+total while holding the ban lock`, `fix(udp-server): [#2505] name the gauge in the banned-IPs
+publication error`, `fix(udp-core): [#2505] stop an IP's error count at the maximum instead of
+wrapping`, and `fix(udp-server): [#2505] order banned-IPs publications without holding the ban
+lock`; the last two change `increase_counter` and both publish paths, including the reset path that
+V4 exercises. PR #2524 review finding F9 by Cameron pointed this out, and at the maintainer's choice
+the whole recheck was repeated on the final code (processes L-V1 to L-V4).
+
+- Code: `test(udp-core): [#2505] cover an IP that stays within the limit after a reset`, the last
+  production or test change of the pull request (later commits change only documentation).
+- Build: `cargo build --bin torrust-tracker`, stable `rustc 1.99.0 (b940084d7 2026-09-28)`, current
+  at that commit. UDP 16969 and TCP 11212 and 1313 were free and no other tracker was running.
+- Configuration and probe: rewritten from the "Tracker configuration" block and copied from the
+  committed [udp-banned-ips-probe.sh](udp-banned-ips-probe.sh), as before.
+- Tracker start: the same command as the reproduction, at 2026-10-14 11:54:15 UTC. Each step below
+  was run only after the previous one finished. The final after measurement's Criterion runs
+  (`performance-evidence.md`) ran during the wait for the reset; they start no tracker.
+
+### L-V1 - One Invalid Connection ID, Not Banned
+
+Command: the same as V1. Output:
+
+```text
+2026-10-14 11:54:15 UTC
+1
+2026-10-14 11:54:18 UTC
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total <absent>
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+
+$ ./probe.sh invalid-announce 127.0.0.1
+response (hex): 000000030000abcd747261636b657220616e6e6f756e6365206572726f723a20436f6e6e656374696f6e20636f6f6b6965206572726f723a20636f6f6b69652076616c756520697320657870697265643a20302e30303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030383330353132393831373939373431322c206578706563746564203e20313739313937383733372e363836393631
+response (error message): tracker announce error: Connection cookie error: cookie value is expired: 0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008305129817997412, expected > 1791978737.686961
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (hex): 0000000000001234a2cbac916ecd471d
+response (connect): connection_id=a2cbac916ecd471d
+```
+
+### L-V2 - Several IPs With One Invalid Connection ID, None Banned
+
+Command: the same as V2. Output:
+
+```text
+2026-10-14 11:54:29 UTC
+$ ./probe.sh invalid-announce 127.0.0.2
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh invalid-announce 127.0.0.3
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=62b2afdc47013933
+$ ./probe.sh connect 127.0.0.2
+response (connect): connection_id=a4389d6b8fe74f69
+$ ./probe.sh connect 127.0.0.3
+response (connect): connection_id=16b75fb1e0d555c2
+```
+
+### L-V3 - One IP Really Banned
+
+Command: the same as V3. Output:
+
+```text
+2026-10-14 11:54:46 UTC
+$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done
+ 1: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 2: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 3: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 4: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 5: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 6: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 7: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 8: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 9: response (error message): tracker announce error: Connection cookie error: cookie value is
+10: response (error message): tracker announce error: Connection cookie error: cookie value is
+11: response (error message): tracker announce error: Connection cookie error: cookie value is
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.4
+<no response>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=0a67c6272690fcfd
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+```
+
+### L-V4 - Gauge After the Periodic Reset
+
+1. Waited for the first reset (the job started at 11:54:15 UTC). Command: the same as V4 step 1.
+   Output (ANSI color codes removed with `sed 's/\x1b\[[0-9;]*m//g'` before printing):
+
+   ```text
+   2026-10-14 12:54:16 UTC
+   2026-10-14T12:54:15.550451Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+   ```
+
+2. Command: the same as V4 step 2. Output:
+
+   ```text
+   2026-10-14 12:54:20 UTC
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   $ ./probe.sh connect 127.0.0.4
+   response (hex): 00000000000012340bf6f7a0baddde50
+   response (connect): connection_id=0bf6f7a0baddde50
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   ```
+
+3. Command: the same as V4 step 3. Output:
+
+   ```text
+   2026-10-14 12:54:29 UTC
+   $ ./probe.sh invalid-announce 127.0.0.5
+   response (error message): tracker announce error: Connection cookie error: cooki
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   ```
+
+The tracker was then stopped (`SIGTERM` from the agent shell). Its full log is in
+[evidence/last-recheck-tracker.log](evidence/last-recheck-tracker.log); the relevant lines:
+
+```text
+2026-10-14T11:54:15.548056Z  INFO UDP TRACKER: Starting UDP IP-ban cleanup job reset_interval_in_secs=3600
+2026-10-14T12:54:15.550451Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+2026-10-14T12:54:36.908260Z  INFO UDP TRACKER: Stopping UDP IP-ban cleanup job ...
+```
+
+### Last Recheck Conclusion
+
+On the final code the reported value is 0, 0, 1, and 0 after the reset (before the fix: 1, 3, 4,
+and a stale 4), the same as both earlier rechecks. Neither defect is present in the delivered
+artifact.
+
+## Regression Tests
+
+The maintained regression tests selected in the specification ("Regression Test Strategy"). Each
+command below was run exactly as shown, with the stable Rust toolchain (`rustc 1.99.0
+(b940084d7 2026-09-28)`, `cargo 1.99.0 (5f94df478 2026-08-27)`), and each output block is verbatim.
+
+### Red - R1, R5, and R6 Against the Unfixed Code (T4)
+
+Code state: `develop` at `b5f1801c6` plus `docs(issues): [#2505] start the implementation`,
+`test(udp-core): [#2505] add the per-event ban service benchmark`, and
+`docs(issues): [#2505] record the performance baseline`, with the new tests added to the working
+tree and no production change.
+
+R1 (`udp-core` unit tests in `packages/udp-core/src/services/banning.rs`). Command:
+
+```bash
+cargo test -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test |panicked|left:|right:|banned IPs total|test result" | head -40
+```
+
+Output:
+
+```text
+test services::banning::tests::it_should_allow_resetting_all_the_counters ... ok
+test services::banning::tests::it_should_ban_ips_with_counters_exceeding_a_predefined_limit ... ok
+test services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit ... ok
+test services::banning::tests::it_should_increase_the_errors_counter_for_a_given_ip ... ok
+test services::banning::tests::it_should_not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit ... ok
+test services::banning::tests::it_should_not_ban_ips_without_connection_id_errors ... ok
+test services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids ... ok
+test services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit ... FAILED
+test services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit ... FAILED
+thread 'services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit' (2511572) panicked at packages/udp-core/src/services/banning.rs:166:9:
+assertion `left == right` failed: banned IPs total for one IP with 2 errors and a limit of 2
+  left: 1
+ right: 0
+thread 'services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit' (2511573) panicked at packages/udp-core/src/services/banning.rs:230:9:
+assertion `left == right` failed: banned IPs total for 3 IPs with 1 error each and a limit of 1
+  left: 3
+ right: 0
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+```
+
+The two below-limit cases are red. The two over-limit cases (`limit + 1` and `limit + 2` errors)
+pass on the unfixed code because a single tracked IP is counted either way; they guard the new
+counter and are proven by mutate-then-restore after the fix (T5).
+
+R5 and R6 (`udp-server` package-level integration tests, module
+`server::contract::publishing_the_banned_ips_total` in `packages/udp-server/tests/server/contract.rs`,
+limit 2). The first attempt did not compile (`error: unused import: logging`); after removing the
+import, the command was:
+
+```bash
+cargo test -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" | head -40
+```
+
+Output:
+
+```text
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... FAILED
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... FAILED
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit ... ok
+thread 'server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit' (2514046) panicked at packages/udp-server/tests/server/contract.rs:794:13:
+assertion `left == right` failed: published banned IPs total after 2 invalid connection IDs from one client with a limit of 2 (strict validation)
+  left: 1
+ right: 0
+thread 'server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit' (2514044) panicked at packages/udp-server/tests/server/contract.rs:855:13:
+assertion `left == right` failed: published banned IPs total after 2 invalid connection IDs from one client with a limit of 2 (disabled validation)
+  left: 1
+ right: 0
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --test integration`
+```
+
+Stability check, because these tests wait for asynchronous event processing. Command:
+
+```bash
+for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^test result"; done
+```
+
+Output:
+
+```text
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+```
+
+The below-limit tests read the gauge after the listener has recorded every error. The listener
+handles events one at a time and publishes after each, so at that point the gauge holds at least
+the value published for the previous error (1 on the unfixed code), which makes the red result
+deterministic. The over-limit tests poll the gauge until it reaches 1 or a 5-second deadline
+passes; they pass on the unfixed code and guard the published value after the fix.
+
+### Green - R1, R1p, R2, R5, and R6 After the `udp-core` Fix (T5)
+
+Code state: the red state above plus the T5 change: `BanService` maintains a banned-IP counter
+(option P1), `BanningStats` and `last_connection_id_errors_reset` are removed, R1p and R2 are
+added, and the `udp-server` handler and listener tests are updated to the banned meaning. The same
+commands as the red run, recorded in one capture (each `$` line is an `echo` of the command that
+follows it):
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test |panicked|left:|right:|banned IPs total|test result" | head -40
+test services::banning::tests::it_should_allow_resetting_all_the_counters ... ok
+test services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids ... ok
+test services::banning::tests::it_should_ban_ips_with_counters_exceeding_a_predefined_limit ... ok
+test services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit ... ok
+test services::banning::tests::it_should_increase_the_errors_counter_for_a_given_ip ... ok
+test services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once ... ok
+test services::banning::tests::it_should_not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit ... ok
+test services::banning::tests::it_should_not_ban_ips_without_connection_id_errors ... ok
+test services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit ... ok
+test services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset ... ok
+test services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit ... ok
+test services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets ... ok
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" | head -40
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned ... ok
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+$ for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^test result"; done
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+```
+
+The focused suites and the root banning tests also pass. Commands and their filtered output:
+
+```text
+$ cargo test -p torrust-tracker-udp-core -p torrust-tracker-udp-server 2>&1 | grep -E "^error|^warning|FAILED|test result|panicked|Running" | head -40
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_udp_core-ccc5ed7cbc967af2)
+test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_udp_server-ef29f8560219f22b)
+test result: ok. 219 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.18s
+     Running tests/integration.rs (target/debug/deps/integration-d4d1a2addb4f912f)
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.09s
+test result: ok. 3 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+$ cargo test --test banning-udp-metrics-disabled-port-zero --test banning-udp-shared-connection-id-error-limit --test banning-udp-shared-connection-id-error-limit-reverse-order --test metrics-fixed-ports 2>&1 | grep -E "^error|FAILED|test result|panicked|Running" | head -20
+     Running tests/banning/udp_metrics_disabled_port_zero.rs (target/debug/deps/banning_udp_metrics_disabled_port_zero-14dd79079fd283da)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.05s
+     Running tests/banning/udp_shared_connection_id_error_limit.rs (target/debug/deps/banning_udp_shared_connection_id_error_limit-f49990584324f262)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+     Running tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs (target/debug/deps/banning_udp_shared_connection_id_error_limit_reverse_order-825a58919689be0f)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+     Running tests/metrics/fixed_ports.rs (target/debug/deps/metrics_fixed_ports-57d64ba4989d3ffc)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+```
+
+### Mutate-Then-Restore - Guards That Pass on the Unfixed Code (T5)
+
+R1's over-limit cases, R2, R1p, and the R5/R6 over-limit tests pass on the unfixed code, so each
+was proven against the bug variants a maintained counter can have. The fixed file was copied to
+`.tmp/banning.rs.fixed`; each mutation was applied to `packages/udp-core/src/services/banning.rs`
+without staging, and the copy was restored after each run (`cmp` confirmed the restored file is
+identical to the fixed file).
+
+Each mutation was applied by a shell function `mutate OLD NEW`, which ran a short Python snippet
+that asserts `OLD` occurs exactly once in `banning.rs` and replaces it with `NEW`. The mutations:
+
+| ID | Bug variant | `OLD` | `NEW` |
+| -- | ----------- | ----- | ----- |
+| M1 (first attempt) | count every error above the limit | `if !was_banned && *count > self.max_connection_id_errors_per_ip {` | `if *count > self.max_connection_id_errors_per_ip {` |
+| M1 | count every error above the limit | `let was_banned = *count > self.max_connection_id_errors_per_ip;` | `let was_banned = false;` |
+| M2 | reset does not clear the counter | the line `self.banned_ips_total = 0;` | (removed) |
+| M3 | off by one: count an IP at the limit | `if !was_banned && *count > self.max_connection_id_errors_per_ip {` | `if !was_banned && *count >= self.max_connection_id_errors_per_ip {` |
+| M4 | never count a banned IP | the line `self.banned_ips_total += 1;` | (removed) |
+
+After each mutation, the `udp-core` tests ran as
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test .*FAILED|^test result|^    services" | sed 's/^    /FAILED: /' | sort -u`,
+and for M4 the `udp-server` tests ran as
+`cargo test -q -p torrust-tracker-udp-server 2>&1 | grep -E "^    |test result" | sed 's/^    /FAILED: /' | sort -u`.
+Output of that first run:
+
+```text
+== M1: count every error above the limit (no crossing check)
+== M2: reset does not clear the banned counter
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M3: off by one, count an IP at the limit
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 6 passed; 6 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+test result: FAILED. 218 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+restored: identical to the fixed file
+```
+
+That run was incomplete in two places. M1 printed nothing: removing `was_banned` from the condition
+left the variable unused, which the workspace's `-D warnings` turns into a compile error, so no test
+ran. M4's `udp-server` run stopped at the first failing test binary, so the integration tests did
+not run. Both were repeated: M1 with the compiling variant in the table, with the `udp-core`
+command filter `grep -E "^error|^    services|^test result"`, and M4 with
+`cargo test -q --no-fail-fast -p torrust-tracker-udp-server 2>&1 | grep -E "^error|^    [a-z]|^test result" | sed 's/^    /FAILED: /' | sort -u`.
+Output:
+
+```text
+== M1: count every error above the limit (crossing check disabled)
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP (udp-server, all test binaries)
+error: 2 targets failed:
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --test integration`
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+FAILED: server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned
+FAILED: server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit
+FAILED: server::contract::receiving_an_announce_request::should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal
+test result: FAILED. 13 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.10s
+test result: FAILED. 218 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+restored: identical to the fixed file
+```
+
+Result: every guard fails for at least one plausible variant. R1p fails for all four; R2 for M2,
+M3, and M4; R1's over-limit cases for M1, M3, and M4; the R5/R6 over-limit tests and the handler
+test for M4.
+
+### Test Design Review (T4, T5)
+
+Prose-first Arrange-Act-Assert comparison, per the `write-unit-test` skill:
+
+- R1 and R2 (`banning.rs`): Arrange states the causal condition as an error count relative to a
+  visible limit (`record_connection_id_errors(..., limit + 1)`, with a reset in between for R2);
+  Act is the production read `get_banned_ips_total()`; Assert compares with an independently stated
+  number, and the message names the error count and the limit. `record_connection_id_errors` names
+  the repeated `increase_counter` call and hides nothing causal.
+- R1p: the expected value comes from an independent model (per-IP counts kept in an array), not
+  from `is_banned`, and the failure message names the step, the operation, the limit, and the model
+  counts.
+- R5 and R6 (`contract.rs`): the causal values (`CONNECTION_ID_ERROR_LIMIT`, the policy, and the
+  number of invalid connection IDs) stay in the test body; the helpers hide only server startup,
+  request transport, and waiting for asynchronous event processing. Each test has one observable
+  contract.
+- Handler test: renamed to `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error`;
+  the causal state (one client already over the limit, the event client at the limit) is visible in
+  `with_client_errors(&[...])`, and the expected total of 2 is stated independently. This record is
+  superseded by the follow-up review of the three-client version below ("Reviewer Follow-Up -
+  Handler Test Distinguishes the Meanings (N2)").
+- Listener tests: they asserted the total only to observe that an event was processed; they now
+  observe that directly with `get_count(&EVENT_CLIENT_IP)`.
+
+The temporary prose was removed after the comparison; the code expresses it.
+
+### Red - R4 Against the Unfixed Reset Job (T6)
+
+Code state: `fix(udp-core): [#2505] count only IPs over the limit as banned` plus R4 in
+`src/bootstrap/jobs/udp_tracker_server.rs` and one preparatory change: `run_ban_cleanup_job` takes
+the stats repository as an unused `_stats_repository` parameter, so the test can pass it; the job
+body still only calls `BanService::reset_bans`. R4 publishes a gauge of 1 through the real event
+handler (two connection-cookie errors from one IP, limit 1), starts the job under a paused Tokio
+clock with a 60-second interval, and sleeps one interval plus 1 ms. Command:
+
+```bash
+cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result"
+```
+
+Output:
+
+```text
+test bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans ... FAILED
+test bootstrap::jobs::udp_tracker_server::tests::it_should_stop_the_ban_cleanup_job_when_cancelled ... ok
+thread 'bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans' (2559588) panicked at src/bootstrap/jobs/udp_tracker_server.rs:187:9:
+assertion `left == right` failed: published banned IPs total 60 s after the cleanup job started, when 203.0.113.1 had been banned and published as 1 before the first reset
+  left: 1
+ right: 0
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker --lib`
+```
+
+### Green - R3 and R4 After Publishing on Reset (T7)
+
+Code state: the red state above plus option G1: `torrust_tracker_udp_server::banning::reset_bans`
+resets the ban service and publishes the new total through the event handler's
+`update_metric_for_banned_ips_total`; the job calls it with `CurrentClock::now()` on every tick; R3
+tests the new function in `packages/udp-server/src/banning/mod.rs`. Commands:
+
+```bash
+cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" -A3 | head -20
+cargo test -p torrust-tracker-udp-server --lib banning 2>&1 | grep -E "^error|^warning|^test |FAILED|test result" | head -20
+```
+
+Output:
+
+```text
+test bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans ... ok
+test bootstrap::jobs::udp_tracker_server::tests::it_should_stop_the_ban_cleanup_job_when_cancelled ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+
+test banning::event::listener::tests::it_should_ignore_non_connection_cookie_errors ... ok
+test banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error ... ok
+test banning::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test banning::event::listener::tests::it_should_prioritize_cancellation_over_a_ready_event ... ok
+test banning::event::handler::tests::it_should_record_the_connection_cookie_error_for_its_client_ip ... ok
+test banning::event::listener::tests::it_should_process_connection_cookie_errors_after_lagging ... ok
+test banning::tests::it_should_publish_the_new_banned_ips_total_after_resetting_the_bans ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out; finished in 0.00s
+```
+
+R4 passing with the same timing also shows that the red result came from the missing publish,
+not from the job not having run yet.
+
+### Mutate-Then-Restore - R3 (T7)
+
+M5 removes the publish from `reset_bans` (the call
+`event::handler::update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;` is
+replaced by `let _ = (repository, ips_banned_total, now);`). The fixed file was copied to
+`.tmp/banning-mod.rs.fixed` and restored afterwards. Commands:
+
+```bash
+f=packages/udp-server/src/banning/mod.rs; cp $f .tmp/banning-mod.rs.fixed
+python3 -c "
+p='$f'; s=open(p).read()
+old='    event::handler::update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;\n'
+assert s.count(old)==1; open(p,'w').write(s.replace(old,'    let _ = (repository, ips_banned_total, now);\n'))"
+echo "== M5: reset_bans does not publish the new total"
+cargo test -q -p torrust-tracker-udp-server --lib banning 2>&1 | grep -E "^error|^    banning|^test result" | sed 's/^    /FAILED: /' | sort -u
+cargo test -q -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^error|^    bootstrap|^test result" | sed 's/^    /FAILED: /' | sort -u
+cp .tmp/banning-mod.rs.fixed $f; cmp $f .tmp/banning-mod.rs.fixed && echo "restored: identical to the fixed file"
+echo "== R4 stability"
+for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server 2>&1 | grep -E "^test result"; done
+```
+
+Output:
+
+```text
+== M5: reset_bans does not publish the new total
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+FAILED: banning::tests::it_should_publish_the_new_banned_ips_total_after_resetting_the_bans
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 213 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker --lib`
+FAILED: bootstrap::jobs::udp_tracker_server::tests::it_should_publish_the_new_banned_ips_total_when_it_resets_the_bans
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+restored: identical to the fixed file
+== R4 stability
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+```
+
+Test design review (prose-first AAA): R3 and R4 keep the causal state visible (the limit, the
+banned client IP, and the events that publish 1), the production Act (`reset_bans` for R3; one
+reset interval of the job for R4, with a comment saying the paused clock jumps to it), and an
+independently stated expected total of 0 whose message names the interval and the banned IP.
+
+### Mutate-Then-Restore - Variant B of the Counter (T9 Follow-Up)
+
+After the T9 investigation (see `performance-evidence.md`, "Investigation - Same-Machine Comparison"), the maintainer
+adopted variant B of the crossing check, which compares once after the increment:
+`if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1)`. M1 and M3 no longer apply
+in their original form, so all four variants were rerun against B. The fixed file was copied to
+`.tmp/banning.rs.fixed-b` and restored after each run. Command:
+
+```bash
+f=packages/udp-core/src/services/banning.rs; cp $f .tmp/banning.rs.fixed-b
+for m in \
+ "M1b: count every error above the limit|if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1) {|if Some(*count) > Some(self.max_connection_id_errors_per_ip) {" \
+ "M2: reset does not clear the banned counter|        self.banned_ips_total = 0;
+|" \
+ "M3b: off by one, count an IP at the limit|self.max_connection_id_errors_per_ip.checked_add(1) {|self.max_connection_id_errors_per_ip.checked_add(0) {" \
+ "M4: never count a banned IP|            self.banned_ips_total += 1;
+|"; do
+  name="${m%%|*}"; rest="${m#*|}"; old="${rest%%|*}"; new="${rest#*|}"
+  echo "== $name"
+  OLD="$old" NEW="$new" python3 -c "import os; p='$f'; s=open(p).read(); o=os.environ['OLD']; assert s.count(o)==1, o; open(p,'w').write(s.replace(o, os.environ['NEW']))"
+  cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|^test result" | sed 's/^    /FAILED: /' | sort -u
+  cp .tmp/banning.rs.fixed-b $f
+done
+cmp $f .tmp/banning.rs.fixed-b && echo "restored: identical to variant B"
+```
+
+Output:
+
+```text
+== M1b: count every error above the limit
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M2: reset does not clear the banned counter
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M3b: off by one, count an IP at the limit
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+restored: identical to variant B
+```
+
+Every variant is caught by at least two tests, and R1p catches all four. With variant B the
+`udp-core`, `udp-server`, root reset-job, and root banning test suites pass, and `cargo clippy -p
+torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
+
+### Reviewer Follow-Up - Handler Test Distinguishes the Meanings (N2)
+
+The independent pre-PR review (see `agent-review-reports.md`) noted that
+`it_should_publish_the_banned_ip_total_after_a_connection_cookie_error` passed with the old
+distinct-IP total too, because both tracked IPs were over the limit. A third client at the limit
+(`client_within_the_limit_ip`, 1 error with a limit of 1; renamed `client_at_the_limit_ip` after the
+follow-up review, finding N9) now makes the old meaning publish 3 instead of 2. Proof with the
+original map-length total (`self.accurate_error_counter.len()`) temporarily restored in `packages/udp-core/src/services/banning.rs`, without staging, and the file
+restored from a copy afterwards. Command:
+
+```bash
+f=packages/udp-core/src/services/banning.rs; cp $f .tmp/banning.rs.head
+OLD='        self.banned_ips_total
+    }' NEW='        self.accurate_error_counter.len()
+    }' python3 -c "import os; p='$f'; s=open(p).read(); o=os.environ['OLD']; assert s.count(o)==1; open(p,'w').write(s.replace(o, os.environ['NEW']).replace('pub const fn get_banned_ips_total','pub fn get_banned_ips_total'))"
+echo "== M0: the original map-length total"; cargo test -q -p torrust-tracker-udp-server --lib banning::event::handler 2>&1 | grep -E "^error|^    banning|left:|right:|^test result" | sed 's/^    banning/FAILED: banning/'
+cp .tmp/banning.rs.head $f; cmp $f .tmp/banning.rs.head && echo "restored"
+```
+
+Output:
+
+```text
+== M0: the original map-length total
+  left: 3
+ right: 2
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 218 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+restored
+```
+
+With the fix in place the handler tests pass
+(`test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 218 filtered out`).
+
+Test design review of the three-client version (prose-first Arrange-Act-Assert, per the
+`write-unit-test` skill; finding B2 of the follow-up review):
+
+- Arrange (prose): with a limit of 1, one client is already banned (2 errors), the event's client
+  is at the limit (1 error), and a third client is at the limit too (1 error) and is not part of
+  the event. Code: `with_client_errors(&[...])` lists each client with its error count written
+  relative to `CONNECTION_ID_ERROR_LIMIT`, and `expected_banned_ip_total = 2` is stated before the
+  Act, independent of the code under test.
+- Act (prose): the handler processes one connection-cookie error from the event's client. Code:
+  the single visible `handle_event(event, ...)` call, with the event built from
+  `cookie_error_client_ip`.
+- Assert (prose): the published total is 2, the already-banned client plus the event's client,
+  which this error takes over the limit; the client at the limit is not counted. Code: one
+  `assert_eq!` on `udp_banned_ips_total()` whose message names all three clients and the limit.
+
+The code expresses each paragraph, so the temporary prose was removed. The variable for the third
+client was renamed `client_at_the_limit_ip` so its name says the same as the prose (N9); the
+renamed test passes (`cargo test -q -p torrust-tracker-udp-server --lib banning`:
+`test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out`).
+
+### PR Review Follow-Up - Gauge Publication Ordering (PR #2524 Finding F1)
+
+> Superseded design: the fix described here held the ban service lock until the gauge was written.
+> After PR #2524 review finding F10 by Cameron, the publication order moved to a dedicated mutex and
+> these two tests were replaced; see "PR Review Follow-Up - Publication Order Without the Ban
+> Lock". This section is kept as recorded.
+
+Copilot's review of PR #2524 (finding F1) noted a race the fix introduced: the reset job and the
+banning event listener are separate tasks, and both released the `BanService` lock before writing
+the gauge, so on the multi-thread runtime their gauge writes could land out of order (for example a
+reset publishing 0 after an error that made the total 1). The regression tests hold the gauge
+store's lock (`Repository::stats` is public), run the publishing task on a single-threaded runtime
+until it waits for that lock, and assert that it still holds the `BanService` lock.
+
+Red, on the code before the fix (tests added, production unchanged). Command:
+
+```bash
+cargo test -p torrust-tracker-udp-server --lib keep_the_ban_service_locked 2>&1 | grep -E "^error|^warning|^test |panicked|out of order|test result"
+```
+
+Output:
+
+```text
+test banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total ... FAILED
+test banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total ... FAILED
+thread 'banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total' (886963) panicked at packages/udp-server/src/banning/event/handler.rs:189:9:
+the handler released the ban service before publishing the banned IPs total, so a concurrent reset could publish its total in between and leave the gauge out of order
+thread 'banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total' (886964) panicked at packages/udp-server/src/banning/mod.rs:112:9:
+the reset released the ban service before publishing the new banned IPs total, so a concurrent connection ID error could publish its total in between and leave the gauge out of order
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+```
+
+The fix keeps the `BanService` write guard until the gauge has been written, in both
+`banning::event::handler::handle_event` and `banning::reset_bans`. Both paths take the two locks in
+the same order (ban service, then gauge store); the only other `BanService` lock in production code,
+the launcher's `is_banned` read, is a temporary dropped at the end of its `if` condition and never
+held while taking the gauge store lock, so the change cannot deadlock. The ban lock is now held for
+one extra in-memory gauge write per invalid connection ID and per reset.
+
+Green, after the fix (the same command, then five repeats with `-q` and `grep "test result"`):
+
+```text
+test banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total ... ok
+test banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s
+```
+
+The five repeats each printed
+`test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s`.
+`cargo test -q -p torrust-tracker-udp-core -p torrust-tracker-udp-server`, the root reset-job tests,
+and the root `banning-*` tests pass (49, 222, 16, and 2 + 3 tests), and
+`cargo clippy -q -p torrust-tracker-udp-server --all-targets -- -D clippy::pedantic` reports nothing.
+
+Test design review (prose-first Arrange-Act-Assert): Arrange holds the gauge store and starts the
+production task (`handle_event` with one cookie error, or `reset_bans`); Act lets it run until it
+blocks on the gauge store; Assert states the ordering guarantee, that the ban service is still
+locked, with a message that explains the consequence. The tests observe the locking mechanism
+rather than a racy outcome, because the out-of-order interleaving cannot be produced
+deterministically without an injection seam.
+
+### PR Review Follow-Up - Error Count Overflow (PR #2524 Review by Cameron, His F3)
+
+Cameron's review of PR #2524 (his finding F3, audit F5) noted that `*count += 1` wraps in release
+builds after `u32::MAX` errors from one IP within a reset interval, reachable in `disabled` mode, and
+the wrapped count would cross the limit again and count an already banned IP twice. The fix stops
+the count at `u32::MAX` with `checked_add` and counts the crossing only when the count actually
+increased. Cameron suggested `saturating_add`; the first attempt used it, but with a limit of
+`u32::MAX - 1` the count saturates at the crossing value, so every later error matched `limit + 1`
+again. Two regression tests seed a count near `u32::MAX` through the private map (the test module is
+a child of `banning`), because reaching it through `increase_counter` takes about four billion
+calls:
+
+- `it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum` (Cameron's
+  scenario: limit 1, an IP banned and then at `u32::MAX`, `limit + 2` more errors, total stays 1).
+- `it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count` (limit `u32::MAX - 1`,
+  an IP at the limit, 3 more errors, total 1).
+
+Mutate-then-restore against the two plausible variants (the original `*count += 1` and the
+`saturating_add` form), each applied without staging and restored from a copy
+(`.tmp/banning.rs.checked`), with
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|panicked|left:|right:|^test result" | sed 's/^    services/FAILED: services/' | sort -u`:
+
+```text
+== variant: wrap
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count
+FAILED: services::banning::tests::it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum
+test result: FAILED. 12 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+thread 'services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count' (963766) panicked at packages/udp-core/src/services/banning.rs:37:9:
+thread 'services::banning::tests::it_should_not_count_a_banned_ip_again_after_its_error_count_reaches_the_maximum' (963771) panicked at packages/udp-core/src/services/banning.rs:37:9:
+== variant: saturating
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count
+  left: 3
+ right: 1
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+thread 'services::banning::tests::it_should_count_an_ip_once_when_the_limit_is_one_below_the_maximum_count' (964022) panicked at packages/udp-core/src/services/banning.rs:327:9:
+restored: identical to the checked_add version
+```
+
+The wrap variant panics in the test profile (overflow checks are on in debug builds); in release it
+would wrap and double-count. With the fix, the `udp-core` (51), `udp-server` (222, 16, and doc),
+and root reset-job (2) tests pass, the benchmarks compile and run as tests, and
+`cargo clippy -q -p torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
+
+Test design note: `with_error_count` writes the private map directly, which couples the two tests to
+the representation; it is the only deterministic way to reach the overflow boundary, and its doc
+comment says so. The causal state (the limit and the seeded count) stays visible in the test body.
+
+### PR Review Follow-Up - Publication Order Without the Ban Lock (PR #2524 Findings F10 and F11 by Cameron)
+
+Cameron's second review of PR #2524 noted (his F10) that holding the `BanService` write lock while
+waiting for the statistics store puts that wait on the request path in `strict` mode: the receive
+loop takes the ban service read lock for every datagram. He also noted (his F11) that the lock tests
+wrote through `Repository::stats`, which issue #2517 plans to make private. The fix keeps the
+publication ordering of audit F1 with a dedicated `banning::PublicationOrder` mutex, owned by the
+`udp-server` container and passed to the banning listener and the reset job. Each publisher holds it
+across the ban change and the gauge write, and releases the ban service lock before the gauge write.
+The lock tests now use a test-only `Repository::write_lock_for_test` seam instead of the field.
+
+The two tests of the earlier section were replaced by four, two per publisher:
+`it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_*` and
+`it_should_hold_the_publication_order_until_it_has_published_*`.
+
+Red, with the mutex and the seam in place but both publishers still holding the ban service lock
+until the gauge was written. Command:
+
+```bash
+cargo test -p torrust-tracker-udp-server --lib publish 2>&1 | grep -E "^error|^test .*(lock|publication_order)|panicked|statistics store|out of order|test result"
+```
+
+Output:
+
+```text
+test banning::tests::it_should_hold_the_publication_order_until_it_has_published_the_reset_total ... ok
+test banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total ... ok
+test banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total ... FAILED
+test banning::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_reset_total ... FAILED
+thread 'banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total' (1553798) panicked at packages/udp-server/src/banning/event/handler.rs:225:9:
+the handler held the ban service lock while waiting for the gauge store, so the request path's ban check would wait for the statistics store
+thread 'banning::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_reset_total' (1553801) panicked at packages/udp-server/src/banning/mod.rs:159:9:
+the reset held the ban service lock while waiting for the gauge store, so the request path's ban check would wait for the statistics store
+test result: FAILED. 14 passed; 2 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.04s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+```
+
+The publication-order tests pass in that state, so they were proven by mutate-then-restore after the
+fix: releasing the publication order before the gauge write (`drop(_publication);` inserted before
+the `update_metric_for_banned_ips_total` call in both publishers, applied without staging and
+restored from copies, `cmp` confirming) gave, with
+`cargo test -q -p torrust-tracker-udp-server --lib publish 2>&1 | grep -E "^error|^    banning|^test result" | sed 's/^    banning/FAILED: banning/' | sort -u`:
+
+```text
+== mutation: release the publication order before the gauge write (both publishers)
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+FAILED: banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total
+FAILED: banning::tests::it_should_hold_the_publication_order_until_it_has_published_the_reset_total
+test result: FAILED. 14 passed; 2 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.03s
+restored: identical to the fixed files
+```
+
+Green after the fix: the same command reported the four tests `ok` and
+`test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.04s`,
+and five repeats with `-q` printed the same result line. The `udp-core` (52), `udp-server` (224, 16,
+and doc), root reset-job (2), and root `banning-*` and `metrics-fixed-ports` tests pass;
+`cargo clippy -q --workspace --all-targets --all-features -- -D warnings -D clippy::pedantic` reports
+nothing; nightly `cargo fmt --check` passes.
+
+Lock order: both publishers take the publication order, then the ban service lock (released before
+the gauge write), then the statistics store lock inside `set_gauge`. Nothing else takes the
+publication order, and no path takes the statistics store lock before either of the others, so
+there is no inversion. The request path's ban check now waits at most for the in-memory ban change.
+
+Test design review (prose-first Arrange-Act-Assert): Arrange holds the gauge store and starts the
+production publisher; Act lets it run until it blocks on the gauge store; each test asserts one
+guarantee (the ban service lock is free; the publication order is held) with a message that names
+the consequence. The helpers `spawn_handler_for_one_cookie_error`, `spawn_reset`, and
+`let_spawned_tasks_run` name incidental mechanics only.
+
+### PR Review Follow-Up - R2 Re-Count Below the Limit (PR #2524 Finding F7 by Cameron)
+
+Cameron's second review (his F7) noted that the specification called R2's re-count leg red on
+`develop`, but the implemented re-count test (`it_should_count_an_ip_banned_again_after_a_reset_only_once`)
+passes there: after `limit + 1` errors, a reset, and `limit + 1` errors again, the map length is 1
+too. The missing case was added: `it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`
+(limit 1, an IP banned, reset, then 1 error; expected total 0). Proof that it is red on `develop`'s
+behavior, with the original map-length total temporarily restored (`self.accurate_error_counter.len()`
+in `get_banned_ips_total`, without staging, restored from `.tmp/banning.rs.f7` and confirmed with
+`cmp`), using
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|left:|right:|reset, and then|^test result" | sed 's/^    services/FAILED: services/'`:
+
+```text
+== M0: the original map-length total (develop's behavior)
+  left: 1
+ right: 0
+assertion `left == right` failed: banned IPs total for an IP that was banned, reset, and then sent 1 error with a limit of 1
+  left: 1
+ right: 0
+  left: 3
+ right: 0
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 11 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+restored: identical to the fixed file
+```
+
+With the fix the `udp-core` banning tests pass (`test result: ok. 15 passed`).
+
 ## Failures and Follow-up
 
 - First attempt (tracker started at 15:07:57 UTC) used `socat` to send the probes. Each probe
@@ -439,3 +1750,10 @@ The tracker was stopped (`SIGTERM` from the agent shell) after this step.
   not change the ban counter (the reported value was 1 after one probe, as in V1), but it made the
   evidence noisy. The probe was switched to OpenBSD netcat, the tracker was restarted with an empty
   database at 15:09:06 UTC, and all processes above come from that clean run.
+- Final recheck, first start (2026-10-14 06:52:12 UTC): F-V1 ran correctly, but the V2 and V3
+  commands were issued in the same batch of agent tool calls and ran concurrently (both started at
+  06:52:27 UTC), so V3 did not start from the state V2 leaves. The results were consistent
+  (V2 read 0, V3 read 1), but the run was not like-for-like. The tracker was stopped, its log kept
+  locally as `.tmp/udp-banned-ips-metric/repro/aborted-interleaved-tracker.log`, and the recheck
+  restarted with an empty database at 06:53:20 UTC, running each step only after the previous one
+  finished.

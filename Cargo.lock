@@ -5370,6 +5370,7 @@ dependencies = [
  "criterion 0.5.1",
  "futures",
  "mockall",
+ "quickcheck",
  "rand 0.9.5",
  "serde",
  "thiserror 2.0.21",
