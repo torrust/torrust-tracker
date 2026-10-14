@@ -88,8 +88,10 @@ PR #2532, so it adds no row.
 - Solution: the section now separates what the API enforces (no `.await`) from the caller
   obligation (no blocking, no nested `read_metrics()` on the same repository). The proposed
   `read_metrics()` rustdoc states the obligation, and the design rationale points to it.
-- Current-tree verification: at the Copilot-fix head, `ISSUE.md`:179-188 lists the enforced rule and
-  the caller obligation, :94-97 is the proposed rustdoc, and :120-122 is the updated rationale.
+- Current-tree verification: at the Copilot-fix head, `ISSUE.md`:180-189 lists the enforced rule
+  and the caller obligation, :94-97 is the proposed rustdoc, and :123-125 is the updated rationale.
+  These ranges were corrected under F11; the F1 reply cites the earlier ranges, and the F11 reply
+  gives the corrected ones.
 - Resolution reference: docs(issues): [#2536] record non-blocking read closures as a caller obligation
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275421008>
