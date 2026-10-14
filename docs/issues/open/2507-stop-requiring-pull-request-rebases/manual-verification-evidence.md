@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-14 10:46
+last-updated-utc: 2026-10-14 10:47
 ---
 
 # Manual Verification Evidence
@@ -197,13 +197,21 @@ Steps performed (2026-10-14, 09:59:29 to 09:59:44 UTC):
 1. Created ruleset 25068452 "(branches) [ * ; ! dependabot, ! staging ] Deny Force Push", active,
    with only `non_fast_forward` and the branch conditions of 94237, before deleting anything.
 2. Saved the full definitions of the rulesets to delete, and of the new one, under
-   [`evidence/`](evidence/), so each can be recreated exactly.
+   [`evidence/`](evidence/), so each can be recreated exactly. The files keep the fields needed to
+   recreate a ruleset and drop the response metadata (`source`, `source_type`, `node_id`, `_links`);
+   Prettier formatted them afterwards.
 3. Deleted 94237 (disabled; force-push ban and 16 strict required checks), 19245352 (disabled;
    Copilot code review), and 87098 (active; no rules).
 
 ```sh
 gh api -X POST repos/torrust/torrust-tracker/rulesets --input <new-ruleset.json>
-gh api repos/torrust/torrust-tracker/rulesets/<id> > evidence/deleted-ruleset-<id>.json
+gh api repos/torrust/torrust-tracker/rulesets/<id> \
+  --jq '{id,name,target,enforcement,conditions,rules,bypass_actors,created_at,updated_at}' \
+  > evidence/deleted-ruleset-<id>.json
+gh api repos/torrust/torrust-tracker/rulesets/25068452 \
+  --jq '{id,name,target,enforcement,conditions,rules,bypass_actors,created_at}' \
+  > evidence/created-ruleset-25068452.json
+npx prettier@3 --write evidence/*.json
 gh api -X DELETE repos/torrust/torrust-tracker/rulesets/<id>
 gh api repos/torrust/torrust-tracker/rules/branches/develop --jq '[.[].type] | join(",")'
 ```
