@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2508
-last-updated-utc: "2026-10-14 10:06"
+last-updated-utc: "2026-10-14 10:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,7 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE        | Update the `merge-pull-request` skill                      | Automatic refresh, `gh` prerequisite, manual command, and the `GH013` diagnosis now name the recorded base. Commits `docs(skills): [#2507] describe the automatic recorded-base refresh in the merge skill` and `docs(skills): [#2507] name the recorded base in the merge push-failure diagnosis`.                                                                                                                                                                                                                                                                   |
 | T4  | DONE        | Update the `open-pull-request` skill and `AGENTS.md`       | Done in spec PR #2508. A search of `.github/`, `AGENTS.md`, `docs/templates/`, and `contrib/dev-tools/git/` for rebase mentions on 2026-10-14 found no remaining mandatory-rebase instruction; the remaining mentions describe the new rule or why rebases rewrite commit ids.                                                                                                                                                                                                                                                                                        |
 | T5  | IN_PROGRESS | Reconcile repository rulesets                              | Applied 2026-10-14 with maintainer approval: new always-active force-push ruleset 25068452; deleted 94237, 19245352, and 87098 (definitions saved under `evidence/`). Evidence section "T5 - Ruleset Changes Applied". Remaining: M5 and M6, real merges of a code PR and a documentation-only PR under the new rulesets. The required `CI gate` is the follow-up issue (T8).                                                                                                                                                                                         |
-| T6  | TODO        | Document the ruleset configuration                         | Add a short, version-controlled description of each active ruleset and why it exists, so a future disabled or obsolete rule is detectable by comparison.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| T6  | DONE        | Document the ruleset configuration                         | New guide `docs/github-rulesets.md` (linked from `docs/index.md`): policy, every active ruleset and why it exists, deleted rulesets, and a drift check. The merge skill guardrails forbid disabling a ruleset to merge. Commits `docs(github): [#2507] document the active repository rulesets` and `docs(skills): [#2507] forbid disabling rulesets to merge`.                                                                                                                                                                                                       |
 | T7  | TODO        | Post-change measurement                                    | After at least two weeks under the new policy, rerun the baseline commands for force-pushes per merged PR, PR CI runner-hours, and rebase-fallout commits; record the comparison in `post-change-evidence.md`.                                                                                                                                                                                                                                                                                                                                                        |
 | T8  | TODO        | Draft and create the CI gate follow-up issue               | Spec-first issue for one always-reporting `CI gate` check required by GitHub: CI decision logic in Rust with thin, provider-agnostic workflows; job-level change detection replacing workflow-level `paths-ignore`; a maintainer `ci-override` label read by the gate; an ADR for the CI-portability direction. Maintainer reviews the draft before the issue is created.                                                                                                                                                                                             |
 
@@ -276,6 +276,8 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   approved applying T5. Created force-push ruleset 25068452 and deleted 94237, 19245352, and 87098;
   M7, AC5, and AC7 done - [`manual-verification-evidence.md`](manual-verification-evidence.md)
   section "T5 - Ruleset Changes Applied"
+- 2026-10-14 10:10 UTC - AI assistant - T6 done: added `docs/github-rulesets.md` and a merge-skill
+  guardrail against disabling rulesets; AC8 done.
 
 ## Acceptance Criteria
 
@@ -291,7 +293,7 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
       documentation-only PR, and both were merged under it without disabling any ruleset.
 - [x] AC7: Rulesets 94237, 19245352, and 87098 are each either active with a documented purpose
       or deleted; no ruleset is left disabled without a recorded reason.
-- [ ] AC8: The active ruleset configuration is documented in the repository (T6).
+- [x] AC8: The active ruleset configuration is documented in the repository (T6).
 - [ ] AC9: Post-change force-pushes per merged PR and PR CI runner-hours are measured and compared
       with the baseline.
 - [ ] `linter all` exits with code `0`
@@ -347,7 +349,7 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 | AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch checked 2026-10-14 10:06 UTC). |
 | AC6   | TODO                   |                                                                                                                                                                             |
 | AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                                |
-| AC8   | TODO                   |                                                                                                                                                                             |
+| AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                   |
 | AC9   | TODO                   |                                                                                                                                                                             |
 
 ## Risks and Trade-offs
