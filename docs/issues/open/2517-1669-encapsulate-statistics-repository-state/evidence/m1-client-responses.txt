@@ -1,0 +1,8 @@
+$ http announce started (peer 1)
+{"complete":0,"incomplete":1,"interval":120,"min interval":120,"peers":[]}
+$ udp announce started (peer 2)
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":2,"seeders":0,"peers":["127.0.0.1:6881"]}}
+$ http announce completed (peer 1)
+{"complete":1,"incomplete":1,"interval":120,"min interval":120,"peers":[{"ip":"127.0.0.1","peer id":[45,82,67,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,50],"port":6882}]}
+$ udp announce completed (peer 2)
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":2,"peers":["127.0.0.1:6881"]}}

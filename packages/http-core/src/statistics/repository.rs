@@ -10,9 +10,31 @@ use super::describe_metrics;
 use super::metrics::Metrics;
 
 /// A repository for the tracker metrics.
+///
+/// External callers read statistics through [`Repository::get_stats`].
+///
+/// The metrics lock is private:
+///
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_http_core::statistics::repository::Repository;
+///
+/// fn read_stats(repository: &Repository) {
+///     let _stats = &repository.stats;
+/// }
+/// ```
+///
+/// Read through the accessor instead:
+///
+/// ```rust
+/// use torrust_tracker_http_core::statistics::repository::Repository;
+///
+/// async fn read_stats(repository: &Repository) {
+///     let _stats = repository.get_stats().await;
+/// }
+/// ```
 #[derive(Clone)]
 pub struct Repository {
-    pub stats: Arc<RwLock<Metrics>>,
+    stats: Arc<RwLock<Metrics>>,
 }
 
 impl Default for Repository {

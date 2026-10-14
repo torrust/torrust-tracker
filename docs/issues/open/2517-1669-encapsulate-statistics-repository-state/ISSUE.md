@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p3
 epic: 1669
 github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
-branch: "2517-1669-encapsulate-statistics-repository-state-spec"
-related-pr: null
-last-updated-utc: "2026-10-14 09:06"
+branch: "2517-1669-encapsulate-statistics-repository-state"
+related-pr: 2527
+last-updated-utc: "2026-10-14 14:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -114,7 +114,8 @@ module inside the same file, which keeps access to a private field.
 
 - Make `stats` private in the five repositories.
 - Add one `compile_fail,E0616` doctest per repository that pins the field as private (see
-  Regression Test Strategy).
+  Regression Test Strategy), plus a companion doctest that compiles through the public read
+  accessor, as the `write-unit-test` skill requires for compile-time guarantees.
 - Adapt any test, bench, or example that breaks; prefer the repository methods.
 
 ### Out of Scope
@@ -176,15 +177,15 @@ covers those.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                | Notes / Expected Output                                                                                     |
-| --- | ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Re-verify the evidence on current `develop`         | Repeat the `.stats` search and crates.io check; record the commit in the progress log.                     |
-| T2  | TODO   | Make `stats` private in `udp-core`                  | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-udp-core` passes, including doctests. |
-| T3  | TODO   | Make `stats` private in `udp-server`                | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-udp-server` passes, including doctests. |
-| T4  | TODO   | Make `stats` private in `http-core`                 | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-http-core` passes, including doctests. |
-| T5  | TODO   | Make `stats` private in `tracker-core`              | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-core` passes, including doctests. |
-| T6  | TODO   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-swarm-coordination-registry` passes, including doctests. |
-| T7  | TODO   | Verification                                        | See Verification Plan.                                                                                      |
+| ID | Status | Task                                                  | Notes / Expected Output                                                                                                                                                     |
+| -- | ------ | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1 | DONE   | Re-verify the evidence on current `develop`           | On `c1874fac`, the `stats` field was used only inside the five repository files, with no `Repository { stats: ... }` literals; crates.io: 404 for all current/former names. |
+| T2 | DONE   | Make `stats` private in `udp-core`                    | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T3 | DONE   | Make `stats` private in `udp-server`                  | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T4 | DONE   | Make `stats` private in `http-core`                   | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T5 | DONE   | Make `stats` private in `tracker-core`                | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T6 | DONE   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T7 | DONE   | Verification                                          | `linter all`, pre-push checks, nightly pinned doctests, AC1 grep, and M1 (rerun after review round 1 with all metric families) passed.                                      |
 
 ## Commit Points
 
@@ -204,15 +205,15 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-encapsulate-statistics-repository-state/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -234,18 +235,79 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - 2026-10-14 09:06 UTC - GitHub Copilot (spec session) - PR #2520 review round 2: planned one
   `compile_fail,E0616` doctest per repository, made the AC1 grep catch restricted visibility, named
   the AC2 checks, and said the SI-30 traits draft is not committed yet.
+- 2026-10-14 12:45 UTC - Maintainer - Confirmed that M1 should be performed against both the
+  `develop` baseline and the implementation branch, comparing UDP and HTTP announce metrics through
+  the REST API.
+- 2026-10-14 12:55 UTC - Implementation - T2 (`udp-core`) passed the red/green check:
+  `cargo test -p torrust-tracker-udp-core --doc` failed because the public field compiled, then
+  `cargo test -p torrust-tracker-udp-core` passed after the field became private. The doctest
+  design review confirmed the `E0616` failure is caused only by field access; a companion example
+  reads through `get_stats()`.
+- 2026-10-14 12:57 UTC - Implementation - T3 (`udp-server`) passed the red/green check:
+  `cargo test -p torrust-tracker-udp-server --doc` failed because the public field compiled, then
+  `cargo test -p torrust-tracker-udp-server` passed after the field became private. The doctest
+  design review confirmed the `E0616` failure is caused only by field access; a companion example
+  reads through `get_stats()`.
+- 2026-10-14 12:59 UTC - Implementation - T4 (`http-core`) passed the red/green check:
+  `cargo test -p torrust-tracker-http-core --doc` failed because the public field compiled, then
+  `cargo test -p torrust-tracker-http-core` passed after the field became private. The doctest
+  design review confirmed the `E0616` failure is caused only by field access; a companion example
+  reads through `get_stats()`.
+- 2026-10-14 13:00 UTC - Implementation - T5 (`tracker-core`) passed the red/green check:
+  `cargo test -p torrust-tracker-core --doc` failed because the public field compiled, then
+  `cargo test -p torrust-tracker-core` passed after the field became private. The doctest
+  design review confirmed the `E0616` failure is caused only by field access; a companion example
+  reads through `get_metrics()`.
+- 2026-10-14 13:02 UTC - Implementation - T6 (`swarm-coordination-registry`) passed the red/green
+  check: `cargo test -p torrust-tracker-swarm-coordination-registry --doc` failed because the
+  public field compiled, then `cargo test -p torrust-tracker-swarm-coordination-registry` passed
+  after the field became private. The doctest design review confirmed the `E0616` failure is caused
+  only by field access; a companion example reads through `get_metrics()`.
+- 2026-10-14 13:06 UTC - Implementation - Re-verified T1 on `develop` at `c1874fac`: the `git grep`
+  results contained no repository field accesses outside the five repository files and no
+  `Repository { stats: ... }` struct literals. The crates.io API returned 404 for all five current
+  and six former crate names, and 200 for the published `torrust-tracker-torrent-repository`
+  predecessor. M1 was run before and after on isolated fresh databases; see
+  `manual-verification-evidence.md`.
+- 2026-10-14 13:12 UTC - Implementation - T7 completed: pre-commit checks (`linter all` and
+  workspace doctests) and pre-push checks (nightly format, check, documentation builds, and stable
+  all-target workspace tests) passed. All five pinned `compile_fail,E0616` doctests passed on
+  nightly. The AC1 grep found no public `stats` fields. M1 matched between `develop` and the
+  implementation branch. No implementation retrospective is needed: the visibility-only design
+  followed the approved specification; the only deviations were isolated local ports to avoid an
+  existing process and corrected verification-command inputs.
+- 2026-10-14 14:16 UTC - Implementation - Independent review round 1 (`agent-review-reports.md`)
+  returned `REVIEW FAILED`: the code and doctests were correct, but M1 recorded only some REST
+  stats and the HTTP and UDP core samples, and the spec status and self-ticked committer
+  checkbox were wrong. Fixes: reran M1 on `develop` and the branch with identical scripted
+  steps (adding `completed` announces) and compared every metric family, all REST stats, and
+  client responses with `diff -u` (no differences); stored the outputs under `evidence/`; set
+  `status: in-progress`; cleared the committer checkbox; aligned the plan table; recorded the
+  companion doctests in In Scope; and added a lead-in sentence before each repository doctest.
+- 2026-10-14 14:23 UTC - Committer - Independent review round 2 returned `REVIEW PASSED`; its
+  two cosmetic findings were addressed (plan table realigned, stored UDP client-response
+  newlines disclosed in `manual-verification-evidence.md`), and spec progress was verified.
+- 2026-10-14 14:28 UTC - Implementation - Before opening the PR, rebased onto `develop` at
+  `8045bd252` (no conflicts) and replaced the branch commit ids in `agent-review-reports.md` with
+  commit subjects. The newly merged #2524 adds a `#[cfg(test)] pub(crate)`
+  `write_lock_for_test()` method to the `udp-server` statistics repository; it lives inside the
+  repository file and keeps compiling with the private field, so it is a repository method and
+  does not affect AC1 or AC2. M1 and the two independent reviews ran against `develop` at
+  `c1874fac`; the pre-push checks were rerun on the rebased branch.
+- 2026-10-14 14:31 UTC - Implementation - Opened PR #2527 against `develop`; set
+  `status: in-review` and `related-pr: 2527`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: None of the five statistics repositories has a `pub` metrics lock field.
-- [ ] AC2: Code outside each repository file reads and writes metrics only through the
+- [x] AC1: None of the five statistics repositories has a `pub` metrics lock field.
+- [x] AC2: Code outside each repository file reads and writes metrics only through the
   repository's methods.
-- [ ] AC3: Metric values reported by the REST API are unchanged for the same announces.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC3: Metric values reported by the REST API are unchanged for the same announces.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -269,7 +331,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario             | Human-oriented command/steps                                                                                                                                                         | Expected Result                                                                                      | Status | Evidence                                     |
 | --- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Metrics still update | Run the tracker with the default development config (`run-tracker-locally` skill), send one UDP and one HTTP announce with `tracker_client`, then `curl` the REST API stats and metrics endpoints | The UDP, HTTP, tracker-core, and swarm counters reflect the announces, as they do on `develop` | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Metrics still update | Run the tracker with the default development config (`run-tracker-locally` skill), send one UDP and one HTTP announce with `tracker_client`, then `curl` the REST API stats and metrics endpoints | The UDP, HTTP, tracker-core, and swarm counters reflect the announces, as they do on `develop` | DONE   | `manual-verification-evidence.md` section V1 |
 
 Notes:
 
@@ -279,15 +341,17 @@ Notes:
 
 ### Disposable Verification Scripts
 
-None planned.
+None committed. The M1 command sequence was wrapped in a session-local shell script only so that
+both runs executed identical steps; those steps are recorded in full in
+`manual-verification-evidence.md` section V1.
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
-| AC3   | TODO                   | {test/log/PR link} |
+| AC1   | DONE                   | AC1 grep found no public `stats` fields in the five repository files. |
+| AC2   | DONE                   | Workspace all-target tests and the five nightly `compile_fail,E0616` doctests passed. |
+| AC3   | DONE                   | `manual-verification-evidence.md` section V1: REST stats, all metric families, and client responses identical on `develop` and the branch. |
 
 ## Risks and Trade-offs
 
@@ -306,7 +370,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` (the visibility-only implementation followed the approved design)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
