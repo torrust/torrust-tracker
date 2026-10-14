@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
-last-updated-utc: 2026-10-14 14:15
+issue-spec: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
+last-updated-utc: 2026-10-14 16:00
 ---
 
 # Manual Verification Evidence
@@ -17,7 +17,10 @@ last-updated-utc: 2026-10-14 14:15
     - `refactor(http-core): [#2517] make the statistics repository lock private`
     - `refactor(tracker-core): [#2517] make the statistics repository lock private`
     - `refactor(swarm-coordination-registry): [#2517] make the statistics repository lock private`
-    - `docs(statistics): [#2517] introduce the repository privacy doctests`
+    - `docs(statistics): [#2517] introduce the repository privacy doctests` (correction: despite
+      its subject, this commit only adds the lead-in sentences before each doctest; the
+      `compile_fail,E0616` doctest and its companion landed with each package's `refactor` commit
+      above)
 - Operating system / environment: Linux, local development workspace, `dev` profile binaries
   built with `cargo build --bin torrust-tracker` and
   `cargo build -p torrust-tracker-client --bin tracker_client` on each checkout.
@@ -141,9 +144,11 @@ The comparison output:
 (no differences)
 ```
 
-Because the outputs are identical, one copy of each is stored. In the stored client responses,
-each UDP response is followed by a newline that the raw output lacks, because the UDP client
-prints no trailing newline; nothing else differs:
+Because the outputs are identical, one copy of each is stored, except the stats-before reading:
+it was compared (the `stats-before.normalized.json` line above) but not copied into `evidence/`,
+and its run directory no longer exists, so that reading rests only on the `diff -u` transcript.
+In the stored client responses, each UDP response is followed by a newline that the raw output
+lacks, because the UDP client prints no trailing newline; nothing else differs:
 
 - Client responses: [`m1-client-responses.txt`](evidence/m1-client-responses.txt)
 - Metrics before the announces: [`m1-metrics-before.txt`](evidence/m1-metrics-before.txt)
