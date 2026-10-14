@@ -174,8 +174,10 @@ row.
   specification, which had six; the F1 thread reply repeats the same sentence.
 - Solution: F1's verification now states the conclusion without the list and cites this finding.
   The posted F1 reply is left unchanged; the F6 reply records the correction.
-- Current-tree verification: `grep -n announce_once` on the specification at the current head
-  returns six lines, and none asks for a comparison with `announce_once`.
+- Current-tree verification: every line `grep -n announce_once` returns on the specification at
+  the current head was read; none asks for a comparison with `announce_once`. (Corrected for
+  `review-finding:pr-2519-f10`: the first version stated a line count, which was already stale
+  at the head it described.)
 - Resolution reference: `docs(pr-reviews): [#2518] state the F1 verification without an incomplete list`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268910041>
