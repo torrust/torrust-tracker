@@ -117,8 +117,11 @@ Do not rebase the pull-request branch merely because `develop` advanced (see the
 [ADR to stop requiring pull-request rebases](../../../../../docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
 GitHub accepts the pushed merge only while the pull request's recorded base (`base.sha`) is the
 current `develop` tip, and it does not reliably update that record when `develop` advances. Its own
-test merge (`refs/pull/<n>/merge`) is not the condition. The tool compares the recorded base with the
-fetched `develop` tip before building anything. When it is stale, the tool refreshes it itself with
+test merge (`refs/pull/<n>/merge`) is not the condition. Before building anything, the tool
+refuses a pull request whose recorded target is not `develop`, exiting with code `4` and
+"ERROR: … targets '…', not 'develop'. Refusing to merge it into 'develop' or to edit its base.",
+because a base edit would change that pull request's target. It then compares the recorded base
+with the fetched `develop` tip. When it is stale, the tool refreshes it itself with
 a no-op base edit and prints `Refreshed the recorded base of ...`:
 
 ```sh
