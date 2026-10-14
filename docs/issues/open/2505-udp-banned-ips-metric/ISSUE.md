@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 05:32"
+last-updated-utc: "2026-10-14 06:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,7 @@ semantic-links:
     - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
     - docs/issues/open/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
+    - docs/issues/open/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
     - docs/testing.md
     - tests/AGENTS.md
@@ -371,8 +372,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | DONE   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | DONE   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
-| T9  | TODO   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
-| T10 | TODO   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
+| T9  | DONE   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
+| T10 | IN_PROGRESS | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
 ## Commit Points
 
@@ -410,7 +411,7 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual recheck recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual recheck recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -506,6 +507,15 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   (`Some(count) == limit.checked_add(1)`) measured as fast or faster than the first form. The
   maintainer accepted the cost, chose variant B, and asked for P2 to be rerun on the final code.
   Variant B passed the mutate-then-restore check (M1b, M2, M3b, M4) and all suites.
+- 2026-10-14 06:04 UTC - GitHub Copilot (implementation session) - T9: recorded P2a (first form), the
+  same-machine investigation, and the final P2 on variant B in
+  [performance-evidence.md](performance-evidence.md): load-test mean 158456.71 (passes against
+  148018.51); 19 of 28 Criterion medians pass, and the 9 failures are the accepted per-event cost
+  (`record_error`, `increase_counter/repeated/ipv6`) or noise in unchanged `is_banned` code.
+  `record_error` stays flat across 10 to 10,000 tracked IPs (AC7). T10: recorded the like-for-like
+  recheck R-V1 to R-V4 (reported 0, 0, 1, and 0 after the reset, against 1, 3, 4, and a stale 4
+  before) in [manual-verification-evidence.md](manual-verification-evidence.md), with the full log in
+  `evidence/recheck-tracker.log`.
 
 ## Acceptance Criteria
 
@@ -553,10 +563,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 | ID  | Scenario                                     | Human-oriented command/steps                                                     | Expected Result                                                       | Status        | Evidence                                     |
 | --- | -------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------- | -------------------------------------------- |
-| M1  | One invalid ID, not banned                   | `udp-banned-ips-probe.sh invalid-announce 127.0.0.1`, `stats`, `connect`         | Before: 1 (observed). After: 0. Connect served in both.               | Before: DONE  | `manual-verification-evidence.md` section V1 |
-| M2  | Several IPs with one invalid ID, none banned | One `invalid-announce` from `127.0.0.2` and `127.0.0.3`, `stats`, `connect`      | Before: 3 (observed). After: 0. Connects served in both.              | Before: DONE  | `manual-verification-evidence.md` section V2 |
-| M3  | One IP really banned                         | 11 `invalid-announce` from `127.0.0.4`, `stats`, `connect` from `.4` and `.1`    | Before: 4 (observed). After: 1. `.4` dropped, `.1` served in both.    | Before: DONE  | `manual-verification-evidence.md` section V3 |
-| M4  | Gauge after the periodic reset               | Wait for the first reset (3600 s), `stats`, `connect` from `127.0.0.4`           | Before: stale 4 (observed). After: 0. `.4` served again in both.      | Before: DONE  | `manual-verification-evidence.md` section V4 |
+| M1  | One invalid ID, not banned                   | `udp-banned-ips-probe.sh invalid-announce 127.0.0.1`, `stats`, `connect`         | Before: 1 (observed). After: 0. Connect served in both.               | DONE (after: 0) | `manual-verification-evidence.md` V1 and R-V1 |
+| M2  | Several IPs with one invalid ID, none banned | One `invalid-announce` from `127.0.0.2` and `127.0.0.3`, `stats`, `connect`      | Before: 3 (observed). After: 0. Connects served in both.              | DONE (after: 0) | `manual-verification-evidence.md` V2 and R-V2 |
+| M3  | One IP really banned                         | 11 `invalid-announce` from `127.0.0.4`, `stats`, `connect` from `.4` and `.1`    | Before: 4 (observed). After: 1. `.4` dropped, `.1` served in both.    | DONE (after: 1) | `manual-verification-evidence.md` V3 and R-V3 |
+| M4  | Gauge after the periodic reset               | Wait for the first reset (3600 s), `stats`, `connect` from `127.0.0.4`           | Before: stale 4 (observed). After: 0. `.4` served again in both.      | DONE (after: 0) | `manual-verification-evidence.md` V4 and R-V4 |
 
 ### Disposable Verification Scripts
 

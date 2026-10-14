@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: "2026-10-13 18:20"
+last-updated-utc: "2026-10-14 06:02"
 ---
 
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
@@ -265,8 +265,202 @@ IPv4, 12.27-12.58 ns for IPv6), as expected while the total is the map length.
 
 ## P2 - After the Fix (T9)
 
-Not yet measured.
+### First Attempt, Aborted
+
+On 2026-10-13 at 20:08:42 UTC the first P2 load-test run measured `Average responses per second:
+0.00`: the tracker exited at startup because the T10 recheck tracker (started at 20:05:55 UTC with
+the default health check API address) held `127.0.0.1:1313`
+(`Could not bind the health check API listener ... Address already in use (os error 98)`). The run
+loop stopped after that run. Overriding the health check port would have changed the P1
+configuration, so P2 waited until the recheck tracker was stopped.
+
+### P2a - First Form of the Fix
+
+Measured on `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`, with
+the first form of the crossing check (compare before and after the increment). Release build
+`Finished release profile [optimized + debuginfo] target(s) in 1m 30s`.
+
+- Load test: 2026-10-13 21:06:32 to 21:09:21 UTC, load average 0.72 at the start and 6.03 at the
+  end. Command `./.tmp/perf-2505/run-load-tests.sh p2 5` (the files were later renamed to `p2a-*`).
+
+| Run | `Responses in` (first match, per second) | `Average responses per second` |
+| --- | ---------------------------------------- | ------------------------------ |
+| 1 | 160801.49 | 163244.05 |
+| 2 | 160686.21 | 163060.25 |
+| 3 | 157614.41 | 159607.63 |
+| 4 | 163538.14 | 162312.50 |
+| 5 | 167005.56 | 163963.71 |
+
+- Mean 162437.63, lowest 159607.63, spread 2.7%: passes (P1 lowest run 148018.51). Every summary
+  reported `Error responses: 0.00`.
+
+- Criterion: 2026-10-13 21:09:45 to 21:23:58 UTC, load average 4.38 at the start and 3.83 at the
+  end. Command `./.tmp/perf-2505/run-criterion.sh p2 3`.
+
+| Benchmark | Run 1 | Run 2 | Run 3 | Median | P1 limit | Result |
+| --------- | ----- | ----- | ----- | ------ | -------- | ------ |
+| `udp_ban_service_increase_counter/distinct/ipv4` | 282228.76 | 279931.09 | 280806.39 | 280806.39 | 292950.03 | pass |
+| `udp_ban_service_increase_counter/distinct/ipv6` | 331963.81 | 328744.67 | 330008.16 | 330008.16 | 340205.55 | pass |
+| `udp_ban_service_increase_counter/repeated/ipv4` | 101704.22 | 102223.41 | 100733.75 | 101704.22 | 102398.54 | pass |
+| `udp_ban_service_increase_counter/repeated/ipv6` | 124121.71 | 123745.87 | 123419.60 | 123745.87 | 122219.95 | fail |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10000` | 9.07 | 9.02 | 9.01 | 9.02 | 9.27 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/1000` | 9.05 | 9.11 | 8.99 | 9.05 | 9.26 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10` | 9.05 | 9.06 | 9.01 | 9.05 | 9.22 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10000` | 9.04 | 9.05 | 9.04 | 9.04 | 9.19 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/1000` | 9.05 | 9.29 | 9.04 | 9.05 | 9.34 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10` | 9.05 | 9.05 | 9.02 | 9.05 | 9.29 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10000` | 9.06 | 9.02 | 8.99 | 9.02 | 9.28 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/1000` | 9.03 | 9.09 | 8.99 | 9.03 | 9.30 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10` | 9.05 | 9.07 | 9.00 | 9.05 | 9.39 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10000` | 11.02 | 11.02 | 11.29 | 11.02 | 11.12 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/1000` | 11.22 | 11.26 | 11.08 | 11.22 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10` | 11.16 | 11.01 | 11.24 | 11.16 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10000` | 11.10 | 11.03 | 11.12 | 11.10 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/1000` | 11.12 | 11.25 | 11.27 | 11.25 | 11.20 | fail |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10` | 11.25 | 11.05 | 11.16 | 11.16 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10000` | 11.20 | 11.24 | 11.03 | 11.20 | 11.22 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/1000` | 11.05 | 11.23 | 11.12 | 11.12 | 11.27 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10` | 11.37 | 11.06 | 11.17 | 11.17 | 11.04 | fail |
+| `udp_ban_service_record_error/ipv4/10000` | 11.00 | 10.83 | 10.98 | 10.98 | 10.87 | fail |
+| `udp_ban_service_record_error/ipv4/1000` | 10.96 | 10.84 | 10.98 | 10.96 | 10.69 | fail |
+| `udp_ban_service_record_error/ipv4/10` | 10.82 | 10.86 | 10.77 | 10.82 | 10.69 | fail |
+| `udp_ban_service_record_error/ipv6/10000` | 13.39 | 12.84 | 13.28 | 13.28 | 12.49 | fail |
+| `udp_ban_service_record_error/ipv6/1000` | 13.49 | 12.86 | 13.28 | 13.28 | 12.58 | fail |
+| `udp_ban_service_record_error/ipv6/10` | 13.28 | 12.80 | 13.21 | 13.21 | 12.53 | fail |
+
+Nine medians exceeded their P1 limit, all six `record_error` cases among them.
+
+### P2 Investigation - Same-Machine Comparison
+
+To separate the cost of the change from machine drift (P1 ran under load averages of 2.7-8.2, P2a
+under 0.7-6.0), the `record_error` and `increase_counter` groups were measured twice each,
+back to back, on 2026-10-13 between 21:24:33 and 21:35:33 UTC (load average 1.3-2.9), for three
+versions of `packages/udp-core/src/services/banning.rs`:
+
+- **A**: the first form, as committed in `fix(udp-core): [#2505] count only IPs over the limit as
+  banned`.
+- **B**: one comparison after the increment,
+  `if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1)`.
+- **develop**: the unfixed file, written with
+  `git show b5f1801c6:packages/udp-core/src/services/banning.rs > packages/udp-core/src/services/banning.rs`
+  (the benchmark file is unchanged; the old `get_banned_ips_total` returns the map length). The B
+  file was restored afterwards and `cmp` confirmed it.
+
+Each measurement ran this command, with `<label>` set to `variant-a`, `variant-b`, or
+`baseline-now`:
+
+```bash
+for r in 1 2; do cargo bench -q -p torrust-tracker-udp-core --bench ban_service_benchmark -- "record_error|increase_counter" >/dev/null 2>&1; (cd target/criterion && for f in udp_ban_service_record_error/*/*/new/estimates.json udp_ban_service_increase_counter/*/*/new/estimates.json; do printf '%s %s\n' "${f%/new/estimates.json}" "$(jq '.median.point_estimate' $f)"; done) > .tmp/perf-2505/<label>-$r.txt; done
+```
+
+Medians in nanoseconds:
+
+| Benchmark | develop 1 | develop 2 | A 1 | A 2 | B 1 | B 2 |
+| --------- | --------- | --------- | --- | --- | --- | --- |
+| `udp_ban_service_record_error/ipv4/10000` | 10.40 | 10.19 | 10.98 | 10.88 | 10.81 | 10.82 |
+| `udp_ban_service_record_error/ipv4/1000` | 10.21 | 10.15 | 10.88 | 10.73 | 10.81 | 10.81 |
+| `udp_ban_service_record_error/ipv4/10` | 10.46 | 10.40 | 10.86 | 10.92 | 10.82 | 10.92 |
+| `udp_ban_service_record_error/ipv6/10000` | 12.34 | 12.44 | 13.00 | 13.26 | 12.91 | 12.91 |
+| `udp_ban_service_record_error/ipv6/1000` | 12.41 | 12.42 | 12.84 | 13.17 | 12.79 | 12.82 |
+| `udp_ban_service_record_error/ipv6/10` | 12.43 | 12.46 | 12.88 | 13.26 | 12.81 | 12.91 |
+| `udp_ban_service_increase_counter/distinct/ipv4` | 272913.93 | 272265.46 | 279935.74 | 279514.01 | 280548.01 | 281733.23 |
+| `udp_ban_service_increase_counter/distinct/ipv6` | 327460.48 | 327445.44 | 330762.21 | 329051.14 | 324592.72 | 325390.12 |
+| `udp_ban_service_increase_counter/repeated/ipv4` | 97431.86 | 97322.90 | 102240.64 | 102590.02 | 98308.52 | 98018.87 |
+| `udp_ban_service_increase_counter/repeated/ipv6` | 121762.63 | 121028.22 | 123450.79 | 123330.44 | 126856.78 | 121429.63 |
+
+Findings:
+
+- The fix adds about 0.4-0.6 ns (about 4%) to `record_error` relative to `develop` under the same
+  conditions, flat across 10, 1,000, and 10,000 tracked IPs. It is the conditional update that
+  maintains the counter, so it is inherent to option P1, and AC7 (no growth with the map size)
+  holds.
+- B is as fast as A or faster, and closer to `develop` on `increase_counter/repeated/ipv4`.
+- `is_banned` did not change, so its P2a failures (0.4-1.2%) are measurement noise.
+
+Maintainer decision (2026-10-13, recorded in the specification's progress log): accept the cost as
+inherent to the fix, adopt B, and rerun P2 on the final code. B was committed as
+`perf(udp-core): [#2505] detect the ban crossing with one comparison`.
+
+### P2 - Final Code
+
+Measured on `perf(udp-core): [#2505] detect the ban crossing with one comparison`. Release build
+`Finished release profile [optimized + debuginfo] target(s) in 1m 27s`; UDP 3000 and TCP 1313 free;
+no other tracker running.
+
+- Load test: 2026-10-14 05:44:02 to 05:46:52 UTC, load average 2.65 at the start and 5.40 at the
+  end. Command `./.tmp/perf-2505/run-load-tests.sh p2 5`.
+
+| Run | `Responses in` (first match, per second) | `Average responses per second` | Summary `Error responses` |
+| --- | ---------------------------------------- | ------------------------------ | ------------------------- |
+| 1 | 166234.07 | 162617.41 | 0.00 |
+| 2 | 159935.72 | 157252.11 | 0.00 |
+| 3 | 161828.57 | 153821.24 | 0.00 |
+| 4 | 157219.42 | 161901.26 | 0.00 |
+| 5 | 163779.36 | 156691.55 | 0.00 |
+
+- Mean of `Average responses per second`: **158456.71**; lowest run 153821.24; highest 162617.41;
+  spread 5.6% of the mean.
+
+- Criterion: 2026-10-14 05:46:52 to 06:01:08 UTC, load average 5.40 at the start and 2.56 at the
+  end. Command `./.tmp/perf-2505/run-criterion.sh p2 3`. Medians in nanoseconds.
+
+| Benchmark | Run 1 | Run 2 | Run 3 | Median | P1 limit | Result |
+| --------- | ----- | ----- | ----- | ------ | -------- | ------ |
+| `udp_ban_service_increase_counter/distinct/ipv4` | 283115.85 | 281713.76 | 281684.99 | 281713.76 | 292950.03 | pass |
+| `udp_ban_service_increase_counter/distinct/ipv6` | 329025.07 | 326335.93 | 325698.13 | 326335.93 | 340205.55 | pass |
+| `udp_ban_service_increase_counter/repeated/ipv4` | 101128.51 | 100150.87 | 101136.99 | 101128.51 | 102398.54 | pass |
+| `udp_ban_service_increase_counter/repeated/ipv6` | 128052.00 | 126954.05 | 125203.55 | 126954.05 | 122219.95 | fail |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10000` | 9.00 | 9.07 | 8.92 | 9.00 | 9.27 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/1000` | 8.96 | 8.93 | 9.00 | 8.96 | 9.26 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10` | 8.97 | 8.98 | 8.91 | 8.97 | 9.22 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10000` | 9.07 | 9.04 | 8.95 | 9.04 | 9.19 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/1000` | 8.98 | 9.35 | 8.98 | 8.98 | 9.34 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10` | 8.96 | 8.95 | 8.98 | 8.96 | 9.29 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10000` | 9.01 | 8.97 | 8.99 | 8.99 | 9.28 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/1000` | 9.02 | 8.93 | 8.97 | 8.97 | 9.30 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10` | 8.98 | 8.96 | 8.94 | 8.96 | 9.39 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10000` | 11.26 | 11.27 | 11.10 | 11.26 | 11.12 | fail |
+| `udp_ban_service_is_banned/ipv6_above_threshold/1000` | 11.28 | 11.08 | 11.22 | 11.22 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10` | 11.26 | 11.07 | 11.02 | 11.07 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10000` | 11.08 | 11.08 | 11.15 | 11.08 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/1000` | 11.06 | 11.21 | 11.54 | 11.21 | 11.20 | fail |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10` | 11.27 | 11.05 | 11.07 | 11.07 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10000` | 11.18 | 11.30 | 11.10 | 11.18 | 11.22 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/1000` | 11.09 | 11.31 | 11.05 | 11.09 | 11.27 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10` | 11.27 | 11.26 | 11.06 | 11.26 | 11.04 | fail |
+| `udp_ban_service_record_error/ipv4/10000` | 10.86 | 10.90 | 10.84 | 10.86 | 10.87 | pass |
+| `udp_ban_service_record_error/ipv4/1000` | 10.88 | 10.88 | 10.82 | 10.88 | 10.69 | fail |
+| `udp_ban_service_record_error/ipv4/10` | 11.05 | 10.89 | 10.85 | 10.89 | 10.69 | fail |
+| `udp_ban_service_record_error/ipv6/10000` | 12.99 | 12.93 | 12.94 | 12.94 | 12.49 | fail |
+| `udp_ban_service_record_error/ipv6/1000` | 12.77 | 12.91 | 12.75 | 12.77 | 12.58 | fail |
+| `udp_ban_service_record_error/ipv6/10` | 12.90 | 12.91 | 12.85 | 12.90 | 12.53 | fail |
+
+The `record_error` medians are flat across 10, 1,000, and 10,000 tracked IPs (10.86-10.89 ns for
+IPv4, 12.77-12.94 ns for IPv6), which is the AC7 evidence.
 
 ## Comparison
 
-Not yet available.
+| Measurement | P1 | P2 (final) | Pass rule | Result |
+| ----------- | -- | ---------- | --------- | ------ |
+| Load test mean `Average responses per second` | lowest run 148018.51 | mean 158456.71 | P2 mean not below the lowest P1 run | **pass** |
+| Criterion medians | highest of three per benchmark | median of three per benchmark | P2 median not above the P1 limit | **19 pass, 9 fail** |
+
+The nine Criterion failures:
+
+| Benchmark | P2 median | P1 limit | Difference | Explanation |
+| --------- | --------- | -------- | ---------- | ----------- |
+| `record_error/ipv4/1000` | 10.88 | 10.69 | +1.7% | Inherent cost of maintaining the counter (investigation above) |
+| `record_error/ipv4/10` | 10.89 | 10.69 | +1.9% | Same |
+| `record_error/ipv6/10000` | 12.94 | 12.49 | +3.6% | Same |
+| `record_error/ipv6/1000` | 12.77 | 12.58 | +1.5% | Same |
+| `record_error/ipv6/10` | 12.90 | 12.53 | +2.9% | Same |
+| `increase_counter/repeated/ipv6` | 126954.05 | 122219.95 | +3.9% | Same check on 10,000 repeated errors; this case varied between 121429.63 and 126856.78 in the B runs |
+| `is_banned/ipv6_above_threshold/10000` | 11.26 | 11.12 | +1.3% | Unchanged code: noise |
+| `is_banned/ipv6_at_threshold/1000` | 11.21 | 11.20 | +0.1% | Unchanged code: noise |
+| `is_banned/ipv6_below_threshold/10` | 11.26 | 11.04 | +2.0% | Unchanged code: noise |
+
+Conclusion: the end-to-end load test shows no regression. The microbenchmarks show the expected
+small cost on the invalid-connection-ID path (about 0.4-0.6 ns per event, accepted by the
+maintainer), no growth with the number of tracked IPs (AC7), and noise-level differences in
+unchanged code. The observed P1 noise was up to about 3% between Criterion runs and 5.2% between
+load-test runs, so differences below those levels are not detectable with these measurements.
