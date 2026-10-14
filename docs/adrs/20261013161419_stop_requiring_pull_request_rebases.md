@@ -59,10 +59,14 @@ already lists exactly one merge per pull request in merge order regardless of wh
 rebased.
 
 There is one real technical constraint. `github-merge.py` pushes a locally signed merge commit, and
-GitHub's `pull_request` ruleset accepts it only when `refs/pull/<n>/merge` is computed against the
-current `develop` tip. GitHub does not reliably recompute that ref after `develop` advances through
-locally pushed merges (observed stale for at least 48 minutes on 2026-10-13), so today a push to the
-pull-request head is what refreshes it.
+GitHub's `pull_request` ruleset accepts that push only when the pull request's recorded base
+(`base.sha` in the API) equals the current `develop` tip. GitHub records that base when the pull
+request is opened, its head is pushed, or its base is edited, but not reliably when `develop`
+advances through locally pushed merges. This ADR originally named the freshness of
+`refs/pull/<n>/merge` as the condition; the sandbox experiment of the implementing issue showed that
+pushes are accepted with a stale merge ref and rejected with a stale `base.sha`
+([evidence](../issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md),
+sections T1 and T5).
 
 Evidence and reproduction commands: issue-local
 [`baseline-evidence.md`](../issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
@@ -94,11 +98,12 @@ A pull request **must** be rebased or otherwise updated only when:
 
 Merge workflow requirements:
 
-- The merge tool keeps refusing to sign or push a merge built on a stale GitHub merge ref. Its
-  recovery instructions offer the least disruptive refresh first: a refresh that changes no branch
-  commit, then GitHub's "Update branch" (a merge commit from `develop`, signed by GitHub, which
-  keeps existing commit ids), and a rebase as an alternative. The concrete mechanism is chosen by
-  the experiment in the implementing issue and recorded in the `merge-pull-request` skill.
+- The merge tool refuses to sign or push a merge while the pull request's recorded base is not the
+  current `develop` tip. It refreshes that base itself with a no-op base edit (setting the pull
+  request's base to `develop` again), which adds no commit, timeline event, or CI run. When that
+  refresh is unavailable, its recovery instructions name the same edit as a command, then GitHub's
+  "Update branch" (a merge commit from `develop`, signed by GitHub, which keeps existing commit
+  ids), and a rebase as alternatives.
 - Review records may cite pull-request commit ids. Without mandatory rebases those ids usually stay
   valid and, because merges are `--no-ff`, remain reachable from `develop` after merge. Existing
   "cite by subject" guidance remains a safe default because rebases still happen.
