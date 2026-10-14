@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 07:15"
+last-updated-utc: "2026-10-14 08:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,8 +32,9 @@ Parent EPIC: #1669 (Overhaul: Packages).
 
 ## Goal
 
-Stop exposing the internal `Arc<RwLock<Metrics>>` of the five statistics repositories, so every
-read and write goes through the repository's methods.
+Stop exposing the `stats: Arc<RwLock<Metrics>>` field of the five statistics repositories, so every
+read and write goes through the repository's methods. This is a visibility-only change: the
+public read accessors keep returning a lock read guard (see Out of Scope).
 
 ## Background
 
@@ -65,8 +66,16 @@ take the write lock and release it.
 | `swarm-coordination-registry` | `get_metrics()` | `increment_counter()`, `set_gauge()`, `increment_gauge()`, `decrement_gauge()`      |
 
 The public field lets any caller take the write lock directly and bypass those methods. It also
-makes the lock type part of each crate's public API, so changing it later is a breaking change.
-This matters for EPIC #1669's goal of independently versioned, publishable packages.
+makes the field, with its `Arc` sharing and its lock, part of each crate's public API, so removing
+it after a publish is a breaking change. This matters for EPIC #1669's goal of independently
+versioned, publishable packages.
+
+Making the field private does not remove the lock type from the public API entirely: the read
+accessors return `tokio::sync::RwLockReadGuard<'_, Metrics>`, and callers outside the five crates
+rely on them (for example, `rest-api-runtime-adapter` merges each repository's
+`metric_collection`, and the `axum-http-server` contract tests read the HTTP counters through
+`get_stats()`).
+Hiding the lock completely needs a read-side redesign and is out of scope here.
 
 ### Evidence
 
@@ -89,8 +98,9 @@ names found in git history (`bittorrent-udp-tracker-core`, `torrust-tracker-udp-
 `torrust-udp-tracker-server`, `bittorrent-http-tracker-core`,
 `torrust-tracker-http-tracker-core`, `bittorrent-tracker-core`). The only published predecessor,
 `torrust-tracker-torrent-repository` v3.0.0 (2024-10-03, the former name of
-`swarm-coordination-registry`), has no statistics module. Removing the field therefore breaks no
-published API. Doing it before the first publish avoids a later semver-major bump.
+`swarm-coordination-registry`), has no statistics module. Making the field private therefore breaks
+no published API. Doing it before the first publish avoids a later semver-major bump for this
+field. The read guards remain public API and keep their own semver exposure.
 
 ### Origin
 
@@ -108,6 +118,11 @@ module inside the same file, which keeps access to a private field.
 ### Out of Scope
 
 - Changing the repositories' method signatures or the `Metrics` types.
+- Removing the lock type from the public read accessors (`get_stats()` / `get_metrics()` return
+  `RwLockReadGuard<'_, Metrics>`). A possible follow-up: replace the guards with per-metric
+  accessors or a cheap snapshot. Cloning the whole `Metrics` on every read is not acceptable on
+  event-handler paths, so this needs its own design. File it as a separate #1669 sub-issue if the
+  maintainer wants it before the first publish.
 - Renaming the field.
 - Unifying the five repositories into a shared generic type.
 - Removing the unused SI-30 statistics traits in `udp-core` and `udp-server` (a separate #1669
@@ -187,6 +202,10 @@ Every commit is GPG signed.
   #2517, linked it as a sub-issue of #1669, moved the spec to `docs/issues/open/`, and added it
   to the EPIC quick list and specs index on branch
   `2517-1669-encapsulate-statistics-repository-state-spec`.
+- 2026-10-14 08:14 UTC - GitHub Copilot (spec session) - PR #2520 review: narrowed the goal to a
+  visibility-only change (the public read accessors still return `RwLockReadGuard`), recorded the
+  read-side redesign as a possible follow-up, and cited EPIC #1669 as `issue #1669` in the
+  frontmatter.
 
 ## Acceptance Criteria
 
