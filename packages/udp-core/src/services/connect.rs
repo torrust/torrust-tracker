@@ -106,10 +106,18 @@ mod tests {
     use crate::connection_cookie::{check, gen_remote_fingerprint};
     use crate::crypto::cookie_cipher::CookieCipher;
     use crate::event::{ConnectionContext, Event};
-    use crate::services::tests::{MockUdpCoreStatsEventSender, sample_ipv4_remote_addr, sample_issue_time};
+    use crate::services::tests::MockUdpCoreStatsEventSender;
 
     const INSTANCE_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
     const PUBLIC_URL: &str = "udp://tracker.example.test:6969/announce";
+
+    fn sample_ipv4_remote_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
+    }
+
+    fn sample_issue_time() -> f64 {
+        1_000_000_000_f64
+    }
 
     fn fixed_test_cipher() -> Arc<CookieCipher> {
         Arc::new(CookieCipher::fixed_for_testing())
