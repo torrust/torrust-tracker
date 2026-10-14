@@ -15,7 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - "issue #1669"
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - packages/udp-core/src/statistics/repository.rs
     - packages/udp-server/src/statistics/repository.rs
