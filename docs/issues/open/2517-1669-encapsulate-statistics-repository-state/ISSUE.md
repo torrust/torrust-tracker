@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: null
-last-updated-utc: "2026-10-14 14:23"
+last-updated-utc: "2026-10-14 14:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -287,6 +287,13 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - 2026-10-14 14:23 UTC - Committer - Independent review round 2 returned `REVIEW PASSED`; its
   two cosmetic findings were addressed (plan table realigned, stored UDP client-response
   newlines disclosed in `manual-verification-evidence.md`), and spec progress was verified.
+- 2026-10-14 14:28 UTC - Implementation - Before opening the PR, rebased onto `develop` at
+  `8045bd252` (no conflicts) and replaced the branch commit ids in `agent-review-reports.md` with
+  commit subjects. The newly merged #2524 adds a `#[cfg(test)] pub(crate)`
+  `write_lock_for_test()` method to the `udp-server` statistics repository; it lives inside the
+  repository file and keeps compiling with the private field, so it is a repository method and
+  does not affect AC1 or AC2. M1 and the two independent reviews ran against `develop` at
+  `c1874fac`; the pre-push checks were rerun on the rebased branch.
 
 ## Acceptance Criteria
 

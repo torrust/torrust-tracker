@@ -17,7 +17,8 @@ semantic-links:
 ### 2026-10-14 14:06 UTC - Task Reviewer (pre-PR, `review-task` skill)
 
 - Invocation scope: Pre-push review of branch `2517-1669-encapsulate-statistics-repository-state`
-  (`develop` at `c1874fac`..`392dc5e9`, 7 signed commits). Reviewed all acceptance criteria and
+  (`develop` at `c1874fac` up to `docs(issues): [#2517] record implementation verification`, 7
+  signed commits). Reviewed all acceptance criteria and
   workflow checkboxes in `ISSUE.md`, the five `packages/*/src/statistics/repository.rs` changes,
   the ten new doctests, commit structure and messages, and `manual-verification-evidence.md`.
 - Inputs: `ISSUE.md`, `manual-verification-evidence.md`, `git diff develop...HEAD`,
@@ -105,7 +106,7 @@ semantic-links:
      Regression Test Strategy so the spec matches the result.
   7. Info: T1 (re-verify evidence) was recorded at 13:06 UTC, after T2-T6 (12:55-13:02 UTC). It
      ran against `develop` at `c1874fac`, so the result is valid. No action needed.
-  8. Info: commit `cb076314` ("record manual verification preference") is not in the Commit Points
+  8. Info: commit `docs(issues): [#2517] record manual verification preference` is not in the Commit Points
      table. It is a docs-only change, which is acceptable.
   9. Info (pre-existing, out of scope): the `tracker-core` `Repository` doc says "A repository for
      the torrent repository metrics" (`packages/tracker-core/src/statistics/repository.rs`
@@ -127,7 +128,8 @@ semantic-links:
 ### 2026-10-14 14:21 UTC - Task Reviewer (pre-PR, `review-task` skill, round 2)
 
 - Invocation scope: Second pre-push review of branch
-  `2517-1669-encapsulate-statistics-repository-state` (`develop` at `c1874fac`..`3e339389`, 10
+  `2517-1669-encapsulate-statistics-repository-state` (`develop` at `c1874fac` up to
+  `docs(issues): [#2517] address the first review and rerun M1 across all metric families`, 10
   signed commits). Checked that each round 1 finding is fixed. Re-checked AC1-AC3, every
   acceptance and workflow checkbox, and whether `ISSUE.md`, `manual-verification-evidence.md`, and
   `evidence/` are accurate and consistent with each other. Included the new commit
@@ -150,7 +152,8 @@ semantic-links:
     toolchain (5 `compile_fail,E0616` doctests and 5 companion doctests).
   - `linter all` exited `0`. The worktree was clean apart from this review's edits.
   - All 10 commits are GPG signed (`%G?` = `U`: valid signature, key trust not set locally). Since
-    the round 1 pre-push run, the only code change is the doc-comment commit `a8d4fc9f`, so the
+    the round 1 pre-push run, the only code change is the doc-comment commit
+    `docs(statistics): [#2517] introduce the repository privacy doctests`, so the
     reviewer did not re-run the full pre-push suite.
   - M1 artifacts: in the local run directories, `client.txt`, `metrics-before.txt`,
     `metrics-after.txt`, `stats-before.normalized.json`, and `stats-after.normalized.json` are
@@ -179,7 +182,7 @@ semantic-links:
     | 2   | Self-ticked Committer checkbox (Medium) | RESOLVED | `ISSUE.md` line 216 is not ticked.                                                                               |
     | 3   | `status: planned` (Low)                 | RESOLVED | `ISSUE.md` line 5 is `status: in-progress`.                                                                      |
     | 4   | Plan table padding (Low)                | PARTIAL  | The Task column is aligned. The Notes column is still 2-4 characters short in rows T1-T7 (finding 1 below).      |
-    | 5   | Doctest lead-in sentences (Low)         | RESOLVED | Every repository has "The metrics lock is private:" and "Read through the accessor instead:" (commit `a8d4fc9f`). |
+    | 5   | Doctest lead-in sentences (Low)         | RESOLVED | Every repository has "The metrics lock is private:" and "Read through the accessor instead:" (commit `docs(statistics): [#2517] introduce the repository privacy doctests`). |
     | 6   | Companion doctests not in scope (Info)  | RESOLVED | `ISSUE.md` lines 116-118 (In Scope).                                                                             |
 
   - Acceptance-criteria matrix:
