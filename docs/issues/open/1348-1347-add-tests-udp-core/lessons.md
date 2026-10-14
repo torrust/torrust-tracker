@@ -24,6 +24,8 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Event plan](test-refactor-plans/event-tests.md) | Remove `ConnectionContext::server_socket_addr()`. | No caller anywhere in the repository; the label projection reads the binding directly. |
 | [Metrics plan](test-refactor-plans/statistics-metrics-tests.md) | Remove `udp-core`'s `Metrics::set_gauge`. | No caller anywhere in the repository. |
 | [Metrics plan](test-refactor-plans/statistics-metrics-tests.md) | Correct the "from IPv4/IPv6 peers" docs of the `udp4_*`/`udp6_*` counters in `udp-core`, `udp-server`, and the REST API stats resource: they count by the server socket's address family, so on a dual-stack `[::]` listener IPv4 clients count as `udp6`. | Every projection filters on `server_binding_address_ip_family`, not the client's family. |
+| [Repository plan](test-refactor-plans/statistics-repository-tests.md) | **Handed off as an EPIC #1669 sub-issue draft (issue pending).** Remove the unused SI-30 traits `BanningStats`, `UdpCoreStatsRepository`, and `UdpServerStatsRepository`. | No consumer in the repository; the REST API decouples through `rest-api-application`'s `StatsQueryPort`, implemented over the concrete repositories. |
+| [Repository plan](test-refactor-plans/statistics-repository-tests.md) | **Handed off as an EPIC #1669 sub-issue draft (issue pending).** Make the `pub stats` lock private in the five statistics repositories. | No caller outside each repository file reads or writes the field. |
 
 ## Testing Lessons
 

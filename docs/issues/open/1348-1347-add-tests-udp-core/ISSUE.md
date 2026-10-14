@@ -297,7 +297,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
-| 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
+| 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | IN_PROGRESS | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
 | 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
@@ -462,6 +462,10 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - 2026-10-14 05:40 UTC - GitHub Copilot - Applied the `rstest` criterion to the earlier loop tests:
   `peer_builder.rs` P4 converted to four named cases; `connection_cookie.rs` C1 and C2 kept as
   loops over the shared `not_normal_issue_times()` helper. Reasons recorded in both plans.
+- 2026-10-14 06:42 UTC - Jose Celano - Approved the `statistics/repository.rs` plan (S1-S4); ledger
+  row 11 is `IN_PROGRESS`. Its two findings (unused SI-30 stats traits; public `stats` locks in five
+  statistics repositories) become EPIC #1669 sub-issues, drafted under `.tmp/` with hand-off notes
+  for another agent.
 
 ## Acceptance Criteria
 
