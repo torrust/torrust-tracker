@@ -223,8 +223,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                       | Notes / Expected Output                                                                                                                                                       |
 | --- | ------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Re-verify the evidence on current `develop`                | Search confirms no consumers of the traits or services; record the commit. Check whether #1348 has merged tests calling `UdpCoreStatsRepository` or `get_metrics()` (see Risks). |
-| T2  | TODO   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
+| T1  | DONE   | Re-verify the evidence on current `develop`                | Search confirms no consumers of the traits or services; record the commit. Check whether #1348 has merged tests calling `UdpCoreStatsRepository` or `get_metrics()` (see Risks). |
+| T2  | DONE   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
 | T3  | TODO   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
 | T4  | TODO   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
 | T5  | TODO   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
@@ -295,6 +295,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   field example with a prose pointer to each package's real accessor; (4) run M1 and M2 with a
   baseline on `develop`; (5) stop after local signed commits, so the maintainer pushes and opens
   the pull request.
+- 2026-10-14 12:55 UTC - GitHub Copilot (implementation session) - T1: re-verified on `develop` at
+  `c1874facb`. Outside their definitions and impls, the traits are named only by the two
+  `udp-server` repository tests; `TrackerMetrics` and `get_metrics()` only by each package's own
+  `services.rs` test. #1348 has not merged any test calling `UdpCoreStatsRepository` or
+  `get_metrics()`, and #2505 is still open (PR #2524, `banning.rs` only). Captured the M1 and M2
+  baseline and the `cargo tree` baseline before changing code. T2: removed the trait, its impl, its
+  `clippy::double_must_use` allowance, the `MetricCollection` import, and the `async-trait`
+  dependency from `udp-core`. No `udp-core` test called the trait, so no test changed.
+  `cargo +stable test -p torrust-tracker-udp-core --lib` (stable 1.99.0): 42 passed;
+  `cargo machete --with-metadata`: no unused dependency.
 
 ## Acceptance Criteria
 

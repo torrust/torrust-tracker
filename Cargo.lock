@@ -5364,7 +5364,6 @@ dependencies = [
 name = "torrust-tracker-udp-core"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "blowfish",
  "cipher",
  "criterion 0.5.1",
