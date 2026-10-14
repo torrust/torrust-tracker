@@ -279,9 +279,9 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
       under `cargo test --benches` when it does not (shown by a deliberate mutation).
 - [ ] AC3: The new benchmark uses the `RoutineGuard`, and the guard is shown to fail when the
       routine is not awaited.
-- [ ] AC4: Results grow with the peer-list size in the expected direction (the 74 and 1000 sizes
-      above the empty swarm), and every result is above the repeat-announce result, or the
-      evidence explains why not.
+- [ ] AC4: The results are ordered as the design expects: the 74- and 1000-peer results are above
+      the 0-peer result, or the evidence explains why not. The results are compared only with each
+      other, never with `announce_once`, which is measured differently (D1).
 - [ ] AC5: `docs/benchmarking.md` lists and explains the benchmark, including what its timing
       includes (the per-iteration clock reads, D1) and why the discarded options were not used.
 - [ ] `linter all` exits with code `0`
