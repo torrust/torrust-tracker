@@ -194,13 +194,13 @@ follow-up issue #2525 (drafted in T8); until it lands, no check is required by G
 effective state since 2026-05-05. T5 applies the rest, each item after maintainer approval because
 the settings are outside Git.
 
-| Ruleset                                   | Action                                                                                                                                                                                                               |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 94237 force-push ban (`non_fast_forward`) | Move into its own always-active ruleset covering the same branches, so it is never disabled together with status checks. Fork PR branches are unaffected.                                                            |
-| 94237 required status checks              | Delete with the ruleset. Issue #2525 adds a single required `CI gate` context with `strict_required_status_checks_policy: false`.                                                                                    |
-| 19245352 Copilot code review              | Maintainer decides: enable it so every PR, including external ones, gets a Copilot review independently of personal settings (consider `review_on_push: false`), or delete it and keep relying on personal settings. |
-| 87098 "Require Deployment: coverage"      | Active but has no rules; delete unless a reason is found.                                                                                                                                                            |
-| Temporary overrides                       | Never disable a ruleset to merge. The sandbox showed that a posted status cannot override a failing Actions check run, so the follow-up gate honors a maintainer-applied `ci-override` label instead.                |
+| Ruleset                                   | Action                                                                                                                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 94237 force-push ban (`non_fast_forward`) | Move into its own always-active ruleset covering the same branches, so it is never disabled together with status checks. Fork PR branches are unaffected.                                             |
+| 94237 required status checks              | Delete with the ruleset. Issue #2525 adds a single required `CI gate` context with `strict_required_status_checks_policy: false`.                                                                     |
+| 19245352 Copilot code review              | Deleted (maintainer decision 2026-10-14): maintainer PRs get Copilot reviews through personal auto-review settings, and `review_on_push` would add review noise and cost.                             |
+| 87098 "Require Deployment: coverage"      | Deleted (2026-10-14): active with no rules since 2026-07-20, so it enforced nothing.                                                                                                                  |
+| Temporary overrides                       | Never disable a ruleset to merge. The sandbox showed that a posted status cannot override a failing Actions check run, so the follow-up gate honors a maintainer-applied `ci-override` label instead. |
 
 ## Commit Points
 
