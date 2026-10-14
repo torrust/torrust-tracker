@@ -7,20 +7,11 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
 
-use tokio::time::Instant;
-
 use crate::UDP_TRACKER_LOG_TARGET;
-
-/// Trait exposing only the banning statistics that external consumers need.
-pub trait BanningStats: Send + Sync {
-    /// Returns the total number of banned IPs.
-    fn get_banned_ips_total(&self) -> usize;
-}
 
 pub struct BanService {
     max_connection_id_errors_per_ip: u32,
     accurate_error_counter: HashMap<IpAddr, u32>,
-    last_connection_id_errors_reset: Instant,
 }
 
 impl BanService {
@@ -29,7 +20,6 @@ impl BanService {
         Self {
             max_connection_id_errors_per_ip,
             accurate_error_counter: HashMap::new(),
-            last_connection_id_errors_reset: tokio::time::Instant::now(),
         }
     }
 
@@ -54,19 +44,11 @@ impl BanService {
             .is_some_and(|count| count > self.max_connection_id_errors_per_ip)
     }
 
-    /// Resets the counters and updates the reset timestamp.
+    /// Resets the counters, which also lifts every ban.
     pub fn reset_bans(&mut self) {
         self.accurate_error_counter.clear();
 
-        self.last_connection_id_errors_reset = Instant::now();
-
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp::run_udp_server::loop (connection id errors filter cleared)");
-    }
-}
-
-impl BanningStats for BanService {
-    fn get_banned_ips_total(&self) -> usize {
-        self.accurate_error_counter.len()
     }
 }
 
