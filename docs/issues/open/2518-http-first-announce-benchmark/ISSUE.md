@@ -72,6 +72,9 @@ IP resolution, insertion, or the statistics event.
 - Keeping the swarm at exactly `N` peers for the whole run (D1): each iteration times only the
   `started` announce of the new peer, and the peer then leaves the swarm again with a `stopped`
   announce outside the measured time.
+- The new context wires the swarm registry's event sender and its statistics listener as
+  production does (D4), instead of reusing the shared helper's
+  `InMemoryTorrentRepository::default()`, whose registry sends no events.
 - The `RoutineGuard` from issue #2479 on the new benchmark, plus an assertion after the run that
   the swarm still has exactly `N` peers, so a benchmark whose swarm drifts fails under
   `cargo test --benches`.
@@ -84,7 +87,9 @@ IP resolution, insertion, or the statistics event.
 - UDP announce benchmarks. The UDP announce shares the tracker-core path; a UDP-specific benchmark
   would be a separate issue.
 - The HTTP parsing and Axum server layers.
-- Changing the existing repeat-announce benchmark, apart from shared helpers it can reuse.
+- Changing the existing repeat-announce benchmark, apart from shared helpers it can reuse. Its
+  context also sends no swarm-registry events, but its documentation claims only the HTTP
+  statistics event, which is accurate.
 
 ## Maintainer Decisions
 
@@ -101,8 +106,9 @@ and adds the difference; then it awaits the `stopped` announce of the same peer,
 measured.
 
 - Pros:
-  - Each measured time is exactly one first announce: insertion, the "peer added" event, and a
-    peer list built from `N` other peers.
+  - Each measured time is exactly one first announce: insertion, the "peer added" event sent to
+    the swarm statistics listener (wired as in production, D4), and a peer list built from `N`
+    other peers.
   - The swarm is back to `N` peers before every iteration, so the result does not drift with the
     number of iterations.
   - It uses the public announce service only; no production code changes.
@@ -191,6 +197,39 @@ Discarded options:
   - Cons: adds a parameter that does not change peer selection and makes the setup harder to read.
   - Why not: as for leechers.
 
+### D4 - Swarm-Registry Events: Wired as in Production
+
+Recorded on 2026-10-14 during the review of PR #2519, in answer to
+`review-finding:pr-2519-f3`. The shared bench helper builds
+`InMemoryTorrentRepository::default()`, whose swarm `Registry` has no event sender, so the
+`PeerAdded`, `PeerUpdated`, and `PeerRemoved` events are never sent. Production builds the
+registry with `Registry::new(stats_event_sender)` in
+`SwarmCoordinationRegistryContainer::initialize`, and a listener updates the swarm statistics
+metrics.
+
+**Chosen: the new benchmark context wires the registry's event sender and runs its statistics
+listener as production does**, for example through `SwarmCoordinationRegistryContainer::initialize`
+and `InMemoryTorrentRepository::new`.
+
+- Pros:
+  - The timed announce includes the event send, as in a running tracker, so D1's description of
+    what is timed is true.
+  - The listener's metrics give the benchmark a public seam that reports inserts, updates, and
+    removals (D5).
+- Cons:
+  - The context no longer shares the swarm wiring of the repeat-announce benchmark.
+  - The listener runs on the benchmark's Tokio runtime, so its work competes with the measured
+    announces, as it does in production.
+- Why it was chosen: the benchmark exists to measure production's first-announce cost, and the
+  event is part of it.
+
+Discarded option:
+
+- **Keep the shared helper and remove the event from D1.**
+  - Pros: simplest setup; the same wiring as the repeat-announce benchmark.
+  - Cons: it measures less than production does, and it leaves no seam for counting inserts.
+  - Why not: the maintainer chose the production-like measurement.
+
 ## Architectural Decisions
 
 - Related ADRs: none.
@@ -214,12 +253,12 @@ assertion) run under `cargo test --benches` in the pre-push hook and CI.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                       | Notes / Expected Output                                                                                                                                                                                                                                  |
-| --- | ------ | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | First-announce context with a fixed swarm  | A benchmark context that pre-fills a swarm with `N` peers and announces a new peer and removes it. Its guards (the `RoutineGuard` and the swarm-size assertion) are seen to fail under a deliberate mutation, for example removal skipped. Design review recorded. |
-| T2  | TODO   | Benchmark group over the swarm sizes       | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                        |
-| T3  | TODO   | Maintainer review of the benchmark         | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                   |
-| T4  | TODO   | Documentation and completion review        | `docs/benchmarking.md` updated; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                                                                                                                 |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                                                                                                                                                                                         |
+| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its guards (the `RoutineGuard` and the swarm-size assertion) are seen to fail under a deliberate mutation, for example removal skipped. Design review recorded. |
+| T2  | TODO   | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                 |
+| T3  | TODO   | Maintainer review of the benchmark        | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                                                                                                            |
+| T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                                                                                                                                                                                                         |
 
 ## Commit Points
 
