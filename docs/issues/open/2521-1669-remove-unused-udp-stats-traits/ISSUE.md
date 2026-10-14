@@ -9,7 +9,7 @@ github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 09:44"
+last-updated-utc: "2026-10-14 10:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -275,6 +275,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `statistics::services` (`TrackerMetrics`, `get_metrics()`) is also unused in both packages;
   verified at `d1bf013ea`, and the maintainer folded it into this issue. Added T4 and T5 (EPIC row
   and verification became T6 and T7), AC5 and AC6, and retitled the issue.
+- 2026-10-14 10:56 UTC - GitHub Copilot (spec session) - Rebased onto `develop` after #2520 merged
+  (kept both #2517 and #2521 entries in EPIC #1669) and processed PR #2522 review rounds 3 and 4:
+  named each package's service test (F13), stated each package's metrics accessor (F14), and made
+  T4 and T5 drop the deleted files from `related-artifacts` (F15).
 
 ## Acceptance Criteria
 
