@@ -44,11 +44,25 @@ carries three inline findings with `[<Severity>][<FindingId>]` headers: F1 and F
 (`Minor`). Its overview rates them medium, low, and low; the rows use the inline headers. The
 overview's summary and change table contain no further request, so they add no row.
 
+da2ce7's review 5522278878 (submitted 2026-10-14 17:55:13 UTC, at head `819909534`; GitHub later
+marked it DISMISSED after the fix pushes) carries five inline findings with
+`[<Severity>][<FindingId>]` headers: F4-F7 (`Minor`) and F8 (`Nit`). Its IDs do not collide with
+Copilot's F1-F3, so the rows keep them. The body upholds Copilot's F1 and F2 at Minor and F3 as
+raised. Those are the same concerns, already fixed and replied to on their own threads, so they
+add no row, and the F1 and F2 rows keep Copilot's own `Major` header. The body also notes that
+the #2521 quick-list item and EPIC row still read TODO. That is outside this diff and is handled by
+PR #2532, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2537-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2537-f2` | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2537-f3` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2537-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2537-f5` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2537-f6` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2537-f7` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2537-f8` | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -106,6 +120,96 @@ overview's summary and change table contain no further request, so they add no r
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275421568>
 
+### F4 - Current callers omits the in-crate unit tests
+
+- PR number: 2537
+- Source review ID: 5522278878
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350543>
+- Concern: Current callers listed the adapter, the event handlers, and the integration tests, but
+  not the unit tests inside the five crates, which are the largest group of calls (57 by the
+  reviewer's count).
+- Solution: Current callers lists the in-crate unit-test calls per crate (58 by our count: udp-server
+  31, udp-core 12, http-core 9, swarm-coordination-registry 4, tracker-core 2). It also names the
+  helpers and the guard-accessor test that need their own shape. In Scope covers every test caller,
+  and T4 records the udp-server size.
+- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:83-95 holds the count and the named
+  callers, :168-170 the In Scope bullet, and :230 the T4 row.
+- Resolution reference: docs(issues): [#2536] list the in-crate unit-test callers
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275660364>
+
+### F5 - M1 names neither its stored files nor its full normalization
+
+- PR number: 2537
+- Source review ID: 5522278878
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350550>
+- Concern: M1 compared before and after REST outputs without naming the files to store or the full
+  mask for values that differ between runs, so its pass result could not be reproduced.
+- Solution: M1 names the five outputs stored per run (ten in total) and the normalization (sorted
+  samples, `recorded_at` ignored, processing-time values masked). Its expected result is
+  byte-identical normalized outputs, and T2 and T8 each store their five outputs.
+- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:392 is the M1 row, :399-411 the
+  stored outputs and the normalization, and :228 and :234 the T2 and T8 rows.
+- Resolution reference: docs(issues): [#2536] name the stored M1 outputs and their normalization
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275660710>
+
+### F6 - The overlap risk names no sibling spec
+
+- PR number: 2537
+- Source review ID: 5522278878
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350554>
+- Concern: Risks warned about specs that touch the removed accessors without naming any, so their
+  authors could not be told.
+- Solution: the risk names the three open sibling specs outside #1669 that touch the accessors:
+  #2414, #1348, and #2518.
+- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:446-457 names the three specs and
+  their paths.
+- Resolution reference: docs(issues): [#2536] name the sibling specs that overlap the accessor removal
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275661115>
+
+### F7 - The AC1 call grep does not give a pass or fail result
+
+- PR number: 2537
+- Source review ID: 5522278878
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350564>
+- Concern: the grep had no path operand, so it searched `docs/` and `target/` and matched calls
+  that are not on a statistics repository. Its result could only be judged by sorting the output
+  by hand.
+- Solution: the grep runs over Rust sources in `packages`, `src`, `tests`, `console`, and
+  `contrib`, excluding `torrent-repository-benchmarking`. It must print exactly the two REST-port
+  lines, which the spec lists.
+- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:354-372 holds the command, the
+  expected output, and the scope note. Run at that head, the grep prints 84 lines. The only ones
+  that are not statistics-repository calls are the two listed REST-port lines.
+- Resolution reference: docs(issues): [#2536] make the AC1 call grep give an exact result
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275661470>
+
+### F8 - The doctest update leaves out the rustdoc link to the removed accessor
+
+- PR number: 2537
+- Source review ID: 5522278878
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4274350571>
+- Concern: each repository's rustdoc lead-in links to `Repository::get_stats` or
+  `Repository::get_metrics`. With warnings denied, that link breaks the library docs step and the
+  pre-push nightly doc build once the accessor is removed. The plan did not cover it.
+- Solution: Current callers names the five lead-ins, and the In Scope doctests bullet, T3, and AC3
+  repoint them to `Repository::read_metrics`. An AC3 check greps for the old link and runs the
+  nightly library docs build.
+- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:96-101 names the lead-ins, :177-178
+  is the In Scope sub-bullet, :229 the T3 row, :330-332 AC3, and :375-381 the AC3 check. Run at
+  that head, the check's grep prints the five lead-ins.
+- Resolution reference: docs(issues): [#2536] cover the rustdoc links to the removed accessors
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275661770>
+
 ## Processing Log
 
 - 2026-10-14 17:30 UTC - Started audit: read Copilot review 5521920535 (three inline findings) and
@@ -114,6 +218,10 @@ overview's summary and change table contain no further request, so they add no r
 - 2026-10-14 19:40 UTC - Fixed F2 and F3 in separate commits, pushed through the pre-commit and
   pre-push hooks, re-verified the three claims at head `0f2a02bed`, and replied on all three
   threads. The threads are resolved after this audit is pushed.
+- 2026-10-14 20:10 UTC - Read da2ce7's review 5522278878: five inline findings (F4-F8), plus body
+  notes that uphold Copilot's F1-F3 and point at #2521's TODO status (no new rows; see Findings).
+  Fixed each finding in its own commit, pushed through the hooks, re-verified the claims at head
+  `68b7aee97`, and replied on all five threads. They are resolved after this update is pushed.
 
 ## Completion Rules
 
