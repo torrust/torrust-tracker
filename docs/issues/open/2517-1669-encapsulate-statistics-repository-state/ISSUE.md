@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: in-review
 priority: p3
 epic: 1669
 github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
-related-pr: null
-last-updated-utc: "2026-10-14 14:28"
+related-pr: 2527
+last-updated-utc: "2026-10-14 14:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -294,6 +294,8 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   repository file and keeps compiling with the private field, so it is a repository method and
   does not affect AC1 or AC2. M1 and the two independent reviews ran against `develop` at
   `c1874fac`; the pre-push checks were rerun on the rebased branch.
+- 2026-10-14 14:31 UTC - Implementation - Opened PR #2527 against `develop`; set
+  `status: in-review` and `related-pr: 2527`.
 
 ## Acceptance Criteria
 
