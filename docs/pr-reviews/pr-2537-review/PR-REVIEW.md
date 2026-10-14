@@ -63,6 +63,10 @@ add no row, and the F1 and F2 rows keep Copilot's own `Major` header. The body a
 the #2521 quick-list item and EPIC row still read TODO. That is outside this diff and is handled by
 PR #2532, so it adds no row.
 
+da2ce7's second review 5523889096 (submitted 2026-10-14 20:01:19 UTC, at the audit head; also
+later DISMISSED) carries four inline `Nit` findings, F9-F12. Its body says round 1's F4-F8 still
+stood at that head, which predates their fixes, and raises nothing else, so it adds no further row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2537-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -73,6 +77,10 @@ PR #2532, so it adds no row.
 | F6 | `review-finding:pr-2537-f6` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2537-f7` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2537-f8` | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2537-f9` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2537-f10` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2537-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2537-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -222,6 +230,73 @@ PR #2532, so it adds no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275661770>
 
+### F9 - The test-design review leaves out the helper-boundary check
+
+- PR number: 2537
+- Source review ID: 5523889096
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626312>
+- Concern: `create-issue` and the issue template require the test-design review to judge helper
+  boundaries by meaningful named actions and abstraction-level alignment, not caller count. The
+  review bullets stopped before that rule, although this migration reshapes guard-wrapping helpers.
+- Solution: a fourth review bullet states the rule and applies it to `udp-server`'s
+  `metrics_snapshot` and the swarm job test's `inactive_peers_total`.
+- Current-tree verification: at the round-2-fix head, `ISSUE.md`:259-263 is the new bullet.
+- Resolution reference: docs(issues): [#2536] add the helper-boundary check to the test-design review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779046>
+
+### F10 - T7's own commit lands before the maintainer stop
+
+- PR number: 2537
+- Source review ID: 5523889096
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626334>
+- Concern: `create-issue` puts the maintainer stop before the final increment's commit, but the
+  plan committed every package, T7 included, right after its test-design review.
+- Solution: T3-T6 still commit after their own review; T7's commit waits for the maintainer
+  review. Step 4, the stop, the T3-T7 commit policy, and the workflow checkpoint say so.
+- Current-tree verification: at the round-2-fix head, `ISSUE.md`:240 is the commit policy, :268-273
+  are step 4 and the stop, and :284 is the checkpoint.
+- Resolution reference: docs(issues): [#2536] hold T7's commit until the maintainer review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779388>
+
+### F11 - The F1 current-tree sentence cites the wrong rationale lines
+
+- PR number: 2537
+- Source review ID: 5523889096
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626352>
+- Concern: the F1 sentence cited :120-122, which hold the "Consistent reads" and "No copies"
+  bullets, and :179-188, which is off by one; the F1 reply repeated both.
+- Solution: the F1 sentence cites :180-189 and :123-125 and notes that the F1 reply carries the
+  earlier ranges. The F11 reply states the corrected ranges, so the thread record is complete.
+- Current-tree verification: in this record, the F1 Current-tree verification entry cites the
+  corrected ranges. At the Copilot-fix head, `ISSUE.md`:180-189 is the Design and Ownership text
+  and :123-125 the "No lock held across an `.await`" rationale.
+- Resolution reference: docs(pr-reviews): correct the F1 line ranges in the PR #2537 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779665>
+
+### F12 - The record cites PR-branch commits by id
+
+- PR number: 2537
+- Source review ID: 5523889096
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275626368>
+- Concern: the record cited PR-branch commits by id, which a rebase rewrites, against
+  `open-pull-request`'s rule for durable references.
+- Solution: the Findings section opens with a legend that names each cited head by its last commit
+  subject, and every current-tree and log sentence uses those names, including the F4-F8 rows added
+  before this review arrived.
+- Current-tree verification: in this record, no PR-branch commit id remains. The only commit id is
+  the `develop` merge base `48c4d3013`, cited in this sentence. The legend opens the Findings
+  section.
+- Resolution reference: docs(pr-reviews): name the PR #2537 audit's cited heads by commit subject
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779954>
+
 ## Processing Log
 
 - 2026-10-14 17:30 UTC - Started audit: read Copilot review 5521920535 (three inline findings) and
@@ -234,6 +309,11 @@ PR #2532, so it adds no row.
   notes that uphold Copilot's F1-F3 and point at #2521's TODO status (no new rows; see Findings).
   Fixed each finding in its own commit, pushed through the hooks, re-verified the claims at the
   round-1-fix head, and replied on all five threads. They are resolved after this update is pushed.
+- 2026-10-14 20:25 UTC - After pushing the F4-F8 rows, a thread check found da2ce7's second review
+  5523889096 (F9-F12, all `Nit`). Fixed each finding in its own commit, two in the spec and two in
+  this record, and pushed. Replied on all four threads, then corrected the F11 reply, whose first
+  version named the wrong commit subject. Resolved the five F4-F8 threads; the four F9-F12 threads
+  are resolved after this update is pushed.
 
 ## Completion Rules
 
