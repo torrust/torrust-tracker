@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:03"
+last-updated-utc: "2026-10-14 10:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -167,8 +167,9 @@ field. The documentation listed under "Contracts violated" must state the `disab
   - the listener tests in `packages/udp-server/src/banning/event/listener.rs` that use
     `get_banned_ips_total()` as a proxy for "the event was processed" (switch them to
     `get_count(ip)` or another direct observation).
-- Run the existing `udp_ban_service` Criterion benchmark before and after the change (see
-  "Performance Alternatives").
+- Measure performance before and after the change as the "Performance Evidence Plan" describes
+  (a new per-event Criterion benchmark, the existing `udp_ban_service` benchmarks, and the
+  end-to-end load test, recorded in `performance-evidence.md`).
 
 ### Out of Scope
 
@@ -241,7 +242,10 @@ the total with a scan.
 
 **Is performance testing needed to choose?** No: the complexity difference (O(1) versus O(n) per
 error) is clear without measurement. The change still touches the UDP request path (the launcher's
-`is_banned` read lock) and the error path, so it needs the before-and-after evidence below.
+`is_banned` read lock) and the error path, so it needs the before-and-after evidence below. If
+option P4 is chosen, also add a benchmark case for its scan at high cardinality, so the scan cost is
+measured, not assumed: the per-event benchmark and the load test do not exercise it. (Restored
+after PR #2506 review finding F13; the implementation chose option P1, so it did not apply.)
 
 ### Performance Evidence Plan
 
@@ -341,8 +345,10 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
   with `L + 1` errors is counted once; an IP with `L + 2` errors is still counted once; several IPs
   below the limit report 0. **Red on `develop`** (the current total counts every IP).
 - **R2 (unit, `udp-core`):** after `reset_bans()`, the banned total is 0 and an IP must exceed the
-  limit again to be counted. Passes on `develop` (the map is cleared); prove it guards the fix with
-  mutate-then-restore (for P1: do not reset the counter).
+  limit again to be counted. The reset leg passes on `develop` (the map is cleared), so prove it
+  guards the fix with mutate-then-restore (for option P1: do not reset the counter). The re-count
+  leg is red on `develop`, where an IP with errors after the reset is counted even below the
+  limit. (Narrowed after PR #2506 review finding F10.)
 - **R1p (property-based unit, `udp-core`):** for arbitrary sequences of
   `increase_counter` over a small IP pool, interleaved with `reset_bans()`, and arbitrary limits,
   the banned total equals the number of IPs for which `is_banned` is true. Needs `quickcheck` as a
@@ -586,6 +592,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   comment), Scope, AC3, and its evidence row; dated `get_banned_ips_total` from `1ce2e3327` (#1145)
   and noted in "Risks and Trade-offs" that the value was wrong since the metric was introduced; and
   made the AC4 evidence say that no code reference remains, keeping the open EPIC's history row.
+- 2026-10-14 10:04 UTC - GitHub Copilot (implementation session) - Late PR #2506 review findings F10, F13, and
+  F14 (same approval): R2's note now says only its reset leg passes on `develop`; the P4 scan
+  benchmark condition is restored in "Performance Alternatives" (not applicable, option P1 was
+  chosen); Scope and "Risks and Trade-offs" now point at the Performance Evidence Plan.
 
 ## Acceptance Criteria
 
@@ -675,7 +685,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
   release notes.
   Operators who want "IPs that sent an invalid connection ID" lose that number; the existing
   counter `udp_tracker_server_connection_id_errors_total` still reports the error volume.
-- **Per-error cost.** See "Performance Alternatives"; the benchmark guards against regressions.
+- **Per-error cost.** See "Performance Alternatives" for the options and the "Performance Evidence
+  Plan" for the measurements that guard against regressions.
 - **Conflict with Issue #1348.** Its branch is adding tests to `banning.rs`'s test module. Keep
   production changes and new tests focused; #1348 rebases onto this work and deliberately leaves
   `get_banned_ips_total()` untested so it does not pin the wrong value.
