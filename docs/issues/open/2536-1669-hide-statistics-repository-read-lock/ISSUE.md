@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 20:10"
+last-updated-utc: "2026-10-14 20:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -237,7 +237,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task  | Coherent change set                                                                                                                           | Commit policy                                               |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| T3-T7 | `refactor(<package>): [#2536] hide the statistics read lock and metric collection field`, one per package, each with its callers and doctests, so every commit builds | Commit after focused validation and the test-design review. |
+| T3-T7 | `refactor(<package>): [#2536] hide the statistics read lock and metric collection field`, one per package, each with its callers and doctests, so every commit builds | Commit after focused validation and the test-design review; T7's commit also waits for the maintainer review (see Test-Development Workflow). |
 | T2, T8 | Manual verification evidence and spec progress updates                                                                                       | Commit after the evidence is recorded.                      |
 
 Every commit is GPG signed. Because `rest-api-runtime-adapter` and the tests read from all five
@@ -265,10 +265,12 @@ T3-T7 each produce tests (the new doctests and the migrated caller tests), so ea
    section, refactor until the code expresses it, remove the redundant prose, and record the
    result. For a `compile_fail` doctest the Act is compiling and the Assert is the expected error;
    record the comparison in those terms rather than skipping it.
-4. Finish and commit this review before starting the next package task.
+4. For T3-T6, finish and commit this review before starting the next package task. T7 is the
+   final increment, so its commit waits for the maintainer review below.
 
-After the final increment (T7), stop for maintainer review of all the test increments before
-starting T8 (final verification), the last spec commit, or the pull request.
+After the final increment (T7) passes its own test-design review, stop for maintainer review of all
+the test increments before T7's commit, T8 (final verification), the last spec commit, or the pull
+request.
 
 ## Progress Tracking
 
@@ -279,7 +281,7 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
-- [ ] Maintainer reviewed the test increments after T7, before final verification
+- [ ] Maintainer reviewed the test increments after T7, before T7's commit and final verification
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -329,6 +331,10 @@ starting T8 (final verification), the last spec commit, or the pull request.
   gains the create-issue helper-boundary check (meaningful named actions at the test's level of
   abstraction, not caller count), applied to the guard-wrapping helpers metrics_snapshot and
   inactive_peers_total.
+- 2026-10-14 20:11 UTC - GitHub Copilot - PR #2537 review (F10, da2ce7): T7's commit now waits
+  for the maintainer review, in line with create-issue's stop before commit; T3-T6 still commit
+  after their own test-design review. Step 4, the stop, the T3-T7 commit policy, and the checkpoint
+  say so.
 
 ## Acceptance Criteria
 
