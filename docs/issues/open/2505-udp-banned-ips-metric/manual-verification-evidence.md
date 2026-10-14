@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 06:03
+last-updated-utc: 2026-10-14 06:50
 ---
 
 # Manual Verification Evidence
@@ -1076,6 +1076,40 @@ restored: identical to variant B
 Every variant is caught by at least two tests, and R1p catches all four. With variant B the
 `udp-core`, `udp-server`, root reset-job, and root banning test suites pass, and `cargo clippy -p
 torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
+
+### Reviewer Follow-Up - Handler Test Distinguishes the Meanings (N2)
+
+The independent pre-PR review (see `agent-review-reports.md`) noted that
+`it_should_publish_the_banned_ip_total_after_a_connection_cookie_error` passed with the old
+distinct-IP total too, because both tracked IPs were over the limit. A third client at the limit
+(`client_within_the_limit_ip`, 1 error with a limit of 1) now makes the old meaning publish 3
+instead of 2. Proof with the original map-length total (`self.accurate_error_counter.len()`)
+temporarily restored in `packages/udp-core/src/services/banning.rs`, without staging, and the file
+restored from a copy afterwards. Command:
+
+```bash
+f=packages/udp-core/src/services/banning.rs; cp $f .tmp/banning.rs.head
+OLD='        self.banned_ips_total
+    }' NEW='        self.accurate_error_counter.len()
+    }' python3 -c "import os; p='$f'; s=open(p).read(); o=os.environ['OLD']; assert s.count(o)==1; open(p,'w').write(s.replace(o, os.environ['NEW']).replace('pub const fn get_banned_ips_total','pub fn get_banned_ips_total'))"
+echo "== M0: the original map-length total"; cargo test -q -p torrust-tracker-udp-server --lib banning::event::handler 2>&1 | grep -E "^error|^    banning|left:|right:|^test result" | sed 's/^    banning/FAILED: banning/'
+cp .tmp/banning.rs.head $f; cmp $f .tmp/banning.rs.head && echo "restored"
+```
+
+Output:
+
+```text
+== M0: the original map-length total
+  left: 3
+ right: 2
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 218 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+restored
+```
+
+With the fix in place the handler tests pass
+(`test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 218 filtered out`).
 
 ## Failures and Follow-up
 
