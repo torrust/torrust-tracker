@@ -8,8 +8,8 @@ epic: null
 github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
-related-pr: null
-last-updated-utc: "2026-10-14 12:55"
+related-pr: 2524
+last-updated-utc: "2026-10-14 14:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -661,6 +661,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   (L-V1 to L-V4, tracker started 11:54:15 UTC, reset at 12:54:15 UTC) reported 0, 0, 1, and 0 right
   after the reset, the same as both earlier rechecks; the earlier "final" recheck is relabeled the
   second recheck, and AC6 now cites the last one.
+- 2026-10-14 14:26 UTC - GitHub Copilot (post-merge session) - PR #2524 merged into `develop` on
+  2026-10-14 at 14:21:52 UTC as `8045bd252`, which closed this issue at 14:21:53 UTC. At the
+  maintainer's decision, Cameron's two change requests were dismissed before the merge because his
+  re-review was taking too long; all their findings were fixed, replied to, and resolved. Set
+  `related-pr` to 2524.
 
 ## Acceptance Criteria
 
