@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 09:06"
+last-updated-utc: "2026-10-14 14:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -130,7 +130,7 @@ module inside the same file, which keeps access to a private field.
 - Removing the unused SI-30 statistics traits (`UdpCoreStatsRepository`,
   `UdpServerStatsRepository`) in `udp-core` and `udp-server`. A separate #1669 sub-issue draft for
   them exists but is not committed yet; the only in-tree note on their possible leftover status is
-  the Out of Scope of the #2505 spec (`docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md`).
+  the Out of Scope of the #2505 spec (`docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md`).
 - Changelog entries: none of the five packages, nor the repository root, keeps a changelog.
 
 ## Architectural Decisions

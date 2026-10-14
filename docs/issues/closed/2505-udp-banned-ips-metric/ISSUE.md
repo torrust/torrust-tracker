@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2505
-spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
+spec-path: docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: 2524
-last-updated-utc: "2026-10-14 14:26"
+last-updated-utc: "2026-10-14 14:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,15 +20,15 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
-    - docs/issues/open/2505-udp-banned-ips-metric/manual-verification-evidence.md
-    - docs/issues/open/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
-    - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
-    - docs/issues/open/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
-    - docs/issues/open/2505-udp-banned-ips-metric/evidence/final-recheck-tracker.log
-    - docs/issues/open/2505-udp-banned-ips-metric/evidence/last-recheck-tracker.log
-    - docs/issues/open/2505-udp-banned-ips-metric/agent-review-reports.md
-    - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
-    - docs/issues/open/2505-udp-banned-ips-metric/implementation-retrospective.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/manual-verification-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
+    - docs/issues/closed/2505-udp-banned-ips-metric/evidence/tracker.log
+    - docs/issues/closed/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
+    - docs/issues/closed/2505-udp-banned-ips-metric/evidence/final-recheck-tracker.log
+    - docs/issues/closed/2505-udp-banned-ips-metric/evidence/last-recheck-tracker.log
+    - docs/issues/closed/2505-udp-banned-ips-metric/agent-review-reports.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/performance-evidence.md
+    - docs/issues/closed/2505-udp-banned-ips-metric/implementation-retrospective.md
     - docs/testing.md
     - tests/AGENTS.md
     - packages/udp-core/src/services/banning.rs
@@ -461,7 +461,7 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -666,6 +666,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   maintainer's decision, Cameron's two change requests were dismissed before the merge because his
   re-review was taking too long; all their findings were fixed, replied to, and resolved. Set
   `related-pr` to 2524.
+- 2026-10-14 14:28 UTC - GitHub Copilot (post-merge session) - Archived this spec to
+  `docs/issues/closed/2505-udp-banned-ips-metric/` (status `done`), updated the frontmatter paths in
+  this folder, and repaired the live references in the #2517 spec and the PR #2506 and PR #2524 review
+  audits.
 
 ## Acceptance Criteria
 

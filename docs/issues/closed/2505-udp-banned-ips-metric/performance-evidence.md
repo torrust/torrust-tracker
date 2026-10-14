@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
-issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: "2026-10-14 12:29"
+issue-spec: docs/issues/closed/2505-udp-banned-ips-metric/ISSUE.md
+last-updated-utc: "2026-10-14 14:28"
 ---
 
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
