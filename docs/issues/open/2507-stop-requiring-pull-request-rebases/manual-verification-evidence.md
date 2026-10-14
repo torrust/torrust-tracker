@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-14 10:37
+last-updated-utc: 2026-10-14 10:46
 ---
 
 # Manual Verification Evidence
@@ -46,7 +46,7 @@ files, but never as the only copy of something the evidence relies on.
 - Goal: find the least disruptive way to make GitHub recompute `refs/pull/<n>/merge` against the
   current `develop` tip before a maintainer merge (spec task T1).
 - Initial state: eight open pull requests; `develop` at `d383d4b45`.
-- Status: `DONE` (method pending maintainer approval)
+- Status: `DONE`; the maintainer chose option (e), run by the merge tool itself (2026-10-14)
 
 #### Option (a): Wait and Re-Query
 
@@ -152,7 +152,8 @@ upstream workflow declares `pull_request` `types`, so the default `opened`, `syn
   commit, needs no temporary branch, leaves no timeline event, and triggers no CI. Option (b)
   reruns CI and adds close and reopen events; option (c) adds a GitHub-signed merge commit, reruns
   CI, and dismisses approvals through `dismiss_stale_reviews_on_push`.
-- Status: `DONE`, pending maintainer approval of the chosen method.
+- Status: `DONE`. On 2026-10-14 the maintainer chose option (e), run automatically by the merge
+  tool, which T2 of the specification implements.
 
 ### T5 - Required Status Checks Under the Maintainer Merge
 
