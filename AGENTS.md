@@ -369,10 +369,12 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
   a new commit on top when it achieves the same result, especially during a review round, whose
   cited commit ids a rewrite invalidates. A rewrite may separate or reorder steps but must keep
   every one of them, including superseded steps and corrections. After it, confirm the final tree
-  is unchanged unless the rewrite intends a change, push with `--force-with-lease`, update every
-  reference to the old commit ids (see the `open-pull-request` skill), map the ids cited in review
-  comments to commit subjects in the pull request's review audit, and say in the PR body that the
-  history was rewritten. Never rewrite `develop`, `main`, or merged history.
+  is unchanged unless the rewrite intends a change, and push with `--force-with-lease`. Replace
+  every old commit id in repository artifacts and the PR body with the commit's Conventional Commit
+  subject, not with its new id, which a later rewrite can change too (see the `open-pull-request`
+  skill). Review comments cannot be edited, so map the ids they cite to commit subjects in the pull
+  request's review audit. Say in the PR body that the history was rewritten. Never rewrite
+  `develop`, `main`, or merged history.
 - Minor process, skill, or documentation improvements learned while doing the work may ride along
   in the PR that produced them, even when unrelated to the PR's runtime change, as long as each
   lives in its own commit with the right Conventional Commits type (`docs(...)`, `chore(...)`).
