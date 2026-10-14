@@ -104,3 +104,8 @@ drafted with hand-off notes under `.tmp/` for another agent to take through spec
   nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-14 08:07 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-14 16:57 UTC - GitHub Copilot - Rebased onto #2521 (removed `UdpCoreStatsRepository`)
+  and #2517 (made `stats` private, added a `new`-only construction test). As approved by Jose
+  Celano: S4 was dropped with the trait method it tested, and #2517's construction test was
+  dropped as superseded by S1's `new` case. S1-S3 remain; S3 still writes through `stats` from the
+  in-file test module. Unit-only file totals: 70 / 70 lines, 73 / 74 regions, 13 / 13 functions.

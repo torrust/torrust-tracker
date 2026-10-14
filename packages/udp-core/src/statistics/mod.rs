@@ -19,8 +19,9 @@
 //! let result = event_sender.send(Event::UdpConnect { connection }).await;
 //! ```
 //!
-//! Eventually the counter for UDP connections from IPv4 peers will be increased.
-//! [`Metrics::udp4_connections_handled`] reads that counter.
+//! Eventually the requests-received counter is increased for that request kind and server socket
+//! family, so [`Metrics::udp4_connections_handled`] reports one more connection on IPv4 server
+//! sockets.
 pub mod event;
 pub mod metrics;
 pub mod repository;

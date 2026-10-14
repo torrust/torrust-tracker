@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/statistics/services.rs
-status: done
+status: superseded
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/services.rs
@@ -108,3 +108,7 @@ Approved by Jose Celano on 2026-10-14: V1-V2 and the three doc fixes. The findin
   nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-14 09:13 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-14 16:57 UTC - GitHub Copilot - Superseded: #2521 (PR #2529), the follow-up this plan's
+  finding fed, deleted `statistics/services.rs` and moved its module docs to `statistics/mod.rs`.
+  On rebase, V1 and V2 went with the file; the IPv4 server-socket wording fix was re-applied to
+  the moved docs (approved by Jose Celano).

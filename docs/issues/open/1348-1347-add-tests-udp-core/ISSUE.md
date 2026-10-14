@@ -299,7 +299,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
-| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | DONE | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
+| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | REMOVED | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) (superseded by #2521) |
 | 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | DONE | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
 | 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
@@ -512,8 +512,8 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `connection_cookie.rs` with the file's own tests; 19 caught, 1 unviable, 0 missed
   ([mutation-evidence.md](mutation-evidence.md)). The workspace `-D unused` flags made 7 real
   mutants unviable in a first run, so the recorded run caps lints to warnings.
-- 2026-10-14 15:58 UTC - GitHub Copilot - T7 is `DONE`. Final clean measurement at `e3ebd673e`
-  (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`, 98 tests): unit-only and aggregate lines 975 / 1,345
+- 2026-10-14 15:58 UTC - GitHub Copilot - T7 is `DONE`. Final clean measurement (stable Rust
+  1.99.0, `cargo-llvm-cov 0.6.16`, 98 tests): unit-only and aggregate lines 975 / 1,345
   (72.49%) → 2,246 / 2,290 (98.08%); recorded in `coverage-evidence.md` (per-file final values,
   remaining uncovered lines with reasons) and both EPIC #1347 tables. Reconciled: 19 ledger rows
   `DONE` plus 2 `REMOVED`; 20 plans `done` (the keys plan `superseded`) and indexed; plan index
@@ -532,6 +532,17 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   the M3/M4 client in the issue folder with `tracker_client` options as the follow-up, and asked
   for the retrospective: [implementation-retrospective.md](implementation-retrospective.md). T8 is
   `DONE`. Remaining: PR (after the pre-push `git fetch` behind-check), then issue closure.
+- 2026-10-14 16:57 UTC - GitHub Copilot - The pre-push behind-check found `develop` 48 commits
+  ahead, including #2517 (private metrics lock) and #2521 (removed the unused statistics traits
+  and `statistics/services.rs`), both follow-ups of this issue's findings, and #2505's spec archive.
+  Rebased onto `e2e21f20c` with the maintainer-approved resolution: accepted the deletion of
+  `statistics/services.rs` (ledger row 13 `REMOVED`, its plan `superseded`); in
+  `statistics/repository.rs` kept #2517's private field and doc test, dropped S4 (its trait method
+  is gone) and #2517's `new`-only test (superseded by S1); re-applied the IPv4 server-socket
+  wording to the docs #2521 moved into `statistics/mod.rs`. Re-measured: lines 98.03%
+  (2,190 / 2,234), 95 unit and 3 doc tests. Updated #2505 links to `closed/` and the EPIC tables.
+  Manual verification (M1-M4) ran on the pre-rebase build; the rebase removed only unused code
+  and changed no request handling, so it was not repeated.
 
 ## Acceptance Criteria
 
@@ -621,7 +632,7 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | ----- | ------ | -------- |
 | AC1 | Met | `coverage-evidence.md`: module inventory with T1 hypotheses for all 20 files, and the Final Test-Technique Assessment. |
 | AC2 | Met | Ledger: 19 rows `DONE`, 2 `REMOVED` by #2458; one plan per file; per-file final values in `coverage-evidence.md`. |
-| AC3 | Met | `coverage-evidence.md` Final Measurement: clean aggregate and unit-only reports at `e3ebd673e` (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`); no integration target. |
+| AC3 | Met | `coverage-evidence.md` Final Measurement: clean aggregate and unit-only reports after the final rebase (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`); no integration target. |
 | AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs show each new test fails for its own decision. |
 | AC5 | Met (vacuous) | No package integration test was added; every plan records why (T5). |
 | AC6 | Met | No-change plans (`lib.rs`, `crypto/mod.rs`, `statistics/event/mod.rs`) and every remaining uncovered line list a reason or owner (`coverage-evidence.md` Final Measurement). |
@@ -631,7 +642,7 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | AC15 | Met | Highest-risk: cookie windows, fingerprints and round trip (`connection_cookie.rs`, property and mutation sample), cipher (`crypto/cookie_cipher.rs`), ban counting (`services/banning.rs`, property, plus #2505), validation bypass (`services/announce.rs`, `services/scrape.rs`). High: error adaptation, event publication with and without a sender, and peer mapping are tested in the service and `peer_builder.rs` plans; the unreachable `TrackerCoreWhitelistError` path is recorded with its reason. |
 | AC10 | Met | `cargo +nightly fmt --all -- --check` (nightly 1.101.0) exit 0; also in the pre-push run. |
 | AC11 | Met | `linter all` passes in every pre-commit run, the latest before the T8 commit. |
-| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 98 unit tests and 2 doc tests pass. Pre-push full stable suite also passes. |
+| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 95 unit tests and 3 doc tests pass after the final rebase. Pre-push full stable suite also passes. |
 | AC13 | Met | `manual-verification-evidence.md` V1-V4, all `DONE`. |
 | AC14 | Met | This table, reviewed after implementation on 2026-10-14. |
 

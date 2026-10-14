@@ -99,9 +99,9 @@ and Issue #2505, the `rstest` conversion of `peer_builder.rs`, and the helpers m
 | `event.rs` | 131 / 137 (95.62%) | 144 / 147 (97.96%) | 229 / 233 (98.28%) | 21 / 22 (95.45%) | [event-tests.md](test-refactor-plans/event-tests.md) |
 | `container.rs` | 0 / 97 (0.00%) | 317 / 317 (100.00%) | 333 / 333 (100.00%) | 30 / 30 (100.00%) | [container-tests.md](test-refactor-plans/container-tests.md) |
 | `statistics/event/handler.rs` | 199 / 200 (99.50%) | 60 / 61 (98.36%) | 104 / 108 (96.30%) | 6 / 6 (100.00%) | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
-| `statistics/repository.rs` | 21 / 26 (80.77%) | 86 / 86 (100.00%) | 94 / 95 (98.95%) | 16 / 16 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
+| `statistics/repository.rs` | 21 / 26 (80.77%) | 70 / 70 (100.00%) | 73 / 74 (98.65%) | 13 / 13 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | `statistics/metrics.rs` | 56 / 65 (86.15%) | 110 / 119 (92.44%) | 144 / 152 (94.74%) | 11 / 12 (91.67%) | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
-| `statistics/services.rs` | 32 / 32 (100.00%) | 40 / 40 (100.00%) | 51 / 51 (100.00%) | 6 / 6 (100.00%) | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
+| `statistics/services.rs` | 32 / 32 (100.00%) | Removed by #2521 | - | - | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) (superseded) |
 | `statistics/event/listener.rs` | 124 / 145 (85.52%) | 144 / 164 (87.80%) | 193 / 211 (91.47%) | 21 / 24 (87.50%) | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | `statistics/mod.rs` | 8 / 8 (100.00%) | 15 / 15 (100.00%) | 18 / 18 (100.00%) | 2 / 2 (100.00%) | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
 | `lib.rs` | 5 / 10 (50.00%) | 5 / 5 (100.00%) | 6 / 6 (100.00%) | 1 / 1 (100.00%) | [lib-tests.md](test-refactor-plans/lib-tests.md) |
@@ -146,28 +146,32 @@ removing covered test code. After `statistics/repository.rs`: 1,924 / 1,987 line
 259 / 274 functions (94.53%). After the rebase onto #2505 (which added banning tests and changed
 `banning.rs`): 2,094 / 2,156 lines (97.12%), 2,946 / 3,025 regions (97.39%), 276 / 289 functions
 (95.50%). After `container.rs`: 2,246 / 2,290 lines (98.08%), 3,109 / 3,167 regions (98.17%),
-296 / 303 functions (97.69%).
+296 / 303 functions (97.69%). After rebasing onto #2517 and #2521 (which deleted
+`statistics/services.rs` and its two tests, and removed the trait method that S4 tested):
+2,190 / 2,234 lines (98.03%), 3,037 / 3,095 regions (98.13%), 287 / 294 functions (97.62%).
 
 ## Final Measurement
 
-Measured at `e3ebd673e` on 2026-10-14T15:52:56Z with stable Rust 1.99.0 and `cargo-llvm-cov
-0.6.16`, using the same two clean commands as the baseline (outputs
-`.tmp/1348-coverage/final-aggregate.json` and `.tmp/1348-coverage/final-unit.json`). Both ran 98
+Measured on 2026-10-14T16:54:16Z at the commit "test(udp-core): reconcile the statistics tests
+with #2517 and #2521", rebased onto `develop` at `e2e21f20c`, with stable Rust 1.99.0 and
+`cargo-llvm-cov 0.6.16`, using the same two clean commands as the baseline (outputs
+`.tmp/1348-coverage/final2-aggregate.json` and `.tmp/1348-coverage/final2-unit.json`). Both ran 95
 package unit tests. The package still has no integration target, so the aggregate command again
 selected only the unit-test binary and its totals equal unit-only.
 
 | Level | Baseline (T1) | Final (T7) | Change |
 | --- | ---: | ---: | ---: |
-| Aggregate lines | 975 / 1,345 (72.49%) | 2,246 / 2,290 (98.08%) | +25.59 pp |
-| Aggregate regions | 1,488 / 1,894 (78.56%) | 3,109 / 3,167 (98.17%) | +19.61 pp |
-| Aggregate functions | 129 / 181 (71.27%) | 296 / 303 (97.69%) | +26.42 pp |
-| Unit-only lines | 975 / 1,345 (72.49%) | 2,246 / 2,290 (98.08%) | +25.59 pp |
-| Unit-only regions | 1,488 / 1,894 (78.56%) | 3,109 / 3,167 (98.17%) | +19.61 pp |
-| Unit-only functions | 129 / 181 (71.27%) | 296 / 303 (97.69%) | +26.42 pp |
+| Aggregate lines | 975 / 1,345 (72.49%) | 2,190 / 2,234 (98.03%) | +25.54 pp |
+| Aggregate regions | 1,488 / 1,894 (78.56%) | 3,037 / 3,095 (98.13%) | +19.57 pp |
+| Aggregate functions | 129 / 181 (71.27%) | 287 / 294 (97.62%) | +26.35 pp |
+| Unit-only lines | 975 / 1,345 (72.49%) | 2,190 / 2,234 (98.03%) | +25.54 pp |
+| Unit-only regions | 1,488 / 1,894 (78.56%) | 3,037 / 3,095 (98.13%) | +19.57 pp |
+| Unit-only functions | 129 / 181 (71.27%) | 287 / 294 (97.62%) | +26.35 pp |
 
 The change is not all from #1348. Issue #2458 removed the two key modules and added the cookie
 cipher and the first container tests; Issue #2505 rewrote the banned-IPs counting and added
-banning tests. The history above records each step.
+banning tests; Issues #2517 and #2521 (follow-ups of this issue's findings) removed
+`statistics/services.rs` and unused statistics code. The history above records each step.
 
 Remaining uncovered lines and their recorded reasons:
 
@@ -187,7 +191,7 @@ Remaining uncovered lines and their recorded reasons:
 | --- | --- |
 | Unit tests | Selected and applied to every source file through its own file test plan; in-file `#[cfg(test)]` modules. |
 | Package integration tests | Not selected. All 20 plans record R3 `SKIPPED` with a boundary rationale; the package still has no `tests/` target (T5). |
-| Runnable examples | Kept, not added. Doc tests: the `container.rs` and `crypto/cookie_cipher.rs` compile-fail/compile pairs (added by #2458; they keep the cookie key private). The two `rust,ignore` blocks in `connection_cookie.rs` are algorithm illustrations, not examples. The fake `Metrics` struct block in `statistics/services.rs` was replaced with a link to the real method. |
+| Runnable examples | Kept, not added. Doc tests: the `container.rs` and `crypto/cookie_cipher.rs` compile-fail/compile pairs (added by #2458; they keep the cookie key private) and the `statistics/repository.rs` pair (added by #2517; it keeps the metrics lock private). The two `rust,ignore` blocks in `connection_cookie.rs` are algorithm illustrations, not examples, as is the one in `statistics/mod.rs`. |
 | Root `tests/` or `packages/e2e-tools/` | Not selected. Real UDP behavior stays with `udp-server` and the root tests. |
 | Mutation testing | Selected: bounded `cargo-mutants` sample on `connection_cookie.rs` (T6, [mutation-evidence.md](mutation-evidence.md)), plus hand-written mutation proofs recorded in every test-producing plan. |
 | Property-based testing | Kept where it caught a defect the examples missed: the cookie round trip (`connection_cookie.rs`) and the ban threshold (`services/banning.rs`); #2505 added a banned-total model property. Not selected for the cookie cipher (no property beyond the round trip) or the enumerable cases elsewhere. `quickcheck`, `quickcheck_macros`, and `rstest` are `udp-core` dev-dependencies. |
