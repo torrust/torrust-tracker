@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 20:01"
+last-updated-utc: "2026-10-14 20:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -255,7 +255,12 @@ T3-T7 each produce tests (the new doctests and the migrated caller tests), so ea
    the Progress Log or task evidence:
    - the test exposes the one causal initial-state difference;
    - fixtures own only incidental mechanics;
-   - the production Act and the independently specified expected result stay visible.
+   - the production Act and the independently specified expected result stay visible;
+   - each helper's boundary is a meaningful named action at the test's level of abstraction,
+     judged by that and not by caller count (a single-use helper is valid when it hides only
+     incidental mechanics). This applies to the helpers that wrap today's guard and must be
+     reshaped, such as `udp-server`'s `metrics_snapshot` and the swarm job test's
+     `inactive_peers_total`.
 3. Do the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each
    section, refactor until the code expresses it, remove the redundant prose, and record the
    result. For a `compile_fail` doctest the Act is compiling and the Assert is the expected error;
@@ -320,6 +325,10 @@ starting T8 (final verification), the last spec commit, or the pull request.
   each repository's #2517 doctests links to the removed accessor; Current callers, the In Scope
   doctests bullet, T3, and AC3 now cover that link, and an AC3 check greps for it and runs the
   nightly library docs build.
+- 2026-10-14 20:10 UTC - GitHub Copilot - PR #2537 review (F9, da2ce7): the test-design review
+  gains the create-issue helper-boundary check (meaningful named actions at the test's level of
+  abstraction, not caller count), applied to the guard-wrapping helpers metrics_snapshot and
+  inactive_peers_total.
 
 ## Acceptance Criteria
 
