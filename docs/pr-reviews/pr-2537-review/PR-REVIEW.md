@@ -47,7 +47,10 @@ after a rebase:
 - audit head: "docs(pr-reviews): add the PR #2537 review audit", which da2ce7's second review read;
 - Copilot-fix head: "docs(issues): [#2536] keep the debug-log example's output unchanged";
 - round-1-fix head: "docs(issues): [#2536] cover the rustdoc links to the removed accessors";
-- round-2-fix head: "docs(issues): [#2536] hold T7's commit until the maintainer review".
+- round-2-fix head: "docs(issues): [#2536] hold T7's commit until the maintainer review";
+- second audit head: "docs(pr-reviews): record the second da2ce7 review in the PR #2537 audit",
+  which da2ce7's third review read;
+- round-3-fix head: "docs(issues): [#2536] normalize the activity job's gauges in M1".
 
 Copilot review 5521920535 (COMMENTED, submitted 2026-10-14 17:25:40 UTC, at the spec head)
 carries three inline findings with `[<Severity>][<FindingId>]` headers: F1 and F2 (`Major`) and F3
@@ -68,6 +71,13 @@ da2ce7's second review 5523889096 (submitted 2026-10-14 20:01:19 UTC, at the aud
 later DISMISSED) carries four inline `Nit` findings, F9-F12. Its body says round 1's F4-F8 still
 stood at that head, which predates their fixes, and raises nothing else, so it adds no further row.
 
+da2ce7's third review 5524288522 (APPROVED, submitted 2026-10-14 20:33:17 UTC, at the second audit
+head) carries four inline findings: F13, F14, and F16 (`Nit`) and F15 (`Minor`). Its body finds
+F4-F12 fixed and raises nothing else. Fixing F13-F16 meant new pushes after the approval, which the
+maintainer chose knowing the approval would likely be dismissed. The second review's F12 comment
+also noted that the `open-pull-request` check cannot catch such ids. That skill gap was fixed in
+this PR (see F12), as `AGENTS.md` allows for small process fixes, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2537-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -82,6 +92,10 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 | F10 | `review-finding:pr-2537-f10` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2537-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2537-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2537-f13` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2537-f14` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2537-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2537-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -298,6 +312,75 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779954>
 
+The comment also noted that the `open-pull-request` check scans only the issue folder and drops
+all-digit ids. "docs(skills): check every changed file for PR-branch commit ids" fixes that in
+this PR; a follow-up reply on this thread describes it.
+
+### F13 - The 58 counts one companion doctest as an in-crate unit test
+
+- PR number: 2537
+- Source review ID: 5524288522
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275956597>
+- Concern: counting calls after each file's first `#[cfg(test)]` also counted the `udp-server`
+  companion doctest call at `statistics/repository.rs`:35, which compiles as its own crate. The
+  in-crate unit tests number 57, with `udp-server` at 30.
+- Solution: Current callers gives 57 (udp-server 30) and explains the 58; T4 says 30.
+- Current-tree verification: at the round-3-fix head, `ISSUE.md`:83-88 gives the count and the
+  explanation, and :232 is the T4 row. Counting only after each file's `mod tests` at `48c4d3013`
+  gives udp-server 30, udp-core 12, http-core 9, swarm-coordination-registry 4, tracker-core 2.
+- Resolution reference: docs(issues): [#2536] correct the in-crate unit-test count to 57
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276361015>
+
+### F14 - The normalization does not cover the activity job's two gauges
+
+- PR number: 2537
+- Source review ID: 5524288522
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275956612>
+- Concern: only the activity job writes the two inactive gauges. It skips the first tick and runs
+  every 15 s, so a reading's samples depend on the time since startup, which could break
+  "byte-identical" without a defect.
+- Solution: M1's normalization replaces both gauges' lines with `name <activity-job>` and says
+  why. The REST stats output does not include them.
+- Current-tree verification: at the round-3-fix head, `ISSUE.md`:435-440 is the new rule.
+  `activity_metrics_updater.rs` in `swarm-coordination-registry` sets the 15 s interval and awaits
+  the first tick before its loop.
+- Resolution reference: docs(issues): [#2536] normalize the activity job's gauges in M1
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276361275>
+
+### F15 - Two Processing Log stamps are later than the commits that carry them
+
+- PR number: 2537
+- Source review ID: 5524288522
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275956627>
+- Concern: the 20:10 and 20:25 UTC entries were stamped after the commits that carry them, so
+  neither stamp is the time of an event or of the writing.
+- Solution: the log stays append-only; a correction entry gives the actual reply and commit times
+  and cites both commits by subject.
+- Current-tree verification: in this record, the 21:14 UTC Processing Log entry is the correction.
+  Its times match the GitHub reply timestamps and the two commits' committer dates.
+- Resolution reference: docs(pr-reviews): correct two Processing Log stamps in the PR #2537 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276361547>
+
+### F16 - `Reviewer finding ID` repeats IDs that were not reassigned
+
+- PR number: 2537
+- Source review ID: 5524288522
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275956637>
+- Concern: `process-pr-review` records a reviewer's ID only when it was reassigned, otherwise
+  `N/A`; F4-F12 repeated their own IDs.
+- Solution: F4-F12 record `N/A`, and the Findings prose says no ID was reassigned.
+- Current-tree verification: in this record, every detail entry's `Reviewer finding ID` is `N/A`.
+- Resolution reference: docs(pr-reviews): record unreassigned finding IDs as N/A in the PR #2537 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276361850>
+
 ## Processing Log
 
 - 2026-10-14 17:30 UTC - Started audit: read Copilot review 5521920535 (three inline findings) and
@@ -322,6 +405,12 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
   (20:15:45-20:15:51 UTC) and the F11 reply edit (20:15:58 UTC); its commit, "docs(pr-reviews):
   record the second da2ce7 review in the PR #2537 audit", is at 20:16:52 UTC. Later entries take
   their stamp from the clock when written.
+- 2026-10-14 21:19 UTC - Read da2ce7's third review 5524288522 (APPROVED; F13-F16). At the
+  maintainer's choice, fixed all four, each in its own commit (two in the spec, two in this
+  record), and added the `open-pull-request` skill fix for the gap noted under F12. Pushed through
+  the hooks, replied on the four threads and on the F12 thread, edited that reply to drop quoted
+  branch-commit ids, and checked every reply and the PR body for such ids. The four threads are
+  resolved after this update is pushed.
 
 ## Completion Rules
 
