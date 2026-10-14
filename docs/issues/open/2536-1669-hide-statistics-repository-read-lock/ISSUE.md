@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 21:10"
+last-updated-utc: "2026-10-14 21:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -341,6 +341,10 @@ request.
   count is 57 (udp-server 30), counted inside the test modules. The earlier 58 also counted the
   udp-server companion doctest call at statistics/repository.rs:35, which compiles as its own
   crate; Current callers explains the difference and T4 says 30.
+- 2026-10-14 21:11 UTC - GitHub Copilot - PR #2537 review (F14, da2ce7): M1's normalization now
+  masks the two activity-job gauges (swarm_coordination_registry_peers_inactive_total and
+  _torrents_inactive_total), whose presence and values depend on time since startup, not on the
+  announces.
 
 ## Acceptance Criteria
 
@@ -427,7 +431,13 @@ Notes:
   - metrics: one sorted line per sample (`name {sorted labels} value`, or `name <no samples>`);
   - ignore each sample's `recorded_at`, which differs between runs;
   - in both metrics and stats, replace the values of time-dependent `*processing_time*` entries
-    with `<timing>`.
+    with `<timing>`;
+  - in metrics, replace each line of `swarm_coordination_registry_peers_inactive_total` and
+    `swarm_coordination_registry_torrents_inactive_total`, sample or `<no samples>`, with
+    `name <activity-job>`. Only the activity job writes these two gauges. It skips the interval's
+    first tick and then runs every 15 s, so a reading shows them or not depending on how long after
+    startup it was taken, not on the announces; past the development config's
+    `max_peer_timeout = 60` their values change as well. The stats output does not include them.
 
   The Expected Result is byte-identical normalized outputs, checked with `diff -u`.
 - Avoid the aggregate `/health_check` endpoint during M1: it sends UDP requests that change the UDP
