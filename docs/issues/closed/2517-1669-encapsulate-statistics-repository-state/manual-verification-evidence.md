@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
-last-updated-utc: 2026-10-14 14:15
+issue-spec: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
+last-updated-utc: 2026-10-14 15:06
 ---
 
 # Manual Verification Evidence

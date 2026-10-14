@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p3
 epic: 1669
 github-issue: 2517
-spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
+spec-path: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: 2527
-last-updated-utc: "2026-10-14 14:31"
+last-updated-utc: "2026-10-14 15:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,7 +213,7 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -295,6 +295,8 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   `c1874fac`; the pre-push checks were rerun on the rebased branch.
 - 2026-10-14 14:31 UTC - Implementation - Opened PR #2527 against `develop`; set
   `status: in-review` and `related-pr: 2527`.
+- 2026-10-14 15:06 UTC - GitHub Copilot - PR #2527 merged into `develop` and #2517 closed on
+  GitHub. Archived this spec to `docs/issues/closed/` and set `status: done`.
 
 ## Acceptance Criteria
 
