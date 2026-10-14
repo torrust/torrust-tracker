@@ -60,6 +60,13 @@ regression.
 - **Locale-dependent number formatting.** `awk` under the desktop's Spanish locale printed `9,000`
   for 9.0 and truncated decimals, which briefly looked like quantized Criterion medians. Running
   with `LC_ALL=C` fixed it; the raw `estimates.json` values were correct.
+- **The first manual recheck ran before the last production change.** The like-for-like recheck
+  ran on the build before `perf(udp-core): [#2505] detect the ban crossing with one comparison`,
+  which changed the counting logic, so the independent pre-PR review failed (B1) and the hour-long
+  recheck was repeated on the final code.
+- **Dependent manual steps ran in parallel.** In the first restart of that repeat, the V2 and V3
+  probes were issued as one batch of parallel agent tool calls and ran concurrently, so the run was
+  discarded and restarted.
 - **Manual-only timing cost.** The 3600-second minimum reset interval made both the reproduction
   and the recheck of V4 take an hour each; the work was arranged around it (V1-V3 first, other
   tasks during the wait).
@@ -86,6 +93,10 @@ regression.
 3. In the `write-unit-test` skill's mutate-then-restore step, require confirming that each mutation
    compiled (or reading the full output) before treating "no failing test" as a result.
 4. In evidence-processing commands, use `LC_ALL=C` for `awk`, `printf`, and `sort` on numeric data.
+5. In the `fix-bug` skill, state that the final like-for-like recheck runs after the last production
+   change; if production code changes afterwards, the recheck is repeated.
+6. In agent guidance for manual verification, require dependent steps (each starting from the
+   state the previous one leaves) to run one at a time, never as parallel tool calls.
 
 These are proposals for the maintainer; none was applied in this issue.
 

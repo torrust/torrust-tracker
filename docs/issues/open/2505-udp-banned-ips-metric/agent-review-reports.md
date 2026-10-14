@@ -129,3 +129,97 @@ semantic-links:
   - Issue spec: no checkboxes were changed in this review because the caller restricted edits to
     this report file; the Workflow Checkpoint "Reviewer validated acceptance criteria and updated
     checkboxes" stays open until B1 is resolved and a follow-up review passes.
+
+### 2026-10-14 08:45 UTC - Task Reviewer (follow-up)
+
+- Invocation scope: Follow-up pre-PR review of issue #2505 on branch `2505-udp-banned-ips-metric`,
+  range `torrust/develop..HEAD` (11 commits on top of `b5f1801c6`), after the 2026-10-14 06:45 UTC
+  report (REVIEW FAILED on B1). New commits reviewed:
+  `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs` and
+  `docs(issues): [#2505] recheck the finished code and record the task review`. Goals: B1 resolved
+  on the finished code, N1 and N2 addressed, new commits green, spec status accurate, no regression.
+- Inputs: the earlier report above, `ISSUE.md`, `manual-verification-evidence.md` ("Final Recheck
+  on the Finished Code (T10)", "Reviewer Follow-Up - Handler Test Distinguishes the Meanings (N2)",
+  "Failures and Follow-up"), `performance-evidence.md`, `implementation-retrospective.md`,
+  `evidence/final-recheck-tracker.log`, `packages/udp-server/src/banning/event/handler.rs`, commit
+  metadata, the local `.tmp/udp-banned-ips-metric/repro/` working folder (read only).
+- Evidence (stable `rustc 1.99.0 (b940084d7 2026-09-28)`):
+  - B1 timeline: `test(udp-server)` committed 06:51:19 UTC; `target/debug/torrust-tracker` mtime
+    06:52:01 UTC; discarded start 06:52:12 UTC; final start 06:53:20 UTC (log first line and
+    `start-time.txt`); reset 07:53:20 UTC; SIGTERM 07:53:45 UTC. `perf(udp-core)` (05:41:58 UTC)
+    precedes the build. `git diff ebeee743c HEAD -- packages src Cargo.toml Cargo.lock` touches only
+    the handler test, so the binary carries the variant-B production code. `cargo build --bin
+    torrust-tracker` at HEAD with a clean tree is a no-op (`Finished ... in 1.58s`, nothing
+    compiled), so the existing binary matches the HEAD sources.
+  - The local `.tmp/.../repro/tracker.log` is byte-identical to the committed
+    `evidence/final-recheck-tracker.log`; `probe.sh` is identical to `udp-banned-ips-probe.sh`
+    (unchanged since the base); `tracker.toml` is identical to the "Tracker configuration" block;
+    the logged configuration matches (limit 10, `strict`, reset 3600 s). The log shows 1, 2, and 11
+    cookie errors at the F-V1, F-V2, and F-V3 times recorded in the evidence, no overlap between
+    steps, the new metric description ("... exceed the limit ..."), the
+    `connection id errors filter cleared` reset at 07:53:20, and one cookie error at 07:53:37 for
+    F-V4 step 3. The documented values (0, 0, 1, 0 after the reset) are consistent with the log.
+  - N2: reproduced M0 on a `git archive HEAD` export (not the worktree) with the map-length total
+    restored: the handler test fails with `left: 3`, `right: 2` (1 passed, 1 failed). Scratch copy
+    removed.
+  - N1: `performance-evidence.md` lines 380-383 date the decision to 2026-10-13 after the 21:35:33
+    UTC comparison and explain the 05:32 progress-log stamp; lines 464-466 record the maintainer's
+    confirmation covering the final nine-failure table.
+  - Tests at HEAD (code identical to `test(udp-server)`; the later commit is docs only):
+    `cargo test -p torrust-tracker-udp-core -p torrust-tracker-udp-server` green (49, 220, 16, doc
+    tests); `cargo test -p torrust-tracker --lib bootstrap::jobs::udp_tracker_server` green (2); the
+    three root `banning-*` test targets green. `linter all` exit 0, working tree unchanged.
+  - Acceptance-criteria matrix:
+
+    | Criterion | Result | Evidence |
+    | --------- | ------ | -------- |
+    | AC1 | PASS | unchanged since the earlier report; handler test now also distinguishes the meanings (M0 reproduced) |
+    | AC2 | PASS | unchanged; F-V4 shows 0 right after the reset on the finished code |
+    | AC3 | PASS | unchanged; the logged metric description matches |
+    | AC4 | PASS | unchanged |
+    | AC5 | PASS (accepted deviation) | N1 resolved: decision date aligned, maintainer confirmation of the final P2 table recorded |
+    | AC6 | PASS | F-V1 to F-V4 on the final code, cross-checked against commit times, binary mtime, no-op rebuild, and the committed log |
+    | AC7 | PASS | unchanged |
+    | `linter all` exits 0 | PASS | rerun, exit 0 |
+    | Relevant tests pass | PASS | runs above |
+    | Manual scenarios executed and documented | PASS | "Final Recheck on the Finished Code (T10)"; see N7 for a stale table reference |
+    | AC re-reviewed and reflect actual behavior | PASS | AC6 row and progress log updated |
+    | Documentation updated | PASS | unchanged |
+
+- Findings:
+  - B1 (earlier report): resolved.
+  - N1 and N2 (earlier report): resolved as described. N3, N5, N6 accepted; N4 disposition (no
+    history rewrite, mention in the PR body) is acceptable.
+  - B2 (blocking, test-design evidence): the handler test changed in
+    `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs`
+    (`packages/udp-server/src/banning/event/handler.rs` lines 133-163), but no prose-first
+    Arrange-Act-Assert comparison is recorded for the changed test. The only recorded design review
+    of this test (`manual-verification-evidence.md` lines 1073-1075, "Test Design Review (T4, T5)")
+    describes the old causal state (one client over the limit and the event client at the limit)
+    and no longer matches the code; the N2 section (lines 1248-1281) records the mutation proof
+    only. The test itself is sound (causal state visible in `with_client_errors(&[...])`,
+    production Act visible, expected 2 stated independently, failure message names all three
+    clients).
+  - N7 (non-blocking, spec accuracy): the Manual Verification Scenarios table in `ISSUE.md` lines
+    591-594 still cites "V1 and R-V1" ... "V4 and R-V4" as evidence; R-V1 to R-V4 ran on the
+    pre-final build. Cite F-V1 to F-V4 (optionally keeping R-V1 to R-V4).
+  - N8 (non-blocking, completion review): `implementation-retrospective.md` was not updated with the
+    lessons from the follow-up: a manual recheck must follow the last production change (B1), and
+    sequential manual steps must not be issued as parallel tool calls (the discarded interleaved
+    run). Both are reusable process lessons; add them under "What Changed During Implementation" or
+    "Improvements for Future Work".
+  - N9 (non-blocking, naming): `client_within_the_limit_ip` is described as "at the limit" in the
+    assertion message and the evidence; `client_at_the_limit_ip` would match. Optional.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - Implementer (B2): add a short "Test design review (prose-first AAA)" record for the changed
+    handler test to `manual-verification-evidence.md` (N2 section): Arrange - one client over the
+    limit, the event client and a third client at the limit; Act - one connection-cookie error from
+    the event client through `handle_event`; Assert - the published total is 2 (stated
+    independently, the old map-length meaning gives 3). State that the temporary prose was removed
+    and the code expresses it. Do not rewrite the earlier T4/T5 record; note that it is superseded
+    for this test.
+  - Implementer (optional, same commit): N7 table evidence, N8 retrospective lessons, N9 rename.
+  - Issue spec: no checkboxes were changed (the caller restricted edits to this report file).
+    "Reviewer validated acceptance criteria and updated checkboxes" stays open until B2 is
+    resolved; all other checked items were verified as accurate.

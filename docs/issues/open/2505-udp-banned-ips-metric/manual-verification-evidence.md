@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 07:54
+last-updated-utc: 2026-10-14 08:48
 ---
 
 # Manual Verification Evidence
@@ -1072,7 +1072,9 @@ Prose-first Arrange-Act-Assert comparison, per the `write-unit-test` skill:
   contract.
 - Handler test: renamed to `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error`;
   the causal state (one client already over the limit, the event client at the limit) is visible in
-  `with_client_errors(&[...])`, and the expected total of 2 is stated independently.
+  `with_client_errors(&[...])`, and the expected total of 2 is stated independently. This record is
+  superseded by the follow-up review of the three-client version below ("Reviewer Follow-Up -
+  Handler Test Distinguishes the Meanings (N2)").
 - Listener tests: they asserted the total only to observe that an event was processed; they now
   observe that directly with `get_count(&EVENT_CLIENT_IP)`.
 
@@ -1250,8 +1252,8 @@ torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
 The independent pre-PR review (see `agent-review-reports.md`) noted that
 `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error` passed with the old
 distinct-IP total too, because both tracked IPs were over the limit. A third client at the limit
-(`client_within_the_limit_ip`, 1 error with a limit of 1) now makes the old meaning publish 3
-instead of 2. Proof with the original map-length total (`self.accurate_error_counter.len()`)
+(`client_within_the_limit_ip`, 1 error with a limit of 1; renamed `client_at_the_limit_ip` after the
+follow-up review, finding N9) now makes the old meaning publish 3 instead of 2. Proof with the original map-length total (`self.accurate_error_counter.len()`)
 temporarily restored in `packages/udp-core/src/services/banning.rs`, without staging, and the file
 restored from a copy afterwards. Command:
 
@@ -1278,6 +1280,26 @@ restored
 
 With the fix in place the handler tests pass
 (`test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 218 filtered out`).
+
+Test design review of the three-client version (prose-first Arrange-Act-Assert, per the
+`write-unit-test` skill; finding B2 of the follow-up review):
+
+- Arrange (prose): with a limit of 1, one client is already banned (2 errors), the event's client
+  is at the limit (1 error), and a third client is at the limit too (1 error) and is not part of
+  the event. Code: `with_client_errors(&[...])` lists each client with its error count written
+  relative to `CONNECTION_ID_ERROR_LIMIT`, and `expected_banned_ip_total = 2` is stated before the
+  Act, independent of the code under test.
+- Act (prose): the handler processes one connection-cookie error from the event's client. Code:
+  the single visible `handle_event(event, ...)` call, with the event built from
+  `cookie_error_client_ip`.
+- Assert (prose): the published total is 2, the already-banned client plus the event's client,
+  which this error takes over the limit; the client at the limit is not counted. Code: one
+  `assert_eq!` on `udp_banned_ips_total()` whose message names all three clients and the limit.
+
+The code expresses each paragraph, so the temporary prose was removed. The variable for the third
+client was renamed `client_at_the_limit_ip` so its name says the same as the prose (N9); the
+renamed test passes (`cargo test -q -p torrust-tracker-udp-server --lib banning`:
+`test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out`).
 
 ## Failures and Follow-up
 

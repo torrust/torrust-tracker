@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 07:54"
+last-updated-utc: "2026-10-14 08:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -537,6 +537,17 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   proof in the evidence); N3, N5, and N6 accepted as reported; N4, the evidence commits stay as
   they are (no history rewrite) and the PR body will say so. Report:
   [agent-review-reports.md](agent-review-reports.md).
+- 2026-10-14 08:48 UTC - GitHub Copilot (implementation session) - Follow-up task review: B1, N1, and N2
+  verified as resolved; new findings addressed: B2, recorded the prose-first Arrange-Act-Assert
+  review of the three-client handler test and marked the earlier record superseded; N7, the manual
+  scenarios table now cites the final recheck F-V1 to F-V4; N8, two lessons added to the
+  retrospective; N9, `client_within_the_limit_ip` renamed `client_at_the_limit_ip`.
+- 2026-10-14 08:59 UTC - GitHub Copilot (implementation session) - Process mistake, corrected before any push:
+  the N9 rename commit failed with a GPG timeout, but the next commit was chained in the same
+  command instead of stopping, so it was signed with the staged rename included under a `docs`
+  subject. At the maintainer's choice the unpushed commit was undone with `git reset --soft` and
+  split into `test(udp-server): [#2505] name the third handler-test client after its state` and this
+  documentation commit.
 
 ## Acceptance Criteria
 
@@ -588,10 +599,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 | ID  | Scenario                                     | Human-oriented command/steps                                                     | Expected Result                                                       | Status        | Evidence                                     |
 | --- | -------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------- | -------------------------------------------- |
-| M1  | One invalid ID, not banned                   | `udp-banned-ips-probe.sh invalid-announce 127.0.0.1`, `stats`, `connect`         | Before: 1 (observed). After: 0. Connect served in both.               | DONE (after: 0) | `manual-verification-evidence.md` V1 and R-V1 |
-| M2  | Several IPs with one invalid ID, none banned | One `invalid-announce` from `127.0.0.2` and `127.0.0.3`, `stats`, `connect`      | Before: 3 (observed). After: 0. Connects served in both.              | DONE (after: 0) | `manual-verification-evidence.md` V2 and R-V2 |
-| M3  | One IP really banned                         | 11 `invalid-announce` from `127.0.0.4`, `stats`, `connect` from `.4` and `.1`    | Before: 4 (observed). After: 1. `.4` dropped, `.1` served in both.    | DONE (after: 1) | `manual-verification-evidence.md` V3 and R-V3 |
-| M4  | Gauge after the periodic reset               | Wait for the first reset (3600 s), `stats`, `connect` from `127.0.0.4`           | Before: stale 4 (observed). After: 0. `.4` served again in both.      | DONE (after: 0) | `manual-verification-evidence.md` V4 and R-V4 |
+| M1  | One invalid ID, not banned                   | `udp-banned-ips-probe.sh invalid-announce 127.0.0.1`, `stats`, `connect`         | Before: 1 (observed). After: 0. Connect served in both.               | DONE (after: 0) | `manual-verification-evidence.md` V1 and F-V1 |
+| M2  | Several IPs with one invalid ID, none banned | One `invalid-announce` from `127.0.0.2` and `127.0.0.3`, `stats`, `connect`      | Before: 3 (observed). After: 0. Connects served in both.              | DONE (after: 0) | `manual-verification-evidence.md` V2 and F-V2 |
+| M3  | One IP really banned                         | 11 `invalid-announce` from `127.0.0.4`, `stats`, `connect` from `.4` and `.1`    | Before: 4 (observed). After: 1. `.4` dropped, `.1` served in both.    | DONE (after: 1) | `manual-verification-evidence.md` V3 and F-V3 |
+| M4  | Gauge after the periodic reset               | Wait for the first reset (3600 s), `stats`, `connect` from `127.0.0.4`           | Before: stale 4 (observed). After: 0. `.4` served again in both.      | DONE (after: 0) | `manual-verification-evidence.md` V4 and F-V4 |
 
 ### Disposable Verification Scripts
 
