@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
-last-updated-utc: 2026-10-14 13:05
+last-updated-utc: 2026-10-14 15:51
 ---
 
 # Manual Verification Evidence
@@ -98,9 +98,19 @@ Both runs returned the same announce response:
 ```
 
 The captured responses are stored verbatim in [evidence/baseline/](./evidence/baseline/) and
-[evidence/after/](./evidence/after/). A Python comparison then checked, per format, that the key
-order, the series (name and labels), the `HELP` and `TYPE` lines, and every value except the
-volatile `*processing_time*` values are identical:
+[evidence/after/](./evidence/after/). The announce response is byte-identical. A Python
+comparison then checked the REST responses:
+
+- `/api/v1/stats`: the JSON key order, the Prometheus series and their order, the `HELP` and
+  `TYPE` lines, and every value except the two volatile average processing times are identical.
+- `/api/v1/metrics`: the comparison ignores order and `recorded_at`. The set of series (name,
+  type, and labels), the `HELP` and `TYPE` lines, and every sample value except the volatile
+  `*processing_time*` values are identical. Two run-dependent differences were excluded and are
+  not behavior changes: `recorded_at` differs on 15 of the 17 samples in `metrics.json`, and the
+  order of the 27 metrics in `metrics.json` and of the 12 families (and the series within some of
+  them) in `metrics.prometheus` differs between runs.
+
+Output of the comparison:
 
 ```text
 M1 json same keys: True | differing non-timing values: {}

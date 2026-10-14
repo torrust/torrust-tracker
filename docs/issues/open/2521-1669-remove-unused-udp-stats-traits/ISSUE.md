@@ -436,7 +436,7 @@ recorded in `manual-verification-evidence.md`; they are not kept.
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | No code names `UdpCoreStatsRepository` or `UdpServerStatsRepository` (repository-wide search, T6 entry); removed in the T2 and T3 commits. |
 | AC2   | DONE                   | `cargo machete --with-metadata`: clean; `cargo tree -e normal --depth 1` for both packages differs from the baseline only by the removed `async-trait` line. |
-| AC3   | DONE                   | M1 and M2 in `manual-verification-evidence.md`: same keys, series, labels, and HELP/TYPE lines as the baseline in both formats; only processing-time values differ. |
+| AC3   | DONE                   | M1 and M2 in `manual-verification-evidence.md`: same keys, series, labels, and HELP/TYPE lines as the baseline in both formats. Apart from processing-time values, `/api/v1/stats` is identical; `/api/v1/metrics` also differs, run to run, in `recorded_at` and in the order of metrics and series, which the comparison ignores. |
 | AC4   | DONE                   | `it_should_initialize_metrics_when_constructed_with_default` builds `Repository::default()` and asserts the described counter through `get_stats()`; passes (T3 entry). |
 | AC5   | DONE                   | Both `statistics/services.rs` files and `pub mod services;` lines are deleted; no code names `TrackerMetrics` or `statistics::services` (T4, T5, T6 entries). |
 | AC6   | DONE                   | Both `statistics/mod.rs` files carry the event-flow docs with links to the real accessors; `RUSTDOCFLAGS="-D warnings" cargo +nightly doc --no-deps` for both packages: no warnings. |
