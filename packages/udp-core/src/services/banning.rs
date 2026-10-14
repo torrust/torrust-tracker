@@ -241,6 +241,26 @@ mod tests {
     }
 
     #[test]
+    fn it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit() {
+        // Arrange
+        let limit = 1;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+        ban_service.reset_bans();
+        record_connection_id_errors(&mut ban_service, &ip, limit);
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total, 0,
+            "banned IPs total for an IP that was banned, reset, and then sent {limit} error with a limit of {limit}"
+        );
+    }
+
+    #[test]
     fn it_should_count_an_ip_banned_again_after_a_reset_only_once() {
         // Arrange
         let limit = 1;
