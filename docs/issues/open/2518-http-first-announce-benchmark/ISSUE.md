@@ -52,9 +52,12 @@ of a real announce are never measured:
 
 The obvious change, a new peer on every iteration, does not give stable numbers: Criterion runs
 millions of iterations with no cleanup, so the swarm would grow by one peer per iteration and the
-cost would drift with its size and with the iteration count Criterion picks. Issue #2479 recorded
-the fix as a pre-filled swarm of fixed size and a bounded set of peers; see `docs/benchmarking.md`,
-section "HTTP announce microbenchmark".
+cost would drift with its size and with the iteration count Criterion picks. Issue #2479 sketched
+the alternative as "a pre-filled swarm of fixed size and a bounded rotating peer pool" (its
+decision D3), repeated in `docs/benchmarking.md`, section "HTTP announce microbenchmark", as "a
+bounded rotating pool of peers". This specification keeps the pre-filled swarm but departs from
+the rotating pool: each new peer is removed again after its timed announce (D1, option A), because
+a rotating pool measures repeat announces after its first pass (D1, option E).
 
 The example `packages/swarm-coordination-registry/examples/bench_peers.rs` times
 `Coordinator::peers_excluding` alone. It does not include the announce service, authentication,
@@ -146,7 +149,9 @@ Discarded options:
     many peers inside one sample; the cost drifts with the iteration count, the problem issue
     #2479 identified.
   - Why not: the swarm size is not fixed during measurement.
-- **E - A rotating pool of K peers announced in turn, without removal.**
+- **E - A rotating pool of K peers announced in turn, without removal.** This is the design issue
+  #2479 sketched ("a bounded rotating peer pool", its decision D3), which this specification
+  departs from.
   - Pros: bounded swarm, no removal, no per-iteration clock reads.
   - Cons: after the first pass through the pool, every announce updates a peer that is already in
     the swarm, so it measures repeat announces again, which `announce_once` already covers.
@@ -258,7 +263,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its guards (the `RoutineGuard` and the swarm-size assertion) are seen to fail under a deliberate mutation, for example removal skipped. Design review recorded. |
 | T2  | TODO   | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                 |
 | T3  | TODO   | Maintainer review of the benchmark        | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                                                                                                            |
-| T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                                                                                                                                                                                                         |
+| T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated, including replacing the closing sentence of "HTTP announce microbenchmark", which still suggests "a bounded rotating pool of peers" (D1, option E), with a pointer to the new benchmark; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                |
 
 ## Commit Points
 
