@@ -1,24 +1,31 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
-last-updated-utc: 2026-10-14 13:06
+last-updated-utc: 2026-10-14 14:15
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-14, 12:51-13:05
-- Artifact under test: `develop` at `c1874facbc5790e8881727f63a17296e24242731`, and the implementation changes titled:
-  - `refactor(udp-core): [#2517] make the statistics repository lock private`
-  - `refactor(udp-server): [#2517] make the statistics repository lock private`
-  - `refactor(http-core): [#2517] make the statistics repository lock private`
-  - `refactor(tracker-core): [#2517] make the statistics repository lock private`
-  - `refactor(swarm-coordination-registry): [#2517] make the statistics repository lock private`
-- Operating system / environment: Linux, local development workspace
-- Prerequisites and setup performed: Started the tracker separately on `develop` and the implementation branch. Each run used a fresh SQLite database and the same development configuration with isolated ports. The implementation run used an otherwise identical config with a separate database path.
+- Date and time (UTC): 2026-10-14, 14:12 (baseline) and 14:12 (implementation)
+- Artifact under test:
+  - Baseline: `develop` at `c1874facbc5790e8881727f63a17296e24242731`.
+  - Implementation: the branch patches titled
+    - `refactor(udp-core): [#2517] make the statistics repository lock private`
+    - `refactor(udp-server): [#2517] make the statistics repository lock private`
+    - `refactor(http-core): [#2517] make the statistics repository lock private`
+    - `refactor(tracker-core): [#2517] make the statistics repository lock private`
+    - `refactor(swarm-coordination-registry): [#2517] make the statistics repository lock private`
+    - `docs(statistics): [#2517] introduce the repository privacy doctests`
+- Operating system / environment: Linux, local development workspace, `dev` profile binaries
+  built with `cargo build --bin torrust-tracker` and
+  `cargo build -p torrust-tracker-client --bin tracker_client` on each checkout.
+- Prerequisites and setup performed: each run used a fresh SQLite database and the default
+  development configuration with isolated ports, because another local tracker process already
+  held `127.0.0.1:1313`. The two runs differed only in their database path.
 
-The isolated config used for the baseline (the implementation config differs only in the database path):
+Configuration (the implementation run used `.tmp/m1-2517-implementation/database.sqlite3`):
 
 ```toml
 [metadata]
@@ -37,7 +44,7 @@ private = false
 
 [core.database]
 driver = "sqlite3"
-path = ".tmp/manual-2517-baseline/database.sqlite3"
+path = ".tmp/m1-2517-baseline/database.sqlite3"
 
 [udp_tracker_server]
 ip_bans_reset_interval_in_secs = 86400
@@ -75,67 +82,113 @@ admin = "MyAccessToken"
 bind_address = "127.0.0.1:18313"
 ```
 
-The `develop` and implementation databases were separate and initially empty. The health-check endpoint returned `{"status":"Ok","message":""}` before each announce pair.
-
 ## Verification Processes
 
 ### V1 - Metrics still update
 
-- Goal: Compare UDP and HTTP announce results and REST statistics/metrics before and after the visibility change.
-- Initial state: Fresh database and zero torrents, seeders, leechers, UDP announces, and HTTP announces.
+- Goal: show that the same UDP and HTTP announces produce the same REST statistics and the same
+  samples for every metric family (HTTP core, UDP core, UDP server, tracker core, and swarm
+  coordination registry) before and after the change.
+- Initial state: fresh database; every metric family empty, and the three
+  `tracker_core_*_torrents_downloads_total` counters at `0`
+  ([`m1-metrics-before.txt`](evidence/m1-metrics-before.txt)).
 - Status: `DONE`
 
 #### Steps Performed
 
-1. Started each build with `cargo run --bin torrust-tracker -- --config-toml-path ./.tmp/manual-2517-{baseline,implementation}/tracker.toml`.
-2. Read the initial stats using `curl --fail --silent --show-error -H 'Authorization: Bearer MyAccessToken' http://127.0.0.1:18212/api/v1/stats`.
-3. Sent the same HTTP and UDP started announces to each build:
+The same command sequence ran on both checkouts, so the two runs could differ only by the code
+under test. It was wrapped in a session-local shell script for exact repetition; its steps were:
+
+1. Start `./target/debug/torrust-tracker --config-toml-path <run-dir>/tracker.toml`, logging to
+   `<run-dir>/tracker.log`, and poll `http://127.0.0.1:18212/api/health_check` until it answers.
+   The aggregate `/health_check` endpoint was not used, because it sends UDP requests that would
+   change the UDP metrics.
+2. Read `/api/v1/stats` and `/api/v1/metrics` with
+   `curl -fsS -H 'Authorization: Bearer MyAccessToken'`.
+3. Send four announces for info-hash `9c38422213e30bff212b30c360d26f9a02136422`:
 
    ```sh
-   cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:18070 9c38422213e30bff212b30c360d26f9a02136422 --event started --left 1000 --port 6881 '--peer-id=-RC00000000000000001'
-   cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:17969 9c38422213e30bff212b30c360d26f9a02136422 --event started --left 1000 --port 6882 '--peer-id=-RC00000000000000002'
+   ./target/debug/tracker_client http announce http://127.0.0.1:18070 9c38422213e30bff212b30c360d26f9a02136422 --event started --left 1000 --port 6881 '--peer-id=-RC00000000000000001'
+   ./target/debug/tracker_client udp announce 127.0.0.1:17969 9c38422213e30bff212b30c360d26f9a02136422 --event started --left 1000 --port 6882 '--peer-id=-RC00000000000000002'
+   ./target/debug/tracker_client http announce http://127.0.0.1:18070 9c38422213e30bff212b30c360d26f9a02136422 --event completed --left 0 --port 6881 '--peer-id=-RC00000000000000001'
+   ./target/debug/tracker_client udp announce 127.0.0.1:17969 9c38422213e30bff212b30c360d26f9a02136422 --event completed --left 0 --port 6882 '--peer-id=-RC00000000000000002'
    ```
 
-4. Read `/api/v1/stats` and `/api/v1/metrics` again with the same authorization header.
-5. Compared the selected post-announce API fields and announce metric samples using `diff -u`; the baseline and implementation summaries matched.
+   The `completed` announces go beyond the spec's single announce per protocol, so that the
+   tracker-core download counters and swarm completion metrics also change.
+4. Wait one second for the asynchronous statistics event listeners, then read `/api/v1/stats` and
+   `/api/v1/metrics` again and stop the tracker.
+5. Normalize each metrics response to one sorted line per sample:
+   `name {sorted labels} value`, or `name <no samples>`. Ignore `recorded_at`, and replace the
+   values of time-dependent `*processing_time*` metrics and stats fields with `<timing>`.
+6. Compare the two runs with `diff -u` for the client responses, the normalized metrics before
+   and after, and the normalized stats before and after.
 
 #### Observed Result
 
-The HTTP client response on both builds was:
-
-```json
-{"complete":0,"incomplete":1,"interval":120,"min interval":120,"peers":[]}
-```
-
-The UDP client response on both builds was:
-
-```json
-{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":2,"seeders":0,"peers":["127.0.0.1:6881"]}}
-```
-
-REST stats before and after each announce pair:
-
-| Field | `develop` before | `develop` after | Implementation before | Implementation after |
-| ----- | ---------------: | --------------: | ---------------------: | --------------------: |
-| `torrents` | 0 | 1 | 0 | 1 |
-| `seeders` | 0 | 0 | 0 | 0 |
-| `leechers` | 0 | 2 | 0 | 2 |
-| `udp4_announces_handled` | 0 | 1 | 0 | 1 |
-| `tcp4_announces_handled` | 0 | 1 | 0 | 1 |
-
-The `/api/v1/metrics` announce samples after each pair were:
+The comparison output:
 
 ```text
-http_tracker_core_requests_received_total request_kind=announce port=18070 value=1
-udp_tracker_core_requests_received_total request_kind=announce port=17969 value=1
+== diff -u m1-2517-baseline/client.txt m1-2517-implementation/client.txt
+(no differences)
+== diff -u m1-2517-baseline/metrics-before.txt m1-2517-implementation/metrics-before.txt
+(no differences)
+== diff -u m1-2517-baseline/metrics-after.txt m1-2517-implementation/metrics-after.txt
+(no differences)
+== diff -u m1-2517-baseline/stats-before.normalized.json m1-2517-implementation/stats-before.normalized.json
+(no differences)
+== diff -u m1-2517-baseline/stats-after.normalized.json m1-2517-implementation/stats-after.normalized.json
+(no differences)
 ```
+
+Because the outputs are identical, one copy of each is stored:
+
+- Client responses: [`m1-client-responses.txt`](evidence/m1-client-responses.txt)
+- Metrics before the announces: [`m1-metrics-before.txt`](evidence/m1-metrics-before.txt)
+- Metrics after the announces: [`m1-metrics-after.txt`](evidence/m1-metrics-after.txt)
+- Stats after the announces: [`m1-stats-after.json`](evidence/m1-stats-after.json)
+
+Selected post-announce metric samples, one or more per repository changed by this issue (labels
+abbreviated):
+
+```text
+http_tracker_core_requests_received_total {request_kind=announce, port=18070} 2
+udp_tracker_core_requests_received_total {request_kind=announce, port=17969} 2
+udp_tracker_core_requests_received_total {request_kind=connect, port=17969} 2
+udp_tracker_server_requests_received_total {port=17969} 4
+udp_tracker_server_responses_sent_total {request_kind=announce, result=ok} 2
+tracker_core_in_session_torrents_downloads_total {} 2
+tracker_core_persisted_torrents_downloads_total {} 2
+swarm_coordination_registry_peers_added_total {peer_role=leecher} 2
+swarm_coordination_registry_peers_updated_total {peer_role=seeder} 2
+swarm_coordination_registry_torrents_downloads_total {peer_role=seeder} 2
+swarm_coordination_registry_torrents_total {} 1.0
+```
+
+Selected post-announce stats: `torrents=1`, `seeders=2`, `leechers=0`, `completed=2`,
+`tcp4_announces_handled=2`, `udp4_announces_handled=2`, `udp4_requests=4`.
+
+Tracker logs: each run wrote 220 lines with no `WARN` or `ERROR` entries, and both ended with:
+
+```text
+INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+At the `info` trace level the tracker does not log individual announces, so the logs show only
+startup, the shutdown of each statistics event listener, and successful termination.
 
 #### Conclusion
 
-M1 passed. The same UDP and HTTP announces produced identical tracker-client responses, REST stats, and protocol announce metric samples on `develop` and after the field became private.
+M1 passed. On `develop` and on the implementation branch, the same announces produced identical
+client responses, identical REST stats, and identical samples for all five metric families,
+apart from the masked processing times.
 
 ## Failures and Follow-up
 
-- The first start with default development ports could not bind the health-check API because `127.0.0.1:1313` was already occupied by a pre-existing tracker process. That process was left untouched; both M1 runs used the isolated configuration above.
-- An initial REST request omitted the `Bearer` prefix and was rejected as an unknown token; the request was corrected and the authenticated reads succeeded.
-- An initial client command supplied a 40-character hex string as a peer ID and was rejected client-side because the CLI expects a 20-byte value. The announce was rerun with valid 20-byte peer IDs; the successful response outputs above are from those completed requests.
+- A first M1 run (recorded in commit
+  `docs(issues): [#2517] record implementation verification`) compared only some REST stats
+  fields and the HTTP and UDP core announce samples. The independent review found that this did
+  not cover the tracker-core and swarm metrics required by the expected result. M1 was rerun as
+  above. The superseded content remains in the branch history.
+- The default development ports could not be used because a pre-existing tracker process held
+  the health-check port `127.0.0.1:1313`. That process was left untouched.
