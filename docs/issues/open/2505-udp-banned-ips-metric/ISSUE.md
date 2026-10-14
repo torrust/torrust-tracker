@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:09"
+last-updated-utc: "2026-10-14 10:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -627,6 +627,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   whole issue folder. At the maintainer's choice, that commit and the next one were rebuilt (stash,
   `git reset --soft`, recommit each from its original `ISSUE.md`), so the rename now belongs to the
   identifier commit.
+- 2026-10-14 10:12 UTC - GitHub Copilot (implementation session) - Late PR #2506 review finding F8 (same
+  approval): the reproduction evidence said invalid connection IDs are not logged; it now quotes
+  the 15 `WARN` lines from `evidence/tracker.log` per process, in condensed form, with the script
+  that condensed them.
 
 ## Acceptance Criteria
 

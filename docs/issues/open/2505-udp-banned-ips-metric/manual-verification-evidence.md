@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 10:06
+last-updated-utc: 2026-10-14 10:12
 ---
 
 # Manual Verification Evidence
@@ -174,8 +174,65 @@ Relevant startup log lines (from [evidence/tracker.log](evidence/tracker.log)):
 2026-10-13T15:09:06.832320Z  INFO UDP TRACKER: Starting UDP tracker server event listener (banning)
 ```
 
-Invalid connection IDs are not logged at the `info` level, so the evidence below relies on the
-protocol responses and the API reads.
+Each invalid connection ID produces one `WARN ... UDP TRACKER: response error` line with the
+client address, even at the `info` level. (An earlier version of this sentence said they were not
+logged; corrected after PR #2506 review finding F8.) The full lines are in
+[evidence/tracker.log](evidence/tracker.log) and are about 1.8 KB each, so they are quoted below in
+condensed form: log line number, timestamp, client IP, and the error message up to the colon after
+"cookie value is ...". They were produced by this Python script, run with `python3` from the issue
+folder (passed on standard input):
+
+```python
+import re
+lines=open('evidence/tracker.log').read().split('\n')
+out=[]
+for i,l in enumerate(lines,1):
+    l=re.sub(r'\x1b\[[0-9;]*m','',l)
+    if ' WARN ' not in l: continue
+    ts=l.split()[0]
+    ip=re.search(r'client_socket_addr=([0-9.]+):\d+',l).group(1)
+    msg=re.search(r'UDP TRACKER: response error error=(tracker announce error: Connection cookie error: cookie value is [a-z ]+?)(?::|$)',l).group(1)
+    out.append(f"{i:>3} {ts} {ip} {msg}")
+open('/tmp/warn-condensed.txt','w').write('\n'.join(out)+'\n')
+print('\n'.join(out))
+```
+
+V1 (one line for `127.0.0.1`):
+
+```text
+122 2026-10-13T15:09:13.982533Z 127.0.0.1 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V2 (one line each for `127.0.0.2` and `127.0.0.3`):
+
+```text
+132 2026-10-13T15:09:26.417733Z 127.0.0.2 tracker announce error: Connection cookie error: cookie value is from future
+133 2026-10-13T15:09:28.428854Z 127.0.0.3 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V3 (11 lines for `127.0.0.4`):
+
+```text
+143 2026-10-13T15:09:42.773886Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+144 2026-10-13T15:09:44.783532Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+145 2026-10-13T15:09:46.794115Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+146 2026-10-13T15:09:48.804587Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+147 2026-10-13T15:09:50.815167Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is from future
+149 2026-10-13T15:09:52.825010Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+150 2026-10-13T15:09:54.834743Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is from future
+151 2026-10-13T15:09:56.844771Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+152 2026-10-13T15:09:58.854856Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+153 2026-10-13T15:10:00.864438Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+154 2026-10-13T15:10:02.873998Z 127.0.0.4 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+V4 step 3 (one line for `127.0.0.5`):
+
+```text
+497 2026-10-13T16:09:21.227616Z 127.0.0.5 tracker announce error: Connection cookie error: cookie value is expired
+```
+
+The counts per client (1, 1, 1, 11, and 1) match the probe commands in V1-V4.
 
 ### Probe script
 
