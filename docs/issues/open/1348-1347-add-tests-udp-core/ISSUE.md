@@ -296,7 +296,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | DONE | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
 | 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | PENDING | - |
-| 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
+| 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
@@ -451,6 +451,14 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   review.
 - 2026-10-13 17:52 UTC - Jose Celano - Approved the `statistics/metrics.rs` completed-file review;
   ledger row 12 is `DONE`.
+- 2026-10-13 19:46 UTC - GitHub Copilot - The `statistics/event/handler.rs` plan was approved with
+  `rstest` (maintainer guidance: parameterize only where it improves maintainability,
+  readability, or expressiveness) and the stale `# Panics` doc removal. Replaced six per-family
+  tests with one `rstest` test (unit-only file lines 199 / 200 to 60 / 61). Awaiting
+  completed-file review. The maintainer also approved converting earlier loop-based tests to
+  `rstest` where that criterion holds, as a separate commit.
+- 2026-10-14 05:31 UTC - Jose Celano - Approved the `statistics/event/handler.rs` completed-file
+  review; ledger row 10 is `DONE`.
 
 ## Acceptance Criteria
 
