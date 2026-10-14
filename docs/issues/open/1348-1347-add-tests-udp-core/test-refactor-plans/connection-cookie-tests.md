@@ -109,3 +109,8 @@ and recording the two findings in `lessons.md`.
   completed-file review.
 - 2026-10-06 11:51 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-14 05:40 UTC - GitHub Copilot - Reviewed C1 and C2 for an `rstest` conversion
+  (maintainer guidance: only where it improves maintainability, readability, or expressiveness).
+  Kept as loops: both iterate one named helper, `not_normal_issue_times()`, which states the domain
+  concept once; `rstest` would repeat the four values as cases in both tests, and the loop already
+  names the failing value.

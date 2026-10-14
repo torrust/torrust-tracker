@@ -38,10 +38,12 @@ mod tests {
     use std::num::NonZeroU16;
     use std::time::Duration;
 
+    use rstest::rstest;
     use torrust_clock::clock::stopped::Stopped as _;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
     use torrust_tracker_udp_protocol::{
-        AnnounceActionPlaceholder, AnnounceRequest, ConnectionId, InfoHash, NumberOfPeers, PeerKey, Port, TransactionId,
+        AnnounceActionPlaceholder, AnnounceEvent as WireAnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfPeers,
+        PeerKey, Port, TransactionId,
     };
 
     use super::from_request;
@@ -57,7 +59,7 @@ mod tests {
             bytes_downloaded: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
             bytes_uploaded: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
             bytes_left: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
-            event: torrust_tracker_udp_protocol::AnnounceEvent::Started.into(),
+            event: WireAnnounceEvent::Started.into(),
             ip_address: Ipv4Addr::UNSPECIFIED.into(),
             key: PeerKey::new(0i32),
             peers_wanted: NumberOfPeers::new(1i32),
@@ -114,29 +116,24 @@ mod tests {
         );
     }
 
-    #[test]
-    fn it_should_map_each_wire_announce_event_to_the_matching_domain_event() {
-        let cases = [
-            (torrust_tracker_udp_protocol::AnnounceEvent::Started, AnnounceEvent::Started),
-            (torrust_tracker_udp_protocol::AnnounceEvent::Stopped, AnnounceEvent::Stopped),
-            (
-                torrust_tracker_udp_protocol::AnnounceEvent::Completed,
-                AnnounceEvent::Completed,
-            ),
-            (torrust_tracker_udp_protocol::AnnounceEvent::None, AnnounceEvent::None),
-        ];
+    #[rstest]
+    #[case::started(WireAnnounceEvent::Started, AnnounceEvent::Started)]
+    #[case::stopped(WireAnnounceEvent::Stopped, AnnounceEvent::Stopped)]
+    #[case::completed(WireAnnounceEvent::Completed, AnnounceEvent::Completed)]
+    #[case::none(WireAnnounceEvent::None, AnnounceEvent::None)]
+    fn it_should_map_each_wire_announce_event_to_the_matching_domain_event(
+        #[case] wire_event: WireAnnounceEvent,
+        #[case] expected_event: AnnounceEvent,
+    ) {
+        // Arrange
+        let mut request = announce_request();
+        request.event = wire_event.into();
 
-        for (wire_event, expected_event) in cases {
-            // Arrange
-            let mut request = announce_request();
-            request.event = wire_event.into();
+        // Act
+        let peer = from_request(&request, &peer_ip());
 
-            // Act
-            let peer = from_request(&request, &peer_ip());
-
-            // Assert
-            assert_eq!(peer.event, expected_event, "wire event {wire_event:?}");
-        }
+        // Assert
+        assert_eq!(peer.event, expected_event);
     }
 
     #[test]

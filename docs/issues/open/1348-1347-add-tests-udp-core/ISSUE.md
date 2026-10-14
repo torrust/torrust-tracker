@@ -459,6 +459,9 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `rstest` where that criterion holds, as a separate commit.
 - 2026-10-14 05:31 UTC - Jose Celano - Approved the `statistics/event/handler.rs` completed-file
   review; ledger row 10 is `DONE`.
+- 2026-10-14 05:40 UTC - GitHub Copilot - Applied the `rstest` criterion to the earlier loop tests:
+  `peer_builder.rs` P4 converted to four named cases; `connection_cookie.rs` C1 and C2 kept as
+  loops over the shared `not_normal_issue_times()` helper. Reasons recorded in both plans.
 
 ## Acceptance Criteria
 

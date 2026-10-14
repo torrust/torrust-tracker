@@ -81,3 +81,6 @@ testing.
   Rust 1.99.0, nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-05 13:19 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-14 05:40 UTC - GitHub Copilot - Follow-up (maintainer-approved, 2026-10-13): P4's loop
+  became an `rstest` test with four named cases, so each wire-to-domain event pair is visible and
+  fails on its own. 73 package unit tests passed; pedantic Clippy and nightly formatting clean.
