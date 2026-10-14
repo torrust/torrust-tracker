@@ -205,8 +205,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global and unit-only commands and totals. Its inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests changed. |
 | T2 | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index; the first plan is [services-announce-tests.md](test-refactor-plans/services-announce-tests.md). No tests changed. |
 | T3 | DONE | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
-| T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
-| T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
+| T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
+| T5 | DONE | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. None selected: all 20 plans record R3 `SKIPPED` with a boundary rationale (in-memory collaborators, or lifecycle owned by #1488 / #2414). |
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
 | T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
@@ -323,7 +323,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [x] Complete module inventory and baseline coverage evidence recorded.
 - [x] Shared plan guidance and the first file test plan created; processing order approved.
 - [x] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
-- [ ] Every ledger row is `DONE` with its own file test plan.
+- [x] Every ledger row is `DONE` with its own file test plan.
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification recorded in `manual-verification-evidence.md`.
@@ -504,6 +504,10 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   wiring and shared services); ledger row 9 is `IN_PROGRESS`.
 - 2026-10-14 15:05 UTC - Jose Celano - Approved the `container.rs` completed-file review; ledger row
   9 is `DONE` (5 wiring tests added). Every ledger row is now `DONE` or `REMOVED`.
+- 2026-10-14 15:10 UTC - GitHub Copilot - T4 is `DONE`. T5 is `DONE` with no increment: all 20 file
+  plans record R3 `SKIPPED` with a boundary rationale, and every Results section says "Integration
+  selected: No". The package still has no `tests/` directory, so there is no integration-only
+  coverage to record. Next: T6 (bounded mutation assessment).
 
 ## Acceptance Criteria
 
