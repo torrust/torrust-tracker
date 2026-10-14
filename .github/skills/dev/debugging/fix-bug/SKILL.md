@@ -53,6 +53,12 @@ what was attempted, and the strongest substitute evidence before moving on.
 A passing automated test is not a substitute for the final real-artifact recheck. The recheck proves
 that the artifact-level symptom observed at the start is gone.
 
+Run the final recheck, and the after measurement when the issue plans one, after the last
+production change, including changes made to answer review findings. If production code changes
+after them, repeat both, and name in the evidence the commit whose build they ran on. In issue #2505
+both were labelled final although later review fixes changed the code they measured, and a reviewer
+had to ask for them to be repeated.
+
 ## Evidence Requirements
 
 Record evidence in the issue folder so later reviewers can audit what happened without relying on
