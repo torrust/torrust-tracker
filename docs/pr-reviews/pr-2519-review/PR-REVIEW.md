@@ -65,9 +65,11 @@ no row.
 - Solution: AC4 now requires only that the 74- and 1000-peer results are above the 0-peer result,
   or that the evidence explains why not, and states that the results are compared only with each
   other, never with `announce_once` (D1).
-- Current-tree verification: AC4 in `ISSUE.md` no longer mentions the repeat-announce result; the
-  remaining mentions of `announce_once` are D1's statement that the two are never compared, the
-  Risks section, and the code-layout check that re-measures `announce_once` against itself.
+- Current-tree verification: AC4 in `ISSUE.md` no longer mentions the repeat-announce result, and
+  no remaining mention of `announce_once` in `ISSUE.md` asks for a comparison with it: AC4's own
+  mention is the exclusion, and the others describe that benchmark or rule the comparison out.
+  (Corrected for `review-finding:pr-2519-f6`: the first version listed only three of the six
+  mentions.)
 - Resolution reference: `docs(issues): [#2518] compare first-announce results only with each other`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268395667>
