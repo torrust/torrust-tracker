@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:59"
+last-updated-utc: "2026-10-14 20:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,7 +93,12 @@ Checked on `develop` at `48c4d3013` (2026-10-14):
   Removing the accessors makes the compiler report every call, so none can be missed silently.
 - The `metric_collection` field is written outside each crate's `metrics.rs` only by its own
   `describe_metrics()` function (in `statistics/mod.rs`). Code outside the crates only reads it.
-- The #2517 privacy doctests' companion examples call `get_stats()` / `get_metrics()`.
+- The #2517 privacy doctests' companion examples call `get_stats()` / `get_metrics()`, and the
+  rustdoc lead-in above them links to the accessor: "External callers read statistics through
+  [`Repository::get_stats`]" in `udp-core`, `udp-server`, and `http-core`, and the same line with
+  [`Repository::get_metrics`] in `tracker-core` and `swarm-coordination-registry`. Once the
+  accessor is gone, that link is broken. The root `Cargo.toml` denies `warnings`, so the library
+  docs step in `.github/workflows/testing.yaml` and the pre-push nightly doc build would fail.
 
 ## Proposed Design
 
@@ -168,7 +173,9 @@ repository.read_metrics(|metrics| collection.merge(metrics.metric_collection()))
 - Pin the new API with doctests in each crate:
   - a `compile_fail,E0616` doctest that reads `metrics.metric_collection` from outside the crate;
   - a compiling example of `read_metrics()` and `metric_collection()`;
-  - an update to the #2517 companion doctests, which currently call the removed accessors.
+  - an update to the #2517 companion doctests, which currently call the removed accessors;
+  - an update to the rustdoc lead-in above those doctests, whose intra-doc link
+    (`Repository::get_stats` or `Repository::get_metrics`) must point to `Repository::read_metrics`.
 
 ### Out of Scope
 
@@ -219,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
 | T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
-| T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests, and updated callers; the workspace builds and its tests pass.     |
+| T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
 | T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (31 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
@@ -309,6 +316,10 @@ starting T8 (final verification), the last spec commit, or the pull request.
   limited to Rust sources, excludes torrent-repository-benchmarking, and must print exactly the two
   REST-port lines (stats_service.get_stats() and query_port.get_stats()), so the check has a pass
   or fail result.
+- 2026-10-14 20:01 UTC - GitHub Copilot - PR #2537 review (F8, da2ce7): the rustdoc lead-in above
+  each repository's #2517 doctests links to the removed accessor; Current callers, the In Scope
+  doctests bullet, T3, and AC3 now cover that link, and an AC3 check greps for it and runs the
+  nightly library docs build.
 
 ## Acceptance Criteria
 
@@ -317,7 +328,8 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - [ ] AC2: The five `Metrics` types have no `pub` `metric_collection` field; code outside each crate
   reads it only through `metric_collection()`.
 - [ ] AC3: Each crate has a `compile_fail,E0616` doctest for the field and a compiling
-  `read_metrics()` example, and the #2517 companion doctests no longer call removed accessors.
+  `read_metrics()` example, and neither the #2517 companion doctests nor the rustdoc lead-in
+  above them refers to a removed accessor.
 - [ ] AC4: The `udp-core`, `udp-server`, and `http-core` event handlers still take the read lock for
   their debug log only when `debug` is enabled.
 - [ ] AC5: REST `/api/v1/stats` and `/api/v1/metrics` report the same values as `develop` for the
@@ -360,6 +372,14 @@ starting T8 (final verification), the last spec commit, or the pull request.
   `48c4d3013` it prints 84 lines.
 - AC2 check: `grep -nE 'pub +metric_collection *:' packages/*/src/statistics/metrics.rs` prints
   nothing.
+- AC3 check: this grep prints nothing (at `48c4d3013` it prints the five rustdoc lead-ins), and
+  `cargo +nightly doc --no-deps --lib --workspace --all-features` succeeds:
+
+  ```sh
+  grep -rnE 'Repository::(get_stats|get_metrics)' --include='*.rs' \
+    --exclude-dir=torrent-repository-benchmarking packages src tests console contrib
+  ```
+
 - AC4 check: a review of each event handler's logging line, plus a unit test or a documented
   inspection showing the read happens inside the `tracing::debug!` arguments.
 
