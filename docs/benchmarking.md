@@ -90,7 +90,9 @@ When an issue changes performance-critical code, measure it before and after:
 4. **Run each instrument several times:** for example three Criterion runs, reading each benchmark's
    median from `target/criterion/<group>/<function>/new/estimates.json` (the group's `/` becomes
    `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh
-   tracker.
+   tracker. Run commands that parse or format numbers, such as `awk`, `printf`, and `sort`, with
+   `LC_ALL=C`: under a locale with a decimal comma they print `9,000` for 9.0 or truncate
+   decimals. In issue #2505 that briefly made Criterion medians look quantized.
 5. **Check the machine first.** On a shared desktop, run `uptime` and look for other builds; wait
    until the load is close to the baseline's before measuring. Also check that no other tracker is
    running and that the ports the benchmarking configuration uses are free: UDP `3000`, and TCP
