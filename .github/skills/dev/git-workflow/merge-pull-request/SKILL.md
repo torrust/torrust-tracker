@@ -83,6 +83,11 @@ Replace `<upstream-remote>` with the contributor-local remote name that points t
    `githubmerge.merge-author-email`, and `githubmerge.pushmirrors` (the latter applies only to
    its historical `master` behavior and is not used by this `develop` wrapper).
 
+1. Authenticate the GitHub CLI (`gh auth status`) with an account that can edit pull requests in
+   `torrust/torrust-tracker`. The tool uses it for one write: refreshing a pull request's recorded
+   base (see [Preflight and Merge Inspection](#preflight-and-merge-inspection)). Without it, the tool
+   refuses a pull request whose recorded base is stale and prints the command to run instead.
+
 1. Confirm the installed hooks and signing setup. Hooks are installed with
    `./contrib/dev-tools/git/install-git-hooks.sh`. A real signing attempt requires an available
    GPG agent and pinentry session.
@@ -106,18 +111,27 @@ If it passes and an authorized maintainer wants an inspection attempt, run:
 
 Do not rebase the pull-request branch merely because `develop` advanced (see the
 [ADR to stop requiring pull-request rebases](../../../../../docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
-The tool compares GitHub's merge base with the fetched `develop` tip and refuses a stale merge
-before constructing or signing a local commit. When it reports a stale merge base, refresh the
-pull-request head, push it, wait for GitHub to recompute the pull request merge and required
-checks, and retry. Two refreshes are available: rebase the branch onto the latest `develop`, or use
-GitHub's "Update branch", which adds a merge commit from `develop` signed by GitHub and keeps the
-reviewed commit ids. Issue #2507 evaluates which refresh to prefer. When a direct push is rejected
-with `GH013` and "Changes must be made through a pull request", first perform that refresh, push
-the source branch, and wait for GitHub to recompute the pull request merge. If the source branch
-is already current or the same rejection persists after recomputation, the repository rule rejects
-this tool's direct push to `develop`; it is not a stale-branch failure. Do not force-push `develop`
-or retry the signed merge. Stop and obtain maintainer approval for a branch-protection-compatible
-merge workflow before proceeding.
+GitHub accepts the pushed merge only while the pull request's recorded base (`base.sha`) is the
+current `develop` tip, and it does not reliably update that record when `develop` advances. Its own
+test merge (`refs/pull/<n>/merge`) is not the condition. The tool compares the recorded base with the
+fetched `develop` tip before building anything. When it is stale, the tool refreshes it itself with
+a no-op base edit and prints `Refreshed the recorded base of ...`:
+
+```sh
+gh api -X PATCH repos/torrust/torrust-tracker/pulls/<pull-request-number> -f base=develop
+```
+
+The edit adds no commit, timeline event, or CI run, and keeps the reviewed commit ids. If the edit
+fails or the base is still stale, the tool exits with code `4` and prints that command; run it, or
+use GitHub's "Update branch" or a rebase, then retry. When GitHub's test merge is based on an older
+tip, the tool skips its "merge differs from github" comparison and says so.
+
+When a direct push is still rejected with `GH013` and "Changes must be made through a pull
+request", `develop` most likely advanced between the check and the push: return to `develop`, pull,
+and run the tool again, which refreshes the recorded base. If the recorded base is current and the
+same rejection persists, the repository rule rejects this tool's direct push to `develop`; it is not
+a stale-branch failure. Do not force-push `develop` or retry the signed merge. Stop and obtain
+maintainer approval for a branch-protection-compatible merge workflow before proceeding.
 
 The vendor tool fetches the pull request and upstream base, checks out its temporary branches,
 and creates an unsigned local merge with `git merge --commit --no-edit --no-ff --no-gpg-sign`.
@@ -215,7 +229,7 @@ reviewing the remote result.
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Host key verification failed`                          | The SSH host identity is not trusted locally. It is neither a rebase nor a repository-permission failure. | Stop and verify the host key against GitHub's published fingerprints before updating the maintainer machine's SSH configuration.                                      |
 | Permission denied for an SSH public key                 | The key or SSH-agent identity is not authorized for the upstream push. It is not a stale branch.          | Verify the maintainer's SSH identity and upstream access; do not substitute a token or expose a credential in chat.                                                   |
-| `GH013` / "Changes must be made through a pull request" | Repository policy rejected a direct merge push.                                                           | Follow the stale-base guidance above, then obtain approval for a branch-protection-compatible merge workflow if the source branch is current.                         |
+| `GH013` / "Changes must be made through a pull request" | Repository policy rejected a direct merge push.                                                           | Follow the recorded-base guidance above, then obtain approval for a branch-protection-compatible merge workflow if the recorded base is current.                      |
 | Remote `Internal Server Error` / HTTP `5xx`             | GitHub or its Git service rejected the request transiently; the remote branch may still be unchanged.     | Re-fetch and recheck the PR. With explicit maintainer approval, retry the same final push once; if it fails again, stop and report GitHub's request ID and timestamp. |
 
 **Step 4: Retry only with approval.** Only after the remote remains unchanged and an authorized
