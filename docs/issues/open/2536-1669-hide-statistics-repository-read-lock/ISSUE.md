@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 17:03"
+last-updated-utc: "2026-10-14 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,6 +92,9 @@ name in all five crates:
 ```rust,ignore
 impl Repository {
     /// Runs `read` on the current metrics while holding the read lock.
+    ///
+    /// Writers wait while `read` runs, so keep it short: it must not block the thread
+    /// (blocking I/O, sleeping, or long computation) or call `read_metrics` on this repository.
     pub async fn read_metrics<R>(&self, read: impl FnOnce(&Metrics) -> R) -> R {
         let metrics = self.stats.read().await;
         read(&metrics)
@@ -118,7 +121,8 @@ Why this design (chosen by the maintainer during drafting):
   from one repository) gets them from one lock acquisition, as it does today.
 - **No copies.** Unlike an owned snapshot, nothing is cloned on each read.
 - **No lock held across an `.await`.** The closure is synchronous, so a caller cannot hold the
-  lock across an `.await`.
+  lock across an `.await`. It can still block the thread; avoiding that is the caller's
+  obligation (see Design and Ownership Review).
 
 The rejected alternatives were per-value accessor methods (one lock acquisition per value, so
 several values read together may not be consistent with each other) and an owned snapshot (a
@@ -174,9 +178,15 @@ repository.read_metrics(|metrics| collection.merge(metrics.metric_collection()))
 ## Design and Ownership Review
 
 Not applicable: no child processes, readiness, or resource cleanup. Lock ownership stays inside
-each repository. The closure must not be able to await, block, or re-enter the same repository's
-lock; a synchronous `FnOnce(&Metrics) -> R` prevents the first two, and the third would deadlock
-only through a deliberate nested `read_metrics` call inside the closure, which no caller needs.
+each repository. While a `read_metrics()` closure runs, the read lock is held and every writer
+(the statistics event listeners) waits, so the closure must be short and must not block. The API
+enforces only part of this:
+
+- **Enforced:** the closure cannot `.await`, because `FnOnce(&Metrics) -> R` is synchronous.
+- **Caller obligation:** the closure must not block the thread (no blocking I/O, `thread::sleep`,
+  or long CPU work) and must not call `read_metrics()` on the same repository, which could
+  deadlock. The type system does not prevent either. `read_metrics()`'s rustdoc states this
+  obligation, and every current caller meets it: each only reads values or merges a collection.
 
 ## Bug-Fix Process
 
@@ -240,6 +250,9 @@ crates, each package commit updates the callers of that package's accessor in th
 - 2026-10-14 17:03 UTC - GitHub Copilot - Maintainer approved the spec. Created #2536, linked it as
   a sub-issue of #1669, moved the spec to `docs/issues/open/`, and added it to the EPIC on branch
   `2536-1669-hide-statistics-repository-read-lock-spec` for a spec-only PR.
+- 2026-10-14 17:30 UTC - GitHub Copilot - PR #2537 review (F1): a synchronous closure cannot
+  await but can still block the thread; recorded non-blocking closures as a caller obligation in
+  the Design and Ownership Review, the proposed rustdoc, and the design rationale.
 
 ## Acceptance Criteria
 
