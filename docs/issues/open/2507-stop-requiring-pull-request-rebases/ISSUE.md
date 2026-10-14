@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-14 10:11"
+last-updated-utc: "2026-10-14 10:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -253,12 +253,12 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   number in the ADR frontmatter, and updated the `open-pull-request` and `merge-pull-request`
   skills and `AGENTS.md` in the spec PR so the immediately effective ADR has no conflicting
   workflow instruction (T3 and T4 in progress) - PR #2508 review audit in `docs/pr-reviews/`
-- 2026-10-14 06:52 UTC - AI assistant - Spec PR #2508 merged (`d383d4b45`); started the
+- 2026-10-14 06:47 UTC - AI assistant - Spec PR #2508 merged (`d383d4b45`); started the
   implementation on branch `2507-stop-requiring-pull-request-rebases`. T1 option (a) rejected:
   open PR merge refs are recomputed on head pushes but not reliably after `develop` advances
   (#2500 stale for about 19 hours) - [`manual-verification-evidence.md`](manual-verification-evidence.md)
   section T1
-- 2026-10-14 07:30 UTC - AI assistant - Ran the maintainer-approved fork sandbox (T1, T5).
+- 2026-10-14 07:24 UTC - AI assistant - Ran the maintainer-approved fork sandbox (T1, T5).
   GitHub accepts the direct merge push when the PR `base.sha` equals the branch tip, not when the
   merge ref is fresh. Close/reopen, Update branch, and a no-op base edit all refresh it without
   rewriting commits; the no-op base edit also adds no commit, event, or CI run. Required status
