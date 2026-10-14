@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:48"
+last-updated-utc: "2026-10-14 19:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -302,6 +302,9 @@ starting T8 (final verification), the last spec commit, or the pull request.
   stored outputs (five per run), states the full normalization (sorted samples, recorded_at
   ignored, processing times masked), and makes byte-identical normalized outputs the expected
   result; T2 and T8 store their five outputs each.
+- 2026-10-14 19:49 UTC - GitHub Copilot - PR #2537 review (F6, da2ce7): the overlap risk now
+  names the three open sibling specs outside #1669 that touch the removed accessors (#2414, #1348,
+  #2518).
 
 ## Acceptance Criteria
 
@@ -400,8 +403,19 @@ steps in the evidence instead of committing it, as #2517 did.
   caller that does should copy what it needs inside the closure.
 - **Merge errors inside the closure**: `MetricCollection::merge` returns a `Result`; the REST
   adapter keeps its current `expect` messages by returning the `Result` from the closure.
-- **Overlap with other #1669 work**: any open branch that touches these repositories or the REST
-  adapter needs a rebase; whichever lands second rebases.
+- **Overlap with other planned work**: three open specs outside #1669 touch what this issue
+  changes. Whichever lands second adapts, and each author should know that `get_stats()` and
+  `get_metrics()` are going away:
+  - #2414 (drain listener queues on shutdown,
+    `docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md`) edits all
+    five `statistics/event/listener.rs` files, whose unit tests call the removed accessors, and
+    changes `tracker-core/tests/common/test_env.rs`, one of this issue's callers.
+  - #1348 (udp-core tests, `docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md`) plans tests
+    for `udp-core`'s `statistics/repository.rs`.
+  - #2518 (HTTP first-announce benchmark, `docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md`)
+    plans an assertion that reads through the swarm `Repository::get_metrics`.
+
+  Any other open branch that touches these repositories or the REST adapter also needs a rebase.
 
 ## Implementation Completion Review
 
