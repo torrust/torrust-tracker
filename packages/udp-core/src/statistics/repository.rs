@@ -22,9 +22,27 @@ pub trait UdpCoreStatsRepository: Send + Sync {
 }
 
 /// A repository for the tracker metrics.
+///
+/// External callers read statistics through [`Repository::get_stats`].
+///
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_udp_core::statistics::repository::Repository;
+///
+/// fn read_stats(repository: &Repository) {
+///     let _stats = &repository.stats;
+/// }
+/// ```
+///
+/// ```rust
+/// use torrust_tracker_udp_core::statistics::repository::Repository;
+///
+/// async fn read_stats(repository: &Repository) {
+///     let _stats = repository.get_stats().await;
+/// }
+/// ```
 #[derive(Clone)]
 pub struct Repository {
-    pub stats: Arc<RwLock<Metrics>>,
+    stats: Arc<RwLock<Metrics>>,
 }
 
 impl Default for Repository {
