@@ -136,11 +136,13 @@ mod tests {
         }
     }
 
+    const EVENT_CLIENT_IP: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
     fn error_event(error: ErrorKind) -> Event {
         Event::UdpError {
             context: ConnectionContext::new(
                 ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                SocketAddr::new(EVENT_CLIENT_IP, 8080),
                 ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
             ),
             kind: None,
@@ -190,7 +192,11 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 1);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            Some(1),
+            "connection ID errors recorded for {EVENT_CLIENT_IP} after the listener lagged"
+        );
     }
 
     #[tokio::test]
@@ -212,7 +218,11 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 0);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            None,
+            "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
     }
 
     #[tokio::test]
@@ -234,6 +244,10 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(ban_service.read().await.get_banned_ips_total(), 0);
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            None,
+            "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
     }
 }

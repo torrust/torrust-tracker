@@ -68,6 +68,7 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     const EVENT_TIME: DurationSinceUnixEpoch = DurationSinceUnixEpoch::new(1_700_000_000, 0);
+    const CONNECTION_ID_ERROR_LIMIT: u32 = 1;
 
     struct BanningHandlerTestContext {
         ban_service: Arc<RwLock<BanService>>,
@@ -77,14 +78,20 @@ mod tests {
     impl BanningHandlerTestContext {
         fn with_no_tracked_clients() -> Self {
             Self {
-                ban_service: Arc::new(RwLock::new(BanService::new(1))),
+                ban_service: Arc::new(RwLock::new(BanService::new(CONNECTION_ID_ERROR_LIMIT))),
                 stats_repository: Repository::new(),
             }
         }
 
-        async fn with_one_tracked_client(client_ip: IpAddr) -> Self {
+        async fn with_client_errors(client_errors: &[(IpAddr, u32)]) -> Self {
             let context = Self::with_no_tracked_clients();
-            context.ban_service.write().await.increase_counter(&client_ip);
+            let mut ban_service = context.ban_service.write().await;
+            for (client_ip, errors) in client_errors {
+                for _ in 0..*errors {
+                    ban_service.increase_counter(client_ip);
+                }
+            }
+            drop(ban_service);
             context
         }
     }
@@ -120,12 +127,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_publish_the_distinct_client_ip_total_after_a_connection_cookie_error() {
+    async fn it_should_publish_the_banned_ip_total_after_a_connection_cookie_error() {
         // Arrange
-        let unrelated_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1));
+        let banned_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1));
         let cookie_error_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 2));
-        let context = BanningHandlerTestContext::with_one_tracked_client(unrelated_client_ip).await;
-        let expected_distinct_client_ip_total = 2;
+        let context = BanningHandlerTestContext::with_client_errors(&[
+            (banned_client_ip, CONNECTION_ID_ERROR_LIMIT + 1),
+            (cookie_error_client_ip, CONNECTION_ID_ERROR_LIMIT),
+        ])
+        .await;
+        let expected_banned_ip_total = 2;
         let event = Event::UdpError {
             context: sample_connection_context(cookie_error_client_ip),
             kind: None,
@@ -138,7 +149,9 @@ mod tests {
         // Assert
         assert_eq!(
             context.stats_repository.get_stats().await.udp_banned_ips_total(),
-            expected_distinct_client_ip_total
+            expected_banned_ip_total,
+            "published banned IPs total after a cookie error takes {cookie_error_client_ip} over the limit of \
+             {CONNECTION_ID_ERROR_LIMIT} while {banned_client_ip} is already banned"
         );
     }
 }

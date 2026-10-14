@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-13 17:05
+last-updated-utc: 2026-10-13 19:58
 ---
 
 # Manual Verification Evidence
@@ -430,6 +430,276 @@ stale total until the next connection-cookie error. Step 3 also shows the first 
 fresh state.
 
 The tracker was stopped (`SIGTERM` from the agent shell) after this step.
+
+## Regression Tests
+
+The maintained regression tests selected in the specification ("Regression Test Strategy"). Each
+command below was run exactly as shown, with the stable Rust toolchain (`rustc 1.99.0
+(b940084d7 2026-09-28)`, `cargo 1.99.0 (5f94df478 2026-08-27)`), and each output block is verbatim.
+
+### Red - R1, R5, and R6 Against the Unfixed Code (T4)
+
+Code state: `develop` at `b5f1801c6` plus `docs(issues): [#2505] start the implementation`,
+`test(udp-core): [#2505] add the per-event ban service benchmark`, and
+`docs(issues): [#2505] record the performance baseline`, with the new tests added to the working
+tree and no production change.
+
+R1 (`udp-core` unit tests in `packages/udp-core/src/services/banning.rs`). Command:
+
+```bash
+cargo test -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test |panicked|left:|right:|banned IPs total|test result" | head -40
+```
+
+Output:
+
+```text
+test services::banning::tests::it_should_allow_resetting_all_the_counters ... ok
+test services::banning::tests::it_should_ban_ips_with_counters_exceeding_a_predefined_limit ... ok
+test services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit ... ok
+test services::banning::tests::it_should_increase_the_errors_counter_for_a_given_ip ... ok
+test services::banning::tests::it_should_not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit ... ok
+test services::banning::tests::it_should_not_ban_ips_without_connection_id_errors ... ok
+test services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids ... ok
+test services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit ... FAILED
+test services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit ... FAILED
+thread 'services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit' (2511572) panicked at packages/udp-core/src/services/banning.rs:166:9:
+assertion `left == right` failed: banned IPs total for one IP with 2 errors and a limit of 2
+  left: 1
+ right: 0
+thread 'services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit' (2511573) panicked at packages/udp-core/src/services/banning.rs:230:9:
+assertion `left == right` failed: banned IPs total for 3 IPs with 1 error each and a limit of 1
+  left: 3
+ right: 0
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+```
+
+The two below-limit cases are red. The two over-limit cases (`limit + 1` and `limit + 2` errors)
+pass on the unfixed code because a single tracked IP is counted either way; they guard the new
+counter and are proven by mutate-then-restore after the fix (T5).
+
+R5 and R6 (`udp-server` package-level integration tests, module
+`server::contract::publishing_the_banned_ips_total` in `packages/udp-server/tests/server/contract.rs`,
+limit 2). The first attempt did not compile (`error: unused import: logging`); after removing the
+import, the command was:
+
+```bash
+cargo test -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" | head -40
+```
+
+Output:
+
+```text
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... FAILED
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... FAILED
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit ... ok
+thread 'server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit' (2514046) panicked at packages/udp-server/tests/server/contract.rs:794:13:
+assertion `left == right` failed: published banned IPs total after 2 invalid connection IDs from one client with a limit of 2 (strict validation)
+  left: 1
+ right: 0
+thread 'server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit' (2514044) panicked at packages/udp-server/tests/server/contract.rs:855:13:
+assertion `left == right` failed: published banned IPs total after 2 invalid connection IDs from one client with a limit of 2 (disabled validation)
+  left: 1
+ right: 0
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --test integration`
+```
+
+Stability check, because these tests wait for asynchronous event processing. Command:
+
+```bash
+for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^test result"; done
+```
+
+Output:
+
+```text
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+```
+
+The below-limit tests read the gauge after the listener has recorded every error. The listener
+handles events one at a time and publishes after each, so at that point the gauge holds at least
+the value published for the previous error (1 on the unfixed code), which makes the red result
+deterministic. The over-limit tests poll the gauge until it reaches 1 or a 5-second deadline
+passes; they pass on the unfixed code and guard the published value after the fix.
+
+### Green - R1, R1p, R2, R5, and R6 After the `udp-core` Fix (T5)
+
+Code state: the red state above plus the T5 change: `BanService` maintains a banned-IP counter
+(option P1), `BanningStats` and `last_connection_id_errors_reset` are removed, R1p and R2 are
+added, and the `udp-server` handler and listener tests are updated to the banned meaning. The same
+commands as the red run, recorded in one capture (each `$` line is an `echo` of the command that
+follows it):
+
+```text
+$ cargo test -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test |panicked|left:|right:|banned IPs total|test result" | head -40
+test services::banning::tests::it_should_allow_resetting_all_the_counters ... ok
+test services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids ... ok
+test services::banning::tests::it_should_ban_ips_with_counters_exceeding_a_predefined_limit ... ok
+test services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit ... ok
+test services::banning::tests::it_should_increase_the_errors_counter_for_a_given_ip ... ok
+test services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once ... ok
+test services::banning::tests::it_should_not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit ... ok
+test services::banning::tests::it_should_not_ban_ips_without_connection_id_errors ... ok
+test services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit ... ok
+test services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset ... ok
+test services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit ... ok
+test services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets ... ok
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^error|^warning|^test |panicked|left:|right:|published banned|test result" | head -40
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned ... ok
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+$ for i in 1 2 3 4 5 6 7 8; do cargo test -q -p torrust-tracker-udp-server --test integration publishing_the_banned_ips_total 2>&1 | grep -E "^test result"; done
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+```
+
+The focused suites and the root banning tests also pass. Commands and their filtered output:
+
+```text
+$ cargo test -p torrust-tracker-udp-core -p torrust-tracker-udp-server 2>&1 | grep -E "^error|^warning|FAILED|test result|panicked|Running" | head -40
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_udp_core-ccc5ed7cbc967af2)
+test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_udp_server-ef29f8560219f22b)
+test result: ok. 219 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.18s
+     Running tests/integration.rs (target/debug/deps/integration-d4d1a2addb4f912f)
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.09s
+test result: ok. 3 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+$ cargo test --test banning-udp-metrics-disabled-port-zero --test banning-udp-shared-connection-id-error-limit --test banning-udp-shared-connection-id-error-limit-reverse-order --test metrics-fixed-ports 2>&1 | grep -E "^error|FAILED|test result|panicked|Running" | head -20
+     Running tests/banning/udp_metrics_disabled_port_zero.rs (target/debug/deps/banning_udp_metrics_disabled_port_zero-14dd79079fd283da)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.05s
+     Running tests/banning/udp_shared_connection_id_error_limit.rs (target/debug/deps/banning_udp_shared_connection_id_error_limit-f49990584324f262)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+     Running tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs (target/debug/deps/banning_udp_shared_connection_id_error_limit_reverse_order-825a58919689be0f)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+     Running tests/metrics/fixed_ports.rs (target/debug/deps/metrics_fixed_ports-57d64ba4989d3ffc)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+```
+
+### Mutate-Then-Restore - Guards That Pass on the Unfixed Code (T5)
+
+R1's over-limit cases, R2, R1p, and the R5/R6 over-limit tests pass on the unfixed code, so each
+was proven against the bug variants a maintained counter can have. The fixed file was copied to
+`.tmp/banning.rs.fixed`; each mutation was applied to `packages/udp-core/src/services/banning.rs`
+without staging, and the copy was restored after each run (`cmp` confirmed the restored file is
+identical to the fixed file).
+
+Each mutation was applied by a shell function `mutate OLD NEW`, which ran a short Python snippet
+that asserts `OLD` occurs exactly once in `banning.rs` and replaces it with `NEW`. The mutations:
+
+| ID | Bug variant | `OLD` | `NEW` |
+| -- | ----------- | ----- | ----- |
+| M1 (first attempt) | count every error above the limit | `if !was_banned && *count > self.max_connection_id_errors_per_ip {` | `if *count > self.max_connection_id_errors_per_ip {` |
+| M1 | count every error above the limit | `let was_banned = *count > self.max_connection_id_errors_per_ip;` | `let was_banned = false;` |
+| M2 | reset does not clear the counter | the line `self.banned_ips_total = 0;` | (removed) |
+| M3 | off by one: count an IP at the limit | `if !was_banned && *count > self.max_connection_id_errors_per_ip {` | `if !was_banned && *count >= self.max_connection_id_errors_per_ip {` |
+| M4 | never count a banned IP | the line `self.banned_ips_total += 1;` | (removed) |
+
+After each mutation, the `udp-core` tests ran as
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^test .*FAILED|^test result|^    services" | sed 's/^    /FAILED: /' | sort -u`,
+and for M4 the `udp-server` tests ran as
+`cargo test -q -p torrust-tracker-udp-server 2>&1 | grep -E "^    |test result" | sed 's/^    /FAILED: /' | sort -u`.
+Output of that first run:
+
+```text
+== M1: count every error above the limit (no crossing check)
+== M2: reset does not clear the banned counter
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M3: off by one, count an IP at the limit
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 6 passed; 6 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+test result: FAILED. 218 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+restored: identical to the fixed file
+```
+
+That run was incomplete in two places. M1 printed nothing: removing `was_banned` from the condition
+left the variable unused, which the workspace's `-D warnings` turns into a compile error, so no test
+ran. M4's `udp-server` run stopped at the first failing test binary, so the integration tests did
+not run. Both were repeated: M1 with the compiling variant in the table, with the `udp-core`
+command filter `grep -E "^error|^    services|^test result"`, and M4 with
+`cargo test -q --no-fail-fast -p torrust-tracker-udp-server 2>&1 | grep -E "^error|^    [a-z]|^test result" | sed 's/^    /FAILED: /' | sort -u`.
+Output:
+
+```text
+== M1: count every error above the limit (crossing check disabled)
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP (udp-server, all test binaries)
+error: 2 targets failed:
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --test integration`
+FAILED: banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error
+FAILED: server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned
+FAILED: server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit
+FAILED: server::contract::receiving_an_announce_request::should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal
+test result: FAILED. 13 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.10s
+test result: FAILED. 218 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+restored: identical to the fixed file
+```
+
+Result: every guard fails for at least one plausible variant. R1p fails for all four; R2 for M2,
+M3, and M4; R1's over-limit cases for M1, M3, and M4; the R5/R6 over-limit tests and the handler
+test for M4.
+
+### Test Design Review (T4, T5)
+
+Prose-first Arrange-Act-Assert comparison, per the `write-unit-test` skill:
+
+- R1 and R2 (`banning.rs`): Arrange states the causal condition as an error count relative to a
+  visible limit (`record_connection_id_errors(..., limit + 1)`, with a reset in between for R2);
+  Act is the production read `get_banned_ips_total()`; Assert compares with an independently stated
+  number, and the message names the error count and the limit. `record_connection_id_errors` names
+  the repeated `increase_counter` call and hides nothing causal.
+- R1p: the expected value comes from an independent model (per-IP counts kept in an array), not
+  from `is_banned`, and the failure message names the step, the operation, the limit, and the model
+  counts.
+- R5 and R6 (`contract.rs`): the causal values (`CONNECTION_ID_ERROR_LIMIT`, the policy, and the
+  number of invalid connection IDs) stay in the test body; the helpers hide only server startup,
+  request transport, and waiting for asynchronous event processing. Each test has one observable
+  contract.
+- Handler test: renamed to `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error`;
+  the causal state (one client already over the limit, the event client at the limit) is visible in
+  `with_client_errors(&[...])`, and the expected total of 2 is stated independently.
+- Listener tests: they asserted the total only to observe that an event was processed; they now
+  observe that directly with `get_count(&EVENT_CLIENT_IP)`.
+
+The temporary prose was removed after the comparison; the code expresses it.
 
 ## Failures and Follow-up
 

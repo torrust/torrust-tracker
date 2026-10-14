@@ -12,6 +12,11 @@ use crate::UDP_TRACKER_LOG_TARGET;
 pub struct BanService {
     max_connection_id_errors_per_ip: u32,
     accurate_error_counter: HashMap<IpAddr, u32>,
+    /// Number of IPs in `accurate_error_counter` whose count exceeds
+    /// `max_connection_id_errors_per_ip`. Maintained on every change to the
+    /// map so reading it never scans the map, whose size an attacker can
+    /// grow by spoofing source addresses.
+    banned_ips_total: usize,
 }
 
 impl BanService {
@@ -20,11 +25,19 @@ impl BanService {
         Self {
             max_connection_id_errors_per_ip,
             accurate_error_counter: HashMap::new(),
+            banned_ips_total: 0,
         }
     }
 
     pub fn increase_counter(&mut self, ip: &IpAddr) {
-        *self.accurate_error_counter.entry(*ip).or_insert(0) += 1;
+        let count = self.accurate_error_counter.entry(*ip).or_insert(0);
+        let was_banned = *count > self.max_connection_id_errors_per_ip;
+
+        *count += 1;
+
+        if !was_banned && *count > self.max_connection_id_errors_per_ip {
+            self.banned_ips_total += 1;
+        }
     }
 
     #[must_use]
@@ -32,9 +45,16 @@ impl BanService {
         self.accurate_error_counter.get(ip).copied()
     }
 
+    /// Returns the number of IPs whose connection ID error count exceeds the
+    /// limit, that is, the IPs for which [`is_banned`](Self::is_banned) is
+    /// true.
+    ///
+    /// The service does not know the connection ID validation policy. When
+    /// validation is `disabled`, the server does not enforce bans, so these
+    /// IPs are "would-be banned" rather than blocked.
     #[must_use]
-    pub fn get_banned_ips_total(&self) -> usize {
-        self.accurate_error_counter.len()
+    pub const fn get_banned_ips_total(&self) -> usize {
+        self.banned_ips_total
     }
 
     /// Returns true if the given ip address is banned.
@@ -47,6 +67,7 @@ impl BanService {
     /// Resets the counters, which also lifts every ban.
     pub fn reset_bans(&mut self) {
         self.accurate_error_counter.clear();
+        self.banned_ips_total = 0;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp::run_udp_server::loop (connection id errors filter cleared)");
     }
@@ -55,6 +76,8 @@ impl BanService {
 #[cfg(test)]
 mod tests {
     use std::net::IpAddr;
+
+    use quickcheck::{Arbitrary, Gen, QuickCheck, TestResult};
 
     use super::BanService;
 
@@ -125,5 +148,202 @@ mod tests {
         // Assert
         assert_eq!(ban_service.get_count(&ip), None);
         assert!(!ban_service.is_banned(&ip));
+    }
+
+    fn record_connection_id_errors(ban_service: &mut BanService, ip: &IpAddr, errors: u32) {
+        for _ in 0..errors {
+            ban_service.increase_counter(ip);
+        }
+    }
+
+    #[test]
+    fn it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit() {
+        // Arrange
+        let limit = 2;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit);
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total, 0,
+            "banned IPs total for one IP with {limit} errors and a limit of {limit}"
+        );
+    }
+
+    #[test]
+    fn it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit() {
+        // Arrange
+        let limit = 2;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total,
+            1,
+            "banned IPs total for one IP with {} errors and a limit of {limit}",
+            limit + 1
+        );
+    }
+
+    #[test]
+    fn it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids() {
+        // Arrange
+        let limit = 2;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 2);
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total,
+            1,
+            "banned IPs total for one IP with {} errors and a limit of {limit}",
+            limit + 2
+        );
+    }
+
+    #[test]
+    fn it_should_not_count_any_ip_as_banned_after_the_bans_are_reset() {
+        // Arrange
+        let limit = 1;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+        ban_service.reset_bans();
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total,
+            0,
+            "banned IPs total after a reset that followed one IP with {} errors and a limit of {limit}",
+            limit + 1
+        );
+    }
+
+    #[test]
+    fn it_should_count_an_ip_banned_again_after_a_reset_only_once() {
+        // Arrange
+        let limit = 1;
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+        ban_service.reset_bans();
+        record_connection_id_errors(&mut ban_service, &ip, limit + 1);
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total, 1,
+            "banned IPs total for one IP that exceeded the limit of {limit} again after a reset"
+        );
+    }
+
+    #[test]
+    fn it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit() {
+        // Arrange
+        let limit = 1;
+        let mut ban_service = ban_service(limit);
+        let ips: [IpAddr; 3] = [
+            "127.0.0.2".parse().unwrap(),
+            "127.0.0.3".parse().unwrap(),
+            "127.0.0.4".parse().unwrap(),
+        ];
+        for ip in &ips {
+            record_connection_id_errors(&mut ban_service, ip, limit);
+        }
+
+        // Act
+        let banned_ips_total = ban_service.get_banned_ips_total();
+
+        // Assert
+        assert_eq!(
+            banned_ips_total,
+            0,
+            "banned IPs total for {} IPs with {limit} error each and a limit of {limit}",
+            ips.len()
+        );
+    }
+
+    /// One step of a property-test scenario: an invalid connection ID from one
+    /// of a few IPs, or a periodic reset.
+    #[derive(Clone, Debug)]
+    enum Operation {
+        ConnectionIdError { ip_index: usize },
+        ResetBans,
+    }
+
+    const PROPERTY_TEST_IPS: [&str; 4] = ["127.0.0.2", "127.0.0.3", "127.0.0.4", "127.0.0.5"];
+
+    impl Arbitrary for Operation {
+        fn arbitrary(generator: &mut Gen) -> Self {
+            // About one operation in eight is a reset, so most scenarios cross
+            // the limit before the counters are cleared.
+            if u8::arbitrary(generator) % 8 == 0 {
+                Self::ResetBans
+            } else {
+                Self::ConnectionIdError {
+                    ip_index: usize::arbitrary(generator) % PROPERTY_TEST_IPS.len(),
+                }
+            }
+        }
+    }
+
+    /// Applies every operation to the service and to an independent model of
+    /// the per-IP error counts, and checks after each step that the banned
+    /// total equals the number of model counts above the limit.
+    fn banned_ips_total_matches_the_model(limit: u8, operations: Vec<Operation>) -> TestResult {
+        let limit = u32::from(limit % 4);
+        let ips: Vec<IpAddr> = PROPERTY_TEST_IPS.iter().map(|ip| ip.parse().unwrap()).collect();
+        let mut ban_service = ban_service(limit);
+        let mut model_error_counts = [0_u32; PROPERTY_TEST_IPS.len()];
+
+        for (step, operation) in operations.into_iter().enumerate() {
+            match operation {
+                Operation::ConnectionIdError { ip_index } => {
+                    ban_service.increase_counter(&ips[ip_index]);
+                    model_error_counts[ip_index] += 1;
+                }
+                Operation::ResetBans => {
+                    ban_service.reset_bans();
+                    model_error_counts = [0; PROPERTY_TEST_IPS.len()];
+                }
+            }
+
+            let expected = model_error_counts.iter().filter(|count| **count > limit).count();
+            let actual = ban_service.get_banned_ips_total();
+
+            if actual != expected {
+                return TestResult::error(format!(
+                    "after step {step} ({operation:?}) with a limit of {limit} and model error counts \
+                     {model_error_counts:?}: banned IPs total {actual}, expected {expected}"
+                ));
+            }
+        }
+
+        TestResult::passed()
+    }
+
+    #[test]
+    fn it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets() {
+        QuickCheck::new()
+            .tests(1_000)
+            .quickcheck(banned_ips_total_matches_the_model as fn(u8, Vec<Operation>) -> TestResult);
     }
 }

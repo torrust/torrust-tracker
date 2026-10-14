@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 18:21"
+last-updated-utc: "2026-10-13 19:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -366,8 +366,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Maintainer decisions                               | Decision A; remove `BanningStats`; remove `last_connection_id_errors_reset`; document performance alternatives. |
 | B1  | DONE   | Add the per-event microbenchmark                   | `udp_ban_service/record_error` in `ban_service_benchmark.rs`, committed before any production change.          |
 | T3  | DONE   | Performance baseline (P1)                          | Three Criterion runs and five `aquatic_udp_load_test` runs before any production change, in `performance-evidence.md`. |
-| T4  | TODO   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
-| T5  | TODO   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
+| T4  | DONE   | R1, R5, and R6 regression tests, red               | Recorded failing output against the current implementation.                                                    |
+| T5  | DONE   | `udp-core` fix and dependent test updates          | Chosen performance option; R1, R5, R6 green; R2 and R1p added and proven by mutate-then-restore; leftover trait and field removed; the `udp-server` handler and listener unit tests that pin the distinct-IP count updated in the same change, so the whole workspace test suite passes. |
 | T6  | TODO   | R4 regression test, red                            | Recorded failing output showing the stale gauge after one reset interval.                                       |
 | T7  | TODO   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | TODO   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
@@ -470,6 +470,17 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   runs of all 28 `ban_service_benchmark` cases (medians within about 3%; `record_error` flat at
   10.33-10.87 ns for IPv4 and 12.27-12.58 ns for IPv6 across 10 to 10,000 tracked IPs). Shared
   desktop, load average between 2.7 and 8.2 during the runs.
+- 2026-10-13 19:58 UTC - GitHub Copilot (implementation session) - The maintainer chose P1 (a maintained
+  banned-IP counter) at the start of implementation. T4: R1, R5, and R6 were red on the unfixed
+  code (below-limit cases read 1 or 3 instead of 0, in `strict` and `disabled` mode; stable over 8
+  runs). T5: `BanService` now keeps `banned_ips_total`, incremented when an IP's count crosses the
+  limit and cleared by `reset_bans()`; `BanningStats` and `last_connection_id_errors_reset` are
+  removed; R1p (quickcheck, added as a `udp-core` dev-dependency with `default-features = false`;
+  1.1.0 is the latest stable and already in `Cargo.lock`) and R2 added; the `udp-server` handler
+  test was renamed to `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error` and
+  now expects 2 banned IPs, and the listener tests observe `get_count` instead of the total. All
+  green; mutate-then-restore proved every guard (M1-M4). Evidence:
+  [manual-verification-evidence.md](manual-verification-evidence.md) "Regression Tests".
 
 ## Acceptance Criteria
 
