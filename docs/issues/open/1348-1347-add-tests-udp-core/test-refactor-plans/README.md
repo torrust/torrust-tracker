@@ -37,6 +37,7 @@ maintainer approves it.
 | 13 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | 1 empty-state test replaced by 2 source tests; stale module docs fixed |
 | 14 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | 1 assertion sharpened, 1 `rstest` test added; lifecycle left to #1488 / #2414 |
 | 15 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | 1 contract test added for the exported metric name |
+| 16 | [lib-tests.md](lib-tests.md) | DONE | No change; unused policy `Default` recorded |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

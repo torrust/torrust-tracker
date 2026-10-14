@@ -100,6 +100,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `statistics/services.rs` | 32 / 32 (100.00%) | 40 / 40 (100.00%) | 51 / 51 (100.00%) | 6 / 6 (100.00%) | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
 | `statistics/event/listener.rs` | 124 / 145 (85.52%) | 144 / 164 (87.80%) | 193 / 211 (91.47%) | 21 / 24 (87.50%) | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | `statistics/mod.rs` | 8 / 8 (100.00%) | 15 / 15 (100.00%) | 18 / 18 (100.00%) | 2 / 2 (100.00%) | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
+| `lib.rs` | 5 / 10 (50.00%) | 5 / 5 (100.00%) | 6 / 6 (100.00%) | 1 / 1 (100.00%) | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions

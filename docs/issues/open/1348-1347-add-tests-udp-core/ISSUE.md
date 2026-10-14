@@ -302,7 +302,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | DONE | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
 | 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | DONE | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
-| 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
+| 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | 17 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | PENDING | - |
 | 18 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
 | 19 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
@@ -484,6 +484,8 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   contract test); ledger row 15 is `IN_PROGRESS`.
 - 2026-10-14 10:59 UTC - Jose Celano - Approved the `statistics/mod.rs` completed-file review;
   ledger row 15 is `DONE` (1 contract test added).
+- 2026-10-14 11:27 UTC - Jose Celano - Approved the `lib.rs` no-change plan; ledger row 16 is
+  `DONE`. The unused `Default` derive on `ConnectionIdValidationPolicy` is in `lessons.md`.
 
 ## Acceptance Criteria
 
