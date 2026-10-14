@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 10:12
+last-updated-utc: 2026-10-14 12:31
 ---
 
 # Manual Verification Evidence
@@ -1364,6 +1364,11 @@ renamed test passes (`cargo test -q -p torrust-tracker-udp-server --lib banning`
 
 ### PR Review Follow-Up - Gauge Publication Ordering (PR #2524 Finding F1)
 
+> Superseded design: the fix described here held the ban service lock until the gauge was written.
+> After PR #2524 review finding F10 by Cameron, the publication order moved to a dedicated mutex and
+> these two tests were replaced; see "PR Review Follow-Up - Publication Order Without the Ban
+> Lock". This section is kept as recorded.
+
 Copilot's review of PR #2524 (finding F1) noted a race the fix introduced: the reset job and the
 banning event listener are separate tasks, and both released the `BanService` lock before writing
 the gauge, so on the multi-thread runtime their gauge writes could land out of order (for example a
@@ -1466,6 +1471,108 @@ and root reset-job (2) tests pass, the benchmarks compile and run as tests, and
 Test design note: `with_error_count` writes the private map directly, which couples the two tests to
 the representation; it is the only deterministic way to reach the overflow boundary, and its doc
 comment says so. The causal state (the limit and the seeded count) stays visible in the test body.
+
+### PR Review Follow-Up - Publication Order Without the Ban Lock (PR #2524 Findings F10 and F11 by Cameron)
+
+Cameron's second review of PR #2524 noted (his F10) that holding the `BanService` write lock while
+waiting for the statistics store puts that wait on the request path in `strict` mode: the receive
+loop takes the ban service read lock for every datagram. He also noted (his F11) that the lock tests
+wrote through `Repository::stats`, which issue #2517 plans to make private. The fix keeps the
+publication ordering of audit F1 with a dedicated `banning::PublicationOrder` mutex, owned by the
+`udp-server` container and passed to the banning listener and the reset job. Each publisher holds it
+across the ban change and the gauge write, and releases the ban service lock before the gauge write.
+The lock tests now use a test-only `Repository::write_lock_for_test` seam instead of the field.
+
+The two tests of the earlier section were replaced by four, two per publisher:
+`it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_*` and
+`it_should_hold_the_publication_order_until_it_has_published_*`.
+
+Red, with the mutex and the seam in place but both publishers still holding the ban service lock
+until the gauge was written. Command:
+
+```bash
+cargo test -p torrust-tracker-udp-server --lib publish 2>&1 | grep -E "^error|^test .*(lock|publication_order)|panicked|statistics store|out of order|test result"
+```
+
+Output:
+
+```text
+test banning::tests::it_should_hold_the_publication_order_until_it_has_published_the_reset_total ... ok
+test banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total ... ok
+test banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total ... FAILED
+test banning::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_reset_total ... FAILED
+thread 'banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total' (1553798) panicked at packages/udp-server/src/banning/event/handler.rs:225:9:
+the handler held the ban service lock while waiting for the gauge store, so the request path's ban check would wait for the statistics store
+thread 'banning::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_reset_total' (1553801) panicked at packages/udp-server/src/banning/mod.rs:159:9:
+the reset held the ban service lock while waiting for the gauge store, so the request path's ban check would wait for the statistics store
+test result: FAILED. 14 passed; 2 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.04s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+```
+
+The publication-order tests pass in that state, so they were proven by mutate-then-restore after the
+fix: releasing the publication order before the gauge write (`drop(_publication);` inserted before
+the `update_metric_for_banned_ips_total` call in both publishers, applied without staging and
+restored from copies, `cmp` confirming) gave, with
+`cargo test -q -p torrust-tracker-udp-server --lib publish 2>&1 | grep -E "^error|^    banning|^test result" | sed 's/^    banning/FAILED: banning/' | sort -u`:
+
+```text
+== mutation: release the publication order before the gauge write (both publishers)
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+FAILED: banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total
+FAILED: banning::tests::it_should_hold_the_publication_order_until_it_has_published_the_reset_total
+test result: FAILED. 14 passed; 2 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.03s
+restored: identical to the fixed files
+```
+
+Green after the fix: the same command reported the four tests `ok` and
+`test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 208 filtered out; finished in 0.04s`,
+and five repeats with `-q` printed the same result line. The `udp-core` (52), `udp-server` (224, 16,
+and doc), root reset-job (2), and root `banning-*` and `metrics-fixed-ports` tests pass;
+`cargo clippy -q --workspace --all-targets --all-features -- -D warnings -D clippy::pedantic` reports
+nothing; nightly `cargo fmt --check` passes.
+
+Lock order: both publishers take the publication order, then the ban service lock (released before
+the gauge write), then the statistics store lock inside `set_gauge`. Nothing else takes the
+publication order, and no path takes the statistics store lock before either of the others, so
+there is no inversion. The request path's ban check now waits at most for the in-memory ban change.
+
+Test design review (prose-first Arrange-Act-Assert): Arrange holds the gauge store and starts the
+production publisher; Act lets it run until it blocks on the gauge store; each test asserts one
+guarantee (the ban service lock is free; the publication order is held) with a message that names
+the consequence. The helpers `spawn_handler_for_one_cookie_error`, `spawn_reset`, and
+`let_spawned_tasks_run` name incidental mechanics only.
+
+### PR Review Follow-Up - R2 Re-Count Below the Limit (PR #2524 Finding F7 by Cameron)
+
+Cameron's second review (his F7) noted that the specification called R2's re-count leg red on
+`develop`, but the implemented re-count test (`it_should_count_an_ip_banned_again_after_a_reset_only_once`)
+passes there: after `limit + 1` errors, a reset, and `limit + 1` errors again, the map length is 1
+too. The missing case was added: `it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`
+(limit 1, an IP banned, reset, then 1 error; expected total 0). Proof that it is red on `develop`'s
+behavior, with the original map-length total temporarily restored (`self.accurate_error_counter.len()`
+in `get_banned_ips_total`, without staging, restored from `.tmp/banning.rs.f7` and confirmed with
+`cmp`), using
+`cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|left:|right:|reset, and then|^test result" | sed 's/^    services/FAILED: services/'`:
+
+```text
+== M0: the original map-length total (develop's behavior)
+  left: 1
+ right: 0
+assertion `left == right` failed: banned IPs total for an IP that was banned, reset, and then sent 1 error with a limit of 1
+  left: 1
+ right: 0
+  left: 3
+ right: 0
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 11 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+restored: identical to the fixed file
+```
+
+With the fix the `udp-core` banning tests pass (`test result: ok. 15 passed`).
 
 ## Failures and Follow-up
 

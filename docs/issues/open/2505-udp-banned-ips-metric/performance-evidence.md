@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: "2026-10-14 10:00"
+last-updated-utc: "2026-10-14 12:29"
 ---
 
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
@@ -387,7 +387,15 @@ progress-log entry describing it is stamped 2026-10-14 05:32 UTC because it was 
 resumed after an overnight pause. B was committed as
 `perf(udp-core): [#2505] detect the ban crossing with one comparison`.
 
-### Final After Run - Final Code
+### Second After Run - Before the Review Fixes
+
+This run was recorded as "Final After Run - Final Code", but three production commits and one more
+production change followed it, after PR #2524 review rounds: `fix(udp-server): [#2505] publish the
+banned-IPs total while holding the ban lock`, `fix(udp-server): [#2505] name the gauge in the
+banned-IPs publication error`, `fix(udp-core): [#2505] stop an IP's error count at the maximum
+instead of wrapping`, and `fix(udp-server): [#2505] order banned-IPs publications without holding
+the ban lock`. It is kept as recorded; the after measurement on the final code is "Final After Run -
+Final Code" below (corrected after PR #2524 review finding F9 by Cameron).
 
 Measured on `perf(udp-core): [#2505] detect the ban crossing with one comparison`. Release build
 `Finished release profile [optimized + debuginfo] target(s) in 1m 27s`; UDP 3000 and TCP 1313 free;
@@ -444,7 +452,9 @@ no other tracker running.
 The `record_error` medians are flat across 10, 1,000, and 10,000 tracked IPs (10.86-10.89 ns for
 IPv4, 12.77-12.94 ns for IPv6), which is the AC7 evidence.
 
-## Comparison
+## Comparison at the Second After Run (Superseded)
+
+Superseded by "Comparison" below, which uses the final after run.
 
 | Measurement | Baseline | After (final) | Pass rule | Result |
 | ----------- | -- | ---------- | --------- | ------ |
@@ -479,3 +489,126 @@ excess above is 3.9% or less. The attribution of the `record_error` and
 rests on the same-machine comparison in "Investigation - Same-Machine Comparison" (unchanged `is_banned` code, and a
 consistent 0.4-0.6 ns difference between `develop` and the fix measured back to back), not on the
 baseline/after tables.
+
+### Final After Run - Final Code
+
+Measured on `test(udp-core): [#2505] cover an IP that stays within the limit after a reset`, the
+last production or test change of the pull request (later commits change only documentation).
+Release build current at that commit; UDP 3000 and 16969 and TCP 1313 and 11212 were free; no other
+tracker was running when the load test started. The scripts and configuration are the ones recorded
+under "Method", recreated from this file.
+
+- Load test: 2026-10-14 11:51:17 to 11:54:06 UTC, load average 3.33 at the start and 5.07 at the
+  end. Command `./.tmp/perf-2505/run-load-tests.sh final 5`.
+
+| Run | `Responses in` (first match, per second) | `Average responses per second` | Summary `Error responses` |
+| --- | ---------------------------------------- | ------------------------------ | ------------------------- |
+| 1 | 163758.18 | 164230.50 | 0.00 |
+| 2 | 164012.50 | 164846.20 | 0.00 |
+| 3 | 160846.51 | 161456.14 | 0.00 |
+| 4 | 161371.48 | 158604.83 | 0.00 |
+| 5 | 163907.79 | 163189.86 | 0.00 |
+
+- Mean of `Average responses per second`: **162465.51**; lowest run 158604.83; highest 164846.20;
+  spread 3.8% of the mean.
+
+- Criterion: 2026-10-14 11:55:21 to 12:10:51 UTC, load average 2.31 at the start and 1.34 at the
+  end, while the final manual recheck's tracker was idle waiting for its reset. Command
+  `./.tmp/perf-2505/run-criterion.sh final 3`. Medians in nanoseconds.
+
+| Benchmark | Run 1 | Run 2 | Run 3 | Median | Baseline limit | Result |
+| --------- | ----- | ----- | ----- | ------ | -------------- | ------ |
+| `udp_ban_service_increase_counter/distinct/ipv4` | 281377.81 | 282737.84 | 281233.61 | 281377.81 | 292950.03 | pass |
+| `udp_ban_service_increase_counter/distinct/ipv6` | 326611.31 | 327682.88 | 328310.36 | 327682.88 | 340205.55 | pass |
+| `udp_ban_service_increase_counter/repeated/ipv4` | 102920.12 | 102519.18 | 101470.35 | 102519.18 | 102398.54 | fail |
+| `udp_ban_service_increase_counter/repeated/ipv6` | 123067.62 | 123320.78 | 122240.04 | 123067.62 | 122219.95 | fail |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10000` | 9.10 | 9.06 | 9.03 | 9.06 | 9.27 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/1000` | 9.10 | 9.14 | 9.04 | 9.10 | 9.26 | pass |
+| `udp_ban_service_is_banned/ipv4_above_threshold/10` | 9.14 | 9.11 | 9.01 | 9.11 | 9.22 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10000` | 9.12 | 9.09 | 9.12 | 9.12 | 9.19 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/1000` | 9.17 | 9.10 | 9.02 | 9.10 | 9.34 | pass |
+| `udp_ban_service_is_banned/ipv4_at_threshold/10` | 9.12 | 9.09 | 9.04 | 9.09 | 9.29 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10000` | 9.09 | 9.19 | 9.02 | 9.09 | 9.28 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/1000` | 9.12 | 9.17 | 9.04 | 9.12 | 9.30 | pass |
+| `udp_ban_service_is_banned/ipv4_below_threshold/10` | 9.10 | 9.09 | 9.06 | 9.09 | 9.39 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10000` | 11.07 | 10.81 | 10.74 | 10.81 | 11.12 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/1000` | 11.04 | 11.05 | 11.00 | 11.04 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_above_threshold/10` | 10.85 | 10.75 | 11.00 | 10.85 | 11.24 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10000` | 10.81 | 10.89 | 10.96 | 10.89 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/1000` | 10.80 | 10.81 | 10.79 | 10.80 | 11.20 | pass |
+| `udp_ban_service_is_banned/ipv6_at_threshold/10` | 10.81 | 10.84 | 11.56 | 10.84 | 11.18 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10000` | 11.12 | 10.99 | 11.04 | 11.04 | 11.22 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/1000` | 11.05 | 10.79 | 10.71 | 10.79 | 11.27 | pass |
+| `udp_ban_service_is_banned/ipv6_below_threshold/10` | 10.82 | 10.77 | 10.88 | 10.82 | 11.04 | pass |
+| `udp_ban_service_record_error/ipv4/10000` | 10.74 | 10.65 | 10.66 | 10.66 | 10.87 | pass |
+| `udp_ban_service_record_error/ipv4/1000` | 10.74 | 10.69 | 10.67 | 10.69 | 10.69 | pass |
+| `udp_ban_service_record_error/ipv4/10` | 10.68 | 10.68 | 10.69 | 10.68 | 10.69 | pass |
+| `udp_ban_service_record_error/ipv6/10000` | 13.21 | 13.08 | 13.20 | 13.20 | 12.49 | fail |
+| `udp_ban_service_record_error/ipv6/1000` | 13.15 | 13.09 | 13.08 | 13.09 | 12.58 | fail |
+| `udp_ban_service_record_error/ipv6/10` | 13.43 | 13.06 | 13.24 | 13.24 | 12.53 | fail |
+
+The `record_error` medians stay flat across 10, 1,000, and 10,000 tracked IPs (10.66-10.69 ns for
+IPv4, 13.09-13.24 ns for IPv6), which is the AC7 evidence on the final code.
+
+### Second Investigation - Same-Machine Comparison
+
+The IPv6 `record_error` medians rose by about 0.3 ns from the second after run. To attribute it, the
+`record_error` and `increase_counter` groups were measured back to back on 2026-10-14 between
+12:11:20 and 12:25:59 UTC (load average 1.12-2.06) for three versions of
+`packages/udp-core/src/services/banning.rs`: `develop` (written with `git show b5f1801c6:<file>`),
+the code before the overflow guard (`git show <perf(udp-core): [#2505] detect the ban crossing with
+one comparison>:<file>`), and the final code. The final file was restored afterwards and `cmp`
+confirmed it. Each measurement ran
+`cargo bench -q -p torrust-tracker-udp-core --bench ban_service_benchmark -- "record_error|increase_counter"`
+and read the medians from `estimates.json`, as in the first investigation. Medians in nanoseconds:
+
+| Benchmark | develop 1 | develop 2 | before guard 1 | before guard 2 | final 1 | final 2 (excluded) | final 3 | final 4 |
+| --------- | --------- | --------- | -------------- | -------------- | ------- | ------------------ | ------- | ------- |
+| `udp_ban_service_record_error/ipv4/10000` | 10.39 | 10.21 | 10.77 | 10.78 | 10.89 | 13.32 | 10.62 | 10.91 |
+| `udp_ban_service_record_error/ipv4/1000` | 10.72 | 10.67 | 10.78 | 10.70 | 10.68 | 13.44 | 10.66 | 10.82 |
+| `udp_ban_service_record_error/ipv4/10` | 10.35 | 10.64 | 10.78 | 10.76 | 10.85 | 13.44 | 10.78 | 10.94 |
+| `udp_ban_service_record_error/ipv6/10000` | 12.65 | 12.50 | 12.97 | 12.99 | 13.15 | 17.02 | 13.28 | 13.27 |
+| `udp_ban_service_record_error/ipv6/1000` | 12.50 | 12.51 | 12.96 | 12.98 | 13.13 | 16.98 | 13.34 | 13.24 |
+| `udp_ban_service_record_error/ipv6/10` | 12.77 | 12.47 | 12.96 | 13.01 | 13.14 | 16.98 | 13.23 | 13.28 |
+| `udp_ban_service_increase_counter/distinct/ipv4` | 280222.21 | 288181.86 | 279950.10 | 282806.31 | 281137.60 | 280184.21 | 287164.44 | 283523.81 |
+| `udp_ban_service_increase_counter/distinct/ipv6` | 335021.58 | 330971.56 | 325195.66 | 325964.16 | 328860.12 | 327554.17 | 333662.65 | 327998.67 |
+| `udp_ban_service_increase_counter/repeated/ipv4` | 95681.59 | 97790.29 | 100704.68 | 100700.54 | 100882.03 | 100979.35 | 102391.51 | 101088.50 |
+| `udp_ban_service_increase_counter/repeated/ipv6` | 122190.25 | 122937.17 | 121122.18 | 120503.78 | 123640.66 | 122579.10 | 124568.62 | 123019.90 |
+
+Final run 2 was about 25% slower on every `record_error` case while runs 1, 3, and 4 agree, so it
+was disturbed by other work on the shared desktop; it is excluded, and runs 3 and 4 were added to
+replace it.
+
+Findings:
+
+- The overflow guard (`checked_add`) adds about 0.2-0.3 ns on IPv6 and close to nothing on IPv4.
+- The whole fix now costs about 0.2-0.5 ns per invalid connection ID on IPv4 (about 3%) and about
+  0.5-0.8 ns on IPv6 (about 4-6%) relative to `develop`, still flat across map sizes (AC7).
+
+Maintainer decision (2026-10-14, after the comparison ended at 12:25:59 UTC): accept the updated
+cost, up to about 0.8 ns (6%) per invalid connection ID on IPv6, as inherent to the counter and the
+overflow guard.
+
+## Comparison
+
+| Measurement | Baseline | After (final) | Pass rule | Result |
+| ----------- | -------- | ------------- | --------- | ------ |
+| Load test mean `Average responses per second` | lowest run 148018.51 | mean 162465.51 | after mean not below the lowest baseline run | **pass** |
+| Criterion medians | highest of three per benchmark | median of three per benchmark | after median not above the baseline limit | **23 pass, 5 fail** |
+
+The five Criterion failures:
+
+| Benchmark | After median | Baseline limit | Difference | Explanation |
+| --------- | ------------ | -------------- | ---------- | ----------- |
+| `record_error/ipv6/10000` | 13.20 | 12.49 | +5.7% | Inherent cost of the counter and the overflow guard ("Second Investigation") |
+| `record_error/ipv6/1000` | 13.09 | 12.58 | +4.0% | Same |
+| `record_error/ipv6/10` | 13.24 | 12.53 | +5.6% | Same |
+| `increase_counter/repeated/ipv4` | 102519.18 | 102398.54 | +0.1% | Same check on 10,000 repeated errors; within the baseline spread |
+| `increase_counter/repeated/ipv6` | 123067.62 | 122219.95 | +0.7% | Same |
+
+Conclusion: the end-to-end load test shows no regression; it sends only valid connection IDs, so it
+covers the launcher's ban check, which the final code no longer makes wait for the statistics store,
+but not the error path. The microbenchmarks show the accepted cost on the invalid-connection-ID path
+and no growth with the number of tracked IPs (AC7); every `is_banned` case passes. The baseline
+spread was up to 5.1% between Criterion runs and 5.2% between load-test runs, so the attribution of
+the excesses rests on the back-to-back comparisons, not on the baseline/after tables alone.

@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:25"
+last-updated-utc: "2026-10-14 12:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,7 +62,7 @@ Several short identifiers share a letter. In this specification and its issue-lo
 | R1-R6, R1p | Regression tests | "Regression Test Strategy" |
 | T1-T10, benchmark task B1 | Implementation tasks | "Implementation Plan" |
 | Scenarios M1-M4 | Manual verification scenarios | "Manual Verification Scenarios" |
-| V1-V4, R-V1-R-V4, F-V1-F-V4 | Reproduction, first recheck, and final recheck processes | `manual-verification-evidence.md` |
+| V1-V4, R-V1-R-V4, F-V1-F-V4, L-V1-L-V4 | Reproduction, first recheck, second recheck (earlier called final), and last recheck on the final code | `manual-verification-evidence.md` |
 | Mutations M0-M5, M1b, M3b | Code mutations for mutate-then-restore (their `== M...` labels are part of recorded command output) | `manual-verification-evidence.md` "Mutate-Then-Restore" sections |
 | Task review B1, B2, N1-N11 | Findings of the independent pre-PR task review | `agent-review-reports.md` |
 | F1-F14 | Pull-request review findings | `docs/pr-reviews/pr-2506-review/` and `docs/pr-reviews/pr-2524-review/` |
@@ -365,10 +365,13 @@ root reset job (every >= 3600 s) -> BanService::reset_bans() -X-> gauge never up
   with `L + 1` errors is counted once; an IP with `L + 2` errors is still counted once; several IPs
   below the limit report 0. **Red on `develop`** (the current total counts every IP).
 - **R2 (unit, `udp-core`):** after `reset_bans()`, the banned total is 0 and an IP must exceed the
-  limit again to be counted. The reset leg passes on `develop` (the map is cleared), so prove it
-  guards the fix with mutate-then-restore (for option P1: do not reset the counter). The re-count
-  leg is red on `develop`, where an IP with errors after the reset is counted even below the
-  limit. (Narrowed after PR #2506 review finding F10.)
+  limit again to be counted. Three cases: the reset leg and the re-crossing case (an IP that exceeds
+  the limit again after a reset is counted once) pass on `develop` (the map is cleared, and one IP is
+  one entry), so prove them with mutate-then-restore (for option P1: do not reset the counter). The
+  below-limit case (an IP that was banned, reset, and then stays within the limit is not counted) is
+  red on `develop`, where any IP with errors after the reset is counted. (Narrowed after PR #2506
+  review finding F10, and corrected after PR #2524 review finding F7 by Cameron: the below-limit
+  case was missing, so the earlier note called a passing case red.)
 - **R1p (property-based unit, `udp-core`):** for arbitrary sequences of
   `increase_counter` over a small IP pool, interleaved with `reset_bans()`, and arbitrary limits,
   the banned total equals the number of IPs for which `is_banned` is true. Needs `quickcheck` as a
@@ -642,6 +645,17 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   tree, and the final tree is byte-identical to the pre-split head. Every later commit has a new id,
   so the commit ids cited in the PR #2524 reviews are mapped to subjects in that pull request's
   audit. Commit Points and the AC4 evidence now name the refactor commit.
+- 2026-10-14 12:32 UTC - GitHub Copilot (implementation session) - PR #2524 review round 2 by Cameron
+  (review 5517039831). F10 and F11: both publishers now hold a dedicated `PublicationOrder` mutex
+  (owned by the `udp-server` container) across the ban change and the gauge write, and release the
+  ban service lock before the gauge write, so the request path's ban check no longer waits for the
+  statistics store; the lock tests use a test-only `Repository::write_lock_for_test` seam instead of
+  the `stats` field, which #2517 plans to make private. F7: added the missing R2 below-limit case
+  (red on `develop`'s behavior) and corrected the R2 note. F9: the second recheck and the second
+  after run predated four production commits, so the after measurement was redone on the final code
+  (load test passes; 5 of 28 Criterion medians over the limit, the IPv6 `record_error` cost rising
+  to about 0.8 ns with the overflow guard, accepted by the maintainer) and the whole recheck is
+  being repeated on the final code (L-V1 to L-V4).
 
 ## Acceptance Criteria
 
@@ -657,11 +671,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and the after
   measurement meets
   the one-sided pass rule in "Performance Evidence Plan", with the observed noise stated.
-  **Met with a maintainer-accepted deviation:** the load test passes; 9 of 28 Criterion medians
-  exceed their baseline limit, explained in `performance-evidence.md` ("Investigation - Same-Machine
-  Comparison",
-  "Comparison") as the inherent cost of maintaining the counter (about 0.4-0.6 ns per invalid
-  connection ID) or noise in unchanged code.
+  **Met with a maintainer-accepted deviation:** on the final code the load test passes and 5 of 28
+  Criterion medians exceed their baseline limit, explained in `performance-evidence.md` ("Second
+  Investigation - Same-Machine Comparison", "Comparison") as the inherent cost of the counter and
+  the overflow guard (up to about 0.8 ns, or 6%, per invalid connection ID on IPv6), which the
+  maintainer accepted.
 - [x] AC6: The reproduction is repeated after the fix and recorded.
 - [x] AC7: The work done on each invalid-connection-ID event to maintain and read the banned total
   does not grow with the number of tracked IPs (no scan of the per-IP map on the event path).
@@ -722,9 +736,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC2   | DONE   | R2, R3, R4 green and proven; scenario M4 after the fix 0 right after the reset |
 | AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; the new `BanService::get_banned_ips_total` doc comment and the updated `reset_bans` doc in `fix(udp-core): [#2505] count only IPs over the limit as banned` |
 | AC4   | DONE   | `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
-| AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
+| AC5   | DONE (accepted deviation) | `performance-evidence.md` "Final After Run - Final Code" and "Comparison": load test passes; 5 Criterion medians over the limit, accepted by the maintainer |
 | AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
-| AC7   | DONE   | `record_error` after medians flat across 10 to 10,000 tracked IPs; the benchmark task B1 check shows a scan would grow linearly |
+| AC7   | DONE   | `record_error` medians of the final after run flat across 10 to 10,000 tracked IPs; the benchmark task B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
 

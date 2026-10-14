@@ -63,7 +63,12 @@ regression.
 - **The first manual recheck ran before the last production change.** The like-for-like recheck
   ran on the build before `perf(udp-core): [#2505] detect the ban crossing with one comparison`,
   which changed the counting logic, so the independent pre-PR review failed (task review finding B1) and the hour-long
-  recheck was repeated on the final code.
+  recheck was repeated on the build then believed final.
+- **The same mistake recurred after the pull-request review fixes.** Four production commits that
+  answered PR #2524 review findings followed the repeated recheck and the second after measurement,
+  but the evidence still called that build "the final code" (PR #2524 review finding F9 by
+  Cameron). Both the after measurement and the hour-long recheck were redone again. A review fix
+  that changes production code reopens the final verification as much as any other change.
 - **Dependent manual steps ran in parallel.** In the first restart of that repeat, the V2 and V3
   probes were issued as one batch of parallel agent tool calls and ran concurrently, so the run was
   discarded and restarted.
@@ -96,8 +101,10 @@ regression.
 3. In the `write-unit-test` skill's mutate-then-restore step, require confirming that each mutation
    compiled (or reading the full output) before treating "no failing test" as a result.
 4. In evidence-processing commands, use `LC_ALL=C` for `awk`, `printf`, and `sort` on numeric data.
-5. In the `fix-bug` skill, state that the final like-for-like recheck runs after the last production
-   change; if production code changes afterwards, the recheck is repeated.
+5. In the `fix-bug` skill, state that the final like-for-like recheck and the after measurement run
+   after the last production change, including changes made to answer review findings; if
+   production code changes afterwards, both are repeated and the evidence names the build they ran
+   on.
 6. In agent guidance for manual verification, require dependent steps (each starting from the
    state the previous one leaves) to run one at a time, never as parallel tool calls.
 7. In the `commit-changes` skill, run each signed commit as its own step and check its result
