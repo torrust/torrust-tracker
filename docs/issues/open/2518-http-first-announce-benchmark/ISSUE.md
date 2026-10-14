@@ -78,9 +78,10 @@ IP resolution, insertion, or the statistics event.
 - The new context wires the swarm registry's event sender and its statistics listener as
   production does (D4), instead of reusing the shared helper's
   `InMemoryTorrentRepository::default()`, whose registry sends no events.
-- The `RoutineGuard` from issue #2479 on the new benchmark, plus an assertion after the run that
-  the swarm still has exactly `N` peers, so a benchmark whose swarm drifts fails under
-  `cargo test --benches`.
+- The `RoutineGuard` from issue #2479 on the new benchmark, plus maintained assertions after the
+  run: the swarm still has exactly `N` peers, and the swarm metrics count only inserts and
+  removals, no updates (D5). A benchmark whose swarm drifts or whose announces are not first
+  announces fails under `cargo test --benches`.
 - Documentation in `docs/benchmarking.md`: the catalog row, what the benchmark measures and
   excludes, how it relates to the repeat-announce benchmark, and example output.
 
@@ -235,6 +236,44 @@ Discarded option:
   - Cons: it measures less than production does, and it leaves no seam for counting inserts.
   - Why not: the maintainer chose the production-like measurement.
 
+### D5 - Counting Inserts: A Maintained Assertion on the Swarm Metrics
+
+Recorded on 2026-10-14 during the review of PR #2519, in answer to
+`review-finding:pr-2519-f5`. The first draft planned a disposable probe to count inserts against
+updates, justified by "the production code has no public seam reporting insert versus update".
+That was false: `Coordinator::upsert_peer` sends `PeerAdded` or `PeerUpdated`, and with the sender
+wired (D4) the statistics listener counts them in `swarm_coordination_registry_peers_added_total`,
+`swarm_coordination_registry_peers_updated_total`, and
+`swarm_coordination_registry_peers_removed_total`, readable through the swarm statistics
+`Repository::get_metrics`.
+
+**Chosen: a maintained assertion.** After the run, outside the measured time, the benchmark waits
+with a bounded deadline for the listener to process the queued events, then asserts that:
+
+- peers added equals the pre-filled peers plus every first announce the context made, timed or
+  not;
+- peers removed equals the departures the context made; and
+- peers updated is 0.
+
+The context counts its own announces; the `RoutineGuard` counts the timed ones. Before measurement,
+the context also makes one first announce outside the measured time and asserts that its response
+holds `min(N, 74)` peers, so the peer-list size is checked by maintained code too.
+
+- Pros:
+  - It runs on every `cargo test --benches` in the pre-push hook and CI, not once by hand.
+  - It uses only seams production already has, and adds no work to the measured announce.
+- Cons:
+  - More benchmark code, and a bounded wait for an asynchronous listener after the run.
+- Why it was chosen: a check that runs forever beats one that runs once, and the seam exists.
+
+Discarded option:
+
+- **Keep the disposable probe and give it a true rationale** (a counting sender in the timed path
+  would add work production does not do).
+  - Pros: no maintained code beyond the swarm-size assertion.
+  - Cons: the insert count would be checked once by hand and never again.
+  - Why not: the maintainer chose the maintained assertion.
+
 ## Architectural Decisions
 
 - Related ADRs: none.
@@ -258,12 +297,12 @@ assertion) run under `cargo test --benches` in the pre-push hook and CI.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                                                                                                                                                                                         |
-| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its guards (the `RoutineGuard` and the swarm-size assertion) are seen to fail under a deliberate mutation, for example removal skipped. Design review recorded. |
-| T2  | TODO   | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                 |
-| T3  | TODO   | Maintainer review of the benchmark        | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                                                                                                            |
-| T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated, including replacing the closing sentence of "HTTP announce microbenchmark", which still suggests "a bounded rotating pool of peers" (D1, option E), with a pointer to the new benchmark; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its maintained checks (the `RoutineGuard`, the swarm-size assertion, and the swarm-metrics and response-size assertions of D5) are each seen to fail under a deliberate mutation. Design review recorded. |
+| T2  | TODO   | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                                                           |
+| T3  | TODO   | Maintainer review of the benchmark        | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                                                                                                                                                      |
+| T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated, including replacing the closing sentence of "HTTP announce microbenchmark", which still suggests "a bounded rotating pool of peers" (D1, option E), with a pointer to the new benchmark; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                                                          |
 
 ## Commit Points
 
@@ -328,6 +367,10 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
       other, never with `announce_once`, which is measured differently (D1).
 - [ ] AC5: `docs/benchmarking.md` lists and explains the benchmark, including what its timing
       includes (the per-iteration clock reads, D1) and why the discarded options were not used.
+- [ ] AC6: After the run, the benchmark asserts from the swarm statistics metrics that every
+      announce the context made was an insert or a removal, with no updates, and that the first
+      announce made before measurement returned `min(N, 74)` peers (D5). Each assertion is shown to fail under a
+      deliberate mutation, for example announcing the same new peer twice.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -348,26 +391,27 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                   | Human-oriented command/steps                                                                                                                                                                                                                                                                                                                                                                                         | Expected Result                                                                                                                                                                     | Status | Evidence                                     |
 | --- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Each iteration is a first announce         | Run `cargo bench` with a temporary probe that counts inserts versus updates in the timed announces and prints the response peer count                                                                                                                                                                                                                                                                                | Every timed announce inserts a new peer; the response holds `min(N, 74)` peers; the swarm holds `N` after the run                                                                   | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Each iteration is a first announce         | Run `cargo test -p torrust-tracker-http-core --bench http_tracker_core_benchmark` and `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark`; then, without staging, apply each mutation (the same new peer announced twice; the departure skipped), rerun `cargo test`, record the failure, and restore                                                                                     | Both runs without a mutation pass all assertions (D5); each mutation fails with a message naming the benchmark, the swarm size, and the counted inserts, updates, removals, or swarm size    | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Results are stable and ordered as expected | Run `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark` three times. Before each run, record `uptime`. Immediately after each run, before the next one, read the median of every swarm size from `target/criterion/http_tracker_first_announce/<N>/new/estimates.json`, because Criterion overwrites that file on every run (`docs/benchmarking.md`, Recording Before-and-After Evidence) | A table with three medians per swarm size, the load average of each run, and the toolchain (`rustc --version`); the run-to-run variation per size is stated; the medians follow AC4 | TODO   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
-- **Insert-versus-update probe (M1).** A temporary edit of the benchmark helpers, in Rust, that
-  counts inserts and updates and prints them. It is recorded verbatim in
-  `manual-verification-evidence.md` and reverted after the run. It is not a maintained test
-  because the production code has no public seam reporting insert versus update; the maintained
-  swarm-size assertion covers the durable invariant.
+None planned. The first draft planned an insert-versus-update probe, justified by a missing public
+seam; that seam exists, so the checks it would have made are maintained assertions (D5). The only
+possible temporary variant is the drain-wait measurement in Risks, used only if the removal leak
+proves material; it would be recorded verbatim in `manual-verification-evidence.md` and reverted,
+because it measures a one-off question rather than a durable invariant.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                   |
-| ----- | ---------------------- | ------------------------------------------ |
-| AC1   | TODO                   | `cargo bench` output, M1                   |
-| AC2   | TODO                   | Swarm-size assertion mutation run          |
-| AC3   | TODO                   | `RoutineGuard` mutation run                |
-| AC4   | TODO                   | M2                                         |
-| AC5   | TODO                   | `docs/benchmarking.md` diff                |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                    |
+| ----- | ---------------------- | ----------------------------------------------------------- |
+| AC1   | TODO                   | `cargo bench` output, M1, M2                                |
+| AC2   | TODO                   | Swarm-size assertion mutation run                           |
+| AC3   | TODO                   | `RoutineGuard` mutation run                                 |
+| AC4   | TODO                   | M2                                                          |
+| AC5   | TODO                   | `docs/benchmarking.md` diff                                 |
+| AC6   | TODO                   | Swarm-metrics and response-size assertion mutation runs, M1 |
 
 ## Risks and Trade-offs
 
