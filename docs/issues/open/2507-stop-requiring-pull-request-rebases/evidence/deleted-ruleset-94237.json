@@ -1,0 +1,61 @@
+{
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "exclude": ["refs/heads/dependabot/**/*", "refs/heads/staging/**/*"],
+      "include": ["~ALL"]
+    }
+  },
+  "created_at": "2023-09-18T13:41:05.414+01:00",
+  "enforcement": "disabled",
+  "id": 94237,
+  "name": "(branches) [ * ; ! dependabot, ! staging ] Deny Force Push; Require Status Checks",
+  "rules": [
+    { "type": "non_fast_forward" },
+    {
+      "parameters": {
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          { "context": "Formatting", "integration_id": 15368 },
+          { "context": "Units (nightly)", "integration_id": 15368 },
+          { "context": "E2E (nightly)", "integration_id": 15368 },
+          { "context": "Test (Docker) (debug)", "integration_id": 15368 },
+          { "context": "Test (Docker) (release)", "integration_id": 15368 },
+          { "context": "Units (stable)", "integration_id": 15368 },
+          { "context": "E2E (stable)", "integration_id": 15368 },
+          { "context": "Unit (nightly)", "integration_id": 15368 },
+          { "context": "Unit (stable)", "integration_id": 15368 },
+          { "context": "Docker E2E", "integration_id": 15368 },
+          {
+            "context": "Build on macos-latest (nightly)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Build on macos-latest (stable)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Build on ubuntu-latest (nightly)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Build on ubuntu-latest (stable)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Build on windows-latest (nightly)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Build on windows-latest (stable)",
+            "integration_id": 15368
+          }
+        ],
+        "strict_required_status_checks_policy": true
+      },
+      "type": "required_status_checks"
+    }
+  ],
+  "target": "branch",
+  "updated_at": "2026-07-20T10:35:05.778+01:00"
+}

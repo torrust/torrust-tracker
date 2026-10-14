@@ -28,8 +28,9 @@ No package owns it.
 For years the project has rebased every pull request onto the latest `develop` before merging it.
 The rule was never recorded as a decision. It appears only as workflow instructions: the
 `open-pull-request` skill requires a rebase before every push, the `merge-pull-request` skill
-requires one immediately before merging, and since PR #2229 the vendored `github-merge.py` refuses
-to merge when GitHub's pull-request merge ref is not based on the current `develop` tip. GitHub
+requires one immediately before merging, and from PR #2229 until issue #2507 the vendored
+`github-merge.py` refused to merge when GitHub's pull-request merge ref was not based on the current
+`develop` tip. GitHub
 itself enforced up-to-date branches through ruleset 94237 from 2023, but that ruleset has been
 disabled since 2026-05-05 because its required checks could no longer be satisfied. The implicit
 motivation was a history in which each change appears to be built on top of the previous one, and,
@@ -59,10 +60,14 @@ already lists exactly one merge per pull request in merge order regardless of wh
 rebased.
 
 There is one real technical constraint. `github-merge.py` pushes a locally signed merge commit, and
-GitHub's `pull_request` ruleset accepts it only when `refs/pull/<n>/merge` is computed against the
-current `develop` tip. GitHub does not reliably recompute that ref after `develop` advances through
-locally pushed merges (observed stale for at least 48 minutes on 2026-10-13), so today a push to the
-pull-request head is what refreshes it.
+GitHub's `pull_request` ruleset accepts that push only when the pull request's recorded base
+(`base.sha` in the API) equals the current `develop` tip. GitHub records that base when the pull
+request is opened, its head is pushed, or its base is edited, but not reliably when `develop`
+advances through locally pushed merges. This ADR originally named the freshness of
+`refs/pull/<n>/merge` as the condition; the sandbox experiment of the implementing issue showed that
+pushes are accepted with a stale merge ref and rejected with a stale `base.sha`
+([evidence](../issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md),
+sections T1 and T5).
 
 Evidence and reproduction commands: issue-local
 [`baseline-evidence.md`](../issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
@@ -89,16 +94,17 @@ A pull request **must** be rebased or otherwise updated only when:
 2. **Dependency.** It needs a change that landed on `develop` after it was opened, or a reviewer
    shows that the combination with newer `develop` changes must be tested before merge (for example
    both touch the same Rust module or CI workflow).
-3. **Merge precondition.** The maintainer merge tool cannot merge it without a refreshed GitHub
-   merge ref (see below).
+3. **Merge precondition.** The pull request's recorded base is stale and the maintainer merge
+   tool's own refresh is unavailable (see below).
 
 Merge workflow requirements:
 
-- The merge tool keeps refusing to sign or push a merge built on a stale GitHub merge ref. Its
-  recovery instructions offer the least disruptive refresh first: a refresh that changes no branch
-  commit, then GitHub's "Update branch" (a merge commit from `develop`, signed by GitHub, which
-  keeps existing commit ids), and a rebase as an alternative. The concrete mechanism is chosen by
-  the experiment in the implementing issue and recorded in the `merge-pull-request` skill.
+- The merge tool refuses to sign or push a merge while the pull request's recorded base is not the
+  current `develop` tip. It refreshes that base itself with a no-op base edit (setting the pull
+  request's base to `develop` again), which adds no commit, timeline event, or CI run. When that
+  refresh is unavailable, its recovery instructions name the same edit as a command, then GitHub's
+  "Update branch" (a merge commit from `develop`, signed by GitHub, which keeps existing commit
+  ids), and a rebase as alternatives.
 - Review records may cite pull-request commit ids. Without mandatory rebases those ids usually stay
   valid and, because merges are `--no-ff`, remain reachable from `develop` after merge. Existing
   "cite by subject" guidance remains a safe default because rebases still happen.
@@ -116,15 +122,15 @@ Transition: this recommendation applies as soon as this ADR is merged. The pull 
 this ADR also updates the `open-pull-request` and `merge-pull-request` skills and `AGENTS.md`, so no
 workflow instruction keeps the old mandatory rule. Until the implementing issue changes the merge
 tool, a behind pull request still needs a head push (rebase or "Update branch") when the tool
-reports a stale merge base.
+refuses it as stale.
 
 ### Alternatives Considered
 
 | Option                                                 | Pros                                                                                                                                                                                                                                      | Cons                                                                                                                                                                                                                   |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **A. Keep always-rebase** (status quo)                 | Every merge is tested exactly as it lands; tidy full graph; no workflow or tool changes; merge tool already works this way.                                                                                                               | Cost grows with queue length (each merge forces N rebases and N CI reruns); rewritten ids break review evidence; approvals dismissed; merges serialize; rule contradicts `AGENTS.md`; no recorded rationale behind it. |
-| **B. Never rebase, merge whatever GitHub accepts**     | Simplest rule; no CI reruns; ids always stable.                                                                                                                                                                                           | Blocked by the merge tool's ruleset interaction (stale merge refs cause `GH013`); conflicting PRs still need updates; no way to request integration testing for risky overlaps.                                        |
-| **C. Recommend, do not require** (chosen)              | Removes mandatory rebases and most CI reruns; keeps early detection whenever a rebase is cheap; ids cited in reviews usually stay valid; approvals survive; required updates remain for conflicts, dependencies, and merge preconditions. | Some combinations of PRs are first tested together on `develop` after merge; full graph shows overlapping merge bubbles; merge tool, skills, and rulesets must change; needs a reliable merge-ref refresh.             |
+| **B. Never rebase, merge whatever GitHub accepts**     | Simplest rule; no CI reruns; ids always stable.                                                                                                                                                                                           | Blocked by the ruleset interaction: GitHub rejects the merge push with `GH013` while the recorded base is stale; conflicting PRs still need updates; no way to request integration testing for risky overlaps.         |
+| **C. Recommend, do not require** (chosen)              | Removes mandatory rebases and most CI reruns; keeps early detection whenever a rebase is cheap; ids cited in reviews usually stay valid; approvals survive; required updates remain for conflicts, dependencies, and merge preconditions. | Some combinations of PRs are first tested together on `develop` after merge; full graph shows overlapping merge bubbles; merge tool, skills, and rulesets must change; needs a reliable refresh of the recorded base.  |
 | **D. Merge queue / GitHub-side merge**                 | GitHub batches and tests merges automatically.                                                                                                                                                                                            | Loses maintainer-signed merges with `Tree-SHA512` and review ACKs that `github-merge.py` provides; merge queue needs organization-level features; larger process change than the problem needs.                        |
 | **E. Merge `develop` into PR branches as the routine** | No id rewrite; GitHub "Update branch" does it in one click; GitHub signs the merge commit.                                                                                                                                                | Adds merge commits from `develop` to every PR; still reruns CI per update if done routinely. Accepted as a merge-time refresh, not as a routine.                                                                       |
 

@@ -29,6 +29,8 @@ from urllib.error import HTTPError
 
 # External tools (can be overridden using environment)
 GIT = os.getenv('GIT','git')
+GH = os.getenv('GH','gh')
+GH_TIMEOUT_SECONDS = 60
 SHELL = os.getenv('SHELL','bash')
 
 # OS specific configuration for terminal attributes
@@ -38,7 +40,7 @@ ATTR_NAME = ''
 ATTR_WARN = ''
 ATTR_HL = ''
 COMMIT_FORMAT = '%H %s (%an)%d'
-EXIT_STALE_MERGE_BASE = 4
+EXIT_STALE_PULL_REQUEST_BASE = 4
 if os.name == 'posix': # if posix, assume we can use basic terminal escapes
     ATTR_RESET = '\033[0m'
     ATTR_PR = '\033[1;36m'
@@ -157,6 +159,58 @@ def retrieve_pr_comments(repo,pull,ghtoken):
 def retrieve_pr_reviews(repo,pull,ghtoken):
     req_url = "https://api.github.com/repos/"+repo+"/pulls/"+pull+"/reviews"
     return retrieve_json(req_url,ghtoken,use_pagination=True)
+
+def refresh_pr_base(repo, pull, branch):
+    '''
+    Ask GitHub to record the target tip as the pull request's base, and return the recorded base.
+
+    GitHub accepts a maintainer's pushed merge only while the pull request's recorded base
+    (`base.sha`) is the target tip, and it does not reliably update that record when the target
+    advances. Setting the base to the branch it already targets refreshes the record without a
+    commit, a timeline event, or a CI run. The response carries the refreshed record, so no second,
+    possibly cached, read is needed. Returns None when the edit cannot be made.
+    '''
+    try:
+        response = subprocess.run([GH,'api','-X','PATCH','repos/'+repo+'/pulls/'+pull,'-f','base='+branch],
+                                  check=True, capture_output=True, timeout=GH_TIMEOUT_SECONDS)
+        recorded_base = json.loads(response.stdout)['base']['sha']
+    except subprocess.TimeoutExpired:
+        print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: gh timed out after {GH_TIMEOUT_SECONDS} s.', file=stderr)
+        return None
+    except subprocess.CalledProcessError as e:
+        reason = sanitize(e.stderr.decode('utf-8', errors='replace'), newlines=True).strip() if e.stderr else str(e)
+        print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: {reason}', file=stderr)
+        return None
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: {e}', file=stderr)
+        return None
+    if not isinstance(recorded_base, str) or re.fullmatch('[0-9a-f]{40}', recorded_base) is None:
+        print(f'Warning: GitHub returned an invalid base for pull request {repo}#{pull}.', file=stderr)
+        return None
+    return recorded_base
+
+def require_current_recorded_base(repo, pull, branch, recorded_ref, recorded_base, current_base):
+    '''
+    Exit before any merge is built unless GitHub records the pull request as targeting `branch`
+    and as based on its tip. The target is checked first: for a pull request that targets another
+    branch, the base edit below would retarget it instead of refreshing it.
+    '''
+    pull_reference = repo + '#' + pull
+    if recorded_ref != branch:
+        print(f"ERROR: {pull_reference} targets '{recorded_ref}', not '{branch}'. Refusing to merge it into '{branch}' or to edit its base.", file=stderr)
+        sys.exit(EXIT_STALE_PULL_REQUEST_BASE)
+    if recorded_base == current_base:
+        return
+    print(f"GitHub records {pull_reference} as based on {recorded_base}, but {branch} is at {current_base}; refreshing the recorded base.", file=stderr)
+    refreshed_base = refresh_pr_base(repo, pull, branch)
+    if refreshed_base == current_base:
+        print(f"Refreshed the recorded base of {pull_reference} to {current_base}.", file=stderr)
+        return
+    print(f"ERROR: GitHub records {pull_reference} as based on {refreshed_base or recorded_base or 'an unknown commit'}, but {branch} is at {current_base}.", file=stderr)
+    print("GitHub rejects the pushed merge until the recorded base is the target tip. Refresh it with", file=stderr)
+    print(f"  gh api -X PATCH repos/{repo}/pulls/{pull} -f base={branch}", file=stderr)
+    print(f"or update the pull request branch (GitHub's \"Update branch\" or a rebase onto {branch}), fetch {branch} again, then retry.", file=stderr)
+    sys.exit(EXIT_STALE_PULL_REQUEST_BASE)
 
 def ask_prompt(text):
     print(text,end=" ",file=stderr)
@@ -623,12 +677,12 @@ def main():
     except subprocess.CalledProcessError:
         print(f"ERROR: Cannot find merge of pull request {pull_reference} on {host_repo_from}.", file=stderr)
         sys.exit(3)
-    github_merge_base = subprocess.check_output([GIT,'rev-parse',merge_branch+'^1']).decode('utf-8').strip()
     current_base = subprocess.check_output([GIT,'rev-parse',base_branch]).decode('utf-8').strip()
-    if github_merge_base != current_base:
-        print(f"ERROR: GitHub's merge for {pull_reference} is based on {github_merge_base}, but {branch} is at {current_base}.", file=stderr)
-        print(f"Rebase the pull request branch onto {branch}, push it, wait for GitHub to recompute the merge, then retry.", file=stderr)
-        sys.exit(EXIT_STALE_MERGE_BASE)
+    require_current_recorded_base(repo_from, pull, branch, info['base'].get('ref'), info['base'].get('sha'), current_base)
+    # GitHub recomputes its own merge only on some pull-request events, so it can be based on an
+    # older target tip even when the recorded base is current. Compare with it only when it is not.
+    github_merge_base = subprocess.check_output([GIT,'rev-parse',merge_branch+'^1']).decode('utf-8').strip()
+    github_merge_is_current = github_merge_base == current_base
     subprocess.check_call([GIT,'checkout','-q',base_branch])
     subprocess.call([GIT,'branch','-q','-D',local_merge_branch], stderr=devnull)
     subprocess.check_call([GIT,'checkout','-q','-b',local_merge_branch])
@@ -682,7 +736,11 @@ def main():
                 sys.exit(5)
 
             # Show the created merge.
-            diff = subprocess.check_output([GIT,'diff',merge_branch+'..'+local_merge_branch])
+            if github_merge_is_current:
+                diff = subprocess.check_output([GIT,'diff',merge_branch+'..'+local_merge_branch])
+            else:
+                print(f"Not comparing with GitHub's merge: it is based on {github_merge_base}, not on {current_base}.", file=stderr)
+                diff = b''
             subprocess.check_call([GIT,'diff',base_branch+'..'+local_merge_branch])
             if diff:
                 print("WARNING: merge differs from github!",file=stderr)

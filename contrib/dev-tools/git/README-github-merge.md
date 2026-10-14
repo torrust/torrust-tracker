@@ -17,11 +17,34 @@ and recovery steps, follow the canonical
 The tool is intentionally not a replacement for maintainer review or explicit approval to sign
 and push.
 
+## Recorded Pull-Request Base
+
+GitHub accepts the maintainer's pushed merge only while the pull request's recorded base
+(`base.sha` in the API) is the current tip of the target branch. GitHub does not reliably update
+that record when the target branch advances through other merges, and its own test merge
+(`refs/pull/<n>/merge`) is not the condition: issue #2507 measured both in a sandbox.
+
+Before building the merge, the tool refuses a pull request that GitHub records as targeting another
+branch than the merge target, without editing it: a base edit would change such a pull request's target.
+It then compares the recorded base with the fetched target tip. When it is stale, the tool refreshes it with a no-op base edit, which needs an authenticated GitHub CLI
+(`gh`):
+
+```sh
+gh api -X PATCH repos/torrust/torrust-tracker/pulls/<pull-request-number> -f base=develop
+```
+
+The edit sets the base to the branch the pull request already targets. It adds no commit, timeline
+event, or CI run, and it does not rewrite the reviewed commits, so the pull request does not need a
+rebase. If the edit fails or the recorded base is still stale, the tool exits with code `4` before
+building the merge and prints that command; GitHub's "Update branch" or a rebase are the
+alternatives. When GitHub's own test merge is based on an older tip, the tool skips its "merge
+differs from github" comparison and says so.
+
 ## Push Failure Troubleshooting
 
 The tool creates and signs a local merge before its final upstream push. A failure at that final
-step does not mean the pull request needs a rebase: the stale-base check ran before the local merge
-was constructed. Preserve the signed local result, fetch the upstream remote, and inspect the pull
+step does not mean the pull request needs a rebase: the recorded-base check ran before the local
+merge was constructed. Preserve the signed local result, fetch the upstream remote, and inspect the pull
 request before deciding whether anything must be retried.
 
 Use the repository-local wrapper rather than an external `github-merge.py` copy or alias. The

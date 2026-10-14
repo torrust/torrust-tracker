@@ -7,12 +7,16 @@ upstream holds the target branch and the pull request's refs the way a forge pub
 a URL rewrite points the tool's fetch at it, so the real fetch and merge paths run with no
 network and no GitHub API.
 
-A driver script imports the tool, replaces the three functions that talk to the GitHub API with
-fixture data, and calls main(). Every prompt after the symbolic-link check is answered with 'x',
+A driver script imports the tool, replaces the four functions that talk to the GitHub API with
+fixture data, and calls main(). The pull request's recorded base and the outcome of a base refresh
+live in a small JSON state file, so a test can make the recorded base stale and observe whether the
+tool refreshed it. Every prompt after the symbolic-link check is answered with 'x',
 so a run that passes the check stops at the signing prompt and exits 1, while a run the check
 refuses exits 4. The two codes are what the tests distinguish, together with the output text.
 """
 
+import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -45,17 +49,45 @@ Everything else, including the symbolic-link check under test, is the tool's own
 """
 
 import importlib.util
+import json
+import os
 import sys
 
 specification = importlib.util.spec_from_file_location('vendored_github_merge', sys.argv[1])
 tool = importlib.util.module_from_spec(specification)
 specification.loader.exec_module(tool)
 
-tool.retrieve_pr_info = lambda repository, pull, token: {
-    'title': 'Fixture pull request',
-    'body': 'Fixture pull request body',
-    'base': {'ref': 'develop'},
-}
+STATE = os.environ['FIXTURE_PULL_REQUEST_STATE']
+
+
+def load_state():
+    with open(STATE, encoding='utf-8') as state_file:
+        return json.load(state_file)
+
+
+def retrieve_pr_info(repository, pull, token):
+    return {
+        'title': 'Fixture pull request',
+        'body': 'Fixture pull request body',
+        'base': {'ref': load_state()['recorded_ref'], 'sha': load_state()['recorded_base']},
+    }
+
+
+def refresh_pr_base(repository, pull, branch):
+    """Stand in for the forge's base edit: record the call and apply the configured outcome."""
+    state = load_state()
+    state['refresh_calls'].append([repository, pull, branch])
+    if state['refresh_outcome'] == 'records-target-tip':
+        state['recorded_base'] = state['target_tip']
+    with open(STATE, 'w', encoding='utf-8') as state_file:
+        json.dump(state, state_file)
+    if state['refresh_outcome'] == 'fails':
+        return None
+    return state['recorded_base']
+
+
+tool.retrieve_pr_info = retrieve_pr_info
+tool.refresh_pr_base = refresh_pr_base
 tool.retrieve_pr_comments = lambda repository, pull, token: []
 tool.retrieve_pr_reviews = lambda repository, pull, token: []
 
@@ -122,6 +154,7 @@ class MergeFixture:
         self.root = Path(root)
         self.driver = Path(driver)
         self.upstream = self.root.parent / 'upstream.git'
+        self.pull_request_state = self.root.parent / 'pull-request.json'
         self.git('init', '--quiet', f'--initial-branch={TARGET_BRANCH}')
         self.git('init', '--quiet', '--bare', str(self.upstream))
         self.git('config', 'user.name', 'Merge workflow test')
@@ -147,6 +180,7 @@ class MergeFixture:
         # With no githubmerge.testcmd configured the tool opens an inspection shell before the
         # signing prompt. A shell that exits immediately keeps the run non-interactive.
         environment['SHELL'] = '/bin/true'
+        environment['FIXTURE_PULL_REQUEST_STATE'] = str(self.pull_request_state)
         return environment
 
     def git(self, *arguments):
@@ -186,8 +220,23 @@ class MergeFixture:
     def checkout(self, name):
         self.git('checkout', '--quiet', name)
 
-    def publish_pull_request(self, head_commit, merge_commit=None):
-        """Publish the target branch and the pull request's refs the way the forge exposes them."""
+    def publish_pull_request(self, head_commit, merge_commit=None, recorded_base=None,
+                             refresh_outcome='records-target-tip', recorded_ref=TARGET_BRANCH):
+        """Publish the target branch and the pull request's refs the way the forge exposes them.
+
+        The forge also records the pull request's base: the target tip unless `recorded_base`
+        names an older commit, and the branch the pull request targets, `recorded_ref`.
+        `refresh_outcome` is what a base refresh does to that record: 'records-target-tip',
+        'leaves-it-unchanged', or 'fails'.
+        """
+        target_tip = self.git('rev-parse', TARGET_BRANCH).strip()
+        self.pull_request_state.write_text(json.dumps({
+            'recorded_base': recorded_base or target_tip,
+            'recorded_ref': recorded_ref,
+            'target_tip': target_tip,
+            'refresh_outcome': refresh_outcome,
+            'refresh_calls': [],
+        }), encoding='utf-8')
         if merge_commit is None:
             base_commit = self.git('rev-parse', TARGET_BRANCH).strip()
             merge_tree = self.git('merge-tree', '--write-tree', base_commit, head_commit).strip()
@@ -197,6 +246,10 @@ class MergeFixture:
                  f'+{TARGET_BRANCH}:refs/heads/{TARGET_BRANCH}',
                  f'+{head_commit}:refs/pull/{PULL_REQUEST}/head',
                  f'+{merge_commit}:refs/pull/{PULL_REQUEST}/merge')
+
+    def base_refresh_calls(self):
+        """The (repository, pull request, branch) triples of every base refresh the tool asked for."""
+        return json.loads(self.pull_request_state.read_text(encoding='utf-8'))['refresh_calls']
 
     def merge(self, *arguments, answer='x\n'):
         return subprocess.run(
@@ -906,30 +959,215 @@ class ReportRenderingTest(SymlinkDeclarationTestCase):
         self.assertNotIn('\nERROR: File forged', result.stdout)
 
 
-class StalePullRequestBaseTest(SymlinkDeclarationTestCase):
+class RecordedPullRequestBaseTest(SymlinkDeclarationTestCase):
+    """The forge accepts the pushed merge only while the pull request's recorded base is the target
+    tip, so the tool checks that record, refreshes it when stale, and refuses when it cannot."""
 
-    def it_should_refuse_a_pull_request_whose_github_merge_has_a_stale_base(self):
-        # Arrange
+    def open_pull_request_behind_the_target_branch(self):
+        """A pull request whose head and GitHub merge predate a later target-branch commit.
+
+        Returns the head commit, GitHub's stale merge, and the target tip before the advance.
+        """
         self.open_pull_request()
         self.fixture.write('feature.md', 'pull request change\n')
         head_commit = self.fixture.commit('Change from pull request')
         self.fixture.checkout(TARGET_BRANCH)
+        base_when_opened = self.fixture.git('rev-parse', 'HEAD').strip()
         self.fixture.branch('github-merge')
         self.fixture.git('merge', '--quiet', '--no-ff', '--no-gpg-sign', '-m',
                          'GitHub pull request merge', head_commit)
-        github_merge = self.fixture.git('rev-parse', 'HEAD').strip()
+        stale_github_merge = self.fixture.git('rev-parse', 'HEAD').strip()
         self.fixture.checkout(TARGET_BRANCH)
         self.fixture.write('base.md', 'new target branch change\n')
         self.fixture.commit('Advance target branch')
-        self.fixture.publish_pull_request(head_commit, github_merge)
+        return head_commit, stale_github_merge, base_when_opened
+
+    def it_should_merge_without_a_refresh_when_the_recorded_base_is_current_despite_a_stale_github_merge(self):
+        # Arrange
+        head_commit, stale_github_merge, _ = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertEqual(self.fixture.base_refresh_calls(), [])
+
+    def it_should_refresh_a_stale_recorded_base_and_continue_to_the_merge(self):
+        # Arrange
+        head_commit, stale_github_merge, base_when_opened = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge,
+                                          recorded_base=base_when_opened)
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertEqual(self.fixture.base_refresh_calls(),
+                         [[FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH]])
+        self.assertIn('Refreshed the recorded base of torrust/torrust-tracker#2175', result.stderr)
+
+    def it_should_refuse_with_the_manual_refresh_command_when_the_base_refresh_fails(self):
+        # Arrange
+        head_commit, stale_github_merge, base_when_opened = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge,
+                                          recorded_base=base_when_opened, refresh_outcome='fails')
 
         # Act
         result = self.fixture.merge('--symlinks', DECLARATION)
 
         # Assert
         self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
-        self.assertIn("GitHub's merge for torrust/torrust-tracker#2175 is based on", result.stderr)
-        self.assertIn('Rebase the pull request branch onto develop', result.stderr)
+        self.assertIn(f'GitHub records torrust/torrust-tracker#2175 as based on {base_when_opened}',
+                      result.stderr)
+        self.assertIn('gh api -X PATCH repos/torrust/torrust-tracker/pulls/2175 -f base=develop',
+                      result.stderr)
+
+    def it_should_refuse_when_the_recorded_base_is_still_stale_after_the_refresh(self):
+        # Arrange
+        head_commit, stale_github_merge, base_when_opened = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge,
+                                          recorded_base=base_when_opened,
+                                          refresh_outcome='leaves-it-unchanged')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertEqual(len(self.fixture.base_refresh_calls()), 1)
+        self.assertIn(f'GitHub records torrust/torrust-tracker#2175 as based on {base_when_opened}',
+                      result.stderr)
+
+    def it_should_refuse_without_editing_a_pull_request_that_targets_another_branch(self):
+        # A base edit to the merge target would change such a pull request's target instead of refreshing it.
+
+        # Arrange
+        head_commit, stale_github_merge, base_when_opened = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge,
+                                          recorded_base=base_when_opened, recorded_ref='main')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertEqual(self.fixture.base_refresh_calls(), [])
+        self.assertIn("ERROR: torrust/torrust-tracker#2175 targets 'main', not 'develop'", result.stderr)
+
+    def it_should_refuse_a_pull_request_that_targets_another_branch_even_with_a_current_base(self):
+        # Arrange
+        head_commit, stale_github_merge, _ = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge, recorded_ref='main')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertEqual(result.returncode, EXIT_REFUSED, result.stdout + result.stderr)
+        self.assertIn("ERROR: torrust/torrust-tracker#2175 targets 'main', not 'develop'", result.stderr)
+
+    def it_should_skip_the_github_merge_comparison_when_that_merge_has_a_stale_base(self):
+        # Arrange
+        head_commit, stale_github_merge, _ = self.open_pull_request_behind_the_target_branch()
+        self.fixture.publish_pull_request(head_commit, stale_github_merge)
+        self.fixture.git('config', 'githubmerge.testcmd', 'true')
+
+        # Act
+        result = self.fixture.merge('--symlinks', DECLARATION)
+
+        # Assert
+        self.assertReachedSigning(result)
+        self.assertNotIn('merge differs from github', result.stderr)
+        self.assertIn("Not comparing with GitHub's merge", result.stderr)
+
+
+def load_merge_tool():
+    """Import the vendored tool as a module, without running it.
+
+    No bytecode is written, because a cache directory next to the tool would leave the working
+    tree dirty, which the merge workflow itself refuses to run on.
+    """
+    sys.dont_write_bytecode = True
+    specification = importlib.util.spec_from_file_location('vendored_github_merge', MERGE_TOOL)
+    tool = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(tool)
+    return tool
+
+
+class BaseRefreshRequestTest(unittest.TestCase):
+    """The base refresh is one `gh api` edit of the pull request; a fake `gh` records its call."""
+
+    def setUp(self):
+        self.temporary_directory = tempfile.TemporaryDirectory(prefix='test-github-merge-refresh.')
+        self.addCleanup(self.temporary_directory.cleanup)
+        self.directory = Path(self.temporary_directory.name)
+        self.tool = load_merge_tool()
+
+    def install_fake_gh(self, script):
+        """Install a fake `gh` running the given shell script, and capture the tool's stderr."""
+        fake_gh = self.directory / 'gh'
+        fake_gh.write_text('#!/bin/sh\n' + script, encoding='utf-8')
+        fake_gh.chmod(0o755)
+        self.tool.GH = str(fake_gh)
+        self.tool.stderr = self.reported = io.StringIO()
+
+    def fake_gh_answering(self, response):
+        """Install a fake `gh` that records its arguments and prints `response`."""
+        arguments_file = self.directory / 'gh-arguments'
+        self.install_fake_gh(f'printf \'%s\\n\' "$@" > {arguments_file}\n'
+                             f'cat <<\'EOF\'\n{response}\nEOF\n')
+        return arguments_file
+
+    def it_should_edit_the_pull_request_base_to_its_own_branch_and_return_the_recorded_base(self):
+        # Arrange
+        refreshed_base = 'a' * 40
+        arguments_file = self.fake_gh_answering(json.dumps({'base': {'sha': refreshed_base}}))
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertEqual(recorded_base, refreshed_base)
+        self.assertEqual(arguments_file.read_text(encoding='utf-8').split('\n')[:-1],
+                         ['api', '-X', 'PATCH', 'repos/torrust/torrust-tracker/pulls/2175',
+                          '-f', 'base=develop'])
+
+    def it_should_return_no_base_when_the_response_carries_no_commit_id(self):
+        # Arrange
+        self.fake_gh_answering(json.dumps({'base': {'sha': 'not a commit id'}}))
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertIsNone(recorded_base)
+
+
+    def it_should_report_the_reason_gh_gives_when_the_edit_fails(self):
+        # Arrange
+        self.install_fake_gh('echo "HTTP 403: Must have admin rights to Repository." >&2\nexit 1\n')
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertIsNone(recorded_base)
+        self.assertIn('HTTP 403: Must have admin rights to Repository.', self.reported.getvalue())
+
+    def it_should_give_up_when_gh_does_not_answer_in_time(self):
+        # Arrange
+        self.install_fake_gh('exec sleep 30\n')
+        self.tool.GH_TIMEOUT_SECONDS = 1
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertIsNone(recorded_base)
+        self.assertIn('timed out', self.reported.getvalue())
 
 
 class DeclarationArgumentTest(SymlinkDeclarationTestCase):
@@ -967,7 +1205,7 @@ def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
     for case in (DeclaredLinksTest, DeclarationSourceTest, DeclarationHeaderTest,
                  DeclarationConstantTest, CheckedRangeTest, ReportRenderingTest,
-                 StalePullRequestBaseTest, DeclarationArgumentTest):
+                 RecordedPullRequestBaseTest, BaseRefreshRequestTest, DeclarationArgumentTest):
         suite.addTests(loader.loadTestsFromTestCase(case))
     return suite
 

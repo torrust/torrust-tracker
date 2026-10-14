@@ -1,0 +1,21 @@
+{
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": { "exclude": [], "include": ["~DEFAULT_BRANCH"] }
+  },
+  "created_at": "2026-07-20T19:00:26.148+01:00",
+  "enforcement": "disabled",
+  "id": 19245352,
+  "name": "Code Quality Copilot review for default branch",
+  "rules": [
+    {
+      "parameters": {
+        "review_draft_pull_requests": true,
+        "review_on_push": true
+      },
+      "type": "copilot_code_review"
+    }
+  ],
+  "target": "branch",
+  "updated_at": "2026-08-05T12:06:53.436+01:00"
+}
