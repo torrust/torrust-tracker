@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: null
-last-updated-utc: "2026-10-14 13:00"
+last-updated-utc: "2026-10-14 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Make `stats` private in `udp-server`                | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
 | T4  | DONE   | Make `stats` private in `http-core`                   | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
 | T5  | DONE   | Make `stats` private in `tracker-core`                 | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
-| T6  | TODO   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-swarm-coordination-registry` passes, including doctests. |
+| T6  | DONE   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
 | T7  | TODO   | Verification                                        | See Verification Plan.                                                                                      |
 
 ## Commit Points
@@ -257,6 +257,11 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   `cargo test -p torrust-tracker-core` passed after the field became private. The doctest
   design review confirmed the `E0616` failure is caused only by field access; a companion example
   reads through `get_metrics()`.
+- 2026-10-14 13:02 UTC - Implementation - T6 (`swarm-coordination-registry`) passed the red/green
+  check: `cargo test -p torrust-tracker-swarm-coordination-registry --doc` failed because the
+  public field compiled, then `cargo test -p torrust-tracker-swarm-coordination-registry` passed
+  after the field became private. The doctest design review confirmed the `E0616` failure is caused
+  only by field access; a companion example reads through `get_metrics()`.
 
 ## Acceptance Criteria
 

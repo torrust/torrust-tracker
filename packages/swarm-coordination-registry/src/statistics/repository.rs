@@ -10,9 +10,27 @@ use super::describe_metrics;
 use super::metrics::Metrics;
 
 /// A repository for the torrent repository metrics.
+///
+/// External callers read statistics through [`Repository::get_metrics`].
+///
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_swarm_coordination_registry::statistics::repository::Repository;
+///
+/// fn read_metrics(repository: &Repository) {
+///     let _metrics = &repository.stats;
+/// }
+/// ```
+///
+/// ```rust
+/// use torrust_tracker_swarm_coordination_registry::statistics::repository::Repository;
+///
+/// async fn read_metrics(repository: &Repository) {
+///     let _metrics = repository.get_metrics().await;
+/// }
+/// ```
 #[derive(Clone)]
 pub struct Repository {
-    pub stats: Arc<RwLock<Metrics>>,
+    stats: Arc<RwLock<Metrics>>,
 }
 
 impl Default for Repository {
