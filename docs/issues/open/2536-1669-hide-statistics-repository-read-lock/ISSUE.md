@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:37"
+last-updated-utc: "2026-10-14 19:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,6 +80,17 @@ Checked on `develop` at `48c4d3013` (2026-10-14):
   event, and `tracker-core`'s repository reads its own counters through `get_metrics()`.
 - Test callers outside the crates: `axum-http-server` contract tests, `udp-server` contract
   tests, `tracker-core`'s integration test environment, and a `src/bootstrap/jobs` unit test.
+- Unit tests inside the five crates: 58 call sites by a count of calls after each file's first
+  `#[cfg(test)]` (an independent review counted 57). They are `udp-server` 31, `udp-core` 12,
+  `http-core` 9, `swarm-coordination-registry` 4, and `tracker-core` 2, so the `udp-server` task is
+  by far the largest. Some need their own closure shape:
+  - `udp-server`'s `metrics_snapshot` test helper in `statistics/repository.rs`, which copies the
+    metric collection out of the guard;
+  - the swarm job test's `inactive_peers_total` helper in `statistics/mod.rs`;
+  - `udp-server`'s `it_should_return_a_read_guard_to_metrics` test, which tests the guard accessor
+    itself and is replaced by a test of `read_metrics()`.
+
+  Removing the accessors makes the compiler report every call, so none can be missed silently.
 - The `metric_collection` field is written outside each crate's `metrics.rs` only by its own
   `describe_metrics()` function (in `statistics/mod.rs`). Code outside the crates only reads it.
 - The #2517 privacy doctests' companion examples call `get_stats()` / `get_metrics()`.
@@ -150,7 +161,8 @@ repository.read_metrics(|metrics| collection.merge(metrics.metric_collection()))
 - Make `Metrics.metric_collection` `pub(crate)` in the five crates and add the
   `metric_collection()` read accessor.
 - Update every caller: `rest-api-runtime-adapter`, the event handlers, `tracker-core`'s own
-  counter reads, and the tests listed under Current callers.
+  counter reads, and every test caller, both outside and inside the five crates (see Current
+  callers).
 - Keep the event handlers' debug logging lazy: the lock must still be taken only when `debug` is
   enabled for that event (see Risks).
 - Pin the new API with doctests in each crate:
@@ -208,7 +220,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
 | T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store every compared output (stats and metrics, before and after) under `evidence/`.                       |
 | T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests, and updated callers; the workspace builds and its tests pass.     |
-| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3.                                                                                                                              |
+| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (31 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
@@ -283,6 +295,9 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - 2026-10-14 19:37 UTC - GitHub Copilot - PR #2537 review (F3): the lazy debug-log example now formats
   the returned `String` with `{}`, preserving today's `stats: Metrics { .. }` text (tokio
   1.53.3's `RwLockReadGuard` `Debug` delegates to `Metrics`).
+- 2026-10-14 19:47 UTC - GitHub Copilot - PR #2537 review (F4, da2ce7): Current callers now lists
+  the in-crate unit-test calls per crate (58 by our count), names the helpers and the
+  guard-accessor test that need their own shape, and In Scope covers every test caller.
 
 ## Acceptance Criteria
 
