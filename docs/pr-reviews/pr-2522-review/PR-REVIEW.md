@@ -49,7 +49,8 @@ five findings and summarizes the pull request; it is not a further finding.
 Review 5515320310 (round 1, `da2ce7`, state `CHANGES_REQUESTED`, submitted 2026-10-14 08:47 UTC on
 the same head, <https://github.com/torrust/torrust-tracker/pull/2522#pullrequestreview-5515320310>)
 left three inline findings, F7, F8, and F10. Its body assesses the bot's F1 to F5 against the
-bytes: it agrees with F1 and marks it blocking, disagrees with F2's severity, partly agrees with F3,
+bytes: it agrees with F1 and marks it blocking, disagrees that the checklist F2 cites applies
+(offering an optional one-line note), partly agrees with F3,
 and agrees with F4 and F5, extending F4 to the truncated completion checkpoint and F5 to the two
 `closed/` paths. The reviewer states that his own round-one points F6 and F9 are merged into F4 and
 F5. These assessments refine the scope of the bot's findings rather than request separate changes,
@@ -102,8 +103,10 @@ request #2520 also edits `EPIC.md` is informational and not a finding.
 - Concern: Design and Ownership Review said "Not applicable" although the work removes public
   interfaces and the `async-trait` dependency from two packages; the EPIC's subissue architecture
   checklist asks for current and target edges, symbol evidence, and a before/after dependency
-  diff. Cameron disagreed with the severity: no workspace edge changes and `async-trait` is not a
-  layer, so a one-line note would suffice.
+  diff. Cameron ruled "disagree, non-blocking": the checklist does not apply, because it concerns
+  dependency edges, this change removes no workspace edge, and the flagged line answers a
+  different template section (Design and Ownership Review); he offered a one-line note as
+  optional.
 - Solution: Added a short package-boundary review: current and target workspace edges are
   identical and respect the layer model, the only change is the external `async-trait` crate, and
   a `cargo tree -e normal --depth 1` before/after comparison for both packages (also listed under
