@@ -202,8 +202,9 @@ before changing it.
 ## Push Failure Diagnosis and Recovery
 
 A failed final push is not evidence that the pull request needs a rebase. Distinguish a stale
-merge base (which the tool detects before constructing the merge) from SSH authentication and
-server-side failures before changing the source branch or rebuilding the signed merge.
+recorded base (which the tool checks and refreshes before constructing the merge) from SSH
+authentication and server-side failures before changing the source branch or rebuilding the signed
+merge.
 
 When a push fails after the tool has signed and reset local `develop` to the inspected merge:
 
