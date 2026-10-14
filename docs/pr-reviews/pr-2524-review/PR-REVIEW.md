@@ -55,6 +55,12 @@ description was corrected without an audit row because the body asks for no chan
 references to findings F7-F14 belong to his separate post-merge review of PR #2506, recorded in
 `docs/pr-reviews/pr-2506-review/PR-REVIEW.md`.
 
+Cameron's second review 5517039831 (CHANGES_REQUESTED, submitted 2026-10-14 11:16:20 UTC, at head
+`5bfd57ac1`) left four inline findings headed F7, F9, F10, and F11. Those IDs do not collide with
+this audit's, so they are kept. His body confirms audit F1-F6 and his round-1 audit-record finding
+F8 as fixed, and asks for nothing beyond the four threads; F7 and F9 also name the PR body and the
+PR #2506 audit, which were corrected with them.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2524-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -63,6 +69,10 @@ references to findings F7-F14 belong to his separate post-merge review of PR #25
 | F4 | `review-finding:pr-2524-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2524-f5` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2524-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2524-f7` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2524-f9` | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2524-f10` | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2524-f11` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -185,6 +195,90 @@ references to findings F7-F14 belong to his separate post-merge review of PR #25
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4269637796>
 
+### F7 - R2's re-count leg is not red on develop
+
+- PR number: 2524
+- Source review ID: 5517039831
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4270054465>
+- Concern: the R2 note said the re-count leg is red on `develop`, but the implemented re-crossing
+  test passes there (the map-length total is also 1), and no R2 case left an IP below the limit
+  after a reset. The PR #2506 audit's F10 detail repeated the claim.
+- Solution: added the missing below-limit case,
+  `it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`, recorded red
+  against `develop`'s map-length total and green on the fix. The R2 note now lists three cases and
+  names the below-limit one as red; the PR #2506 audit's F10 detail and its thread were corrected.
+- Current-tree verification: `packages/udp-core/src/services/banning.rs` contains the test; the
+  `ISSUE.md` R2 bullet says "Three cases" and that the below-limit case is red on `develop`;
+  `manual-verification-evidence.md` has its red output.
+- Resolution reference: `test(udp-core): [#2505] cover an IP that stays within the limit after a reset`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4271110447>
+
+### F9 - The final recheck and after measurement were not on the final code
+
+- PR number: 2524
+- Source review ID: 5517039831
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4270054475>
+- Concern: the recheck and the after measurement called "final" ran before three production
+  commits (lock order, error message, overflow guard); the evidence, the AC6 row, and the PR body
+  still called them the final code.
+- Solution: at the maintainer's choice of a full rerun, the after measurement (load test and all
+  Criterion groups) and the like-for-like recheck (L-V1 to L-V4, including the one-hour reset) were
+  repeated on the final code. A second same-machine comparison measured the overflow guard's cost;
+  the maintainer accepted the updated cost (up to about 0.8 ns, 6%, per invalid ID on IPv6). The
+  earlier runs are renamed and marked, the AC6 row cites L-V1 to L-V4, and the PR body gives the
+  final figures. The measurement is in `docs(issues): [#2505] record the round-2 review fixes and
+  the final after measurement`.
+- Current-tree verification: `performance-evidence.md` has "Final After Run - Final Code" (23 pass,
+  5 fail, load test mean 162465.51) and the maintainer decision; `manual-verification-evidence.md`
+  has "Recheck on the Final Code (T10)" with 0, 0, 1, 0; the remaining "final code" phrases refer
+  to these sections or to the notes on the superseded ones.
+- Resolution reference: `docs(issues): [#2505] record the recheck on the final code`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4271110762>
+
+### F10 - Do not hold the ban lock while waiting for the statistics store
+
+- PR number: 2524
+- Source review ID: 5517039831
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4270054482>
+- Concern: the audit F1 fix held the ban write guard while awaiting the statistics store's lock; in
+  `strict` mode the receive loop reads the ban lock for every datagram, so an invalid-ID flood could
+  stall request handling, and no instrument measured it.
+- Solution: at the maintainer's choice, the reviewer's suggested dedicated publication mutex,
+  `banning::PublicationOrder`, owned by the `udp-server` container and passed to the banning
+  listener and the root ban cleanup job. Both publishers take it first, release the ban lock before
+  the gauge write, and keep the mutex until the gauge is written. Lock order: publication order,
+  ban lock (released), statistics lock. Four tests replace the two audit F1 tests; the ban-lock
+  tests were red with the ban lock held, and the publication-order tests fail under a mutation that
+  drops the mutex early.
+- Current-tree verification: `packages/udp-server/src/banning/mod.rs` defines `PublicationOrder`;
+  `reset_bans` and `banning::event::handler::handle_event` drop the ban guard before
+  `update_metric_for_banned_ips_total` with the publication-order guard in scope; evidence in
+  `manual-verification-evidence.md`, "PR Review Follow-Up - Publication Order Without the Ban Lock".
+- Resolution reference: `fix(udp-server): [#2505] order banned-IPs publications without holding the ban lock`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4271111066>
+
+### F11 - Do not write through the field #2517 will make private
+
+- PR number: 2524
+- Source review ID: 5517039831
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4270054487>
+- Concern: the lock-ordering tests wrote through `Repository::stats`, which the #2517
+  specification plans to make private on the premise that only the repository file uses it.
+- Solution: a test-only `Repository::write_lock_for_test` seam (`#[cfg(test)] pub(crate)`) returns
+  the write guard; all four publication-order tests use it.
+- Current-tree verification: `packages/udp-server/src/statistics/repository.rs` defines the seam;
+  its only callers are the four tests; no `stats` field access remains outside the repository file.
+- Resolution reference: `fix(udp-server): [#2505] order banned-IPs publications without holding the ban lock`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2524#discussion_r4271111328>
+
 ## Commit IDs Cited by Reviewers
 
 The branch was rewritten after these reviews: an interactive rebase split the leftover removals
@@ -198,7 +292,9 @@ a new ID. The IDs cited in the review comments no longer exist on the branch; th
 | `60d10af6d` | `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs` |
 | `c3d2f4a10` | `docs(issues): [#2505] map pre-rebase commit IDs in the review reports` (the head reviewed by Cameron) |
 
-`b5f1801c6`, `d1bf013ea`, and `1ce2e3327` are on `develop` and remain valid.
+`b5f1801c6`, `d1bf013ea`, and `1ce2e3327` are on `develop` and remain valid. The IDs cited in
+Cameron's second review (for example `fa9e23079`, `745c6f37f`, `5da8a89c0`, `82b5f80fc`,
+`bf57e3bc3`, and `5bfd57ac1`) remain valid: its fixes were added on top without a rewrite.
 
 ## Processing Log
 
@@ -213,6 +309,14 @@ a new ID. The IDs cited in the review comments no longer exist on the branch; th
   verification, and the resolution reference.
 - 2026-10-14 10:33 UTC - Recorded this audit; the threads are resolved after it is committed and
   pushed.
+- 2026-10-14 11:16 UTC - Cameron's second review 5517039831 arrived (CHANGES_REQUESTED, F7, F9,
+  F10, F11).
+- 2026-10-14 13:01 UTC - Pushed the fixes for F7, F9, F10, and F11 without rebasing (the branch
+  merges cleanly with `develop`); the pre-push checks passed. Updated the PR body.
+- 2026-10-14 13:03 UTC - Replied on the four threads, and on the PR #2506 F10 thread to correct its
+  earlier reply.
+- 2026-10-14 13:05 UTC - Recorded F7-F11 in this audit; the threads are resolved after it is
+  committed and pushed.
 
 ## Completion Rules
 

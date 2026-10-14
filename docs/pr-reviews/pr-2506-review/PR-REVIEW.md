@@ -268,9 +268,10 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
   while the below-limit case is red.
 - Current-tree verification: the PR #2524 branch's `ISSUE.md` R2 bullet lists the three cases and
   their status, and `packages/udp-core/src/services/banning.rs` contains the below-limit test.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
+  (corrects the earlier reply <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>)
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4271113531>
 
 ### F11 - Give the leftover removals their own commit point
 
@@ -355,6 +356,8 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - 2026-10-14 10:36 UTC - Recorded F7-F14 in this audit as `FOLLOW_UP`/`OPEN`, on the PR #2524 branch.
 - 2026-10-14 12:32 UTC - Corrected F10's Solution and Current-tree verification: the earlier text repeated a
   false claim that R2's re-count leg is red on `develop` (PR #2524 review finding F7 by Cameron).
+- 2026-10-14 13:03 UTC - Posted a correcting reply on the F10 thread (the earlier reply called
+  the re-count leg red) and pointed F10's resolution and reply URL to it; the thread stays `OPEN`.
 
 ## Completion Rules
 
