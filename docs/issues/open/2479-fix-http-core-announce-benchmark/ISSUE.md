@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-review
 priority: p3
 epic: null
 github-issue: 2479
 spec-path: docs/issues/open/2479-fix-http-core-announce-benchmark/ISSUE.md
-branch: "2479-fix-http-core-announce-benchmark-spec"
-related-pr: null
-last-updated-utc: "2026-10-08 07:12"
+branch: "2479-fix-http-core-announce-benchmark"
+related-pr: 2509
+last-updated-utc: "2026-10-13 18:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,9 +21,11 @@ semantic-links:
     - .github/skills/dev/benchmarking/run-benchmarks/SKILL.md
     - docs/benchmarking.md
     - packages/http-core/benches/http_tracker_core_benchmark.rs
-    - packages/http-core/benches/helpers/sync.rs
+    - packages/http-core/benches/helpers/announce.rs
+    - packages/http-core/benches/helpers/routine_guard.rs
     - packages/http-core/benches/helpers/util.rs
     - packages/udp-core/benches/udp_tracker_core_benchmark.rs
+    - packages/udp-core/benches/helpers/routine_guard.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -78,11 +80,12 @@ ran about 12 million iterations of the routine. The probe and its output are in
 - Restructure the HTTP announce benchmark like the repaired `udp-core` `connect_once`: build the
   tracker services and the `AnnounceService` once, outside the measured routine, and time one
   awaited `handle_announce` per iteration with `b.to_async(&runtime).iter(...)`.
-- Rename or document the measured operation so the benchmark's name and what it times agree.
-- Add a regression guard: the benchmark counts the routines it actually ran and panics after
-  `bench_function` if the count is zero. Criterion runs each benchmark once under `cargo test`,
-  and both the pre-push hook and CI run `cargo test --benches`, so a routine that never runs fails
-  those gates.
+- Rename the benchmark to `http_tracker/announce_once/announce_once` (D2) so its name and what it
+  times agree.
+- Add a regression guard (D1): the benchmark counts the routines it actually ran and panics after
+  `bench_function` if Criterion invoked the benchmark closure but the routine ran zero times.
+  Criterion runs each benchmark once under `cargo test`, and both the pre-push hook and CI run
+  `cargo test --benches`, so a routine that never runs fails those gates.
 - Add the same guard to the `udp-core` `connect_once` benchmark, repaired in issue #2458 without
   one.
 - Update `docs/benchmarking.md`: remove the Known Defects entry, update the table row, and describe
@@ -95,6 +98,40 @@ ran about 12 million iterations of the routine. The probe and its output are in
 - Adding guards to benchmarks that already await their routine (`udp-server` scrape) or are
   synchronous (`connection_cookie_benchmark`, `ban_service_benchmark`, the repository benchmarks).
 - A lint or CI check that finds futures that are never awaited in any benchmark automatically.
+
+## Maintainer Decisions
+
+Recorded on 2026-10-13 before implementation, in answer to the implementer's questions.
+
+- **D1 - Guard semantics.** The guard counts two things: invocations of the benchmark closure
+  passed to `bench_function` (the outer `|b|`) and runs of the measured routine. It panics only
+  when the closure ran and the routine did not. A benchmark that Criterion skips, for example
+  under `cargo bench -- <filter>` or `--list`, has zero closure invocations and does not trip
+  the guard. The original defect (`b.iter(|| async_fn())`) still has at least one closure
+  invocation and zero routine runs, so it still fails.
+- **D2 - Benchmark name.** Rename `http_tracker_handle_announce_once/handle_announce_data` to
+  group `http_tracker/announce_once`, function `announce_once`, mirroring the repaired
+  `udp_tracker/connect_once/connect_once`. The old results measured nothing, so no history is
+  lost.
+- **D3 - Same peer on every iteration.** The benchmark announces the same peer every iteration,
+  so it times a repeat announce (a swarm update), not a first announce. Reasons, which the
+  benchmark's documentation and `docs/benchmarking.md` must state:
+  - Comparable numbers. With the same peer, every iteration does identical work: `upsert_peer`
+    replaces the single entry in the swarm's `BTreeMap` (update path plus a "peer updated" event)
+    and returns an empty peer list. A difference between two runs therefore comes from the code
+    under test, which is what the benchmark exists to show.
+  - A new peer on every iteration grows the swarm by one peer per iteration, over millions of
+    iterations, with no cleanup. The cost drifts with the map size (O(log n) inserts, memory
+    pressure from millions of `Arc` allocations), and the result depends on how many iterations
+    Criterion chose in that run. Building the peer list itself is capped by `numwant`.
+  - It is the common production case: clients re-announce periodically, so most announces update
+    an existing peer.
+  - Trade-off: the result is a lower bound. It does not include inserting a new peer or building
+    a non-empty peer list. A stable first-announce benchmark would need its own design (a
+    pre-filled swarm of fixed size and a bounded rotating peer pool) and is out of scope.
+- **D4 - Guard placement.** A small guard helper is duplicated in each package's
+  `benches/helpers/` (`http-core` and `udp-core`) rather than shared through
+  `torrust-tracker-test-helpers`, so `udp-core` gains no new dependency.
 
 ## Architectural Decisions
 
@@ -125,8 +162,8 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 ## Regression Test Strategy
 
 - **R1 (maintained guard in the benchmark):** the benchmark context counts completed announces;
-  after `bench_function`, the benchmark panics with a message naming the benchmark if the count is
-  zero. It runs under `cargo test --benches` (pre-push and CI) and under `cargo bench`.
+  after `bench_function`, the benchmark panics with a message naming the benchmark if Criterion
+  invoked the benchmark closure and the count is zero (D1). It runs under `cargo test --benches` (pre-push and CI) and under `cargo bench`.
   - Red before the fix: with the guard added to today's routine, the count stays 0 and the test
     run panics. This is the T1 red run.
   - Why not a unit test: the defect is in how the benchmark calls Criterion, not in production
@@ -142,11 +179,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                                    |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
-| T2  | TODO   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
-| T3  | TODO   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
-| T4  | TODO   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
-| T5  | TODO   | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
+| T1  | DONE   | Regression guard R1, red before the fix  | Guard added to the current benchmark; red `cargo test` output recorded in `manual-verification-evidence.md`.                                                                                                                               |
+| T2  | DONE   | Fix: measure one awaited announce        | Context built once; `b.to_async(&runtime).iter(...)`; R1 green; before and after `cargo bench` output recorded. Before T3 starts, the prose-first Arrange-Act-Assert design review of R1 is recorded in `manual-verification-evidence.md`. |
+| T3  | DONE   | Guard R2 on `udp-core` `connect_once`    | Guard added; mutate-then-restore red run recorded; the prose-first design review of R2 recorded in `manual-verification-evidence.md` before T4.                                                                                            |
+| T4  | DONE   | Maintainer review of the test increments | Stop after the final test increment (R2): the maintainer reviews R1, R2, and their recorded design reviews before final verification, the T3 commit, and the pull request. The outcome is logged in the Progress Log.                      |
+| T5  | DONE   | Recheck and documentation                | V1 probe repeated like-for-like on the fixed benchmark; `docs/benchmarking.md` updated; acceptance and completion review.                                                                                                                  |
 
 ## Commit Points
 
@@ -174,16 +211,16 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
 - [x] Reproduction attempted and classified before review
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Test-design review recorded for R1 and R2, and the maintainer reviewed the final test increment before final verification and commit (T4)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -209,22 +246,61 @@ expresses it, remove redundant prose, and record the result in `manual-verificat
   and the maintainer review after the final test increment. Added the R1 and R2 design reviews to
   T2 and T3, a new T4 maintainer-review checkpoint (the former T4 is now T5), the matching commit
   policy and workflow checkpoint, and the design-review procedure under Commit Points.
+- 2026-10-13 17:32 UTC - Copilot - Spec-only PR #2480 merged on 2026-10-08. Started the
+  implementation on branch `2479-fix-http-core-announce-benchmark`, cut from `develop`
+  `48e11787f`. Before implementing, asked the maintainer about the guard's behavior under
+  Criterion filters, the benchmark name, the peer strategy, and where the guard lives; the
+  answers are recorded as D1-D4 under Maintainer Decisions, and Scope and R1 are updated to match.
+- 2026-10-13 17:41 UTC - Copilot - T1 done: the guard, wired into the unfixed benchmark, panics
+  under `cargo test` because the routine never ran; a non-matching filter and `--list` exit 0
+  (D1). Evidence: `manual-verification-evidence.md`, R1 - Red Before the Fix.
+- 2026-10-13 17:54 UTC - Copilot - T2 done in commit `fix(http-core): [#2479] make the HTTP
+  announce benchmark measure the announce`: about 348 ns per announce, against 78 ns (future
+  creation) before. The R1 prose-first review was done before that commit, and its result (the
+  `GROUP`/`BENCHMARK` constants) is in the commit, but it was written into the evidence file
+  after the commit, not before as the Commit Points table asks. T3: the first guard version (an
+  `async fn` wrapper) slowed `connect_once` from about 58 ns to 75-80 ns. Measured variants
+  showed about 7 ns is a code-layout effect of any change to the benchmark binary (a control with
+  no instrumentation in the timed loop reads about 65 ns), and the rest was the `async fn`
+  wrapper. `track` now uses `futures::FutureExt::inspect` in both helpers, which matches the
+  control. R2 is red under mutate-then-restore, and R1 is still red with the new `track`. The R2
+  review is recorded. Stopped for the T4 maintainer review; the `track` change to `http-core` and
+  R2 are not committed yet. Evidence: `manual-verification-evidence.md`, R1 and R2 sections.
+- 2026-10-13 17:56 UTC - Copilot - T4 done: the maintainer reviewed R1, R2, their design reviews,
+  the guard-overhead investigation, the `connect_once` layout shift, and the late R1 write-up, and
+  approved them. Committed the `track` change as `refactor(http-core): [#2479] track benchmark
+  routines with a poll-level combinator` and R2 as `test(udp-core): [#2479] guard the
+  connect_once benchmark against a routine that never runs`. T3 done; T5 started.
+- 2026-10-13 18:06 UTC - Copilot - T5 done: the V1 probe repeated like-for-like (V2) counts 4,819,101
+  routine runs in a `cargo bench` run of 2.7M timed iterations, and exactly 1 in test mode.
+  `docs/benchmarking.md` drops the Known Defects entry, updates the catalog row, describes the
+  routine guard, explains the same-peer choice (D3), and warns about the code-layout shift; the
+  `run-benchmarks` skill points new async benchmarks at the guard. Acceptance criteria reviewed
+  against the evidence; retrospective created. Corrected the T1 entry's time to the commit time
+  (17:41). `linter all` passes in the pre-commit hook of every commit; the full pre-push suite runs
+  on push. No independent reviewer agents received this specification, so there is no
+  `agent-review-reports.md`.
+- 2026-10-13 18:12 UTC - Copilot - Pushed the branch; the pre-push hook passed (nightly fmt, check, and
+  both doc builds, plus `cargo +stable test --tests --benches --examples --workspace --all-targets
+  --all-features`, 46 s in total). Upstream `develop` had moved to `b5f1801c6` (issue #2505 docs
+  only), so the branch was rebased onto it with signed commits and force-pushed with lease; the
+  pre-push hook passed again on the rebased tree. Opened PR #2509 (`Closes #2479`); CI started.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo bench -p torrust-tracker-http-core` times one awaited HTTP announce per
+- [x] AC1: `cargo bench -p torrust-tracker-http-core` times one awaited HTTP announce per
       iteration, and its result is consistent with that work (for example microseconds or high
       nanoseconds, not the cost of creating a future).
-- [ ] AC2: The HTTP announce benchmark fails under `cargo test --benches` when its routine does not
+- [x] AC2: The HTTP announce benchmark fails under `cargo test --benches` when its routine does not
       run (R1, red before the fix).
-- [ ] AC3: The `udp-core` `connect_once` benchmark has the same guard (R2).
-- [ ] AC4: `docs/benchmarking.md` no longer lists the benchmark as a known defect and describes the
+- [x] AC3: The `udp-core` `connect_once` benchmark has the same guard (R2).
+- [x] AC4: `docs/benchmarking.md` no longer lists the benchmark as a known defect and describes the
       guard.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -241,7 +317,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                        | Human-oriented command/steps                                                                                      | Expected Result                                               | Status | Evidence                                     |
 | --- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Benchmark measures nothing      | Run `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark` with a temporary counter probe | The helper body runs 0 times                                  | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Benchmark measures the announce | Repeat M1 like-for-like on the fixed benchmark                                                                    | The routine runs every iteration; the time includes announces | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | Benchmark measures the announce | Repeat M1 like-for-like on the fixed benchmark                                                                    | The routine runs every iteration; the time includes announces | DONE   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
@@ -255,22 +331,23 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                  |
 | ----- | ---------------------- | ----------------------------------------- |
-| AC1   | TODO                   | Before and after `cargo bench` output, M2 |
-| AC2   | TODO                   | R1 red and green runs                     |
-| AC3   | TODO                   | R2 mutate-then-restore run                |
-| AC4   | TODO                   | `docs/benchmarking.md` diff               |
+| AC1   | DONE                   | Before and after `cargo bench` output, M2 |
+| AC2   | DONE                   | R1 red and green runs                     |
+| AC3   | DONE                   | R2 mutate-then-restore run                |
+| AC4   | DONE                   | `docs/benchmarking.md` diff               |
 
 ## Risks and Trade-offs
 
 - **The guard adds code to benchmarks.** Mitigation: a counter and one assertion per benchmark,
   with a message naming the benchmark.
-- **Repeated announces of the same peer measure an update, not a first announce.** This matches
-  the `udp-server` scrape benchmark. Record it in the benchmark's documentation; vary the peer
-  only if the maintainer wants first-announce costs.
+- **Repeated announces of the same peer measure an update, not a first announce.** The
+  maintainer chose this deliberately (D3); the reasons are recorded in the benchmark's
+  documentation and in `docs/benchmarking.md`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, `implementation-retrospective.md` (guard overhead, code-layout shift,
+  and process lessons).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory;
   otherwise add a progress-log entry explaining why the work had no material discovery.

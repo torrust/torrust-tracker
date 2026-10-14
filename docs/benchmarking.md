@@ -29,19 +29,19 @@ is the agent workflow for this guide.
 
 ## Benchmark Levels and Tools
 
-| Level                         | Tool and location                                                                                                                                                                    | Measures                                                               | Does not measure             | Run it with                                                                                                 |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Function microbenchmark       | Criterion, `packages/udp-core/benches/connection_cookie_benchmark.rs`                                                                                                                | One `connection_cookie::make` or `check` call                          | Request handling, I/O        | `cargo bench -p torrust-tracker-udp-core --bench connection_cookie_benchmark`                               |
-| Service microbenchmark        | Criterion, `packages/udp-core/benches/udp_tracker_core_benchmark.rs`                                                                                                                 | One awaited `ConnectService::handle_connect`, events disabled          | Socket I/O, events           | `cargo bench -p torrust-tracker-udp-core --bench udp_tracker_core_benchmark`                                |
-| Service microbenchmark        | Criterion, `packages/udp-core/benches/ban_service_benchmark.rs` ([guide](../packages/udp-core/docs/benchmarking/banning.md))                                                         | `BanService` counter operations                                        | Socket I/O, lock contention  | `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark`                                     |
-| Handler microbenchmark        | Criterion, `packages/udp-server/benches/udp_tracker_server_benchmark.rs`                                                                                                             | One `handle_scrape` of 74 torrents                                     | Socket I/O, the receive loop | `cargo bench -p torrust-tracker-udp-server`                                                                 |
-| Handler microbenchmark        | Criterion, `packages/http-core/benches/http_tracker_core_benchmark.rs`                                                                                                               | Intended: HTTP announce handling. See [Known Defects](#known-defects). | Everything, today            | `cargo bench -p torrust-tracker-http-core`                                                                  |
-| Data-structure microbenchmark | Criterion, `packages/torrent-repository-benchmarking/`                                                                                                                               | Torrent repository implementations                                     | The tracker's other layers   | `cargo bench -p torrust-tracker-torrent-repository-benchmarking`                                            |
-| Example-based microbenchmark  | `packages/swarm-coordination-registry/examples/bench_peers.rs`                                                                                                                       | `Coordinator::peers_excluding`                                         | Serialization, I/O           | `cargo run -p torrust-tracker-swarm-coordination-registry --example bench_peers --release`                  |
-| Persistence benchmark         | `packages/persistence-benchmark/` ([README](../packages/persistence-benchmark/README.md)); reports in `packages/tracker-core/docs/benchmarking/`; CI workflow `db-benchmarking.yaml` | Database driver operations                                             | In-memory tracker paths      | `cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3` |
-| End-to-end load test          | `aquatic_udp_load_test` against a release build ([E2E UDP load testing](#e2e-udp-load-testing))                                                                                      | UDP responses per second through the real socket                       | Which function costs what    | See the section below                                                                                       |
-| Comparative benchmark         | `aquatic_bencher` ([section](#comparative-udp-benchmarking-with-aquatic_bencher))                                                                                                    | Throughput against other trackers                                      | Small regressions            | See the section below                                                                                       |
-| Workflow timing               | `contrib/dev-tools/workflow-benchmarks/`                                                                                                                                             | CI-equivalent step durations                                           | Tracker performance          | The scripts' usage comments                                                                                 |
+| Level                         | Tool and location                                                                                                                                                                    | Measures                                                                                                 | Does not measure              | Run it with                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Function microbenchmark       | Criterion, `packages/udp-core/benches/connection_cookie_benchmark.rs`                                                                                                                | One `connection_cookie::make` or `check` call                                                            | Request handling, I/O         | `cargo bench -p torrust-tracker-udp-core --bench connection_cookie_benchmark`                               |
+| Service microbenchmark        | Criterion, `packages/udp-core/benches/udp_tracker_core_benchmark.rs`                                                                                                                 | One awaited `ConnectService::handle_connect`, events disabled                                            | Socket I/O, events            | `cargo bench -p torrust-tracker-udp-core --bench udp_tracker_core_benchmark`                                |
+| Service microbenchmark        | Criterion, `packages/udp-core/benches/ban_service_benchmark.rs` ([guide](../packages/udp-core/docs/benchmarking/banning.md))                                                         | `BanService` counter operations                                                                          | Socket I/O, lock contention   | `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark`                                     |
+| Handler microbenchmark        | Criterion, `packages/udp-server/benches/udp_tracker_server_benchmark.rs`                                                                                                             | One `handle_scrape` of 74 torrents                                                                       | Socket I/O, the receive loop  | `cargo bench -p torrust-tracker-udp-server`                                                                 |
+| Service microbenchmark        | Criterion, `packages/http-core/benches/http_tracker_core_benchmark.rs`                                                                                                               | One awaited `AnnounceService::handle_announce`, a repeat announce ([why](#http-announce-microbenchmark)) | HTTP parsing, first announces | `cargo bench -p torrust-tracker-http-core`                                                                  |
+| Data-structure microbenchmark | Criterion, `packages/torrent-repository-benchmarking/`                                                                                                                               | Torrent repository implementations                                                                       | The tracker's other layers    | `cargo bench -p torrust-tracker-torrent-repository-benchmarking`                                            |
+| Example-based microbenchmark  | `packages/swarm-coordination-registry/examples/bench_peers.rs`                                                                                                                       | `Coordinator::peers_excluding`                                                                           | Serialization, I/O            | `cargo run -p torrust-tracker-swarm-coordination-registry --example bench_peers --release`                  |
+| Persistence benchmark         | `packages/persistence-benchmark/` ([README](../packages/persistence-benchmark/README.md)); reports in `packages/tracker-core/docs/benchmarking/`; CI workflow `db-benchmarking.yaml` | Database driver operations                                                                               | In-memory tracker paths       | `cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3` |
+| End-to-end load test          | `aquatic_udp_load_test` against a release build ([E2E UDP load testing](#e2e-udp-load-testing))                                                                                      | UDP responses per second through the real socket                                                         | Which function costs what     | See the section below                                                                                       |
+| Comparative benchmark         | `aquatic_bencher` ([section](#comparative-udp-benchmarking-with-aquatic_bencher))                                                                                                    | Throughput against other trackers                                                                        | Small regressions             | See the section below                                                                                       |
+| Workflow timing               | `contrib/dev-tools/workflow-benchmarks/`                                                                                                                                             | CI-equivalent step durations                                                                             | Tracker performance           | The scripts' usage comments                                                                                 |
 
 `contrib/dev-tools/benches/run-benches.sh` runs the Criterion benchmarks of several packages in one
 go for local exploration.
@@ -78,7 +78,11 @@ When an issue changes performance-critical code, measure it before and after:
    only documentation and benchmark-only commits.
 3. **Repeat the measurement after the change** on the same machine, with the same build profile,
    configuration, and load-test settings. Change benchmark code only as far as new signatures
-   require.
+   require: even code outside the timed loop can move a nanosecond-scale result. In issue #2479,
+   a control build of `connect_once` that added the routine guard's code only outside the timed
+   loop, leaving the loop byte-identical, moved from about 58 ns to about 65 ns, a code-layout
+   effect. The committed guard, which does add `track` to the timed loop, measures the same
+   about 65 ns.
 4. **Run each instrument several times:** for example three Criterion runs, reading each benchmark's
    median from `target/criterion/<group>/<function>/new/estimates.json` (the group's `/` becomes
    `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh
@@ -110,12 +114,39 @@ group.bench_function("connect_once", |b| {
 });
 ```
 
-### Known Defects
+### Routine Guard for Async Benchmarks
 
-- `http_tracker_core_benchmark` (`packages/http-core/benches/`) passes the `async fn`
-  `sync::return_announce_data_once` to `b.iter` without awaiting it, and the runtime it builds is
-  unused, so it measures only the creation of a future. Its results are not meaningful until it is
-  fixed the same way.
+Comparing with a known cost is a manual check. The async Criterion benchmarks, `udp-core`
+`connect_once` and `http-core` `announce_once`, also carry a guard that fails them when the
+measured routine never runs. Each package keeps a copy of it in
+`benches/helpers/routine_guard.rs`:
+
+```rust
+let guard = RoutineGuard::default();
+
+{
+    let mut group = c.benchmark_group(GROUP);
+    group.bench_function(BENCHMARK, |b| {
+        guard.record_benchmark_invocation();
+        b.to_async(&runtime).iter(|| guard.track(context.connect_once()));
+    });
+    group.finish();
+}
+
+guard.assert_routine_ran(&format!("{GROUP}/{BENCHMARK}"));
+```
+
+- `track` counts each routine that runs to completion. `assert_routine_ran` panics, naming the
+  benchmark, when Criterion invoked the closure but no routine completed.
+- Criterion runs every benchmark once under `cargo test --benches`, which the pre-push hook and CI
+  run, so a routine passed to `b.iter` instead of being awaited fails those gates.
+- Criterion never invokes the closure of a benchmark it skips (a `cargo bench -- <filter>` that
+  does not match it, or `--list`), so a skipped benchmark passes. For the same reason the closure
+  must call `record_benchmark_invocation`: without it the guard cannot fail.
+- `track` uses a poll-level combinator, `futures::FutureExt::inspect`, whose cost is not
+  measurable on `connect_once`. An `async fn` wrapper added 10-15 ns to that 60 ns benchmark.
+
+Add the guard to every new async Criterion benchmark.
 
 > For a detailed step-by-step guide with full command output and troubleshooting, see the
 > [Aquatic Benchmarking Guide](issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md)
@@ -376,6 +407,41 @@ iterations=100000
 ```
 
 Source: `packages/swarm-coordination-registry/examples/bench_peers.rs`.
+
+### HTTP announce microbenchmark
+
+Measures one awaited `AnnounceService::handle_announce` on an in-memory public tracker with usage
+statistics enabled: the authentication and whitelist checks, client IP resolution, the swarm
+update, and sending one HTTP statistics event. It does not include HTTP parsing or the Axum
+server.
+
+```console
+cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark
+```
+
+Example output (AMD Ryzen 9 7950X, issue #2479):
+
+```output
+http_tracker/announce_once/announce_once
+                        time:   [337.91 ns 341.80 ns 346.61 ns]
+```
+
+Every iteration announces the same peer to the same torrent. After the first iteration, it
+therefore times a repeat announce: the update of the only peer in a one-peer swarm, with an empty
+peer list in the response. This is deliberate:
+
+- **Comparable results.** Every iteration does the same work, so a difference between two runs
+  comes from the code under test.
+- **A new peer per iteration would not be stable.** Criterion runs millions of iterations without
+  any cleanup, so the swarm would grow by one peer per iteration and the cost would drift with its
+  size (inserts into a larger map, memory pressure). The result would depend on how many iterations
+  Criterion chose in that run.
+- **It is the common production case.** Clients re-announce periodically, so most announces update
+  an existing peer.
+
+The result is a lower bound on announce cost: it does not include inserting a new peer or building
+a non-empty peer list. A first-announce benchmark would need its own design, for example a
+pre-filled swarm of fixed size and a bounded rotating pool of peers.
 
 ## Notes
 
