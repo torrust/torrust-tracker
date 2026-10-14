@@ -9,7 +9,7 @@ github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 08:14"
+last-updated-utc: "2026-10-14 09:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,6 +213,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-14 08:14 UTC - GitHub Copilot (spec session) - Maintainer approved the spec. Re-checked
   the evidence at `cbdbce9c1` (unchanged). Created #2521, linked it under EPIC #1669, and moved the
   spec to `docs/issues/open/`. The sibling draft is now #2517.
+- 2026-10-14 09:13 UTC - GitHub Copilot (spec session) - Processed PR #2522 review round 1
+  (reviews 5515225239 and 5515320310): split the REST verification into M1 (`/api/v1/stats`) and
+  M2 (`/api/v1/metrics`), recorded the package-boundary review, made the test-change gates
+  explicit, restored the template checkpoints and documentation AC, mapped T1 and T5 to commits,
+  corrected the evidence commit, and switched issue-spec links to `issue #NNNN`. Audit:
+  `docs/pr-reviews/pr-2522-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
