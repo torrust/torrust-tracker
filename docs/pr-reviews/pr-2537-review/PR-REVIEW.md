@@ -315,6 +315,13 @@ stood at that head, which predates their fixes, and raises nothing else, so it a
   this record, and pushed. Replied on all four threads, then corrected the F11 reply, whose first
   version named the wrong commit subject. Resolved the five F4-F8 threads; the four F9-F12 threads
   are resolved after this update is pushed.
+- 2026-10-14 21:14 UTC - Correction (F15): the stamps of the two entries above are later than the
+  commits that carry them, and neither is the time of an event. The 20:10 UTC entry covers the push
+  and the F4-F8 replies (20:04:31-20:04:39 UTC); its commit, "docs(pr-reviews): record the da2ce7
+  review in the PR #2537 audit", is at 20:06:47 UTC. The 20:25 UTC entry covers the F9-F12 replies
+  (20:15:45-20:15:51 UTC) and the F11 reply edit (20:15:58 UTC); its commit, "docs(pr-reviews):
+  record the second da2ce7 review in the PR #2537 audit", is at 20:16:52 UTC. Later entries take
+  their stamp from the clock when written.
 
 ## Completion Rules
 
