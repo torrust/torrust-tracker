@@ -281,20 +281,37 @@ PR #2506 audit, which were corrected with them.
 
 ## Commit IDs Cited by Reviewers
 
-The branch was rewritten after these reviews: an interactive rebase split the leftover removals
-out of the banned-count fix (late PR #2506 finding F11), which gave that commit and every later one
-a new ID. The IDs cited in the review comments no longer exist on the branch; their commit subjects:
+The branch was rewritten twice after reviews. First, after Copilot's review and Cameron's first
+review, an interactive rebase split the leftover removals out of the banned-count fix (late PR #2506
+finding F11), which gave that commit and every later one a new ID. Second, after Cameron's second
+review, a plain rebase onto `develop` (`c1874facb`) gave every commit of the branch a new ID; `git
+range-diff` showed all 33 commits unchanged. The IDs cited in the reviews no longer exist on the
+branch; their commit subjects:
 
 | ID cited in a review | Commit subject |
 | -------------------- | -------------- |
 | `a8f5fbbbf` | `fix(udp-core): [#2505] count only IPs over the limit as banned` (now preceded by `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`) |
 | `4845e5804` | `perf(udp-core): [#2505] detect the ban crossing with one comparison` |
 | `60d10af6d` | `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs` |
-| `c3d2f4a10` | `docs(issues): [#2505] map pre-rebase commit IDs in the review reports` (the head reviewed by Cameron) |
+| `c3d2f4a10` | `docs(issues): [#2505] map pre-rebase commit IDs in the review reports` (the head reviewed in Cameron's first review) |
+| `fa9e23079` | `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp` |
+| `745c6f37f` | `fix(udp-core): [#2505] count only IPs over the limit as banned` |
+| `5da8a89c0` | `fix(udp-server): [#2505] publish the banned-IPs total while holding the ban lock` |
+| `82b5f80fc` | `fix(udp-server): [#2505] name the gauge in the banned-IPs publication error` |
+| `bf57e3bc3` | `fix(udp-core): [#2505] stop an IP's error count at the maximum instead of wrapping` |
+| `3b712923b` | `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs` (the recheck tree; formerly `2a14f042e`) |
+| `4a59911e1` | `docs(issues): [#2505] give the leftover removals their own commit point` |
+| `e4011048f` | `docs(issues): [#2505] state the measured P1 Criterion noise` |
+| `312cb6d62` | `docs(issues): [#2505] disambiguate the shared short identifiers` |
+| `8296a5980` | `docs(issues): [#2505] correct the contract, origin, and AC4 statements` |
+| `1086acdf6` | `docs(issues): [#2505] record the invalid connection ID log lines in the reproduction` |
+| `d269cdb7e` | `docs(issues): [#2505] align the scope and plan text with the final plan` |
+| `f8616211c` | `docs(pr-reviews): [#2505] add the PR #2524 review audit` (formerly `2a7c9f5b2`) |
+| `5bfd57ac1` | `docs(pr-reviews): [#2505] record the late PR #2506 review findings` (the head reviewed by Cameron; formerly `bd45c3f2b`) |
 
-`b5f1801c6`, `d1bf013ea`, and `1ce2e3327` are on `develop` and remain valid. The IDs cited in
-Cameron's second review (for example `fa9e23079`, `745c6f37f`, `5da8a89c0`, `82b5f80fc`,
-`bf57e3bc3`, and `5bfd57ac1`) remain valid: its fixes were added on top without a rewrite.
+`b5f1801c6`, `d1bf013ea`, `1ce2e3327`, and `01bdb2c8b` are on `develop` and remain valid.
+`4b2c0f3be`, cited in Cameron's second review, was the branch head before the first rebase onto
+`develop`; that review maps it itself.
 
 ## Processing Log
 
@@ -317,6 +334,9 @@ Cameron's second review (for example `fa9e23079`, `745c6f37f`, `5da8a89c0`, `82b
   earlier reply.
 - 2026-10-14 13:05 UTC - Recorded F7-F11 in this audit; the threads are resolved after it is
   committed and pushed.
+- 2026-10-14 13:10 UTC - At the maintainer's request, rebased the branch onto `develop`
+  (`c1874facb`); all 33 commits unchanged by `git range-diff`. Mapped the IDs cited in Cameron's
+  second review to commit subjects above.
 
 ## Completion Rules
 
