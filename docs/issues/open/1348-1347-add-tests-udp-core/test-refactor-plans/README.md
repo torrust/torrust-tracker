@@ -35,6 +35,7 @@ maintainer approves it.
 | 11 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | 6 per-family tests replaced by one `rstest` test; stale `# Panics` doc removed |
 | 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 4 unit tests added (1 `rstest` with 2 cases); unit-only 80.77% → 100.00% lines; findings handed off to #1669 |
 | 13 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | 1 empty-state test replaced by 2 source tests; stale module docs fixed |
+| 14 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | APPROVED | 1 assertion sharpened, 1 `rstest` test planned; lifecycle left to #1488 / #2414 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

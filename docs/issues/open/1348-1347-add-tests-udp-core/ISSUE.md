@@ -300,7 +300,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | DONE | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
-| 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
+| 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | IN_PROGRESS | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
 | 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
 | 17 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | PENDING | - |
@@ -474,6 +474,9 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   unused SI-30 traits draft.
 - 2026-10-14 09:13 UTC - Jose Celano - Approved the `statistics/services.rs` completed-file review;
   ledger row 13 is `DONE` (1 test replaced by 2; module docs fixed).
+- 2026-10-14 10:03 UTC - Jose Celano - Approved the `statistics/event/listener.rs` plan (R1, L1);
+  ledger row 14 is `IN_PROGRESS`. Cancellation priority and the spawn entry points stay with #1488
+  / #2414.
 
 ## Acceptance Criteria
 
