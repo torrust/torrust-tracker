@@ -104,16 +104,20 @@ If it passes and an authorized maintainer wants an inspection attempt, run:
 ./contrib/dev-tools/git/merge-pull-request.sh <pull-request-number>
 ```
 
-Immediately before starting the interactive merge, rebase the pull-request branch onto the latest
-`develop`, push it, and wait for GitHub to recompute the pull request merge and required checks.
+Do not rebase the pull-request branch merely because `develop` advanced (see the
+[ADR to stop requiring pull-request rebases](../../../../../docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
 The tool compares GitHub's merge base with the fetched `develop` tip and refuses a stale merge
-before constructing or signing a local commit. When a direct push is rejected with `GH013` and
-"Changes must be made through a pull request", first perform that rebase, push the source branch,
-and wait for GitHub to recompute the pull request merge. If the source branch is already current
-or the same rejection persists after recomputation, the repository rule rejects this tool's
-direct push to `develop`; it is not a stale-branch failure. Do not force-push `develop` or retry
-the signed merge. Stop and obtain maintainer approval for a branch-protection-compatible merge
-workflow before proceeding.
+before constructing or signing a local commit. When it reports a stale merge base, refresh the
+pull-request head, push it, wait for GitHub to recompute the pull request merge and required
+checks, and retry. Two refreshes are available: rebase the branch onto the latest `develop`, or use
+GitHub's "Update branch", which adds a merge commit from `develop` signed by GitHub and keeps the
+reviewed commit ids. Issue #2507 evaluates which refresh to prefer. When a direct push is rejected
+with `GH013` and "Changes must be made through a pull request", first perform that refresh, push
+the source branch, and wait for GitHub to recompute the pull request merge. If the source branch
+is already current or the same rejection persists after recomputation, the repository rule rejects
+this tool's direct push to `develop`; it is not a stale-branch failure. Do not force-push `develop`
+or retry the signed merge. Stop and obtain maintainer approval for a branch-protection-compatible
+merge workflow before proceeding.
 
 The vendor tool fetches the pull request and upstream base, checks out its temporary branches,
 and creates an unsigned local merge with `git merge --commit --no-edit --no-ff --no-gpg-sign`.
