@@ -73,7 +73,11 @@ When an issue changes performance-critical code, measure it before and after:
 1. **Plan it in the issue specification:** the instruments, the measurements, and a one-sided pass
    rule, for example "the after mean is not below the lowest baseline run" and "each after
    Criterion median is not above the highest baseline median". A two-sided band fails on an
-   improvement.
+   improvement. When the change deliberately adds work to a measured path, for example maintaining
+   a counter on every event, the one-sided rule cannot pass for that benchmark as written: state
+   the expected cost or an explicit tolerance for it in the plan, agreed with the maintainer before
+   the after measurement. In issue #2505 the plan had neither, so the after measurement failed the
+   rule and the cost was accepted only afterwards.
 2. **Record the baseline before any production change**, on the code the branch starts from plus
    only documentation and benchmark-only commits.
 3. **Repeat the measurement after the change** on the same machine, with the same build profile,
@@ -86,9 +90,16 @@ When an issue changes performance-critical code, measure it before and after:
 4. **Run each instrument several times:** for example three Criterion runs, reading each benchmark's
    median from `target/criterion/<group>/<function>/new/estimates.json` (the group's `/` becomes
    `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh
-   tracker.
+   tracker. Run commands that parse or format numbers, such as `awk`, `printf`, and `sort`, with
+   `LC_ALL=C`: under a locale with a decimal comma they print `9,000` for 9.0 or truncate
+   decimals. In issue #2505 that briefly made Criterion medians look quantized.
 5. **Check the machine first.** On a shared desktop, run `uptime` and look for other builds; wait
-   until the load is close to the baseline's before measuring.
+   until the load is close to the baseline's before measuring. Also check that no other tracker is
+   running and that the ports the benchmarking configuration uses are free: UDP `3000`, and TCP
+   `127.0.0.1:1313` for the health check API, which the configuration does not set and which
+   starts on that default address. `ss -lun 'sport = :3000'` and `ss -ltn 'sport = :1313'` should
+   list no socket. In issue #2505, a tracker left running for a manual recheck held port 1313, so
+   the benchmark tracker exited at startup and the load test measured 0 responses per second.
 6. **Record everything in issue-local `performance-evidence.md`:** machine, toolchain, commands,
    configuration, every run, the observed noise, and times taken from output files or `git log`,
    not from memory.

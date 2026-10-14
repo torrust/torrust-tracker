@@ -43,6 +43,12 @@ Add one section per manual verification process. A process may cover one or
 more issue-spec scenarios when its steps and evidence clearly identify each
 result.
 
+Run steps that depend on the state an earlier step leaves one at a time,
+waiting for each to finish; never issue them as one batch of parallel commands
+or agent tool calls. If dependent steps ran concurrently, discard the run and
+restart it. In issue #2505 two dependent probes ran as parallel tool calls, and
+the run had to be discarded.
+
 ### V1 - {Scenario Name}
 
 - Goal:
