@@ -9,7 +9,7 @@ github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits"
 related-pr: 2529
-last-updated-utc: "2026-10-14 15:43"
+last-updated-utc: "2026-10-14 15:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -367,6 +367,25 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   read guard with an explicit `drop()` now read through a `metrics_snapshot()` test helper. In each
   of those tests, the causal Act (construction or the metric updates) is unchanged and visible; the
   helper owns only the incidental read and guard release.
+- 2026-10-14 15:52 UTC - GitHub Copilot (implementation session) - Correction to the 14:47 entry, which
+  said no rebase was needed: when opening PR #2529 (about 14:52 UTC) the branch was rebased onto
+  `develop` at `8045bd252` (the #2505 merge), as the `open-pull-request` skill recommends, after
+  checking that every commit id cited in this folder is on `develop`. The rebase had no conflicts,
+  and on the rebased branch `cargo machete --with-metadata`, `linter clippy`, and the pre-push hook
+  (nightly formatting, check, and docs plus the full stable test suite) passed. T7 and M1/M2 ran
+  before that rebase, on `c1874facb`, which lacks the #2505 changes to `udp-core` and `udp-server`;
+  the rebased branch reran only the automated checks. Processed the rest of the PR #2529 review
+  round (Cameron's review 5520537884: F4 to F6). F4 restored the described-metrics checks that the
+  deleted service tests carried: a new `udp-core` repository test and the eleventh metric in
+  `udp-server`'s described-metrics test. Each was seen to fail on a mutation (a repository starting
+  from `Metrics::default()`; the eleventh description removed) and passes when the mutation is
+  reverted. F5 corrected the evidence and AC3 wording. #2527 merged into `develop` before this
+  branch, so this branch lands second and reran the tests on the combined code: a throwaway merge
+  of this branch with `develop` at `988c3bc76` passed `cargo +stable test -p
+  torrust-tracker-udp-core -p torrust-tracker-udp-server -p
+  torrust-tracker-rest-api-runtime-adapter --all-features` (stable 1.99.0; 52, 222 + 16, and 3
+  tests, plus doctests) and Clippy on all targets. The branch is not rebased again, because the
+  review round cites its current commit ids.
 
 ## Acceptance Criteria
 
