@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: 2527
-last-updated-utc: "2026-10-14 15:59"
+last-updated-utc: "2026-10-14 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -302,6 +302,12 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - 2026-10-14 15:59 UTC - GitHub Copilot - Review of PR #2530 (F2), also raised after merge on
   PR #2527 (F3): `manual-verification-evidence.md` now says the stats-before reading was compared
   but not stored; its run directory no longer exists.
+- 2026-10-14 16:00 UTC - GitHub Copilot - Post-merge review of PR #2527 (F1), correction: the
+  commit `docs(statistics): [#2517] introduce the repository privacy doctests` only adds the
+  lead-in sentences before each doctest. Each `compile_fail,E0616` doctest and its companion
+  landed with its package's `refactor(<package>): [#2517] make the statistics repository lock
+  private` commit. History is not rewritten; `manual-verification-evidence.md` carries the same
+  note.
 
 ## Acceptance Criteria
 
