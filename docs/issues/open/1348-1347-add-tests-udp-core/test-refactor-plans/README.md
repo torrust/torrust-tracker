@@ -2,7 +2,7 @@
 doc-type: test-refactor-plan-guidance
 issue: 1348
 package: torrust-tracker-udp-core
-status: in-progress
+status: done
 ---
 
 # UDP Core File Test Plan Guidance

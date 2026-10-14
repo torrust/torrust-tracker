@@ -81,28 +81,37 @@ Every source file has one T1 hypothesis. It determines processing order but is n
 
 ## Per-File Results
 
-Unit-only (`--lib`) file totals after each completed file plan, measured with the same clean command
-as the baseline. Totals include in-file test modules, so denominators grow as tests are added.
+Unit-only (`--lib`) file totals from the T7 final measurement (see Final Measurement below). Totals
+include in-file test modules, so denominators grow as tests are added. Values can differ from a
+plan's own Results section because later work also touched some files: the rebases onto Issue #2458
+and Issue #2505, the `rstest` conversion of `peer_builder.rs`, and the helpers moved into
+`connect.rs`.
 
-| Source module | Baseline lines | Latest lines | Latest regions | Latest functions | Plan |
+| Source module | Baseline lines | Final lines | Final regions | Final functions | Plan |
 | --- | ---: | ---: | ---: | ---: | --- |
-| `services/announce.rs` | 0 / 101 (0.00%) | 390 / 396 (98.48%) | 434 / 444 (97.75%) | 48 / 50 (96.00%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
-| `peer_builder.rs` | 0 / 14 (0.00%) | 79 / 79 (100.00%) | 115 / 115 (100.00%) | 8 / 8 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
-| `services/scrape.rs` | 0 / 77 (0.00%) | 264 / 273 (96.70%) | 303 / 316 (95.89%) | 37 / 40 (92.50%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
-| `connection_cookie.rs` | 130 / 135 (96.30%) | 171 / 171 (100.00%) | 372 / 376 (98.94%) | 22 / 22 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
+| `services/announce.rs` | 0 / 101 (0.00%) | 408 / 408 (100.00%) | 451 / 454 (99.34%) | 51 / 51 (100.00%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
+| `peer_builder.rs` | 0 / 14 (0.00%) | 63 / 63 (100.00%) | 97 / 97 (100.00%) | 7 / 7 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
+| `services/scrape.rs` | 0 / 77 (0.00%) | 284 / 287 (98.95%) | 320 / 326 (98.16%) | 40 / 41 (97.56%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
+| `connection_cookie.rs` | 130 / 135 (96.30%) | 182 / 182 (100.00%) | 398 / 402 (99.00%) | 23 / 23 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | `crypto/cookie_cipher.rs` | 49 / 49 (100.00%) after #2458 | 51 / 51 (100.00%) | 88 / 88 (100.00%) | 12 / 12 (100.00%) | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
-| `services/connect.rs` | 147 / 157 (93.63%) | 108 / 114 (94.74%) | 113 / 120 (94.17%) | 13 / 15 (86.67%) | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
-| `services/banning.rs` | 60 / 66 (90.91%) | 78 / 84 (92.86%) | 168 / 176 (95.45%) | 14 / 16 (87.50%) | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
+| `services/connect.rs` | 147 / 157 (93.63%) | 120 / 120 (100.00%) | 127 / 127 (100.00%) | 17 / 17 (100.00%) | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
+| `services/banning.rs` | 60 / 66 (90.91%) | 216 / 222 (97.30%) | 455 / 463 (98.27%) | 31 / 31 (100.00%) | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | `event.rs` | 131 / 137 (95.62%) | 144 / 147 (97.96%) | 229 / 233 (98.28%) | 21 / 22 (95.45%) | [event-tests.md](test-refactor-plans/event-tests.md) |
-| `statistics/metrics.rs` | 56 / 65 (86.15%) | 110 / 119 (92.44%) | 144 / 152 (94.74%) | 11 / 12 (91.67%) | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
+| `container.rs` | 0 / 97 (0.00%) | 317 / 317 (100.00%) | 333 / 333 (100.00%) | 30 / 30 (100.00%) | [container-tests.md](test-refactor-plans/container-tests.md) |
 | `statistics/event/handler.rs` | 199 / 200 (99.50%) | 60 / 61 (98.36%) | 104 / 108 (96.30%) | 6 / 6 (100.00%) | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | `statistics/repository.rs` | 21 / 26 (80.77%) | 86 / 86 (100.00%) | 94 / 95 (98.95%) | 16 / 16 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
+| `statistics/metrics.rs` | 56 / 65 (86.15%) | 110 / 119 (92.44%) | 144 / 152 (94.74%) | 11 / 12 (91.67%) | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | `statistics/services.rs` | 32 / 32 (100.00%) | 40 / 40 (100.00%) | 51 / 51 (100.00%) | 6 / 6 (100.00%) | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
 | `statistics/event/listener.rs` | 124 / 145 (85.52%) | 144 / 164 (87.80%) | 193 / 211 (91.47%) | 21 / 24 (87.50%) | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 | `statistics/mod.rs` | 8 / 8 (100.00%) | 15 / 15 (100.00%) | 18 / 18 (100.00%) | 2 / 2 (100.00%) | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
 | `lib.rs` | 5 / 10 (50.00%) | 5 / 5 (100.00%) | 6 / 6 (100.00%) | 1 / 1 (100.00%) | [lib-tests.md](test-refactor-plans/lib-tests.md) |
 | `services/mod.rs` | 22 / 24 (91.67%) | 1 / 3 (33.33%) | 1 / 3 (33.33%) | 1 / 2 (50.00%) | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) |
-| `container.rs` | 0 / 97 (0.00%) | 317 / 317 (100.00%) | 333 / 333 (100.00%) | 30 / 30 (100.00%) | [container-tests.md](test-refactor-plans/container-tests.md) |
+| `crypto/mod.rs` | No executable entries | No executable entries | - | - | [crypto-mod-tests.md](test-refactor-plans/crypto-mod-tests.md) |
+| `statistics/event/mod.rs` | No executable entries | No executable entries | - | - | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) |
+| `crypto/keys.rs` | 35 / 41 (85.37%) | Removed by #2458 | - | - | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) (superseded) |
+| `crypto/ephemeral_instance_keys.rs` | 5 / 10 (50.00%) | Removed by #2458 | - | - | - |
+
+### History Of Package Unit-Only Totals
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -137,8 +146,40 @@ removing covered test code. After `statistics/repository.rs`: 1,924 / 1,987 line
 259 / 274 functions (94.53%). After the rebase onto #2505 (which added banning tests and changed
 `banning.rs`): 2,094 / 2,156 lines (97.12%), 2,946 / 3,025 regions (97.39%), 276 / 289 functions
 (95.50%). After `container.rs`: 2,246 / 2,290 lines (98.08%), 3,109 / 3,167 regions (98.17%),
-296 / 303 functions (97.69%). The final
-package comparison is recorded at T7.
+296 / 303 functions (97.69%).
+
+## Final Measurement
+
+Measured at `e3ebd673e` on 2026-10-14T15:52:56Z with stable Rust 1.99.0 and `cargo-llvm-cov
+0.6.16`, using the same two clean commands as the baseline (outputs
+`.tmp/1348-coverage/final-aggregate.json` and `.tmp/1348-coverage/final-unit.json`). Both ran 98
+package unit tests. The package still has no integration target, so the aggregate command again
+selected only the unit-test binary and its totals equal unit-only.
+
+| Level | Baseline (T1) | Final (T7) | Change |
+| --- | ---: | ---: | ---: |
+| Aggregate lines | 975 / 1,345 (72.49%) | 2,246 / 2,290 (98.08%) | +25.59 pp |
+| Aggregate regions | 1,488 / 1,894 (78.56%) | 3,109 / 3,167 (98.17%) | +19.61 pp |
+| Aggregate functions | 129 / 181 (71.27%) | 296 / 303 (97.69%) | +26.42 pp |
+| Unit-only lines | 975 / 1,345 (72.49%) | 2,246 / 2,290 (98.08%) | +25.59 pp |
+| Unit-only regions | 1,488 / 1,894 (78.56%) | 3,109 / 3,167 (98.17%) | +19.61 pp |
+| Unit-only functions | 129 / 181 (71.27%) | 296 / 303 (97.69%) | +26.42 pp |
+
+The change is not all from #1348. Issue #2458 removed the two key modules and added the cookie
+cipher and the first container tests; Issue #2505 rewrote the banned-IPs counting and added
+banning tests. The history above records each step.
+
+Remaining uncovered lines and their recorded reasons:
+
+| File | Lines | Reason |
+| --- | --- | --- |
+| `statistics/event/listener.rs` | 17-37, 100 | Spawn and unspawned entry points (lifecycle, #1488 / #2414); a tracing field evaluated only with a subscriber. |
+| `statistics/metrics.rs` | 35-43 | `Metrics::set_gauge`, no caller (`lessons.md`). |
+| `event.rs` | 84-86 | `ConnectionContext::server_socket_addr()`, no caller (`lessons.md`). |
+| `services/scrape.rs` | 178-180 | `From<WhitelistError>`, unreachable from this service (`lessons.md`). |
+| `statistics/event/handler.rs` | 17 | Error log when the repository rejects a counter increase. |
+| `services/mod.rs` | 15 | `mock!` expansion (generated code). |
+| `services/banning.rs` | 232, 252, 273, 339, 367, 439 | Failure-message arguments in #2505's test assertions, evaluated only when an assertion fails. The banning plan's earlier uncovered lines (the banned-IPs total) are now covered by #2505. |
 
 ## Next Evidence
 

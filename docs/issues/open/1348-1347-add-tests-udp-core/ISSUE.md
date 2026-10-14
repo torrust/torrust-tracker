@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-09 07:30"
+last-updated-utc: "2026-10-14 15:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -208,7 +208,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
 | T5 | DONE | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. None selected: all 20 plans record R3 `SKIPPED` with a boundary rationale (in-memory collaborators, or lifecycle owned by #1488 / #2414). |
 | T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
-| T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
+| T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
 
 After the last T4/T5 test-producing increment, stop for maintainer review before T6-T8, any final
@@ -512,6 +512,13 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `connection_cookie.rs` with the file's own tests; 19 caught, 1 unviable, 0 missed
   ([mutation-evidence.md](mutation-evidence.md)). The workspace `-D unused` flags made 7 real
   mutants unviable in a first run, so the recorded run caps lints to warnings.
+- 2026-10-14 15:58 UTC - GitHub Copilot - T7 is `DONE`. Final clean measurement at `e3ebd673e`
+  (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`, 98 tests): unit-only and aggregate lines 975 / 1,345
+  (72.49%) → 2,246 / 2,290 (98.08%); recorded in `coverage-evidence.md` (per-file final values,
+  remaining uncovered lines with reasons) and both EPIC #1347 tables. Reconciled: 19 ledger rows
+  `DONE` plus 2 `REMOVED`; 20 plans `done` (the keys plan `superseded`) and indexed; plan index
+  frontmatter set to `done`. The banning plan's "uncovered banned-IPs total" is now covered by
+  #2505. Next: T8.
 
 ## Acceptance Criteria
 
