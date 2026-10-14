@@ -16,10 +16,10 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-    - docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md
-    - docs/issues/closed/1942-1938-si-4-migrate-stats-context/ISSUE.md
+    - "issue #1669"
+    - "issue #2505"
+    - "issue #1924"
+    - "issue #1942"
     - packages/udp-core/src/statistics/repository.rs
     - packages/udp-server/src/statistics/repository.rs
     - packages/rest-api-application/src/v1/ports/stats.rs
