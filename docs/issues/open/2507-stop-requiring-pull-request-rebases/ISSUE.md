@@ -87,6 +87,10 @@ that ref for at least 48 minutes after `develop` advanced through locally pushed
 a mergeability query (baseline evidence section 3). Today a push to the PR head, in practice a
 rebase, is what refreshes it.
 
+Correction from T1: the sandbox experiment showed that the condition is the pull request's recorded
+base (`base.sha`), not the freshness of `refs/pull/<n>/merge`; the paragraph above records what was
+believed when this specification was written. T2 implements the corrected condition.
+
 ### The rulesets
 
 Two repository rulesets are disabled, and neither state is documented (baseline evidence
