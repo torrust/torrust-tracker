@@ -299,7 +299,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
-| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
+| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | IN_PROGRESS | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
 | 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
 | 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
 | 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
@@ -468,6 +468,10 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   for another agent.
 - 2026-10-14 08:07 UTC - Jose Celano - Approved the `statistics/repository.rs` completed-file
   review; ledger row 11 is `DONE` (4 tests added; unit-only 21 / 26 to 86 / 86 lines).
+- 2026-10-14 08:57 UTC - Jose Celano - Approved the `statistics/services.rs` plan (V0 replaced by
+  V1-V2; stale module docs fixed); ledger row 13 is `IN_PROGRESS`. The unused `get_metrics()` /
+  `TrackerMetrics` finding is in `lessons.md`, forwarded by the maintainer to the agent handling the
+  unused SI-30 traits draft.
 
 ## Acceptance Criteria
 
