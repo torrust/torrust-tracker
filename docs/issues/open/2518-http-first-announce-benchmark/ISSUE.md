@@ -247,8 +247,10 @@ wired (D4) the statistics listener counts them in `swarm_coordination_registry_p
 `swarm_coordination_registry_peers_removed_total`, readable through the swarm statistics
 `Repository::get_metrics`.
 
-**Chosen: a maintained assertion.** After the run, outside the measured time, the benchmark waits
-with a bounded deadline for the listener to process the queued events, then asserts that:
+**Chosen: a maintained assertion.** The swarm statistics listener subscribes to the event bus before
+the swarm is pre-filled, because a broadcast receiver sees only events sent after it subscribes.
+After the run, outside the measured time, the benchmark waits with a bounded deadline for the
+listener to process the queued events, then asserts that:
 
 - peers added equals the pre-filled peers plus every first announce the context made, timed or
   not;
@@ -258,6 +260,37 @@ with a bounded deadline for the listener to process the queued events, then asse
 The context counts its own announces; the `RoutineGuard` counts the timed ones. Before measurement,
 the context also makes one first announce outside the measured time and asserts that its response
 holds `min(N, 74)` peers, so the peer-list size is checked by maintained code too.
+
+**Lag rule** (added on 2026-10-14 in answer to `review-finding:pr-2519-f8`). The swarm event bus is
+a Tokio broadcast channel with a capacity of 65,536 events (`CHANNEL_CAPACITY` in
+`packages/events/src/broadcaster.rs`). A listener that falls further behind receives
+`RecvError::Lagged`, logs a warning, and never counts the skipped events. Under `cargo bench`,
+millions of iterations each send two swarm events, so exact counts could fail even though every
+announce was an insert. The benchmark therefore applies the exact counts above only when the run
+sent no more swarm events than the channel capacity, so that no event can have been dropped; this
+always holds under `cargo test --benches`, which runs one iteration. When the run sent more, it
+asserts that peers updated is 0 and that peers added and peers removed are not above their expected
+values, because a dropped event can only lower a count. The context knows how many events it sent
+from its own announce count.
+
+- Pros of the lag rule: the exact check runs in the pre-push hook and CI, where no lag is
+  possible; long runs keep the checks that remain valid under lag; it depends on the number of
+  events, not on detecting Criterion's mode.
+- Cons: under long `cargo bench` runs, a missing insert is no longer detected, only an update.
+
+Discarded lag rules:
+
+- **Exact counts in Criterion's test mode only, no count checks under `cargo bench`.**
+  - Pros: simplest rule.
+  - Cons: the benchmark would need to detect Criterion's mode, which Criterion does not expose
+    to the benchmark function, and long runs would lose the `updated == 0` check that stays valid.
+  - Why not: the event-count rule gives the same exact check under test mode without detecting the
+    mode, and keeps a meaningful check under `cargo bench`.
+- **Under `cargo bench`, `updated == 0` plus a lower bound on the counts.**
+  - Pros: would detect a large loss of inserts.
+  - Cons: dropped events lower the counts by an amount that depends on scheduling, so no lower
+    bound is both safe and meaningful.
+  - Why not: any useful lower bound could fail on a correct run.
 
 - Pros:
   - It runs on every `cargo test --benches` in the pre-push hook and CI, not once by hand.
@@ -380,9 +413,10 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
 - [ ] AC5: `docs/benchmarking.md` lists and explains the benchmark, including what its timing
       includes (the per-iteration clock reads, D1) and why the discarded options were not used.
 - [ ] AC6: After the run, the benchmark asserts from the swarm statistics metrics that every
-      announce the context made was an insert or a removal, with no updates, and that the first
-      announce made before measurement returned `min(N, 74)` peers (D5). Each assertion is shown to fail under a
-      deliberate mutation, for example announcing the same new peer twice.
+      announce the context made was an insert or a removal, with no updates, applying exact counts
+      only under the D5 lag rule, and that the first announce made before measurement returned
+      `min(N, 74)` peers (D5). Each assertion is shown to fail under a deliberate mutation, for
+      example announcing the same new peer twice.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -427,6 +461,10 @@ because it measures a one-off question rather than a durable invariant.
 
 ## Risks and Trade-offs
 
+- **Dropped swarm events (D5).** The swarm event bus holds 65,536 events; a listener that falls
+  further behind skips events, so exact counts can fail on long `cargo bench` runs. Mitigation: the
+  D5 lag rule applies exact counts only when the run sent no more events than the capacity, and
+  otherwise checks only what lag cannot break.
 - **Timer overhead (D1).** Per-iteration clock reads add a constant to every result. Mitigation:
   documented; comparisons are made between runs of the same benchmark, never against
   `announce_once`, whose iterations are timed in bulk.
