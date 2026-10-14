@@ -1,0 +1,270 @@
+---
+schema-version: 1
+doc-type: issue
+issue-type: feature
+status: planned
+priority: p2
+epic: null
+github-issue: 2525
+spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
+branch: "2525-ci-gate-required-check"
+related-pr: null
+last-updated-utc: "2026-10-14 10:10"
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-adr
+    - implement-workflow
+    - add-workspace-member
+  related-artifacts:
+    - docs/github-rulesets.md
+    - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
+    - .github/workflows/testing.yaml
+    - .github/workflows/os-compatibility.yaml
+    - .github/workflows/container.yaml
+    - .github/workflows/generate_coverage_pr.yaml
+    - .github/workflows/docs-lint.yaml
+    - contrib/dev-tools/checks/package-coverage-check/Cargo.toml
+    - "issue #2507"
+    - "issue #1743"
+---
+
+<!-- skill-link: create-issue -->
+
+# Issue #2525 - Require one always-reporting CI gate decided by a Rust tool
+
+## Goal
+
+Make GitHub enforce that a pull request's CI passed before it can merge, with one required check,
+`CI gate`, that reports on every pull request (code and documentation-only alike), can be
+overridden per pull request by a maintainer without disabling any ruleset, and whose decisions live
+in a Rust tool behind thin workflows that do not lock the project into GitHub Actions.
+
+## Background
+
+Issue #2507 found that the only required-checks ruleset (94237) had been effectively disabled since
+2026-05-05 and deleted it. It could not be satisfied: job renames had removed six of its 16 required
+check names, and since the documentation-only fast path (#1743) a Markdown-only pull request reports
+only `Docs Lint`, so the other required checks stayed "expected" forever. The maintainer disabled it
+around every merge, and it stayed disabled, taking the force-push ban with it.
+
+A fork sandbox in #2507 (evidence section T5 of that issue) established the constraints:
+
+- GitHub enforces required status checks on the maintainer merge tool's direct merge push, reading
+  them from the pull-request head commit. A GitHub-required check therefore protects every merge,
+  whichever tool performs it.
+- A workflow skipped by `paths-ignore` reports nothing, and a missing required check blocks the merge
+  forever. Every required check must report on every pull request.
+- A later commit status overrides an earlier commit status with the same context, but not a failing
+  GitHub Actions check run with the same name. An override of an Actions-produced check needs a
+  different mechanism.
+
+The maintainer decided (2026-10-14) on one required, always-reporting `CI gate`, overridable by a
+maintainer-applied `ci-override` label, with the decision logic in Rust: "put as little code as
+possible in GitHub workflows". Keeping CI decisions in a Rust tool makes them testable, lets them
+grow smarter about what to run for a given change (performance), and decouples the project from
+GitHub so that moving to another CI provider or self-hosted CI stays feasible. Rising GitHub
+infrastructure cost and lower reliability since AI agents multiplied pull requests make that
+portability more valuable.
+
+## Scope
+
+### In Scope
+
+- A Rust workspace tool (working name `ci-gate`) with provider-neutral inputs and outputs:
+  - **change detection:** given the base and head revisions, classify the changed paths and print
+    which job groups the change needs (for example documentation, Rust build and tests, container,
+    databases, security scan), replacing workflow-level `paths-ignore` and `paths` filters;
+  - **verdict:** given the needed job groups, each group's result, and an optional override with
+    its actor, decide pass or fail and print a human-readable explanation of every failing or
+    missing group.
+- One orchestrating pull-request workflow that runs change detection, invokes the existing
+  workflows as reusable workflows only for needed groups, and ends with a `CI gate` job
+  (`if: always()`) that runs the verdict. Workflow YAML only passes data to and from the tool.
+- The `ci-override` label: the orchestrator re-evaluates the gate when the label is added or
+  removed, without rerunning the heavy jobs; the verdict passes with an explanation naming the
+  actor; only actors with the Maintain or Admin role count.
+- A ruleset requiring the `CI gate` context from GitHub Actions with
+  `strict_required_status_checks_policy: false`, applied after the gate is proven, and
+  `docs/github-rulesets.md` updated.
+- A root ADR recording the direction: CI decision logic in Rust behind thin, provider-agnostic
+  workflows.
+- Skill and documentation updates: `merge-pull-request` (override procedure), `implement-workflow`
+  (thin-workflow rule), and `docs/github-rulesets.md`.
+
+### Out of Scope
+
+- Migrating away from GitHub Actions or to self-hosted CI.
+- Changing what each test job runs, or the self-hosted container runner.
+- Rewriting `github-merge.py` in Rust.
+- Post-merge `push` workflows on `develop` and `main`, except where a reusable-workflow conversion
+  requires keeping their triggers working unchanged.
+
+## Architectural Decisions
+
+- Related ADRs:
+  [`20261013161419_stop_requiring_pull_request_rebases.md`](../../../adrs/20261013161419_stop_requiring_pull_request_rebases.md)
+  (required checks must not require up-to-date branches),
+  [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md).
+- ADRs to create: root ADR "Keep CI decision logic in Rust behind thin, provider-agnostic
+  workflows" (T1).
+
+## Design and Ownership Review
+
+Not applicable to tracker runtime code. The Rust tool reads Git and JSON inputs and writes text; it
+owns no child processes, network readiness, or long-lived resources.
+
+## Bug-Fix Process
+
+Not applicable. This is a feature.
+
+## Regression Test Strategy
+
+Not applicable. The Rust tool gets unit tests for classification and verdict rules (T2, T3).
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID  | Status | Task                                  | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                |
+| --- | ------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | TODO   | Write the CI-portability ADR          | Root ADR under `docs/adrs/`: decision logic in Rust tools with provider-neutral inputs (paths, revisions, JSON results); workflows only schedule jobs and pass data; how to judge whether new logic belongs in YAML.                                                                                                                                   |
+| T2  | TODO   | Rust change detection                 | New workspace member (use `add-workspace-member`) next to `package-coverage-check`. Path rules reproduce today's `paths`/`paths-ignore` filters exactly first, with a table-driven unit test per rule. Keep dependencies minimal so the tool compiles quickly.                                                                                         |
+| T3  | TODO   | Rust verdict                          | Pass when every needed group succeeded or the override applies; fail naming each failing, cancelled, or missing group. Unit tests for success, failure, skipped-but-not-needed, missing, and override cases.                                                                                                                                           |
+| T4  | TODO   | Decision gate: gate cost and override | In a fork sandbox like #2507's: measure the runner time the gate adds to a documentation-only PR (tool compile included, with and without caching or a prebuilt binary), and verify that a later successful `CI gate` check run from an override-only run supersedes the earlier failing one for the required check. Maintainer approves the approach. |
+| T5  | TODO   | Orchestrating workflow                | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`.                                                                                            |
+| T6  | TODO   | Ruleset and documentation             | After T5 is proven on real PRs: add the required `CI gate` context (Actions app, not strict) to the rulesets, update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                 |
+| T7  | TODO   | Measure                               | Compare PR CI runner time per documentation-only and code PR before and after, using the #2507 baseline commands.                                                                                                                                                                                                                                      |
+
+## Commit Points
+
+| Task | Coherent change set                                      | Commit policy                                                           |
+| ---- | -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| T1   | ADR and index row                                        | Commit after maintainer review of the ADR text.                         |
+| T2   | Change-detection module and its tests                    | Commit after focused tests pass and the test design review is recorded. |
+| T3   | Verdict module and its tests                             | Commit after focused tests pass and the test design review is recorded. |
+| T4   | Sandbox evidence                                         | Commit after the maintainer approves the approach.                      |
+| T5   | One commit per converted workflow, then the orchestrator | Commit after `linter all` and a sandbox or PR run.                      |
+| T6   | Documentation and skills; ruleset evidence               | Commit after the maintainer applies the ruleset.                        |
+| T7   | `post-change-evidence.md`                                | Commit after the measurement window.                                    |
+
+For test-producing work, use the `write-unit-test` skill and record the prose-first
+Arrange-Act-Assert review after each passing increment, before maintainer review and commit. Use
+Conventional Commits with narrow scopes and sign every commit with GPG.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Folder-style spec drafted in `docs/issues/drafts/ci-gate-required-check/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, the tool's tests, and pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [ ] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-10-14 10:08 UTC - AI assistant - Drafted as task T8 of issue #2507 from its sandbox evidence
+  and the maintainer's decisions of 2026-10-14.
+- 2026-10-14 10:10 UTC - AI assistant - Maintainer approved the draft; created issue #2525 and moved
+  the spec to `docs/issues/open/`. It ships with the #2507 implementation pull request; the
+  implementation branch is `2525-ci-gate-required-check`.
+
+## Acceptance Criteria
+
+- [ ] AC1: Every pull request, code or documentation-only, reports exactly one `CI gate` check.
+- [ ] AC2: GitHub rejects the maintainer merge push while `CI gate` is failing, pending, or missing,
+      and accepts it when `CI gate` passes, with no ruleset disabled at any point.
+- [ ] AC3: A maintainer-applied `ci-override` label makes `CI gate` pass without rerunning the heavy
+      jobs, the explanation names the actor and the overridden failures, and a label from an actor
+      without the Maintain or Admin role does not count.
+- [ ] AC4: Change detection selects the same job groups as today's workflow path filters for every
+      tested path rule.
+- [ ] AC5: Workflow YAML contains no change classification or verdict logic; both live in the Rust
+      tool with unit tests.
+- [ ] AC6: A documentation-only pull request's CI runner time stays within the bound approved in T4.
+- [ ] AC7: The CI-portability ADR is merged and `docs/github-rulesets.md` lists the `CI gate` rule.
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] Documentation is updated when behavior/workflow changes
+
+## Verification Plan
+
+### Automatic Checks
+
+- `linter all`
+- `cargo test -p <ci-gate package>` (stable Rust toolchain)
+- `./contrib/dev-tools/git/hooks/pre-push.sh`
+- The `implement-workflow` skill's checks for the changed workflows
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+| ID  | Scenario                          | Human-oriented command/steps                                         | Expected Result                                                           | Status | Evidence                                     |
+| --- | --------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | Documentation-only PR             | Open a Markdown-only PR and read its checks.                         | Heavy jobs skipped; `CI gate` passes; merge tool push accepted.           | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | Code PR                           | Open a PR changing Rust code.                                        | Needed groups run; `CI gate` passes after them; push accepted.            | TODO   | `manual-verification-evidence.md` section V2 |
+| M3  | Failing PR is blocked             | Merge-tool push for a PR with a failing needed job.                  | `GH013` naming the failing `CI gate`; gate output names the failed group. | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | Maintainer override               | Add `ci-override` to the M3 PR as a maintainer, then push the merge. | `CI gate` passes naming the actor; heavy jobs not rerun; push accepted.   | TODO   | `manual-verification-evidence.md` section V4 |
+| M5  | Override by an unauthorized actor | In the sandbox, have an account with the Triage role add the label.  | `CI gate` stays failing.                                                  | TODO   | `manual-verification-evidence.md` section V5 |
+
+Notes:
+
+- M3 to M5 run in a fork sandbox like #2507's unless a real PR provides the situation.
+- Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
+
+### Disposable Verification Scripts
+
+None planned.
+
+### Acceptance Verification
+
+| AC ID | Status (`TODO`/`DONE`) | Evidence |
+| ----- | ---------------------- | -------- |
+| AC1   | TODO                   |          |
+| AC2   | TODO                   |          |
+| AC3   | TODO                   |          |
+| AC4   | TODO                   |          |
+| AC5   | TODO                   |          |
+| AC6   | TODO                   |          |
+| AC7   | TODO                   |          |
+
+## Risks and Trade-offs
+
+- **Gate cost on documentation-only PRs.** Compiling a Rust tool in every PR can cost minutes and
+  erase the #1743 fast path. Mitigation: T4 measures it and chooses caching, a minimal-dependency
+  crate, or a prebuilt binary before anything is required.
+- **Override semantics.** The sandbox showed statuses cannot override failing check runs; whether a
+  later passing check run with the same name supersedes an earlier failing one is unverified. T4
+  verifies it before the design depends on it.
+- **A broken gate blocks every PR.** Mitigation: introduce the required context only after T5 runs
+  on real PRs (T6), keep the verdict unit-tested, and document how to revert the ruleset change.
+- **Reusable-workflow conversion breaks `push` CI.** Mitigation: one commit per workflow, keeping the
+  `push` triggers and checking a `develop` run after merge.
+- **Label permissions.** Labels need only the Triage role. Mitigation: the verdict counts the label
+  only when the labeling actor has the Maintain or Admin role.
+
+## Implementation Completion Review
+
+- Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
+- If no retrospective is needed, add a concise progress-log entry explaining why.
+- When an independent reviewer receives this folder-style specification, it records its result in
+  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
+
+## References
+
+- Related issues: #2507 (origin, sandbox evidence), #1743 (documentation-only fast path)
+- Related documents: [`docs/github-rulesets.md`](../../../github-rulesets.md)
