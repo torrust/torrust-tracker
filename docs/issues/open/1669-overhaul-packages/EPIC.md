@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 12:53"
+last-updated-utc: "2026-10-14 07:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -668,6 +668,7 @@ Status: TODO unless noted.
 - [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
 - [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
 - [ ] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report)_
+- [ ] [#2517](https://github.com/torrust/torrust-tracker/issues/2517) Make the statistics repositories' metrics lock private _(Pre-publish API hygiene; five unpublished crates; found by #1348)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [x] Extract `torrust-located-error` to standalone repository — [#1894](https://github.com/torrust/torrust-tracker/issues/1894) _(Rule E; requires completed rename SI-10 #1823)_ — **DONE**
@@ -730,6 +731,7 @@ Details:
 | HTTP type consolidation    | [#1965](https://github.com/torrust/torrust-tracker/issues/1965) — SI-34: Consolidate duplicate HTTP types into `http-protocol`                                                            | [docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md](../../closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md)                                         | DONE   |                                                                                                                                               |
 | UDP type consolidation     | [#1966](https://github.com/torrust/torrust-tracker/issues/1966) — SI-35: Consolidate duplicate UDP types                                                                                  | [docs/issues/closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md](../../closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md)                                           | DONE   |                                                                                                                                               |
 | Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | TODO   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
+| Statistics lock privacy    | [#2517](https://github.com/torrust/torrust-tracker/issues/2517) — Make the statistics repositories' metrics lock private | [docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../2517-1669-encapsulate-statistics-repository-state/ISSUE.md) | TODO | Pre-publish API hygiene; `udp-core`, `udp-server`, `http-core`, `tracker-core`, `swarm-coordination-registry` |
 
 Proposal note:
 After SI-14, there is a proposal to evaluate a dedicated repository for protocol crates so protocol packages can evolve with BEP/spec changes while tracker app packages evolve with domain/product changes. This is proposal-only for now (not committed scope) and is tracked in [#1835](https://github.com/torrust/torrust-tracker/issues/1835).
@@ -751,6 +753,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
 - [docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md](../2482-1669-reorganize-shared-test-support/EPIC.md)
 - [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
+- [docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../2517-1669-encapsulate-statistics-repository-state/ISSUE.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
@@ -998,6 +1001,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-08 12:53 UTC - GitHub Copilot - Converted #2482 into a sub-EPIC at the maintainer's
   request: it decides the rules (one ADR) and then applies them package by package; its
   subissues are tracked in its own EPIC.md, and this EPIC keeps a single row for it.
+- 2026-10-14 07:15 UTC - GitHub Copilot - Created #2517 (make the five statistics repositories'
+  `stats` lock private) from a finding of the #1348 `udp-core` test work, and linked it as a
+  sub-issue.
 
 ## Acceptance Criteria
 
