@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: null
-last-updated-utc: "2026-10-14 12:57"
+last-updated-utc: "2026-10-14 12:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -181,7 +181,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Re-verify the evidence on current `develop`         | Repeat the `.stats` search and crates.io check; record the commit in the progress log.                     |
 | T2  | DONE   | Make `stats` private in `udp-core`                  | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
 | T3  | DONE   | Make `stats` private in `udp-server`                | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
-| T4  | TODO   | Make `stats` private in `http-core`                 | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-http-core` passes, including doctests. |
+| T4  | DONE   | Make `stats` private in `http-core`                   | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization. |
 | T5  | TODO   | Make `stats` private in `tracker-core`              | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-core` passes, including doctests. |
 | T6  | TODO   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-swarm-coordination-registry` passes, including doctests. |
 | T7  | TODO   | Verification                                        | See Verification Plan.                                                                                      |
@@ -245,6 +245,11 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - 2026-10-14 12:57 UTC - Implementation - T3 (`udp-server`) passed the red/green check:
   `cargo test -p torrust-tracker-udp-server --doc` failed because the public field compiled, then
   `cargo test -p torrust-tracker-udp-server` passed after the field became private. The doctest
+  design review confirmed the `E0616` failure is caused only by field access; a companion example
+  reads through `get_stats()`.
+- 2026-10-14 12:59 UTC - Implementation - T4 (`http-core`) passed the red/green check:
+  `cargo test -p torrust-tracker-http-core --doc` failed because the public field compiled, then
+  `cargo test -p torrust-tracker-http-core` passed after the field became private. The doctest
   design review confirmed the `E0616` failure is caused only by field access; a companion example
   reads through `get_stats()`.
 
