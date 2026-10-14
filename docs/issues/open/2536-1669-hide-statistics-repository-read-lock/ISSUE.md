@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:49"
+last-updated-utc: "2026-10-14 19:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -305,6 +305,10 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - 2026-10-14 19:49 UTC - GitHub Copilot - PR #2537 review (F6, da2ce7): the overlap risk now
   names the three open sibling specs outside #1669 that touch the removed accessors (#2414, #1348,
   #2518).
+- 2026-10-14 19:59 UTC - GitHub Copilot - PR #2537 review (F7, da2ce7): the AC1 call grep is now
+  limited to Rust sources, excludes torrent-repository-benchmarking, and must print exactly the two
+  REST-port lines (stats_service.get_stats() and query_port.get_stats()), so the check has a pass
+  or fail result.
 
 ## Acceptance Criteria
 
@@ -337,7 +341,23 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - Pre-push checks (`./contrib/dev-tools/git/hooks/pre-push.sh`)
 - AC1 check: `grep -nE 'RwLock(Read|Write)Guard' packages/*/src/statistics/repository.rs` matches
   only non-`pub` items (for example the `#[cfg(test)] pub(crate)` `write_lock_for_test()`), and
-  `grep -rnE '\.(get_stats|get_metrics)\(\)'` finds no call on a statistics repository.
+  this call grep prints exactly the two REST-port lines below, which call the port and service
+  methods of the same name rather than a statistics repository:
+
+  ```sh
+  grep -rnE '\.(get_stats|get_metrics)\(\)' --include='*.rs' \
+    --exclude-dir=torrent-repository-benchmarking packages src tests console contrib
+  ```
+
+  ```text
+  packages/axum-rest-api-server/src/v1/context/stats/handlers.rs:29:    let stats = stats_service.get_stats().await;
+  packages/rest-api-application/src/v1/use_cases/stats.rs:24:        self.query_port.get_stats().await
+  ```
+
+  The grep is limited to Rust sources so that `docs/` and `target/` cannot match, and it
+  excludes `torrent-repository-benchmarking`, whose own `get_metrics()` is out of scope. Line
+  numbers may shift if those two files change; the file paths and calls must not. At
+  `48c4d3013` it prints 84 lines.
 - AC2 check: `grep -nE 'pub +metric_collection *:' packages/*/src/statistics/metrics.rs` prints
   nothing.
 - AC4 check: a review of each event handler's logging line, plus a unit test or a documented
