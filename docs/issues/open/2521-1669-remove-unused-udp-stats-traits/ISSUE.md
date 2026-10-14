@@ -9,7 +9,7 @@ github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 09:13"
+last-updated-utc: "2026-10-14 09:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,19 +24,26 @@ semantic-links:
     - packages/udp-server/src/statistics/repository.rs
     - packages/rest-api-application/src/v1/ports/stats.rs
     - packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs
+    - packages/udp-core/src/statistics/services.rs
+    - packages/udp-server/src/statistics/services.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #2521 - Remove the Unused UDP Statistics Repository Traits Left by SI-30
+# Issue #2521 - Remove the Unused UDP Statistics Traits and Services
 
 Parent EPIC: #1669 (Overhaul: Packages).
 
 ## Goal
 
-Remove the `UdpCoreStatsRepository` and `UdpServerStatsRepository` traits, which SI-30 added for
-REST API decoupling and which nothing consumes, together with the `async-trait` dependency they
-alone require.
+Remove the unused public statistics API from `udp-core` and `udp-server`:
+
+- the `UdpCoreStatsRepository` and `UdpServerStatsRepository` traits, which SI-30 added for REST
+  API decoupling, together with the `async-trait` dependency they alone require; and
+- the `statistics::services` modules (`TrackerMetrics` and `get_metrics()`).
+
+Nothing outside each item's own definition and tests consumes them: the REST runtime adapter reads
+the statistics repositories directly.
 
 ## Background
 
@@ -83,6 +90,32 @@ Evidence on `develop` at `cbdbce9c1` (2026-10-14):
 - The only current documentation naming these traits, outside closed specs, is the EPIC #1669
   SI-30 table row and the #2505 spec's Out of Scope note.
 
+### Unused statistics services
+
+Both packages also keep a `statistics::services` module with a public `TrackerMetrics` struct
+(aggregate swarm metadata plus a copy of the package's `Metrics`) and a public
+`async fn get_metrics(in_memory_torrent_repository, stats_repository) -> TrackerMetrics`. They date
+from the 2025 split of the tracker statistics into per-protocol packages; the REST API no longer
+calls them, because `TrackerStatsAdapter` reads the repositories directly and takes swarm metadata
+from `tracker-core`.
+
+Evidence on `develop` at `d1bf013ea` (2026-10-14):
+
+- In `udp-core` and `udp-server`, `statistics/services.rs` is the only file that names
+  `TrackerMetrics` or `statistics::services::get_metrics`. Each file's only reference is its own
+  test, `the_statistics_service_should_return_the_tracker_metrics`, which tests only the removed
+  function. No other package names either module.
+- No other package has a `statistics/services.rs` module.
+- Removing the modules changes no workspace dependency edge: both packages still use
+  `torrust_tracker_core` (for example `udp-core`'s `container.rs` and `services/announce.rs`) and
+  `torrust_tracker_primitives` in other files.
+- Each `services.rs` carries the only module-level documentation of the package's statistics
+  event flow (event sender, listener, handler, repository). Part of it is stale: its example shows a
+  `pub udp4_connections_handled: u64` field on `Metrics`, which is now a method.
+
+Reported by the AI agent working on issue #1348, after this specification was first drafted; the
+maintainer chose to fold it into this issue on 2026-10-14.
+
 Found while planning `udp-core` tests in issue #1348 (branch `1348-1347-add-tests-udp-core`, plan
 `test-refactor-plans/statistics-repository-tests.md`, not yet on `develop`).
 
@@ -103,6 +136,11 @@ Found while planning `udp-core` tests in issue #1348 (branch `1348-1347-add-test
   collection through `get_stats()`.
 - Add a note to the EPIC #1669 SI-30 table row that the two repository traits were removed by this
   issue and `BanningStats` by #2505. Closed specs are historical and stay unchanged.
+- Remove `statistics/services.rs` (`TrackerMetrics`, `get_metrics()`, and its test) and the
+  `pub mod services;` declaration from `udp-core` and from `udp-server`.
+- Keep the still-accurate statistics event-flow explanation by moving it to the `statistics/mod.rs`
+  module documentation of each package, dropping the stale `Metrics` field example and any
+  reference to the removed service.
 
 ### Out of Scope
 
@@ -111,6 +149,7 @@ Found while planning `udp-core` tests in issue #1348 (branch `1348-1347-add-test
 - The public `stats` lock field on the statistics repositories (#2517, a separate #1669
   sub-issue).
 - Changing the REST API ports or the runtime adapter design.
+- Statistics services in other packages: none exist today.
 
 ## Architectural Decisions
 
@@ -134,19 +173,22 @@ changes.
   concrete `statistics::repository::Repository` types. These runtime-adapter edges respect the
   layer model; the change removes no forbidden edge and adds none.
 - The only dependency change is the external `async-trait` crate leaving `udp-core` and
-  `udp-server`; it is not a layer in the model.
+  `udp-server`; it is not a layer in the model. Removing `statistics::services` drops no edge,
+  because both packages still use `tracker-core` and `primitives` elsewhere.
 - Verification: compare `cargo tree -e normal --depth 1 -p torrust-tracker-udp-core` and the same
   for `torrust-tracker-udp-server` before and after the change. The only difference is the
   removed `async-trait` line.
 
 ## Bug-Fix Process
 
-Not applicable: not a bug. The traits are dead code, not incorrect behavior.
+Not applicable: not a bug. The traits and services are dead code, not incorrect behavior.
 
 ## Regression Test Strategy
 
 No new behavior, so no new regression test. Existing tests must keep passing. The adapted
-`udp-server` test keeps its intent (default construction initializes the described metrics).
+`udp-server` test keeps its intent (default construction initializes the described metrics). The
+two `the_statistics_service_should_return_the_tracker_metrics` tests are deleted with the function
+they test (T4, T5); deleting a test of removed code needs no test-design review.
 
 Test-change gates for T3 (and for T2 if #1348's trait-calling test has landed by then):
 
@@ -165,13 +207,15 @@ Test-change gates for T3 (and for T2 if #1348's trait-calling test has landed by
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                | Notes / Expected Output                                                                                                                                             |
-| --- | ------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Re-verify the evidence on current `develop`         | Search confirms no consumers; record the commit. Check whether #1348 has merged a test calling `UdpCoreStatsRepository::get_metrics_collection()` (see Risks).     |
-| T2  | TODO   | Remove `UdpCoreStatsRepository` from `udp-core`     | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait. |
-| T3  | TODO   | Remove `UdpServerStatsRepository` from `udp-server` | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                   |
-| T4  | TODO   | Update the EPIC #1669 SI-30 row                     | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                       |
-| T5  | TODO   | Verification                                        | See Verification Plan.                                                                                                                                              |
+| ID  | Status | Task                                                       | Notes / Expected Output                                                                                                                                                       |
+| --- | ------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Re-verify the evidence on current `develop`                | Search confirms no consumers of the traits or services; record the commit. Check whether #1348 has merged tests calling `UdpCoreStatsRepository` or `get_metrics()` (see Risks). |
+| T2  | TODO   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
+| T3  | TODO   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
+| T4  | TODO   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example.                          |
+| T5  | TODO   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`.                                                                                                                                                  |
+| T6  | TODO   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
+| T7  | TODO   | Verification                                               | See Verification Plan.                                                                                                                                                        |
 
 ## Commit Points
 
@@ -180,8 +224,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1   | No separate commit: the re-verification progress-log entry rides with T2     | Recorded in the spec before starting T2.             |
 | T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`; if a test changed, also after the recorded test-design review and maintainer review. |
 | T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation, `cargo machete`, the recorded test-design review, and maintainer review. |
-| T4   | `docs(issues): [#2521] note the SI-30 trait removal in EPIC #1669`           | Commit after `linter all`.                           |
-| T5   | `docs(issues): [#2521] record verification evidence`: issue-local `manual-verification-evidence.md` (M1, M2), Acceptance Verification evidence, and spec progress updates | Commit after all checks pass and the evidence is reviewed. |
+| T4   | `refactor(udp-core): [#2521] remove unused statistics services`              | Commit after focused validation, `cargo machete`, and `cargo +nightly doc` for the package. |
+| T5   | `refactor(udp-server): [#2521] remove unused statistics services`            | Commit after focused validation, `cargo machete`, and `cargo +nightly doc` for the package. |
+| T6   | `docs(issues): [#2521] note the SI-30 trait removal in EPIC #1669`           | Commit after `linter all`.                           |
+| T7   | `docs(issues): [#2521] record verification evidence`: issue-local `manual-verification-evidence.md` (M1, M2), Acceptance Verification evidence, and spec progress updates | Commit after all checks pass and the evidence is reviewed. |
 
 ## Progress Tracking
 
@@ -219,6 +265,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   explicit, restored the template checkpoints and documentation AC, mapped T1 and T5 to commits,
   corrected the evidence commit, and switched issue-spec links to `issue #NNNN`. Audit:
   `docs/pr-reviews/pr-2522-review/PR-REVIEW.md`.
+- 2026-10-14 09:44 UTC - GitHub Copilot (spec session) - The #1348 agent reported that
+  `statistics::services` (`TrackerMetrics`, `get_metrics()`) is also unused in both packages;
+  verified at `d1bf013ea`, and the maintainer folded it into this issue. Added T4 and T5 (EPIC row
+  and verification became T6 and T7), AC5 and AC6, and retitled the issue.
 
 ## Acceptance Criteria
 
@@ -232,6 +282,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       `udp_tracker_server_*` metrics, with unchanged names (M1 and M2).
 - [ ] AC4: The adapted `udp-server` test still verifies that default construction initializes the
       described metrics.
+- [ ] AC5: `statistics::services`, `TrackerMetrics`, and `statistics::services::get_metrics()` no
+      longer exist in `udp-core` or `udp-server`, and no code references them.
+- [ ] AC6: Each package's `statistics/mod.rs` documents the statistics event flow without the
+      stale `Metrics` field example, and `cargo +nightly doc --no-deps` for both packages reports
+      no broken intra-doc link.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -246,6 +301,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `cargo test -p torrust-tracker-udp-core -p torrust-tracker-udp-server -p torrust-tracker-rest-api-runtime-adapter --all-features`
   (stable Rust toolchain)
 - `cargo machete --with-metadata`
+- `cargo +nightly doc --no-deps -p torrust-tracker-udp-core -p torrust-tracker-udp-server`
+  (nightly Rust toolchain; no broken intra-doc links after the module docs move)
 - `cargo tree -e normal --depth 1` for `torrust-tracker-udp-core` and `torrust-tracker-udp-server`,
   before and after (see Design and Ownership Review)
 - `./contrib/dev-tools/git/hooks/pre-commit.sh` before each commit and
@@ -280,19 +337,23 @@ None planned.
 | AC2   | TODO                   |          |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
+| AC5   | TODO                   |          |
+| AC6   | TODO                   |          |
 
 ## Risks and Trade-offs
 
 - **Overlap with #1348.** Branch `1348-1347-add-tests-udp-core` adds a `udp-core` repository test
   that calls `UdpCoreStatsRepository::get_metrics_collection()`. Whichever lands second adapts it:
   read through `get_stats()` if the test protects repository behavior, or delete it if it only
-  tests the trait. Do not edit `docs/issues/open/1348-*` from this issue.
+  tests the trait. Any test #1348 adds for `statistics::services::get_metrics()` is deleted with
+  the module. Do not edit `docs/issues/open/1348-*` from this issue.
 - **Overlap with #2505.** #2505 edits `packages/udp-core/src/services/banning.rs` and removes
   `BanningStats`; this issue does not touch that file, so no conflict is expected.
 - **Overlap with #2517 (make the statistics repositories' metrics lock private).** It changes the same two
   repository files (the `stats` field). Scopes are disjoint; the second to land rebases.
-- **Future need for the traits.** If a consumer later needs a narrow interface, it should be
-  defined at the consumer's boundary (as the `rest-api-application` ports are), not restored here.
+- **Future need for the traits or services.** If a consumer later needs a narrow interface or an
+  aggregated view, it should be defined at the consumer's boundary (as the `rest-api-application`
+  ports are), not restored here.
 
 ## Implementation Completion Review
 
