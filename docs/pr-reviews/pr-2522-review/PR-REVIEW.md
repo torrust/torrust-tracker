@@ -226,6 +226,13 @@ request #2520 also edits `EPIC.md` is informational and not a finding.
 - 2026-10-14 09:13 UTC - Started audit. Fetched reviews 5515225239 and 5515320310 and all eight
   threads with `github-review-threads`. Committed one fix per finding, pushed, and replied on
   every thread.
+- 2026-10-14 09:50 UTC - Correction (F11): the 09:13 entry above was stamped when processing
+  started, but it also names later events. Their own times, from the commits, the remote-tracking
+  reflog, and the GitHub replies: the eight fix commits from 09:05:33 to 09:13:05 UTC and the spec
+  progress-log commit at 09:14:00 UTC; the push at 09:15:37 UTC; the eight replies from 09:16:03
+  to 09:16:17 UTC; the audit commit at 09:20:20 UTC and its push at 09:21:56 UTC; then
+  `validate-audit-record.py` exit 0, all eight threads resolved, and a refetch showing none
+  unresolved. GitHub does not expose the thread-resolution time.
 
 ## Completion Rules
 
