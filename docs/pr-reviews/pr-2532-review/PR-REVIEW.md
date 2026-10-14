@@ -48,9 +48,17 @@ Review 5521450385 (round 1, `copilot-pull-request-reviewer`, state `COMMENTED`, 
 `F1` with `Thread state=NON_RESOLVABLE`. The rest of the body summarizes the changes and is not a
 further finding.
 
+Review 5522263962 (round 1, `da2ce7`, state `APPROVED`, submitted 2026-10-14 17:53 UTC on the head
+whose tip commit was `docs(pr-reviews): [#2521] add the PR #2532 review audit`,
+<https://github.com/torrust/torrust-tracker/pull/2532#pullrequestreview-5522263962>) approved and left one inline comment bracketed `[Nit][F2]`;
+the row keeps that ID. Its body reports what it checked and repeats F2; neither is a further
+finding. GitHub dismissed the approval as stale when the F2 fix was pushed. Review 5523636848
+(josecelano, `COMMENTED`, 19:39 UTC) is the container GitHub created for the F2 reply.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2532-f1` | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F2 | `review-finding:pr-2532-f2` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -67,6 +75,19 @@ further finding.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2532#issuecomment-6173714194>
 
+### F2 - The F1 verification claim is contradicted by this audit's own lines
+
+- PR number: 2532
+- Source review ID: 5522263962
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2532#discussion_r4274337998>
+- Concern: Once this audit was committed, the F1 search for the old open path matched four lines, not two: the two PR #2529 audit lines plus this audit's own F1 Concern (which quotes the old path) and F1 verification (which names the search pattern). The F1 Solution's "The two remaining mentions" sentence had the same problem. The validator does not check this prose.
+- Solution: Both F1 claims are now scoped to the files outside this audit, and the verification names why the audit's own lines match. This entry avoids quoting the old path, so it adds no further match.
+- Current-tree verification: the F1 search returns lines 132 and 145 of the PR #2529 audit and, in this audit, only the F1 Concern and F1 verification lines, as the scoped F1 claims now state. They are named by role because this audit's line numbers shift as entries are added.
+- Resolution reference: `docs(pr-reviews): [#2521] scope the PR #2532 audit's old-path search to the files outside it`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2532#discussion_r4275413496>
+
 ## Processing Log
 
 - 2026-10-14 16:48 UTC - Review 5521450385 (`copilot-pull-request-reviewer`, `COMMENTED`) left no
@@ -74,6 +95,11 @@ further finding.
 - 2026-10-14 16:55 UTC - Committed the F1 fix at the maintainer's request.
 - 2026-10-14 16:58 UTC - Pushed the fix and posted the PR conversation response.
 - 2026-10-14 16:58 UTC - Created this audit.
+- 2026-10-14 17:53 UTC - Review 5522263962 (`da2ce7`, `APPROVED`) left inline comment 4274337998.
+- 2026-10-14 19:37 UTC - Committed the F2 fix at the maintainer's request.
+- 2026-10-14 19:39 UTC - Pushed the F2 fix, which dismissed the approval as stale, and posted the
+  F2 reply.
+- 2026-10-14 19:40 UTC - Added F2 to this audit.
 
 ## Completion Rules
 
