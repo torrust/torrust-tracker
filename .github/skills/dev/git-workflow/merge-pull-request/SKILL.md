@@ -39,6 +39,10 @@ The full provenance, license, deterministic test boundary, and EPIC #2003 relati
   redirected, closed, or piped input loops forever reprinting its prompt; the wrapper refuses to
   start in that case. Use `--dry-run` for non-interactive validation.
 - Inspect the temporary merge and run the required validation before considering a signature.
+- Never disable a repository ruleset to get a pull request merged, even temporarily. A forgotten
+  disabled ruleset silently removes protections; see
+  [`docs/github-rulesets.md`](../../../../../docs/github-rulesets.md) for the active rulesets and
+  the override policy.
 - Never type `s` to sign or `push` to push unless an authorized maintainer has explicitly
   confirmed that action in the current request.
 - If GPG reports a timeout while signing, stop the failed attempt. Do not bypass signing or use
