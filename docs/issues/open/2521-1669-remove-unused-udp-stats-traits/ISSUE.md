@@ -62,7 +62,7 @@ and #1942 are closed, so the traits are leftovers, not an unfinished refactor.
 spec's In Scope and AC4, decided by the maintainer on 2026-10-13), and that spec leaves the two
 repository traits to a separate issue. This is that issue.
 
-Evidence on `develop` at `395cd3ca0` (2026-10-14):
+Evidence on `develop` at `cbdbce9c1` (2026-10-14):
 
 - Outside their definitions and impls, no code names `UdpCoreStatsRepository` or
   `UdpServerStatsRepository`, except two `udp-server` repository unit tests that call
