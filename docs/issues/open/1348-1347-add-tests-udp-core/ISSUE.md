@@ -295,7 +295,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 | 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | DONE | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
 | 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | DONE | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
-| 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | IN_PROGRESS | [container-tests.md](test-refactor-plans/container-tests.md) |
+| 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
 | 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
@@ -502,6 +502,8 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `container.rs` (row 9) is unblocked.
 - 2026-10-14 14:58 UTC - Jose Celano - Approved the `container.rs` plan (C1-C5: configuration
   wiring and shared services); ledger row 9 is `IN_PROGRESS`.
+- 2026-10-14 15:05 UTC - Jose Celano - Approved the `container.rs` completed-file review; ledger row
+  9 is `DONE` (5 wiring tests added). Every ledger row is now `DONE` or `REMOVED`.
 
 ## Acceptance Criteria
 

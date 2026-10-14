@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/container.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/container.rs
@@ -68,7 +68,7 @@ constructors, which is the unit under test; tracker-core comes from `Core::defau
 existing fixture. The announce fixture for C4 needs a tracker-core handle to read the stored peer;
 `initialize_from_tracker_core` gives the test that handle.
 
-**Finding (`lessons.md` candidate, no production change in this issue):**
+**Finding (recorded in [lessons.md](../lessons.md); no production change in this issue):**
 `UdpTrackerCoreServices::initialize_from` takes a `_tracker_core_container` parameter it never uses.
 Two callers pass it (`src/container.rs` and `initialize_from_tracker_core`).
 
@@ -77,13 +77,19 @@ Two callers pass it (`src/container.rs` and `initialize_from_tracker_core`).
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | Existing tests are clean. | Recorded above. |
-| R2 | PENDING | Add C1-C5. | - |
+| R2 | DONE | Add C1-C5. | 98 package unit tests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting (nightly 1.101.0), and `git diff --check` clean. Five mutations applied together (public URL and external IP dropped from the announce service, a fixed scrape instance ID, a fixed ban limit of 10, and a per-container cookie key): exactly C1-C5 failed and the two existing tests passed; reverted by hand. Production code unchanged. |
 | R3 | SKIPPED | No integration increment: the containers run in-process with an in-memory tracker core. | Explicit rationale. |
-| R4 | PENDING | Re-run unit-only coverage; record before/after. | - |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 183 / 183 to 317 / 317 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 183 / 183
+  (100.00%) to 317 / 317 (100.00%) lines; 333 / 333 regions; 30 / 30 functions. The gain is the
+  wiring decisions now observed, not coverage.
+- **Tests added:** 5 (C1-C5); the fixture now takes the configuration, limit, and instance ID.
+- **Finding:** recorded in [lessons.md](../lessons.md).
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
 ## Approval
 
@@ -96,3 +102,7 @@ Approved by Jose Celano on 2026-10-14: C1-C5 and recording the finding.
   multi-tracker composition in `src/container.rs`. No Rust tests or production code changed. R2
   awaits maintainer approval.
 - 2026-10-14 14:58 UTC - Jose Celano - Approved C1-C5 and the finding.
+- 2026-10-14 15:02 UTC - GitHub Copilot - Implemented R2 and measured R4 (stable Rust 1.99.0,
+  nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-14 15:05 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.

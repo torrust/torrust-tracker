@@ -28,6 +28,7 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
 | [Repository plan](test-refactor-plans/statistics-repository-tests.md) | **Handed off as an EPIC #1669 sub-issue draft (issue pending).** Make the `pub stats` lock private in the five statistics repositories. | No caller outside each repository file reads or writes the field. |
 | [Services plan](test-refactor-plans/statistics-services-tests.md) | **Forwarded by the maintainer to the unused SI-30 traits draft.** Remove `statistics::services::get_metrics()` and `TrackerMetrics` from `udp-core` and `udp-server`. | No consumer outside their own tests; the REST runtime adapter reads the statistics repositories directly. |
 | [Crate root plan](test-refactor-plans/lib-tests.md) | Remove the `Default` derive from `udp-core`'s `ConnectionIdValidationPolicy`, leaving the configuration enum as the single source of the secure default. | No caller: `src/app.rs` maps the configuration variant explicitly, and every test names its variant. |
+| [Container plan](test-refactor-plans/container-tests.md) | Remove the unused `_tracker_core_container` parameter from `UdpTrackerCoreServices::initialize_from`. | Never read; its two callers (`src/container.rs` and `initialize_from_tracker_core`) pass it anyway. |
 
 ## Testing Lessons
 

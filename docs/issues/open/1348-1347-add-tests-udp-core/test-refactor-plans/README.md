@@ -41,7 +41,7 @@ maintainer approves it.
 | 17 | [services-mod-tests.md](services-mod-tests.md) | DONE | 2 connect-only helpers moved into `connect.rs`; shared mock kept |
 | 18 | [crypto-mod-tests.md](crypto-mod-tests.md) | DONE | No change; module declaration only |
 | 19 | [statistics-event-mod-tests.md](statistics-event-mod-tests.md) | DONE | No change; module declarations only |
-| 20 | [container-tests.md](container-tests.md) | APPROVED | 5 wiring tests planned (public URL, instance ID, ban limit, external IP, shared services) |
+| 20 | [container-tests.md](container-tests.md) | DONE | 5 wiring tests added (public URL, instance ID, ban limit, external IP, shared services) |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

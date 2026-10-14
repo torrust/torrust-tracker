@@ -210,6 +210,7 @@ mod tests {
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::public_url::UdpUrl;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
     use torrust_tracker_primitives::{ConfigurationInstanceId, PeerId, ServiceRole};
     use torrust_tracker_udp_protocol::{
@@ -217,24 +218,38 @@ mod tests {
         Port, ScrapeRequest, TransactionId,
     };
 
-    use super::UdpTrackerCoreContainer;
+    use super::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
 
     const ISSUE_TIME: f64 = 1_000_000_000_f64;
+    const MAX_CONNECTION_ID_ERRORS_PER_IP: u32 = 10;
+    const INSTANCE_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
     /// A container built the way a standalone UDP tracker builds it: public
     /// tracker, no database.
     async fn standalone_udp_tracker_core_container() -> Arc<UdpTrackerCoreContainer> {
+        udp_tracker_core_container_with(UdpTracker::default(), MAX_CONNECTION_ID_ERRORS_PER_IP, INSTANCE_ID).await
+    }
+
+    async fn udp_tracker_core_container_with(
+        udp_tracker_config: UdpTracker,
+        max_connection_id_errors_per_ip: u32,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Arc<UdpTrackerCoreContainer> {
         UdpTrackerCoreContainer::initialize(
             &Arc::new(Core::default()),
-            &Arc::new(UdpTracker::default()),
-            10,
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            &Arc::new(udp_tracker_config),
+            max_connection_id_errors_per_ip,
+            configuration_instance_id,
         )
         .await
     }
 
     fn client_socket_addr() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(198, 51, 100, 7)), 6881)
+    }
+
+    fn loopback_client_socket_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6881)
     }
 
     fn server_service_binding() -> ServiceBinding {
@@ -318,6 +333,143 @@ mod tests {
             result,
             Ok(ISSUE_TIME),
             "the scrape service rejected a connection ID issued by the same container's connect service"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_give_every_service_the_configured_public_url() {
+        // Arrange
+        let udp_tracker_config = UdpTracker {
+            public_url: Some(UdpUrl::parse("udp://tracker.example.test:6969").unwrap()),
+            ..UdpTracker::default()
+        };
+
+        // Act
+        let container = udp_tracker_core_container_with(udp_tracker_config, MAX_CONNECTION_ID_ERRORS_PER_IP, INSTANCE_ID).await;
+
+        // Assert
+        assert_eq!(
+            [
+                container.connect_service.public_url(),
+                container.announce_service.public_url(),
+                container.scrape_service.public_url(),
+            ],
+            [Some("udp://tracker.example.test:6969"); 3]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_give_the_container_and_every_service_its_configuration_instance_id() {
+        // Arrange
+        let instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 7);
+
+        // Act
+        let container =
+            udp_tracker_core_container_with(UdpTracker::default(), MAX_CONNECTION_ID_ERRORS_PER_IP, instance_id).await;
+
+        // Assert
+        assert_eq!(
+            [
+                container.configuration_instance_id,
+                container.connect_service.configuration_instance_id(),
+                container.announce_service.configuration_instance_id(),
+                container.scrape_service.configuration_instance_id(),
+            ],
+            [instance_id; 4]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_ban_an_ip_only_after_more_than_the_configured_connection_id_errors() {
+        // Arrange
+        let container = udp_tracker_core_container_with(UdpTracker::default(), 3, INSTANCE_ID).await;
+        let ip = client_socket_addr().ip();
+        let mut ban_service = container.ban_service.write().await;
+        for _ in 0..3 {
+            ban_service.increase_counter(&ip);
+        }
+
+        // Act
+        let banned_at_the_limit = ban_service.is_banned(&ip);
+        ban_service.increase_counter(&ip);
+        let banned_over_the_limit = ban_service.is_banned(&ip);
+        drop(ban_service);
+
+        // Assert
+        assert_eq!((banned_at_the_limit, banned_over_the_limit), (false, true));
+    }
+
+    #[tokio::test]
+    async fn it_should_announce_a_loopback_client_with_the_configured_external_ip() {
+        // Arrange
+        let external_ip = IpAddr::V4(Ipv4Addr::new(198, 51, 100, 1));
+        let mut udp_tracker_config = UdpTracker::default();
+        udp_tracker_config.network.external_ip = Some(external_ip.try_into().unwrap());
+        let container = udp_tracker_core_container_with(udp_tracker_config, MAX_CONNECTION_ID_ERRORS_PER_IP, INSTANCE_ID).await;
+        let connection_id = container
+            .connect_service
+            .handle_connect(loopback_client_socket_addr(), server_service_binding(), ISSUE_TIME)
+            .await;
+
+        // Act
+        container
+            .announce_service
+            .handle_announce(
+                loopback_client_socket_addr(),
+                server_service_binding(),
+                &announce_request_with(connection_id),
+                valid_range(),
+                true,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        let announced_peer_addresses: Vec<SocketAddr> = container
+            .tracker_core_container
+            .in_memory_torrent_repository
+            .get_torrent_peers(&torrust_info_hash::InfoHash::from([0; 20]), 10)
+            .await
+            .iter()
+            .map(|peer| peer.peer_addr)
+            .collect();
+        assert_eq!(announced_peer_addresses, vec![SocketAddr::new(external_ip, 6881)]);
+    }
+
+    #[tokio::test]
+    async fn it_should_accept_in_one_container_a_connection_id_issued_by_another_container_built_from_the_same_services() {
+        // Arrange
+        let tracker_core_container = standalone_udp_tracker_core_container().await.tracker_core_container.clone();
+        let services = UdpTrackerCoreServices::initialize_from(&tracker_core_container, MAX_CONNECTION_ID_ERRORS_PER_IP);
+        let udp_tracker_config = Arc::new(UdpTracker::default());
+        let first = UdpTrackerCoreContainer::initialize_from_services(
+            &tracker_core_container,
+            &services,
+            &udp_tracker_config,
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+        );
+        let second = UdpTrackerCoreContainer::initialize_from_services(
+            &tracker_core_container,
+            &services,
+            &udp_tracker_config,
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1),
+        );
+        let connection_id = first
+            .connect_service
+            .handle_connect(client_socket_addr(), server_service_binding(), ISSUE_TIME)
+            .await;
+
+        // Act
+        let result =
+            second
+                .announce_service
+                .authenticate(client_socket_addr(), &announce_request_with(connection_id), valid_range());
+
+        // Assert
+        assert_eq!(
+            result,
+            Ok(ISSUE_TIME),
+            "a container rejected a connection ID issued by another container built from the same services"
         );
     }
 }
