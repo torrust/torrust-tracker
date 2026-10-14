@@ -45,7 +45,9 @@ measure it.
    below the lowest baseline run; after median not above the highest baseline median).
 4. **Measure the baseline** before any production change, following
    [Recording Before-and-After Evidence](../../../../../docs/benchmarking.md#recording-before-and-after-evidence).
-   Run `uptime` first; on a shared machine, wait for other builds to finish.
+   Run `uptime` first; on a shared machine, wait for other builds to finish. Check that no other
+   tracker is running and the benchmark ports are free, including the health check API's default
+   `127.0.0.1:1313` (see step 5 of that section).
 5. **Implement the change**, then **measure again** on the same machine with the same settings.
 6. **Record both in issue-local `performance-evidence.md`**: machine, toolchain, commands, every
    run, the noise, and the comparison against the pass rule. Take times from output files or

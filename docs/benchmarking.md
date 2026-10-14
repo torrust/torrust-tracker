@@ -92,7 +92,12 @@ When an issue changes performance-critical code, measure it before and after:
    `_`, and each run overwrites the file), and five 30-second load-test runs, each with a fresh
    tracker.
 5. **Check the machine first.** On a shared desktop, run `uptime` and look for other builds; wait
-   until the load is close to the baseline's before measuring.
+   until the load is close to the baseline's before measuring. Also check that no other tracker is
+   running and that the ports the benchmarking configuration uses are free: UDP `3000`, and TCP
+   `127.0.0.1:1313` for the health check API, which the configuration does not set and which
+   starts on that default address. `ss -lun 'sport = :3000'` and `ss -ltn 'sport = :1313'` should
+   list no socket. In issue #2505, a tracker left running for a manual recheck held port 1313, so
+   the benchmark tracker exited at startup and the load test measured 0 responses per second.
 6. **Record everything in issue-local `performance-evidence.md`:** machine, toolchain, commands,
    configuration, every run, the observed noise, and times taken from output files or `git log`,
    not from memory.
