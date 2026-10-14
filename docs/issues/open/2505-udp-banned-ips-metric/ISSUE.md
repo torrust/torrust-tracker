@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:12"
+last-updated-utc: "2026-10-14 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -418,7 +418,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task   | Coherent change set                                                  | Commit policy                                       |
 | ------ | -------------------------------------------------------------------- | --------------------------------------------------- |
-| T4-T5  | `udp-core` banned-count fix, leftover removal, R1, R1p, R2, R5, R6, and the `udp-server` handler and listener test updates that depend on the new count | One commit, green on the whole workspace test suite, after focused validation and design review. |
+| T5 (leftovers) | Removal of the unused `BanningStats` trait and the write-only `last_connection_id_errors_reset` field, with the `reset_bans` doc update (no behavior change) | One `refactor(udp-core)` commit before the fix, green on its own. |
+| T4-T5  | `udp-core` banned-count fix, R1, R1p, R2, R5, R6, and the `udp-server` handler and listener test updates that depend on the new count | One commit, green on the whole workspace test suite, after focused validation and design review. |
 | T6-T7  | Gauge-on-reset fix with R3 and R4                                    | Commit after focused validation and design review.  |
 | T8     | Documentation updates                                                | Commit after focused validation.                    |
 | B1     | `udp_ban_service/record_error` benchmark                             | One `test(udp-core)` commit before T3.              |
@@ -631,6 +632,16 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   approval): the reproduction evidence said invalid connection IDs are not logged; it now quotes
   the 15 `WARN` lines from `evidence/tracker.log` per process, in condensed form, with the script
   that condensed them.
+- 2026-10-14 10:25 UTC - GitHub Copilot (implementation session) - Late PR #2506 review finding F11 (same
+  approval; the maintainer chose to act on it and accepted rewriting the unmerged PR #2524 history):
+  split the leftover removals out of `fix(udp-core): [#2505] count only IPs over the limit as
+  banned` into `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only
+  reset timestamp`, placed before it. Interactive rebase with an `edit` stop; the refactor-only
+  state passed `cargo check --workspace --all-targets`, the `udp-core` and `udp-server` tests,
+  nightly fmt, clippy (pedantic), and the pre-commit hook; the recommitted fix has the original
+  tree, and the final tree is byte-identical to the pre-split head. Every later commit has a new id,
+  so the commit ids cited in the PR #2524 reviews are mapped to subjects in that pull request's
+  audit. Commit Points and the AC4 evidence now name the refactor commit.
 
 ## Acceptance Criteria
 
@@ -710,7 +721,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC1   | DONE   | R1, R1p, R5, R6 green and proven (manual-verification-evidence.md "Regression Tests"); scenarios M1-M3 after the fix 0, 0, 1 |
 | AC2   | DONE   | R2, R3, R4 green and proven; scenario M4 after the fix 0 right after the reset |
 | AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; the new `BanService::get_banned_ips_total` doc comment and the updated `reset_bans` doc in `fix(udp-core): [#2505] count only IPs over the limit as banned` |
-| AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
+| AC4   | DONE   | `refactor(udp-core): [#2505] remove the unused BanningStats trait and the write-only reset timestamp`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
 | AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
 | AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
 | AC7   | DONE   | `record_error` after medians flat across 10 to 10,000 tracked IPs; the benchmark task B1 check shows a scan would grow linearly |
