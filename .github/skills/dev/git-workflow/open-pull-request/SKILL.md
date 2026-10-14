@@ -57,7 +57,8 @@ current commit ids. A rebase or other update is **required** only when:
 1. the branch conflicts with `develop`;
 2. it needs a change that landed on `develop` later, or a reviewer asks for the combination to be
    tested before merge; or
-3. the maintainer merge tool reports a stale merge base (see the `merge-pull-request` skill).
+3. the maintainer merge tool refuses it because GitHub's recorded base is stale and its own
+   refresh is unavailable (see the `merge-pull-request` skill).
 
 ```bash
 # Identify the upstream remote (commonly "torrust"; verify with git remote -v)
