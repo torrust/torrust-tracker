@@ -15,7 +15,7 @@
 //!
 //! For example, if you send the event [`Event::UdpConnect`](crate::event::Event::UdpConnect):
 //!
-//! ```text
+//! ```rust,ignore
 //! let result = event_sender.send(Event::UdpConnect { connection }).await;
 //! ```
 //!

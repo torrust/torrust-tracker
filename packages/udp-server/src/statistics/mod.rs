@@ -17,7 +17,7 @@
 //! [`Event::UdpRequestAccepted`](crate::event::Event::UdpRequestAccepted) with
 //! [`UdpRequestKind::Connect`](crate::event::UdpRequestKind::Connect):
 //!
-//! ```text
+//! ```rust,ignore
 //! let result = event_sender.send(Event::UdpRequestAccepted { .. }).await;
 //! ```
 //!
