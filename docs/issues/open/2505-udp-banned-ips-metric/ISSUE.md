@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 10:00"
+last-updated-utc: "2026-10-14 10:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -83,8 +83,11 @@ stats, and the Prometheus metrics all show the wrong value.
 
 **Contracts violated** (all say "banned"):
 
-- `BanService::get_banned_ips_total` and `BanningStats::get_banned_ips_total` docs: "Returns the
-  total number of banned IPs."
+- `BanningStats::get_banned_ips_total` doc: "Returns the total number of banned IPs." The inherent
+  `BanService::get_banned_ips_total` had no doc comment, so its contract was only the trait's, and
+  the `BanService::reset_bans` doc ("Resets the counters and updates the reset timestamp.") becomes
+  false once the write-only timestamp field is removed. (Corrected after PR #2506 review finding F7;
+  an earlier version said both methods carried the sentence.)
 - Metric description (`packages/udp-server/src/statistics/mod.rs`): "Total number of IPs banned from
   UDP requests" (Prometheus `udp_tracker_server_ips_banned_total`).
 - `udp-server` `Metrics::udp_banned_ips_total` doc: "Total number of banned IPs."
@@ -125,8 +128,12 @@ named `it_should_publish_the_distinct_client_ip_total_after_a_connection_cookie_
 ### Origin
 
 Found while planning `packages/udp-core/src/services/banning.rs` tests in Issue #1348 (EPIC #1347).
-`get_banned_ips_total` dates from the package extraction (`1886593b4`, 2025-02-18); the trait
-wrapper came with `637c17b18` (2026-06-23).
+`get_banned_ips_total` was added with its current body (`self.accurate_error_counter.len()`) by
+`1ce2e3327` (`feat: [#1145] add banned ips total for UDP to stats`, 2025-01-07), in
+`src/servers/udp/server/banning.rs`; the package extraction (`1886593b4`, 2025-02-18) only moved
+the file. So the value has been wrong since the metric was introduced. The trait wrapper came with
+`637c17b18` (2026-06-23). (Corrected after PR #2506 review finding F9; an earlier version dated the
+method from the extraction.)
 
 ## Decision: Meaning of "Banned" When Validation Is `disabled`
 
@@ -149,7 +156,10 @@ field. The documentation listed under "Contracts violated" must state the `disab
 - Make `BanService::get_banned_ips_total()` return the number of IPs whose error count exceeds the
   limit, in both `strict` and `disabled` mode.
 - Update the gauge when bans are reset, so it never reports a stale total.
-- Fix the documentation listed under "Contracts violated" to match decision A.
+- Fix the documentation listed under "Contracts violated" to match decision A: add a doc comment
+  to the inherent `BanService::get_banned_ips_total` (the threshold and the `disabled`-mode
+  meaning), update the `BanService::reset_bans` doc, and correct the metric, `Metrics`, and REST
+  field descriptions.
 - Remove the unused `BanningStats` trait and its implementation.
 - Remove the write-only `BanService::last_connection_id_errors_reset` field.
 - Adjust the `udp-server` unit tests that pin the old value, keeping their intent:
@@ -569,6 +579,13 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   states the measure and the 5.1% figure, and says that attributing the P2 excesses to the counter
   or to noise rests on the same-machine comparison, not on the P1/P2 tables. AC5's conclusion is
   unchanged.
+- 2026-10-14 10:03 UTC - GitHub Copilot (implementation session) - Late PR #2506 review (Cameron, findings
+  F7 and F9, handled on this branch with maintainer approval
+  <https://github.com/torrust/torrust-tracker/pull/2506#issuecomment-6165699972>) and PR #2524
+  finding F4 by Cameron: corrected the "Contracts violated" bullet (the inherent method had no doc
+  comment), Scope, AC3, and its evidence row; dated `get_banned_ips_total` from `1ce2e3327` (#1145)
+  and noted in "Risks and Trade-offs" that the value was wrong since the metric was introduced; and
+  made the AC4 evidence say that no code reference remains, keeping the open EPIC's history row.
 
 ## Acceptance Criteria
 
@@ -576,8 +593,9 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   and `disabled` mode (R1, R1p, R5, R6, M1-M3).
 - [x] AC2: After a ban reset, the banned total and the published gauge report the new value (R2, R3,
   R4, M4).
-- [x] AC3: The method, metric, `udp-server` helper, and REST field descriptions match the behavior,
-  including the `disabled`-mode meaning.
+- [x] AC3: The inherent `BanService::get_banned_ips_total` has a doc comment, and it, the
+  `BanService::reset_bans` doc, the metric, the `udp-server` helper, and the REST field descriptions
+  match the behavior, including the `disabled`-mode meaning.
 - [x] AC4: The `BanningStats` trait and `BanService::last_connection_id_errors_reset` are removed.
 - [x] AC5: `performance-evidence.md` records the P1 baseline and the P2 after measurements
   (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and P2 meets
@@ -644,15 +662,17 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | ----- | ------ | ------------------ |
 | AC1   | DONE   | R1, R1p, R5, R6 green and proven (manual-verification-evidence.md "Regression Tests"); M1-M3 after fix 0, 0, 1 |
 | AC2   | DONE   | R2, R3, R4 green and proven; M4 after fix 0 right after the reset |
-| AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; `BanService::get_banned_ips_total` doc in the `udp-core` fix |
-| AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no reference remains outside archived docs |
+| AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; the new `BanService::get_banned_ips_total` doc comment and the updated `reset_bans` doc in `fix(udp-core): [#2505] count only IPs over the limit as banned` |
+| AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no code reference remains. The open EPIC (`docs/issues/open/1669-overhaul-packages/EPIC.md`, SI-30 row) still names `BanningStats` as an SI-30 deliverable, which records history and stays as is. |
 | AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
 | AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
 | AC7   | DONE   | `record_error` P2 medians flat across 10 to 10,000 tracked IPs; B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
 
-- **Dashboards built on the inflated value will drop.** Mention it in the PR and release notes.
+- **Dashboards built on the inflated value will drop.** The value has been inflated since the metric
+  was introduced (#1145), so every release that reports it is affected. Mention it in the PR and
+  release notes.
   Operators who want "IPs that sent an invalid connection ID" lose that number; the existing
   counter `udp_tracker_server_connection_id_errors_total` still reports the error volume.
 - **Per-error cost.** See "Performance Alternatives"; the benchmark guards against regressions.
