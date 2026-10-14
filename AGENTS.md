@@ -361,10 +361,20 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 
 - Keep intermediate commits. Do not squash, fixup, or rewrite a branch's history to hide steps
   that were later superseded. The sequence of a mistake and its correction is deliberately
-  preserved as training material for humans and AI agents; the only allowed rewrite is a rebase
-  onto `develop`, which is recommended when cheap and required on conflicts (see
+  preserved as training material for humans and AI agents. Never propose squashing as a cleanup.
+- A rebase onto `develop` is recommended when cheap and required on conflicts (see
   [`docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md`](docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
-  Never propose squashing as a cleanup.
+- Other rewrites of an unmerged pull request's history, such as splitting a commit that mixes
+  independent changes, are allowed but not ideal; agents may do them on their own judgment. Prefer
+  a new commit on top when it achieves the same result, especially during a review round, whose
+  cited commit ids a rewrite invalidates. A rewrite may separate or reorder steps but must keep
+  every one of them, including superseded steps and corrections. After it, confirm the final tree
+  is unchanged unless the rewrite intends a change, and push with `--force-with-lease`. Replace
+  every old commit id in repository artifacts and the PR body with the commit's Conventional Commit
+  subject, not with its new id, which a later rewrite can change too (see the `open-pull-request`
+  skill). Review comments cannot be edited, so map the ids they cite to commit subjects in the pull
+  request's review audit. Say in the PR body that the history was rewritten. Never rewrite
+  `develop`, `main`, or merged history.
 - Minor process, skill, or documentation improvements learned while doing the work may ride along
   in the PR that produced them, even when unrelated to the PR's runtime change, as long as each
   lives in its own commit with the right Conventional Commits type (`docs(...)`, `chore(...)`).
