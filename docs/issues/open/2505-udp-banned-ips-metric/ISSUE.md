@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 09:03"
+last-updated-utc: "2026-10-14 09:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -552,6 +552,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   N7, N8, N9 verified; optional N10 and N11). Rewrapped the long evidence line (N10), added the
   last three lessons to the completion-review summary and the chained-commit lesson to the
   retrospective (N11), and ticked the reviewer and committer checkpoints.
+- 2026-10-14 09:46 UTC - GitHub Copilot (implementation session) - PR #2524 review (Copilot) finding F1: the
+  reset path introduced a second gauge publisher, and both released the `BanService` lock before
+  publishing, so concurrent writes could land out of order. Both paths now hold the lock until the
+  gauge is written; two lock-ordering regression tests were red before and green after (evidence:
+  "PR Review Follow-Up - Gauge Publication Ordering").
 
 ## Acceptance Criteria
 

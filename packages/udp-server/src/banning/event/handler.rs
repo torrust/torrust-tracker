@@ -26,9 +26,11 @@ pub async fn handle_event(
 
         ban_service.increase_counter(&context.client_socket_addr().ip());
 
+        // Publish while still holding the lock, so a concurrent reset cannot
+        // publish its total in between and leave the gauge out of order.
         let ips_banned_total = ban_service.get_banned_ips_total();
-        drop(ban_service);
         update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;
+        drop(ban_service);
     }
 }
 
@@ -160,5 +162,39 @@ mod tests {
              {CONNECTION_ID_ERROR_LIMIT} while {banned_client_ip} is already banned and \
              {client_at_the_limit_ip} is at the limit"
         );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total() {
+        // Arrange
+        let cookie_error_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 2));
+        let context = Arc::new(BanningHandlerTestContext::with_no_tracked_clients());
+        let gauge_store_lock = context.stats_repository.stats.write().await;
+        let handler = tokio::spawn({
+            let context = context.clone();
+            async move {
+                let event = Event::UdpError {
+                    context: sample_connection_context(cookie_error_client_ip),
+                    kind: None,
+                    error: ErrorKind::ConnectionCookie("connection ID is invalid".to_string()),
+                };
+                handle_event(event, &context.ban_service, &context.stats_repository, EVENT_TIME).await;
+            }
+        });
+
+        // Act: let the handler run until it waits for the gauge store.
+        for _ in 0..10 {
+            tokio::task::yield_now().await;
+        }
+
+        // Assert
+        assert!(
+            context.ban_service.try_write().is_err(),
+            "the handler released the ban service before publishing the banned IPs total, so a concurrent \
+             reset could publish its total in between and leave the gauge out of order"
+        );
+
+        drop(gauge_store_lock);
+        handler.await.expect("the handler should not panic");
     }
 }

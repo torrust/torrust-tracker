@@ -21,10 +21,12 @@ pub async fn reset_bans(ban_service: &Arc<RwLock<BanService>>, repository: &Repo
 
     ban_service.reset_bans();
 
+    // Publish while still holding the lock, so a concurrent connection ID
+    // error cannot publish its total in between and leave the gauge out of
+    // order.
     let ips_banned_total = ban_service.get_banned_ips_total();
-    drop(ban_service);
-
     event::handler::update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;
+    drop(ban_service);
 }
 
 #[cfg(test)]
@@ -89,5 +91,33 @@ mod tests {
             0,
             "published banned IPs total after a reset, when {banned_client_ip} had been banned and published as 1"
         );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total() {
+        // Arrange
+        let ban_service = Arc::new(RwLock::new(BanService::new(1)));
+        let stats_repository = Arc::new(Repository::new());
+        let gauge_store_lock = stats_repository.stats.write().await;
+        let reset = tokio::spawn({
+            let ban_service = ban_service.clone();
+            let stats_repository = stats_repository.clone();
+            async move { reset_bans(&ban_service, &stats_repository, RESET_TIME).await }
+        });
+
+        // Act: let the reset run until it waits for the gauge store.
+        for _ in 0..10 {
+            tokio::task::yield_now().await;
+        }
+
+        // Assert
+        assert!(
+            ban_service.try_write().is_err(),
+            "the reset released the ban service before publishing the new banned IPs total, so a concurrent \
+             connection ID error could publish its total in between and leave the gauge out of order"
+        );
+
+        drop(gauge_store_lock);
+        reset.await.expect("the reset should not panic");
     }
 }

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 08:48
+last-updated-utc: 2026-10-14 09:46
 ---
 
 # Manual Verification Evidence
@@ -1300,6 +1300,62 @@ The code expresses each paragraph, so the temporary prose was removed. The varia
 client was renamed `client_at_the_limit_ip` so its name says the same as the prose (N9); the
 renamed test passes (`cargo test -q -p torrust-tracker-udp-server --lib banning`:
 `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out`).
+
+### PR Review Follow-Up - Gauge Publication Ordering (PR #2524 Finding F1)
+
+Copilot's review of PR #2524 (finding F1) noted a race the fix introduced: the reset job and the
+banning event listener are separate tasks, and both released the `BanService` lock before writing
+the gauge, so on the multi-thread runtime their gauge writes could land out of order (for example a
+reset publishing 0 after an error that made the total 1). The regression tests hold the gauge
+store's lock (`Repository::stats` is public), run the publishing task on a single-threaded runtime
+until it waits for that lock, and assert that it still holds the `BanService` lock.
+
+Red, on the code before the fix (tests added, production unchanged). Command:
+
+```bash
+cargo test -p torrust-tracker-udp-server --lib keep_the_ban_service_locked 2>&1 | grep -E "^error|^warning|^test |panicked|out of order|test result"
+```
+
+Output:
+
+```text
+test banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total ... FAILED
+test banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total ... FAILED
+thread 'banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total' (886963) panicked at packages/udp-server/src/banning/event/handler.rs:189:9:
+the handler released the ban service before publishing the banned IPs total, so a concurrent reset could publish its total in between and leave the gauge out of order
+thread 'banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total' (886964) panicked at packages/udp-server/src/banning/mod.rs:112:9:
+the reset released the ban service before publishing the new banned IPs total, so a concurrent connection ID error could publish its total in between and leave the gauge out of order
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
+```
+
+The fix keeps the `BanService` write guard until the gauge has been written, in both
+`banning::event::handler::handle_event` and `banning::reset_bans`. Both paths take the two locks in
+the same order (ban service, then gauge store); the only other `BanService` lock in production code,
+the launcher's `is_banned` read, is a temporary dropped at the end of its `if` condition and never
+held while taking the gauge store lock, so the change cannot deadlock. The ban lock is now held for
+one extra in-memory gauge write per invalid connection ID and per reset.
+
+Green, after the fix (the same command, then five repeats with `-q` and `grep "test result"`):
+
+```text
+test banning::event::handler::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_banned_ip_total ... ok
+test banning::tests::it_should_keep_the_ban_service_locked_until_it_has_published_the_reset_total ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s
+```
+
+The five repeats each printed
+`test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s`.
+`cargo test -q -p torrust-tracker-udp-core -p torrust-tracker-udp-server`, the root reset-job tests,
+and the root `banning-*` tests pass (49, 222, 16, and 2 + 3 tests), and
+`cargo clippy -q -p torrust-tracker-udp-server --all-targets -- -D clippy::pedantic` reports nothing.
+
+Test design review (prose-first Arrange-Act-Assert): Arrange holds the gauge store and starts the
+production task (`handle_event` with one cookie error, or `reset_bans`); Act lets it run until it
+blocks on the gauge store; Assert states the ordering guarantee, that the ban service is still
+locked, with a message that explains the consequence. The tests observe the locking mechanism
+rather than a racy outcome, because the out-of-order interleaving cannot be produced
+deterministically without an injection seam.
 
 ## Failures and Follow-up
 
