@@ -191,8 +191,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       references them.
 - [ ] AC2: `cargo machete --with-metadata` reports no unused dependency in `udp-core` or
       `udp-server`, and neither package depends on `async-trait`.
-- [ ] AC3: The REST API stats responses (JSON and Prometheus) still report the UDP core and UDP
-      server metrics with unchanged names.
+- [ ] AC3: Both REST surfaces are unchanged, in JSON and Prometheus formats: `/api/v1/stats` still
+      reports the UDP server fields (read from the `udp-server` repository), and `/api/v1/metrics`
+      still reports `udp_tracker_core_requests_received_total` (the `udp-core` repository) and the
+      `udp_tracker_server_*` metrics, with unchanged names (M1 and M2).
 - [ ] AC4: The adapted `udp-server` test still verifies that default construction initializes the
       described metrics.
 - [ ] `linter all` exits with code `0`
@@ -216,9 +218,17 @@ Record the toolchain for each command result.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                            | Human-oriented command/steps                                                                                                                                                                      | Expected Result                                                                                                     | Status | Evidence                                     |
-| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | REST stats still report UDP metrics | Run the tracker with the default development config, send one UDP announce with `tracker_client`, then `curl` the REST stats endpoint in JSON and Prometheus formats, before and after the change | UDP core and server metrics are present with the same names and the announce is counted, matching the baseline run | TODO   | `manual-verification-evidence.md` section M1 |
+The two REST surfaces read different repositories: `TrackerStatsAdapter::get_stats()` serves
+`/api/v1/stats` from the `udp-server` repository only, while `get_labeled_stats()` merges both the
+`udp-core` and `udp-server` metric collections and serves `/api/v1/metrics`. Verify each surface
+separately. For both scenarios, run the tracker with the default development configuration, send
+one UDP announce with `tracker_client`, and capture the output before the change (baseline, on
+`develop`) and after it.
+
+| ID  | Scenario                                         | Human-oriented command/steps                                                                                                                                                   | Expected Result                                                                                                                                                                                                       | Status | Evidence                                     |
+| --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | `/api/v1/stats` still reports UDP server fields  | `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken&format=json"` and `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken&format=prometheus"`              | Both formats show the same UDP fields as the baseline (for example `udp4_requests`, `udp4_announces_handled`, `udp_banned_ips_total`), and the announce is counted in `udp4_announces_handled`                        | TODO   | `manual-verification-evidence.md` section M1 |
+| M2  | `/api/v1/metrics` still reports UDP core metrics | `curl "http://127.0.0.1:1212/api/v1/metrics?token=MyAccessToken&format=json"` and `curl "http://127.0.0.1:1212/api/v1/metrics?token=MyAccessToken&format=prometheus"`          | Both formats contain `udp_tracker_core_requests_received_total` (from `udp-core`) and the `udp_tracker_server_*` metrics (from `udp-server`) with the same names and labels as the baseline, and the announce is counted | TODO   | `manual-verification-evidence.md` section M2 |
 
 ### Disposable Verification Scripts
 
