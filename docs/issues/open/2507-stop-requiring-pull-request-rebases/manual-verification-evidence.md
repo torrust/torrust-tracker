@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-14 07:30
+last-updated-utc: 2026-10-14 10:05
 ---
 
 # Manual Verification Evidence
@@ -184,6 +184,58 @@ Conclusion:
 - A later commit status overrides an earlier commit status with the same context, but **not** a
   failing GitHub Actions check run with the same name. An override for an Actions-produced gate needs
   another mechanism (re-running the job, or a gate that honors a maintainer signal).
+
+### T5 - Ruleset Changes Applied
+
+- Goal: apply the maintainer-approved ruleset target state (specification "Ruleset Target State").
+- Initial state: rulesets as listed below; `develop` and `main` had no `non_fast_forward` rule.
+- Status: `DONE` (maintainer approval 2026-10-14; applied with `gh` authenticated as `josecelano`)
+
+Steps performed (2026-10-14, 09:59:29 to 09:59:44 UTC):
+
+1. Created ruleset 25068452 "(branches) [ * ; ! dependabot, ! staging ] Deny Force Push", active,
+   with only `non_fast_forward` and the branch conditions of 94237, before deleting anything.
+2. Saved the full definitions of the rulesets to delete, and of the new one, under
+   [`evidence/`](evidence/), so each can be recreated exactly.
+3. Deleted 94237 (disabled; force-push ban and 16 strict required checks), 19245352 (disabled;
+   Copilot code review), and 87098 (active; no rules).
+
+```sh
+gh api -X POST repos/torrust/torrust-tracker/rulesets --input <new-ruleset.json>
+gh api repos/torrust/torrust-tracker/rulesets/<id> > evidence/deleted-ruleset-<id>.json
+gh api -X DELETE repos/torrust/torrust-tracker/rulesets/<id>
+gh api repos/torrust/torrust-tracker/rules/branches/develop --jq '[.[].type] | join(",")'
+```
+
+Observed result:
+
+| Ruleset  | Before   | After            |
+| -------- | -------- | ---------------- |
+| 87085    | active   | active           |
+| 94237    | disabled | deleted          |
+| 94133    | active   | active           |
+| 87098    | active   | deleted          |
+| 86945    | active   | active           |
+| 94096    | active   | active           |
+| 90587    | active   | active           |
+| 87069    | active   | active           |
+| 94135    | active   | active           |
+| 94130    | active   | active           |
+| 19245352 | disabled | deleted          |
+| 25068452 | —        | active (created) |
+
+```text
+before, develop: creation,pull_request,deletion,required_signatures
+before, main:    creation,pull_request,deletion,required_signatures
+after,  develop: creation,pull_request,deletion,non_fast_forward,required_signatures
+after,  main:    creation,pull_request,deletion,non_fast_forward,required_signatures
+```
+
+Ruleset 87098 kept only one retained version, from 2026-07-20 10:19 (+01:00) by `josecelano`, with
+no rules; the `coverage` environment it once referenced still exists. No disabled ruleset remains.
+
+Conclusion: the force-push ban is enforced again on `develop` and `main` (scenario M7), and no
+required status check is configured until the follow-up `CI gate` issue.
 
 ## Failures and Follow-up
 

@@ -1,0 +1,13 @@
+{
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": { "exclude": [], "include": ["~DEFAULT_BRANCH"] }
+  },
+  "created_at": "2023-09-07T20:33:09.209+01:00",
+  "enforcement": "active",
+  "id": 87098,
+  "name": "(branches) [default] Require Deployment: coverage",
+  "rules": [],
+  "target": "branch",
+  "updated_at": "2026-07-20T10:19:35.806+01:00"
+}
