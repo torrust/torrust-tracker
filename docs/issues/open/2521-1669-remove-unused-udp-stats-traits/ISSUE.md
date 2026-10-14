@@ -126,6 +126,19 @@ Found while planning `udp-core` tests in issue #1348 (branch `1348-1347-add-test
 
 Not applicable: removal of unused public items; no I/O, lifetimes, or fixtures.
 
+Package boundaries (EPIC #1669 subissue architecture checklist): no workspace dependency edge
+changes.
+
+- Current and target workspace edges are identical: `rest-api-runtime-adapter -> udp-core` and
+  `rest-api-runtime-adapter -> udp-server` remain, because `TrackerStatsAdapter` still uses the
+  concrete `statistics::repository::Repository` types. These runtime-adapter edges respect the
+  layer model; the change removes no forbidden edge and adds none.
+- The only dependency change is the external `async-trait` crate leaving `udp-core` and
+  `udp-server`; it is not a layer in the model.
+- Verification: compare `cargo tree -e normal --depth 1 -p torrust-tracker-udp-core` and the same
+  for `torrust-tracker-udp-server` before and after the change. The only difference is the
+  removed `async-trait` line.
+
 ## Bug-Fix Process
 
 Not applicable: not a bug. The traits are dead code, not incorrect behavior.
@@ -210,6 +223,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `cargo test -p torrust-tracker-udp-core -p torrust-tracker-udp-server -p torrust-tracker-rest-api-runtime-adapter --all-features`
   (stable Rust toolchain)
 - `cargo machete --with-metadata`
+- `cargo tree -e normal --depth 1` for `torrust-tracker-udp-core` and `torrust-tracker-udp-server`,
+  before and after (see Design and Ownership Review)
 - `./contrib/dev-tools/git/hooks/pre-commit.sh` before each commit and
   `./contrib/dev-tools/git/hooks/pre-push.sh` before pushing (nightly Clippy and formatting, full
   stable test suite)
