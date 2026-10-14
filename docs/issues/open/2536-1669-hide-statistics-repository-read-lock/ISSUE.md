@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 17:30"
+last-updated-utc: "2026-10-14 19:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
-| T8  | TODO   | Verification                                            | See Verification Plan; run M1 on the branch and compare with T2.                                                                        |
+| T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch and compare with T2. |
 
 ## Commit Points
 
@@ -224,6 +224,28 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Every commit is GPG signed. Because `rest-api-runtime-adapter` and the tests read from all five
 crates, each package commit updates the callers of that package's accessor in the same commit.
 
+### Test-Development Workflow
+
+T3-T7 each produce tests (the new doctests and the migrated caller tests), so each follows the
+`write-unit-test` skill as one increment:
+
+1. Write or change the tests for that package in the smallest behavior-focused steps, and see each
+   `compile_fail,E0616` doctest compile while the field is `pub` (red) and fail with `E0616` after
+   (green).
+2. After focused validation passes, do the test-design review before committing, and record it in
+   the Progress Log or task evidence:
+   - the test exposes the one causal initial-state difference;
+   - fixtures own only incidental mechanics;
+   - the production Act and the independently specified expected result stay visible.
+3. Do the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each
+   section, refactor until the code expresses it, remove the redundant prose, and record the
+   result. For a `compile_fail` doctest the Act is compiling and the Assert is the expected error;
+   record the comparison in those terms rather than skipping it.
+4. Finish and commit this review before starting the next package task.
+
+After the final increment (T7), stop for maintainer review of all the test increments before
+starting T8 (final verification), the last spec commit, or the pull request.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -232,6 +254,8 @@ crates, each package commit updates the callers of that package's accessor in th
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [ ] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
+- [ ] Maintainer reviewed the test increments after T7, before final verification
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -253,6 +277,9 @@ crates, each package commit updates the callers of that package's accessor in th
 - 2026-10-14 17:30 UTC - GitHub Copilot - PR #2537 review (F1): a synchronous closure cannot
   await but can still block the thread; recorded non-blocking closures as a caller obligation in
   the Design and Ownership Review, the proposed rustdoc, and the design rationale.
+- 2026-10-14 19:36 UTC - GitHub Copilot - PR #2537 review (F2): added the Test-Development Workflow
+  (per-increment test-design review with the prose-first AAA comparison, finished before the next
+  package task) and the maintainer stop after T7, with matching workflow checkpoints.
 
 ## Acceptance Criteria
 
