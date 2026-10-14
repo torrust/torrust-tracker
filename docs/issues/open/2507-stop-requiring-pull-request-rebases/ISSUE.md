@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2508
-last-updated-utc: "2026-10-14 06:52"
+last-updated-utc: "2026-10-14 07:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -245,6 +245,13 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   open PR merge refs are recomputed on head pushes but not reliably after `develop` advances
   (#2500 stale for about 19 hours) - [`manual-verification-evidence.md`](manual-verification-evidence.md)
   section T1
+- 2026-10-14 07:30 UTC - AI assistant - Ran the maintainer-approved fork sandbox (T1, T5).
+  GitHub accepts the direct merge push when the PR `base.sha` equals the branch tip, not when the
+  merge ref is fresh. Close/reopen, Update branch, and a no-op base edit all refresh it without
+  rewriting commits; the no-op base edit also adds no commit, event, or CI run. Required status
+  checks are enforced on the direct push; a commit status cannot override a failing Actions check
+  run. Awaiting maintainer decisions on the refresh method and the required-checks design -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) sections T1 and T5
 
 ## Acceptance Criteria
 
