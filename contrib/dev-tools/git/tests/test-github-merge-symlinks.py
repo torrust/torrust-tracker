@@ -16,6 +16,7 @@ refuses exits 4. The two codes are what the tests distinguish, together with the
 """
 
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -1105,15 +1106,19 @@ class BaseRefreshRequestTest(unittest.TestCase):
         self.directory = Path(self.temporary_directory.name)
         self.tool = load_merge_tool()
 
+    def install_fake_gh(self, script):
+        """Install a fake `gh` running the given shell script, and capture the tool's stderr."""
+        fake_gh = self.directory / 'gh'
+        fake_gh.write_text('#!/bin/sh\n' + script, encoding='utf-8')
+        fake_gh.chmod(0o755)
+        self.tool.GH = str(fake_gh)
+        self.tool.stderr = self.reported = io.StringIO()
+
     def fake_gh_answering(self, response):
         """Install a fake `gh` that records its arguments and prints `response`."""
         arguments_file = self.directory / 'gh-arguments'
-        fake_gh = self.directory / 'gh'
-        fake_gh.write_text('#!/bin/sh\n'
-                           f'printf \'%s\\n\' "$@" > {arguments_file}\n'
-                           f'cat <<\'EOF\'\n{response}\nEOF\n', encoding='utf-8')
-        fake_gh.chmod(0o755)
-        self.tool.GH = str(fake_gh)
+        self.install_fake_gh(f'printf \'%s\\n\' "$@" > {arguments_file}\n'
+                             f'cat <<\'EOF\'\n{response}\nEOF\n')
         return arguments_file
 
     def it_should_edit_the_pull_request_base_to_its_own_branch_and_return_the_recorded_base(self):
@@ -1139,6 +1144,30 @@ class BaseRefreshRequestTest(unittest.TestCase):
 
         # Assert
         self.assertIsNone(recorded_base)
+
+
+    def it_should_report_the_reason_gh_gives_when_the_edit_fails(self):
+        # Arrange
+        self.install_fake_gh('echo "HTTP 403: Must have admin rights to Repository." >&2\nexit 1\n')
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertIsNone(recorded_base)
+        self.assertIn('HTTP 403: Must have admin rights to Repository.', self.reported.getvalue())
+
+    def it_should_give_up_when_gh_does_not_answer_in_time(self):
+        # Arrange
+        self.install_fake_gh('exec sleep 30\n')
+        self.tool.GH_TIMEOUT_SECONDS = 1
+
+        # Act
+        recorded_base = self.tool.refresh_pr_base(FIXTURE_REPOSITORY, PULL_REQUEST, TARGET_BRANCH)
+
+        # Assert
+        self.assertIsNone(recorded_base)
+        self.assertIn('timed out', self.reported.getvalue())
 
 
 class DeclarationArgumentTest(SymlinkDeclarationTestCase):

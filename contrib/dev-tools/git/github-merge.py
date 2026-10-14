@@ -30,6 +30,7 @@ from urllib.error import HTTPError
 # External tools (can be overridden using environment)
 GIT = os.getenv('GIT','git')
 GH = os.getenv('GH','gh')
+GH_TIMEOUT_SECONDS = 60
 SHELL = os.getenv('SHELL','bash')
 
 # OS specific configuration for terminal attributes
@@ -171,9 +172,16 @@ def refresh_pr_base(repo, pull, branch):
     '''
     try:
         response = subprocess.run([GH,'api','-X','PATCH','repos/'+repo+'/pulls/'+pull,'-f','base='+branch],
-                                  check=True, capture_output=True)
+                                  check=True, capture_output=True, timeout=GH_TIMEOUT_SECONDS)
         recorded_base = json.loads(response.stdout)['base']['sha']
-    except (OSError, subprocess.CalledProcessError, ValueError, KeyError, TypeError) as e:
+    except subprocess.TimeoutExpired:
+        print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: gh timed out after {GH_TIMEOUT_SECONDS} s.', file=stderr)
+        return None
+    except subprocess.CalledProcessError as e:
+        reason = sanitize(e.stderr.decode('utf-8', errors='replace'), newlines=True).strip() if e.stderr else str(e)
+        print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: {reason}', file=stderr)
+        return None
+    except (OSError, ValueError, KeyError, TypeError) as e:
         print(f'Warning: unable to refresh the base of pull request {repo}#{pull}: {e}', file=stderr)
         return None
     if not isinstance(recorded_base, str) or re.fullmatch('[0-9a-f]{40}', recorded_base) is None:
@@ -198,7 +206,7 @@ def require_current_recorded_base(repo, pull, branch, recorded_ref, recorded_bas
     if refreshed_base == current_base:
         print(f"Refreshed the recorded base of {pull_reference} to {current_base}.", file=stderr)
         return
-    print(f"ERROR: GitHub records {pull_reference} as based on {refreshed_base or recorded_base}, but {branch} is at {current_base}.", file=stderr)
+    print(f"ERROR: GitHub records {pull_reference} as based on {refreshed_base or recorded_base or 'an unknown commit'}, but {branch} is at {current_base}.", file=stderr)
     print("GitHub rejects the pushed merge until the recorded base is the target tip. Refresh it with", file=stderr)
     print(f"  gh api -X PATCH repos/{repo}/pulls/{pull} -f base={branch}", file=stderr)
     print(f"or update the pull request branch (GitHub's \"Update branch\" or a rebase onto {branch}), fetch {branch} again, then retry.", file=stderr)
