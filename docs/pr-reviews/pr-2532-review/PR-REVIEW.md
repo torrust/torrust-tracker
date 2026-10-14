@@ -61,8 +61,8 @@ further finding.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2532#pullrequestreview-5521450385>
 - Concern: "One live cross-reference in the archived #2517 specification still points to the removed open path": the Out of Scope note in `docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md` names `docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`, which this PR moves.
-- Solution: The reference had been retained as a historical record, but it is a navigational "tracked by" pointer, so it now names the closed path; the #2517 spec's `last-updated-utc` and progress log record the change. The two remaining mentions of the old path are `Current-tree verification` commands in the PR #2529 audit, which record the commands as they were run.
-- Current-tree verification: `rg -n 'open/2521-1669-remove-unused-udp-stats-traits'` matches only lines 132 and 145 of `docs/pr-reviews/pr-2529-review/PR-REVIEW.md`; line 133 of the #2517 spec names `docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`.
+- Solution: The reference had been retained as a historical record, but it is a navigational "tracked by" pointer, so it now names the closed path; the #2517 spec's `last-updated-utc` and progress log record the change. Outside this audit, the two remaining mentions of the old path are `Current-tree verification` commands in the PR #2529 audit, which record the commands as they were run.
+- Current-tree verification: outside this audit, whose Concern quotes the old path and whose verification names the search pattern, `rg -n 'open/2521-1669-remove-unused-udp-stats-traits'` matches only lines 132 and 145 of `docs/pr-reviews/pr-2529-review/PR-REVIEW.md`; line 133 of the #2517 spec names `docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`.
 - Resolution reference: `docs(issues): [#2521] point the archived #2517 spec at the closed #2521 spec`
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2532#issuecomment-6173714194>
