@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: 2527
-last-updated-utc: "2026-10-14 15:06"
+last-updated-utc: "2026-10-14 15:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -297,6 +297,8 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   `status: in-review` and `related-pr: 2527`.
 - 2026-10-14 15:06 UTC - GitHub Copilot - PR #2527 merged into `develop` and #2517 closed on
   GitHub. Archived this spec to `docs/issues/closed/` and set `status: done`.
+- 2026-10-14 15:57 UTC - GitHub Copilot - Review of PR #2530 (F1), also raised after merge on
+  PR #2527 (F2): pointed the Risks overlap note at #2521, matching Out of Scope.
 
 ## Acceptance Criteria
 
@@ -359,9 +361,8 @@ both runs executed identical steps; those steps are recorded in full in
 - **Merge conflicts with #1348**: the unmerged branch `1348-1347-add-tests-udp-core` edits
   `packages/udp-core/src/statistics/repository.rs`. Its test lives in the file's own test module,
   so it keeps compiling after the change. Rebase on whichever lands second.
-- **Overlap with the SI-30 statistics traits work**: its draft (not committed yet; see Out of
-  Scope) touches the same `udp-core` and `udp-server` files. Keep each change in its own issue and
-  rebase as needed.
+- **Overlap with the SI-30 statistics traits work**: #2521 (see Out of Scope) touches the same
+  `udp-core` and `udp-server` files. Keep each change in its own issue and rebase as needed.
 - **Hidden future need for direct lock access**: if a caller later needs an operation the
   methods do not offer, add a repository method instead of reopening the field.
 
