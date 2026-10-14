@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 08:59"
+last-updated-utc: "2026-10-14 09:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -417,9 +417,9 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Manual recheck recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -548,6 +548,10 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   subject. At the maintainer's choice the unpushed commit was undone with `git reset --soft` and
   split into `test(udp-server): [#2505] name the third handler-test client after its state` and this
   documentation commit.
+- 2026-10-14 09:03 UTC - GitHub Copilot (implementation session) - Second follow-up task review: PASS (B2,
+  N7, N8, N9 verified; optional N10 and N11). Rewrapped the long evidence line (N10), added the
+  last three lessons to the completion-review summary and the chained-commit lesson to the
+  retrospective (N11), and ticked the reviewer and committer checkpoints.
 
 ## Acceptance Criteria
 
@@ -643,7 +647,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 - Retrospective: [implementation-retrospective.md](implementation-retrospective.md) (material
   discoveries: the pass rule for a deliberately added cost, a health check port collision between
-  concurrent trackers, a non-compiling mutation, and locale-dependent number formatting).
+  concurrent trackers, a non-compiling mutation, locale-dependent number formatting, a manual
+  recheck that ran before the last production change, dependent manual steps run in parallel, and a
+  commit chained after a failed GPG signature).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
   entry explaining why the work had no material discovery.

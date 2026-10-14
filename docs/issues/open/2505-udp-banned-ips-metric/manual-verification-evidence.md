@@ -1253,8 +1253,8 @@ The independent pre-PR review (see `agent-review-reports.md`) noted that
 `it_should_publish_the_banned_ip_total_after_a_connection_cookie_error` passed with the old
 distinct-IP total too, because both tracked IPs were over the limit. A third client at the limit
 (`client_within_the_limit_ip`, 1 error with a limit of 1; renamed `client_at_the_limit_ip` after the
-follow-up review, finding N9) now makes the old meaning publish 3 instead of 2. Proof with the original map-length total (`self.accurate_error_counter.len()`)
-temporarily restored in `packages/udp-core/src/services/banning.rs`, without staging, and the file
+follow-up review, finding N9) now makes the old meaning publish 3 instead of 2. Proof with the
+original map-length total (`self.accurate_error_counter.len()`) temporarily restored in `packages/udp-core/src/services/banning.rs`, without staging, and the file
 restored from a copy afterwards. Command:
 
 ```bash

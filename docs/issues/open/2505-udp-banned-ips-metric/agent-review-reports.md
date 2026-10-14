@@ -223,3 +223,88 @@ semantic-links:
   - Issue spec: no checkboxes were changed (the caller restricted edits to this report file).
     "Reviewer validated acceptance criteria and updated checkboxes" stays open until B2 is
     resolved; all other checked items were verified as accurate.
+
+### 2026-10-14 09:02 UTC - Task Reviewer (second follow-up)
+
+- Invocation scope: Second follow-up pre-PR review of issue #2505 on branch
+  `2505-udp-banned-ips-metric`, range `torrust/develop..HEAD`, limited to the two commits added
+  after the 2026-10-14 08:45 UTC report (REVIEW FAILED on B2):
+  `test(udp-server): [#2505] name the third handler-test client after its state` (`e9ac5c2f3`) and
+  `docs(issues): [#2505] address the follow-up task review` (`25ba74330`). Goals: B2 resolved, N7,
+  N8, N9 addressed, commit scopes clean, tests green on both commits, `linter all` exit 0, spec
+  checkboxes and tables accurate.
+- Inputs: the two earlier reports above, `git show` of both commits,
+  `packages/udp-server/src/banning/event/handler.rs` (lines 75-163), `ISSUE.md` (Workflow
+  Checkpoints, Progress Log, Acceptance Criteria, Manual Verification Scenarios, Acceptance
+  Verification, Implementation Completion Review), `manual-verification-evidence.md` (lines
+  1070-1078 and 1248-1302), `implementation-retrospective.md`.
+- Evidence:
+  - Commit scope: `e9ac5c2f3` touches only `packages/udp-server/src/banning/event/handler.rs`
+    (3+/3-, the variable rename at lines 138, 142, 161). `25ba74330` touches only four files under
+    `docs/issues/open/2505-udp-banned-ips-metric/`. `git diff e9ac5c2f3 HEAD -- ':!docs'` is empty,
+    so both commits have the same code tree. Both commits are GPG-signed (good signature, same key
+    as the earlier commits). Subjects follow Conventional Commits with the narrow scope.
+  - Tests: `cargo test -q -p torrust-tracker-udp-server --lib banning` at HEAD:
+    `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out`. This also covers
+    `e9ac5c2f3` because its code tree is identical to HEAD.
+  - `linter all`: exit 0 (`All linters passed`); working tree unchanged before and after.
+  - B2: `manual-verification-evidence.md` lines 1284-1302 record the prose-first
+    Arrange-Act-Assert review of the three-client test. Compared with the code: limit
+    `CONNECTION_ID_ERROR_LIMIT = 1` (handler.rs line 75); Arrange `with_client_errors(&[...])` with
+    `banned_client_ip` at `LIMIT + 1` (2 errors), `cookie_error_client_ip` and
+    `client_at_the_limit_ip` at `LIMIT` (1 error), and `expected_banned_ip_total = 2` before the Act
+    (lines 136-145); Act is the single `handle_event(event, ...)` call with the event built from
+    `cookie_error_client_ip` (lines 146-153); Assert is one `assert_eq!` on
+    `udp_banned_ips_total()` whose message names the limit and all three clients (lines 155-162).
+    The record matches the code, states that the temporary prose was removed, and lines 1075-1077
+    mark the earlier T4/T5 record as superseded without rewriting it.
+  - N7: `ISSUE.md` lines 602-605 now cite `V1 and F-V1` to `V4 and F-V4`.
+  - N8: `implementation-retrospective.md` adds both lessons (recheck before the last production
+    change; dependent manual steps run as parallel tool calls) and two matching improvement
+    proposals (items 5 and 6).
+  - N9: `client_within_the_limit_ip` no longer appears in `packages/` or `src/`; the remaining
+    mentions are historical (earlier report, the N2 evidence paragraph noting the rename, the
+    progress log).
+  - Progress log (`ISSUE.md` lines 540-550): entries for the follow-up fixes and for the process
+    mistake (GPG timeout, chained commit, `git reset --soft` split before any push); consistent with
+    the commit timestamps (09:58:51 and 09:59:43 local).
+  - Acceptance-criteria matrix (unchanged code behavior since the 08:45 UTC report):
+
+    | Criterion | Result | Evidence |
+    | --------- | ------ | -------- |
+    | AC1 | PASS | unchanged; handler test green after the rename |
+    | AC2 | PASS | unchanged |
+    | AC3 | PASS | unchanged |
+    | AC4 | PASS | unchanged |
+    | AC5 | PASS (accepted deviation) | unchanged |
+    | AC6 | PASS | unchanged; scenarios table now cites F-V1 to F-V4 |
+    | AC7 | PASS | unchanged |
+    | `linter all` exits 0 | PASS | rerun at HEAD, exit 0 |
+    | Relevant tests pass | PASS | focused banning suite green; code tree identical on both commits |
+    | Manual scenarios executed and documented | PASS | N7 resolved |
+    | AC re-reviewed and reflect actual behavior | PASS | Acceptance Verification table accurate |
+    | Documentation updated | PASS | unchanged |
+
+- Findings:
+  - B2 (follow-up report): resolved.
+  - N7, N8, N9 (follow-up report): resolved.
+  - N10 (non-blocking, cosmetic): `manual-verification-evidence.md` line 1256 is 158 characters
+    after the inline N9 note; the surrounding paragraph wraps near 100. `linter all` accepts it;
+    rewrap optionally.
+  - N11 (non-blocking, completion review): the "Implementation Completion Review" summary in
+    `ISSUE.md` (around line 644) still lists only the original four material discoveries; it could
+    mention the two lessons added for N8. The commit-chaining-after-a-failed-signature mistake is
+    recorded in the progress log only; adding it to the retrospective as a process lesson (stop
+    after a failed commit instead of chaining the next one) is optional.
+  - Test design checklist for the changed test: name states one behavior and condition; the causal
+    state is visible in Arrange; `with_client_errors` names a coherent state and is not a parameter
+    bag; the production Act and the independently stated expected value are visible; the
+    prose-first AAA comparison is recorded. No violation.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Issue spec: no checkboxes were changed (the caller restricted edits to this report file). With
+    this verdict, the Workflow Checkpoint "Reviewer validated acceptance criteria and updated
+    checkboxes" (`ISSUE.md` line 420) is verified and can be checked by the implementer; all other
+    checked items remain accurate.
+  - Optional: N10 rewrap, N11 summary update.
+  - This report is uncommitted; the caller requests Committer to include it.

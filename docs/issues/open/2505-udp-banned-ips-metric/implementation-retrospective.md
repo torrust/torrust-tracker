@@ -67,6 +67,9 @@ regression.
 - **Dependent manual steps ran in parallel.** In the first restart of that repeat, the V2 and V3
   probes were issued as one batch of parallel agent tool calls and ran concurrently, so the run was
   discarded and restarted.
+- **A commit was chained after a failed GPG signature.** A rename commit failed with a GPG
+  timeout, and the next commit, issued in the same command, ran anyway and swept the staged
+  rename into a `docs` commit. The unpushed commit was split at the maintainer's choice.
 - **Manual-only timing cost.** The 3600-second minimum reset interval made both the reproduction
   and the recheck of V4 take an hour each; the work was arranged around it (V1-V3 first, other
   tasks during the wait).
@@ -97,6 +100,8 @@ regression.
    change; if production code changes afterwards, the recheck is repeated.
 6. In agent guidance for manual verification, require dependent steps (each starting from the
    state the previous one leaves) to run one at a time, never as parallel tool calls.
+7. In the `commit-changes` skill, run each signed commit as its own step and check its result
+   before staging or committing anything else, so a GPG failure always stops the sequence.
 
 These are proposals for the maintainer; none was applied in this issue.
 
