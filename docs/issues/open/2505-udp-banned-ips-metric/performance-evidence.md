@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: "2026-10-14 06:59"
+last-updated-utc: "2026-10-14 10:00"
 ---
 
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
@@ -258,8 +258,12 @@ violation.
 | `udp_ban_service_record_error/ipv6/1000` | 12.48 | 12.58 | 12.32 | 12.58 |
 | `udp_ban_service_record_error/ipv6/10` | 12.42 | 12.53 | 12.42 | 12.53 |
 
-Observed P1 noise: the three medians of each benchmark differ by up to about 3% (for example
-`record_error/ipv4/10000` 10.33-10.87 ns, `increase_counter/distinct/ipv4` 284651.92-292950.03 ns).
+Observed P1 noise, measured like the load-test spread as (highest - lowest) / mean of the three
+medians of each benchmark: up to **5.1%** (`record_error/ipv4/10000`, 10.33-10.87 ns), and above 3%
+for 9 of the 28 benchmarks (the `is_banned/ipv6_*` cases at 3.1-4.3%, and `record_error/ipv4/10` and
+`record_error/ipv4/1000` at 3.3%). The largest deviation of a single median from its mean is 3.0%.
+An earlier version of this paragraph stated the noise as "up to about 3%", which was the largest
+deviation from the mean, not the spread (corrected after PR #2524 review finding F1 by Cameron).
 The `record_error` medians are flat across 10, 1,000, and 10,000 tracked IPs (10.33-10.87 ns for
 IPv4, 12.27-12.58 ns for IPv6), as expected while the total is the map length.
 
@@ -467,6 +471,11 @@ their P1 limit.
 
 Conclusion: the end-to-end load test shows no regression. The microbenchmarks show the expected
 small cost on the invalid-connection-ID path (about 0.4-0.6 ns per event, accepted by the
-maintainer), no growth with the number of tracked IPs (AC7), and noise-level differences in
-unchanged code. The observed P1 noise was up to about 3% between Criterion runs and 5.2% between
-load-test runs, so differences below those levels are not detectable with these measurements.
+maintainer), no growth with the number of tracked IPs (AC7), and small differences in unchanged
+code. The observed P1 spread was up to 5.1% between Criterion runs and 5.2% between load-test runs,
+so the P1/P2 tables alone cannot tell differences below those levels from noise: every Criterion
+excess above is 3.9% or less. The attribution of the `record_error` and
+`increase_counter/repeated/ipv6` excesses to the counter, and of the `is_banned` excesses to noise,
+rests on the same-machine comparison in "P2 Investigation" (unchanged `is_banned` code, and a
+consistent 0.4-0.6 ns difference between `develop` and the fix measured back to back), not on the
+P1/P2 tables.

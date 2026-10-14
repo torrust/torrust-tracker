@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 09:58"
+last-updated-utc: "2026-10-14 10:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -562,6 +562,13 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   `checked_add` (the suggested `saturating_add` double-counts when the limit is `u32::MAX - 1`);
   two boundary tests seed the count through the private map and fail for both variants (evidence:
   "PR Review Follow-Up - Error Count Overflow").
+- 2026-10-14 10:00 UTC - GitHub Copilot (implementation session) - Correction (PR #2524 review finding F1 by
+  Cameron): the T3 entry above says the P1 Criterion medians were "within about 3%". Measured as
+  (highest - lowest) / mean, like the load-test spread, the P1 spread is up to 5.1%, and 9 of 28
+  benchmarks exceed 3%; 3.0% was the largest deviation from the mean. `performance-evidence.md` now
+  states the measure and the 5.1% figure, and says that attributing the P2 excesses to the counter
+  or to noise rests on the same-machine comparison, not on the P1/P2 tables. AC5's conclusion is
+  unchanged.
 
 ## Acceptance Criteria
 
