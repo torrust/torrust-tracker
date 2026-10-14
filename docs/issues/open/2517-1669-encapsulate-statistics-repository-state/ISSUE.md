@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: null
-last-updated-utc: "2026-10-14 14:16"
+last-updated-utc: "2026-10-14 14:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,15 +177,15 @@ covers those.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                  | Notes / Expected Output                                                                                                                                                         |
-| --- | ------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Re-verify the evidence on current `develop`           | On `c1874fac`, the `stats` field was used only inside the five repository files, with no `Repository { stats: ... }` literals; crates.io: 404 for all current/former names. |
-| T2  | DONE   | Make `stats` private in `udp-core`                    | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                            |
-| T3  | DONE   | Make `stats` private in `udp-server`                  | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                            |
-| T4  | DONE   | Make `stats` private in `http-core`                   | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                            |
-| T5  | DONE   | Make `stats` private in `tracker-core`                | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                            |
-| T6  | DONE   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                            |
-| T7  | DONE   | Verification                                          | `linter all`, pre-push checks, nightly pinned doctests, AC1 grep, and M1 (rerun after review round 1 with all metric families) passed.                                        |
+| ID | Status | Task                                                  | Notes / Expected Output                                                                                                                                                     |
+| -- | ------ | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1 | DONE   | Re-verify the evidence on current `develop`           | On `c1874fac`, the `stats` field was used only inside the five repository files, with no `Repository { stats: ... }` literals; crates.io: 404 for all current/former names. |
+| T2 | DONE   | Make `stats` private in `udp-core`                    | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T3 | DONE   | Make `stats` private in `udp-server`                  | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T4 | DONE   | Make `stats` private in `http-core`                   | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T5 | DONE   | Make `stats` private in `tracker-core`                | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T6 | DONE   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest failed while `stats` was public; package tests and doctests pass after privatization.                                                          |
+| T7 | DONE   | Verification                                          | `linter all`, pre-push checks, nightly pinned doctests, AC1 grep, and M1 (rerun after review round 1 with all metric families) passed.                                      |
 
 ## Commit Points
 
@@ -211,9 +211,9 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -284,6 +284,9 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   client responses with `diff -u` (no differences); stored the outputs under `evidence/`; set
   `status: in-progress`; cleared the committer checkbox; aligned the plan table; recorded the
   companion doctests in In Scope; and added a lead-in sentence before each repository doctest.
+- 2026-10-14 14:23 UTC - Committer - Independent review round 2 returned `REVIEW PASSED`; its
+  two cosmetic findings were addressed (plan table realigned, stored UDP client-response
+  newlines disclosed in `manual-verification-evidence.md`), and spec progress was verified.
 
 ## Acceptance Criteria
 

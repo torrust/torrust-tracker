@@ -141,7 +141,9 @@ The comparison output:
 (no differences)
 ```
 
-Because the outputs are identical, one copy of each is stored:
+Because the outputs are identical, one copy of each is stored. In the stored client responses,
+each UDP response is followed by a newline that the raw output lacks, because the UDP client
+prints no trailing newline; nothing else differs:
 
 - Client responses: [`m1-client-responses.txt`](evidence/m1-client-responses.txt)
 - Metrics before the announces: [`m1-metrics-before.txt`](evidence/m1-metrics-before.txt)

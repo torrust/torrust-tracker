@@ -123,3 +123,107 @@ semantic-links:
   - Caller: request a new Task Reviewer entry after remediation. The reviewer did not edit
     `ISSUE.md` checkboxes because the caller restricted edits to this report.
   - Code changes: none required. The visibility change and doctests are correct.
+
+### 2026-10-14 14:21 UTC - Task Reviewer (pre-PR, `review-task` skill, round 2)
+
+- Invocation scope: Second pre-push review of branch
+  `2517-1669-encapsulate-statistics-repository-state` (`develop` at `c1874fac`..`3e339389`, 10
+  signed commits). Checked that each round 1 finding is fixed. Re-checked AC1-AC3, every
+  acceptance and workflow checkbox, and whether `ISSUE.md`, `manual-verification-evidence.md`, and
+  `evidence/` are accurate and consistent with each other. Included the new commit
+  `docs(statistics): [#2517] introduce the repository privacy doctests`.
+- Inputs: `ISSUE.md`, `manual-verification-evidence.md`, the four `evidence/` files, the round 1
+  entry above, `git diff develop...HEAD`, `git log --format='%h %G? %s' develop..HEAD`,
+  `.github/skills/dev/task-reviews/review-task/SKILL.md`,
+  `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`, the implementer's local M1 run directories
+  (`.tmp/m1-2517-baseline/` and `.tmp/m1-2517-implementation/`), and the implementer's
+  session-local M1 runner.
+- Evidence:
+  - AC1 grep `grep -nE 'pub(\([^)]*\))? +stats *:' packages/*/src/statistics/repository.rs`
+    printed nothing (exit 1).
+  - `git grep -nE '\.stats\b' -- '*.rs'` found `.stats` only inside the five repository files
+    (method bodies and the `compile_fail` snippets), after excluding the unrelated
+    `announce_data.stats`, `domain_data.stats`, and `data.stats` fields and the `stats()` method.
+    `git grep 'Repository *{ *stats'` matched only spec prose.
+  - `cargo test --doc` (stable) and `cargo +nightly test --doc` (which enforces the pinned error
+    code) on the five packages, filtered to `statistics::repository`: 10 passed, 0 failed on each
+    toolchain (5 `compile_fail,E0616` doctests and 5 companion doctests).
+  - `linter all` exited `0`. The worktree was clean apart from this review's edits.
+  - All 10 commits are GPG signed (`%G?` = `U`: valid signature, key trust not set locally). Since
+    the round 1 pre-push run, the only code change is the doc-comment commit `a8d4fc9f`, so the
+    reviewer did not re-run the full pre-push suite.
+  - M1 artifacts: in the local run directories, `client.txt`, `metrics-before.txt`,
+    `metrics-after.txt`, `stats-before.normalized.json`, and `stats-after.normalized.json` are
+    byte-identical between the baseline and the implementation run. `evidence/m1-metrics-before.txt`,
+    `evidence/m1-metrics-after.txt`, and `evidence/m1-stats-after.json` are byte-identical to the
+    implementation outputs. Both `tracker.log` files have 220 lines, contain no `WARN` or `ERROR`,
+    and end with "Torrust tracker successfully shutdown." The baseline log ended at 14:12:22 UTC.
+    The branch `torrust-tracker` binary was built at 14:12:38 UTC, and the implementation log
+    ended at 14:12:45 UTC. This order matches the claim that the two runs used different builds.
+    The configuration embedded in the evidence matches the generated `tracker.toml`, except for
+    two `skill-link` comment lines and the database path.
+  - Independent M1 re-run on the current branch (rebuilt binaries were already up to date, the
+    run directory was removed afterwards, and no listener was left on the M1 ports):
+    `metrics-before.txt`, `metrics-after.txt`, and `stats-after.normalized.json` matched the stored
+    evidence exactly. `client.txt` matched the implementation run. The log had 220 lines, no
+    `WARN` or `ERROR`, and ended with a successful shutdown.
+  - All four evidence links in `manual-verification-evidence.md` resolve. The selected samples
+    and stats quoted inline match `evidence/m1-metrics-after.txt` and `evidence/m1-stats-after.json`.
+    All five metric families are covered. The `tracker_core_*_downloads_total` counters go from
+    `0` to `2`, and the `swarm_coordination_registry_*` samples are present.
+  - Round 1 findings:
+
+    | #   | Round 1 finding                         | Result   | Evidence                                                                                                         |
+    | --- | --------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+    | 1   | M1 evidence incomplete (Medium)         | RESOLVED | Reproduced: full-family metrics, stats, client output, `diff -u` summary, and a log summary are recorded.        |
+    | 2   | Self-ticked Committer checkbox (Medium) | RESOLVED | `ISSUE.md` line 216 is not ticked.                                                                               |
+    | 3   | `status: planned` (Low)                 | RESOLVED | `ISSUE.md` line 5 is `status: in-progress`.                                                                      |
+    | 4   | Plan table padding (Low)                | PARTIAL  | The Task column is aligned. The Notes column is still 2-4 characters short in rows T1-T7 (finding 1 below).      |
+    | 5   | Doctest lead-in sentences (Low)         | RESOLVED | Every repository has "The metrics lock is private:" and "Read through the accessor instead:" (commit `a8d4fc9f`). |
+    | 6   | Companion doctests not in scope (Info)  | RESOLVED | `ISSUE.md` lines 116-118 (In Scope).                                                                             |
+
+  - Acceptance-criteria matrix:
+
+    | Item                                                    | Result | Evidence                                                                                             |
+    | ------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
+    | AC1: no `pub` metrics lock field                        | PASS   | AC1 grep prints nothing; `stats` is private in all five files.                                       |
+    | AC2: outside code uses only repository methods          | PASS   | Field access exists only in the five files; 5 `compile_fail,E0616` doctests pass (stable and nightly). |
+    | AC3: REST metric values unchanged for the same announces | PASS   | Stored outputs are identical between the runs, and the reviewer's re-run matches the evidence.        |
+    | `linter all` exits `0`                                  | PASS   | The reviewer re-ran it: exit `0`.                                                                    |
+    | Relevant tests pass                                     | PASS   | 10 focused doctests on stable and nightly. The workspace tests were not re-run because only doc comments changed since round 1. |
+    | Manual verification executed and documented             | PASS   | `manual-verification-evidence.md` V1 and `evidence/`, reproduced.                                    |
+    | Acceptance criteria re-reviewed after implementation    | PASS   | AC rows and the Acceptance Verification table match the evidence.                                    |
+    | Documentation updated when behavior/workflow changes    | PASS   | Each repository's rustdoc names its accessor. Runtime behavior is unchanged.                         |
+    | Workflow checkpoints, lines 205-213                     | PASS   | Each is supported by the progress log, diff, checks, and evidence.                                   |
+    | Workflow: Committer verified spec progress (line 216)   | N/A    | Correctly left unchecked. Committer must tick it.                                                     |
+
+  - Test design (doctests): the round 1 assessment still holds. The new lead-in sentences now
+    state each snippet's purpose, as in the `container.rs` precedent. Prose-first
+    Arrange-Act-Assert comparison: not applicable to compile-time doctests, which have no runtime
+    Act or assertion.
+- Findings:
+  1. Low (non-blocking, cosmetic): the round 1 finding 4 fix is partial. In the Implementation
+     Plan table (`ISSUE.md` lines 180-188), the header's Notes cell is 177 characters wide, the T1
+     row is 173, and the T2-T7 rows are 175. markdownlint and `linter all` accept the table.
+  2. Info: `evidence/m1-client-responses.txt` lines 4-5 and 8 are not byte-identical to the raw
+     `client.txt`. The UDP client prints no trailing newline, so in the raw output the next
+     `$ http announce completed` label shares a line with the UDP JSON. The evidence copy adds the
+     missing newlines, and the content is otherwise the same. Optionally say this in
+     `manual-verification-evidence.md`, which calls the stored copy one of the identical outputs.
+  3. Info: M1 sends two announces per protocol, while the scenario row at `ISSUE.md` line 322
+     says one. `manual-verification-evidence.md` V1 step 3 discloses and justifies the extra
+     `completed` announces, so this is acceptable. The scenario row may be updated to match.
+  4. Info: the M1 steps ran through a session-local wrapper script so both runs used identical
+     steps. The script ran the real binaries through human-oriented commands (`tracker_client`
+     and `curl`). Every command is recorded, and the wrapper is disclosed in `ISSUE.md`
+     (Disposable Verification Scripts). This is acceptable manual evidence, not automated-test
+     output.
+  5. Info (pre-existing, out of scope, carried over from round 1): the `tracker-core` row of the
+     Background write-methods table (`ISSUE.md` line 65) is wider than its column on `develop`.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Implementer (optional): fix findings 1-3 in a later spec update.
+  - Reviewer: ticked `ISSUE.md` lines 214 and 215 (reviewer validation and recorded independent
+    reports). No other checkbox was changed.
+  - Caller: ask Committer to include this report and the two checkbox updates in a focused
+    documentation commit. Committer must verify and tick line 216.
