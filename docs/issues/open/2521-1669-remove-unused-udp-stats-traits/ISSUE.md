@@ -226,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
 | T4  | DONE   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
 | T5  | DONE   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
-| T6  | TODO   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
+| T6  | DONE   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
 | T7  | TODO   | Verification                                               | See Verification Plan.                                                                                                                                                        |
 
 ## Commit Points
@@ -332,6 +332,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   torrust-tracker-udp-server` (stable 1.99.0): 217 unit and 12 integration tests passed; `cargo
   machete --with-metadata`: clean; `RUSTDOCFLAGS="-D warnings" cargo +nightly doc --no-deps -p
   torrust-tracker-udp-server` (nightly 1.101.0): no warnings.
+- 2026-10-14 13:30 UTC - GitHub Copilot (implementation session) - T6: added the removal note to
+  the EPIC #1669 SI-30 table row. Remaining references outside closed specs and PR reviews are all
+  historical or out-of-scope pointers: EPIC #1669 progress-log entries, the dated workspace coupling
+  reports (which name `rest_api_core::statistics::services`, a different and already removed
+  package), the #2505 Out of Scope note, and the #2517 Out of Scope note. The #2517 note was not
+  listed in this spec; it is left unchanged because it belongs to another issue's specification.
 
 ## Acceptance Criteria
 
