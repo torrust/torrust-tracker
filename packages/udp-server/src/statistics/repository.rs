@@ -28,6 +28,8 @@ pub trait UdpServerStatsRepository: Send + Sync {
 ///
 /// External callers read statistics through [`Repository::get_stats`].
 ///
+/// The metrics lock is private:
+///
 /// ```rust,compile_fail,E0616
 /// use torrust_tracker_udp_server::statistics::repository::Repository;
 ///
@@ -35,6 +37,8 @@ pub trait UdpServerStatsRepository: Send + Sync {
 ///     let _stats = &repository.stats;
 /// }
 /// ```
+///
+/// Read through the accessor instead:
 ///
 /// ```rust
 /// use torrust_tracker_udp_server::statistics::repository::Repository;

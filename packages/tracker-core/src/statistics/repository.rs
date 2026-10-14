@@ -17,6 +17,8 @@ use super::{
 ///
 /// External callers read statistics through [`Repository::get_metrics`].
 ///
+/// The metrics lock is private:
+///
 /// ```rust,compile_fail,E0616
 /// use torrust_tracker_core::statistics::repository::Repository;
 ///
@@ -24,6 +26,8 @@ use super::{
 ///     let _metrics = &repository.stats;
 /// }
 /// ```
+///
+/// Read through the accessor instead:
 ///
 /// ```rust
 /// use torrust_tracker_core::statistics::repository::Repository;
