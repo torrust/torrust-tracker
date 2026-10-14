@@ -8,8 +8,8 @@ epic: 1669
 github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits"
-related-pr: null
-last-updated-utc: "2026-10-14 14:47"
+related-pr: 2529
+last-updated-utc: "2026-10-14 15:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -360,6 +360,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   #2505 removed it rather than owns its removal. `git merge-tree` shows no conflict with `develop`
   or with the #2517 branch (PR #2527), so no rebase is needed; whichever of #2521 and #2517 merges
   second reruns the `udp-core` and `udp-server` tests on the combined code.
+- 2026-10-14 15:43 UTC - GitHub Copilot (implementation session) - Opened PR #2529. Processed Copilot
+  review 5520183826 (audit: `docs/pr-reviews/pr-2529-review/PR-REVIEW.md`): the statistics event
+  examples are now fenced `rust,ignore`; and, at the maintainer's request for the cleanest option
+  even beyond the adapted test, the four `udp-server` repository tests that released the metrics
+  read guard with an explicit `drop()` now read through a `metrics_snapshot()` test helper. In each
+  of those tests, the causal Act (construction or the metric updates) is unchanged and visible; the
+  helper owns only the incidental read and guard release.
 
 ## Acceptance Criteria
 
