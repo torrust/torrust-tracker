@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: "2026-10-14 06:02"
+last-updated-utc: "2026-10-14 06:59"
 ---
 
 # Performance Evidence - UDP Banned-IPs Total Before and After the Fix
@@ -377,8 +377,10 @@ Findings:
 - B is as fast as A or faster, and closer to `develop` on `increase_counter/repeated/ipv4`.
 - `is_banned` did not change, so its P2a failures (0.4-1.2%) are measurement noise.
 
-Maintainer decision (2026-10-13, recorded in the specification's progress log): accept the cost as
-inherent to the fix, adopt B, and rerun P2 on the final code. B was committed as
+Maintainer decision (2026-10-13, shortly after the comparison above ended at 21:35:33 UTC): accept
+the cost as inherent to the fix, adopt B, and rerun P2 on the final code. The specification's
+progress-log entry describing it is stamped 2026-10-14 05:32 UTC because it was written when work
+resumed after an overnight pause. B was committed as
 `perf(udp-core): [#2505] detect the ban crossing with one comparison`.
 
 ### P2 - Final Code
@@ -458,6 +460,10 @@ The nine Criterion failures:
 | `is_banned/ipv6_above_threshold/10000` | 11.26 | 11.12 | +1.3% | Unchanged code: noise |
 | `is_banned/ipv6_at_threshold/1000` | 11.21 | 11.20 | +0.1% | Unchanged code: noise |
 | `is_banned/ipv6_below_threshold/10` | 11.26 | 11.04 | +2.0% | Unchanged code: noise |
+
+Maintainer confirmation (2026-10-14 06:59 UTC, after the independent pre-PR review asked for it):
+the accepted-cost decision covers this final P2 table, including all nine Criterion medians above
+their P1 limit.
 
 Conclusion: the end-to-end load test shows no regression. The microbenchmarks show the expected
 small cost on the invalid-connection-ID path (about 0.4-0.6 ns per event, accepted by the

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-14 06:50
+last-updated-utc: 2026-10-14 07:54
 ---
 
 # Manual Verification Evidence
@@ -26,7 +26,8 @@ Classified outcome: **Reproduced** (fix-bug skill classification). Final recheck
 | V4      | First periodic ban reset (3600 s after start)    | 4 (stale) / 0                      | 0 / 0                             |
 
 The "before" column comes from the reproduction (V1-V4); the "after" column from the like-for-like
-recheck ("Recheck After the Fix (T10)").
+recheck on the finished code ("Final Recheck on the Finished Code (T10)"), which matches the
+earlier recheck on the build before the variant-B commit.
 
 The three read surfaces (REST JSON stats, REST Prometheus stats, REST Prometheus metrics) always
 agreed, because they all read the same `udp-server` gauge.
@@ -35,7 +36,10 @@ agreed, because they all read the same `udp-server` gauge.
 
 - The tracker configuration is embedded verbatim below.
 - The probe script is kept in this folder: [udp-banned-ips-probe.sh](udp-banned-ips-probe.sh).
-- The full tracker log of the run is kept in [evidence/tracker.log](evidence/tracker.log).
+- The full tracker log of the run is kept in [evidence/tracker.log](evidence/tracker.log); the
+  recheck logs are [evidence/recheck-tracker.log](evidence/recheck-tracker.log) and
+  [evidence/final-recheck-tracker.log](evidence/final-recheck-tracker.log). The logs keep the
+  tracker's ANSI color codes; the lines quoted in this document have them removed.
 - The run used the local, git-ignored working folder `.tmp/udp-banned-ips-metric/repro/` for the
   configuration, the SQLite database, and the live log. Nothing in this document depends on it.
 
@@ -441,9 +445,12 @@ Like-for-like rerun of V1 to V4 on the fixed build, with the same configuration 
 probe (the committed [udp-banned-ips-probe.sh](udp-banned-ips-probe.sh), copied to
 `.tmp/udp-banned-ips-metric/repro/probe.sh`), and the same commands as the reproduction.
 
-- Code: `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`, the last
-  commit of the fix (it carries `fix(udp-core): [#2505] count only IPs over the limit as banned`
-  and `fix(udp-server): [#2505] publish the banned-IPs total when bans are reset`).
+- Code: `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`, which
+  carries `fix(udp-core): [#2505] count only IPs over the limit as banned` and
+  `fix(udp-server): [#2505] publish the banned-IPs total when bans are reset`. This is **not** the
+  finished code: the later `perf(udp-core): [#2505] detect the ban crossing with one comparison`
+  changed the crossing check, so the whole recheck was repeated in "Final Recheck on the Finished
+  Code (T10)".
 - Build: `cargo build --bin torrust-tracker` (`Finished dev profile [optimized + debuginfo]
   target(s) in 6.92s`), stable `rustc 1.99.0 (b940084d7 2026-09-28)`. UDP 16969 and TCP 11212 and
   1313 were free before the start.
@@ -639,6 +646,167 @@ The tracker was then stopped (`SIGTERM` from the agent shell). Its full log is i
 
 The like-for-like recheck no longer shows either defect: the reported value equals the number of
 IPs over the limit in every step, and it is updated when the periodic reset clears the bans.
+
+## Final Recheck on the Finished Code (T10)
+
+The first recheck above ran on the build of
+`docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`. The independent
+pre-PR review (finding B1 in `agent-review-reports.md`) noted that the later
+`perf(udp-core): [#2505] detect the ban crossing with one comparison` changed the counting logic,
+so the finished artifact had not been checked by hand. At the maintainer's choice, the whole
+recheck was repeated on the final code.
+
+- Code: `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs`, the
+  last commit (it changes only test code after the variant-B commit).
+- Build: `cargo build --bin torrust-tracker` (`Finished dev profile [optimized + debuginfo]
+  target(s) in 2.62s`), stable `rustc 1.99.0 (b940084d7 2026-09-28)`. UDP 16969 and TCP 11212 and
+  1313 were free and no other tracker was running.
+- Configuration and probe: byte-identical to the earlier runs (`diff` of
+  `.tmp/udp-banned-ips-metric/repro/tracker.toml` against the "Tracker configuration" block, and of
+  `.tmp/udp-banned-ips-metric/repro/probe.sh` against the committed probe, printed nothing).
+- Tracker start: the same command as the reproduction, at 2026-10-14 06:53:20 UTC. A first start
+  at 06:52:12 UTC was discarded because V2 and V3 ran concurrently by mistake (see "Failures and
+  Follow-up").
+
+### F-V1 - One Invalid Connection ID, Not Banned
+
+Command: the same as V1. Output:
+
+```text
+2026-10-14 06:53:20 UTC
+1
+2026-10-14 06:53:28 UTC
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total <absent>
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+
+$ ./probe.sh invalid-announce 127.0.0.1
+response (hex): 000000030000abcd747261636b657220616e6e6f756e6365206572726f723a20436f6e6e656374696f6e20636f6f6b6965206572726f723a20636f6f6b69652076616c756520697320657870697265643a202d32303135343638393731393538313034373030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030302c206578706563746564203e20313739313936303638372e36313330353132
+response (error message): tracker announce error: Connection cookie error: cookie value is expired: -20154689719581047000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1791960687.6130512
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (hex): 0000000000001234f8a69dfe88215934
+response (connect): connection_id=f8a69dfe88215934
+```
+
+### F-V2 - Several IPs With One Invalid Connection ID, None Banned
+
+Command: the same as V2, run after F-V1 finished. Output:
+
+```text
+2026-10-14 06:53:38 UTC
+$ ./probe.sh invalid-announce 127.0.0.2
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh invalid-announce 127.0.0.3
+response (error message): tracker announce error: Connection cookie error: cooki
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 0
+Prom  /stats   udp_banned_ips_total 0
+Prom  /metrics udp_tracker_server_ips_banned_total 0
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=728b39f69f44a159
+$ ./probe.sh connect 127.0.0.2
+response (connect): connection_id=211ff600d45e2b4e
+$ ./probe.sh connect 127.0.0.3
+response (connect): connection_id=ae3050d3a9068e81
+```
+
+### F-V3 - One IP Really Banned
+
+Command: the same as V3, run after F-V2 finished. Output:
+
+```text
+2026-10-14 06:53:56 UTC
+$ for i in $(seq 1 11); do ./probe.sh invalid-announce 127.0.0.4; done
+ 1: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 2: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 3: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 4: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 5: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 6: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 7: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 8: response (error message): tracker announce error: Connection cookie error: cookie value is
+ 9: response (error message): tracker announce error: Connection cookie error: cookie value is
+10: response (error message): tracker announce error: Connection cookie error: cookie value is
+11: response (error message): tracker announce error: Connection cookie error: cookie value is
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total <absent>
+$ ./probe.sh connect 127.0.0.4
+<no response>
+$ ./probe.sh connect 127.0.0.1
+response (connect): connection_id=375d219f0d7ee63a
+$ ./probe.sh stats
+JSON  /stats   udp_banned_ips_total: 1
+Prom  /stats   udp_banned_ips_total 1
+Prom  /metrics udp_tracker_server_ips_banned_total 1
+Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+```
+
+### F-V4 - Gauge After the Periodic Reset
+
+1. Waited for the first reset (the job started at 06:53:20 UTC). Command: the same as V4 step 1.
+   Output:
+
+   ```text
+   2026-10-14 07:53:25 UTC
+   2026-10-14T07:53:20.588414Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+   ```
+
+2. Command: the same as V4 step 2. Output:
+
+   ```text
+   2026-10-14 07:53:30 UTC
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   $ ./probe.sh connect 127.0.0.4
+   response (hex): 0000000000001234ff4e55fbb6bb19fe
+   response (connect): connection_id=ff4e55fbb6bb19fe
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   Prom  /metrics udp_tracker_server_requests_banned_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="16969",server_binding_protocol="udp"} 1
+   ```
+
+3. Command: the same as V4 step 3. Output:
+
+   ```text
+   2026-10-14 07:53:37 UTC
+   $ ./probe.sh invalid-announce 127.0.0.5
+   response (error message): tracker announce error: Connection cookie error: cooki
+   $ ./probe.sh stats
+   JSON  /stats   udp_banned_ips_total: 0
+   Prom  /stats   udp_banned_ips_total 0
+   Prom  /metrics udp_tracker_server_ips_banned_total 0
+   ```
+
+The tracker was then stopped (`SIGTERM` from the agent shell). Its full log is in
+[evidence/final-recheck-tracker.log](evidence/final-recheck-tracker.log); the relevant lines:
+
+```text
+2026-10-14T06:53:20.576980Z  INFO UDP TRACKER: Starting UDP IP-ban cleanup job reset_interval_in_secs=3600
+2026-10-14T07:53:20.588414Z  INFO UDP TRACKER: Udp::run_udp_server::loop (connection id errors filter cleared)
+2026-10-14T07:53:45.213086Z  INFO UDP TRACKER: Stopping UDP IP-ban cleanup job ...
+```
+
+### Final Recheck Conclusion
+
+On the finished code the reported value is 0, 0, 1, and 0 after the reset (before the fix: 1, 3,
+4, and a stale 4), the same as the first recheck. Neither defect is present in the delivered
+artifact.
 
 ## Regression Tests
 
@@ -1119,3 +1287,10 @@ With the fix in place the handler tests pass
   not change the ban counter (the reported value was 1 after one probe, as in V1), but it made the
   evidence noisy. The probe was switched to OpenBSD netcat, the tracker was restarted with an empty
   database at 15:09:06 UTC, and all processes above come from that clean run.
+- Final recheck, first start (2026-10-14 06:52:12 UTC): F-V1 ran correctly, but the V2 and V3
+  commands were issued in the same batch of agent tool calls and ran concurrently (both started at
+  06:52:27 UTC), so V3 did not start from the state V2 leaves. The results were consistent
+  (V2 read 0, V3 read 1), but the run was not like-for-like. The tracker was stopped, its log kept
+  locally as `.tmp/udp-banned-ips-metric/repro/aborted-interleaved-tracker.log`, and the recheck
+  restarted with an empty database at 06:53:20 UTC, running each step only after the previous one
+  finished.

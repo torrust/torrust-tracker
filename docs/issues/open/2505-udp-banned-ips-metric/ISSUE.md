@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 06:23"
+last-updated-utc: "2026-10-14 07:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,6 +24,8 @@ semantic-links:
     - docs/issues/open/2505-udp-banned-ips-metric/udp-banned-ips-probe.sh
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
+    - docs/issues/open/2505-udp-banned-ips-metric/evidence/final-recheck-tracker.log
+    - docs/issues/open/2505-udp-banned-ips-metric/agent-review-reports.md
     - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
     - docs/issues/open/2505-udp-banned-ips-metric/implementation-retrospective.md
     - docs/testing.md
@@ -416,7 +418,7 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -523,6 +525,18 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   met; AC5 met with the maintainer-accepted Criterion deviation. Wrote
   [implementation-retrospective.md](implementation-retrospective.md) with four proposed process
   improvements (not applied in this issue).
+- 2026-10-14 07:54 UTC - GitHub Copilot (implementation session) - The independent Task Reviewer failed the
+  first pre-PR review on B1: the manual recheck ran on the build before the variant-B commit. At the
+  maintainer's choice, the full recheck (F-V1 to F-V4, including a new one-hour reset wait) was
+  repeated on the final code: 0, 0, 1, and 0 after the reset. A first restart of that recheck was
+  discarded because V2 and V3 ran concurrently by mistake (recorded in the evidence). Non-blocking
+  findings: N1, the maintainer confirmed that the accepted-cost decision covers the final P2 table
+  and the decision date was clarified in `performance-evidence.md`; N2, the handler test now
+  includes a client at the limit, so the old meaning fails it (committed as
+  `test(udp-server): [#2505] make the handler test tell banned IPs from tracked IPs`, with the M0
+  proof in the evidence); N3, N5, and N6 accepted as reported; N4, the evidence commits stay as
+  they are (no history rewrite) and the PR body will say so. Report:
+  [agent-review-reports.md](agent-review-reports.md).
 
 ## Acceptance Criteria
 
@@ -601,7 +615,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 | AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; `BanService::get_banned_ips_total` doc in the `udp-core` fix |
 | AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no reference remains outside archived docs |
 | AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
-| AC6   | DONE   | manual-verification-evidence.md "Recheck After the Fix (T10)" |
+| AC6   | DONE   | manual-verification-evidence.md "Final Recheck on the Finished Code (T10)" (F-V1 to F-V4 on the final code) |
 | AC7   | DONE   | `record_error` P2 medians flat across 10 to 10,000 tracked IPs; B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
