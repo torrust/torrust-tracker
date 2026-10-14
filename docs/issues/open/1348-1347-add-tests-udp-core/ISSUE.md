@@ -494,6 +494,12 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `DONE`.
 - 2026-10-14 12:28 UTC - Jose Celano - Approved no change for `statistics/event/mod.rs`; ledger
   row 19 is `DONE`. Only `container.rs` (row 9) remains, deferred until #2505.
+- 2026-10-14 14:43 UTC - GitHub Copilot - #2505 (the banned-IPs metric bug handed off from the
+  banning plan) merged in PR #2524. Rebased onto `develop` at `8045bd252`; conflicts only in the
+  `udp-core` dev-dependencies (kept #2505's `quickcheck` without default features plus this issue's
+  `quickcheck_macros`), `Cargo.lock`, and the banning test imports. 93 package unit tests pass.
+  #2505 also removed `BanningStats` and `last_connection_id_errors_reset`; records updated.
+  `container.rs` (row 9) is unblocked.
 
 ## Acceptance Criteria
 

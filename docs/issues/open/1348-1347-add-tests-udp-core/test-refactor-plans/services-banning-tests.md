@@ -82,8 +82,9 @@ Conclusion: `refactor`.
 - **Tests refactored:** 4 (AAA sections, fixture comment and parameter, redundant assertion).
 - **Tests added:** 2: B1 (per-IP isolation) and P1 (`quickcheck` threshold property).
 - **Property testing kept:** yes, with mutation evidence above.
-- **Findings:** handed off as a bug draft and hand-off for another agent (local, git-ignored
-  `.tmp/udp-banned-ips-metric/`); also recorded in [lessons.md](../lessons.md).
+- **Findings:** handed off as a bug and fixed by
+  [#2505](../../2505-udp-banned-ips-metric/ISSUE.md) (merged in PR #2524); also recorded in
+  [lessons.md](../lessons.md).
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-13.
 
@@ -107,3 +108,7 @@ fix the banned-IPs total in parallel, as with #2458.
   chose Option A: in `disabled` validation mode, keep counting IPs over the limit, so operators know
   how many clients would be banned if enforcement were on. The stale gauge after a reset is part of
   the same bug.
+- 2026-10-14 14:43 UTC - GitHub Copilot - The handed-off bug became
+  [#2505](../../2505-udp-banned-ips-metric/ISSUE.md), merged in PR #2524. Rebased #1348 onto it: the
+  only conflict was the test module imports (`quickcheck` types from #2505, the `quickcheck` macro
+  from this plan); both kept. All 17 banning tests pass.
