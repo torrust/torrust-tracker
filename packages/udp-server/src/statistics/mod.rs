@@ -1,7 +1,31 @@
+//! UDP tracker server statistics.
+//!
+//! Tracker metrics are collected using a Publisher-Subscribe pattern.
+//!
+//! [`UdpTrackerServerServices::initialize`](crate::container::UdpTrackerServerServices::initialize)
+//! builds the two structs involved:
+//!
+//! - A statistics event [`Sender`](crate::event::sender::Sender), taken from the services' event bus
+//! - A statistics [`Repository`](repository::Repository)
+//!
+//! The statistics repository is responsible for storing the metrics in memory.
+//! The statistics event sender allows sending events related to metrics.
+//! There is an event listener that is receiving all the events and processing them with an event handler.
+//! Then, the event handler updates the metrics depending on the received event.
+//!
+//! For example, when a connect request is accepted, the server sends
+//! [`Event::UdpRequestAccepted`](crate::event::Event::UdpRequestAccepted) with
+//! [`UdpRequestKind::Connect`](crate::event::UdpRequestKind::Connect):
+//!
+//! ```text
+//! let result = event_sender.send(Event::UdpRequestAccepted { .. }).await;
+//! ```
+//!
+//! Eventually the counter for accepted UDP connect requests from IPv4 peers will be increased.
+//! [`Metrics::udp4_connect_requests_accepted_total`] reads that counter.
 pub mod event;
 pub mod metrics;
 pub mod repository;
-pub mod services;
 
 use metrics::Metrics;
 use torrust_metrics::metric::description::MetricDescription;

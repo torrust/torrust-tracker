@@ -24,7 +24,6 @@ semantic-links:
     - packages/udp-server/src/statistics/repository.rs
     - packages/rest-api-application/src/v1/ports/stats.rs
     - packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs
-    - packages/udp-server/src/statistics/services.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -226,7 +225,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
 | T3  | DONE   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
 | T4  | DONE   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
-| T5  | TODO   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
+| T5  | DONE   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
 | T6  | TODO   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
 | T7  | TODO   | Verification                                               | See Verification Plan.                                                                                                                                                        |
 
@@ -327,6 +326,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   -p torrust-tracker-udp-core` (stable 1.99.0): 41 unit tests passed (one fewer: the deleted service
   test); `cargo machete --with-metadata`: clean; `RUSTDOCFLAGS="-D warnings" cargo +nightly doc
   --no-deps -p torrust-tracker-udp-core` (nightly 1.101.0): no warnings.
+- 2026-10-14 13:22 UTC - GitHub Copilot (implementation session) - T5: same as T4 for
+  `udp-server`; the moved docs now link `Metrics::udp4_connect_requests_accepted_total`, which sums
+  `udp_tracker_server_requests_accepted_total` for IPv4 `connect` requests. `cargo +stable test -p
+  torrust-tracker-udp-server` (stable 1.99.0): 217 unit and 12 integration tests passed; `cargo
+  machete --with-metadata`: clean; `RUSTDOCFLAGS="-D warnings" cargo +nightly doc --no-deps -p
+  torrust-tracker-udp-server` (nightly 1.101.0): no warnings.
 
 ## Acceptance Criteria
 
