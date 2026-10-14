@@ -9,7 +9,7 @@ github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits"
 related-pr: null
-last-updated-utc: "2026-10-14 13:10"
+last-updated-utc: "2026-10-14 14:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -355,6 +355,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   stale `send_event` method (fixed while moving it); the adapted test needs an explicit guard drop
   for Clippy's `significant_drop_tightening`; and another agent's tracker was holding default
   ports, so the manual runs used a private configuration.
+- 2026-10-14 14:47 UTC - GitHub Copilot (implementation session) - #2505 merged (PR #2524) and
+  removed `BanningStats` (no match on `develop` at `8045bd252`), so the EPIC #1669 SI-30 row now says
+  #2505 removed it rather than owns its removal. `git merge-tree` shows no conflict with `develop`
+  or with the #2517 branch (PR #2527), so no rebase is needed; whichever of #2521 and #2517 merges
+  second reruns the `udp-core` and `udp-server` tests on the combined code.
 
 ## Acceptance Criteria
 
@@ -437,7 +442,8 @@ recorded in `manual-verification-evidence.md`; they are not kept.
   tests the trait. Any test #1348 adds for `statistics::services::get_metrics()` is deleted with
   the module. Do not edit `docs/issues/open/1348-*` from this issue.
 - **Overlap with #2505.** #2505 edits `packages/udp-core/src/services/banning.rs` and removes
-  `BanningStats`; this issue does not touch that file, so no conflict is expected.
+  `BanningStats`; this issue does not touch that file, so no conflict is expected. Resolved: PR
+  #2524 merged, and this branch still merges into `develop` without conflicts.
 - **Overlap with #2517 (make the statistics repositories' metrics lock private).** It changes the same two
   repository files (the `stats` field). Scopes are disjoint; the second to land rebases.
 - **Future need for the traits or services.** If a consumer later needs a narrow interface or an
