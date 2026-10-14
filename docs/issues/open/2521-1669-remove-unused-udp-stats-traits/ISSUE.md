@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: 1669
 github-issue: 2521
 spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
-branch: "2521-1669-remove-unused-udp-stats-traits-spec"
+branch: "2521-1669-remove-unused-udp-stats-traits"
 related-pr: null
-last-updated-utc: "2026-10-14 10:56"
+last-updated-utc: "2026-10-14 12:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -145,7 +145,9 @@ Found while planning `udp-core` tests in issue #1348 (branch `1348-1347-add-test
   `pub mod services;` declaration from `udp-core` and from `udp-server`.
 - Keep the still-accurate statistics event-flow explanation by moving it to the `statistics/mod.rs`
   module documentation of each package, dropping the stale `Metrics` field example and any
-  reference to the removed service.
+  reference to the removed service. Replace the stale example with a prose pointer to the real
+  accessor (maintainer decision, 2026-10-14): `Metrics::udp4_connections_handled()` in `udp-core`
+  and `Metrics::udp4_connect_requests_accepted_total()` in `udp-server`.
 
 ### Out of Scope
 
@@ -206,8 +208,14 @@ Test-change gates for T3 (and for T2 if #1348's trait-calling test has landed by
    it, and remove the redundant prose. Confirm that the test exposes the one causal initial state
    (default construction), its fixture owns only incidental mechanics, and the production Act and
    the independently specified expected result (the described metric is present) stay visible.
-3. Stop for maintainer review of the test change before final verification, commit, or pull
-   request.
+3. ~~Stop for maintainer review of the test change before final verification, commit, or pull
+   request.~~ Waived by the maintainer on 2026-10-14: record the design review in the progress log
+   and continue; the maintainer reviews all commits together before the pull request.
+
+The adapted test stays, although it nearly duplicates
+`it_should_be_initialized_with_described_metrics`: it still covers the `Default` path
+(`Repository::default()` delegating to `new()`), which that test does not (maintainer decision,
+2026-10-14).
 
 ## Implementation Plan
 
@@ -228,8 +236,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set                                                          | Commit policy                                        |
 | ---- | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
 | T1   | No separate commit: the re-verification progress-log entry rides with T2     | Recorded in the spec before starting T2.             |
-| T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`; if a test changed, also after the recorded test-design review and maintainer review. |
-| T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation, `cargo machete`, the recorded test-design review, and maintainer review. |
+| T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`; if a test changed, also after the recorded test-design review (maintainer review waived). |
+| T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation, `cargo machete`, and the recorded test-design review (maintainer review waived). |
 | T4   | `refactor(udp-core): [#2521] remove unused statistics services`              | Commit after focused validation, `cargo machete`, and `cargo +nightly doc` for the package. |
 | T5   | `refactor(udp-server): [#2521] remove unused statistics services`            | Commit after focused validation, `cargo machete`, and `cargo +nightly doc` for the package. |
 | T6   | `docs(issues): [#2521] note the SI-30 trait removal in EPIC #1669`           | Commit after `linter all`.                           |
@@ -242,7 +250,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-remove-unused-udp-stats-traits/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -279,6 +287,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   (kept both #2517 and #2521 entries in EPIC #1669) and processed PR #2522 review rounds 3 and 4:
   named each package's service test (F13), stated each package's metrics accessor (F14), and made
   T4 and T5 drop the deleted files from `related-artifacts` (F15).
+- 2026-10-14 12:50 UTC - GitHub Copilot (implementation session) - Spec PR #2522 merged. Started
+  implementation on branch `2521-1669-remove-unused-udp-stats-traits` from `develop` at
+  `c1874facb`. Maintainer answers before implementation: (1) waive the stop for review of the T3
+  test change, so the agent records the design review here and the maintainer reviews all commits
+  at the end; (2) keep the adapted `Default` construction test; (3) replace the stale `Metrics`
+  field example with a prose pointer to each package's real accessor; (4) run M1 and M2 with a
+  baseline on `develop`; (5) stop after local signed commits, so the maintainer pushes and opens
+  the pull request.
 
 ## Acceptance Criteria
 
