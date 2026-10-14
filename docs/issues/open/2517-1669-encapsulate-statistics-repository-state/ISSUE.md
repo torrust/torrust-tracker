@@ -7,9 +7,9 @@ priority: p3
 epic: 1669
 github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
-branch: "2517-1669-encapsulate-statistics-repository-state-spec"
+branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: null
-last-updated-utc: "2026-10-14 09:06"
+last-updated-utc: "2026-10-14 12:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -204,7 +204,7 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-encapsulate-statistics-repository-state/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -234,6 +234,9 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
 - 2026-10-14 09:06 UTC - GitHub Copilot (spec session) - PR #2520 review round 2: planned one
   `compile_fail,E0616` doctest per repository, made the AC1 grep catch restricted visibility, named
   the AC2 checks, and said the SI-30 traits draft is not committed yet.
+- 2026-10-14 12:45 UTC - Maintainer - Confirmed that M1 should be performed against both the
+  `develop` baseline and the implementation branch, comparing UDP and HTTP announce metrics through
+  the REST API.
 
 ## Acceptance Criteria
 
