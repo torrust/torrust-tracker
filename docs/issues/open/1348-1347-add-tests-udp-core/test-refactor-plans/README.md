@@ -34,7 +34,7 @@ maintainer approves it.
 | 10 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | 3 direct projection tests added; only the dead `set_gauge` uncovered |
 | 11 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | 6 per-family tests replaced by one `rstest` test; stale `# Panics` doc removed |
 | 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 4 unit tests added (1 `rstest` with 2 cases); unit-only 80.77% → 100.00% lines; findings handed off to #1669 |
-| 13 | [statistics-services-tests.md](statistics-services-tests.md) | APPROVED | 1 empty-state test to be replaced by 2 source tests; stale module docs |
+| 13 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | 1 empty-state test replaced by 2 source tests; stale module docs fixed |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

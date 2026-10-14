@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/statistics/services.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/services.rs
@@ -76,14 +76,21 @@ and `udp-server`. The maintainer forwards it to the agent handling the unused SI
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | PENDING | Replace V0 with V1 and V2; fix the three stale doc points. | - |
+| R1 | DONE | Replace V0 with V1 and V2; fix the three stale doc points. | 79 package unit tests and the package doctests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting and rustdoc (nightly 1.101.0), and `git diff --check` clean. With `get_metrics()` returning a default aggregate and a fresh `describe_metrics()`, V1 and V2 both failed (V0 would have passed); reverted by hand. |
 | R2 | SKIPPED | No further tests: the module has one decision, covered by V1 and V2. | Recorded above. |
 | R3 | SKIPPED | No integration increment: in-memory collaborators only. | Explicit rationale. |
-| R4 | PENDING | Re-run unit-only coverage; record before/after. | - |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 32 / 32 to 40 / 40 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 32 / 32 (100.00%)
+  to 40 / 40 (100.00%) lines; 51 / 51 regions; 6 / 6 functions. The gain is mutation strength.
+- **Tests:** 1 replaced by 2 (V1, V2).
+- **Production change:** module docs only (the fake `Metrics` struct example replaced by a link to
+  `Metrics::udp4_connections_handled`, "A statistics", server-socket-family wording).
+- **Finding:** recorded in [lessons.md](../lessons.md).
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
 ## Approval
 
@@ -97,3 +104,7 @@ Approved by Jose Celano on 2026-10-14: V1-V2 and the three doc fixes. The findin
   production code changed. R1 awaits maintainer approval.
 - 2026-10-14 08:57 UTC - Jose Celano - Approved V1-V2 and the doc fixes; the finding is recorded in
   `lessons.md` and forwarded by the maintainer.
+- 2026-10-14 09:10 UTC - GitHub Copilot - Implemented R1 and measured R4 (stable Rust 1.99.0,
+  nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-14 09:13 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.
