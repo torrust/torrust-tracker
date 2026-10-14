@@ -225,7 +225,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Re-verify the evidence on current `develop`                | Search confirms no consumers of the traits or services; record the commit. Check whether #1348 has merged tests calling `UdpCoreStatsRepository` or `get_metrics()` (see Risks). |
 | T2  | DONE   | Remove `UdpCoreStatsRepository` from `udp-core`            | Trait, impl, allow, unused import, and `async-trait` dependency removed; any test calling the trait adapted to `get_stats()` or deleted if it only tests the trait.          |
-| T3  | TODO   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
+| T3  | DONE   | Remove `UdpServerStatsRepository` from `udp-server`        | Trait, impl, allow, unused import, and `async-trait` dependency removed; two tests handled as described in Scope.                                                            |
 | T4  | TODO   | Remove `statistics::services` from `udp-core`              | `services.rs` and `pub mod services;` removed; the accurate event-flow docs moved to `statistics/mod.rs` without the stale `Metrics` field example; the spec's `related-artifacts` entry for the deleted file dropped in the same commit (the frontmatter validator rejects missing paths). |
 | T5  | TODO   | Remove `statistics::services` from `udp-server`            | Same as T4 for `udp-server`, including dropping its `related-artifacts` entry.                                                                                                |
 | T6  | TODO   | Update the EPIC #1669 SI-30 row                            | Note added; no remaining references in current docs except historical records and #2505's Out of Scope note.                                                                |
@@ -305,6 +305,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   dependency from `udp-core`. No `udp-core` test called the trait, so no test changed.
   `cargo +stable test -p torrust-tracker-udp-core --lib` (stable 1.99.0): 42 passed;
   `cargo machete --with-metadata`: no unused dependency.
+- 2026-10-14 13:05 UTC - GitHub Copilot (implementation session) - T3: removed
+  `UdpServerStatsRepository`, its impl, its allowance, the `MetricCollection` import, and the
+  `async-trait` dependency from `udp-server`. Deleted
+  `it_should_return_a_snapshot_of_the_initialized_metrics_collection` and adapted
+  `it_should_initialize_metrics_when_constructed_with_default` to read through `get_stats()`; it
+  releases the read guard explicitly, like its sibling tests, because the workspace enables Clippy's
+  `significant_drop_tightening`. Prose-first Arrange-Act-Assert review, with the temporary prose
+  removed once the code expressed it: Arrange is the one causal initial state,
+  `Repository::default()`, with no other fixture; Act is the production read path `get_stats()`;
+  Assert checks the independently specified expectation that the described
+  `UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL` counter is present. Each phase is a visible
+  blank-line-separated block, so the code needed no further refactoring. Maintainer review of the
+  test was waived (see the 12:50 entry). `cargo +stable test -p torrust-tracker-udp-server --lib
+  statistics::repository` (stable 1.99.0): 16 passed; `cargo machete --with-metadata`: no unused
+  dependency; nightly Clippy for both packages: clean.
 
 ## Acceptance Criteria
 

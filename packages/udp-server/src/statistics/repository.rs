@@ -7,22 +7,10 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
-use torrust_metrics::metric_collection::{Error, MetricCollection};
+use torrust_metrics::metric_collection::Error;
 
 use super::describe_metrics;
 use super::metrics::Metrics;
-
-/// Trait exposing only the UDP server statistics that external consumers need.
-// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
-// futures as must-use and reports the macro expansion as redundant.
-#[allow(
-    clippy::double_must_use,
-    reason = "async_trait generates must-use futures that Clippy also infers as must-use"
-)]
-#[async_trait::async_trait]
-pub trait UdpServerStatsRepository: Send + Sync {
-    async fn get_metrics_collection(&self) -> MetricCollection;
-}
 
 /// A repository for the tracker metrics.
 #[derive(Clone)]
@@ -109,13 +97,6 @@ impl Repository {
     }
 }
 
-#[async_trait::async_trait]
-impl UdpServerStatsRepository for Repository {
-    async fn get_metrics_collection(&self) -> MetricCollection {
-        self.stats.read().await.metric_collection.clone()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
@@ -132,9 +113,14 @@ mod tests {
     async fn it_should_initialize_metrics_when_constructed_with_default() {
         let repo = Repository::default();
 
-        let metrics_collection = UdpServerStatsRepository::get_metrics_collection(&repo).await;
+        let stats = repo.get_stats().await;
 
-        assert!(metrics_collection.contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL)));
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL))
+        );
+        drop(stats);
     }
 
     #[tokio::test]
@@ -194,15 +180,6 @@ mod tests {
                 .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
         );
         drop(stats);
-    }
-
-    #[tokio::test]
-    async fn it_should_return_a_snapshot_of_the_initialized_metrics_collection() {
-        let repo = Repository::new();
-
-        let metrics_collection = UdpServerStatsRepository::get_metrics_collection(&repo).await;
-
-        assert!(metrics_collection.contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL)));
     }
 
     #[tokio::test]
