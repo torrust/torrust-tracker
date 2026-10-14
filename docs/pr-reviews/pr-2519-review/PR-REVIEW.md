@@ -52,6 +52,11 @@ They do not collide with `F1` and `F2`, so they are used unchanged. The review b
 same five findings and records checks that found nothing; it adds no other request, so it adds no
 row.
 
+Cameron's review 5516004305 (`da2ce7`, submitted 2026-10-14 09:43:40 UTC, before merge, state
+`APPROVED`) left three non-blocking inline findings, `F8` to `F10`, which do not collide with earlier
+IDs and are used unchanged. The review body verifies the round 2 fixes, summarizes the three
+findings, and records checks that found nothing; it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2519-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +66,9 @@ row.
 | F5 | `review-finding:pr-2519-f5` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2519-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2519-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2519-f8` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2519-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2519-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -196,6 +204,60 @@ row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4268910346>
 
+### F8 - Apply exact swarm-event counts only when no event can be dropped
+
+- PR number: 2519
+- Source review ID: 5516004305
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269194260>
+- Concern: D5's exact counts assumed the listener never lags, but the swarm event bus is a
+  broadcast channel with a capacity of 65,536 events and the listener skips events after
+  `RecvError::Lagged`, so exact counts could fail under long `cargo bench` runs. A receiver also
+  sees only events sent after it subscribes.
+- Solution: The maintainer chose a lag rule, recorded in D5 with the two discarded rules and their
+  pros and cons: exact counts only when the run sent no more swarm events than the channel
+  capacity; otherwise `updated == 0` and added and removed not above their expected values. D5 now
+  subscribes the listener before the pre-fill; AC6 cites the rule; Risks lists the dropped-event
+  risk.
+- Current-tree verification: `ISSUE.md` has the "Lag rule" paragraph and discarded rules in D5, the
+  subscription order in D5's chosen paragraph, AC6's reference to the rule, and the first Risks
+  entry; `CHANNEL_CAPACITY` and the `Lagged` handling were re-checked in
+  `packages/events/src/broadcaster.rs` and the swarm listener.
+- Resolution reference: `docs(issues): [#2518] apply exact swarm-event counts only when no event can be dropped`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269403951>
+
+### F9 - Name the D5 assertions in the Regression Test Strategy
+
+- PR number: 2519
+- Source review ID: 5516004305
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269194291>
+- Concern: The Regression Test Strategy named only the `RoutineGuard` and the swarm-size assertion,
+  omitting the D5 assertions that also run under `cargo test --benches`.
+- Solution: It now names the `RoutineGuard`, the swarm-size assertion, and the D5 swarm-metrics and
+  response-size assertions.
+- Current-tree verification: the Regression Test Strategy section of `ISSUE.md` names all four
+  checks, matching In Scope, T1, and AC6.
+- Resolution reference: `docs(issues): [#2518] name the D5 assertions in the regression test strategy`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269404190>
+
+### F10 - State the F6 verification without a line count
+
+- PR number: 2519
+- Source review ID: 5516004305
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269194304>
+- Concern: The F6 entry said `grep -n announce_once` returned six lines, but the head it described
+  returned seven, the same class of error F6 was about.
+- Solution: The F6 verification states what was checked without a count and cites this finding.
+- Current-tree verification: every `announce_once` line in `ISSUE.md` at the current head was
+  re-read after this round's edits; none asks for a comparison with `announce_once`.
+- Resolution reference: `docs(pr-reviews): [#2518] state the F6 verification without a line count`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2519#discussion_r4269404385>
+
 ## Processing Log
 
 - 2026-10-14 08:15 UTC - Started audit: fetched review 5514492175 and its two unresolved threads
@@ -209,6 +271,12 @@ row.
 - 2026-10-14 09:15 UTC - Pushed one signed fix commit per finding (F3 to F7); the pre-push checks
   passed. Replied on the five threads with the disposition, verification, and resolution reference.
 - 2026-10-14 09:18 UTC - Recorded round 2 in this audit; the threads are resolved after it is
+  committed and pushed.
+- 2026-10-14 09:56 UTC - Started round 3: fetched Cameron's approving review 5516004305 and its
+  three unresolved threads (F8 to F10); asked the maintainer to decide F8.
+- 2026-10-14 10:05 UTC - Pushed one signed fix commit per finding (F8 to F10) and a Progress Log
+  update; the pre-push checks passed. Replied on the three threads.
+- 2026-10-14 10:07 UTC - Recorded round 3 in this audit; the threads are resolved after it is
   committed and pushed.
 
 ## Completion Rules
