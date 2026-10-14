@@ -82,6 +82,15 @@ agent sandbox, rerun the signed `git commit` outside that sandbox; do not bypass
 the hook or signing. This workaround keeps hook logs in the git-ignored workspace
 `.tmp/` directory and does not alter the checks or replace normal developer setup.
 
+### One Signed Commit per Step
+
+Run each signed commit as its own step, and check its result (the exit status, and
+`git log -1 --format=%G?`) before staging or committing anything else. Never chain a commit with
+a later `git add` or `git commit` in one command using `;` or newlines: if the signature fails, its
+changes stay staged and the next commit sweeps them in. In issue #2505 a commit failed with a GPG
+timeout, and the next commit, issued in the same command, swept the staged rename into an unrelated
+docs commit.
+
 ### GPG Timeout Handling
 
 If the GPG passphrase prompt times out (`gpg: signing failed: Timeout`), the agent **must**:
