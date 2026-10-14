@@ -181,6 +181,19 @@ Remaining uncovered lines and their recorded reasons:
 | `services/mod.rs` | 15 | `mock!` expansion (generated code). |
 | `services/banning.rs` | 232, 252, 273, 339, 367, 439 | Failure-message arguments in #2505's test assertions, evaluated only when an assertion fails. The banning plan's earlier uncovered lines (the banned-IPs total) are now covered by #2505. |
 
+## Final Test-Technique Assessment
+
+| Technique | Final decision |
+| --- | --- |
+| Unit tests | Selected and applied to every source file through its own file test plan; in-file `#[cfg(test)]` modules. |
+| Package integration tests | Not selected. All 20 plans record R3 `SKIPPED` with a boundary rationale; the package still has no `tests/` target (T5). |
+| Runnable examples | Kept, not added. Doc tests: the `container.rs` and `crypto/cookie_cipher.rs` compile-fail/compile pairs (added by #2458; they keep the cookie key private). The two `rust,ignore` blocks in `connection_cookie.rs` are algorithm illustrations, not examples. The fake `Metrics` struct block in `statistics/services.rs` was replaced with a link to the real method. |
+| Root `tests/` or `packages/e2e-tools/` | Not selected. Real UDP behavior stays with `udp-server` and the root tests. |
+| Mutation testing | Selected: bounded `cargo-mutants` sample on `connection_cookie.rs` (T6, [mutation-evidence.md](mutation-evidence.md)), plus hand-written mutation proofs recorded in every test-producing plan. |
+| Property-based testing | Kept where it caught a defect the examples missed: the cookie round trip (`connection_cookie.rs`) and the ban threshold (`services/banning.rs`); #2505 added a banned-total model property. Not selected for the cookie cipher (no property beyond the round trip) or the enumerable cases elsewhere. `quickcheck`, `quickcheck_macros`, and `rstest` are `udp-core` dev-dependencies. |
+| Fuzzing | Not selected. Untrusted byte parsing is owned by `udp-protocol`. |
+| Benchmarks | Out of scope. |
+
 ## Next Evidence
 
 - `test-refactor-plans/README.md` records shared guardrails and the plan index.

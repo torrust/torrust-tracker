@@ -209,7 +209,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T5 | DONE | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. None selected: all 20 plans record R3 `SKIPPED` with a boundary rationale (in-memory collaborators, or lifecycle owned by #1488 / #2414). |
 | T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
 | T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
-| T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
+| T8 | DONE | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
 
 After the last T4/T5 test-producing increment, stop for maintainer review before T6-T8, any final
 verification commit, or opening a pull request. Use the independent Task Reviewer for the final
@@ -324,12 +324,12 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [x] Shared plan guidance and the first file test plan created; processing order approved.
 - [x] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
 - [x] Every ledger row is `DONE` with its own file test plan.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification recorded in `manual-verification-evidence.md`.
+- [x] Maintainer review after the final test-producing increment.
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification recorded in `manual-verification-evidence.md`.
 - [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
@@ -519,32 +519,45 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   `DONE` plus 2 `REMOVED`; 20 plans `done` (the keys plan `superseded`) and indexed; plan index
   frontmatter set to `done`. The banning plan's "uncovered banned-IPs total" is now covered by
   #2505. Next: T8.
+- 2026-10-14 16:27 UTC - GitHub Copilot - T8 verification. Automatic: `cargo +nightly fmt --all --
+  --check` (nightly 1.101.0) pass; `cargo test -p torrust-tracker-udp-core` (stable 1.99.0) 98 unit
+  and 2 doc tests pass; pre-push checks (nightly fmt, check, docs; full stable suite) pass; coverage
+  as recorded in T7. Manual: M1-M4 `DONE` against a local tracker
+  ([manual-verification-evidence.md](manual-verification-evidence.md)). For M3/M4 the maintainer
+  chose the specified disposable Rust client over reusing #2505's shell probe, noting it is the
+  second time such a client was needed. Added the Final Test-Technique Assessment (AC1) to
+  `coverage-evidence.md`, repaired two garbled lines in the disposable-script section, and filled
+  the acceptance table. Awaiting maintainer review of T8 and the retrospective decision.
+- 2026-10-14 16:32 UTC - Jose Celano / GitHub Copilot - The maintainer reviewed T8, agreed to keep
+  the M3/M4 client in the issue folder with `tracker_client` options as the follow-up, and asked
+  for the retrospective: [implementation-retrospective.md](implementation-retrospective.md). T8 is
+  `DONE`. Remaining: PR (after the pre-push `git fetch` behind-check), then issue closure.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A complete `packages/udp-core/src/` module inventory is recorded with unit-only coverage,
+- [x] AC1: A complete `packages/udp-core/src/` module inventory is recorded with unit-only coverage,
       property-test candidacy, selected behavior, and a T1 hypothesis for every source file, plus
       the final test-technique assessment.
-- [ ] AC2: Every source file has its own file test plan processed through the per-file workflow,
+- [x] AC2: Every source file has its own file test plan processed through the per-file workflow,
       with its resulting unit-only coverage recorded in `coverage-evidence.md`.
-- [ ] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a
+- [x] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a
       target is added) is recorded with clean reproducible commands and toolchain-qualified results.
-- [ ] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
-- [ ] AC5: Any package integration test has a reviewed rationale.
-- [ ] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
+- [x] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
+- [x] AC5: Any package integration test has a reviewed rationale.
+- [x] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
       the owner or reason.
-- [ ] AC7: Test-producing increments complete the prose-first AAA review and focused validation
+- [x] AC7: Test-producing increments complete the prose-first AAA review and focused validation
       before the next file begins.
-- [ ] AC8: Bounded mutation assessment is completed without a score target or CI gate.
-- [ ] AC9: Reconciliation confirms plans, evidence, acceptance rows, and EPIC tables agree; the
+- [x] AC8: Bounded mutation assessment is completed without a score target or CI gate.
+- [x] AC9: Reconciliation confirms plans, evidence, acceptance rows, and EPIC tables agree; the
       EPIC aggregate and unit-only tables record this package's baseline and final measurement.
-- [ ] AC15: Every high-risk and high objective in Coverage Objectives is protected by a unit test
+- [x] AC15: Every high-risk and high objective in Coverage Objectives is protected by a unit test
       or has a recorded owner-based reason.
-- [ ] AC10: `cargo +nightly fmt --all -- --check` passes.
-- [ ] AC11: `linter all` exits with code `0`.
-- [ ] AC12: `cargo test -p torrust-tracker-udp-core` passes.
-- [ ] AC13: Manual verification scenarios are executed and recorded.
-- [ ] AC14: Acceptance criteria are re-reviewed after implementation.
+- [x] AC10: `cargo +nightly fmt --all -- --check` passes.
+- [x] AC11: `linter all` exits with code `0`.
+- [x] AC12: `cargo test -p torrust-tracker-udp-core` passes.
+- [x] AC13: Manual verification scenarios are executed and recorded.
+- [x] AC14: Acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -572,10 +585,10 @@ configuration. Running automated tests never satisfies it.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | UDP announce | Start an isolated tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | Valid announce response. | TODO | `manual-verification-evidence.md` |
-| M2 | UDP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | TODO | `manual-verification-evidence.md` |
-| M3 | Invalid connection ID | With `connection_id_validation = "strict"`, use the low-level verification client (below) to send one announce and one scrape carrying an invalid connection ID. | The tracker answers each with a UDP error response naming the cookie failure. | TODO | `manual-verification-evidence.md` |
-| M4 | Ban after repeated invalid IDs | With `max_connection_id_errors_per_ip = 10`, use the same client to send invalid connection IDs until the threshold is passed, then send a valid connect. | Pre-threshold requests get error responses; after the threshold the tracker stops answering this IP. | TODO | `manual-verification-evidence.md` |
+| M1 | UDP announce | Start an isolated tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | Valid announce response. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | UDP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Invalid connection ID | With `connection_id_validation = "strict"`, use the low-level verification client (below) to send one announce and one scrape carrying an invalid connection ID. | The tracker answers each with a UDP error response naming the cookie failure. | DONE | `manual-verification-evidence.md` V3 |
+| M4 | Ban after repeated invalid IDs | With `max_connection_id_errors_per_ip = 10`, use the same client to send invalid connection IDs until the threshold is passed, then send a valid connect. | Pre-threshold requests get error responses; after the threshold the tracker stops answering this IP. | DONE | `manual-verification-evidence.md` V4 |
 
 The `tracker_client` CLI always performs a valid connect first and has no option to supply a
 connection ID. The `torrust-tracker-client` library exposes a lower-level client,
@@ -593,8 +606,10 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
   not a workspace member. Build output goes to `.tmp/`.
 - Why not a maintained test: the scenarios verify the built tracker binary from a client's point
   of view; the same behaviors are protected by maintained unit and `udp-server` integration tests.
-  `tracker_client` option through a separate issue.
-  `tracker_client` option through a separate issue.
+- Retention: kept in the issue folder (it moves to `docs/issues/closed/` with the spec). The
+  maintainer noted this is the second time such a client was needed (#2505 used a raw-packet
+  shell probe); the agreed follow-up is raw-request options on `tracker_client` (`lessons.md`),
+  not a separate `contrib/dev-tools` crate.
 - If building the client proves impractical, mark M3 and M4 `BLOCKED`, record the attempted
   commands and constraint, and define another human-oriented interaction before final
   verification. The `udp-server` integration tests are supporting evidence only; they do not
@@ -604,7 +619,21 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1-AC15 | TODO | Filled in during T8. |
+| AC1 | Met | `coverage-evidence.md`: module inventory with T1 hypotheses for all 20 files, and the Final Test-Technique Assessment. |
+| AC2 | Met | Ledger: 19 rows `DONE`, 2 `REMOVED` by #2458; one plan per file; per-file final values in `coverage-evidence.md`. |
+| AC3 | Met | `coverage-evidence.md` Final Measurement: clean aggregate and unit-only reports at `e3ebd673e` (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`); no integration target. |
+| AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs show each new test fails for its own decision. |
+| AC5 | Met (vacuous) | No package integration test was added; every plan records why (T5). |
+| AC6 | Met | No-change plans (`lib.rs`, `crypto/mod.rs`, `statistics/event/mod.rs`) and every remaining uncovered line list a reason or owner (`coverage-evidence.md` Final Measurement). |
+| AC7 | Met | Each test-producing plan records R2 validation (tests, pedantic Clippy, nightly fmt, `git diff --check`), the maintainer's completed-file review, and one signed commit before the next file. |
+| AC8 | Met | `mutation-evidence.md`: bounded sample, no score target or CI gate. |
+| AC9 | Met | T7 reconciliation; EPIC #1347 aggregate and unit-only tables record baseline and final values. |
+| AC15 | Met | Highest-risk: cookie windows, fingerprints and round trip (`connection_cookie.rs`, property and mutation sample), cipher (`crypto/cookie_cipher.rs`), ban counting (`services/banning.rs`, property, plus #2505), validation bypass (`services/announce.rs`, `services/scrape.rs`). High: error adaptation, event publication with and without a sender, and peer mapping are tested in the service and `peer_builder.rs` plans; the unreachable `TrackerCoreWhitelistError` path is recorded with its reason. |
+| AC10 | Met | `cargo +nightly fmt --all -- --check` (nightly 1.101.0) exit 0; also in the pre-push run. |
+| AC11 | Met | `linter all` passes in every pre-commit run, the latest before the T8 commit. |
+| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 98 unit tests and 2 doc tests pass. Pre-push full stable suite also passes. |
+| AC13 | Met | `manual-verification-evidence.md` V1-V4, all `DONE`. |
+| AC14 | Met | This table, reviewed after implementation on 2026-10-14. |
 
 ## Risks and Trade-offs
 

@@ -1,0 +1,16 @@
+[package]
+name = "invalid-connection-id-client"
+description = "Disposable manual-verification client for Issue #1348: sends UDP tracker requests with invalid connection IDs."
+edition = "2024"
+license = "AGPL-3.0-only"
+publish = false
+version = "0.0.0"
+
+# Not a member of the repository workspace.
+[workspace]
+
+[dependencies]
+tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
+torrust-peer-id = "0.1.0"
+torrust-tracker-client-lib = { path = "../../../../../../packages/tracker-client" }
+torrust-tracker-udp-protocol = { path = "../../../../../../packages/udp-protocol" }
