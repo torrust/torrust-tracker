@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 20:11"
+last-updated-utc: "2026-10-14 21:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,10 +80,12 @@ Checked on `develop` at `48c4d3013` (2026-10-14):
   event, and `tracker-core`'s repository reads its own counters through `get_metrics()`.
 - Test callers outside the crates: `axum-http-server` contract tests, `udp-server` contract
   tests, `tracker-core`'s integration test environment, and a `src/bootstrap/jobs` unit test.
-- Unit tests inside the five crates: 58 call sites by a count of calls after each file's first
-  `#[cfg(test)]` (an independent review counted 57). They are `udp-server` 31, `udp-core` 12,
-  `http-core` 9, `swarm-coordination-registry` 4, and `tracker-core` 2, so the `udp-server` task is
-  by far the largest. Some need their own closure shape:
+- Unit tests inside the five crates: 57 call sites in the crates' test modules. They are
+  `udp-server` 30, `udp-core` 12, `http-core` 9, `swarm-coordination-registry` 4, and
+  `tracker-core` 2, so the `udp-server` task is by far the largest. (A plain count of calls after
+  each file's first `#[cfg(test)]` gives 58: it also picks up the `udp-server` companion doctest
+  call at `statistics/repository.rs`:35, which compiles as its own crate and is listed with the
+  companion examples below.) Some need their own closure shape:
   - `udp-server`'s `metrics_snapshot` test helper in `statistics/repository.rs`, which copies the
     metric collection out of the guard;
   - the swarm job test's `inactive_peers_total` helper in `statistics/mod.rs`;
@@ -227,7 +229,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
 | T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
 | T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
-| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (31 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
+| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
@@ -335,6 +337,10 @@ request.
   for the maintainer review, in line with create-issue's stop before commit; T3-T6 still commit
   after their own test-design review. Step 4, the stop, the T3-T7 commit policy, and the checkpoint
   say so.
+- 2026-10-14 21:10 UTC - GitHub Copilot - PR #2537 review (F13, da2ce7): the in-crate unit-test
+  count is 57 (udp-server 30), counted inside the test modules. The earlier 58 also counted the
+  udp-server companion doctest call at statistics/repository.rs:35, which compiles as its own
+  crate; Current callers explains the difference and T4 says 30.
 
 ## Acceptance Criteria
 
