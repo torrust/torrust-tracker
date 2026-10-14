@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/statistics/event/listener.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/event/listener.rs
@@ -72,14 +72,20 @@ literals and `PeerBuilder`, as the other `udp-core` tests do.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | PENDING | Assert `Completion::Completed` in the closed-receiver test. | - |
-| R2 | PENDING | Add L1. | - |
+| R1 | DONE | Assert `Completion::Completed` in the closed-receiver test. | Renamed to `it_should_complete_when_the_receiver_is_closed`. With the closed branch returning `Completion::Cancelled`, it failed (the old counter assertion would have passed); reverted by hand. |
+| R2 | DONE | Add L1. | 82 package unit tests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting (nightly 1.101.0), and `git diff --check` clean. With the policy gate admitting only `UdpConnect`, exactly `case_2_announce` and `case_3_scrape` failed; reverted by hand. Production code unchanged. |
 | R3 | SKIPPED | No integration increment: the lifecycle that would need a running task belongs to #1488. | Explicit rationale. |
-| R4 | PENDING | Re-run unit-only coverage; record before/after. | - |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 124 / 145 to 144 / 164 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 124 / 145 (85.52%)
+  to 144 / 164 (87.80%) lines; 193 / 211 regions; 21 / 24 functions. Line 109 is now covered. The
+  remaining uncovered lines are the two entry points (17-37, owned by #1488 / #2414) and the
+  warning field (100).
+- **Tests:** 1 sharpened (R1), 1 added (L1, three `rstest` cases).
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
 ## Approval
 
@@ -91,3 +97,7 @@ Approved by Jose Celano on 2026-10-14: R1 and L1.
   handler it calls, and #2414's scope for this file. No Rust tests or production code changed. R1
   awaits maintainer approval.
 - 2026-10-14 10:03 UTC - Jose Celano - Approved R1 and L1.
+- 2026-10-14 10:07 UTC - GitHub Copilot - Implemented R1 and R2 and measured R4 (stable Rust
+  1.99.0, nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-14 10:13 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.

@@ -118,15 +118,23 @@ mod tests {
     use std::sync::Arc;
 
     use futures::future::BoxFuture;
+    use rstest::rstest;
     use tokio_util::sync::CancellationToken;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_collection::aggregate::sum::Sum;
+    use torrust_metrics::metric_name;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::shutdown::Completion;
+    use torrust_tracker_primitives::peer::PeerAnnouncement;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use super::dispatch_events;
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
+    use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
     use crate::statistics::repository::Repository;
+    use crate::tests::sample_info_hash;
 
     struct ScriptedReceiver {
         results: VecDeque<Result<Event, RecvError>>,
@@ -148,27 +156,81 @@ mod tests {
         }
     }
 
+    fn connection(configuration_instance_id: ConfigurationInstanceId) -> ConnectionContext {
+        ConnectionContext::new(
+            configuration_instance_id,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
+        )
+    }
+
     fn connect_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
         Event::UdpConnect {
-            connection: ConnectionContext::new(
-                configuration_instance_id,
-                SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
-                ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-            ),
+            connection: connection(configuration_instance_id),
+        }
+    }
+
+    fn announce_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
+        Event::UdpAnnounce {
+            connection: connection(configuration_instance_id),
+            info_hash: sample_info_hash(),
+            announcement: PeerAnnouncement::default(),
+        }
+    }
+
+    fn scrape_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
+        Event::UdpScrape {
+            connection: connection(configuration_instance_id),
         }
     }
 
     #[tokio::test]
-    async fn it_should_stop_when_the_receiver_is_closed() {
+    async fn it_should_complete_when_the_receiver_is_closed() {
         // Arrange
         let receiver: Receiver = Box::new(ScriptedReceiver::new([Err(RecvError::Closed)]));
+
+        // Act
+        let completion = dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            Arc::new(Repository::new()),
+            BTreeMap::new(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(completion, Completion::Completed);
+    }
+
+    #[rstest]
+    #[case::connect(connect_event)]
+    #[case::announce(announce_event)]
+    #[case::scrape(scrape_event)]
+    #[tokio::test]
+    async fn it_should_count_an_event_of_any_kind_from_a_metrics_enabled_listener(
+        #[case] event_from: fn(ConfigurationInstanceId) -> Event,
+    ) {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(event_from(enabled_id)), Err(RecvError::Closed)]));
         let repository = Arc::new(Repository::new());
 
         // Act
-        dispatch_events(receiver, CancellationToken::new(), repository.clone(), BTreeMap::new()).await;
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            repository.clone(),
+            [(enabled_id, true)].into(),
+        )
+        .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 0);
+        let requests_received = repository
+            .get_stats()
+            .await
+            .metric_collection
+            .sum(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &LabelSet::empty());
+        assert_eq!(requests_received, Some(1.0));
     }
 
     #[tokio::test]

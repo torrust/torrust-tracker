@@ -98,6 +98,7 @@ as the baseline. Totals include in-file test modules, so denominators grow as te
 | `statistics/event/handler.rs` | 199 / 200 (99.50%) | 60 / 61 (98.36%) | 104 / 108 (96.30%) | 6 / 6 (100.00%) | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
 | `statistics/repository.rs` | 21 / 26 (80.77%) | 86 / 86 (100.00%) | 94 / 95 (98.95%) | 16 / 16 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | `statistics/services.rs` | 32 / 32 (100.00%) | 40 / 40 (100.00%) | 51 / 51 (100.00%) | 6 / 6 (100.00%) | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) |
+| `statistics/event/listener.rs` | 124 / 145 (85.52%) | 144 / 164 (87.80%) | 193 / 211 (91.47%) | 21 / 24 (87.50%) | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
 
 Package unit-only after `services/announce.rs` (stable Rust 1.99.0, rebased onto `develop` after
 PR #2423): 1,324 / 1,591 lines (83.22%), 1,886 / 2,181 regions (86.47%), 171 / 211 functions
@@ -124,7 +125,9 @@ from removing covered test code, not from losing production coverage. After `ser
 (96.50%), 2,566 / 2,651 regions (96.79%), 244 / 261 functions (93.49%); the drop again comes from
 removing covered test code. After `statistics/repository.rs`: 1,924 / 1,987 lines (96.83%),
 2,621 / 2,702 regions (97.00%), 254 / 269 functions (94.42%). After `statistics/services.rs`:
-1,932 / 1,995 lines (96.84%), 2,645 / 2,726 regions (97.03%), 256 / 271 functions (94.46%). The final
+1,932 / 1,995 lines (96.84%), 2,645 / 2,726 regions (97.03%), 256 / 271 functions (94.46%). After
+`statistics/event/listener.rs`: 1,952 / 2,014 lines (96.92%), 2,654 / 2,733 regions (97.11%),
+259 / 274 functions (94.53%). The final
 package comparison is recorded at T7.
 
 ## Next Evidence
