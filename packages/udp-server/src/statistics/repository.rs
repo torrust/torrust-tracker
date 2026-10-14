@@ -185,6 +185,11 @@ mod tests {
                 .metric_collection
                 .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
         );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL))
+        );
     }
 
     #[tokio::test]
