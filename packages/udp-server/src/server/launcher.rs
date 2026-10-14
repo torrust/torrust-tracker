@@ -1296,6 +1296,7 @@ mod tests {
                         release: release_receiver,
                     })),
                     stats_repository: context.udp_tracker_server_container.stats_repository.clone(),
+                    banned_ips_publication_order: context.udp_tracker_server_container.banned_ips_publication_order.clone(),
                 });
                 let cancellation_token = CancellationToken::new();
                 let StartedReceiveLoop { address, task, .. } = Launcher::start_receive_loop_with_request_drain_deadline(

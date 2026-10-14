@@ -10,7 +10,7 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
-use torrust_tracker_udp_server::banning::reset_bans;
+use torrust_tracker_udp_server::banning::{PublicationOrder, reset_bans};
 use torrust_tracker_udp_server::statistics::repository::Repository;
 
 use crate::CurrentClock;
@@ -51,6 +51,10 @@ pub fn run_banning_event_listener(
         app_container.udp_tracker_server_container.event_bus.receiver(),
         cancellation_token,
         app_container.udp_tracker_core_services.ban_service.clone(),
+        app_container
+            .udp_tracker_server_container
+            .banned_ips_publication_order
+            .clone(),
         app_container.udp_tracker_server_container.stats_repository.clone(),
     )
 }
@@ -63,10 +67,15 @@ pub fn start_ban_cleanup_job(
     cancellation_token: CancellationToken,
 ) -> JoinHandle<()> {
     let ban_service = app_container.udp_tracker_core_services.ban_service.clone();
+    let publication_order = app_container
+        .udp_tracker_server_container
+        .banned_ips_publication_order
+        .clone();
     let stats_repository = app_container.udp_tracker_server_container.stats_repository.clone();
 
     tokio::spawn(run_ban_cleanup_job(
         ban_service,
+        publication_order,
         stats_repository,
         reset_interval_in_secs,
         cancellation_token,
@@ -75,6 +84,7 @@ pub fn start_ban_cleanup_job(
 
 async fn run_ban_cleanup_job(
     ban_service: Arc<tokio::sync::RwLock<BanService>>,
+    publication_order: Arc<PublicationOrder>,
     stats_repository: Arc<Repository>,
     reset_interval_in_secs: u64,
     cancellation_token: CancellationToken,
@@ -95,7 +105,7 @@ async fn run_ban_cleanup_job(
                 break;
             }
             _ = cleaner_interval.tick() => {
-                reset_bans(&ban_service, &stats_repository, CurrentClock::now()).await;
+                reset_bans(&ban_service, &publication_order, &stats_repository, CurrentClock::now()).await;
             }
         }
     }
@@ -115,6 +125,7 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
     use torrust_tracker_udp_core::services::banning::BanService;
+    use torrust_tracker_udp_server::banning::PublicationOrder;
     use torrust_tracker_udp_server::banning::event::handler::handle_event;
     use torrust_tracker_udp_server::event::{ErrorKind, Event};
     use torrust_tracker_udp_server::statistics::repository::Repository;
@@ -145,6 +156,7 @@ mod tests {
         let ban_service = Arc::new(RwLock::new(BanService::new(10)));
         let job = tokio::spawn(run_ban_cleanup_job(
             ban_service,
+            Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
             24 * 60 * 60,
             cancellation_token.clone(),
@@ -165,11 +177,13 @@ mod tests {
         let reset_interval_in_secs = 60;
         let banned_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1));
         let ban_service = Arc::new(RwLock::new(BanService::new(connection_id_error_limit)));
+        let publication_order = Arc::new(PublicationOrder::default());
         let stats_repository = Arc::new(Repository::new());
         for _ in 0..=connection_id_error_limit {
             handle_event(
                 connection_cookie_error_from(banned_client_ip),
                 &ban_service,
+                &publication_order,
                 &stats_repository,
                 EVENT_TIME,
             )
@@ -178,6 +192,7 @@ mod tests {
         let cancellation_token = CancellationToken::new();
         let job = tokio::spawn(run_ban_cleanup_job(
             ban_service,
+            publication_order,
             stats_repository.clone(),
             reset_interval_in_secs,
             cancellation_token.clone(),

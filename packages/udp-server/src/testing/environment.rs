@@ -156,6 +156,7 @@ impl Environment<Stopped> {
                 udp_server_banning_events,
                 cancellation_token.clone(),
                 &self.container.udp_tracker_core_container.ban_service,
+                &self.container.udp_tracker_server_container.banned_ips_publication_order,
                 &self.container.udp_tracker_server_container.stats_repository,
             ),
         };
