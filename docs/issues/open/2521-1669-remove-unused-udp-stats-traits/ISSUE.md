@@ -175,11 +175,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Commit Points
 
-| Task | Coherent change set                                                                    | Commit policy                                        |
-| ---- | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Task | Coherent change set                                                          | Commit policy                                        |
+| ---- | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
+| T1   | No separate commit: the re-verification progress-log entry rides with T2     | Recorded in the spec before starting T2.             |
 | T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`; if a test changed, also after the recorded test-design review and maintainer review. |
 | T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation, `cargo machete`, the recorded test-design review, and maintainer review. |
 | T4   | `docs(issues): [#2521] note the SI-30 trait removal in EPIC #1669`           | Commit after `linter all`.                           |
+| T5   | `docs(issues): [#2521] record verification evidence`: issue-local `manual-verification-evidence.md` (M1, M2), Acceptance Verification evidence, and spec progress updates | Commit after all checks pass and the evidence is reviewed. |
 
 ## Progress Tracking
 
