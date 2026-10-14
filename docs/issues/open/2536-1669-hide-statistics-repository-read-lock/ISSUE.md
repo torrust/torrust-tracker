@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:36"
+last-updated-utc: "2026-10-14 19:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -280,6 +280,9 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - 2026-10-14 19:36 UTC - GitHub Copilot - PR #2537 review (F2): added the Test-Development Workflow
   (per-increment test-design review with the prose-first AAA comparison, finished before the next
   package task) and the maintainer stop after T7, with matching workflow checkpoints.
+- 2026-10-14 19:37 UTC - GitHub Copilot - PR #2537 review (F3): the lazy debug-log example now formats
+  the returned `String` with `{}`, preserving today's `stats: Metrics { .. }` text (tokio
+  1.53.3's `RwLockReadGuard` `Debug` delegates to `Metrics`).
 
 ## Acceptance Criteria
 
@@ -355,8 +358,10 @@ steps in the evidence instead of committing it, as #2517 did.
 - **Eager debug logging**: wrapping the handlers' `tracing::debug!` in a `read_metrics()` closure
   would take the read lock on every event even when `debug` is disabled, adding lock traffic on the
   request path. Keep the read inside the macro arguments, for example
-  `tracing::debug!("stats: {:?}", stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await)`,
-  which the macro evaluates only when `debug` is enabled.
+  `tracing::debug!("stats: {}", stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await)`,
+  which the macro evaluates only when `debug` is enabled. Format the returned `String` with `{}`,
+  not `{:?}`: `{:?}` would add quotes and escapes, changing today's `stats: Metrics { .. }` log
+  text.
 - **Closure ergonomics**: closures cannot `.await` or return a borrow of `Metrics`. Every current
   caller only reads values or merges a collection synchronously, so none needs either. A future
   caller that does should copy what it needs inside the closure.
