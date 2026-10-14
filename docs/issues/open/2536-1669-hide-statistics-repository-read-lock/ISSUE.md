@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 19:47"
+last-updated-utc: "2026-10-14 19:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -218,13 +218,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                    | Notes / Expected Output                                                                                                                  |
 | --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
-| T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store every compared output (stats and metrics, before and after) under `evidence/`.                       |
+| T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
 | T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests, and updated callers; the workspace builds and its tests pass.     |
 | T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (31 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
-| T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch and compare with T2. |
+| T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
 
 ## Commit Points
 
@@ -298,6 +298,10 @@ starting T8 (final verification), the last spec commit, or the pull request.
 - 2026-10-14 19:47 UTC - GitHub Copilot - PR #2537 review (F4, da2ce7): Current callers now lists
   the in-crate unit-test calls per crate (58 by our count), names the helpers and the
   guard-accessor test that need their own shape, and In Scope covers every test caller.
+- 2026-10-14 19:48 UTC - GitHub Copilot - PR #2537 review (F5, da2ce7): M1 now names the ten
+  stored outputs (five per run), states the full normalization (sorted samples, recorded_at
+  ignored, processing times masked), and makes byte-identical normalized outputs the expected
+  result; T2 and T8 store their five outputs each.
 
 ## Acceptance Criteria
 
@@ -342,12 +346,26 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                 | Human-oriented command/steps                                                                                                                                                                                         | Expected Result                                                                                                  | Status | Evidence                                     |
 | --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | REST metrics unchanged   | Run the tracker (`run-tracker-locally` skill) on `develop` and on the branch with fresh databases; send the same HTTP and UDP `started` and `completed` announces with `tracker_client`; read `/api/v1/stats` and `/api/v1/metrics` before and after | Identical client responses, stats, and samples for every metric family, apart from masked processing times       | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | REST metrics unchanged   | Run the tracker (`run-tracker-locally` skill) on `develop` and on the branch with fresh databases; send the same HTTP and UDP `started` and `completed` announces with `tracker_client`; read `/api/v1/stats` and `/api/v1/metrics` before and after | The five normalized outputs (see Notes) are byte-identical between the two runs | TODO   | `manual-verification-evidence.md` section V1 |
 
 Notes:
 
-- Store every compared output under `evidence/`, including the before-announce stats. #2517's
-  evidence omitted that file and a post-merge review flagged it.
+- Store all ten compared outputs under `evidence/`, five per run, so a reviewer can re-run the
+  comparison from the committed files. #2517's evidence stored one copy per output and omitted the
+  before-announce stats, so its comparison rested on a transcript; a post-merge review flagged both.
+  For each of `develop` and the branch, store:
+  - the client responses;
+  - the stats before the announces;
+  - the stats after the announces;
+  - the metrics before the announces;
+  - the metrics after the announces.
+- Normalize before comparing, and record the normalization in the evidence:
+  - metrics: one sorted line per sample (`name {sorted labels} value`, or `name <no samples>`);
+  - ignore each sample's `recorded_at`, which differs between runs;
+  - in both metrics and stats, replace the values of time-dependent `*processing_time*` entries
+    with `<timing>`.
+
+  The Expected Result is byte-identical normalized outputs, checked with `diff -u`.
 - Avoid the aggregate `/health_check` endpoint during M1: it sends UDP requests that change the UDP
   metrics. Use `/api/health_check` for readiness.
 - Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
