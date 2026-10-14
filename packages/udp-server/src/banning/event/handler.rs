@@ -135,11 +135,11 @@ mod tests {
         // Arrange
         let banned_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1));
         let cookie_error_client_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 2));
-        let client_within_the_limit_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 3));
+        let client_at_the_limit_ip = IpAddr::V4(Ipv4Addr::new(203, 0, 113, 3));
         let context = BanningHandlerTestContext::with_client_errors(&[
             (banned_client_ip, CONNECTION_ID_ERROR_LIMIT + 1),
             (cookie_error_client_ip, CONNECTION_ID_ERROR_LIMIT),
-            (client_within_the_limit_ip, CONNECTION_ID_ERROR_LIMIT),
+            (client_at_the_limit_ip, CONNECTION_ID_ERROR_LIMIT),
         ])
         .await;
         let expected_banned_ip_total = 2;
@@ -158,7 +158,7 @@ mod tests {
             expected_banned_ip_total,
             "published banned IPs total after a cookie error takes {cookie_error_client_ip} over the limit of \
              {CONNECTION_ID_ERROR_LIMIT} while {banned_client_ip} is already banned and \
-             {client_within_the_limit_ip} is at the limit"
+             {client_at_the_limit_ip} is at the limit"
         );
     }
 }
