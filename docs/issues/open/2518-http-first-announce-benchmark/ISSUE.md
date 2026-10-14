@@ -9,7 +9,7 @@ github-issue: 2518
 spec-path: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
 branch: "2518-http-first-announce-benchmark-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 09:12"
+last-updated-utc: "2026-10-14 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -398,6 +398,11 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
   maintainer chose a maintained assertion on the swarm metrics instead (D5,
   `review-finding:pr-2519-f5`). This entry and the updated stamp answer
   `review-finding:pr-2519-f7`.
+- 2026-10-14 10:02 UTC - Copilot - PR #2519 round 3: Cameron approved and left three non-blocking findings.
+  The swarm event bus can drop events under long `cargo bench` runs, so the maintainer chose a lag
+  rule for D5: exact counts only when the run sent no more events than the channel capacity
+  (`review-finding:pr-2519-f8`). The listener now subscribes before the pre-fill. The Regression
+  Test Strategy names the D5 assertions (`review-finding:pr-2519-f9`).
 
 ## Acceptance Criteria
 
