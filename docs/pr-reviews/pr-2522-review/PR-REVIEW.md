@@ -66,6 +66,16 @@ GitHub dismissed the approval at 09:47 UTC when
 maintainer-approved scope change is not a review finding, and re-review was requested at 09:48
 UTC. The body's repeated PR #2520 note is not a finding.
 
+Review 5516281341 (round 3, `da2ce7`, state `CHANGES_REQUESTED`, submitted 2026-10-14 10:06 UTC on
+the head whose tip commit was `docs(pr-reviews): [#2521] record review round 2 in the PR #2522
+audit`, <https://github.com/torrust/torrust-tracker/pull/2522#pullrequestreview-5516281341>)
+re-checked the scope commit's code claims, confirmed F11 and F12 as fixed, and left three inline
+findings, F13 to F15; F13 and F14 were blocking. Review 5516494201 (round 4, `da2ce7`, state
+`CHANGES_REQUESTED`, submitted 10:25 UTC after the 10:11 UTC rebase,
+<https://github.com/torrust/torrust-tracker/pull/2522#pullrequestreview-5516494201>) confirmed the
+rebase changed no bytes under `docs/` and restated F13 to F15 on the same threads without opening
+new ones, so it adds no rows.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2522-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -78,6 +88,9 @@ UTC. The body's repeated PR #2520 note is not a finding.
 | F10 | `review-finding:pr-2522-f10` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2522-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2522-f12` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2522-f13` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2522-f14` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2522-f15` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -268,6 +281,61 @@ UTC. The body's repeated PR #2520 note is not a finding.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269279181>
 
+### F13 - The udp-server service test was given the udp-core test's name
+
+- PR number: 2522
+- Source review ID: 5516281341
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269419650>
+- Concern: The evidence and the Regression Test Strategy called both service tests
+  `the_statistics_service_should_return_the_tracker_metrics`, but that name exists only in
+  `udp-core`; a name-based re-verification or deletion check would miss the `udp-server` test.
+- Solution: Both places now name each package's test:
+  `the_statistics_service_should_return_the_tracker_metrics` (`udp-core`) and
+  `it_should_return_aggregate_torrent_and_protocol_metrics` (`udp-server`).
+- Current-tree verification: `grep -n "async fn "` in both `statistics/services.rs` files lists
+  those two test names at `udp-core` `:84` and `udp-server` `:86`.
+- Resolution reference: `docs(issues): [#2521] name each package's statistics service test`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269892536>
+
+### F14 - The stale-example reason was true for udp-core only
+
+- PR number: 2522
+- Source review ID: 5516281341
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269419665>
+- Concern: The evidence said the `udp4_connections_handled` field example was stale because the
+  field "is now a method", but `udp-server`'s `Metrics` has no method of that name.
+- Solution: The evidence now says the example is stale in both packages because both `Metrics`
+  structs hold only `metric_collection`, names each package's accessor (`udp4_connections_handled()`
+  in `udp-core`, `udp4_connect_requests_accepted_total()` in `udp-server`), and notes that the
+  events the examples cite still exist.
+- Current-tree verification: Both `statistics/metrics.rs` files define `pub struct Metrics` with
+  only `pub metric_collection`; `udp-core` `metrics.rs:57` and `udp-server` `metrics.rs:326` hold
+  the two accessors; `Event::UdpConnect` and `Event::UdpRequestAccepted` exist in the event
+  enums.
+- Resolution reference: `docs(issues): [#2521] state each package's actual metrics accessor`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269892742>
+
+### F15 - T4 and T5 delete files the spec lists as related artifacts
+
+- PR number: 2522
+- Source review ID: 5516281341
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269419673>
+- Concern: `related-artifacts` names both `statistics/services.rs` files, which T4 and T5 delete;
+  the frontmatter validator would then report them as missing for an open spec.
+- Solution: The T4 notes say the `related-artifacts` entry for the deleted `udp-core` file is
+  dropped in the same commit, and T5 does the same for `udp-server`.
+- Current-tree verification: `missing_artifacts` in
+  `contrib/dev-tools/checks/frontmatter-validator/src/repository.rs` reports every
+  `related-artifacts` path that names no tracked file or directory.
+- Resolution reference: `docs(issues): [#2521] drop deleted files from related artifacts in T4 and T5`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269892991>
+
 ## Processing Log
 
 - 2026-10-14 09:13 UTC - Started audit. Fetched reviews 5515225239 and 5515320310 and all eight
@@ -283,6 +351,11 @@ UTC. The body's repeated PR #2520 note is not a finding.
 - 2026-10-14 09:53 UTC - Processed round 2 (review 5515888847). Fixed F12 and F11 in separate
   commits (09:49:46 and 09:50:33 UTC), pushed them at 09:52:05 UTC, replied on both threads at 09:52:16
   and 09:52:19 UTC, and recorded the F11 and F12 rows.
+- 2026-10-14 10:58 UTC - Rebased onto `develop` twice: at 10:11 UTC (no conflicts) and, after
+  #2520 merged, at 10:52 UTC (kept both the #2517 and #2521 entries in EPIC #1669). Processed
+  rounds 3 and 4 (reviews 5516281341 and 5516494201): fixed F13, F14, and F15 in separate commits
+  from 10:54:12 to 10:55:47 UTC, logged them in the spec at 10:56:32 UTC, pushed at 10:58:13 UTC,
+  replied on the three threads from 10:58:26 to 10:58:29 UTC, and recorded the F13 to F15 rows.
 
 ## Completion Rules
 
