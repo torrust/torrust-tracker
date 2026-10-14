@@ -52,16 +52,17 @@ merge, labelled `POST_MERGE_FINDINGS`) carries four inline findings: F1 (`Minor`
 (`Nit`). Its body records the visibility, doctest, red/green, evidence, and hygiene checks and
 repeats the inline findings, so it adds no row.
 
-Each finding is handled on PR #2530 and stays `FOLLOW_UP`/`OPEN` until that pull request merges.
-F2 and F3 were raised again on PR #2530 as its F1 and F2; see
+Each finding was handled on PR #2530 and recorded as `FOLLOW_UP`/`OPEN` until that pull request
+merged into `develop` (2026-10-14 16:28:07 UTC, as `b24550171`); every row is now
+`FIXED`/`RESOLVED`. F2 and F3 were raised again on PR #2530 as its F1 and F2; see
 `docs/pr-reviews/pr-2530-review/PR-REVIEW.md`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2527-f1` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F2 | `review-finding:pr-2527-f2` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F3 | `review-finding:pr-2527-f3` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F4 | `review-finding:pr-2527-f4` | Human | Nit | metadata | ORIGINAL | FOLLOW_UP | OPEN |
+| F1 | `review-finding:pr-2527-f1` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2527-f2` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2527-f3` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2527-f4` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -79,11 +80,12 @@ F2 and F3 were raised again on PR #2530 as its F1 and F2; see
 - Solution: on PR #2530, the archived `manual-verification-evidence.md` gains a correction note
   where it lists that commit, and the archived `ISSUE.md` Progress Log gets a matching 16:00 UTC
   entry.
-- Current-tree verification: on the PR #2530 branch, `manual-verification-evidence.md`:20-23
-  carries the correction, and `ISSUE.md`:305 is the 16:00 UTC Progress Log entry that repeats it.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273199747>
+- Current-tree verification: on `develop` at `b24550171`, the archived
+  `manual-verification-evidence.md`:20-23 carries the correction, and `ISSUE.md`:305 is the 16:00
+  UTC Progress Log entry that repeats it.
+- Resolution reference: docs(issues): [#2517] record that the doctests landed with each refactor commit
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2530>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273199747>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273485516>
 
 ### F2 - Out of Scope and Risks still say the SI-30 traits draft is not committed
 
@@ -96,12 +98,12 @@ F2 and F3 were raised again on PR #2530 as its F1 and F2; see
 - Solution: #2528 fixed the Out of Scope half on `develop` with
   `docs(issues): [#2517] point the SI-30 traits out-of-scope note at #2521`. PR #2530 fixes the
   Risks half with `docs(issues): [#2517] point the Risks overlap note at #2521`, as its F1.
-- Current-tree verification: `develop` carries the Out of Scope rewrite. On the PR #2530 branch,
-  the only "not committed yet" left in the archived `ISSUE.md` is the historical 09:06 UTC Progress
-  Log entry.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200081>
+- Current-tree verification: on `develop` at `b24550171`, Out of Scope (:131-133) and the Risks
+  bullet (:373-374) of the archived `ISSUE.md` both name #2521, and the only "not committed yet"
+  left is the historical 09:06 UTC Progress Log entry (:236).
+- Resolution reference: docs(issues): [#2517] point the Risks overlap note at #2521
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2530>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200081>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273485948>
 
 ### F3 - The stats-before reading is compared but not stored
 
@@ -114,11 +116,12 @@ F2 and F3 were raised again on PR #2530 as its F1 and F2; see
 - Solution: the run directory no longer exists, so the file cannot be stored. PR #2530 narrows the
   sentence with `docs(issues): [#2517] say the stats-before reading was compared but not stored`,
   as its F2.
-- Current-tree verification: on the PR #2530 branch, `manual-verification-evidence.md`:147-149
-  says the stats-before reading rests only on the `diff -u` transcript.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200471>
+- Current-tree verification: on `develop` at `b24550171`, the archived
+  `manual-verification-evidence.md`:147-149 says the stats-before reading rests only on the
+  `diff -u` transcript.
+- Resolution reference: docs(issues): [#2517] say the stats-before reading was compared but not stored
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2530>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200471>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273486310>
 
 ### F4 - The evidence `last-updated-utc` was not bumped when the file last changed
 
@@ -130,12 +133,12 @@ F2 and F3 were raised again on PR #2530 as its F1 and F2; see
   `docs(issues): [#2517] record the second independent review` edited the file at 14:24 UTC.
 - Solution: PR #2530's `chore(issues): archive closed issue #2517 spec to docs/issues/closed`
   bumped the stamp, and its later fix commits bump it again with each edit.
-- Current-tree verification: on the PR #2530 branch, the archived
+- Current-tree verification: on `develop` at `b24550171`, the archived
   `manual-verification-evidence.md` reads `last-updated-utc: 2026-10-14 16:00`, matching the time
   of its last edit.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200938>
+- Resolution reference: chore(issues): archive closed issue #2517 spec to docs/issues/closed
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2530>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273200938>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2527#discussion_r4273486608>
 
 ## Processing Log
 
@@ -148,6 +151,11 @@ F2 and F3 were raised again on PR #2530 as its F1 and F2; see
   handled by its archive commit), pushed, re-verified the claims at the pushed head, and replied on
   all four threads with `FOLLOW_UP`. The threads stay open until PR #2530 merges; then this record
   moves the rows to `FIXED` and the threads are resolved.
+- 2026-10-14 16:30 UTC - PR #2530 merged into `develop` at 16:28:07 UTC as `b24550171`.
+  Re-verified F1-F4 on `develop` and replied `FIXED` on each thread. Each row's Reply URL now
+  cites that reply; the earlier `FOLLOW_UP` replies (r4273199747, r4273200081, r4273200471,
+  r4273200938) remain on the threads. Moved F1-F4 to `FIXED`/`RESOLVED`, citing their fix commit
+  subjects; the threads are resolved after this audit is pushed.
 
 ## Completion Rules
 
