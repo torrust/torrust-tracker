@@ -207,7 +207,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T3 | DONE | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
 | T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
 | T5 | DONE | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. None selected: all 20 plans record R3 `SKIPPED` with a boundary rationale (in-memory collaborators, or lifecycle owned by #1488 / #2414). |
-| T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
+| T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
 | T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
 
@@ -327,7 +327,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
 - [ ] Manual verification recorded in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment recorded in `mutation-evidence.md`.
+- [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
@@ -508,6 +508,10 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   plans record R3 `SKIPPED` with a boundary rationale, and every Results section says "Integration
   selected: No". The package still has no `tests/` directory, so there is no integration-only
   coverage to record. Next: T6 (bounded mutation assessment).
+- 2026-10-14 15:17 UTC - GitHub Copilot - T6 is `DONE`: `cargo-mutants 27.0.0` on
+  `connection_cookie.rs` with the file's own tests; 19 caught, 1 unviable, 0 missed
+  ([mutation-evidence.md](mutation-evidence.md)). The workspace `-D unused` flags made 7 real
+  mutants unviable in a first run, so the recorded run caps lints to warnings.
 
 ## Acceptance Criteria
 

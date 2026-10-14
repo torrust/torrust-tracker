@@ -49,3 +49,9 @@ issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-
   builds alias the zeroed key, but nothing asserted that production cookies use a secret key. When
   the design moved from the seed to a separate cipher, the tests and the startup check kept
   passing while guarding the wrong value. Test the security property, not the wiring trick.
+- **Deny-unused flags hide the most important mutants.** With the workspace's `-D unused`,
+  `cargo-mutants` reported `check` -> `Ok(..)` and a constant client fingerprint as unviable:
+  replacing a body leaves helpers and imports unused, which fails the build. Seven of eight
+  "unviable" cookie mutants were real. Run mutation samples with `RUSTFLAGS="--cap-lints=warn"`
+  (an empty `RUSTFLAGS` does not override `.cargo/config.toml`) and read why each mutant was
+  unviable before accepting the count.
