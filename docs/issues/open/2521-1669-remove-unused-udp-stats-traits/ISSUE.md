@@ -111,8 +111,12 @@ Evidence on `develop` at `d1bf013ea` (2026-10-14):
   `torrust_tracker_core` (for example `udp-core`'s `container.rs` and `services/announce.rs`) and
   `torrust_tracker_primitives` in other files.
 - Each `services.rs` carries the only module-level documentation of the package's statistics
-  event flow (event sender, listener, handler, repository). Part of it is stale: its example shows a
-  `pub udp4_connections_handled: u64` field on `Metrics`, which is now a method.
+  event flow (event sender, listener, handler, repository). Part of it is stale in both packages:
+  the example shows a `pub udp4_connections_handled: u64` field on `Metrics`, but `Metrics` has no
+  such field. In `udp-core` the counter is read with the method `udp4_connections_handled()`; in
+  `udp-server` there is no method of that name, and the matching counter is
+  `udp4_connect_requests_accepted_total()`. The events the examples cite still exist
+  (`Event::UdpConnect` in `udp-core`, `Event::UdpRequestAccepted` in `udp-server`).
 
 Reported by the AI agent working on issue #1348, after this specification was first drafted; the
 maintainer chose to fold it into this issue on 2026-10-14.
