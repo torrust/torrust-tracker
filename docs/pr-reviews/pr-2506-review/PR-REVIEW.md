@@ -259,9 +259,15 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4268430837>
 - Concern: R2's re-count leg is red on `develop`, so the note that R2 passes there was too broad.
-- Solution: on the PR #2524 branch, R2's note says only the reset leg passes on `develop`.
-- Current-tree verification: the PR #2524 branch's `ISSUE.md` R2 bullet says "The reset leg passes
-  on `develop`" and that the re-count leg is red.
+- Solution: on the PR #2524 branch, R2's note was narrowed to say only the reset leg passes on
+  `develop`. That narrowing was itself wrong (PR #2524 review finding F7 by Cameron): the implemented
+  re-count test also passes on `develop`, and the below-limit case the note described did not exist.
+  The branch now adds that case
+  (`it_should_not_count_an_ip_whose_errors_after_a_reset_do_not_exceed_the_limit`, red with
+  `develop`'s map-length total) and says the reset leg and the re-crossing case pass on `develop`
+  while the below-limit case is red.
+- Current-tree verification: the PR #2524 branch's `ISSUE.md` R2 bullet lists the three cases and
+  their status, and `packages/udp-core/src/services/banning.rs` contains the below-limit test.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2524>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2506#discussion_r4269648429>
@@ -347,6 +353,8 @@ Ownership). They stay `FOLLOW_UP`/`OPEN` until PR #2524 merges.
 - 2026-10-14 10:31 UTC - Fixed F7-F14 on the PR #2524 branch (pushed at 10:28 UTC) and replied on
   each thread with the follow-up reference; the threads stay open until PR #2524 merges.
 - 2026-10-14 10:36 UTC - Recorded F7-F14 in this audit as `FOLLOW_UP`/`OPEN`, on the PR #2524 branch.
+- 2026-10-14 12:32 UTC - Corrected F10's Solution and Current-tree verification: the earlier text repeated a
+  false claim that R2's re-count leg is red on `develop` (PR #2524 review finding F7 by Cameron).
 
 ## Completion Rules
 
