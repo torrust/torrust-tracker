@@ -8,6 +8,7 @@ semantic-links:
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
     - contrib/dev-tools/git/github-merge.py
     - "issue #2507"
+    - "issue #2525"
 ---
 
 # GitHub Rulesets
@@ -27,8 +28,8 @@ configuration to detect a ruleset that was disabled, added, or changed without a
   keeps `strict_required_status_checks_policy` set to `false`.
 - **Required checks must report on every pull request.** A skipped workflow reports nothing, and a
   required check that never reports blocks the merge forever. No status check is required today;
-  a single always-reporting `CI gate` check, overridable by a maintainer label, is planned as the
-  follow-up of issue #2507.
+  a single always-reporting `CI gate` check, overridable by a maintainer label, is planned in issue
+  #2525.
 - **Change a ruleset and this document together.** Record the change, and the reason, in the same
   pull request or in the issue that authorized it.
 

@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2508
-last-updated-utc: "2026-10-14 10:04"
+last-updated-utc: "2026-10-14 10:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,21 +177,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | IN_PROGRESS | Reconcile repository rulesets                              | Applied 2026-10-14 with maintainer approval: new always-active force-push ruleset 25068452; deleted 94237, 19245352, and 87098 (definitions saved under `evidence/`). Evidence section "T5 - Ruleset Changes Applied". Remaining: M5 and M6, real merges of a code PR and a documentation-only PR under the new rulesets. The required `CI gate` is the follow-up issue (T8).                                                                                                                                                                                         |
 | T6  | DONE        | Document the ruleset configuration                         | New guide `docs/github-rulesets.md` (linked from `docs/index.md`): policy, every active ruleset and why it exists, deleted rulesets, and a drift check. The merge skill guardrails forbid disabling a ruleset to merge. Commits `docs(github): [#2507] document the active repository rulesets` and `docs(skills): [#2507] forbid disabling rulesets to merge`.                                                                                                                                                                                                       |
 | T7  | TODO        | Post-change measurement                                    | After at least two weeks under the new policy, rerun the baseline commands for force-pushes per merged PR, PR CI runner-hours, and rebase-fallout commits; record the comparison in `post-change-evidence.md`.                                                                                                                                                                                                                                                                                                                                                        |
-| T8  | TODO        | Draft and create the CI gate follow-up issue               | Spec-first issue for one always-reporting `CI gate` check required by GitHub: CI decision logic in Rust with thin, provider-agnostic workflows; job-level change detection replacing workflow-level `paths-ignore`; a maintainer `ci-override` label read by the gate; an ADR for the CI-portability direction. Maintainer reviews the draft before the issue is created.                                                                                                                                                                                             |
+| T8  | DONE        | Draft and create the CI gate follow-up issue               | Maintainer approved the draft on 2026-10-14; created #2525 with its specification under `docs/issues/open/2525-ci-gate-required-check/`. Commit `docs(issues): add issue specification for #2525`.                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### Ruleset Target State
 
 Decided by the maintainer on 2026-10-14 from the sandbox evidence (section T5): required checks are
 enforced by GitHub on the maintainer's direct merge push, so they will be enforced by GitHub through
 one always-reporting `CI gate` check. Building that gate is substantial CI work and moves to the
-follow-up issue drafted in T8; until it lands, no check is required by GitHub, which has been the
+follow-up issue #2525 (drafted in T8); until it lands, no check is required by GitHub, which has been the
 effective state since 2026-05-05. T5 applies the rest, each item after maintainer approval because
 the settings are outside Git.
 
 | Ruleset                                   | Action                                                                                                                                                                                                               |
 | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 94237 force-push ban (`non_fast_forward`) | Move into its own always-active ruleset covering the same branches, so it is never disabled together with status checks. Fork PR branches are unaffected.                                                            |
-| 94237 required status checks              | Delete with the ruleset. The follow-up issue adds a single required `CI gate` context with `strict_required_status_checks_policy: false`.                                                                            |
+| 94237 required status checks              | Delete with the ruleset. Issue #2525 adds a single required `CI gate` context with `strict_required_status_checks_policy: false`.                                                                                    |
 | 19245352 Copilot code review              | Maintainer decides: enable it so every PR, including external ones, gets a Copilot review independently of personal settings (consider `review_on_push: false`), or delete it and keep relying on personal settings. |
 | 87098 "Require Deployment: coverage"      | Active but has no rules; delete unless a reason is found.                                                                                                                                                            |
 | Temporary overrides                       | Never disable a ruleset to merge. The sandbox showed that a posted status cannot override a failing Actions check run, so the follow-up gate honors a maintainer-applied `ci-override` label instead.                |
@@ -278,6 +278,8 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   section "T5 - Ruleset Changes Applied"
 - 2026-10-14 10:04 UTC - AI assistant - T6 done: added `docs/github-rulesets.md` and a merge-skill
   guardrail against disabling rulesets; AC8 done.
+- 2026-10-14 10:11 UTC - AI assistant - T8 done: maintainer approved the CI gate draft; created
+  issue #2525 and its specification.
 
 ## Acceptance Criteria
 
@@ -383,7 +385,7 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 - Related PRs: #2229 (stale merge-base guard), #2320 (review retrospective), #2000 (last merge that
   required disabling ruleset 94237)
 - Related issues: #2022 (vendor and document the maintainer merge workflow), #1743
-  (documentation-only CI fast path)
+  (documentation-only CI fast path), #2525 (required CI gate follow-up)
 - Related ADRs:
   [`20261013161419_stop_requiring_pull_request_rebases.md`](../../../adrs/20261013161419_stop_requiring_pull_request_rebases.md),
   [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md)
