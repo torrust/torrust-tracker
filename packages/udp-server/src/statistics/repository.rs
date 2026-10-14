@@ -109,24 +109,30 @@ mod tests {
     use crate::CurrentClock;
     use crate::statistics::*;
 
+    /// Copies the repository's metrics, so no read guard outlives the call.
+    async fn metrics_snapshot(repo: &Repository) -> Metrics {
+        Metrics {
+            metric_collection: repo.get_stats().await.metric_collection.clone(),
+        }
+    }
+
     #[tokio::test]
     async fn it_should_initialize_metrics_when_constructed_with_default() {
         let repo = Repository::default();
 
-        let stats = repo.get_stats().await;
+        let stats = metrics_snapshot(&repo).await;
 
         assert!(
             stats
                 .metric_collection
                 .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL))
         );
-        drop(stats);
     }
 
     #[tokio::test]
     async fn it_should_be_initialized_with_described_metrics() {
         let repo = Repository::new();
-        let stats = repo.get_stats().await;
+        let stats = metrics_snapshot(&repo).await;
 
         // Check that the described metrics are present
         assert!(
@@ -179,7 +185,6 @@ mod tests {
                 .metric_collection
                 .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
         );
-        drop(stats);
     }
 
     #[tokio::test]
@@ -318,7 +323,7 @@ mod tests {
         .unwrap();
 
         // Verify both labeled metrics
-        let stats = repo.get_stats().await;
+        let stats = metrics_snapshot(&repo).await;
 
         #[allow(
             clippy::cast_sign_loss,
@@ -354,7 +359,6 @@ mod tests {
 
         assert_eq!(udp_avg_connect_processing_time_ns, 1000);
         assert_eq!(udp_avg_announce_processing_time_ns, 2000);
-        drop(stats);
     }
 
     #[tokio::test]
@@ -608,7 +612,7 @@ mod tests {
             assert_server_results_are_valid(&server1_results, "Server 1", REQUESTS_PER_SERVER);
             assert_server_results_are_valid(&server2_results, "Server 2", REQUESTS_PER_SERVER);
 
-            let stats = repo.get_stats().await;
+            let stats = metrics_snapshot(&repo).await;
 
             // Verify each server's metrics individually
             let server1_avg = assert_server_metrics_are_correct(&stats, &server1_labels, "Server 1", REQUESTS_PER_SERVER, 3000.0);
@@ -623,7 +627,6 @@ mod tests {
 
             // Verify metric collection integrity
             assert_metric_collection_integrity(&stats);
-            drop(stats);
         }
 
         // Test helper functions to hide implementation details
