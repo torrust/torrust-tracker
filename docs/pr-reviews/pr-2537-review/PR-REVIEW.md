@@ -306,8 +306,8 @@ this PR (see F12), as `AGENTS.md` allows for small process fixes, so it adds no 
   subject, and every current-tree and log sentence uses those names, including the F4-F8 rows added
   before this review arrived.
 - Current-tree verification: in this record, no PR-branch commit id remains. The only commit id is
-  the `develop` merge base `48c4d3013`, cited in this sentence. The legend opens the Findings
-  section.
+  the `develop` commit `48c4d3013`, cited in this sentence; it was the merge base until the branch
+  was rebased onto the PR #2532 merge. The legend opens the Findings section.
 - Resolution reference: docs(pr-reviews): name the PR #2537 audit's cited heads by commit subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4275779954>
@@ -411,6 +411,12 @@ this PR; a follow-up reply on this thread describes it.
   the hooks, replied on the four threads and on the F12 thread, edited that reply to drop quoted
   branch-commit ids, and checked every reply and the PR body for such ids. The four threads are
   resolved after this update is pushed.
+- 2026-10-14 21:24 UTC - Rebased the branch onto `develop` after PR #2532 merged (archive of the
+  #2521 spec). The only conflict was in the #1669 EPIC: develop's #2521 lines (DONE, closed-spec
+  paths) were kept, the #2536 entries were added after them, and the #2536 log entry follows
+  develop's #2521 entry. No Rust source changed on `develop`, so the counts and grep results cited
+  at `48c4d3013` still hold. Re-ran the validator and the PR-branch commit-id check after the
+  rebase.
 
 ## Completion Rules
 
