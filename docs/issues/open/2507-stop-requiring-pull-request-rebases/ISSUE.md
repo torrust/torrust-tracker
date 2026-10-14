@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2508
-last-updated-utc: "2026-10-14 10:10"
+last-updated-utc: "2026-10-14 10:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -272,11 +272,11 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   `refresh_pr_base`) and independently specified results (exit code, refresh calls, messages, `gh`
   arguments) stay visible. `python3 contrib/dev-tools/git/tests/test-github-merge-symlinks.py`
   (Python 3.14.4): 47 tests OK; `bash contrib/dev-tools/git/tests/test-merge-pull-request.sh`: passed.
-- 2026-10-14 10:06 UTC - AI assistant - Maintainer decided to delete Copilot ruleset 19245352 and
+- 2026-10-14 10:01 UTC - AI assistant - Maintainer decided to delete Copilot ruleset 19245352 and
   approved applying T5. Created force-push ruleset 25068452 and deleted 94237, 19245352, and 87098;
   M7, AC5, and AC7 done - [`manual-verification-evidence.md`](manual-verification-evidence.md)
   section "T5 - Ruleset Changes Applied"
-- 2026-10-14 10:10 UTC - AI assistant - T6 done: added `docs/github-rulesets.md` and a merge-skill
+- 2026-10-14 10:04 UTC - AI assistant - T6 done: added `docs/github-rulesets.md` and a merge-skill
   guardrail against disabling rulesets; AC8 done.
 
 ## Acceptance Criteria
@@ -346,7 +346,7 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 | AC2   | TODO                   |                                                                                                                                                                             |
 | AC3   | TODO                   |                                                                                                                                                                             |
 | AC4   | TODO                   |                                                                                                                                                                             |
-| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch checked 2026-10-14 10:06 UTC). |
+| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch checked 2026-10-14 10:00 UTC). |
 | AC6   | TODO                   |                                                                                                                                                                             |
 | AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                                |
 | AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                   |
