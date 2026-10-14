@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-14 06:04"
+last-updated-utc: "2026-10-14 06:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,6 +25,7 @@ semantic-links:
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/evidence/recheck-tracker.log
     - docs/issues/open/2505-udp-banned-ips-metric/performance-evidence.md
+    - docs/issues/open/2505-udp-banned-ips-metric/implementation-retrospective.md
     - docs/testing.md
     - tests/AGENTS.md
     - packages/udp-core/src/services/banning.rs
@@ -373,7 +374,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Gauge update on reset                              | Chosen option (G1 preferred); R4 green; R3 added and proven by mutate-then-restore.                             |
 | T8  | DONE   | Documentation updates                              | Contracts listed under "Contracts violated" corrected for decision A.                                           |
 | T9  | DONE   | Performance after the fix (P2)                     | Same measurements as T3; comparison against the one-sided pass rule in `performance-evidence.md`.              |
-| T10 | IN_PROGRESS | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
+| T10 | DONE   | Verification, like-for-like recheck, and AC review | Automatic checks; V1-V4 rerun with the same script and configuration; acceptance criteria re-reviewed.          |
 
 ## Commit Points
 
@@ -409,11 +410,11 @@ scope (`udp-core`, `udp-server`), signed with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual recheck recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -516,27 +517,37 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   recheck R-V1 to R-V4 (reported 0, 0, 1, and 0 after the reset, against 1, 3, 4, and a stale 4
   before) in [manual-verification-evidence.md](manual-verification-evidence.md), with the full log in
   `evidence/recheck-tracker.log`.
+- 2026-10-14 06:23 UTC - GitHub Copilot (implementation session) - T10: the pre-push checks passed
+  (nightly fmt, check, and docs; the stable full test suite) and `linter all` passes in the
+  pre-commit gate. Reviewed every acceptance criterion against the evidence: AC1-AC4, AC6, and AC7
+  met; AC5 met with the maintainer-accepted Criterion deviation. Wrote
+  [implementation-retrospective.md](implementation-retrospective.md) with four proposed process
+  improvements (not applied in this issue).
 
 ## Acceptance Criteria
 
-- [ ] AC1: The banned-IPs total counts only IPs whose error count exceeds the limit, in both `strict`
+- [x] AC1: The banned-IPs total counts only IPs whose error count exceeds the limit, in both `strict`
   and `disabled` mode (R1, R1p, R5, R6, M1-M3).
-- [ ] AC2: After a ban reset, the banned total and the published gauge report the new value (R2, R3,
+- [x] AC2: After a ban reset, the banned total and the published gauge report the new value (R2, R3,
   R4, M4).
-- [ ] AC3: The method, metric, `udp-server` helper, and REST field descriptions match the behavior,
+- [x] AC3: The method, metric, `udp-server` helper, and REST field descriptions match the behavior,
   including the `disabled`-mode meaning.
-- [ ] AC4: The `BanningStats` trait and `BanService::last_connection_id_errors_reset` are removed.
-- [ ] AC5: `performance-evidence.md` records the P1 baseline and the P2 after measurements
+- [x] AC4: The `BanningStats` trait and `BanService::last_connection_id_errors_reset` are removed.
+- [x] AC5: `performance-evidence.md` records the P1 baseline and the P2 after measurements
   (Criterion, including `udp_ban_service/record_error`, and `aquatic_udp_load_test`), and P2 meets
   the one-sided pass rule in "Performance Evidence Plan", with the observed noise stated.
-- [ ] AC6: The reproduction is repeated after the fix and recorded.
-- [ ] AC7: The work done on each invalid-connection-ID event to maintain and read the banned total
+  **Met with a maintainer-accepted deviation:** the load test passes; 9 of 28 Criterion medians
+  exceed their P1 limit, explained in `performance-evidence.md` ("P2 Investigation",
+  "Comparison") as the inherent cost of maintaining the counter (about 0.4-0.6 ns per invalid
+  connection ID) or noise in unchanged code.
+- [x] AC6: The reproduction is repeated after the fix and recorded.
+- [x] AC7: The work done on each invalid-connection-ID event to maintain and read the banned total
   does not grow with the number of tracked IPs (no scan of the per-IP map on the event path).
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -585,13 +596,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 | AC ID | Status | Evidence           |
 | ----- | ------ | ------------------ |
-| AC1   | TODO   | R1, R1p, R5, R6, M1-M3 |
-| AC2   | TODO   | R2, R3, R4, M4         |
-| AC3   | TODO   | Diff               |
-| AC4   | TODO   | Diff               |
-| AC5   | TODO   | `performance-evidence.md` (T3, T9) |
-| AC6   | TODO   | M1-M4 after fix    |
-| AC7   | TODO   | Diff (event-path code), T3 and T9 evidence |
+| AC1   | DONE   | R1, R1p, R5, R6 green and proven (manual-verification-evidence.md "Regression Tests"); M1-M3 after fix 0, 0, 1 |
+| AC2   | DONE   | R2, R3, R4 green and proven; M4 after fix 0 right after the reset |
+| AC3   | DONE   | `docs(udp-server): [#2505] describe the banned-IPs metric as IPs over the limit`; `BanService::get_banned_ips_total` doc in the `udp-core` fix |
+| AC4   | DONE   | `fix(udp-core): [#2505] count only IPs over the limit as banned`; no reference remains outside archived docs |
+| AC5   | DONE (accepted deviation) | `performance-evidence.md` "Comparison": load test passes; 9 Criterion medians over the limit, accepted by the maintainer |
+| AC6   | DONE   | manual-verification-evidence.md "Recheck After the Fix (T10)" |
+| AC7   | DONE   | `record_error` P2 medians flat across 10 to 10,000 tracked IPs; B1 check shows a scan would grow linearly |
 
 ## Risks and Trade-offs
 
@@ -605,7 +616,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`. "Before" valu
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md) (material
+  discoveries: the pass rule for a deliberately added cost, a health check port collision between
+  concurrent trackers, a non-compiling mutation, and locale-dependent number formatting).
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
   entry explaining why the work had no material discovery.
