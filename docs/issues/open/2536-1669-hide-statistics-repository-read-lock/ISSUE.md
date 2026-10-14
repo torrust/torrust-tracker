@@ -1,0 +1,349 @@
+---
+schema-version: 1
+doc-type: issue
+issue-type: task
+status: planned
+priority: p3
+epic: 1669
+github-issue: 2536
+spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
+branch: "2536-1669-hide-statistics-repository-read-lock-spec"
+related-pr: null
+last-updated-utc: "2026-10-14 17:03"
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+    - "issue #1669"
+    - docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
+    - docs/adrs/20260629000000_adopt_independent_package_versioning.md
+    - packages/udp-core/src/statistics/repository.rs
+    - packages/udp-server/src/statistics/repository.rs
+    - packages/http-core/src/statistics/repository.rs
+    - packages/tracker-core/src/statistics/repository.rs
+    - packages/swarm-coordination-registry/src/statistics/repository.rs
+    - packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs
+---
+
+<!-- skill-link: create-issue -->
+
+# Issue #2536 - Hide the Statistics Repositories' Read Lock and Metric Collection Field
+
+Parent EPIC: #1669 (Overhaul: Packages).
+
+## Goal
+
+Remove the lock type and the `MetricCollection` field from the public read API of the five
+statistics repositories. Callers then read metrics through a closure that the repository runs
+while it holds its read lock, and through a read-only `metric_collection()` accessor on
+`Metrics`, so the repository can change its locking or storage without a breaking release.
+
+## Background
+
+Issue #2517 made each repository's `stats: Arc<RwLock<Metrics>>` field private. It left the read side
+public on purpose, recording this follow-up in its Out of Scope section: each repository still
+returns the lock's read guard.
+
+| Package                       | Read accessor   | Return type                       |
+| ----------------------------- | --------------- | --------------------------------- |
+| `udp-core`                    | `get_stats()`   | `RwLockReadGuard<'_, Metrics>`    |
+| `udp-server`                  | `get_stats()`   | `RwLockReadGuard<'_, Metrics>`    |
+| `http-core`                   | `get_stats()`   | `RwLockReadGuard<'_, Metrics>`    |
+| `tracker-core`                | `get_metrics()` | `RwLockReadGuard<'_, Metrics>`    |
+| `swarm-coordination-registry` | `get_metrics()` | `RwLockReadGuard<'_, Metrics>`    |
+
+This has three consequences:
+
+- `tokio::sync::RwLockReadGuard` is part of each crate's public API. Replacing the tokio lock (for
+  example with a `std` or `parking_lot` lock, or a lock-free store) would be a breaking change.
+- A caller can hold the guard for as long as it wants, including across an `.await`, which blocks
+  every writer (the statistics event listeners) for that time.
+- Each `Metrics` type has a public field, `pub metric_collection: MetricCollection`, so
+  the layout of `Metrics` is also public API.
+
+None of the five crates is published yet (see the #2517 spec's Semver impact section), so this can
+change without a semver-major bump if it lands before their first publish. That matters for the
+goal of EPIC #1669: independently versioned, publishable packages.
+
+### Current callers
+
+Checked on `develop` at `48c4d3013` (2026-10-14):
+
+- Production callers outside the five crates are all in
+  `packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs`:
+  - `get_stats()` reads derived values (for example `tcp4_announces_handled()` and
+    `udp_banned_ips_total()`) from the HTTP and UDP-server guards to build the REST `Stats`.
+  - `get_labeled_stats()` merges each repository's `metric_collection` into one collection.
+- Production callers inside the crates: the `udp-core`, `udp-server`, and `http-core` statistics
+  event handlers log `tracing::debug!("stats: {:?}", stats_repository.get_stats().await)` on every
+  event, and `tracker-core`'s repository reads its own counters through `get_metrics()`.
+- Test callers outside the crates: `axum-http-server` contract tests, `udp-server` contract
+  tests, `tracker-core`'s integration test environment, and a `src/bootstrap/jobs` unit test.
+- The `metric_collection` field is written outside each crate's `metrics.rs` only by its own
+  `describe_metrics()` function (in `statistics/mod.rs`). Code outside the crates only reads it.
+- The #2517 privacy doctests' companion examples call `get_stats()` / `get_metrics()`.
+
+## Proposed Design
+
+Each repository replaces `get_stats()` / `get_metrics()` with one read method that has the same
+name in all five crates:
+
+```rust,ignore
+impl Repository {
+    /// Runs `read` on the current metrics while holding the read lock.
+    pub async fn read_metrics<R>(&self, read: impl FnOnce(&Metrics) -> R) -> R {
+        let metrics = self.stats.read().await;
+        read(&metrics)
+    }
+}
+```
+
+Each `Metrics` type makes its field `pub(crate)` and adds a read-only accessor:
+
+```rust,ignore
+impl Metrics {
+    #[must_use]
+    pub fn metric_collection(&self) -> &MetricCollection {
+        &self.metric_collection
+    }
+}
+```
+
+Why this design (chosen by the maintainer during drafting):
+
+- **No lock type in the API.** The signature names only `Metrics` and the closure, so the lock
+  implementation can change freely.
+- **Consistent reads.** A caller that reads several values (the REST `Stats` reads about twenty
+  from one repository) gets them from one lock acquisition, as it does today.
+- **No copies.** Unlike an owned snapshot, nothing is cloned on each read.
+- **No lock held across an `.await`.** The closure is synchronous, so a caller cannot hold the
+  lock across an `.await`.
+
+The rejected alternatives were per-value accessor methods (one lock acquisition per value, so
+several values read together may not be consistent with each other) and an owned snapshot (a
+full clone on every read; the #2517 spec already ruled that out for event paths).
+
+Expected caller shapes:
+
+```rust,ignore
+// One value
+let banned = repository.read_metrics(Metrics::udp_banned_ips_total).await;
+
+// Several consistent values
+let stats = repository.read_metrics(|metrics| (metrics.tcp4_announces_handled(), metrics.tcp4_scrapes_handled())).await;
+
+// Merge into an outer collection
+repository.read_metrics(|metrics| collection.merge(metrics.metric_collection())).await?;
+```
+
+## Scope
+
+### In Scope
+
+- Replace `get_stats()` / `get_metrics()` with `read_metrics()` in the five repositories and
+  remove the old accessors. The crates are unpublished, so no deprecation period is needed.
+- Make `Metrics.metric_collection` `pub(crate)` in the five crates and add the
+  `metric_collection()` read accessor.
+- Update every caller: `rest-api-runtime-adapter`, the event handlers, `tracker-core`'s own
+  counter reads, and the tests listed under Current callers.
+- Keep the event handlers' debug logging lazy: the lock must still be taken only when `debug` is
+  enabled for that event (see Risks).
+- Pin the new API with doctests in each crate:
+  - a `compile_fail,E0616` doctest that reads `metrics.metric_collection` from outside the crate;
+  - a compiling example of `read_metrics()` and `metric_collection()`;
+  - an update to the #2517 companion doctests, which currently call the removed accessors.
+
+### Out of Scope
+
+- The write methods (counter and gauge setters) and their signatures.
+- The lock itself: the repositories keep `tokio::sync::RwLock`; this issue only makes that choice
+  private.
+- The `Metrics` value methods (for example `udp_banned_ips_total()`) and their names.
+- Unifying the five repositories or the five `Metrics` types into shared generic types.
+- The `stats` field name inside each repository.
+
+## Architectural Decisions
+
+- Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md` (the read API
+  is public API; changing it after a publish is breaking).
+- ADRs to create: none planned. The read design is recorded in this spec. Create a root ADR if
+  review decides that closure-based reads should become the rule for every future statistics
+  repository; it would be a multi-package decision, so it belongs in `docs/adrs/`.
+
+## Design and Ownership Review
+
+Not applicable: no child processes, readiness, or resource cleanup. Lock ownership stays inside
+each repository. The closure must not be able to await, block, or re-enter the same repository's
+lock; a synchronous `FnOnce(&Metrics) -> R` prevents the first two, and the third would deadlock
+only through a deliberate nested `read_metrics` call inside the closure, which no caller needs.
+
+## Bug-Fix Process
+
+Not applicable: not a bug.
+
+## Regression Test Strategy
+
+Not a bug, so there is no defect to reproduce. The API is pinned by doctests (see In Scope) and by
+the existing caller tests, which keep their assertions and change only how they read. Use the
+`write-unit-test` skill for any new or changed test, and record the red/green check for each
+`compile_fail` doctest: it must compile while the field is `pub` and fail with `E0616` after.
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID  | Status | Task                                                    | Notes / Expected Output                                                                                                                  |
+| --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
+| T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store every compared output (stats and metrics, before and after) under `evidence/`.                       |
+| T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests, and updated callers; the workspace builds and its tests pass.     |
+| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3.                                                                                                                              |
+| T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
+| T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
+| T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
+| T8  | TODO   | Verification                                            | See Verification Plan; run M1 on the branch and compare with T2.                                                                        |
+
+## Commit Points
+
+| Task  | Coherent change set                                                                                                                           | Commit policy                                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| T3-T7 | `refactor(<package>): [#2536] hide the statistics read lock and metric collection field`, one per package, each with its callers and doctests, so every commit builds | Commit after focused validation and the test-design review. |
+| T2, T8 | Manual verification evidence and spec progress updates                                                                                       | Commit after the evidence is recorded.                      |
+
+Every commit is GPG signed. Because `rest-api-runtime-adapter` and the tests read from all five
+crates, each package commit updates the callers of that package's accessor in the same commit.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Folder-style spec drafted in `docs/issues/drafts/1669-hide-statistics-repository-read-lock/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [ ] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-10-14 16:59 UTC - GitHub Copilot - Drafted from the #2517 Out of Scope follow-up. The
+  maintainer chose the closure-based `read_metrics()` design and asked to include the
+  `Metrics.metric_collection` field. Callers checked on `develop` at `48c4d3013`.
+- 2026-10-14 17:03 UTC - GitHub Copilot - Maintainer approved the spec. Created #2536, linked it as
+  a sub-issue of #1669, moved the spec to `docs/issues/open/`, and added it to the EPIC on branch
+  `2536-1669-hide-statistics-repository-read-lock-spec` for a spec-only PR.
+
+## Acceptance Criteria
+
+- [ ] AC1: No public method of the five statistics repositories returns a lock guard or any other
+  lock type; `get_stats()` and `get_metrics()` no longer exist.
+- [ ] AC2: The five `Metrics` types have no `pub` `metric_collection` field; code outside each crate
+  reads it only through `metric_collection()`.
+- [ ] AC3: Each crate has a `compile_fail,E0616` doctest for the field and a compiling
+  `read_metrics()` example, and the #2517 companion doctests no longer call removed accessors.
+- [ ] AC4: The `udp-core`, `udp-server`, and `http-core` event handlers still take the read lock for
+  their debug log only when `debug` is enabled.
+- [ ] AC5: REST `/api/v1/stats` and `/api/v1/metrics` report the same values as `develop` for the
+  same announces.
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] Documentation is updated when behavior/workflow changes
+
+## Verification Plan
+
+### Automatic Checks
+
+- `linter all`
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust
+  toolchain)
+- `cargo test --doc --workspace` (stable Rust toolchain) and
+  `cargo +nightly test --doc` for the five packages (nightly Rust toolchain, which checks the
+  pinned `E0616` code)
+- Pre-push checks (`./contrib/dev-tools/git/hooks/pre-push.sh`)
+- AC1 check: `grep -nE 'RwLock(Read|Write)Guard' packages/*/src/statistics/repository.rs` matches
+  only non-`pub` items (for example the `#[cfg(test)] pub(crate)` `write_lock_for_test()`), and
+  `grep -rnE '\.(get_stats|get_metrics)\(\)'` finds no call on a statistics repository.
+- AC2 check: `grep -nE 'pub +metric_collection *:' packages/*/src/statistics/metrics.rs` prints
+  nothing.
+- AC4 check: a review of each event handler's logging line, plus a unit test or a documented
+  inspection showing the read happens inside the `tracing::debug!` arguments.
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+| ID  | Scenario                 | Human-oriented command/steps                                                                                                                                                                                         | Expected Result                                                                                                  | Status | Evidence                                     |
+| --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | REST metrics unchanged   | Run the tracker (`run-tracker-locally` skill) on `develop` and on the branch with fresh databases; send the same HTTP and UDP `started` and `completed` announces with `tracker_client`; read `/api/v1/stats` and `/api/v1/metrics` before and after | Identical client responses, stats, and samples for every metric family, apart from masked processing times       | TODO   | `manual-verification-evidence.md` section V1 |
+
+Notes:
+
+- Store every compared output under `evidence/`, including the before-announce stats. #2517's
+  evidence omitted that file and a post-merge review flagged it.
+- Avoid the aggregate `/health_check` endpoint during M1: it sends UDP requests that change the UDP
+  metrics. Use `/api/health_check` for readiness.
+- Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
+  and record the actual commands, output, and relevant tracker logs.
+
+### Disposable Verification Scripts
+
+None planned. If M1's steps are wrapped in a local script for exact repetition, record its full
+steps in the evidence instead of committing it, as #2517 did.
+
+### Acceptance Verification
+
+| AC ID | Status (`TODO`/`DONE`) | Evidence           |
+| ----- | ---------------------- | ------------------ |
+| AC1   | TODO                   | {test/log/PR link} |
+| AC2   | TODO                   | {test/log/PR link} |
+| AC3   | TODO                   | {test/log/PR link} |
+| AC4   | TODO                   | {test/log/PR link} |
+| AC5   | TODO                   | {test/log/PR link} |
+
+## Risks and Trade-offs
+
+- **Eager debug logging**: wrapping the handlers' `tracing::debug!` in a `read_metrics()` closure
+  would take the read lock on every event even when `debug` is disabled, adding lock traffic on the
+  request path. Keep the read inside the macro arguments, for example
+  `tracing::debug!("stats: {:?}", stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await)`,
+  which the macro evaluates only when `debug` is enabled.
+- **Closure ergonomics**: closures cannot `.await` or return a borrow of `Metrics`. Every current
+  caller only reads values or merges a collection synchronously, so none needs either. A future
+  caller that does should copy what it needs inside the closure.
+- **Merge errors inside the closure**: `MetricCollection::merge` returns a `Result`; the REST
+  adapter keeps its current `expect` messages by returning the `Result` from the closure.
+- **Overlap with other #1669 work**: any open branch that touches these repositories or the REST
+  adapter needs a rebase; whichever lands second rebases.
+
+## Implementation Completion Review
+
+After implementation, compare the result with this specification. Record
+invalidated assumptions, material design changes, unexpected validation
+findings, and reusable lessons.
+
+- Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from the repository
+  template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
+  specification's directory.
+- If no retrospective is needed, add a concise progress-log entry explaining
+  why the work had no material discovery.
+- When an independent reviewer receives this folder-style specification, it
+  records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`.
+
+## References
+
+- Parent EPIC: #1669
+- Related issues: #2517 (made the repositories' `stats` field private; this is its recorded
+  follow-up), #2521 (removed the unused SI-30 statistics traits from the same files)
+- Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md`

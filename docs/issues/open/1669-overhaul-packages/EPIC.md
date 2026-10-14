@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-14 16:25"
+last-updated-utc: "2026-10-14 17:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -670,6 +670,7 @@ Status: TODO unless noted.
 - [ ] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report)_
 - [x] [#2517](https://github.com/torrust/torrust-tracker/issues/2517) Make the statistics repositories' metrics lock private _(Pre-publish API hygiene; five unpublished crates; found by #1348)_ — **DONE** (2026-10-14, PR #2527)
 - [x] [#2521](https://github.com/torrust/torrust-tracker/issues/2521) Remove the unused UDP statistics traits and services _(cleanup; `BanningStats` is removed by #2505)_
+- [ ] [#2536](https://github.com/torrust/torrust-tracker/issues/2536) Hide the statistics repositories' read lock and metric collection field _(Pre-publish API hygiene; follow-up of #2517)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [x] Extract `torrust-located-error` to standalone repository — [#1894](https://github.com/torrust/torrust-tracker/issues/1894) _(Rule E; requires completed rename SI-10 #1823)_ — **DONE**
@@ -734,6 +735,7 @@ Details:
 | Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | TODO   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
 | Statistics lock privacy    | [#2517](https://github.com/torrust/torrust-tracker/issues/2517) — Make the statistics repositories' metrics lock private | [docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../../closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md) | DONE | Pre-publish API hygiene; `udp-core`, `udp-server`, `http-core`, `tracker-core`, `swarm-coordination-registry` |
 | Unused UDP stats traits    | [#2521](https://github.com/torrust/torrust-tracker/issues/2521) — Remove the unused UDP statistics traits and services                                                                  | [docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md](../../closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md)                                                                     | DONE   | SI-30 repository traits and `statistics::services`; `BanningStats` is removed by #2505                                                      |
+| Statistics read lock       | [#2536](https://github.com/torrust/torrust-tracker/issues/2536) — Hide the statistics repositories' read lock and metric collection field | [docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md](../2536-1669-hide-statistics-repository-read-lock/ISSUE.md) | TODO | Pre-publish API hygiene; closure-based `read_metrics()` in the five statistics repositories; follow-up of #2517 |
 
 Proposal note:
 After SI-14, there is a proposal to evaluate a dedicated repository for protocol crates so protocol packages can evolve with BEP/spec changes while tracker app packages evolve with domain/product changes. This is proposal-only for now (not committed scope) and is tracked in [#1835](https://github.com/torrust/torrust-tracker/issues/1835).
@@ -757,6 +759,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
 - [docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../../closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md)
 - [docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md](../../closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md)
+- [docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md](../2536-1669-hide-statistics-repository-read-lock/ISSUE.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture/ISSUE.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
@@ -1017,6 +1020,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/`.
 - 2026-10-14 16:25 UTC - GitHub Copilot - #2521 is done (PR #2529 merged); its spec moved to
   `docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/`.
+- 2026-10-14 17:03 UTC - GitHub Copilot - Created #2536 (hide the five statistics repositories'
+  read lock and the `Metrics.metric_collection` field), the follow-up recorded in #2517's Out of
+  Scope, and linked it as a sub-issue.
 
 ## Acceptance Criteria
 
