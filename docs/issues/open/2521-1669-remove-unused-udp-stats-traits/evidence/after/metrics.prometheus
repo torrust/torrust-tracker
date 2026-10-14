@@ -1,0 +1,52 @@
+# HELP tracker_core_persistent_torrents_downloads_total Deprecated: use tracker_core_in_session_torrents_downloads_total or tracker_core_persisted_torrents_downloads_total. This counter is process-local unless persisted completed statistics are enabled.
+# TYPE tracker_core_persistent_torrents_downloads_total counter
+tracker_core_persistent_torrents_downloads_total 0
+
+# HELP tracker_core_in_session_torrents_downloads_total The number of torrent downloads completed since this tracker process started.
+# TYPE tracker_core_in_session_torrents_downloads_total counter
+tracker_core_in_session_torrents_downloads_total 0
+
+# HELP udp_tracker_server_requests_received_total Total number of UDP requests received
+# TYPE udp_tracker_server_requests_received_total counter
+udp_tracker_server_requests_received_total{client_address_ip_family="inet",client_address_ip_type="plain",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 3
+
+# HELP udp_tracker_server_performance_avg_processed_requests_total Total number of UDP requests processed for the average performance metrics
+# TYPE udp_tracker_server_performance_avg_processed_requests_total counter
+udp_tracker_server_performance_avg_processed_requests_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="connect",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 2
+udp_tracker_server_performance_avg_processed_requests_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="announce",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 1
+
+# HELP udp_tracker_server_requests_accepted_total Total number of UDP requests accepted
+# TYPE udp_tracker_server_requests_accepted_total counter
+udp_tracker_server_requests_accepted_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="announce",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 1
+udp_tracker_server_requests_accepted_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="connect",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 2
+
+# HELP swarm_coordination_registry_peers_added_total The total number of peers added.
+# TYPE swarm_coordination_registry_peers_added_total counter
+swarm_coordination_registry_peers_added_total{peer_role="seeder"} 1
+
+# HELP swarm_coordination_registry_torrents_added_total The total number of torrents added.
+# TYPE swarm_coordination_registry_torrents_added_total counter
+swarm_coordination_registry_torrents_added_total 1
+
+# HELP udp_tracker_core_requests_received_total Total number of UDP requests received
+# TYPE udp_tracker_core_requests_received_total counter
+udp_tracker_core_requests_received_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="connect",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 2
+udp_tracker_core_requests_received_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="announce",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 1
+
+# HELP udp_tracker_server_responses_sent_total Total number of UDP responses sent
+# TYPE udp_tracker_server_responses_sent_total counter
+udp_tracker_server_responses_sent_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="announce",result="ok",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 1
+udp_tracker_server_responses_sent_total{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="connect",result="ok",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 2
+
+# HELP swarm_coordination_registry_torrents_total The total number of torrents.
+# TYPE swarm_coordination_registry_torrents_total gauge
+swarm_coordination_registry_torrents_total 1
+
+# HELP swarm_coordination_registry_peer_connections_total The total number of peer connections (one connection per torrent).
+# TYPE swarm_coordination_registry_peer_connections_total gauge
+swarm_coordination_registry_peer_connections_total{peer_role="seeder"} 1
+
+# HELP udp_tracker_server_performance_avg_processing_time_ns Average time to process a UDP request in nanoseconds
+# TYPE udp_tracker_server_performance_avg_processing_time_ns gauge
+udp_tracker_server_performance_avg_processing_time_ns{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="connect",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 44388.5
+udp_tracker_server_performance_avg_processing_time_ns{client_address_ip_family="inet",client_address_ip_type="plain",request_kind="announce",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="127.0.0.1",server_binding_port="26969",server_binding_protocol="udp"} 61736

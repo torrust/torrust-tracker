@@ -4,22 +4,10 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
-use torrust_metrics::metric_collection::{Error, MetricCollection};
+use torrust_metrics::metric_collection::Error;
 
 use super::describe_metrics;
 use super::metrics::Metrics;
-
-/// Trait exposing only the UDP core statistics that external consumers need.
-// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
-// futures as must-use and reports the macro expansion as redundant.
-#[allow(
-    clippy::double_must_use,
-    reason = "async_trait generates must-use futures that Clippy also infers as must-use"
-)]
-#[async_trait::async_trait]
-pub trait UdpCoreStatsRepository: Send + Sync {
-    async fn get_metrics_collection(&self) -> MetricCollection;
-}
 
 /// A repository for the tracker metrics.
 ///
@@ -87,9 +75,22 @@ impl Repository {
     }
 }
 
-#[async_trait::async_trait]
-impl UdpCoreStatsRepository for Repository {
-    async fn get_metrics_collection(&self) -> MetricCollection {
-        self.stats.read().await.metric_collection.clone()
+#[cfg(test)]
+mod tests {
+    use torrust_metrics::metric_name;
+
+    use super::*;
+    use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+
+    #[tokio::test]
+    async fn it_should_contain_the_described_metrics_when_created() {
+        let repo = Repository::new();
+
+        let metric_collection = repo.get_stats().await.metric_collection.clone();
+
+        assert!(
+            metric_collection.contains_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL)),
+            "a new repository should contain the described `{UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL}` counter"
+        );
     }
 }
