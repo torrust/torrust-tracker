@@ -125,8 +125,10 @@ module inside the same file, which keeps access to a private field.
   maintainer wants it before the first publish.
 - Renaming the field.
 - Unifying the five repositories into a shared generic type.
-- Removing the unused SI-30 statistics traits in `udp-core` and `udp-server` (a separate #1669
-  sub-issue draft that touches the same files).
+- Removing the unused SI-30 statistics traits (`UdpCoreStatsRepository`,
+  `UdpServerStatsRepository`) in `udp-core` and `udp-server`. A separate #1669 sub-issue draft for
+  them exists but is not committed yet; the only in-tree note on their possible leftover status is
+  the Out of Scope of the #2505 spec (`docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md`).
 - Changelog entries: none of the five packages, nor the repository root, keeps a changelog.
 
 ## Architectural Decisions
@@ -261,8 +263,9 @@ None planned.
 - **Merge conflicts with #1348**: the unmerged branch `1348-1347-add-tests-udp-core` edits
   `packages/udp-core/src/statistics/repository.rs`. Its test lives in the file's own test module,
   so it keeps compiling after the change. Rebase on whichever lands second.
-- **Overlap with the SI-30 statistics traits draft**: it touches the same `udp-core` and
-  `udp-server` files. Keep each change in its own issue and rebase as needed.
+- **Overlap with the SI-30 statistics traits work**: its draft (not committed yet; see Out of
+  Scope) touches the same `udp-core` and `udp-server` files. Keep each change in its own issue and
+  rebase as needed.
 - **Hidden future need for direct lock access**: if a caller later needs an operation the
   methods do not offer, add a repository method instead of reopening the field.
 
