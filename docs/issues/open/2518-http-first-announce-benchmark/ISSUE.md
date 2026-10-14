@@ -323,8 +323,9 @@ Not applicable: this adds a measurement; nothing is broken.
 
 ## Regression Test Strategy
 
-Not applicable: not a bug. The benchmark's own guards (the `RoutineGuard` and the swarm-size
-assertion) run under `cargo test --benches` in the pre-push hook and CI.
+Not applicable: not a bug. The benchmark's own maintained checks (the `RoutineGuard`, the
+swarm-size assertion, and the D5 swarm-metrics and response-size assertions) run under
+`cargo test --benches` in the pre-push hook and CI.
 
 ## Implementation Plan
 
