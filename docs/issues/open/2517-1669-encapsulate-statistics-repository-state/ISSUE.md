@@ -113,6 +113,8 @@ module inside the same file, which keeps access to a private field.
 ### In Scope
 
 - Make `stats` private in the five repositories.
+- Add one `compile_fail,E0616` doctest per repository that pins the field as private (see
+  Regression Test Strategy).
 - Adapt any test, bench, or example that breaks; prefer the repository methods.
 
 ### Out of Scope
@@ -147,9 +149,28 @@ Not applicable: not a bug.
 
 ## Regression Test Strategy
 
-Not applicable: not a bug. The compiler enforces the change, and the existing tests must keep
-passing. No new test is planned, because a test cannot observe field visibility from outside the
-crate.
+Not a bug, so there is no defect to reproduce.
+
+The change is still guarded by a test. A doctest compiles as a separate crate, so a
+`rust,compile_fail,E0616` doctest on each `Repository` that reads `repository.stats` from outside
+the crate fails to compile only while the field is private. This tree already uses the pattern in
+one of the five crates: the `UdpTrackerCoreServices` docs in `packages/udp-core/src/container.rs`
+pin the private `cookie_cipher` field. For example, for `udp-core`:
+
+```rust,ignore
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_udp_core::statistics::repository::Repository;
+///
+/// fn lock_of(repository: &Repository) {
+///     let _lock = repository.stats.clone();
+/// }
+/// ```
+```
+
+Red/green: added before the field becomes private, the doctest fails (the snippet compiles); after
+the change it passes with error `E0616`. It runs under the existing `cargo test --doc --workspace`.
+It does not catch `pub(crate)` or `pub(super)`, which compile only inside the crate; the AC1 grep
+covers those.
 
 ## Implementation Plan
 
@@ -158,21 +179,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                | Notes / Expected Output                                                                                     |
 | --- | ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Re-verify the evidence on current `develop`         | Repeat the `.stats` search and crates.io check; record the commit in the progress log.                     |
-| T2  | TODO   | Make `stats` private in `udp-core`                  | `cargo test -p torrust-tracker-udp-core` passes.                                                            |
-| T3  | TODO   | Make `stats` private in `udp-server`                | `cargo test -p torrust-tracker-udp-server` passes.                                                          |
-| T4  | TODO   | Make `stats` private in `http-core`                 | `cargo test -p torrust-tracker-http-core` passes.                                                           |
-| T5  | TODO   | Make `stats` private in `tracker-core`              | `cargo test -p torrust-tracker-core` passes.                                                                |
-| T6  | TODO   | Make `stats` private in `swarm-coordination-registry` | `cargo test -p torrust-tracker-swarm-coordination-registry` passes.                                       |
+| T2  | TODO   | Make `stats` private in `udp-core`                  | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-udp-core` passes, including doctests. |
+| T3  | TODO   | Make `stats` private in `udp-server`                | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-udp-server` passes, including doctests. |
+| T4  | TODO   | Make `stats` private in `http-core`                 | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-http-core` passes, including doctests. |
+| T5  | TODO   | Make `stats` private in `tracker-core`              | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-core` passes, including doctests. |
+| T6  | TODO   | Make `stats` private in `swarm-coordination-registry` | `compile_fail,E0616` doctest on `Repository` (red first); `cargo test -p torrust-tracker-swarm-coordination-registry` passes, including doctests. |
 | T7  | TODO   | Verification                                        | See Verification Plan.                                                                                      |
 
 ## Commit Points
 
 | Task  | Coherent change set                                                                       | Commit policy                    |
 | ----- | ----------------------------------------------------------------------------------------- | -------------------------------- |
-| T2-T6 | `refactor(<package>): [#2517] make the statistics repository lock private`, one per package | Commit after focused validation. |
+| T2-T6 | `refactor(<package>): [#2517] make the statistics repository lock private`, one per package, each with its `compile_fail` doctest | Commit after focused validation and the test-design review. |
 | T7    | Manual verification evidence and spec progress updates                                    | Commit after verification.       |
 
-Every commit is GPG signed.
+Every commit is GPG signed. Write each doctest with the `write-unit-test` skill and record a short
+design review in the task evidence before committing: the snippet must fail only because of the
+private field (the pinned `E0616`), with no unrelated reason to fail compilation.
 
 ## Progress Tracking
 
