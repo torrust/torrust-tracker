@@ -12,6 +12,7 @@ semantic-links:
     - docs/benchmarking.md
     - docs/application-jobs.md
     - docs/containers.md
+    - docs/github-rulesets.md
     - docs/packages.md
     - docs/profiling.md
     - docs/release_process.md
@@ -41,6 +42,7 @@ Operational and development guides for working with the tracker.
 | [benchmarking.md](benchmarking.md)                                                                                                                                                 | How to run and interpret the torrent-repository benchmarks                 |
 | [containers.md](containers.md)                                                                                                                                                     | Building and running the tracker with Docker / Podman                      |
 | [git-hooks.md](git-hooks.md)                                                                                                                                                       | Hook behavior and SSH idle-timeout troubleshooting                         |
+| [github-rulesets.md](github-rulesets.md) | Active GitHub rulesets, why each exists, and how to check for drift |
 | [packages.md](packages.md)                                                                                                                                                         | Workspace package catalog, architecture layers, and dependency rules       |
 | [Configuration v2-to-v3 migration guide](../packages/configuration/docs/migrate-v2-to-v3.md)                                                                                       | Upgrade tracker configuration files to active schema v3                    |
 | [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                       |
