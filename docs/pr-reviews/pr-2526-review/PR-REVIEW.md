@@ -55,8 +55,11 @@ entry; `F4` and `F6` to `F9` keep their IDs. Three of them request the same chan
 Copilot row and are recorded as re-raises. The body's per-area summary and "Checked, no finding"
 list are not further findings; its note that a missing base printed `None` is handled with F13.
 
-Reviews 5516638354, 5516638647, 5516638880, and 5516639123 (josecelano, `COMMENTED`) are the
-containers GitHub created for the round-1 Copilot thread replies; they carry no finding.
+Reviews 5516638354, 5516638647, 5516638880, and 5516639123 (josecelano, `COMMENTED`, 10:39 UTC)
+are the containers GitHub created for the replies to review 5516553001, and reviews 5516733580,
+5516733881, 5516734204, 5516734623, 5516734988, 5516735345, 5516735687, 5516735962, and 5516736309
+(josecelano, `COMMENTED`, 10:47 to 10:48 UTC) the containers for the replies to review 5516589481;
+none carries a finding.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ---------------------------- | ------------ | ---------- | --------------- | -------------- | ----------- | ------------ |
