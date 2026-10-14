@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 epic: 1669
 github-issue: 2521
-spec-path: docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
+spec-path: docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md
 branch: "2521-1669-remove-unused-udp-stats-traits"
 related-pr: 2529
-last-updated-utc: "2026-10-14 15:52"
+last-updated-utc: "2026-10-14 16:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -254,10 +254,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -386,6 +386,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   torrust-tracker-rest-api-runtime-adapter --all-features` (stable 1.99.0; 52, 222 + 16, and 3
   tests, plus doctests) and Clippy on all targets. The branch is not rebased again, because the
   review round cites its current commit ids.
+- 2026-10-14 16:25 UTC - GitHub Copilot (archive session) - PR #2529 merged on 2026-10-14 at 16:22 UTC
+  (`90e8daf75`), closing #2521; the review round is audited in
+  `docs/pr-reviews/pr-2529-review/PR-REVIEW.md`. Cameron's review 5520537884 recomputed the
+  acceptance criteria and evidence and acknowledged the PR, which ticks the reviewer checkpoint.
+  The independent-reviewer-reports checkpoint stays open: no review agent received this
+  folder-style specification, so no `agent-review-reports.md` was needed. Moved the spec to
+  `docs/issues/closed/` and updated EPIC #1669.
 
 ## Acceptance Criteria
 

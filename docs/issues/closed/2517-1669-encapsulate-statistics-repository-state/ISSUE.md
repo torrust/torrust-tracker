@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: 2527
-last-updated-utc: "2026-10-14 16:00"
+last-updated-utc: "2026-10-14 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -130,7 +130,7 @@ module inside the same file, which keeps access to a private field.
 - Unifying the five repositories into a shared generic type.
 - Removing the unused SI-30 statistics traits (`UdpCoreStatsRepository`,
   `UdpServerStatsRepository`) in `udp-core` and `udp-server`: tracked by #2521
-  (`docs/issues/open/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`).
+  (`docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md`).
 - Changelog entries: none of the five packages, nor the repository root, keeps a changelog.
 
 ## Architectural Decisions
@@ -308,6 +308,8 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   landed with its package's `refactor(<package>): [#2517] make the statistics repository lock
   private` commit. History is not rewritten; `manual-verification-evidence.md` carries the same
   note.
+- 2026-10-14 16:55 UTC - GitHub Copilot (#2521 archive session) - #2521's spec moved to
+  `docs/issues/closed/` (PR #2532); updated the Out of Scope pointer to its new path.
 
 ## Acceptance Criteria
 
