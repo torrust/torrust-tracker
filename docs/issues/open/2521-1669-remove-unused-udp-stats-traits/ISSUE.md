@@ -146,9 +146,20 @@ Not applicable: not a bug. The traits are dead code, not incorrect behavior.
 ## Regression Test Strategy
 
 No new behavior, so no new regression test. Existing tests must keep passing. The adapted
-`udp-server` test keeps its intent (default construction initializes the described metrics). Follow
-the `write-unit-test` skill for the adaptation and record a brief Arrange-Act-Assert review of the
-adapted test in the progress log before committing.
+`udp-server` test keeps its intent (default construction initializes the described metrics).
+
+Test-change gates for T3 (and for T2 if #1348's trait-calling test has landed by then):
+
+1. Use the `write-unit-test` skill. Make the test change as the smallest behavior-focused
+   increment and run focused validation:
+   `cargo test -p torrust-tracker-udp-server --lib statistics::repository` (stable Rust toolchain).
+2. After it passes, perform and record the mandatory prose-first Arrange-Act-Assert design review
+   in the progress log: write temporary prose for each section, refactor until the code expresses
+   it, and remove the redundant prose. Confirm that the test exposes the one causal initial state
+   (default construction), its fixture owns only incidental mechanics, and the production Act and
+   the independently specified expected result (the described metric is present) stay visible.
+3. Stop for maintainer review of the test change before final verification, commit, or pull
+   request.
 
 ## Implementation Plan
 
@@ -166,8 +177,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set                                                                    | Commit policy                                        |
 | ---- | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`. |
-| T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation and `cargo machete`. |
+| T2   | `refactor(udp-core): [#2521] remove unused UdpCoreStatsRepository trait`     | Commit after focused validation and `cargo machete`; if a test changed, also after the recorded test-design review and maintainer review. |
+| T3   | `refactor(udp-server): [#2521] remove unused UdpServerStatsRepository trait` | Commit after focused validation, `cargo machete`, the recorded test-design review, and maintainer review. |
 | T4   | `docs(issues): [#2521] note the SI-30 trait removal in EPIC #1669`           | Commit after `linter all`.                           |
 
 ## Progress Tracking
