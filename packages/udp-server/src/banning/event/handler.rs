@@ -53,7 +53,7 @@ pub(crate) async fn update_metric_for_banned_ips_total(
         .await
     {
         Ok(()) => {}
-        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+        Err(err) => tracing::error!("Failed to set the banned IPs total gauge: {}", err),
     }
 }
 
