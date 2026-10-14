@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state"
 related-pr: 2527
-last-updated-utc: "2026-10-14 15:57"
+last-updated-utc: "2026-10-14 15:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -299,6 +299,9 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   GitHub. Archived this spec to `docs/issues/closed/` and set `status: done`.
 - 2026-10-14 15:57 UTC - GitHub Copilot - Review of PR #2530 (F1), also raised after merge on
   PR #2527 (F2): pointed the Risks overlap note at #2521, matching Out of Scope.
+- 2026-10-14 15:59 UTC - GitHub Copilot - Review of PR #2530 (F2), also raised after merge on
+  PR #2527 (F3): `manual-verification-evidence.md` now says the stats-before reading was compared
+  but not stored; its run directory no longer exists.
 
 ## Acceptance Criteria
 
