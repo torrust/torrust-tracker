@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: null
 github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-branch: "2507-stop-requiring-pull-request-rebases-spec"
+branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2508
-last-updated-utc: "2026-10-13 17:30"
+last-updated-utc: "2026-10-14 06:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,7 @@ semantic-links:
     - implement-workflow
   related-artifacts:
     - docs/issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
+    - docs/issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
@@ -167,7 +168,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status      | Task                                                  | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                |
 | --- | ----------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO        | Decision gate: find a non-rewriting merge-ref refresh | During normal maintainer merges of behind, conflict-free PRs, try in order: (a) wait and re-query; (b) close and reopen the PR; (c) GitHub "Update branch" (merge commit signed by GitHub). For each, record whether `refs/pull/<n>/merge^1` becomes the `develop` tip and whether the `github-merge.py` push is accepted. Choose the first reliable method; fall back to a rebase only if none works. Maintainer approves the choice. |
+| T1  | IN_PROGRESS | Decision gate: find a non-rewriting merge-ref refresh | During normal maintainer merges of behind, conflict-free PRs, try in order: (a) wait and re-query; (b) close and reopen the PR; (c) GitHub "Update branch" (merge commit signed by GitHub). For each, record whether `refs/pull/<n>/merge^1` becomes the `develop` tip and whether the `github-merge.py` push is accepted. Choose the first reliable method; fall back to a rebase only if none works. Maintainer approves the choice. |
 | T2  | TODO        | Update `github-merge.py` stale-merge-ref recovery     | Guard still refuses a stale merge ref; message names the chosen refresh first and a rebase as an alternative. Fixture test asserts the new message. `README-github-merge.md` updated.                                                                                                                                                                                                                                                  |
 | T3  | IN_PROGRESS | Update the `merge-pull-request` skill                 | Spec PR #2508 already replaced the pre-emptive "rebase immediately before the interactive merge" step with "refresh only when the tool reports a stale merge base (rebase or Update branch)". Remaining: document the T1 refresh procedure; keep `GH013` diagnosis accurate; document how to merge a known-good PR whose checks failed for an unrelated reason without disabling a ruleset (per T5).                                   |
 | T4  | IN_PROGRESS | Update the `open-pull-request` skill and `AGENTS.md`  | Spec PR #2508 already replaced the mandatory rebase pre-flight and section with the ADR recommendation and aligned `AGENTS.md` (Copilot review finding F1). Remaining: verify the wording after T1/T2 and search `.github/agents/` and other skills for remaining "always rebase" instructions.                                                                                                                                        |
@@ -212,7 +213,7 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
 - [x] Folder-style spec drafted in `docs/issues/drafts/stop-requiring-pull-request-rebases/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, merge-tool tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -239,6 +240,11 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   number in the ADR frontmatter, and updated the `open-pull-request` and `merge-pull-request`
   skills and `AGENTS.md` in the spec PR so the immediately effective ADR has no conflicting
   workflow instruction (T3 and T4 in progress) - PR #2508 review audit in `docs/pr-reviews/`
+- 2026-10-14 06:52 UTC - AI assistant - Spec PR #2508 merged (`d383d4b45`); started the
+  implementation on branch `2507-stop-requiring-pull-request-rebases`. T1 option (a) rejected:
+  open PR merge refs are recomputed on head pushes but not reliably after `develop` advances
+  (#2500 stale for about 19 hours) - [`manual-verification-evidence.md`](manual-verification-evidence.md)
+  section T1
 
 ## Acceptance Criteria
 
