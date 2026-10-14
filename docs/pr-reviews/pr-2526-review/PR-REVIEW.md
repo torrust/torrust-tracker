@@ -61,6 +61,14 @@ are the containers GitHub created for the replies to review 5516553001, and revi
 (josecelano, `COMMENTED`, 10:47 to 10:48 UTC) the containers for the replies to review 5516589481;
 none carries a finding.
 
+Review 5517037709 (round 2, `da2ce7`, state `APPROVED`, submitted 2026-10-14 11:16 UTC on the head
+whose tip commit was `docs(pr-reviews): [#2507] add the PR #2526 review audit`, after the rebase onto
+`develop`, <https://github.com/torrust/torrust-tracker/pull/2526#pullrequestreview-5517037709>)
+approves and left three inline comments, `[Nit][F14]`, `[Nit][F15]`, and `[Nit][F16]`, marked not
+blocking; the rows keep those IDs. Its body maps its round-1 IDs to this audit's renumbering and
+lists what it checked; neither is a further finding. Reviews 5517303862, 5517304380, and 5517313477
+(josecelano, `COMMENTED`, 11:41 to 11:42 UTC) are the containers for the round-2 replies.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ---------------------------- | ------------ | ---------- | --------------- | -------------- | ----------- | ------------ |
 | F1 | `review-finding:pr-2526-f1` | Copilot | Blocker | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -76,6 +84,9 @@ none carries a finding.
 | F7 | `review-finding:pr-2526-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2526-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2526-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2526-f14` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2526-f15` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2526-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -248,6 +259,59 @@ none carries a finding.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4269800240>
 
+### F14 - The specification's progress log stops before the review corrections
+
+- PR number: 2526
+- Source review ID: 5517037709
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270052643>
+- Concern: After the 10:11 entry the #2507 specification changed in five review-driven commits
+  without a progress-log entry, and its `last-updated-utc` (10:45) matched no entry and predated a
+  later edit.
+- Solution: A progress-log entry at 11:40 UTC names the review-driven corrections and the tool
+  changes, and `last-updated-utc` is set to it.
+- Current-tree verification: the specification at HEAD has `last-updated-utc: "2026-10-14 11:40"`
+  and one entry containing "Processed the PR #2526 reviews".
+- Resolution reference: `docs(issues): [#2507] log the PR #2526 review corrections and update the stamp`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270279050>
+
+### F15 - The merge skill does not describe the target refusal
+
+- PR number: 2526
+- Source review ID: 5517037709
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270052662>
+- Concern: The tool refuses a pull request whose recorded target is not the merge target, and the
+  README says so, but the merge skill described only the base comparison and the refresh.
+- Solution: The skill's preflight paragraph now states the refusal, its exit code `4`, its message,
+  and why a base edit is not attempted, before the recorded-base comparison.
+- Current-tree verification:
+  `git show HEAD:.github/skills/dev/git-workflow/merge-pull-request/SKILL.md | grep -c "refuses a pull request whose recorded target is not"`
+  returns `1`.
+- Resolution reference: `docs(skills): [#2507] describe the target refusal in the merge skill`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270279501>
+
+### F16 - The review inventory names only four of the thirteen reply containers
+
+- PR number: 2526
+- Source review ID: 5517037709
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270052671>
+- Concern: The Findings introduction named the four containers of the replies to review 5516553001
+  but not the nine containers of the replies to review 5516589481, so the inventory read as complete
+  when it was not.
+- Solution: The introduction names all thirteen round-1 containers, and the round-2 paragraph names
+  the round-2 containers.
+- Current-tree verification: the introduction lists 5516638354, 5516638647, 5516638880, 5516639123,
+  and 5516733580 through 5516736309, matching
+  `gh api repos/torrust/torrust-tracker/pulls/2526/reviews` for the `josecelano` reviews before
+  11:00 UTC.
+- Resolution reference: `docs(pr-reviews): [#2507] name every reply container in the PR #2526 review inventory`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2526#discussion_r4270287171>
+
 ## Processing Log
 
 - 2026-10-14 10:31 UTC - Review 5516553001 (`copilot-pull-request-reviewer`, `COMMENTED`) left
@@ -266,6 +330,14 @@ none carries a finding.
 - 2026-10-14 10:48 UTC - Pushed, re-verified the fixes against the pushed head, and posted the nine
   replies to review 5516589481, the F10, F12, and F4 replies naming the earlier fixes.
 - 2026-10-14 10:49 UTC - Recorded all thirteen rows `FIXED`/`RESOLVED` and ran
+  `validate-audit-record.py`.
+- 2026-10-14 10:53 UTC - Rebased onto `develop` at the maintainer's request and resolved the
+  thirteen threads after confirming every reply.
+- 2026-10-14 11:16 UTC - Review 5517037709 (`da2ce7`, `APPROVED`) left inline comments 4270052643,
+  4270052662, and 4270052671.
+- 2026-10-14 11:40 UTC - Committed the F15 and F14 fixes, pushed, and posted their replies by 11:41.
+- 2026-10-14 11:42 UTC - Committed and pushed the F16 fix and posted its reply.
+- 2026-10-14 11:42 UTC - Recorded F14, F15, and F16 `FIXED`/`RESOLVED` and ran
   `validate-audit-record.py`.
 
 ## Completion Rules
