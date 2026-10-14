@@ -9,7 +9,7 @@ github-issue: 2505
 spec-path: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
 branch: "2505-udp-banned-ips-metric"
 related-pr: null
-last-updated-utc: "2026-10-13 20:05"
+last-updated-utc: "2026-10-14 05:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -495,6 +495,17 @@ scope (`udp-core`, `udp-server`), signed with GPG.
   connection ID errors exceed the limit", banned in `strict` mode and would-be banned in
   `disabled` mode (`BanService::get_banned_ips_total` was documented in T5). No other docs or
   changelog describe the value.
+- 2026-10-14 05:32 UTC - GitHub Copilot (implementation session) - T10 recheck V1-V3 done on the fixed build
+  (results recorded with V4). T9: the first P2 load-test attempt aborted because the recheck
+  tracker held the health-check port 1313; P2 was rerun after the recheck. P2 load test passes
+  (mean 162437.63 against the lowest P1 run 148018.51), but 9 of 28 Criterion medians exceed the
+  highest P1 median, all six `record_error` cases among them. A back-to-back comparison with
+  `develop` on the same machine showed the fix adds about 0.4-0.6 ns (about 4%) per invalid
+  connection ID, the inherent cost of maintaining the counter (flat across map sizes, so AC7
+  holds); the `is_banned` failures are noise in unchanged code. A one-comparison variant B
+  (`Some(count) == limit.checked_add(1)`) measured as fast or faster than the first form. The
+  maintainer accepted the cost, chose variant B, and asked for P2 to be rerun on the final code.
+  Variant B passed the mutate-then-restore check (M1b, M2, M3b, M4) and all suites.
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2505-udp-banned-ips-metric/ISSUE.md
-last-updated-utc: 2026-10-13 20:03
+last-updated-utc: 2026-10-14 05:32
 ---
 
 # Manual Verification Evidence
@@ -807,6 +807,66 @@ Test design review (prose-first AAA): R3 and R4 keep the causal state visible (t
 banned client IP, and the events that publish 1), the production Act (`reset_bans` for R3; one
 reset interval of the job for R4, with a comment saying the paused clock jumps to it), and an
 independently stated expected total of 0 whose message names the interval and the banned IP.
+
+### Mutate-Then-Restore - Variant B of the Counter (T9 Follow-Up)
+
+After the T9 investigation (see `performance-evidence.md`, "P2 Investigation"), the maintainer
+adopted variant B of the crossing check, which compares once after the increment:
+`if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1)`. M1 and M3 no longer apply
+in their original form, so all four variants were rerun against B. The fixed file was copied to
+`.tmp/banning.rs.fixed-b` and restored after each run. Command:
+
+```bash
+f=packages/udp-core/src/services/banning.rs; cp $f .tmp/banning.rs.fixed-b
+for m in \
+ "M1b: count every error above the limit|if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1) {|if Some(*count) > Some(self.max_connection_id_errors_per_ip) {" \
+ "M2: reset does not clear the banned counter|        self.banned_ips_total = 0;
+|" \
+ "M3b: off by one, count an IP at the limit|self.max_connection_id_errors_per_ip.checked_add(1) {|self.max_connection_id_errors_per_ip.checked_add(0) {" \
+ "M4: never count a banned IP|            self.banned_ips_total += 1;
+|"; do
+  name="${m%%|*}"; rest="${m#*|}"; old="${rest%%|*}"; new="${rest#*|}"
+  echo "== $name"
+  OLD="$old" NEW="$new" python3 -c "import os; p='$f'; s=open(p).read(); o=os.environ['OLD']; assert s.count(o)==1, o; open(p,'w').write(s.replace(o, os.environ['NEW']))"
+  cargo test -q -p torrust-tracker-udp-core --lib services::banning 2>&1 | grep -E "^error|^    services|^test result" | sed 's/^    /FAILED: /' | sort -u
+  cp .tmp/banning.rs.fixed-b $f
+done
+cmp $f .tmp/banning.rs.fixed-b && echo "restored: identical to variant B"
+```
+
+Output:
+
+```text
+== M1b: count every error above the limit
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M2: reset does not clear the banned counter
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_after_the_bans_are_reset
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M3b: off by one, count an IP at the limit
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+FAILED: services::banning::tests::it_should_not_count_an_ip_as_banned_while_its_errors_do_not_exceed_the_limit
+FAILED: services::banning::tests::it_should_not_count_any_ip_as_banned_when_several_ips_stay_within_the_limit
+test result: FAILED. 9 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+== M4: never count a banned IP
+error: test failed, to rerun pass `-p torrust-tracker-udp-core --lib`
+FAILED: services::banning::tests::it_should_count_a_banned_ip_only_once_when_it_keeps_sending_invalid_connection_ids
+FAILED: services::banning::tests::it_should_count_an_ip_as_banned_once_its_errors_exceed_the_limit
+FAILED: services::banning::tests::it_should_count_an_ip_banned_again_after_a_reset_only_once
+FAILED: services::banning::tests::it_should_keep_the_banned_ips_total_equal_to_the_ips_above_the_limit_for_any_errors_and_resets
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.00s
+restored: identical to variant B
+```
+
+Every variant is caught by at least two tests, and R1p catches all four. With variant B the
+`udp-core`, `udp-server`, root reset-job, and root banning test suites pass, and `cargo clippy -p
+torrust-tracker-udp-core --all-targets -- -D clippy::pedantic` reports nothing.
 
 ## Failures and Follow-up
 

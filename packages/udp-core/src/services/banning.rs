@@ -31,11 +31,11 @@ impl BanService {
 
     pub fn increase_counter(&mut self, ip: &IpAddr) {
         let count = self.accurate_error_counter.entry(*ip).or_insert(0);
-        let was_banned = *count > self.max_connection_id_errors_per_ip;
 
         *count += 1;
 
-        if !was_banned && *count > self.max_connection_id_errors_per_ip {
+        // An IP becomes banned exactly when its count reaches `limit + 1`.
+        if Some(*count) == self.max_connection_id_errors_per_ip.checked_add(1) {
             self.banned_ips_total += 1;
         }
     }
