@@ -9,7 +9,7 @@ github-issue: 2517
 spec-path: docs/issues/open/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
 branch: "2517-1669-encapsulate-statistics-repository-state-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 08:14"
+last-updated-utc: "2026-10-14 09:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -231,6 +231,9 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   visibility-only change (the public read accessors still return `RwLockReadGuard`), recorded the
   read-side redesign as a possible follow-up, and cited EPIC #1669 as `issue #1669` in the
   frontmatter.
+- 2026-10-14 09:06 UTC - GitHub Copilot (spec session) - PR #2520 review round 2: planned one
+  `compile_fail,E0616` doctest per repository, made the AC1 grep catch restricted visibility, named
+  the AC2 checks, and said the SI-30 traits draft is not committed yet.
 
 ## Acceptance Criteria
 
@@ -253,7 +256,12 @@ private field (the pinned `E0616`), with no unrelated reason to fail compilation
   toolchain)
 - `cargo test --doc --workspace` (stable Rust toolchain)
 - Pre-push checks (`./contrib/dev-tools/git/hooks/pre-push.sh`)
-- AC1 check: `grep -n "pub stats" packages/*/src/statistics/repository.rs` prints nothing.
+- AC1 check: `grep -nE 'pub(\([^)]*\))? +stats *:' packages/*/src/statistics/repository.rs`
+  prints nothing. The pattern also matches `pub(crate)` and `pub(super)`, so it passes only for a
+  private field.
+- AC2 checks: the workspace builds and all tests pass with the field private (no caller outside a
+  repository file can compile against it), and the five `compile_fail,E0616` doctests pass under
+  `cargo test --doc --workspace`.
 
 ### Manual Verification Scenarios
 
