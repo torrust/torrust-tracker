@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-14 10:45"
+last-updated-utc: "2026-10-14 11:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -286,6 +286,12 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   guardrail against disabling rulesets; AC8 done.
 - 2026-10-14 10:11 UTC - AI assistant - T8 done: maintainer approved the CI gate draft; created
   issue #2525 and its specification.
+- 2026-10-14 11:40 UTC - AI assistant - Processed the PR #2526 reviews (Copilot and da2ce7; audit in
+  `docs/pr-reviews/pr-2526-review/PR-REVIEW.md`). Spec corrections: Scope and AC3 restated around
+  the recorded base, `related-pr` set to 2526, AC5 cites the recorded release-branch check, a
+  "Correction from T1" added to the Background, two stamps corrected, and the 19245352 and 87098
+  target-state rows record the applied deletions. The merge tool also refuses a pull request that
+  targets another branch and reports `gh` failures with a timeout.
 
 ## Acceptance Criteria
 
