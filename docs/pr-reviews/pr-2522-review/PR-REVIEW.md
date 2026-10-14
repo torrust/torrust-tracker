@@ -57,6 +57,15 @@ F5. These assessments refine the scope of the bot's findings rather than request
 so they are recorded in the F1 to F5 detail entries, not as extra rows. The body's note that pull
 request #2520 also edits `EPIC.md` is informational and not a finding.
 
+Review 5515888847 (round 2, `da2ce7`, submitted 2026-10-14 09:34 UTC as an approval on the head
+whose tip commit was `docs(pr-reviews): [#2521] add the PR #2522 review audit`,
+<https://github.com/torrust/torrust-tracker/pull/2522#pullrequestreview-5515888847>) confirms F1 to
+F5, F7, F8, and F10 as fixed and left two non-blocking inline findings, F11 and F12, on this audit.
+GitHub dismissed the approval at 09:47 UTC when
+`docs(issues): [#2521] add the unused statistics services to the scope` was pushed; that
+maintainer-approved scope change is not a review finding, and re-review was requested at 09:48
+UTC. The body's repeated PR #2520 note is not a finding.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2522-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -67,6 +76,8 @@ request #2520 also edits `EPIC.md` is informational and not a finding.
 | F7 | `review-finding:pr-2522-f7` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2522-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2522-f10` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2522-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2522-f12` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -221,6 +232,42 @@ request #2520 also edits `EPIC.md` is informational and not a finding.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4268918432>
 
+### F11 - The first Processing Log entry named events after its own timestamp
+
+- PR number: 2522
+- Source review ID: 5515888847
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269101419>
+- Concern: The single Processing Log entry, stamped 09:13 UTC, also recorded the fixes, the push,
+  and the replies, which happened up to 09:16 UTC; the template's log holds append-only,
+  timestamped events.
+- Solution: Appended a 09:50 UTC correction entry that names the 09:13 entry and gives each event
+  its own time. Back-dated entries appended after the 09:13 entry would break the validator's
+  chronological-order check, so the times are recorded inside the correction.
+- Current-tree verification: Commit times from `git log --format='%cI'`, push times from the
+  remote-tracking reflog, and reply times from the PR review comments API all match the
+  correction; `validate-audit-record.py --pr-number 2522` exited 0 with 2 log entries.
+- Resolution reference: `docs(pr-reviews): [#2521] give the round-1 processing events their own times`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269278772>
+
+### F12 - The round-1 F2 ruling was recorded as a severity disagreement
+
+- PR number: 2522
+- Source review ID: 5515888847
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269101437>
+- Concern: The findings introduction and the F2 detail entry said review 5515320310 disagreed with
+  F2's severity, but it ruled that the checklist does not apply and offered the note as optional.
+- Solution: Both places now record the ruling ("disagree, non-blocking") and its basis. The
+  round-1 F2 thread reply, which used the same wording, stays as posted.
+- Current-tree verification: Review 5515320310's body reads "F2: disagree, non-blocking" with the
+  edge-based reasoning. Outside this F12 entry, `grep -n "severity"` in this audit matches only the
+  description of the bot's severity brackets.
+- Resolution reference: `docs(pr-reviews): [#2521] record the basis of the round-1 F2 ruling`
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2522#discussion_r4269279181>
+
 ## Processing Log
 
 - 2026-10-14 09:13 UTC - Started audit. Fetched reviews 5515225239 and 5515320310 and all eight
@@ -233,6 +280,9 @@ request #2520 also edits `EPIC.md` is informational and not a finding.
   to 09:16:17 UTC; the audit commit at 09:20:20 UTC and its push at 09:21:56 UTC; then
   `validate-audit-record.py` exit 0, all eight threads resolved, and a refetch showing none
   unresolved. GitHub does not expose the thread-resolution time.
+- 2026-10-14 09:53 UTC - Processed round 2 (review 5515888847). Fixed F12 and F11 in separate
+  commits (09:49:46 and 09:50:33 UTC), pushed them at 09:52:05 UTC, replied on both threads at 09:52:16
+  and 09:52:19 UTC, and recorded the F11 and F12 rows.
 
 ## Completion Rules
 
