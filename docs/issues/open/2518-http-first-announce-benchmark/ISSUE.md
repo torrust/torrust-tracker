@@ -9,7 +9,7 @@ github-issue: 2518
 spec-path: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
 branch: "2518-http-first-announce-benchmark-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 07:16"
+last-updated-utc: "2026-10-14 09:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -352,6 +352,18 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
   specification from `docs/issues/drafts/` to `docs/issues/open/2518-http-first-announce-benchmark/`
   on branch `2518-http-first-announce-benchmark-spec`; the base name
   `2518-http-first-announce-benchmark` is reserved for the implementation.
+- 2026-10-14 08:18 UTC - Copilot - PR #2519 review by Copilot: rewrote AC4 so the first-announce
+  results are compared only with each other, never with `announce_once`
+  (`review-finding:pr-2519-f1`), and made M2 read each swarm size's Criterion median right after
+  every run (`review-finding:pr-2519-f2`).
+- 2026-10-14 09:12 UTC - Copilot - PR #2519 review by Cameron (`da2ce7`): the benchmark context sent no
+  swarm-registry events, so the "peer added" event D1 claimed was never timed;
+  the maintainer chose to wire the events as production does (D4, `review-finding:pr-2519-f3`).
+  The Background now quotes the rotating-pool design #2479 sketched and states the departure from
+  it (`review-finding:pr-2519-f4`). The probe's "no public seam" rationale was false; the
+  maintainer chose a maintained assertion on the swarm metrics instead (D5,
+  `review-finding:pr-2519-f5`). This entry and the updated stamp answer
+  `review-finding:pr-2519-f7`.
 
 ## Acceptance Criteria
 
