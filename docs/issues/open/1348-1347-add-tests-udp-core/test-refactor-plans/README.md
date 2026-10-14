@@ -36,7 +36,7 @@ maintainer approves it.
 | 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 4 unit tests added (1 `rstest` with 2 cases); unit-only 80.77% → 100.00% lines; findings handed off to #1669 |
 | 13 | [statistics-services-tests.md](statistics-services-tests.md) | DONE | 1 empty-state test replaced by 2 source tests; stale module docs fixed |
 | 14 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | 1 assertion sharpened, 1 `rstest` test added; lifecycle left to #1488 / #2414 |
-| 15 | [statistics-mod-tests.md](statistics-mod-tests.md) | APPROVED | 1 contract test planned for the exported metric name |
+| 15 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | 1 contract test added for the exported metric name |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

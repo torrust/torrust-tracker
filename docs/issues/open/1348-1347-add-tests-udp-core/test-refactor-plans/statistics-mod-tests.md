@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/statistics/mod.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/mod.rs
@@ -51,13 +51,17 @@ Line coverage is already 100%; D1 adds a contract check, not coverage.
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests to refactor. | Recorded above. |
-| R2 | PENDING | Add D1. | - |
+| R2 | DONE | Add D1. | 83 package unit tests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting (nightly 1.101.0), and `git diff --check` clean. With the constant renamed to `udp_core_requests_received_total`, only D1 failed (the other 82 tests passed, confirming the gap); reverted by hand. |
 | R3 | SKIPPED | No integration increment: a REST metrics contract test belongs to the REST API packages. | Explicit rationale. |
-| R4 | PENDING | Re-run unit-only coverage; record before/after. | - |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 8 / 8 to 15 / 15 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 8 / 8 (100.00%) to
+  15 / 15 (100.00%) lines; 18 / 18 regions; 2 / 2 functions.
+- **Tests added:** 1 (D1), the first test that pins the exported metric name.
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
 ## Approval
 
@@ -69,3 +73,7 @@ Approved by Jose Celano on 2026-10-14: D1.
   reach it through the name constant, and the literal label names in the handler tests. No Rust
   tests or production code changed. R2 awaits maintainer approval.
 - 2026-10-14 10:55 UTC - Jose Celano - Approved D1.
+- 2026-10-14 10:57 UTC - GitHub Copilot - Implemented R2 and measured R4 (stable Rust 1.99.0,
+  nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-14 10:59 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.

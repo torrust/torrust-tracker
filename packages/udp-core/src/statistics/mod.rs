@@ -44,3 +44,21 @@ pub fn describe_metrics() -> Metrics {
 
     metrics
 }
+
+#[cfg(test)]
+mod tests {
+    use torrust_metrics::metric_name;
+
+    use super::describe_metrics;
+
+    #[test]
+    fn it_should_declare_the_requests_received_counter_under_its_exported_name() {
+        let metrics = describe_metrics();
+
+        assert!(
+            metrics
+                .metric_collection
+                .contains_counter(&metric_name!("udp_tracker_core_requests_received_total"))
+        );
+    }
+}
