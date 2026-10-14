@@ -131,7 +131,12 @@ be sufficient and a mutation showed it was not.
    not stage it), run the test, and confirm it fails. Restore the production file with
    `git checkout -- <file>`. Try the nearest plausible variants too, for example a value cached
    after first use instead of captured at startup. Record which tests failed for which mutation
-   in the issue-local evidence.
+   in the issue-local evidence. Confirm the mutation compiled before reading the result. A mutation
+   the compiler rejects, for example one that leaves a variable unused, which the workspace's
+   `-D warnings` turns into an error, runs no test, and output filtered to test lines then looks
+   like "no test failed". Read the full output, or check it for `error` lines and a `test result:`
+   line, before treating a passing run as a result. In issue #2505 a non-compiling mutation was
+   noticed only because its result was implausible.
 2. **Stale-state bugs need two iterations of the same instance.** A test that runs one tick,
    one request, or one call cannot distinguish "computed once at startup" from "computed at
    first use" from "computed every time". When the defect is a value captured or cached across
