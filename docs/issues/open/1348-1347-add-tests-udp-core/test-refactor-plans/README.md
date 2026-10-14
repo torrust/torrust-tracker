@@ -33,7 +33,7 @@ maintainer approves it.
 | 9 | [event-tests.md](event-tests.md) | DONE | 7 tests refactored around one fixture, 2 added; only the dead `server_socket_addr()` uncovered |
 | 10 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | 3 direct projection tests added; only the dead `set_gauge` uncovered |
 | 11 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | 6 per-family tests replaced by one `rstest` test; stale `# Panics` doc removed |
-| 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | APPROVED | Plan for 4 unit tests (S1-S4); unused SI-30 traits and public `stats` locks handed off to #1669 |
+| 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 4 unit tests added (1 `rstest` with 2 cases); unit-only 80.77% → 100.00% lines; findings handed off to #1669 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

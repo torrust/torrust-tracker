@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1348
 package: torrust-tracker-udp-core
 target-file: packages/udp-core/src/statistics/repository.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/repository.rs
@@ -73,13 +73,19 @@ Test data: label sets and counts written as literals; the metric name comes from
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests to refactor. | Recorded above. |
-| R2 | PENDING | Add S1-S4. | - |
+| R2 | DONE | Add S1-S4. | 78 package unit tests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting (nightly 1.101.0), and `git diff --check` clean. Mutations, reverted by hand: `increase_counter()` returning `Ok(())` failed S3; `Default` building `Metrics::default()` without the description failed S1's `default` case. |
 | R3 | SKIPPED | No integration increment: in-memory state behind a lock. | Explicit rationale. |
-| R4 | PENDING | Re-run unit-only coverage; record before/after. | - |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 21 / 26 to 86 / 86 lines; see Results. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 21 / 26 (80.77%)
+  to 86 / 86 (100.00%) lines; 94 / 95 regions; 16 / 16 functions.
+- **Tests added:** 4 (S1 as one `rstest` test with `new` and `default` cases, S2-S4).
+- **Findings:** both handed off as EPIC #1669 sub-issue drafts and recorded in
+  [lessons.md](../lessons.md).
+- **Integration selected:** No.
+- **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
 ## Approval
 
@@ -94,3 +100,7 @@ drafted with hand-off notes under `.tmp/` for another agent to take through spec
   changed. R2 awaits maintainer approval.
 - 2026-10-14 06:42 UTC - Jose Celano - Approved S1-S4. The findings are widened (all three SI-30
   traits; the `pub stats` field in five packages) and handed off as two EPIC #1669 sub-issue drafts.
+- 2026-10-14 07:28 UTC - GitHub Copilot - Implemented R2 and measured R4 (stable Rust 1.99.0,
+  nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
+- 2026-10-14 08:07 UTC - Jose Celano - Approved completed-file review. The file is ready for
+  pre-commit and its signed per-file commit.

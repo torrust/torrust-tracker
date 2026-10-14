@@ -77,20 +77,88 @@ impl Repository {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_metrics::counter::Counter;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_collection::Error;
     use torrust_metrics::metric_name;
 
-    use super::*;
+    use super::Repository;
     use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 
+    fn announce_labels() -> LabelSet {
+        [("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into()
+    }
+
+    async fn record_one_announce(repository: &Repository) {
+        repository
+            .increase_counter(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &announce_labels(),
+                DurationSinceUnixEpoch::ZERO,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[rstest]
+    #[case::new(Repository::new)]
+    #[case::default(Repository::default)]
     #[tokio::test]
-    async fn it_should_contain_the_described_metrics_when_created() {
-        let repo = Repository::new();
+    async fn a_new_repository_should_describe_the_requests_received_counter(#[case] construct: fn() -> Repository) {
+        let repository = construct();
 
-        let metric_collection = repo.get_stats().await.metric_collection.clone();
+        let described = repository
+            .get_stats()
+            .await
+            .metric_collection
+            .contains_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL));
 
-        assert!(
-            metric_collection.contains_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL)),
-            "a new repository should contain the described `{UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL}` counter"
-        );
+        assert!(described);
+    }
+
+    #[tokio::test]
+    async fn an_increased_counter_should_be_visible_through_the_repository_stats() {
+        let repository = Repository::new();
+
+        record_one_announce(&repository).await;
+
+        let count = repository
+            .get_stats()
+            .await
+            .metric_collection
+            .get_counter_value(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &announce_labels());
+        assert_eq!(count, Some(Counter::from(1)));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_metric_collection_error_when_a_counter_cannot_be_increased() {
+        // Arrange
+        let repository = Repository::new();
+        repository
+            .stats
+            .write()
+            .await
+            .metric_collection
+            .set_gauge(
+                &metric_name!("already_a_gauge"),
+                &LabelSet::empty(),
+                1.0,
+                DurationSinceUnixEpoch::ZERO,
+            )
+            .unwrap();
+
+        // Act
+        let result = repository
+            .increase_counter(
+                &metric_name!("already_a_gauge"),
+                &LabelSet::empty(),
+                DurationSinceUnixEpoch::ZERO,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::MetricNameCollisionAdding { .. })));
     }
 }
