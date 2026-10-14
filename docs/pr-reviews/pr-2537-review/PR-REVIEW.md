@@ -39,12 +39,22 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Copilot review 5521920535 (COMMENTED, submitted 2026-10-14 17:25:40 UTC, at head `819909534`)
+Cited heads are named by their last commit subject, not by commit id, so the record stays true
+after a rebase:
+
+- spec head: "docs(issues): [#2536] add specification for hiding the statistics read lock", which
+  Copilot's review and da2ce7's first review read;
+- audit head: "docs(pr-reviews): add the PR #2537 review audit", which da2ce7's second review read;
+- Copilot-fix head: "docs(issues): [#2536] keep the debug-log example's output unchanged";
+- round-1-fix head: "docs(issues): [#2536] cover the rustdoc links to the removed accessors";
+- round-2-fix head: "docs(issues): [#2536] hold T7's commit until the maintainer review".
+
+Copilot review 5521920535 (COMMENTED, submitted 2026-10-14 17:25:40 UTC, at the spec head)
 carries three inline findings with `[<Severity>][<FindingId>]` headers: F1 and F2 (`Major`) and F3
 (`Minor`). Its overview rates them medium, low, and low; the rows use the inline headers. The
 overview's summary and change table contain no further request, so they add no row.
 
-da2ce7's review 5522278878 (submitted 2026-10-14 17:55:13 UTC, at head `819909534`; GitHub later
+da2ce7's review 5522278878 (submitted 2026-10-14 17:55:13 UTC, at the spec head; GitHub later
 marked it DISMISSED after the fix pushes) carries five inline findings with
 `[<Severity>][<FindingId>]` headers: F4-F7 (`Minor`) and F8 (`Nit`). Its IDs do not collide with
 Copilot's F1-F3, so the rows keep them. The body upholds Copilot's F1 and F2 at Minor and F3 as
@@ -78,7 +88,7 @@ PR #2532, so it adds no row.
 - Solution: the section now separates what the API enforces (no `.await`) from the caller
   obligation (no blocking, no nested `read_metrics()` on the same repository). The proposed
   `read_metrics()` rustdoc states the obligation, and the design rationale points to it.
-- Current-tree verification: at head `0f2a02bed`, `ISSUE.md`:179-188 lists the enforced rule and
+- Current-tree verification: at the Copilot-fix head, `ISSUE.md`:179-188 lists the enforced rule and
   the caller obligation, :94-97 is the proposed rustdoc, and :120-122 is the updated rationale.
 - Resolution reference: docs(issues): [#2536] record non-blocking read closures as a caller obligation
 - Follow-up PR URL: N/A
@@ -98,7 +108,7 @@ PR #2532, so it adds no row.
   comparison, finished before the next task. For a `compile_fail` doctest the comparison is recorded
   in compile-and-error terms rather than skipped. A maintainer stop follows T7, T8's notes repeat
   the gate, and two workflow checkpoints track both.
-- Current-tree verification: at head `0f2a02bed`, `ISSUE.md`:227-247 holds the subsection, the T8
+- Current-tree verification: at the Copilot-fix head, `ISSUE.md`:227-247 holds the subsection, the T8
   row names the gate, and :257-258 are the new checkpoints.
 - Resolution reference: docs(issues): [#2536] require the per-increment test-design review and the maintainer stop
 - Follow-up PR URL: N/A
@@ -113,7 +123,7 @@ PR #2532, so it adds no row.
 - Concern: formatting the `String` returned by the closure with `{:?}` adds quotes and escapes, so
   the example would change `stats: Metrics { .. }` into a quoted string.
 - Solution: the example formats the returned `String` with `{}`, and the risk explains why.
-- Current-tree verification: at head `0f2a02bed`, `ISSUE.md`:361 uses `"stats: {}"`. In tokio
+- Current-tree verification: at the Copilot-fix head, `ISSUE.md`:361 uses `"stats: {}"`. In tokio
   1.53.3, the read guard's `impl fmt::Debug` (in its `read_guard.rs`) delegates to the inner value,
   so today's log already prints the `Metrics` debug text that the fixed example keeps.
 - Resolution reference: docs(issues): [#2536] keep the debug-log example's output unchanged
@@ -133,7 +143,7 @@ PR #2532, so it adds no row.
   31, udp-core 12, http-core 9, swarm-coordination-registry 4, tracker-core 2). It also names the
   helpers and the guard-accessor test that need their own shape. In Scope covers every test caller,
   and T4 records the udp-server size.
-- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:83-95 holds the count and the named
+- Current-tree verification: at the round-1-fix head, `ISSUE.md`:83-95 holds the count and the named
   callers, :168-170 the In Scope bullet, and :230 the T4 row.
 - Resolution reference: docs(issues): [#2536] list the in-crate unit-test callers
 - Follow-up PR URL: N/A
@@ -150,7 +160,7 @@ PR #2532, so it adds no row.
 - Solution: M1 names the five outputs stored per run (ten in total) and the normalization (sorted
   samples, `recorded_at` ignored, processing-time values masked). Its expected result is
   byte-identical normalized outputs, and T2 and T8 each store their five outputs.
-- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:392 is the M1 row, :399-411 the
+- Current-tree verification: at the round-1-fix head, `ISSUE.md`:392 is the M1 row, :399-411 the
   stored outputs and the normalization, and :228 and :234 the T2 and T8 rows.
 - Resolution reference: docs(issues): [#2536] name the stored M1 outputs and their normalization
 - Follow-up PR URL: N/A
@@ -166,7 +176,7 @@ PR #2532, so it adds no row.
   authors could not be told.
 - Solution: the risk names the three open sibling specs outside #1669 that touch the accessors:
   #2414, #1348, and #2518.
-- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:446-457 names the three specs and
+- Current-tree verification: at the round-1-fix head, `ISSUE.md`:446-457 names the three specs and
   their paths.
 - Resolution reference: docs(issues): [#2536] name the sibling specs that overlap the accessor removal
 - Follow-up PR URL: N/A
@@ -184,7 +194,7 @@ PR #2532, so it adds no row.
 - Solution: the grep runs over Rust sources in `packages`, `src`, `tests`, `console`, and
   `contrib`, excluding `torrent-repository-benchmarking`. It must print exactly the two REST-port
   lines, which the spec lists.
-- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:354-372 holds the command, the
+- Current-tree verification: at the round-1-fix head, `ISSUE.md`:354-372 holds the command, the
   expected output, and the scope note. Run at that head, the grep prints 84 lines. The only ones
   that are not statistics-repository calls are the two listed REST-port lines.
 - Resolution reference: docs(issues): [#2536] make the AC1 call grep give an exact result
@@ -203,7 +213,7 @@ PR #2532, so it adds no row.
 - Solution: Current callers names the five lead-ins, and the In Scope doctests bullet, T3, and AC3
   repoint them to `Repository::read_metrics`. An AC3 check greps for the old link and runs the
   nightly library docs build.
-- Current-tree verification: at head `68b7aee97`, `ISSUE.md`:96-101 names the lead-ins, :177-178
+- Current-tree verification: at the round-1-fix head, `ISSUE.md`:96-101 names the lead-ins, :177-178
   is the In Scope sub-bullet, :229 the T3 row, :330-332 AC3, and :375-381 the AC3 check. Run at
   that head, the check's grep prints the five lead-ins.
 - Resolution reference: docs(issues): [#2536] cover the rustdoc links to the removed accessors
@@ -216,12 +226,12 @@ PR #2532, so it adds no row.
   fixed F1. Its signed commit first failed with a GPG passphrase timeout; at the maintainer's
   choice the same signed commit was retried and succeeded.
 - 2026-10-14 19:40 UTC - Fixed F2 and F3 in separate commits, pushed through the pre-commit and
-  pre-push hooks, re-verified the three claims at head `0f2a02bed`, and replied on all three
+  pre-push hooks, re-verified the three claims at the Copilot-fix head, and replied on all three
   threads. The threads are resolved after this audit is pushed.
 - 2026-10-14 20:10 UTC - Read da2ce7's review 5522278878: five inline findings (F4-F8), plus body
   notes that uphold Copilot's F1-F3 and point at #2521's TODO status (no new rows; see Findings).
-  Fixed each finding in its own commit, pushed through the hooks, re-verified the claims at head
-  `68b7aee97`, and replied on all five threads. They are resolved after this update is pushed.
+  Fixed each finding in its own commit, pushed through the hooks, re-verified the claims at the
+  round-1-fix head, and replied on all five threads. They are resolved after this update is pushed.
 
 ## Completion Rules
 
