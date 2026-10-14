@@ -103,8 +103,9 @@ Evidence on `develop` at `d1bf013ea` (2026-10-14):
 
 - In `udp-core` and `udp-server`, `statistics/services.rs` is the only file that names
   `TrackerMetrics` or `statistics::services::get_metrics`. Each file's only reference is its own
-  test, `the_statistics_service_should_return_the_tracker_metrics`, which tests only the removed
-  function. No other package names either module.
+  test, which tests only the removed function: `the_statistics_service_should_return_the_tracker_metrics`
+  in `udp-core` and `it_should_return_aggregate_torrent_and_protocol_metrics` in `udp-server`. No
+  other package names either module.
 - No other package has a `statistics/services.rs` module.
 - Removing the modules changes no workspace dependency edge: both packages still use
   `torrust_tracker_core` (for example `udp-core`'s `container.rs` and `services/announce.rs`) and
@@ -187,8 +188,9 @@ Not applicable: not a bug. The traits and services are dead code, not incorrect 
 
 No new behavior, so no new regression test. Existing tests must keep passing. The adapted
 `udp-server` test keeps its intent (default construction initializes the described metrics). The
-two `the_statistics_service_should_return_the_tracker_metrics` tests are deleted with the function
-they test (T4, T5); deleting a test of removed code needs no test-design review.
+two service tests, `the_statistics_service_should_return_the_tracker_metrics` (`udp-core`, T4) and
+`it_should_return_aggregate_torrent_and_protocol_metrics` (`udp-server`, T5), are deleted with the
+function they test; deleting a test of removed code needs no test-design review.
 
 Test-change gates for T3 (and for T2 if #1348's trait-calling test has landed by then):
 
