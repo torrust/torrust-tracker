@@ -39,20 +39,22 @@ pub async fn handle_event(
     }
 }
 
-#[allow(
-    clippy::cast_precision_loss,
-    reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-)]
 pub(crate) async fn update_metric_for_banned_ips_total(
     repository: &Repository,
     ips_banned_total: usize,
     now: DurationSinceUnixEpoch,
 ) {
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "The gauge API takes f64; the in-memory banned-IP count is far below 2^53, so the conversion is exact"
+    )]
+    let ips_banned_total = ips_banned_total as f64;
+
     match repository
         .set_gauge(
             &metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL),
             &LabelSet::default(),
-            ips_banned_total as f64,
+            ips_banned_total,
             now,
         )
         .await

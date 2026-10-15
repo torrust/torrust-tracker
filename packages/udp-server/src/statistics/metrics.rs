@@ -52,10 +52,37 @@ impl Metrics {
 }
 
 impl Metrics {
-    #[allow(
-        clippy::cast_precision_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+    /// Sum of the samples matching `labels`, as a whole number.
+    ///
+    /// Use it only for counters and for gauges set from whole counts.
+    /// `torrust-metrics` returns aggregate sums as `f64` even for `u64`
+    /// counters (see torrust/torrust-metrics#1). Returns `0` when the metric
+    /// does not exist yet.
+    #[expect(
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation,
+        reason = "The torrust-metrics Sum API returns f64; a counter sum or a count gauge is a finite, non-negative whole number, so the cast is exact below 2^53 and saturates above it"
     )]
+    fn whole_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
+        self.metric_collection.sum(metric_name, labels).unwrap_or_default() as u64
+    }
+
+    /// Mean of the per-server average processing time gauges for one request
+    /// kind, in whole nanoseconds. Returns `0` when there are no samples.
+    #[expect(
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation,
+        reason = "The mean of finite, non-negative processing-time gauges; the stats API reports whole nanoseconds, so truncating the sub-nanosecond fraction is intended"
+    )]
+    fn averaged_processing_time_ns(&self, request_kind: &str) -> u64 {
+        self.metric_collection
+            .avg(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", request_kind)].into(),
+            )
+            .unwrap_or(0.0) as u64
+    }
+
     pub fn recalculate_udp_avg_processing_time_ns(
         &mut self,
         req_processing_time: Duration,
@@ -64,8 +91,16 @@ impl Metrics {
     ) -> f64 {
         self.increment_udp_processed_requests_total(label_set, now);
 
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "The processed-request count is far below 2^53, so the conversion is exact"
+        )]
         let processed_requests_total = self.udp_processed_requests_total(label_set) as f64;
         let previous_avg = self.udp_avg_processing_time_ns(label_set);
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "A request processing time is far below 2^53 ns (about 104 days), so the conversion is exact"
+        )]
         let req_processing_time = req_processing_time.as_nanos() as f64;
 
         // Moving average: https://en.wikipedia.org/wiki/Moving_average
@@ -99,36 +134,16 @@ impl Metrics {
     }
 
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_request_accepted_total(&self, label_set: &LabelSet) -> u64 {
-        self.metric_collection
-            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
-            .unwrap_or_default() as u64
+        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
     }
 
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
-                label_set,
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+            label_set,
+        )
     }
 
     fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
@@ -165,51 +180,21 @@ impl Metrics {
     // UDP
     /// Total number of UDP (UDP tracker) requests aborted.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_requests_aborted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default() as u64
+        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests discarded before processing
     /// (e.g. because the client source port is 0).
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_requests_discarded_total(&self) -> u64 {
-        self.metric_collection
-            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default() as u64
+        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests banned.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_requests_banned_total(&self) -> u64 {
-        self.metric_collection
-            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default() as u64
+        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
     }
 
     /// Number of IPs whose connection ID errors exceed the limit.
@@ -217,308 +202,139 @@ impl Metrics {
     /// They are banned when connection ID validation is `strict`. When it is
     /// `disabled`, they are "would-be banned": counted, but not blocked.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_banned_ips_total(&self) -> u64 {
-        self.metric_collection
-            .sum(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default() as u64
+        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
     }
 
     /// Average processing time for UDP connect requests across all servers (in nanoseconds).
     /// This calculates the average of all gauge samples for connect requests.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_avg_connect_processing_time_ns_averaged(&self) -> u64 {
-        self.metric_collection
-            .avg(
-                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                &[("request_kind", "connect")].into(),
-            )
-            .unwrap_or(0.0) as u64
+        self.averaged_processing_time_ns("connect")
     }
 
     /// Average processing time for UDP announce requests across all servers (in nanoseconds).
     /// This calculates the average of all gauge samples for announce requests.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_avg_announce_processing_time_ns_averaged(&self) -> u64 {
-        self.metric_collection
-            .avg(
-                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                &[("request_kind", "announce")].into(),
-            )
-            .unwrap_or(0.0) as u64
+        self.averaged_processing_time_ns("announce")
     }
 
     /// Average processing time for UDP scrape requests across all servers (in nanoseconds).
     /// This calculates the average of all gauge samples for scrape requests.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp_avg_scrape_processing_time_ns_averaged(&self) -> u64 {
-        self.metric_collection
-            .avg(
-                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                &[("request_kind", "scrape")].into(),
-            )
-            .unwrap_or(0.0) as u64
+        self.averaged_processing_time_ns("scrape")
     }
 
     // UDPv4
     /// Total number of UDP (UDP tracker) requests from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_requests_received_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_connect_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_announce_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_scrape_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_responses_sent_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv4 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp4_errors_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     // UDPv6
     /// Total number of UDP (UDP tracker) requests from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_requests_received_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_connect_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_announce_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_scrape_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_responses_sent_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv6 peers.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
     pub fn udp6_errors_total(&self) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default() as u64
+        self.whole_total(
+            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 }
 

@@ -352,40 +352,24 @@ mod tests {
         // Verify both labeled metrics
         let stats = metrics_snapshot(&repo).await;
 
-        #[allow(
-            clippy::cast_sign_loss,
-            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-        )]
-        #[allow(
-            clippy::cast_possible_truncation,
-            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-        )]
         let udp_avg_connect_processing_time_ns = stats
             .metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "connect")].into(),
             )
-            .unwrap_or_default() as u64;
+            .unwrap_or_default();
 
-        #[allow(
-            clippy::cast_sign_loss,
-            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-        )]
-        #[allow(
-            clippy::cast_possible_truncation,
-            reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-        )]
         let udp_avg_announce_processing_time_ns = stats
             .metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "announce")].into(),
             )
-            .unwrap_or_default() as u64;
+            .unwrap_or_default();
 
-        assert_eq!(udp_avg_connect_processing_time_ns, 1000);
-        assert_eq!(udp_avg_announce_processing_time_ns, 2000);
+        assert!((udp_avg_connect_processing_time_ns - 1000.0).abs() < f64::EPSILON);
+        assert!((udp_avg_announce_processing_time_ns - 2000.0).abs() < f64::EPSILON);
     }
 
     #[tokio::test]
